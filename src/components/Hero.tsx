@@ -1,8 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { useState } from "react";
+import SurveyQuoteTool from "./SurveyQuoteTool";
 
 const Hero = () => {
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+
+  const scrollToCatalog = () => {
+    const catalogElement = document.getElementById('pool-catalog');
+    if (catalogElement) {
+      catalogElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
+    <>
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-background to-accent/10">
       {/* Floating Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
@@ -29,7 +41,7 @@ const Hero = () => {
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
         <div className="animate-fade-in-up">
           <img 
-            src="/lovable-uploads/5bfe3308-05a6-4d01-9f62-014d86ea281c.png" 
+            src="/lovable-uploads/155c5b3a-8bd3-4060-8141-7cf76cb9f153.png"
             alt="Wonderlands Logo" 
             className="w-48 h-48 md:w-64 md:h-64 mx-auto mb-8 animate-scale-in"
           />
@@ -50,6 +62,7 @@ const Hero = () => {
             variant="gradient"
             size="lg" 
             className="hover:scale-105 transition-all duration-300 group"
+            onClick={scrollToCatalog}
           >
             Explore Our Pools
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -59,6 +72,7 @@ const Hero = () => {
             variant="coral" 
             size="lg" 
             className="hover:scale-105 transition-all duration-300"
+            onClick={() => setShowQuoteModal(true)}
           >
             Get Free Quote
           </Button>
@@ -74,6 +88,13 @@ const Hero = () => {
         </div>
       </div>
     </section>
+    
+    <SurveyQuoteTool 
+      pool={null}
+      isOpen={showQuoteModal}
+      onClose={() => setShowQuoteModal(false)}
+    />
+    </>
   );
 };
 

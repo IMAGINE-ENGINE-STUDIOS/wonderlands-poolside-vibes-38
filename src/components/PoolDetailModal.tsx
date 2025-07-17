@@ -32,17 +32,26 @@ const getCategoryColor = (category: string) => {
 };
 
 const getPoolFeatures = (model: string): string[] => {
-  const commonFeatures = ["Lifetime Structural Warranty", "Slip-Resistant Steps", "UV-Resistant Gel Coat"];
+  const standardFeatures = [
+    "Premium LED Lighting System",
+    "Advanced Salt Water Filter System", 
+    "Variable Speed Energy-Efficient Pump",
+    "Automatic Pool Cleaner",
+    "Digital Control System",
+    "Lifetime Structural Warranty",
+    "Slip-Resistant Steps & Surfaces",
+    "UV-Resistant Gel Coat Finish"
+  ];
   
   if (model.includes("Tuscan") || model.includes("Corinthian")) {
-    return [...commonFeatures, "Built-in Spa", "Tanning Ledge", "Swim-up Seating"];
+    return [...standardFeatures, "Built-in Spa with LED Lighting", "Tanning Ledge", "Swim-up Seating", "Premium Water Features"];
   } else if (model.includes("Laguna") || model.includes("Bay Isle")) {
-    return [...commonFeatures, "Tanning Ledge", "Beach Entry", "Water Features"];
+    return [...standardFeatures, "Tanning Ledge with Lighting", "Beach Entry", "Cascading Water Features", "Integrated Bench Seating"];
   } else if (model.includes("Enchantment")) {
-    return [...commonFeatures, "Compact Design", "Easy Maintenance", "Perfect for Small Yards"];
+    return [...standardFeatures, "Compact LED Design", "Space-Saving Pump System", "Perfect for Small Yards", "Easy Maintenance Access"];
   }
   
-  return [...commonFeatures, "Custom Features Available", "LED Lighting Ready"];
+  return [...standardFeatures, "Custom LED Color Options", "Upgraded Filtration Package"];
 };
 
 const getDimensions = (model: string): string => {

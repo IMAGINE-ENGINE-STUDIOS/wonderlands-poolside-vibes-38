@@ -59,7 +59,7 @@ const PoolCatalog = () => {
 
   return (
     <>
-      <section className="py-20 px-4 relative overflow-hidden">
+      <section id="pool-catalog" className="py-20 px-4 relative overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
