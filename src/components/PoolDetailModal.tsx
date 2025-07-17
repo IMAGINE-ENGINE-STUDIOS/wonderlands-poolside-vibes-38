@@ -10,6 +10,7 @@ interface Pool {
   category: 'premium' | 'deluxe' | 'standard' | 'compact';
   image?: string;
   dimensions?: string;
+  depth?: string;
   features?: string[];
   description?: string;
 }
@@ -54,24 +55,16 @@ const getPoolFeatures = (model: string): string[] => {
   return [...standardFeatures, "Custom LED Color Options", "Upgraded Filtration Package"];
 };
 
-const getDimensions = (model: string): string => {
-  if (model.includes("14.40")) return "40' × 14' × 8'";
-  if (model.includes("14.30")) return "30' × 14' × 7.5'";
-  if (model.includes("14.27")) return "27' × 14' × 7'";
-  if (model.includes("13.24")) return "24' × 13' × 6.5'";
-  if (model.includes("11.20")) return "20' × 11' × 6'";
-  if (model.includes("9.24")) return "24' × 9' × 5.5'";
-  if (model.includes("9.21")) return "21' × 9' × 5.5'";
-  if (model.includes("9.17")) return "17' × 9' × 5'";
-  
-  return "Custom Dimensions Available";
+const getDimensions = (pool: Pool): string => {
+  return pool.dimensions || "Custom Dimensions Available";
 };
 
 const PoolDetailModal = ({ pool, isOpen, onClose, onRequestQuote }: PoolDetailModalProps) => {
   if (!pool) return null;
 
   const features = getPoolFeatures(pool.model);
-  const dimensions = getDimensions(pool.model);
+  const dimensions = getDimensions(pool);
+  const depth = pool.depth || "Standard depth available";
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -130,12 +123,21 @@ const PoolDetailModal = ({ pool, isOpen, onClose, onRequestQuote }: PoolDetailMo
 
             <Separator />
 
-            {/* Dimensions */}
-            <div className="flex items-center gap-3">
-              <Ruler className="h-5 w-5 text-primary" />
-              <div>
-                <p className="font-semibold">Dimensions</p>
-                <p className="text-muted-foreground">{dimensions}</p>
+            {/* Dimensions & Depth */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <Ruler className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="font-semibold">Dimensions</p>
+                  <p className="text-muted-foreground">{dimensions}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Waves className="h-5 w-5 text-teal" />
+                <div>
+                  <p className="font-semibold">Depth</p>
+                  <p className="text-muted-foreground">{depth}</p>
+                </div>
               </div>
             </div>
 

@@ -9,12 +9,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2 } from "lucide-react";
+import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings } from "lucide-react";
+import PoolCustomizationOptions from "./PoolCustomizationOptions";
 
 interface Pool {
   model: string;
   price: number;
   category: 'premium' | 'deluxe' | 'standard' | 'compact';
+  dimensions?: string;
+  depth?: string;
+}
+
+interface PoolOption {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: 'waterline' | 'jets' | 'heating' | 'covers' | 'decorative';
 }
 
 interface SurveyQuoteToolProps {
@@ -45,6 +56,8 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose }: SurveyQuoteToolProps) => {
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showQuote, setShowQuote] = useState(false);
+  const [selectedOptions, setSelectedOptions] = useState<PoolOption[]>([]);
+  const [currentStep, setCurrentStep] = useState<'survey' | 'options' | 'quote'>('survey');
   const { toast } = useToast();
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,6 +93,10 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose }: SurveyQuoteToolProps) => {
     if (!pool) return 0;
     
     let basePrice = pool.price;
+    
+    // Add selected options
+    const optionsPrice = selectedOptions.reduce((total, option) => total + option.price, 0);
+    basePrice += optionsPrice;
     
     // Florida-specific adjustments
     if (surveyData.soilType === "sand") basePrice *= 0.95; // Easier excavation
@@ -121,7 +138,11 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose }: SurveyQuoteToolProps) => {
       return;
     }
     
-    setShowQuote(true);
+    setCurrentStep('options');
+  };
+
+  const handleContinueToQuote = () => {
+    setCurrentStep('quote');
   };
 
   if (!pool) return null;
@@ -138,7 +159,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose }: SurveyQuoteToolProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        {!showQuote ? (
+        {currentStep === 'survey' ? (
           <div className="space-y-6">
             {/* Property Survey Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -273,8 +294,32 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose }: SurveyQuoteToolProps) => {
               size="lg"
               className="w-full"
             >
-              Generate Custom Quote
+              Continue to Options
             </Button>
+          </div>
+        ) : currentStep === 'options' ? (
+          /* Pool Customization Options */
+          <div className="space-y-6">
+            <PoolCustomizationOptions onSelectionChange={setSelectedOptions} />
+            
+            <div className="flex gap-3">
+              <Button 
+                onClick={() => setCurrentStep('survey')}
+                variant="outline"
+                size="lg"
+                className="flex-1"
+              >
+                Back to Survey
+              </Button>
+              <Button 
+                onClick={handleContinueToQuote}
+                variant="gradient"
+                size="lg"
+                className="flex-1"
+              >
+                Generate Quote
+              </Button>
+            </div>
           </div>
         ) : (
           /* Quote Results */
@@ -293,9 +338,21 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose }: SurveyQuoteToolProps) => {
                 <div className="text-3xl font-bold text-foreground">
                   ${calculateQuote().toLocaleString()}
                 </div>
-                <p className="text-muted-foreground">
-                  Complete installation including permits, excavation, and basic landscaping
-                </p>
+                <div className="space-y-2">
+                  <p className="text-muted-foreground">
+                    Complete installation including permits, excavation, and basic landscaping
+                  </p>
+                  {selectedOptions.length > 0 && (
+                    <div className="text-sm">
+                      <p className="font-medium">Selected Options:</p>
+                      <ul className="list-disc list-inside text-muted-foreground">
+                        {selectedOptions.map((option, index) => (
+                          <li key={index}>{option.name} (+${option.price.toLocaleString()})</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
                 
                 <div className="space-y-2">
                   <h4 className="font-semibold">Recommendations for your property:</h4>
@@ -311,8 +368,12 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose }: SurveyQuoteToolProps) => {
                   <Button variant="gradient" className="flex-1">
                     Schedule Installation
                   </Button>
-                  <Button variant="outline" className="flex-1">
-                    Modify Quote
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => setCurrentStep('options')}
+                  >
+                    Modify Options
                   </Button>
                 </div>
               </CardContent>
