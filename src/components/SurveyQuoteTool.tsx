@@ -40,22 +40,32 @@ interface SurveyQuoteToolProps {
 }
 
 interface SurveyData {
+  name: string;
+  email: string;
+  phone: string;
   address: string;
   yardSize: string;
   soilType: string;
   accessWidth: string;
   utilityLines: string;
   specialRequests: string;
+  timeline: string;
+  budget: string;
 }
 
 const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteToolProps) => {
   const [surveyData, setSurveyData] = useState<SurveyData>({
+    name: "",
+    email: "",
+    phone: "",
     address: "",
     yardSize: "",
     soilType: "",
     accessWidth: "",
     utilityLines: "",
-    specialRequests: ""
+    specialRequests: "",
+    timeline: "",
+    budget: ""
   });
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
@@ -134,10 +144,21 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
   };
 
   const handleSubmitSurvey = () => {
-    if (!surveyData.address || !surveyData.yardSize) {
+    if (!surveyData.name || !surveyData.email || !surveyData.address || !surveyData.yardSize) {
       toast({
         title: "Missing Information",
-        description: "Please fill in at least your address and yard size.",
+        description: "Please fill in your contact details, address and yard size.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(surveyData.email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
         variant: "destructive",
       });
       return;
@@ -156,98 +177,188 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
-            Custom Quote for {pool?.model || customProduct?.name}
+          <DialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
+            Get Your Personalized Pool Quote
           </DialogTitle>
-          <DialogDescription>
-            Provide your property details for an accurate Florida installation quote
+          <DialogDescription className="text-lg">
+            Join 500+ Florida families who've created their dream oasis with Wonderlands
           </DialogDescription>
         </DialogHeader>
 
         {currentStep === 'survey' ? (
           <div className="space-y-6">
+            {/* Contact Information */}
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-teal/5">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-primary" />
+                  Contact Information
+                </CardTitle>
+                <CardDescription>
+                  Let's start with your details so we can send you a personalized quote
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="name">Full Name *</Label>
+                  <Input
+                    id="name"
+                    placeholder="John Smith"
+                    value={surveyData.name}
+                    onChange={(e) => setSurveyData({...surveyData, name: e.target.value})}
+                    className="focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email Address *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="john@example.com"
+                    value={surveyData.email}
+                    onChange={(e) => setSurveyData({...surveyData, email: e.target.value})}
+                    className="focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    placeholder="(555) 123-4567"
+                    value={surveyData.phone}
+                    onChange={(e) => setSurveyData({...surveyData, phone: e.target.value})}
+                    className="focus:border-primary"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Property Survey Form */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="address" className="flex items-center gap-2">
-                    <MapPin size={16} className="text-coral" />
-                    Property Address
-                  </Label>
-                  <Input
-                    id="address"
-                    placeholder="123 Main St, Miami, FL 33101"
-                    value={surveyData.address}
-                    onChange={(e) => setSurveyData({...surveyData, address: e.target.value})}
-                  />
+            <Card className="border-coral/20 bg-gradient-to-br from-coral/5 to-orange/5">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Home className="h-5 w-5 text-coral" />
+                  Property Information
+                </CardTitle>
+                <CardDescription>
+                  Tell us about your property for an accurate Florida installation quote
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="address" className="flex items-center gap-2">
+                      <MapPin size={16} className="text-coral" />
+                      Property Address *
+                    </Label>
+                    <Input
+                      id="address"
+                      placeholder="123 Main St, Miami, FL 33101"
+                      value={surveyData.address}
+                      onChange={(e) => setSurveyData({...surveyData, address: e.target.value})}
+                      className="focus:border-coral"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="yardSize">Backyard Size *</Label>
+                    <Select onValueChange={(value) => setSurveyData({...surveyData, yardSize: value})}>
+                      <SelectTrigger className="focus:border-coral">
+                        <SelectValue placeholder="Select yard size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="small">Small (&lt; 1000 sq ft)</SelectItem>
+                        <SelectItem value="medium">Medium (1000-2500 sq ft)</SelectItem>
+                        <SelectItem value="large">Large (&gt; 2500 sq ft)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="timeline">Project Timeline</Label>
+                    <Select onValueChange={(value) => setSurveyData({...surveyData, timeline: value})}>
+                      <SelectTrigger className="focus:border-coral">
+                        <SelectValue placeholder="When do you want to start?" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="asap">As soon as possible</SelectItem>
+                        <SelectItem value="3months">Within 3 months</SelectItem>
+                        <SelectItem value="6months">Within 6 months</SelectItem>
+                        <SelectItem value="planning">Just planning/researching</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="soilType">Soil Type (Florida specific)</Label>
+                    <Select onValueChange={(value) => setSurveyData({...surveyData, soilType: value})}>
+                      <SelectTrigger className="focus:border-coral">
+                        <SelectValue placeholder="Select soil type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sand">Sandy soil (common in coastal FL)</SelectItem>
+                        <SelectItem value="clay">Clay soil</SelectItem>
+                        <SelectItem value="mixed">Mixed soil</SelectItem>
+                        <SelectItem value="unknown">Not sure</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="yardSize">Backyard Size</Label>
-                  <Select onValueChange={(value) => setSurveyData({...surveyData, yardSize: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select yard size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="small">Small (&lt; 1000 sq ft)</SelectItem>
-                      <SelectItem value="medium">Medium (1000-2500 sq ft)</SelectItem>
-                      <SelectItem value="large">Large (&gt; 2500 sq ft)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="budget">Budget Range</Label>
+                    <Select onValueChange={(value) => setSurveyData({...surveyData, budget: value})}>
+                      <SelectTrigger className="focus:border-coral">
+                        <SelectValue placeholder="Select budget range" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="50k-75k">$50,000 - $75,000</SelectItem>
+                        <SelectItem value="75k-100k">$75,000 - $100,000</SelectItem>
+                        <SelectItem value="100k-150k">$100,000 - $150,000</SelectItem>
+                        <SelectItem value="150k+">$150,000+</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div>
-                  <Label htmlFor="soilType">Soil Type (Florida specific)</Label>
-                  <Select onValueChange={(value) => setSurveyData({...surveyData, soilType: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select soil type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sand">Sandy soil (common in coastal FL)</SelectItem>
-                      <SelectItem value="clay">Clay soil</SelectItem>
-                      <SelectItem value="mixed">Mixed soil</SelectItem>
-                      <SelectItem value="unknown">Not sure</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                  <div>
+                    <Label htmlFor="accessWidth">Equipment Access</Label>
+                    <Select onValueChange={(value) => setSurveyData({...surveyData, accessWidth: value})}>
+                      <SelectTrigger className="focus:border-coral">
+                        <SelectValue placeholder="Access width to backyard" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="wide">Wide (&gt;10 ft)</SelectItem>
+                        <SelectItem value="standard">Standard (8-10 ft)</SelectItem>
+                        <SelectItem value="narrow">Narrow (&lt;8 ft)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="accessWidth">Equipment Access</Label>
-                  <Select onValueChange={(value) => setSurveyData({...surveyData, accessWidth: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Access width to backyard" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="wide">Wide (&gt;10 ft)</SelectItem>
-                      <SelectItem value="standard">Standard (8-10 ft)</SelectItem>
-                      <SelectItem value="narrow">Narrow (&lt;8 ft)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div>
+                    <Label htmlFor="utilityLines">Known Utility Lines</Label>
+                    <Input
+                      id="utilityLines"
+                      placeholder="e.g., Water, electric, septic"
+                      value={surveyData.utilityLines}
+                      onChange={(e) => setSurveyData({...surveyData, utilityLines: e.target.value})}
+                      className="focus:border-coral"
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="utilityLines">Known Utility Lines</Label>
-                  <Input
-                    id="utilityLines"
-                    placeholder="e.g., Water, electric, septic"
-                    value={surveyData.utilityLines}
-                    onChange={(e) => setSurveyData({...surveyData, utilityLines: e.target.value})}
-                  />
+                  <div>
+                    <Label htmlFor="specialRequests">Special Requests</Label>
+                    <Textarea
+                      id="specialRequests"
+                      placeholder="Spa, lighting, decking, landscaping..."
+                      value={surveyData.specialRequests}
+                      onChange={(e) => setSurveyData({...surveyData, specialRequests: e.target.value})}
+                      className="focus:border-coral"
+                    />
+                  </div>
                 </div>
-
-                <div>
-                  <Label htmlFor="specialRequests">Special Requests</Label>
-                  <Textarea
-                    id="specialRequests"
-                    placeholder="Spa, lighting, decking, landscaping..."
-                    value={surveyData.specialRequests}
-                    onChange={(e) => setSurveyData({...surveyData, specialRequests: e.target.value})}
-                  />
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Image Upload with Background Removal */}
             <div className="space-y-4">
@@ -293,14 +404,23 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
               </div>
             </div>
 
-            <Button 
-              onClick={handleSubmitSurvey}
-              variant="gradient"
-              size="lg"
-              className="w-full"
-            >
-              Continue to Options
-            </Button>
+            <div className="text-center space-y-4">
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                <span>Free consultation • No obligation • Expert guidance</span>
+              </div>
+              <Button 
+                onClick={handleSubmitSurvey}
+                variant="gradient"
+                size="lg"
+                className="w-full hover:scale-105 transition-all duration-300"
+              >
+                Get My Personalized Quote
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                * By submitting, you agree to receive follow-up communications about your pool project
+              </p>
+            </div>
           </div>
         ) : currentStep === 'options' ? (
           /* Pool Customization Options */

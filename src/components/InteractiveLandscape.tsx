@@ -25,63 +25,55 @@ const InteractiveLandscape = () => {
   });
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-gradient-to-b from-purple-900 via-pink-600 to-orange-400 landscape-mobile">
-      {/* Twinkling Stars */}
-      <div className="absolute inset-0">
-        <div className="stars-container">
-          {[...Array(50)].map((_, i) => (
-            <div
-              key={i}
-              className="star"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 60}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 2}s`,
-              }}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Animated Clouds */}
-      <animated.div style={parallaxClouds} className="absolute inset-0">
-        <div className="cloud cloud-1"></div>
-        <div className="cloud cloud-2"></div>
-        <div className="cloud cloud-3"></div>
+    <div className="relative w-full h-screen overflow-hidden bg-gradient-to-b from-pink-400 via-orange-400 to-yellow-200 landscape-mobile">
+      {/* Blue Star/Diamond */}
+      <animated.div 
+        style={parallaxClouds} 
+        className="absolute top-20 left-1/4 z-10"
+      >
+        <div className="star-diamond"></div>
       </animated.div>
 
-      {/* Sun */}
-      <animated.div style={parallaxSun} className="absolute top-32 right-32">
-        <div className="sun"></div>
+      {/* Yellow Sun */}
+      <animated.div style={parallaxSun} className="absolute top-16 right-1/3">
+        <div className="wonderlands-sun"></div>
       </animated.div>
 
-      {/* Mountain Silhouettes */}
-      <div className="absolute bottom-0 w-full">
-        <div className="mountain-back"></div>
-        <div className="mountain-mid"></div>
-        <div className="mountain-front"></div>
-      </div>
-
-      {/* Waterfall */}
-      <div className="absolute right-1/4 top-1/3 waterfall-container">
-        <div className="waterfall">
-          <div className="waterfall-stream stream-1"></div>
-          <div className="waterfall-stream stream-2"></div>
-          <div className="waterfall-stream stream-3"></div>
-          <div className="waterfall-splash"></div>
+      {/* Rolling Hills Layers */}
+      <div className="absolute bottom-0 w-full z-20">
+        {/* Back Hills */}
+        <div className="hill-layer hill-back"></div>
+        
+        {/* Mid Hills with Waterfall */}
+        <div className="hill-layer hill-mid">
+          {/* Waterfall streams */}
+          <div className="wonderlands-waterfall">
+            <div className="waterfall-stream-new stream-purple"></div>
+            <div className="waterfall-stream-new stream-blue-light"></div>
+            <div className="waterfall-stream-new stream-blue"></div>
+            <div className="waterfall-stream-new stream-teal"></div>
+          </div>
+        </div>
+        
+        {/* Front Hills */}
+        <div className="hill-layer hill-front"></div>
+        
+        {/* Vegetation */}
+        <div className="vegetation-layer">
+          <div className="plant plant-1"></div>
+          <div className="plant plant-2"></div>
+          <div className="plant plant-3"></div>
+          <div className="plant plant-4"></div>
+          <div className="plant plant-5"></div>
+        </div>
+        
+        {/* Water Pool */}
+        <div className="wonderlands-pool">
+          <div className="pool-ripple ripple-1"></div>
+          <div className="pool-ripple ripple-2"></div>
+          <div className="pool-ripple ripple-3"></div>
         </div>
       </div>
-
-      {/* Water Pool */}
-      <div className="absolute bottom-0 w-full">
-        <div className="water-surface">
-          <div className="water-ripple ripple-1"></div>
-          <div className="water-ripple ripple-2"></div>
-          <div className="water-ripple ripple-3"></div>
-        </div>
-      </div>
-
 
       {/* Mobile Wireframe Grid */}
       <div className="wireframe-grid md:hidden"></div>

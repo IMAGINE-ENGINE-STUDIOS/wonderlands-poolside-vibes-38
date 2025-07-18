@@ -85,38 +85,43 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
 
   return (
     <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between mb-3">
+      {/* Edge-to-edge Pool Image at top */}
+      <div 
+        className="relative w-full h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image"
+        onClick={handleImageClick}
+      >
+        {pool.image ? (
+          <img 
+            src={pool.image} 
+            alt={pool.model}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
+            <Waves size={48} className="text-primary/60" />
+          </div>
+        )}
+        
+        {/* Category Badge overlay */}
+        <div className="absolute top-4 left-4">
           <Badge className={`${getCategoryColor(pool.category)} text-white capitalize font-medium px-3 py-1`}>
             {pool.category}
           </Badge>
-          <Waves size={22} className="text-primary/60 group-hover:text-primary transition-colors" />
         </div>
-      </CardHeader>
-      
-      <CardContent className="pt-0 space-y-4">
-        {/* Pool Image - Click to expand */}
-        <div 
-          className="relative w-full h-48 bg-gradient-to-br from-primary/10 to-teal/10 rounded-lg cursor-pointer overflow-hidden group/image"
-          onClick={handleImageClick}
-        >
-          {pool.image ? (
-            <img 
-              src={pool.image} 
-              alt={pool.model}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
-              <Waves size={48} className="text-primary/60" />
-            </div>
-          )}
-          <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-            <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 text-white font-medium">
-              Click for Details
-            </div>
+        
+        {/* Waves icon overlay */}
+        <div className="absolute top-4 right-4">
+          <Waves size={22} className="text-white/80 group-hover:text-white transition-colors drop-shadow-lg" />
+        </div>
+        
+        <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+          <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 text-white font-medium">
+            Click for Details
           </div>
         </div>
+      </div>
+      
+      <CardContent className="p-6 space-y-4">
         
         {/* Pool Name */}
         <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
