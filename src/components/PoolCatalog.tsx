@@ -1,10 +1,7 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Waves, Sparkles, DollarSign } from "lucide-react";
 import PoolDetailModal from "./PoolDetailModal";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import PoolProductCard from "./PoolProductCard";
 import astoria12Image from "@/assets/pools/astoria-12.jpg";
 import apollo14Image from "@/assets/pools/apollo-14.jpg";
 import coral16Image from "@/assets/pools/coral-16.jpg";
@@ -256,15 +253,6 @@ const pools: Pool[] = [
   }
 ];
 
-const getCategoryColor = (category: string) => {
-  switch (category) {
-    case 'premium': return 'bg-gradient-to-r from-coral to-orange';
-    case 'deluxe': return 'bg-gradient-to-r from-primary to-teal';
-    case 'standard': return 'bg-gradient-to-r from-secondary to-accent';
-    case 'compact': return 'bg-gradient-to-r from-teal to-primary';
-    default: return 'bg-gradient-to-r from-primary to-teal';
-  }
-};
 
 const PoolCatalog = () => {
   const [selectedPool, setSelectedPool] = useState<Pool | null>(null);
@@ -276,7 +264,7 @@ const PoolCatalog = () => {
     setShowDetailModal(true);
   };
 
-  const handleRequestQuote = (pool: Pool) => {
+  const handleRequestQuote = (pool: Pool, extras?: any) => {
     setSelectedPool(pool);
     setShowDetailModal(false);
     setShowQuoteModal(true);
@@ -295,46 +283,14 @@ const PoolCatalog = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {pools.map((pool, index) => (
-              <Card 
-                key={pool.model} 
-                className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-primary/30"
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge className={`${getCategoryColor(pool.category)} text-white capitalize font-medium`}>
-                      {pool.category}
-                    </Badge>
-                    <Waves size={20} className="text-primary/60 group-hover:text-primary transition-colors" />
-                  </div>
-                  <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {pool.model}
-                  </CardTitle>
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  <div className="flex items-center gap-1 mb-4">
-                    <DollarSign className="h-5 w-5 text-teal" />
-                    <span className="text-2xl font-bold text-foreground">
-                      {pool.price.toLocaleString()}
-                    </span>
-                  </div>
-                  
-                  <CardDescription className="text-sm text-muted-foreground mb-4">
-                    Premium fiberglass construction with lifetime warranty
-                  </CardDescription>
-                  
-                  <Button 
-                    onClick={() => handleViewDetails(pool)}
-                    variant="gradient"
-                    className="w-full hover:scale-105 transition-all duration-300"
-                    size="sm"
-                  >
-                    View Details
-                  </Button>
-                </CardContent>
-              </Card>
+              <PoolProductCard
+                key={pool.model}
+                pool={pool}
+                onViewDetails={handleViewDetails}
+                onRequestQuote={handleRequestQuote}
+              />
             ))}
           </div>
         </div>

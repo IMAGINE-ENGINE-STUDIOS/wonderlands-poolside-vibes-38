@@ -32,6 +32,11 @@ interface SurveyQuoteToolProps {
   pool: Pool | null;
   isOpen: boolean;
   onClose: () => void;
+  customProduct?: {
+    name: string;
+    price: number;
+    type: string;
+  };
 }
 
 interface SurveyData {
@@ -43,7 +48,7 @@ interface SurveyData {
   specialRequests: string;
 }
 
-const SurveyQuoteTool = ({ pool, isOpen, onClose }: SurveyQuoteToolProps) => {
+const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteToolProps) => {
   const [surveyData, setSurveyData] = useState<SurveyData>({
     address: "",
     yardSize: "",
@@ -90,9 +95,9 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose }: SurveyQuoteToolProps) => {
   };
 
   const calculateQuote = () => {
-    if (!pool) return 0;
+    if (!pool && !customProduct) return 0;
     
-    let basePrice = pool.price;
+    let basePrice = pool?.price || customProduct?.price || 0;
     
     // Add selected options
     const optionsPrice = selectedOptions.reduce((total, option) => total + option.price, 0);
@@ -108,7 +113,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose }: SurveyQuoteToolProps) => {
   };
 
   const getRecommendations = () => {
-    if (!pool) return [];
+    if (!pool && !customProduct) return [];
     
     const recommendations = [];
     
@@ -145,14 +150,14 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose }: SurveyQuoteToolProps) => {
     setCurrentStep('quote');
   };
 
-  if (!pool) return null;
+  if (!pool && !customProduct) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
-            Custom Quote for {pool.model}
+            Custom Quote for {pool?.model || customProduct?.name}
           </DialogTitle>
           <DialogDescription>
             Provide your property details for an accurate Florida installation quote
@@ -328,7 +333,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose }: SurveyQuoteToolProps) => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <DollarSign className="h-6 w-6 text-teal" />
-                  Custom Quote for {pool.model}
+                  Custom Quote for {pool?.model || customProduct?.name}
                 </CardTitle>
                 <CardDescription>
                   Based on your Florida property survey

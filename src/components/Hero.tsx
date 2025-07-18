@@ -41,15 +41,11 @@ const Hero = () => {
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
         <div className="animate-fade-in-up">
           <img 
-            src="/lovable-uploads/155c5b3a-8bd3-4060-8141-7cf76cb9f153.png"
-            alt="Wonderlands Logo" 
-            className="w-48 h-48 md:w-64 md:h-64 mx-auto mb-8 animate-scale-in"
+            src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png"
+            alt="Wonderlands Professional Logo" 
+            className="w-56 h-56 md:w-72 md:h-72 mx-auto mb-8 animate-scale-in"
           />
         </div>
-        
-        <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in-up bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-          Wonderlands
-        </h1>
         
         <p className="text-xl md:text-2xl text-foreground/80 mb-8 animate-fade-in-up leading-relaxed">
           Transform your backyard into your personal oasis with premium fiberglass pools and patios. 
