@@ -2,51 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Wonderlands Paradise Landscape Styles */
+/* Wonderlands SVG Landscape Styles */
 
-/* Enhanced Sky and Cloud Effects */
-.paradise-cloud {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 50px;
-  animation: paradise-cloud-float 25s infinite linear;
+/* SVG Animations */
+.wonderlands-svg-sun {
+  animation: svg-sun-pulse 6s ease-in-out infinite;
+  transform-origin: center;
 }
 
-.cloud-large {
-  width: 120px;
-  height: 50px;
-  top: 15%;
-  left: -150px;
-  animation-delay: 0s;
+.wonderlands-svg-star {
+  animation: svg-star-twinkle 3s infinite ease-in-out;
+  transform-origin: center;
 }
 
-.cloud-medium {
-  width: 90px;
-  height: 35px;
-  top: 30%;
-  left: -120px;
-  animation-delay: -8s;
+.waterfall-main,
+.waterfall-highlight {
+  animation: svg-water-flow 2s linear infinite;
 }
 
-.cloud-small {
-  width: 70px;
-  height: 25px;
-  top: 45%;
-  left: -100px;
-  animation-delay: -16s;
+@keyframes svg-sun-pulse {
+  0%, 100% { 
+    transform: scale(1); 
+    opacity: 1; 
+  }
+  50% { 
+    transform: scale(1.08); 
+    opacity: 0.9; 
+  }
 }
 
-.cloud-tiny {
-  width: 50px;
-  height: 20px;
-  top: 60%;
-  left: -80px;
-  animation-delay: -24s;
+@keyframes svg-star-twinkle {
+  0%, 100% { 
+    transform: scale(1); 
+    opacity: 0.7; 
+  }
+  50% { 
+    transform: scale(1.3); 
+    opacity: 1; 
+  }
 }
 
-@keyframes paradise-cloud-float {
-  from { transform: translateX(0); }
-  to { transform: translateX(calc(100vw + 200px)); }
+@keyframes svg-water-flow {
+  0% { 
+    transform: translateY(0); 
+  }
+  100% { 
+    transform: translateY(10%); 
+  }
+}
+
+/* Hill subtle animations */
+.hill-back {
+  animation: hill-sway 20s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+.hill-mid {
+  animation: hill-sway 25s ease-in-out infinite reverse;
+  transform-origin: bottom center;
+}
+
+.hill-front {
+  animation: hill-sway 30s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+@keyframes hill-sway {
+  0%, 100% { 
+    transform: scaleX(1); 
+  }
+  50% { 
+    transform: scaleX(1.02); 
+  }
+}
+
+/* Pool subtle shimmer */
+.pool {
+  animation: pool-shimmer 4s ease-in-out infinite;
+}
+
+@keyframes pool-shimmer {
+  0%, 100% { 
+    opacity: 0.8; 
+  }
+  50% { 
+    opacity: 1; 
+  }
 }
 
 /* Enhanced Star with Sparkles */
@@ -581,63 +622,36 @@
 }
 
 
-/* Mobile Paradise Optimizations */
+/* Mobile SVG Optimizations */
 @media (max-width: 768px) {
-  .landscape-mobile .main-waterfall {
-    left: 40%;
-    width: 80px;
-    height: 150px;
+  .landscape-mobile .wonderlands-svg-sun {
+    animation-duration: 8s;
   }
   
-  .landscape-mobile .secondary-waterfall {
-    right: 20%;
-    width: 50px;
-    height: 120px;
+  .landscape-mobile .wonderlands-svg-star {
+    animation-duration: 4s;
   }
   
-  .landscape-mobile .wonderlands-sun {
-    width: 120px;
-    height: 120px;
-    top: 20px;
-    right: 20px;
+  .landscape-mobile .waterfall-main,
+  .landscape-mobile .waterfall-highlight {
+    animation-duration: 2.5s;
   }
-
-  .landscape-mobile .star-diamond {
-    width: 60px;
-    height: 60px;
-  }
-  
-  .landscape-mobile .mountain-distant-1 { height: 200px; }
-  .landscape-mobile .mountain-distant-2 { height: 180px; }
-  .landscape-mobile .mountain-distant-3 { height: 160px; }
-  .landscape-mobile .mountain-mid-1 { height: 140px; }
-  .landscape-mobile .mountain-mid-2 { height: 120px; }
-  .landscape-mobile .mountain-front-1 { height: 100px; }
-  .landscape-mobile .mountain-front-2 { height: 80px; }
   
   /* Enhanced Wireframe effect for mobile */
-  .landscape-mobile * {
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  .landscape-mobile svg * {
+    stroke: rgba(255, 255, 255, 0.1) !important;
+    stroke-width: 1 !important;
   }
   
   .wireframe-grid {
     position: absolute;
     inset: 0;
     background-image: 
-      linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-    background-size: 25px 25px;
+      linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+    background-size: 30px 30px;
     pointer-events: none;
     z-index: 100;
-  }
-  
-  /* Reduced animation intensity for mobile performance */
-  .landscape-mobile .waterfall-stream-new {
-    animation-duration: 3s;
-  }
-  
-  .landscape-mobile .paradise-cloud {
-    animation-duration: 30s;
   }
 }
 
