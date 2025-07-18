@@ -38,7 +38,7 @@ function Pool3DScene({ poolModel, dimensions }: Pool3DViewerProps) {
       </Box>
       
       {/* Pool Model Text */}
-      <Text3D
+      <Text3D 
         font="/fonts/helvetiker_regular.typeface.json"
         size={0.3}
         height={0.05}
