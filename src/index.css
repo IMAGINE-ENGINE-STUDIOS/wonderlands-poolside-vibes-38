@@ -2,6 +2,283 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Interactive Landscape Styles */
+.stars-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  animation: twinkle infinite ease-in-out;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.cloud {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50px;
+  animation: float-cloud 20s infinite linear;
+}
+
+.cloud::before,
+.cloud::after {
+  content: '';
+  position: absolute;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50px;
+}
+
+.cloud-1 {
+  width: 100px;
+  height: 40px;
+  top: 20%;
+  left: -150px;
+}
+
+.cloud-1::before {
+  width: 50px;
+  height: 50px;
+  top: -25px;
+  left: 10px;
+}
+
+.cloud-1::after {
+  width: 60px;
+  height: 30px;
+  top: -15px;
+  right: 10px;
+}
+
+.cloud-2 {
+  width: 80px;
+  height: 30px;
+  top: 40%;
+  left: -120px;
+  animation-delay: -10s;
+}
+
+.cloud-3 {
+  width: 120px;
+  height: 50px;
+  top: 60%;
+  left: -180px;
+  animation-delay: -15s;
+}
+
+@keyframes float-cloud {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(100vw + 200px)); }
+}
+
+.sun {
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, #ffeb3b 20%, #ff9800 80%);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 60px rgba(255, 193, 7, 0.6),
+    0 0 120px rgba(255, 152, 0, 0.4);
+  animation: sun-glow 4s ease-in-out infinite alternate;
+}
+
+@keyframes sun-glow {
+  from { box-shadow: 0 0 60px rgba(255, 193, 7, 0.6), 0 0 120px rgba(255, 152, 0, 0.4); }
+  to { box-shadow: 0 0 80px rgba(255, 193, 7, 0.8), 0 0 160px rgba(255, 152, 0, 0.6); }
+}
+
+.mountain-back {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 300px;
+  background: linear-gradient(to top, #2c1810, #4a2c2a);
+  clip-path: polygon(0 100%, 20% 60%, 40% 80%, 60% 40%, 80% 70%, 100% 50%, 100% 100%);
+}
+
+.mountain-mid {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 250px;
+  background: linear-gradient(to top, #3d2817, #5d3428);
+  clip-path: polygon(0 100%, 15% 80%, 35% 50%, 55% 70%, 75% 30%, 95% 60%, 100% 100%);
+}
+
+.mountain-front {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(to top, #4e341f, #6e4530);
+  clip-path: polygon(0 100%, 25% 40%, 45% 70%, 65% 20%, 85% 50%, 100% 100%);
+}
+
+.waterfall-container {
+  width: 60px;
+  height: 400px;
+}
+
+.waterfall-stream {
+  position: absolute;
+  width: 6px;
+  background: linear-gradient(to bottom, 
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(173, 216, 230, 0.8) 50%,
+    rgba(135, 206, 235, 0.6) 100%);
+  animation: water-flow 1s infinite linear;
+  border-radius: 3px;
+}
+
+.stream-1 {
+  left: 20px;
+  height: 100%;
+  animation-delay: 0s;
+}
+
+.stream-2 {
+  left: 30px;
+  height: 100%;
+  animation-delay: 0.3s;
+  width: 4px;
+}
+
+.stream-3 {
+  left: 40px;
+  height: 100%;
+  animation-delay: 0.6s;
+  width: 5px;
+}
+
+@keyframes water-flow {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.waterfall-splash {
+  position: absolute;
+  bottom: -20px;
+  left: 15px;
+  width: 30px;
+  height: 15px;
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.6), transparent);
+  border-radius: 50%;
+  animation: splash 2s infinite ease-in-out;
+}
+
+@keyframes splash {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.5); opacity: 0.3; }
+}
+
+.water-surface {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100px;
+  background: linear-gradient(to bottom,
+    rgba(0, 119, 190, 0.3) 0%,
+    rgba(0, 119, 190, 0.6) 50%,
+    rgba(0, 84, 147, 0.8) 100%);
+  overflow: hidden;
+}
+
+.water-ripple {
+  position: absolute;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: ripple 3s infinite ease-out;
+}
+
+.ripple-1 {
+  top: 30px;
+  left: 30%;
+  animation-delay: 0s;
+}
+
+.ripple-2 {
+  top: 50px;
+  left: 60%;
+  animation-delay: 1s;
+}
+
+.ripple-3 {
+  top: 20px;
+  left: 80%;
+  animation-delay: 2s;
+}
+
+@keyframes ripple {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    width: 200px;
+    height: 200px;
+    opacity: 0;
+  }
+}
+
+/* Mobile Wireframe */
+@media (max-width: 768px) {
+  .landscape-mobile .waterfall-container {
+    right: 10%;
+    width: 40px;
+    height: 300px;
+  }
+  
+  .landscape-mobile .sun {
+    width: 80px;
+    height: 80px;
+    top: 20px;
+    right: 20px;
+  }
+  
+  .landscape-mobile .mountain-back { height: 200px; }
+  .landscape-mobile .mountain-mid { height: 150px; }
+  .landscape-mobile .mountain-front { height: 120px; }
+  
+  /* Wireframe effect for mobile */
+  .landscape-mobile * {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .wireframe-grid {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    z-index: 100;
+  }
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */

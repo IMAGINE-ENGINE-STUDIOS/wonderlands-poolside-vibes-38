@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useState } from "react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import InteractiveLandscape from "./InteractiveLandscape";
 
 const Hero = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -15,39 +16,22 @@ const Hero = () => {
 
   return (
     <>
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-background via-background to-accent/10">
-      {/* Floating Background Elements */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-10 w-16 h-16 bg-coral/20 rounded-full animate-float"></div>
-        <div className="absolute top-40 right-20 w-12 h-12 bg-primary/20 rounded-full animate-bounce-gentle"></div>
-        <div className="absolute bottom-32 left-20 w-20 h-20 bg-teal/20 rounded-full animate-float-slow"></div>
-        <div className="absolute top-60 left-1/3 w-14 h-14 bg-orange/20 rounded-full animate-wiggle"></div>
-        <div className="absolute bottom-40 right-10 w-18 h-18 bg-secondary/20 rounded-full animate-float"></div>
-        <div className="absolute top-32 right-1/3 w-10 h-10 bg-accent/30 rounded-full animate-bounce-gentle"></div>
-        
-        {/* Sparkle effects */}
-        <div className="absolute top-1/4 left-1/4 text-coral/40 animate-wiggle">
-          <Sparkles size={24} />
-        </div>
-        <div className="absolute bottom-1/4 right-1/4 text-primary/40 animate-float">
-          <Sparkles size={18} />
-        </div>
-        <div className="absolute top-1/3 right-1/3 text-teal/40 animate-bounce-gentle">
-          <Sparkles size={20} />
-        </div>
+    <section className="relative min-h-screen overflow-hidden">
+      {/* Interactive Landscape Background */}
+      <InteractiveLandscape />
+      
+      {/* Logo at Top */}
+      <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
+        <img 
+          src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png"
+          alt="Wonderlands Professional Logo" 
+          className="w-32 h-32 md:w-40 md:h-40 animate-scale-in"
+        />
       </div>
 
-      {/* Main Content */}
-      <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-        <div className="animate-fade-in-up">
-          <img 
-            src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png"
-            alt="Wonderlands Professional Logo" 
-            className="w-56 h-56 md:w-72 md:h-72 mx-auto mb-8 animate-scale-in"
-          />
-        </div>
-        
-        <p className="text-xl md:text-2xl text-foreground/80 mb-8 animate-fade-in-up leading-relaxed">
+      {/* Main Content Overlay */}
+      <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-20 text-center px-4 max-w-4xl">
+        <p className="text-xl md:text-2xl text-white/90 mb-8 animate-fade-in-up leading-relaxed drop-shadow-lg">
           Transform your backyard into your personal oasis with premium fiberglass pools and patios. 
           <br className="hidden md:block" />
           Where lifestyle meets luxury.
@@ -57,7 +41,7 @@ const Hero = () => {
           <Button 
             variant="gradient"
             size="lg" 
-            className="hover:scale-105 transition-all duration-300 group"
+            className="hover:scale-105 transition-all duration-300 group backdrop-blur-sm"
             onClick={scrollToCatalog}
           >
             Explore Our Pools
@@ -67,7 +51,7 @@ const Hero = () => {
           <Button 
             variant="coral" 
             size="lg" 
-            className="hover:scale-105 transition-all duration-300"
+            className="hover:scale-105 transition-all duration-300 backdrop-blur-sm"
             onClick={() => setShowQuoteModal(true)}
           >
             Get Free Quote
@@ -75,11 +59,11 @@ const Hero = () => {
         </div>
         
         <div className="mt-12 animate-fade-in-up">
-          <p className="text-sm text-muted-foreground mb-4">Trusted by 500+ families across the region</p>
-          <div className="flex justify-center items-center gap-8 opacity-60">
-            <div className="w-12 h-2 bg-gradient-to-r from-primary to-teal rounded-full"></div>
-            <div className="w-12 h-2 bg-gradient-to-r from-coral to-orange rounded-full"></div>
-            <div className="w-12 h-2 bg-gradient-to-r from-secondary to-accent rounded-full"></div>
+          <p className="text-sm text-white/70 mb-4">Trusted by 500+ families across the region</p>
+          <div className="flex justify-center items-center gap-8 opacity-80">
+            <div className="w-12 h-2 bg-gradient-to-r from-white/60 to-white/40 rounded-full"></div>
+            <div className="w-12 h-2 bg-gradient-to-r from-white/60 to-white/40 rounded-full"></div>
+            <div className="w-12 h-2 bg-gradient-to-r from-white/60 to-white/40 rounded-full"></div>
           </div>
         </div>
       </div>
