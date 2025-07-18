@@ -2,187 +2,436 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Wonderlands Interactive Landscape Styles */
+/* Wonderlands Paradise Landscape Styles */
 
-/* Blue Star/Diamond */
-.star-diamond {
-  width: 60px;
-  height: 60px;
-  background: #00bcd4;
-  transform: rotate(45deg);
-  border-radius: 20% 20% 20% 20%;
-  position: relative;
-  animation: sparkle-rotate 6s infinite ease-in-out;
-  box-shadow: 0 0 30px rgba(0, 188, 212, 0.6);
-}
-
-.star-diamond::before {
-  content: '';
+/* Enhanced Sky and Cloud Effects */
+.paradise-cloud {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  background: #4dd0e1;
-  border-radius: 20% 20% 20% 20%;
-  transform: rotate(45deg) scale(0.7);
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50px;
+  animation: paradise-cloud-float 25s infinite linear;
 }
 
-@keyframes sparkle-rotate {
+.cloud-large {
+  width: 120px;
+  height: 50px;
+  top: 15%;
+  left: -150px;
+  animation-delay: 0s;
+}
+
+.cloud-medium {
+  width: 90px;
+  height: 35px;
+  top: 30%;
+  left: -120px;
+  animation-delay: -8s;
+}
+
+.cloud-small {
+  width: 70px;
+  height: 25px;
+  top: 45%;
+  left: -100px;
+  animation-delay: -16s;
+}
+
+.cloud-tiny {
+  width: 50px;
+  height: 20px;
+  top: 60%;
+  left: -80px;
+  animation-delay: -24s;
+}
+
+@keyframes paradise-cloud-float {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(100vw + 200px)); }
+}
+
+/* Enhanced Star with Sparkles */
+.star-diamond {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(45deg, #00bcd4, #4dd0e1);
+  transform: rotate(45deg);
+  border-radius: 30% 30% 30% 30%;
+  position: relative;
+  animation: star-diamond-pulse 4s infinite ease-in-out;
+  box-shadow: 
+    0 0 40px rgba(0, 188, 212, 0.8),
+    0 0 80px rgba(77, 208, 225, 0.6);
+}
+
+.star-sparkles {
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  width: 120px;
+  height: 120px;
+}
+
+.sparkle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #ffffff;
+  border-radius: 50%;
+  animation: sparkle-twinkle 2s infinite ease-in-out;
+}
+
+.sparkle-1 { top: 10px; left: 20px; animation-delay: 0s; }
+.sparkle-2 { top: 30px; right: 15px; animation-delay: 0.5s; }
+.sparkle-3 { bottom: 25px; left: 15px; animation-delay: 1s; }
+.sparkle-4 { bottom: 10px; right: 20px; animation-delay: 1.5s; }
+
+@keyframes star-diamond-pulse {
   0%, 100% { transform: rotate(45deg) scale(1); }
   50% { transform: rotate(45deg) scale(1.1); }
 }
 
-/* Wonderlands Sun */
-.wonderlands-sun {
-  width: 150px;
-  height: 150px;
-  background: radial-gradient(circle, #fdd835 30%, #f57f17 100%);
-  border-radius: 50%;
-  animation: sun-pulse 4s ease-in-out infinite alternate;
-  box-shadow: 
-    0 0 60px rgba(253, 216, 53, 0.8),
-    0 0 120px rgba(245, 127, 23, 0.6);
+@keyframes sparkle-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1.2); }
 }
 
-@keyframes sun-pulse {
+/* Enhanced Sun with Animated Rays */
+.wonderlands-sun {
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, #fdd835 20%, #ff8f00 60%, #f57f17 100%);
+  border-radius: 50%;
+  position: relative;
+  animation: sun-glow-enhanced 6s ease-in-out infinite alternate;
+  box-shadow: 
+    0 0 80px rgba(253, 216, 53, 0.9),
+    0 0 160px rgba(255, 143, 0, 0.7),
+    0 0 240px rgba(245, 127, 23, 0.5);
+}
+
+.sun-rays {
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  width: 220px;
+  height: 220px;
+}
+
+.sun-ray {
+  position: absolute;
+  width: 4px;
+  height: 40px;
+  background: linear-gradient(to bottom, #fdd835, transparent);
+  border-radius: 2px;
+  animation: sun-ray-rotate 8s linear infinite;
+  transform-origin: 50% 110px;
+}
+
+.ray-1 { transform: rotate(0deg); }
+.ray-2 { transform: rotate(45deg); }
+.ray-3 { transform: rotate(90deg); }
+.ray-4 { transform: rotate(135deg); }
+.ray-5 { transform: rotate(180deg); }
+.ray-6 { transform: rotate(225deg); }
+.ray-7 { transform: rotate(270deg); }
+.ray-8 { transform: rotate(315deg); }
+
+@keyframes sun-glow-enhanced {
   0% { 
+    box-shadow: 0 0 80px rgba(253, 216, 53, 0.9), 0 0 160px rgba(255, 143, 0, 0.7), 0 0 240px rgba(245, 127, 23, 0.5);
     transform: scale(1);
-    box-shadow: 0 0 60px rgba(253, 216, 53, 0.8), 0 0 120px rgba(245, 127, 23, 0.6);
   }
   100% { 
+    box-shadow: 0 0 120px rgba(253, 216, 53, 1), 0 0 240px rgba(255, 143, 0, 0.9), 0 0 360px rgba(245, 127, 23, 0.7);
     transform: scale(1.05);
-    box-shadow: 0 0 80px rgba(253, 216, 53, 1), 0 0 160px rgba(245, 127, 23, 0.8);
   }
 }
 
-/* Rolling Hills */
-.hill-layer {
+@keyframes sun-ray-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Multi-Layer Mountains */
+.mountain-layer {
   position: absolute;
   bottom: 0;
   width: 100%;
-  border-radius: 100% 100% 0 0 / 200px 200px 0 0;
 }
 
-.hill-back {
-  height: 220px;
-  background: linear-gradient(to bottom, #26a69a 0%, #00695c 100%);
+/* Distant Mountains */
+.mountain-distant-1 {
+  height: 280px;
+  background: linear-gradient(to top, #4a746e 0%, #66b3a5 100%);
+  clip-path: polygon(0 100%, 15% 30%, 35% 60%, 50% 20%, 70% 50%, 85% 35%, 100% 55%, 100% 100%);
   z-index: 1;
-  clip-path: ellipse(120% 100% at 50% 100%);
+  opacity: 0.7;
 }
 
-.hill-mid {
-  height: 180px;
-  background: linear-gradient(to bottom, #4db6ac 0%, #00897b 100%);
+.mountain-distant-2 {
+  height: 260px;
+  background: linear-gradient(to top, #5a8074 0%, #7ac4b6 100%);
+  clip-path: polygon(0 100%, 20% 45%, 40% 25%, 60% 40%, 80% 30%, 100% 50%, 100% 100%);
   z-index: 2;
-  clip-path: ellipse(110% 100% at 45% 100%);
+  opacity: 0.8;
+}
+
+.mountain-distant-3 {
+  height: 240px;
+  background: linear-gradient(to top, #6a8c7f 0%, #8ed5c7 100%);
+  clip-path: polygon(0 100%, 25% 35%, 45% 55%, 65% 25%, 85% 45%, 100% 35%, 100% 100%);
+  z-index: 3;
+  opacity: 0.9;
+}
+
+/* Mid Mountains with Waterfalls */
+.mountain-mid-1 {
+  height: 220px;
+  background: linear-gradient(to top, #26a69a 0%, #4db6ac 100%);
+  clip-path: polygon(0 100%, 20% 40%, 45% 15%, 55% 35%, 75% 20%, 90% 45%, 100% 100%);
+  z-index: 4;
   position: relative;
 }
 
-.hill-front {
-  height: 140px;
-  background: linear-gradient(to bottom, #80cbc4 0%, #26a69a 100%);
-  z-index: 3;
-  clip-path: ellipse(100% 100% at 55% 100%);
+.mountain-mid-2 {
+  height: 200px;
+  background: linear-gradient(to top, #00897b 0%, #26a69a 100%);
+  clip-path: polygon(0 100%, 30% 50%, 50% 30%, 70% 45%, 100% 25%, 100% 100%);
+  z-index: 5;
+  position: relative;
 }
 
-/* Wonderlands Waterfall */
+/* Foreground Mountains */
+.mountain-front-1 {
+  height: 180px;
+  background: linear-gradient(to top, #4db6ac 0%, #80cbc4 100%);
+  clip-path: polygon(0 100%, 25% 55%, 45% 35%, 65% 50%, 85% 30%, 100% 100%);
+  z-index: 6;
+}
+
+.mountain-front-2 {
+  height: 160px;
+  background: linear-gradient(to top, #80cbc4 0%, #b2dfdb 100%);
+  clip-path: polygon(0 100%, 35% 45%, 55% 25%, 75% 40%, 100% 100%);
+  z-index: 7;
+}
+
+/* Enhanced Waterfall System */
 .wonderlands-waterfall {
   position: absolute;
-  left: 50%;
-  top: -60px;
-  width: 80px;
-  height: 140px;
+  width: 100px;
+  height: 180px;
+}
+
+.main-waterfall {
+  left: 45%;
+  top: -120px;
   transform: translateX(-50%);
+}
+
+.secondary-waterfall {
+  right: 25%;
+  top: -100px;
+  width: 60px;
+  height: 140px;
+}
+
+.waterfall-mist {
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  width: 140px;
+  height: 60px;
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.3), transparent);
+  border-radius: 50%;
+  animation: mist-float 3s ease-in-out infinite alternate;
+}
+
+@keyframes mist-float {
+  0% { transform: translateY(0) scale(1); opacity: 0.3; }
+  100% { transform: translateY(-10px) scale(1.1); opacity: 0.6; }
 }
 
 .waterfall-stream-new {
   position: absolute;
-  width: 12px;
+  width: 14px;
   height: 100%;
-  border-radius: 6px;
-  animation: wonderlands-flow 2s infinite linear;
+  border-radius: 7px;
+  animation: wonderlands-flow 2.5s infinite linear;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3);
 }
 
 .stream-purple {
-  left: 10px;
-  background: linear-gradient(to bottom, #ab47bc, #8e24aa);
+  left: 15px;
+  background: linear-gradient(to bottom, #ab47bc 0%, #7b1fa2 50%, #4a148c 100%);
   animation-delay: 0s;
 }
 
 .stream-blue-light {
-  left: 25px;
-  background: linear-gradient(to bottom, #42a5f5, #1e88e5);
-  animation-delay: 0.3s;
+  left: 32px;
+  background: linear-gradient(to bottom, #42a5f5 0%, #1976d2 50%, #0d47a1 100%);
+  animation-delay: 0.4s;
 }
 
 .stream-blue {
-  left: 40px;
-  background: linear-gradient(to bottom, #26c6da, #00acc1);
-  animation-delay: 0.6s;
+  left: 49px;
+  background: linear-gradient(to bottom, #26c6da 0%, #0097a7 50%, #006064 100%);
+  animation-delay: 0.8s;
 }
 
 .stream-teal {
-  left: 55px;
-  background: linear-gradient(to bottom, #66bb6a, #43a047);
-  animation-delay: 0.9s;
+  left: 66px;
+  background: linear-gradient(to bottom, #66bb6a 0%, #388e3c 50%, #1b5e20 100%);
+  animation-delay: 1.2s;
+}
+
+.stream-cyan {
+  left: 20px;
+  background: linear-gradient(to bottom, #4dd0e1 0%, #00838f 100%);
+  animation-delay: 0.2s;
+  width: 10px;
+}
+
+.stream-aqua {
+  left: 35px;
+  background: linear-gradient(to bottom, #80deea 0%, #00acc1 100%);
+  animation-delay: 0.6s;
+  width: 10px;
 }
 
 @keyframes wonderlands-flow {
   0% {
-    transform: translateY(-100%);
+    transform: translateY(-120%);
     opacity: 0;
   }
-  20% {
+  15% {
     opacity: 1;
   }
-  80% {
+  85% {
     opacity: 1;
   }
   100% {
-    transform: translateY(150%);
+    transform: translateY(180%);
     opacity: 0;
   }
 }
 
-/* Vegetation */
-.vegetation-layer {
+.waterfall-splash-effect {
   position: absolute;
-  bottom: 20px;
+  bottom: -30px;
+  left: 30px;
+  width: 40px;
+  height: 20px;
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.8), rgba(173, 216, 230, 0.4), transparent);
+  border-radius: 50%;
+  animation: splash-enhanced 2.5s infinite ease-in-out;
+}
+
+@keyframes splash-enhanced {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.6; }
+  50% { transform: scale(1.8) rotate(5deg); opacity: 0.3; }
+}
+
+/* Paradise Vegetation */
+.vegetation-paradise {
+  position: absolute;
+  bottom: 25px;
   width: 100%;
-  z-index: 4;
+  z-index: 8;
 }
 
-.plant {
+.palm-tree {
   position: absolute;
-  width: 20px;
-  height: 30px;
-  background: #2e7d32;
-  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-  animation: plant-sway 3s ease-in-out infinite;
+  width: 8px;
+  height: 60px;
+  background: linear-gradient(to top, #8d6e63, #a1887f);
+  border-radius: 4px;
 }
 
-.plant-1 { left: 10%; animation-delay: 0s; }
-.plant-2 { left: 25%; animation-delay: 0.5s; transform: scale(0.8); }
-.plant-3 { left: 60%; animation-delay: 1s; }
-.plant-4 { left: 75%; animation-delay: 1.5s; transform: scale(1.2); }
-.plant-5 { left: 90%; animation-delay: 2s; transform: scale(0.9); }
-
-@keyframes plant-sway {
-  0%, 100% { transform: rotate(-2deg); }
-  50% { transform: rotate(2deg); }
+.palm-tree::before {
+  content: '';
+  position: absolute;
+  top: -15px;
+  left: -12px;
+  width: 32px;
+  height: 20px;
+  background: radial-gradient(ellipse, #2e7d32, #1b5e20);
+  border-radius: 50% 50% 50% 50% / 80% 80% 20% 20%;
 }
 
-/* Wonderlands Pool */
-.wonderlands-pool {
+.tree-1 { left: 15%; animation: tree-sway 4s ease-in-out infinite; }
+.tree-2 { right: 20%; animation: tree-sway 4s ease-in-out infinite reverse; }
+
+.tropical-plant {
+  position: absolute;
+  width: 25px;
+  height: 35px;
+  background: linear-gradient(45deg, #2e7d32, #4caf50);
+  border-radius: 50% 50% 50% 50% / 70% 70% 30% 30%;
+  animation: plant-wave 3s ease-in-out infinite;
+}
+
+.plant-1 { left: 8%; animation-delay: 0s; }
+.plant-2 { left: 30%; animation-delay: 0.8s; transform: scale(0.8); }
+.plant-3 { right: 35%; animation-delay: 1.6s; }
+.plant-4 { right: 8%; animation-delay: 2.4s; transform: scale(1.1); }
+
+.tropical-flower {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: radial-gradient(circle, #e91e63, #ad1457);
+  border-radius: 50%;
+  animation: flower-bloom 3s ease-in-out infinite;
+}
+
+.flower-1 { left: 25%; bottom: 15px; animation-delay: 0s; }
+.flower-2 { right: 30%; bottom: 20px; animation-delay: 1s; }
+.flower-3 { left: 70%; bottom: 12px; animation-delay: 2s; }
+
+@keyframes tree-sway {
+  0%, 100% { transform: rotate(-1deg); }
+  50% { transform: rotate(1deg); }
+}
+
+@keyframes plant-wave {
+  0%, 100% { transform: scale(1) rotate(-2deg); }
+  50% { transform: scale(1.05) rotate(2deg); }
+}
+
+@keyframes flower-bloom {
+  0%, 100% { transform: scale(0.8); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
+
+/* Enhanced Paradise Pool */
+.paradise-pool {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 80px;
+  height: 100px;
   background: linear-gradient(to bottom,
-    rgba(0, 172, 193, 0.6) 0%,
-    rgba(0, 151, 167, 0.8) 50%,
-    rgba(0, 121, 145, 1) 100%);
-  z-index: 5;
+    rgba(0, 172, 193, 0.4) 0%,
+    rgba(0, 151, 167, 0.7) 30%,
+    rgba(0, 121, 145, 0.9) 70%,
+    rgba(0, 96, 125, 1) 100%);
+  z-index: 9;
   overflow: hidden;
+}
+
+.pool-reflection {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent);
+  animation: reflection-shimmer 4s ease-in-out infinite;
+}
+
+@keyframes reflection-shimmer {
+  0%, 100% { opacity: 0.1; transform: translateX(-5px); }
+  50% { opacity: 0.3; transform: translateX(5px); }
 }
 
 .pool-ripple {
@@ -223,39 +472,172 @@
   }
 }
 
-/* Mobile Wireframe */
+.pool-bubbles {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.bubble {
+  position: absolute;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.1));
+  border-radius: 50%;
+  animation: bubble-rise 6s infinite linear;
+}
+
+.bubble-1 { left: 20%; width: 8px; height: 8px; animation-delay: 0s; }
+.bubble-2 { left: 50%; width: 6px; height: 6px; animation-delay: 1.5s; }
+.bubble-3 { left: 70%; width: 10px; height: 10px; animation-delay: 3s; }
+.bubble-4 { left: 85%; width: 5px; height: 5px; animation-delay: 4.5s; }
+
+@keyframes bubble-rise {
+  0% {
+    bottom: 0;
+    opacity: 0;
+    transform: translateX(0);
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    bottom: 100px;
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+/* Floating Paradise Elements */
+.paradise-floating-elements {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.floating-leaf {
+  position: absolute;
+  width: 15px;
+  height: 20px;
+  background: linear-gradient(45deg, #4caf50, #2e7d32);
+  border-radius: 0% 100% 0% 100%;
+  animation: leaf-float 12s infinite linear;
+}
+
+.leaf-1 { top: 20%; left: -20px; animation-delay: 0s; }
+.leaf-2 { top: 60%; left: -20px; animation-delay: 4s; }
+.leaf-3 { top: 40%; left: -20px; animation-delay: 8s; }
+
+@keyframes leaf-float {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(calc(100vw + 40px)) translateY(-20px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.light-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, #fff, #fdd835);
+  border-radius: 50%;
+  animation: particle-dance 8s infinite ease-in-out;
+}
+
+.particle-1 { top: 25%; left: 30%; animation-delay: 0s; }
+.particle-2 { top: 45%; left: 60%; animation-delay: 2.7s; }
+.particle-3 { top: 65%; left: 80%; animation-delay: 5.3s; }
+
+@keyframes particle-dance {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translateY(-15px) scale(1.2);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-30px) translateX(10px) scale(0.8);
+    opacity: 0.7;
+  }
+  75% {
+    transform: translateY(-15px) translateX(-5px) scale(1.1);
+    opacity: 1;
+  }
+}
+
+
+/* Mobile Paradise Optimizations */
 @media (max-width: 768px) {
-  .landscape-mobile .waterfall-container {
-    right: 10%;
-    width: 40px;
-    height: 300px;
+  .landscape-mobile .main-waterfall {
+    left: 40%;
+    width: 80px;
+    height: 150px;
   }
   
-  .landscape-mobile .sun {
-    width: 80px;
-    height: 80px;
+  .landscape-mobile .secondary-waterfall {
+    right: 20%;
+    width: 50px;
+    height: 120px;
+  }
+  
+  .landscape-mobile .wonderlands-sun {
+    width: 120px;
+    height: 120px;
     top: 20px;
     right: 20px;
   }
+
+  .landscape-mobile .star-diamond {
+    width: 60px;
+    height: 60px;
+  }
   
-  .landscape-mobile .mountain-back { height: 200px; }
-  .landscape-mobile .mountain-mid { height: 150px; }
-  .landscape-mobile .mountain-front { height: 120px; }
+  .landscape-mobile .mountain-distant-1 { height: 200px; }
+  .landscape-mobile .mountain-distant-2 { height: 180px; }
+  .landscape-mobile .mountain-distant-3 { height: 160px; }
+  .landscape-mobile .mountain-mid-1 { height: 140px; }
+  .landscape-mobile .mountain-mid-2 { height: 120px; }
+  .landscape-mobile .mountain-front-1 { height: 100px; }
+  .landscape-mobile .mountain-front-2 { height: 80px; }
   
-  /* Wireframe effect for mobile */
+  /* Enhanced Wireframe effect for mobile */
   .landscape-mobile * {
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
   }
   
   .wireframe-grid {
     position: absolute;
     inset: 0;
     background-image: 
-      linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-    background-size: 20px 20px;
+      linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 25px 25px;
     pointer-events: none;
     z-index: 100;
+  }
+  
+  /* Reduced animation intensity for mobile performance */
+  .landscape-mobile .waterfall-stream-new {
+    animation-duration: 3s;
+  }
+  
+  .landscape-mobile .paradise-cloud {
+    animation-duration: 30s;
   }
 }
 
