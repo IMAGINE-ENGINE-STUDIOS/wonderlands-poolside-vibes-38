@@ -90,6 +90,31 @@
   }
 }
 
+/* Purple valley pulse */
+.purple-valley {
+  animation: valley-pulse 6s ease-in-out infinite;
+}
+
+@keyframes valley-pulse {
+  0%, 100% { 
+    opacity: 0.9; 
+  }
+  50% { 
+    opacity: 1; 
+  }
+}
+
+/* Additional mountain details animation */
+.hill-detail {
+  animation: hill-sway 35s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+.yellow-hill {
+  animation: hill-sway 28s ease-in-out infinite reverse;
+  transform-origin: bottom center;
+}
+
 /* Enhanced Star with Sparkles */
 .star-diamond {
   width: 80px;
