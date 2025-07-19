@@ -1,8 +1,101 @@
-# Welcome to your Lovable project
+# E-commerce Template with Animated Landscape
+
+This is a beautiful e-commerce template featuring an animated landscape background and fully customizable product catalog.
 
 ## Project info
 
 **URL**: https://lovable.dev/projects/f69161c2-4779-4a2d-8c27-f010eb21b01d
+
+## Features
+
+- **Animated Landscape Background**: Interactive SVG landscape with parallax effects and mouse tracking
+- **Customizable Hero Section**: Easy to modify logo, title, subtitle, and call-to-action buttons
+- **Product Catalog**: Generic product catalog that works for any type of e-commerce business
+- **Service Section**: Display services with pricing and features
+- **Responsive Design**: Fully responsive design that works on all devices
+- **Modern UI Components**: Built with shadcn/ui components for a professional look
+
+## Template Usage
+
+### Demo Routes
+- `/` - Original pool company website
+- `/template` - Generic e-commerce template
+
+### Customizing the Template
+
+#### 1. Hero Section
+Edit the `EcommerceTemplate.tsx` file to customize:
+- Logo image and alt text
+- Business title and subtitle
+- Button texts
+- Trust badge text
+
+```tsx
+<HeroTemplate
+  logo="your-logo.png"
+  logoAlt="Your Business Logo"
+  title="Your Amazing Business"
+  subtitle="Your business description"
+  primaryButtonText="Explore Products"
+  secondaryButtonText="Get Free Quote"
+  trustBadgeText="Trusted by X customers"
+  // ... other props
+/>
+```
+
+#### 2. Products
+Replace the sample products in `EcommerceTemplate.tsx`:
+
+```tsx
+const yourProducts: Product[] = [
+  {
+    id: "1",
+    name: "Your Product Name",
+    price: 999,
+    category: "premium", // premium, deluxe, standard, compact
+    dimensions: "Product dimensions",
+    specifications: "Product specs",
+    features: ["Feature 1", "Feature 2"],
+    description: "Product description",
+    image: "product-image.jpg" // optional
+  }
+];
+```
+
+#### 3. Services
+Customize services in the same file:
+
+```tsx
+const yourServices: Service[] = [
+  {
+    id: "s1",
+    name: "Your Service",
+    price: 500,
+    type: "installation", // installation, maintenance, repair, etc.
+    description: "Service description",
+    duration: "2-4 hours",
+    warranty: "1 year",
+    features: ["Feature 1", "Feature 2"]
+  }
+];
+```
+
+#### 4. Colors and Styling
+The template uses a semantic design system. Customize colors in:
+- `src/index.css` - CSS variables for colors
+- `tailwind.config.ts` - Tailwind configuration
+
+## Components
+
+### Template Components
+- `HeroTemplate.tsx` - Customizable hero section
+- `ProductCatalog.tsx` - Generic product catalog
+- `ProductCard.tsx` - Individual product cards
+- `ProductDetailModal.tsx` - Product detail popup
+- `ServiceSection.tsx` - Services display section
+
+### UI Components
+All UI components are from shadcn/ui and fully customizable.
 
 ## How can I edit this code?
 
