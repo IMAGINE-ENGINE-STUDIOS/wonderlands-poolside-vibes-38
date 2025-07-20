@@ -14,7 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      user_quotations: {
+        Row: {
+          access_width: string | null
+          address: string
+          budget: string | null
+          created_at: string
+          email: string
+          gala_user_id: string | null
+          id: string
+          name: string
+          phone: string | null
+          pool_category: string | null
+          pool_model: string | null
+          pool_price: number | null
+          processed_image_url: string | null
+          recommendations: string[] | null
+          selected_options: Json | null
+          soil_type: string | null
+          special_requests: string | null
+          status: string | null
+          timeline: string | null
+          total_quote_amount: number | null
+          updated_at: string
+          uploaded_image_url: string | null
+          utility_lines: string | null
+          yard_size: string | null
+        }
+        Insert: {
+          access_width?: string | null
+          address: string
+          budget?: string | null
+          created_at?: string
+          email: string
+          gala_user_id?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          pool_category?: string | null
+          pool_model?: string | null
+          pool_price?: number | null
+          processed_image_url?: string | null
+          recommendations?: string[] | null
+          selected_options?: Json | null
+          soil_type?: string | null
+          special_requests?: string | null
+          status?: string | null
+          timeline?: string | null
+          total_quote_amount?: number | null
+          updated_at?: string
+          uploaded_image_url?: string | null
+          utility_lines?: string | null
+          yard_size?: string | null
+        }
+        Update: {
+          access_width?: string | null
+          address?: string
+          budget?: string | null
+          created_at?: string
+          email?: string
+          gala_user_id?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          pool_category?: string | null
+          pool_model?: string | null
+          pool_price?: number | null
+          processed_image_url?: string | null
+          recommendations?: string[] | null
+          selected_options?: Json | null
+          soil_type?: string | null
+          special_requests?: string | null
+          status?: string | null
+          timeline?: string | null
+          total_quote_amount?: number | null
+          updated_at?: string
+          uploaded_image_url?: string | null
+          utility_lines?: string | null
+          yard_size?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

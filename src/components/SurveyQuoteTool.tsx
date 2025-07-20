@@ -11,6 +11,8 @@ import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings } from "lucide-react";
 import PoolCustomizationOptions from "./PoolCustomizationOptions";
+import { supabase } from "@/integrations/supabase/client";
+import { useGalaGoods } from "@/contexts/GalaGoodsContext";
 
 interface Pool {
   model: string;
@@ -73,7 +75,9 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
   const [showQuote, setShowQuote] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<PoolOption[]>([]);
   const [currentStep, setCurrentStep] = useState<'survey' | 'options' | 'quote'>('survey');
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const { user } = useGalaGoods();
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -143,6 +147,75 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
     return recommendations;
   };
 
+  const saveQuotationToDatabase = async () => {
+    if (!surveyData.name || !surveyData.email || !surveyData.address) {
+      return null;
+    }
+
+    setIsSaving(true);
+    try {
+      const quoteAmount = calculateQuote();
+      const recommendations = getRecommendations();
+      
+      const quotationData = {
+        name: surveyData.name,
+        email: surveyData.email,
+        phone: surveyData.phone || null,
+        address: surveyData.address,
+        yard_size: surveyData.yardSize || null,
+        soil_type: surveyData.soilType || null,
+        access_width: surveyData.accessWidth || null,
+        utility_lines: surveyData.utilityLines || null,
+        special_requests: surveyData.specialRequests || null,
+        timeline: surveyData.timeline || null,
+        budget: surveyData.budget || null,
+        pool_model: pool?.model || customProduct?.name || null,
+        pool_price: pool?.price || customProduct?.price || null,
+        pool_category: pool?.category || customProduct?.type || null,
+        selected_options: JSON.parse(JSON.stringify(selectedOptions)),
+        total_quote_amount: quoteAmount,
+        recommendations: recommendations,
+        uploaded_image_url: uploadedImage ? URL.createObjectURL(uploadedImage) : null,
+        processed_image_url: processedImage || null,
+        gala_user_id: user?.id || null,
+        status: 'pending'
+      };
+
+      const { data, error } = await supabase
+        .from('user_quotations')
+        .insert(quotationData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving quotation:', error);
+        toast({
+          title: "Save Failed",
+          description: "We couldn't save your quotation, but you can still continue with the process.",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      toast({
+        title: "Quotation Saved!",
+        description: "Your information has been securely saved to our database.",
+      });
+
+      return data;
+    } catch (error) {
+      console.error('Error saving quotation:', error);
+      toast({
+        title: "Save Failed",
+        description: "We couldn't save your quotation, but you can still continue with the process.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleSubmitSurvey = () => {
     if (!surveyData.name || !surveyData.email || !surveyData.address || !surveyData.yardSize) {
       toast({
@@ -167,7 +240,9 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
     setCurrentStep('options');
   };
 
-  const handleContinueToQuote = () => {
+  const handleContinueToQuote = async () => {
+    // Save the quotation to database before showing the quote
+    await saveQuotationToDatabase();
     setCurrentStep('quote');
   };
 
@@ -441,8 +516,16 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
                 variant="gradient"
                 size="lg"
                 className="flex-1"
+                disabled={isSaving}
               >
-                Generate Quote
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving Quote...
+                  </>
+                ) : (
+                  'Generate Quote'
+                )}
               </Button>
             </div>
           </div>
