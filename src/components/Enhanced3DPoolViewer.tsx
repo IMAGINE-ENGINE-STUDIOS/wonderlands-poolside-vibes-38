@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, Float, Text3D, Sparkles } from '@react-three/drei';
+import { OrbitControls, Environment, Float, Sparkles } from '@react-three/drei';
 import { Suspense, useRef } from 'react';
 import { Mesh, Group } from 'three';
 import { useFrame } from '@react-three/fiber';
@@ -183,17 +183,8 @@ function Enhanced3DScene({ poolModel }: { poolModel: string }) {
       
       {/* Floating Pool Model Text */}
       <Float speed={2} rotationIntensity={0.2} floatIntensity={0.3}>
-        <Text3D
-          font="/fonts/helvetiker_regular.typeface.json"
-          position={[-1.5, 1.5, 0]}
-          scale={0.15}
-          letterSpacing={0.02}
-          height={0.05}
-          bevelEnabled
-          bevelSize={0.005}
-          bevelThickness={0.005}
-        >
-          {poolModel}
+        <mesh position={[-1.5, 1.5, 0]}>
+          <boxGeometry args={[2, 0.3, 0.1]} />
           <meshStandardMaterial 
             color="#2E7D32" 
             metalness={0.8}
@@ -201,7 +192,7 @@ function Enhanced3DScene({ poolModel }: { poolModel: string }) {
             emissive="#1B5E20"
             emissiveIntensity={0.1}
           />
-        </Text3D>
+        </mesh>
       </Float>
       
       {/* Magical Sparkles */}

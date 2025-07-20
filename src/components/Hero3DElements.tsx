@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber';
-import { Float, Environment, Sparkles, Text3D, useTexture, OrbitControls } from '@react-three/drei';
+import { Float, Environment, Sparkles, useTexture, OrbitControls } from '@react-three/drei';
 import { Suspense, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Mesh, Group } from 'three';
@@ -150,19 +150,10 @@ function Hero3DScene() {
       <FloatingPatio />
       <FloatingAccessories />
       
-      {/* Brand Text */}
+      {/* Brand Element */}
       <Float speed={0.8} rotationIntensity={0.1} floatIntensity={0.2}>
-        <Text3D
-          font="/fonts/helvetiker_regular.typeface.json"
-          position={[0, 0, 0]}
-          scale={0.3}
-          letterSpacing={0.05}
-          height={0.1}
-          bevelEnabled
-          bevelSize={0.01}
-          bevelThickness={0.01}
-        >
-          LUXURY
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[3, 0.5, 0.2]} />
           <meshStandardMaterial 
             color="#ffffff" 
             metalness={0.9}
@@ -170,7 +161,7 @@ function Hero3DScene() {
             emissive="#4FC3F7"
             emissiveIntensity={0.1}
           />
-        </Text3D>
+        </mesh>
       </Float>
       
       {/* Magical Atmosphere */}
