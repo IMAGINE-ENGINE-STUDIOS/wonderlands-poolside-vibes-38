@@ -22,7 +22,7 @@ interface AutomaticCover {
 const covers: AutomaticCover[] = [
   {
     name: "SolarMax Pro",
-    price: 8500,
+    price: 18000,
     type: 'solar',
     material: "UV-resistant vinyl",
     motorType: "DC Motor",
@@ -33,7 +33,7 @@ const covers: AutomaticCover[] = [
   },
   {
     name: "SafetyGuard Elite",
-    price: 12000,
+    price: 22000,
     type: 'safety',
     material: "Reinforced mesh",
     motorType: "AC Motor",
@@ -44,7 +44,7 @@ const covers: AutomaticCover[] = [
   },
   {
     name: "ThermalShield Plus",
-    price: 9800,
+    price: 20000,
     type: 'thermal',
     material: "Insulated fabric",
     motorType: "DC Motor",
@@ -55,7 +55,7 @@ const covers: AutomaticCover[] = [
   },
   {
     name: "HybridMaster",
-    price: 15500,
+    price: 28000,
     type: 'hybrid',
     material: "Multi-layer composite",
     motorType: "Smart Motor",

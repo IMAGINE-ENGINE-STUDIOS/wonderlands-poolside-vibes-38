@@ -68,25 +68,13 @@ const AnimatedLandscape = () => {
             fill="#16a34a"
           />
           
-          {/* Waterfall */}
+          {/* Pool/Lake */}
           <defs>
-            <linearGradient id="waterfall" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#7dd3fc" />
-              <stop offset="50%" stopColor="#38bdf8" />
-              <stop offset="100%" stopColor="#0ea5e9" />
-            </linearGradient>
             <linearGradient id="pool" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#38bdf8" />
               <stop offset="100%" stopColor="#0284c7" />
             </linearGradient>
           </defs>
-          
-          {/* Waterfall streams */}
-          <rect x="450" y="300" width="8" height="120" fill="url(#waterfall)" className="animate-pulse" />
-          <rect x="465" y="320" width="6" height="100" fill="url(#waterfall)" className="animate-pulse" />
-          <rect x="475" y="310" width="10" height="110" fill="url(#waterfall)" className="animate-pulse" />
-          
-          {/* Pool/Lake */}
           <ellipse cx="600" cy="550" rx="200" ry="50" fill="url(#pool)" className="animate-pulse" />
           
           {/* Purple rock formations */}

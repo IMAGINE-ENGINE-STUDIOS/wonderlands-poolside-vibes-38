@@ -401,7 +401,7 @@ const PoolCatalog = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-              GALA-GOODS Pool Collection
+              Wonderland's Pool Collection
             </h2>
             <p className="text-xl text-foreground/80 max-w-2xl mx-auto mb-4">
               Discover our premium fiberglass pools with integrated GALA points rewards and blockchain-verified authenticity.

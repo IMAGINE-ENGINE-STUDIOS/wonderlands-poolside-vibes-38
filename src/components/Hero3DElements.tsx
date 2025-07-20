@@ -148,7 +148,6 @@ function Hero3DScene() {
       {/* Floating Elements */}
       <FloatingPool />
       <FloatingPatio />
-      <FloatingAccessories />
       
       {/* Brand Element */}
       <Float speed={0.8} rotationIntensity={0.1} floatIntensity={0.2}>

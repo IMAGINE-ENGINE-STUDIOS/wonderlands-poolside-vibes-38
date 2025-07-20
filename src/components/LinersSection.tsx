@@ -20,7 +20,7 @@ interface Liner {
 const liners: Liner[] = [
   {
     name: "Ocean Blue Mosaic",
-    price: 2800,
+    price: 5000,
     type: 'tile',
     pattern: "Blue Mosaic",
     durability: 25,
@@ -29,7 +29,7 @@ const liners: Liner[] = [
   },
   {
     name: "Crystal Clear Vinyl",
-    price: 1500,
+    price: 5000,
     type: 'vinyl',
     pattern: "Clear Blue",
     durability: 15,
@@ -38,7 +38,7 @@ const liners: Liner[] = [
   },
   {
     name: "Natural Stone",
-    price: 4200,
+    price: 5000,
     type: 'fiberglass',
     pattern: "Stone Texture",
     durability: 30,
@@ -47,7 +47,7 @@ const liners: Liner[] = [
   },
   {
     name: "Tropical Paradise",
-    price: 2200,
+    price: 5000,
     type: 'vinyl',
     pattern: "Tropical Pattern",
     durability: 18,
@@ -56,7 +56,7 @@ const liners: Liner[] = [
   },
   {
     name: "Midnight Diamond",
-    price: 3500,
+    price: 5000,
     type: 'tile',
     pattern: "Diamond Pattern",
     durability: 25,
@@ -65,7 +65,7 @@ const liners: Liner[] = [
   },
   {
     name: "Arctic White",
-    price: 1800,
+    price: 5000,
     type: 'vinyl',
     pattern: "Pure White",
     durability: 16,
