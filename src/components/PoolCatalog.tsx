@@ -14,6 +14,10 @@ interface Pool {
   dimensions?: string;
   depth?: string;
   features?: string[];
+  galaPoints?: number;
+  galaCategory?: string;
+  installationTimeWeeks?: number;
+  warrantyYears?: number;
 }
 
 const pools: Pool[] = [
@@ -23,7 +27,12 @@ const pools: Pool[] = [
     category: 'premium', 
     image: astoria12Image,
     dimensions: "12′ × 26′",
-    depth: "3′ 6″ to 5′ 6″"
+    depth: "3′ 6″ to 5′ 6″",
+    galaPoints: 11100,
+    galaCategory: "Luxury Collection",
+    installationTimeWeeks: 6,
+    warrantyYears: 15,
+    features: ["LED Lighting", "Premium Finish", "Advanced Filtration"]
   },
   { 
     model: "Apollo 14", 
@@ -31,7 +40,12 @@ const pools: Pool[] = [
     category: 'premium', 
     image: apollo14Image,
     dimensions: "14′ × 30′",
-    depth: "4′ 6″ to 6′"
+    depth: "4′ 6″ to 6′",
+    galaPoints: 9850,
+    galaCategory: "Luxury Collection",
+    installationTimeWeeks: 5,
+    warrantyYears: 15,
+    features: ["Smart Pool Technology", "Energy Efficient", "Premium Materials"]
   },
   { 
     model: "Coral 16", 
@@ -39,217 +53,166 @@ const pools: Pool[] = [
     category: 'premium', 
     image: coral16Image,
     dimensions: "16′ × 32′",
-    depth: "3′ 6″ to 6′"
+    depth: "3′ 6″ to 6′",
+    galaPoints: 9640,
+    galaCategory: "Luxury Collection",
+    installationTimeWeeks: 5,
+    warrantyYears: 15,
+    features: ["Spacious Design", "Coral Reef Finish", "Built-in Steps"]
   },
   { 
     model: "Tuscan 14.40", 
     price: 111000, 
     category: 'premium',
     dimensions: "13′ 9″ × 39′ 11″",
-    depth: "3′ 7″ to 6′ 2″"
+    depth: "3′ 7″ to 6′ 2″",
+    galaPoints: 11100,
+    galaCategory: "Luxury Collection",
+    installationTimeWeeks: 7,
+    warrantyYears: 15
   },
   { 
     model: "Corinthian 14 BME", 
     price: 98500, 
     category: 'premium',
     dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′"
+    depth: "3′ 6″ to 6′",
+    galaPoints: 9850,
+    galaCategory: "Luxury Collection",
+    installationTimeWeeks: 5,
+    warrantyYears: 15
   },
   { 
     model: "Olympia 14", 
     price: 96400, 
     category: 'premium',
     dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′"
+    depth: "3′ 6″ to 6′",
+    galaPoints: 9640,
+    galaCategory: "Luxury Collection",
+    installationTimeWeeks: 5,
+    warrantyYears: 15
   },
   { 
     model: "Providence 14", 
     price: 95600, 
     category: 'premium',
     dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′"
+    depth: "3′ 6″ to 6′",
+    galaPoints: 9560,
+    galaCategory: "Luxury Collection",
+    installationTimeWeeks: 5,
+    warrantyYears: 15
   },
   { 
     model: "Laguna Deluxe", 
     price: 95300, 
     category: 'deluxe',
     dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′"
+    depth: "3′ 6″ to 6′",
+    galaPoints: 4765,
+    galaCategory: "Executive Series",
+    installationTimeWeeks: 4,
+    warrantyYears: 12
   },
   { 
     model: "Valencia", 
     price: 65500, 
     category: 'standard',
     dimensions: "14′ 6″ × 28′",
-    depth: "3′ 7″ to 5′ 10″"
+    depth: "3′ 7″ to 5′ 10″",
+    galaPoints: 1965,
+    galaCategory: "Classic Series",
+    installationTimeWeeks: 3,
+    warrantyYears: 10
   },
   { 
     model: "Key West", 
     price: 64300, 
     category: 'standard',
     dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′"
+    depth: "3′ 6″ to 6′",
+    galaPoints: 1929,
+    galaCategory: "Classic Series",
+    installationTimeWeeks: 3,
+    warrantyYears: 10
   },
   { 
     model: "Enchantment 9.24", 
     price: 60800, 
     category: 'compact',
     dimensions: "9′ 1″ × 23′ 10″",
-    depth: "4′ 9″"
+    depth: "4′ 9″",
+    galaPoints: 1216,
+    galaCategory: "Compact Collection",
+    installationTimeWeeks: 2,
+    warrantyYears: 8
   },
   { 
     model: "Jamaica", 
     price: 46100, 
     category: 'compact',
     dimensions: "10′ × 20′",
-    depth: "4′ 6″ to 5′ 6″"
+    depth: "4′ 6″ to 5′ 6″",
+    galaPoints: 922,
+    galaCategory: "Compact Collection",
+    installationTimeWeeks: 2,
+    warrantyYears: 8
   },
   { 
     model: "Axiom 14", 
     price: 89500, 
     category: 'deluxe',
     dimensions: "14′ × 30′",
-    depth: "4′ 6″ to 6′"
+    depth: "4′ 6″ to 6′",
+    galaPoints: 4475,
+    galaCategory: "Executive Series",
+    installationTimeWeeks: 4,
+    warrantyYears: 12
   },
   { 
     model: "Bay Isle", 
     price: 92000, 
     category: 'deluxe',
     dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′"
+    depth: "3′ 6″ to 6′",
+    galaPoints: 4600,
+    galaCategory: "Executive Series",
+    installationTimeWeeks: 4,
+    warrantyYears: 12
   },
   { 
     model: "Claremont", 
     price: 94500, 
     category: 'premium',
     dimensions: "14′ × 33′",
-    depth: "3′ 6″ to 5′ 4″"
+    depth: "3′ 6″ to 5′ 4″",
+    galaPoints: 9450,
+    galaCategory: "Luxury Collection",
+    installationTimeWeeks: 5,
+    warrantyYears: 15
   },
   { 
     model: "Corinthian 14", 
     price: 97000, 
     category: 'premium',
     dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′"
+    depth: "3′ 6″ to 6′",
+    galaPoints: 9700,
+    galaCategory: "Luxury Collection",
+    installationTimeWeeks: 5,
+    warrantyYears: 15
   },
   { 
     model: "Laguna", 
     price: 88500, 
     category: 'deluxe',
     dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′"
-  },
-  { 
-    model: "Tuscan 14.27", 
-    price: 89000, 
-    category: 'deluxe',
-    dimensions: "13′ 9″ × 26′ 10″",
-    depth: "3′ 11″ to 5′ 9″"
-  },
-  { 
-    model: "Tuscan 14.30", 
-    price: 95000, 
-    category: 'premium',
-    dimensions: "13′ 9″ × 30′ 1″",
-    depth: "3′ 11″ to 5′ 11″"
-  },
-  { 
-    model: "Aruba", 
-    price: 52500, 
-    category: 'compact',
-    dimensions: "11′ × 22′",
-    depth: "4′ 6″ to 5′ 6″"
-  },
-  { 
-    model: "Bermuda", 
-    price: 59800, 
-    category: 'compact',
-    dimensions: "12′ × 26′",
-    depth: "4′ 6″ to 5′ 6″"
-  },
-  { 
-    model: "Corinthian 12", 
-    price: 75500, 
-    category: 'standard',
-    dimensions: "12′ × 25′",
-    depth: "3′ 6″ to 5′ 5″"
-  },
-  { 
-    model: "Delray", 
-    price: 67000, 
-    category: 'standard',
-    dimensions: "12′ × 25′",
-    depth: "4′ 6″"
-  },
-  { 
-    model: "Enchantment 9.17", 
-    price: 48500, 
-    category: 'compact',
-    dimensions: "9′ 1″ × 17′ 5″",
-    depth: "4′ 9″"
-  },
-  { 
-    model: "Enchantment 9.21", 
-    price: 52000, 
-    category: 'compact',
-    dimensions: "9′ 1″ × 20′ 7″",
-    depth: "4′ 9″"
-  },
-  { 
-    model: "Java", 
-    price: 54500, 
-    category: 'compact',
-    dimensions: "11′ × 22′",
-    depth: "4′ 6″ to 5′ 6″"
-  },
-  { 
-    model: "Milan", 
-    price: 49800, 
-    category: 'compact',
-    dimensions: "10′ × 20′",
-    depth: "4′ 6″ to 5′ 6″"
-  },
-  { 
-    model: "Olympia 12", 
-    price: 71500, 
-    category: 'standard',
-    dimensions: "12′ × 26′",
-    depth: "3′ 6″ to 5′ 6″"
-  },
-  { 
-    model: "Pleasant Cove", 
-    price: 63000, 
-    category: 'standard',
-    dimensions: "12′ × 24′",
-    depth: "4′ 6″ to 5′ 6″"
-  },
-  { 
-    model: "St Lucia", 
-    price: 68500, 
-    category: 'standard',
-    dimensions: "12′ × 24′",
-    depth: "4′ 6″ to 5′ 6″"
-  },
-  { 
-    model: "Tuscan 11.20", 
-    price: 62000, 
-    category: 'standard',
-    dimensions: "11′ 1″ × 20′ 3″",
-    depth: "3′ 11″ to 5′ 2″"
-  },
-  { 
-    model: "Tuscan 13.24", 
-    price: 73500, 
-    category: 'standard',
-    dimensions: "12′ 10″ × 23′ 7″",
-    depth: "3′ 11″ to 5′ 5″"
-  },
-  { 
-    model: "Vista Isle", 
-    price: 74000, 
-    category: 'standard',
-    dimensions: "13′ × 25′",
-    depth: "4′ 6″ to 5′ 6″"
+    depth: "3′ 6″ to 6′",
+    galaPoints: 4425,
+    galaCategory: "Executive Series",
+    installationTimeWeeks: 4,
+    warrantyYears: 12
   }
 ];
 
@@ -276,11 +239,15 @@ const PoolCatalog = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-              Our Pool Collection
+              GALA-GOODS Pool Collection
             </h2>
-            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
-              Discover our premium fiberglass pools designed for every lifestyle and budget in Florida.
+            <p className="text-xl text-foreground/80 max-w-2xl mx-auto mb-4">
+              Discover our premium fiberglass pools with integrated GALA points rewards and blockchain-verified authenticity.
             </p>
+            <div className="flex items-center justify-center gap-2 text-amber-600">
+              <span className="text-sm font-medium">Earn GALA Points on every purchase</span>
+              <span className="text-lg">⭐</span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

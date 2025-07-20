@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Shield } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import InteractiveLandscape from "./InteractiveLandscape";
 
@@ -56,6 +57,17 @@ const Hero = () => {
           >
             Get Free Quote
           </Button>
+
+          <Link to="/admin">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="hover:scale-105 transition-all duration-300 backdrop-blur-sm border-white/30 text-white hover:bg-white/10"
+            >
+              <Shield className="mr-2 h-5 w-5" />
+              Admin Dashboard
+            </Button>
+          </Link>
         </div>
         
         <div className="mt-12 animate-fade-in-up">

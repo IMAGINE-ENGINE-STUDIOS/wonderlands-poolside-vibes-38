@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { GalaGoodsProvider } from "./contexts/GalaGoodsContext";
 import Index from "./pages/Index";
+import AdminDashboard from "./pages/AdminDashboard";
 import EcommerceTemplate from "./pages/EcommerceTemplate";
 import NotFound from "./pages/NotFound";
 
@@ -19,6 +20,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/template" element={<EcommerceTemplate />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

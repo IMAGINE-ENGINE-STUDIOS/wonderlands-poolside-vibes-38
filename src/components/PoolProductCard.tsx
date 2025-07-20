@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets } from "lucide-react";
+import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award } from "lucide-react";
 import Pool3DViewer from "./Pool3DViewer";
 
 interface Pool {
@@ -15,6 +15,10 @@ interface Pool {
   dimensions?: string;
   depth?: string;
   features?: string[];
+  galaPoints?: number;
+  galaCategory?: string;
+  installationTimeWeeks?: number;
+  warrantyYears?: number;
 }
 
 interface PoolProductCardProps {
@@ -109,10 +113,15 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
           </Badge>
         </div>
         
-        {/* Waves icon overlay */}
-        <div className="absolute top-4 right-4">
-          <Waves size={22} className="text-white/80 group-hover:text-white transition-colors drop-shadow-lg" />
-        </div>
+        {/* GALA Points Badge */}
+        {pool.galaPoints && (
+          <div className="absolute top-4 right-4">
+            <Badge className="bg-amber-500/90 text-white flex items-center gap-1 px-2 py-1">
+              <Star className="h-3 w-3" />
+              {pool.galaPoints.toLocaleString()}
+            </Badge>
+          </div>
+        )}
         
         <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors duration-300 flex items-center justify-center">
           <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 text-white font-medium">
@@ -141,10 +150,33 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
           )}
         </div>
         
+        {/* GALA Category & Points */}
+        {pool.galaCategory && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-amber-500" />
+              <span className="text-sm font-medium text-amber-600">{pool.galaCategory}</span>
+            </div>
+            <span className="text-sm text-amber-600 font-bold">+{pool.galaPoints?.toLocaleString()} GALA</span>
+          </div>
+        )}
+        
         {/* Basic Info */}
         <div className="text-sm text-muted-foreground space-y-1">
           {pool.dimensions && <p>Dimensions: {pool.dimensions}</p>}
           {pool.depth && <p>Depth: {pool.depth}</p>}
+          {pool.installationTimeWeeks && (
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              <span>Installation: {pool.installationTimeWeeks} weeks</span>
+            </div>
+          )}
+          {pool.warrantyYears && (
+            <div className="flex items-center gap-1">
+              <Award className="h-3 w-3" />
+              <span>Warranty: {pool.warrantyYears} years</span>
+            </div>
+          )}
         </div>
         
         {/* Expanded Details */}
