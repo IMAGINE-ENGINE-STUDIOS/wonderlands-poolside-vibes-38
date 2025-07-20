@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import AnimatedLandscape from "./AnimatedLandscape";
+import Hero3DElements from "./Hero3DElements";
 
 const Hero = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -20,6 +21,9 @@ const Hero = () => {
     <section className="relative min-h-screen overflow-hidden">
       {/* Animated Landscape Background */}
       <AnimatedLandscape />
+      
+      {/* 3D Hero Elements */}
+      <Hero3DElements />
       
       {/* Logo at Top */}
       <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">

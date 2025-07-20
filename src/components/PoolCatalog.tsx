@@ -5,6 +5,21 @@ import PoolProductCard from "./PoolProductCard";
 import astoria12Image from "@/assets/pools/astoria-12.jpg";
 import apollo14Image from "@/assets/pools/apollo-14.jpg";
 import coral16Image from "@/assets/pools/coral-16.jpg";
+import ariel16Image from "@/assets/pools/ariel-16.jpg";
+import enchantment917Image from "@/assets/pools/enchantment-917.jpg";
+import enchantment921Image from "@/assets/pools/enchantment-921.jpg";
+import enchantment924Image from "@/assets/pools/enchantment-924.jpg";
+import tuscan1120Image from "@/assets/pools/tuscan-1120.jpg";
+import tuscan1324Image from "@/assets/pools/tuscan-1324.jpg";
+import tuscan1427Image from "@/assets/pools/tuscan-1427.jpg";
+import capecodImage from "@/assets/pools/cape-cod.jpg";
+import valenciaImage from "@/assets/pools/valencia.jpg";
+import stluciaImage from "@/assets/pools/st-lucia.jpg";
+import jamaicaImage from "@/assets/pools/jamaica.jpg";
+import synergyImage from "@/assets/pools/synergy.jpg";
+import bermudaImage from "@/assets/pools/bermuda.jpg";
+import fijiImage from "@/assets/pools/fiji.jpg";
+import genesisImage from "@/assets/pools/genesis.jpg";
 
 interface Pool {
   model: string;
@@ -59,6 +74,19 @@ const pools: Pool[] = [
     installationTimeWeeks: 5,
     warrantyYears: 15,
     features: ["Spacious Design", "Coral Reef Finish", "Built-in Steps"]
+  },
+  { 
+    model: "Ariel 16", 
+    price: 102000, 
+    category: 'premium', 
+    image: ariel16Image,
+    dimensions: "16′ × 34′",
+    depth: "3′ 6″ to 6′ 6″",
+    galaPoints: 10200,
+    galaCategory: "Luxury Collection",
+    installationTimeWeeks: 6,
+    warrantyYears: 15,
+    features: ["Auto Cover Ready", "Multiple Entry Points", "Premium Design"]
   },
   { 
     model: "Tuscan 14.40", 
@@ -119,12 +147,145 @@ const pools: Pool[] = [
     model: "Valencia", 
     price: 65500, 
     category: 'standard',
+    image: valenciaImage,
     dimensions: "14′ 6″ × 28′",
     depth: "3′ 7″ to 5′ 10″",
     galaPoints: 1965,
     galaCategory: "Classic Series",
     installationTimeWeeks: 3,
     warrantyYears: 10
+  },
+  { 
+    model: "Cape Cod", 
+    price: 58900, 
+    category: 'standard',
+    image: capecodImage,
+    dimensions: "14′ × 28′",
+    depth: "3′ 6″ to 5′ 6″",
+    galaPoints: 1767,
+    galaCategory: "Classic Series",
+    installationTimeWeeks: 3,
+    warrantyYears: 10
+  },
+  { 
+    model: "St. Lucia", 
+    price: 72500, 
+    category: 'standard',
+    image: stluciaImage,
+    dimensions: "16′ × 32′",
+    depth: "3′ 6″ to 6′",
+    galaPoints: 2175,
+    galaCategory: "Classic Series",
+    installationTimeWeeks: 4,
+    warrantyYears: 10
+  },
+  { 
+    model: "Synergy", 
+    price: 68900, 
+    category: 'standard',
+    image: synergyImage,
+    dimensions: "16′ × 30′",
+    depth: "3′ 6″ to 6′",
+    galaPoints: 2067,
+    galaCategory: "Classic Series",
+    installationTimeWeeks: 3,
+    warrantyYears: 10
+  },
+  { 
+    model: "Bermuda", 
+    price: 78500, 
+    category: 'deluxe',
+    image: bermudaImage,
+    dimensions: "16′ × 34′",
+    depth: "3′ 6″ to 6′",
+    galaPoints: 3925,
+    galaCategory: "Executive Series",
+    installationTimeWeeks: 4,
+    warrantyYears: 12
+  },
+  { 
+    model: "Fiji", 
+    price: 71200, 
+    category: 'standard',
+    image: fijiImage,
+    dimensions: "14′ × 30′",
+    depth: "3′ 6″ to 6′",
+    galaPoints: 2136,
+    galaCategory: "Classic Series",
+    installationTimeWeeks: 3,
+    warrantyYears: 10
+  },
+  { 
+    model: "Genesis", 
+    price: 85400, 
+    category: 'deluxe',
+    image: genesisImage,
+    dimensions: "16′ × 36′",
+    depth: "3′ 6″ to 6′",
+    galaPoints: 4270,
+    galaCategory: "Executive Series",
+    installationTimeWeeks: 4,
+    warrantyYears: 12
+  },
+  { 
+    model: "Enchantment 9.17", 
+    price: 58800, 
+    category: 'compact',
+    image: enchantment917Image,
+    dimensions: "9′ 1″ × 17′ 2″",
+    depth: "4′ 9″",
+    galaPoints: 1176,
+    galaCategory: "Compact Collection",
+    installationTimeWeeks: 2,
+    warrantyYears: 8
+  },
+  { 
+    model: "Enchantment 9.21", 
+    price: 60200, 
+    category: 'compact',
+    image: enchantment921Image,
+    dimensions: "9′ 1″ × 20′ 10″",
+    depth: "4′ 9″",
+    galaPoints: 1206,
+    galaCategory: "Compact Collection",
+    installationTimeWeeks: 2,
+    warrantyYears: 8
+  },
+  { 
+    model: "Tuscan 11.20", 
+    price: 74800, 
+    category: 'standard',
+    image: tuscan1120Image,
+    dimensions: "11′ × 20′",
+    depth: "3′ 7″ to 5′ 4″",
+    galaPoints: 2244,
+    galaCategory: "Classic Series",
+    installationTimeWeeks: 3,
+    warrantyYears: 10
+  },
+  { 
+    model: "Tuscan 13.24", 
+    price: 82900, 
+    category: 'deluxe',
+    image: tuscan1324Image,
+    dimensions: "13′ × 24′",
+    depth: "3′ 7″ to 5′ 4″",
+    galaPoints: 4145,
+    galaCategory: "Executive Series",
+    installationTimeWeeks: 4,
+    warrantyYears: 12
+  },
+  { 
+    model: "Tuscan 14.27", 
+    price: 89600, 
+    category: 'deluxe',
+    image: tuscan1427Image,
+    dimensions: "14′ × 27′",
+    depth: "3′ 7″ to 5′ 4″",
+    galaPoints: 4480,
+    galaCategory: "Executive Series",
+    installationTimeWeeks: 4,
+    warrantyYears: 12
   },
   { 
     model: "Key West", 
@@ -152,6 +313,7 @@ const pools: Pool[] = [
     model: "Jamaica", 
     price: 46100, 
     category: 'compact',
+    image: jamaicaImage,
     dimensions: "10′ × 20′",
     depth: "4′ 6″ to 5′ 6″",
     galaPoints: 922,

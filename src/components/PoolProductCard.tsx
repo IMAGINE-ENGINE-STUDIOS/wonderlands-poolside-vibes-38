@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award } from "lucide-react";
-import Pool3DViewer from "./Pool3DViewer";
+import Enhanced3DPoolViewer from "./Enhanced3DPoolViewer";
 
 interface Pool {
   model: string;
@@ -198,7 +198,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
             
             {/* 3D Viewer */}
             {show3D && (
-              <Pool3DViewer poolModel={pool.model} dimensions={pool.dimensions} />
+              <Enhanced3DPoolViewer poolModel={pool.model} dimensions={pool.dimensions} />
             )}
             
             {/* Add-ons */}
