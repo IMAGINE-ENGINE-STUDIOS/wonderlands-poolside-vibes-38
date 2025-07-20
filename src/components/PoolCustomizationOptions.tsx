@@ -25,34 +25,115 @@ interface PoolOption {
 }
 
 const poolOptions: PoolOption[] = [
-  // Waterline Options (from Latham)
+  // Crystite Crystal Fiberglass Finishes (from Latham)
   { 
-    id: 'wl-flagstone-tan', 
-    name: 'Flagstone Tan', 
-    description: 'TrueStone Collection - 27 mil premium liner',
-    price: 2500, 
+    id: 'fg-sapphire-blue-g3', 
+    name: 'Sapphire Blue Crystite Crystal', 
+    description: 'Vibrant fiberglass gel coat with dazzling shimmer. Resists fading from UV rays.',
+    price: 3500, 
     category: 'waterline' 
   },
   { 
-    id: 'wl-flagstone-grey', 
-    name: 'Flagstone Grey', 
-    description: 'TrueStone Collection - 27 mil premium liner',
-    price: 2500, 
+    id: 'fg-ocean-blue-g3', 
+    name: 'Ocean Blue Crystite Crystal', 
+    description: 'Deep ocean blue with crystal shimmer finish. Premium gel coat technology.',
+    price: 3500, 
     category: 'waterline' 
   },
   { 
-    id: 'wl-terrazzo-caribbean', 
-    name: 'Terrazzo Caribbean', 
-    description: 'Classic Collection - Vibrant tropical design',
-    price: 2200, 
+    id: 'fg-night-sky-g3', 
+    name: 'Night Sky Crystite Crystal', 
+    description: 'Dark sophisticated finish with embedded shimmer particles.',
+    price: 3500, 
     category: 'waterline' 
   },
   { 
-    id: 'wl-crystal-quartz', 
-    name: 'Crystal Quartz', 
-    description: 'Natural Stone Finish - Luxurious texture',
+    id: 'fg-shale-gray-g3', 
+    name: 'Shale Gray Crystite Crystal', 
+    description: 'Modern gray finish with subtle shimmer and superior durability.',
+    price: 3500, 
+    category: 'waterline' 
+  },
+  { 
+    id: 'fg-coastal-bronze-g3', 
+    name: 'Coastal Bronze Crystite Crystal', 
+    description: 'Warm bronze tone with crystal technology for lasting beauty.',
+    price: 3500, 
+    category: 'waterline' 
+  },
+  { 
+    id: 'fg-pearl-white-g3', 
+    name: 'Pearl White Crystite Crystal', 
+    description: 'Classic white with pearl-like shimmer and premium finish.',
+    price: 3500, 
+    category: 'waterline' 
+  },
+  // Crystite Classic Finishes (from Latham)
+  { 
+    id: 'fg-sapphire-blue-g2', 
+    name: 'Sapphire Blue Crystite Classic', 
+    description: 'Traditional sapphire blue with proven durability.',
     price: 2800, 
     category: 'waterline' 
+  },
+  { 
+    id: 'fg-ocean-blue-g2', 
+    name: 'Ocean Blue Crystite Classic', 
+    description: 'Classic ocean blue finish with excellent fade resistance.',
+    price: 2800, 
+    category: 'waterline' 
+  },
+  // Italian Slate Series Tiles (from Latham)
+  { 
+    id: 'tile-milan', 
+    name: 'Milan Italian Slate', 
+    description: 'Porcelain waterline tile with sophisticated Italian slate pattern.',
+    price: 4200, 
+    category: 'decorative' 
+  },
+  { 
+    id: 'tile-naples', 
+    name: 'Naples Italian Slate', 
+    description: 'Elegant porcelain waterline tile with Naples-inspired design.',
+    price: 4200, 
+    category: 'decorative' 
+  },
+  { 
+    id: 'tile-firenze', 
+    name: 'Firenze Italian Slate', 
+    description: 'Luxurious Firenze-style porcelain waterline tile.',
+    price: 4200, 
+    category: 'decorative' 
+  },
+  // Abyss Series Tiles (from Latham)
+  { 
+    id: 'tile-alexandria', 
+    name: 'Alexandria Abyss Series', 
+    description: 'Deep blue porcelain tile with mysterious abyss aesthetic.',
+    price: 3800, 
+    category: 'decorative' 
+  },
+  { 
+    id: 'tile-port-royal', 
+    name: 'Port Royal Abyss Series', 
+    description: 'Maritime-inspired waterline tile with rich deep tones.',
+    price: 3800, 
+    category: 'decorative' 
+  },
+  // Night Life Series Glass Tiles (from Latham)
+  { 
+    id: 'tile-soul', 
+    name: 'Soul Night Life Glass', 
+    description: 'Vibrant glass tile with dynamic nightlife-inspired patterns.',
+    price: 5200, 
+    category: 'decorative' 
+  },
+  { 
+    id: 'tile-melody', 
+    name: 'Melody Night Life Glass', 
+    description: 'Musical-inspired glass waterline tile with flowing patterns.',
+    price: 5200, 
+    category: 'decorative' 
   },
   
   // Jets & Water Features
@@ -144,9 +225,9 @@ const poolOptions: PoolOption[] = [
 const categoryInfo = {
   waterline: { 
     icon: Palette, 
-    name: 'Waterline Patterns', 
+    name: 'Fiberglass Finishes', 
     color: 'text-purple-500',
-    description: 'Premium vinyl liner patterns from Latham' 
+    description: 'Premium Crystite gel coat finishes from Latham' 
   },
   jets: { 
     icon: Waves, 

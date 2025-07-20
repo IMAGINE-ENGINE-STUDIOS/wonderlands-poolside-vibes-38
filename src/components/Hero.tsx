@@ -3,7 +3,7 @@ import { ArrowRight, Sparkles, Shield } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import InteractiveLandscape from "./InteractiveLandscape";
+import AnimatedLandscape from "./AnimatedLandscape";
 
 const Hero = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -18,8 +18,8 @@ const Hero = () => {
   return (
     <>
     <section className="relative min-h-screen overflow-hidden">
-      {/* Interactive Landscape Background */}
-      <InteractiveLandscape />
+      {/* Animated Landscape Background */}
+      <AnimatedLandscape />
       
       {/* Logo at Top */}
       <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
