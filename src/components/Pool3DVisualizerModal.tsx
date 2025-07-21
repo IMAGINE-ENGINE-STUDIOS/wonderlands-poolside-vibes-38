@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { X, RotateCcw, Palette, Square, Waves } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, Box, Sphere, Plane } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
 interface Pool3DVisualizerModalProps {
@@ -106,21 +106,25 @@ const PoolAccessories = () => {
   return (
     <group>
       {/* Pool lights */}
-      <Sphere args={[0.1]} position={[-3, -0.3, 1]}>
+      <mesh position={[-3, -0.3, 1]}>
+        <sphereGeometry args={[0.1]} />
         <meshStandardMaterial color="#FEF08A" emissive="#FEF08A" emissiveIntensity={0.5} />
-      </Sphere>
-      <Sphere args={[0.1]} position={[3, -0.3, 1]}>
+      </mesh>
+      <mesh position={[3, -0.3, 1]}>
+        <sphereGeometry args={[0.1]} />
         <meshStandardMaterial color="#FEF08A" emissive="#FEF08A" emissiveIntensity={0.5} />
-      </Sphere>
+      </mesh>
       
       {/* Pool steps */}
       <group position={[0, -0.4, -1.8]}>
-        <Box args={[1, 0.2, 0.3]} position={[0, 0, 0]}>
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[1, 0.2, 0.3]} />
           <meshStandardMaterial color="#E5E7EB" />
-        </Box>
-        <Box args={[1, 0.2, 0.3]} position={[0, -0.2, 0.3]}>
+        </mesh>
+        <mesh position={[0, -0.2, 0.3]}>
+          <boxGeometry args={[1, 0.2, 0.3]} />
           <meshStandardMaterial color="#E5E7EB" />
-        </Box>
+        </mesh>
       </group>
     </group>
   );
