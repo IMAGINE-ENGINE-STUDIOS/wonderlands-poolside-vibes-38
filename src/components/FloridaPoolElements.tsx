@@ -1,9 +1,28 @@
-import { Palmtree, Waves, Sun, Umbrella, Fish, Shell, Anchor, Sailboat } from "lucide-react";
+import { Palmtree, Waves, Sun, Umbrella, Fish, Shell, Anchor, Sailboat, Droplets, Wind } from "lucide-react";
 
 const FloridaPoolElements = () => {
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {/* Florida-themed pool elements */}
+      {/* Enhanced Florida-themed pool elements with dynamic animations */}
+      
+      {/* Dynamic water droplets */}
+      <div className="absolute top-1/6 left-1/4 text-primary/30 animate-ping">
+        <Droplets size={20} className="animate-pulse" />
+      </div>
+      <div className="absolute top-2/3 right-1/3 text-teal/25 animate-bounce" style={{ animationDelay: '1s' }}>
+        <Droplets size={24} />
+      </div>
+      <div className="absolute bottom-1/4 left-2/3 text-primary/20 animate-ping" style={{ animationDelay: '2s' }}>
+        <Droplets size={18} />
+      </div>
+      
+      {/* Wind elements for movement */}
+      <div className="absolute top-1/3 left-1/6 text-teal/15 animate-pulse" style={{ animationDelay: '0.5s' }}>
+        <Wind size={32} />
+      </div>
+      <div className="absolute bottom-1/3 right-1/6 text-primary/15 animate-pulse" style={{ animationDelay: '1.5s' }}>
+        <Wind size={28} />
+      </div>
       
       {/* Palm trees */}
       <div className="absolute top-1/4 left-20 text-teal/25 animate-float-slow">
@@ -88,10 +107,26 @@ const FloridaPoolElements = () => {
       <div className="absolute top-1/4 right-1/2 w-14 h-14 bg-gradient-to-br from-orange/20 to-coral/20 rounded-full animate-wiggle"></div>
       <div className="absolute bottom-1/4 left-1/2 w-18 h-18 bg-gradient-to-br from-primary/20 to-teal/20 rounded-full animate-float"></div>
       
-      {/* Pool water ripples */}
-      <div className="absolute top-1/5 left-2/5 w-12 h-3 bg-primary/15 rounded-full animate-float"></div>
-      <div className="absolute bottom-1/5 right-2/5 w-16 h-4 bg-teal/15 rounded-full animate-bounce-gentle"></div>
-      <div className="absolute top-4/5 left-1/5 w-10 h-2 bg-coral/15 rounded-full animate-wiggle"></div>
+      {/* Enhanced Pool water ripples with scale animations */}
+      <div className="absolute top-1/5 left-2/5 w-12 h-3 bg-primary/15 rounded-full animate-float hover:animate-pulse"></div>
+      <div className="absolute bottom-1/5 right-2/5 w-16 h-4 bg-teal/15 rounded-full animate-bounce-gentle hover:animate-ping"></div>
+      <div className="absolute top-4/5 left-1/5 w-10 h-2 bg-coral/15 rounded-full animate-wiggle hover:animate-spin"></div>
+      
+      {/* Dynamic gradient overlays */}
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/2 to-transparent animate-pulse" style={{ animationDuration: '8s' }}></div>
+      <div className="absolute inset-0 bg-gradient-to-tl from-transparent via-teal/2 to-transparent animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }}></div>
+      
+      {/* Floating sparkle effects */}
+      <div className="absolute top-1/8 right-1/8 w-3 h-3 bg-primary/40 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
+      <div className="absolute top-3/8 left-1/8 w-2 h-2 bg-teal/40 rounded-full animate-ping" style={{ animationDelay: '1.2s' }}></div>
+      <div className="absolute bottom-1/8 right-3/8 w-4 h-4 bg-coral/40 rounded-full animate-ping" style={{ animationDelay: '2.1s' }}></div>
+      <div className="absolute bottom-3/8 left-3/8 w-2 h-2 bg-orange/40 rounded-full animate-ping" style={{ animationDelay: '0.8s' }}></div>
+      
+      {/* Swirling pool elements */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <div className="w-32 h-32 border border-primary/10 rounded-full animate-spin" style={{ animationDuration: '20s' }}></div>
+        <div className="absolute top-2 left-2 w-28 h-28 border border-teal/10 rounded-full animate-spin" style={{ animationDuration: '15s', animationDirection: 'reverse' }}></div>
+      </div>
     </div>
   );
 };

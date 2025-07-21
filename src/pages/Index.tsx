@@ -1,5 +1,6 @@
 import Hero from "@/components/Hero";
 import PoolCatalog from "@/components/PoolCatalog";
+import PoolFinishesSection from "@/components/PoolFinishesSection";
 import LinersSection from "@/components/LinersSection";
 import AutomaticCoversSection from "@/components/AutomaticCoversSection";
 import FloridaPoolElements from "@/components/FloridaPoolElements";
@@ -14,6 +15,7 @@ const Index = () => {
       <div className="relative z-10">
         <Hero />
         <PoolCatalog />
+        <PoolFinishesSection />
         <LinersSection />
         <AutomaticCoversSection />
         <Footer />

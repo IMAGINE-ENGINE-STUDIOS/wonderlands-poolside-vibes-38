@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings } from "lucide-react";
+import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, Camera, FileText } from "lucide-react";
 import PoolCustomizationOptions from "./PoolCustomizationOptions";
 import { supabase } from "@/integrations/supabase/client";
 import { useGalaGoods } from "@/contexts/GalaGoodsContext";
@@ -435,49 +435,88 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
               </CardContent>
             </Card>
 
-            {/* Image Upload with Background Removal */}
-            <div className="space-y-4">
-              <Label className="flex items-center gap-2">
-                <FileImage size={16} className="text-primary" />
-                Upload Yard Photo (Optional - we'll remove the background)
-              </Label>
-              <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="image-upload"
-                />
-                <label htmlFor="image-upload" className="cursor-pointer">
-                  {isProcessing ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                      <span>Processing image...</span>
+            {/* House Survey Upload */}
+            <Card className="border-teal/20 bg-gradient-to-br from-teal/5 to-primary/5">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Camera className="h-5 w-5 text-teal" />
+                  House Survey & Site Photos
+                </CardTitle>
+                <CardDescription>
+                  Upload photos of your property, existing surveys, or site plans for accurate planning
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <FileImage size={16} className="text-teal" />
+                      Property Survey Documents
+                    </Label>
+                    <div className="border-2 border-dashed border-teal/30 rounded-lg p-4 text-center">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                        className="hidden"
+                        id="survey-upload"
+                      />
+                      <label htmlFor="survey-upload" className="cursor-pointer">
+                        <FileText className="h-6 w-6 mx-auto text-teal mb-2" />
+                        <p className="text-sm">Upload survey documents</p>
+                        <p className="text-xs text-muted-foreground">PDF, images, or documents</p>
+                      </label>
                     </div>
-                  ) : uploadedImage ? (
-                    <div className="space-y-2">
-                      <p className="text-sm text-green-600">✓ Image uploaded successfully</p>
-                      {processedImage && (
-                        <div className="flex justify-center">
-                          <img 
-                            src={processedImage} 
-                            alt="Processed" 
-                            className="max-w-32 max-h-32 rounded border"
-                          />
-                        </div>
-                      )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Camera size={16} className="text-teal" />
+                      Backyard Photos
+                    </Label>
+                    <div className="border-2 border-dashed border-teal/30 rounded-lg p-4 text-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        id="photo-upload"
+                      />
+                      <label htmlFor="photo-upload" className="cursor-pointer">
+                        {isProcessing ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <Loader2 className="h-6 w-6 animate-spin text-teal" />
+                            <span className="text-sm">Processing...</span>
+                          </div>
+                        ) : uploadedImage ? (
+                          <div className="space-y-2">
+                            <p className="text-sm text-green-600">✓ Photos uploaded</p>
+                            {processedImage && (
+                              <img 
+                                src={processedImage} 
+                                alt="Processed" 
+                                className="max-w-20 max-h-20 rounded border mx-auto"
+                              />
+                            )}
+                          </div>
+                        ) : (
+                          <div className="space-y-1">
+                            <Upload className="h-6 w-6 mx-auto text-teal" />
+                            <p className="text-sm">Upload backyard photos</p>
+                            <p className="text-xs text-muted-foreground">Multiple images supported</p>
+                          </div>
+                        )}
+                      </label>
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
-                      <p>Click to upload a photo of your backyard</p>
-                      <p className="text-sm text-muted-foreground">AI will remove the background for better visualization</p>
-                    </div>
-                  )}
-                </label>
-              </div>
-            </div>
+                  </div>
+                </div>
+                
+                <div className="text-xs text-muted-foreground bg-teal/5 p-3 rounded-lg">
+                  <strong>Helpful tip:</strong> Include photos showing your backyard from different angles, 
+                  any existing structures, utilities, or landscaping features that might affect installation.
+                </div>
+              </CardContent>
+            </Card>
 
             <div className="text-center space-y-4">
               <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">

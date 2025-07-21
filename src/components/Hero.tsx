@@ -30,23 +30,8 @@ const Hero = () => {
         />
       </div>
 
-      {/* Animated Wonderlands Text */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
-        <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold text-white text-center animate-pulse">
-          <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent animate-fade-in">
-            WONDERLANDS
-          </span>
-        </h1>
-      </div>
-
-      {/* Main Content Overlay - moved to bottom */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 text-center px-4 max-w-4xl">
-        <p className="text-xl md:text-2xl text-white/90 mb-8 animate-fade-in-up leading-relaxed drop-shadow-lg">
-          Transform your backyard into your personal oasis with premium fiberglass pools and patios. 
-          <br className="hidden md:block" />
-          Where lifestyle meets luxury.
-        </p>
-        
+      {/* Main Action Buttons - Near Logo */}
+      <div className="absolute top-48 left-1/2 transform -translate-x-1/2 z-20 text-center px-4">
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up">
           <Button 
             variant="gradient"
@@ -64,7 +49,7 @@ const Hero = () => {
             className="hover:scale-105 transition-all duration-300 backdrop-blur-sm"
             onClick={() => setShowQuoteModal(true)}
           >
-            Get Free Quote
+            Upload Your House Survey
           </Button>
 
           <Button 
@@ -76,8 +61,16 @@ const Hero = () => {
             <Download className="mr-2 h-5 w-5" />
             Download PDF Catalog
           </Button>
-
         </div>
+      </div>
+
+      {/* Bottom Content */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 text-center px-4 max-w-4xl">
+        <p className="text-xl md:text-2xl text-white/90 mb-8 animate-fade-in-up leading-relaxed drop-shadow-lg">
+          Transform your backyard into your personal oasis with premium fiberglass pools and patios. 
+          <br className="hidden md:block" />
+          Where lifestyle meets luxury.
+        </p>
         
         <div className="mt-12 animate-fade-in-up">
           <p className="text-sm text-white/70 mb-4">Trusted by 500+ families across the region</p>
