@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Shield } from "lucide-react";
+import { ArrowRight, Sparkles, Shield, Download } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import AnimatedLandscape from "./AnimatedLandscape";
-import Hero3DElements from "./Hero3DElements";
 
 const Hero = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -22,9 +21,6 @@ const Hero = () => {
       {/* Animated Landscape Background */}
       <AnimatedLandscape />
       
-      {/* 3D Hero Elements */}
-      <Hero3DElements />
-      
       {/* Logo at Top */}
       <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
         <img 
@@ -34,8 +30,17 @@ const Hero = () => {
         />
       </div>
 
-      {/* Main Content Overlay */}
-      <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-20 text-center px-4 max-w-4xl">
+      {/* Animated Wonderlands Text */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
+        <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold text-white text-center animate-pulse">
+          <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent animate-fade-in">
+            WONDERLANDS
+          </span>
+        </h1>
+      </div>
+
+      {/* Main Content Overlay - moved to bottom */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 text-center px-4 max-w-4xl">
         <p className="text-xl md:text-2xl text-white/90 mb-8 animate-fade-in-up leading-relaxed drop-shadow-lg">
           Transform your backyard into your personal oasis with premium fiberglass pools and patios. 
           <br className="hidden md:block" />
@@ -60,6 +65,16 @@ const Hero = () => {
             onClick={() => setShowQuoteModal(true)}
           >
             Get Free Quote
+          </Button>
+
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="hover:scale-105 transition-all duration-300 backdrop-blur-sm border-white/30 text-white hover:bg-white/10"
+            onClick={() => window.open('/catalog.pdf', '_blank')}
+          >
+            <Download className="mr-2 h-5 w-5" />
+            Download PDF Catalog
           </Button>
 
         </div>
