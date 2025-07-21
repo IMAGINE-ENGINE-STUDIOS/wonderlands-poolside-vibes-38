@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award } from "lucide-react";
 import Enhanced3DPoolViewer from "./Enhanced3DPoolViewer";
+import Pool3DVisualizerModal from "./Pool3DVisualizerModal";
 
 interface Pool {
   model: string;
@@ -18,7 +19,7 @@ interface Pool {
   galaPoints?: number;
   galaCategory?: string;
   installationTimeWeeks?: number;
-  warrantyYears?: number;
+  warrantyYears?: number | string;
 }
 
 interface PoolProductCardProps {
@@ -57,6 +58,7 @@ const getExtraPrice = (extra: string) => {
 const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [show3D, setShow3D] = useState(false);
+  const [showAdvanced3D, setShowAdvanced3D] = useState(false);
   const [extras, setExtras] = useState<PoolExtras>({
     liner: false,
     heater: false,
@@ -113,16 +115,6 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
           </Badge>
         </div>
         
-        {/* GALA Points Badge */}
-        {pool.galaPoints && (
-          <div className="absolute top-4 right-4">
-            <Badge className="bg-amber-500/90 text-white flex items-center gap-1 px-2 py-1">
-              <Star className="h-3 w-3" />
-              {pool.galaPoints.toLocaleString()}
-            </Badge>
-          </div>
-        )}
-        
         <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors duration-300 flex items-center justify-center">
           <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 text-white font-medium">
             Click for Details
@@ -174,7 +166,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
           {pool.warrantyYears && (
             <div className="flex items-center gap-1">
               <Award className="h-3 w-3" />
-              <span>Warranty: {pool.warrantyYears} years</span>
+              <span>Warranty: {pool.warrantyYears === "Life" ? "Lifetime" : `${pool.warrantyYears} years`}</span>
             </div>
           )}
         </div>
@@ -187,13 +179,22 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
             {/* 3D Toggle */}
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">3D Preview</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShow3D(!show3D)}
-              >
-                {show3D ? 'Hide 3D' : 'Show 3D'}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShow3D(!show3D)}
+                >
+                  {show3D ? 'Hide 3D' : 'Show 3D'}
+                </Button>
+                <Button
+                  variant="coral"
+                  size="sm"
+                  onClick={() => setShowAdvanced3D(true)}
+                >
+                  Advanced 3D
+                </Button>
+              </div>
             </div>
             
             {/* 3D Viewer */}
@@ -286,6 +287,13 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
           </Button>
         )}
       </CardContent>
+      
+      {/* Advanced 3D Visualizer Modal */}
+      <Pool3DVisualizerModal
+        isOpen={showAdvanced3D}
+        onClose={() => setShowAdvanced3D(false)}
+        poolModel={pool.model}
+      />
     </Card>
   );
 };

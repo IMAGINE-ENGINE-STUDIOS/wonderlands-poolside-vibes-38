@@ -32,7 +32,7 @@ interface Pool {
   galaPoints?: number;
   galaCategory?: string;
   installationTimeWeeks?: number;
-  warrantyYears?: number;
+  warrantyYears?: number | string;
 }
 
 const pools: Pool[] = [
@@ -46,7 +46,7 @@ const pools: Pool[] = [
     galaPoints: 11100,
     galaCategory: "Luxury Collection",
     installationTimeWeeks: 6,
-    warrantyYears: 15,
+    warrantyYears: "Life",
     features: ["LED Lighting", "Premium Finish", "Advanced Filtration"]
   },
   { 
@@ -58,8 +58,8 @@ const pools: Pool[] = [
     depth: "4′ 6″ to 6′",
     galaPoints: 9850,
     galaCategory: "Luxury Collection",
-    installationTimeWeeks: 5,
-    warrantyYears: 15,
+    installationTimeWeeks: 6,
+    warrantyYears: "Life",
     features: ["Smart Pool Technology", "Energy Efficient", "Premium Materials"]
   },
   { 
@@ -71,8 +71,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 6′",
     galaPoints: 9640,
     galaCategory: "Luxury Collection",
-    installationTimeWeeks: 5,
-    warrantyYears: 15,
+    installationTimeWeeks: 6,
+    warrantyYears: "Life",
     features: ["Spacious Design", "Coral Reef Finish", "Built-in Steps"]
   },
   { 
@@ -85,7 +85,7 @@ const pools: Pool[] = [
     galaPoints: 10200,
     galaCategory: "Luxury Collection",
     installationTimeWeeks: 6,
-    warrantyYears: 15,
+    warrantyYears: "Life",
     features: ["Auto Cover Ready", "Multiple Entry Points", "Premium Design"]
   },
   { 
