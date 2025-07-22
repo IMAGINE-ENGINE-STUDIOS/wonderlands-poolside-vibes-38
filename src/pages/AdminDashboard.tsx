@@ -31,7 +31,6 @@ import AdminContentEditor from '@/components/AdminContentEditor';
 
 const AdminDashboard = () => {
   const { 
-    user,
     products, 
     orders, 
     businesses,
@@ -45,6 +44,20 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [orderFilter, setOrderFilter] = useState('all');
   const [showContentEditor, setShowContentEditor] = useState(false);
+  const [adminSession, setAdminSession] = useState(null);
+
+  // Check for admin session on component mount
+  useEffect(() => {
+    const session = localStorage.getItem('adminSession');
+    if (session) {
+      try {
+        setAdminSession(JSON.parse(session));
+      } catch (error) {
+        console.error('Failed to parse admin session:', error);
+        localStorage.removeItem('adminSession');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -108,7 +121,7 @@ const AdminDashboard = () => {
     }
   };
 
-  if (!user) {
+  if (!adminSession) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
         <Card className="w-full max-w-md">
@@ -136,7 +149,7 @@ const AdminDashboard = () => {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                 GALA-GOODS Admin Dashboard
               </h1>
-              <p className="text-muted-foreground">Welcome back, {user.name || user.email}</p>
+              <p className="text-muted-foreground">Welcome back, {adminSession.email}</p>
             </div>
             <div className="flex items-center gap-3">
               <Button variant="outline" onClick={refreshData} disabled={isLoading}>
