@@ -8,8 +8,7 @@ import {
   Sky,
   useTexture,
   useCubeTexture,
-  Text,
-  ContactShadows
+  Text
 } from '@react-three/drei';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -221,14 +220,14 @@ function EnhancedPoolModel({ poolModel, settings }: {
       
       {/* Enhanced Water with Quality Settings */}
       <mesh ref={waterRef} position={[0, -0.35, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[3.8, 1.8, settings.waterQuality * 10, settings.waterQuality * 10]} />
+        <planeGeometry args={[3.8, 1.8, Math.max(1, settings.waterQuality || 1) * 10, Math.max(1, settings.waterQuality || 1) * 10]} />
         <meshStandardMaterial
           color="#0288D1"
           metalness={0.8}
           roughness={0.1}
           transparent
           opacity={0.8}
-          emissive="#004D7A"
+          emissive={new Color("#004D7A")}
           emissiveIntensity={0.1}
         />
       </mesh>
@@ -244,7 +243,7 @@ function EnhancedPoolModel({ poolModel, settings }: {
         <cylinderGeometry args={[0.05, 0.05, 0.05]} />
         <meshStandardMaterial 
           color="#FFD700" 
-          emissive="#FFD700"
+          emissive={new Color("#FFD700")}
           emissiveIntensity={0.3}
         />
       </mesh>
@@ -257,7 +256,7 @@ function EnhancedPoolModel({ poolModel, settings }: {
             color="#2E7D32" 
             metalness={0.8}
             roughness={0.2}
-            emissive="#1B5E20"
+            emissive={new Color("#1B5E20")}
             emissiveIntensity={0.1}
           />
         </mesh>
@@ -314,8 +313,6 @@ function Enhanced3DScene({
               position={[10, 10, 5]} 
               intensity={1.2}
               castShadow
-              shadow-mapSize-width={2048}
-              shadow-mapSize-height={2048}
             />
             <pointLight position={[-10, 5, -10]} intensity={0.4} color="#FFB347" />
           </>
@@ -362,15 +359,6 @@ function Enhanced3DScene({
       {getLightingSetup()}
       
       <EnhancedPoolModel poolModel={poolModel} settings={settings} />
-      
-      {/* Contact Shadows for more realistic ground */}
-      <ContactShadows 
-        position={[0, -0.6, 0]} 
-        opacity={0.4} 
-        scale={8} 
-        blur={2} 
-        far={4} 
-      />
       
       <Sparkles 
         count={30} 
