@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -228,6 +229,37 @@ const WorkingApiManager = () => {
     }, 1000);
   };
 
+  const handleApiKeyChange = (connectionId: string, value: string) => {
+    setApiKeys(prev => ({ ...prev, [connectionId]: value }));
+  };
+
+  const handleSaveApiKey = (connectionId: string) => {
+    const newKey = apiKeys[connectionId];
+    if (!newKey?.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter an API key",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setConnections(prev => prev.map(conn => 
+      conn.id === connectionId 
+        ? { ...conn, apiKey: newKey, status: 'pending' }
+        : conn
+    ));
+
+    toast({
+      title: "API Key Saved",
+      description: "Testing connection...",
+    });
+
+    setTimeout(() => {
+      handleTestConnection(connectionId);
+    }, 1000);
+  };
+
   const handleSync = async (connectionId: string) => {
     const connection = connections.find(c => c.id === connectionId);
     
@@ -444,6 +476,34 @@ const WorkingApiManager = () => {
                   </CardHeader>
                   
                   <CardContent className="space-y-4">
+                    {/* API Key Input Section */}
+                    <div className="space-y-2">
+                      <Label htmlFor={`api-key-${connection.id}`}>API Key</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id={`api-key-${connection.id}`}
+                          type="password"
+                          placeholder="Enter your API key"
+                          value={apiKeys[connection.id] || ''}
+                          onChange={(e) => handleApiKeyChange(connection.id, e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button
+                          onClick={() => handleSaveApiKey(connection.id)}
+                          disabled={!apiKeys[connection.id]?.trim()}
+                          size="sm"
+                        >
+                          <Key className="h-4 w-4 mr-2" />
+                          Save
+                        </Button>
+                      </div>
+                      {connection.status === 'error' && (
+                        <p className="text-sm text-destructive">
+                          Invalid API key. Please check and try again.
+                        </p>
+                      )}
+                    </div>
+
                     <div className="space-y-1">
                       <span className="text-sm text-muted-foreground">Features:</span>
                       <div className="flex flex-wrap gap-1">
@@ -461,7 +521,7 @@ const WorkingApiManager = () => {
                         size="sm"
                         className="flex-1"
                         onClick={() => handleTestConnection(connection.id)}
-                        disabled={connection.status === 'pending'}
+                        disabled={connection.status === 'pending' || !apiKeys[connection.id]?.trim()}
                       >
                         <Wifi className="h-4 w-4 mr-2" />
                         Test
