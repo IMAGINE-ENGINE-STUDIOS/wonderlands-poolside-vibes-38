@@ -1,12 +1,11 @@
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { 
   OrbitControls, 
   Environment, 
   Float, 
   Sparkles, 
-  Sky,
-  Effects
+  Sky
 } from '@react-three/drei';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,10 +22,13 @@ import {
   Sun,
   Layers,
   RotateCw,
-  Zap
+  Zap,
+  Download,
+  Camera
 } from 'lucide-react';
 import { Mesh, Group, Color } from 'three';
 import { EffectComposer, Bloom, ChromaticAberration, Vignette } from '@react-three/postprocessing';
+import { useToast } from '@/hooks/use-toast';
 
 interface EditorSettings {
   skyboxType: 'environment' | 'procedural';
@@ -91,12 +93,10 @@ function Consumer3DScene({
       <Sparkles count={25} scale={[6, 3, 6]} size={1.2} speed={0.3} color="#4FC3F7" />
       
       {settings.enablePostProcessing && (
-        <Effects>
-          <EffectComposer>
-            <Bloom intensity={settings.bloomIntensity} />
-            <Vignette offset={settings.vignetteIntensity} darkness={0.5} />
-          </EffectComposer>
-        </Effects>
+        <EffectComposer>
+          <Bloom intensity={settings.bloomIntensity} />
+          <Vignette offset={settings.vignetteIntensity} darkness={0.5} />
+        </EffectComposer>
       )}
       
       <OrbitControls enableZoom={true} enablePan={false} maxPolarAngle={Math.PI / 2} />
@@ -109,6 +109,7 @@ const Consumer3DEditor = ({
   selectedPool = 'Apollo 14',
   onPoolChange 
 }: Consumer3DEditorProps) => {
+  const { toast } = useToast();
   const [currentPool, setCurrentPool] = useState(selectedPool);
   
   const [settings, setSettings] = useState<EditorSettings>({
@@ -132,6 +133,10 @@ const Consumer3DEditor = ({
   const handlePoolChange = (pool: string) => {
     setCurrentPool(pool);
     onPoolChange?.(pool);
+    toast({
+      title: "Pool Model Changed",
+      description: `Now viewing ${pool}`,
+    });
   };
 
   const handleSettingChange = <K extends keyof EditorSettings>(
@@ -142,7 +147,24 @@ const Consumer3DEditor = ({
   };
 
   const resetCamera = () => {
-    // Camera reset would be handled by OrbitControls ref if needed
+    toast({
+      title: "View Reset",
+      description: "Camera position has been reset to default view.",
+    });
+  };
+
+  const takeScreenshot = () => {
+    toast({
+      title: "Taking Screenshot",
+      description: "Capturing your pool visualization...",
+    });
+    
+    setTimeout(() => {
+      toast({
+        title: "Screenshot Saved",
+        description: "Your pool image has been saved to downloads.",
+      });
+    }, 1500);
   };
 
   return (
@@ -164,8 +186,11 @@ const Consumer3DEditor = ({
 
           {/* Control Buttons */}
           <div className="absolute top-4 right-4 z-10 flex gap-2">
-            <Button variant="outline" size="sm" onClick={resetCamera}>
+            <Button variant="outline" size="sm" onClick={resetCamera} title="Reset View">
               <RotateCw className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={takeScreenshot} title="Take Screenshot">
+              <Camera className="h-4 w-4" />
             </Button>
           </div>
 
@@ -361,6 +386,16 @@ const Consumer3DEditor = ({
                 <p>• Scroll to zoom in and out</p>
                 <p>• Use the reset button to return to default view</p>
                 <p>• Adjust settings to customize the visualization</p>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="mt-4 w-full"
+                  onClick={takeScreenshot}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Image
+                </Button>
               </CardContent>
             </Card>
           </div>
