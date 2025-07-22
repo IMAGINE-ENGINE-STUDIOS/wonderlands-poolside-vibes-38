@@ -52,7 +52,7 @@ const pools: Pool[] = [
     galaPoints: 11100,
     galaCategory: "Luxury Collection",
     installationTimeWeeks: 6,
-    warrantyYears: "Life",
+    warrantyYears: "Lifetime",
     features: ["LED Lighting", "Premium Finish", "Advanced Filtration"],
     heater: true,
     saltSystem: true,
@@ -68,7 +68,7 @@ const pools: Pool[] = [
     galaPoints: 9850,
     galaCategory: "Luxury Collection",
     installationTimeWeeks: 6,
-    warrantyYears: "Life",
+    warrantyYears: "Lifetime",
     features: ["Smart Pool Technology", "Energy Efficient", "Premium Materials"],
     heater: true,
     saltSystem: true,
@@ -84,7 +84,7 @@ const pools: Pool[] = [
     galaPoints: 9640,
     galaCategory: "Luxury Collection",
     installationTimeWeeks: 6,
-    warrantyYears: "Life",
+    warrantyYears: "Lifetime",
     features: ["Spacious Design", "Coral Reef Finish", "Built-in Steps"],
     heater: true,
     saltSystem: true,
@@ -100,7 +100,7 @@ const pools: Pool[] = [
     galaPoints: 10200,
     galaCategory: "Luxury Collection",
     installationTimeWeeks: 6,
-    warrantyYears: "Life",
+    warrantyYears: "Lifetime",
     features: ["Auto Cover Ready", "Multiple Entry Points", "Premium Design"],
     heater: true,
     saltSystem: true,
@@ -114,8 +114,8 @@ const pools: Pool[] = [
     depth: "3′ 7″ to 6′ 2″",
     galaPoints: 11100,
     galaCategory: "Luxury Collection",
-    installationTimeWeeks: 7,
-    warrantyYears: "Life",
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime",
     heater: true,
     saltSystem: true,
     carbonFiber: true
@@ -128,8 +128,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 6′",
     galaPoints: 9850,
     galaCategory: "Luxury Collection",
-    installationTimeWeeks: 5,
-    warrantyYears: 15
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Olympia 14", 
@@ -139,8 +139,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 6′",
     galaPoints: 9640,
     galaCategory: "Luxury Collection",
-    installationTimeWeeks: 5,
-    warrantyYears: 15
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Providence 14", 
@@ -150,8 +150,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 6′",
     galaPoints: 9560,
     galaCategory: "Luxury Collection",
-    installationTimeWeeks: 5,
-    warrantyYears: 15
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Laguna Deluxe", 
@@ -161,8 +161,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 6′",
     galaPoints: 4765,
     galaCategory: "Executive Series",
-    installationTimeWeeks: 4,
-    warrantyYears: 12
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Valencia", 
@@ -173,8 +173,8 @@ const pools: Pool[] = [
     depth: "3′ 7″ to 5′ 10″",
     galaPoints: 1965,
     galaCategory: "Classic Series",
-    installationTimeWeeks: 3,
-    warrantyYears: 10
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Cape Cod", 
@@ -185,8 +185,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 5′ 6″",
     galaPoints: 1767,
     galaCategory: "Classic Series",
-    installationTimeWeeks: 3,
-    warrantyYears: 10
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "St. Lucia", 
@@ -197,8 +197,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 6′",
     galaPoints: 2175,
     galaCategory: "Classic Series",
-    installationTimeWeeks: 4,
-    warrantyYears: 10
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Synergy", 
@@ -209,8 +209,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 6′",
     galaPoints: 2067,
     galaCategory: "Classic Series",
-    installationTimeWeeks: 3,
-    warrantyYears: 10
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Bermuda", 
@@ -221,8 +221,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 6′",
     galaPoints: 3925,
     galaCategory: "Executive Series",
-    installationTimeWeeks: 4,
-    warrantyYears: 12
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Fiji", 
@@ -233,8 +233,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 6′",
     galaPoints: 2136,
     galaCategory: "Classic Series",
-    installationTimeWeeks: 3,
-    warrantyYears: 10
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Genesis", 
@@ -245,8 +245,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 6′",
     galaPoints: 4270,
     galaCategory: "Executive Series",
-    installationTimeWeeks: 4,
-    warrantyYears: 12
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Enchantment 9.17", 
@@ -257,8 +257,8 @@ const pools: Pool[] = [
     depth: "4′ 9″",
     galaPoints: 1176,
     galaCategory: "Compact Collection",
-    installationTimeWeeks: 2,
-    warrantyYears: 8
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Enchantment 9.21", 
@@ -269,8 +269,8 @@ const pools: Pool[] = [
     depth: "4′ 9″",
     galaPoints: 1206,
     galaCategory: "Compact Collection",
-    installationTimeWeeks: 2,
-    warrantyYears: 8
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Tuscan 11.20", 
@@ -281,8 +281,8 @@ const pools: Pool[] = [
     depth: "3′ 7″ to 5′ 4″",
     galaPoints: 2244,
     galaCategory: "Classic Series",
-    installationTimeWeeks: 3,
-    warrantyYears: 10
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Tuscan 13.24", 
@@ -293,8 +293,8 @@ const pools: Pool[] = [
     depth: "3′ 7″ to 5′ 4″",
     galaPoints: 4145,
     galaCategory: "Executive Series",
-    installationTimeWeeks: 4,
-    warrantyYears: 12
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Tuscan 14.27", 
@@ -305,8 +305,8 @@ const pools: Pool[] = [
     depth: "3′ 7″ to 5′ 4″",
     galaPoints: 4480,
     galaCategory: "Executive Series",
-    installationTimeWeeks: 4,
-    warrantyYears: 12
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Key West", 
@@ -316,8 +316,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 6′",
     galaPoints: 1929,
     galaCategory: "Classic Series",
-    installationTimeWeeks: 3,
-    warrantyYears: 10
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Enchantment 9.24", 
@@ -327,8 +327,8 @@ const pools: Pool[] = [
     depth: "4′ 9″",
     galaPoints: 1216,
     galaCategory: "Compact Collection",
-    installationTimeWeeks: 2,
-    warrantyYears: 8
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Jamaica", 
@@ -339,8 +339,8 @@ const pools: Pool[] = [
     depth: "4′ 6″ to 5′ 6″",
     galaPoints: 922,
     galaCategory: "Compact Collection",
-    installationTimeWeeks: 2,
-    warrantyYears: 8
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Axiom 14", 
@@ -350,8 +350,8 @@ const pools: Pool[] = [
     depth: "4′ 6″ to 6′",
     galaPoints: 4475,
     galaCategory: "Executive Series",
-    installationTimeWeeks: 4,
-    warrantyYears: 12
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Bay Isle", 
@@ -361,8 +361,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 6′",
     galaPoints: 4600,
     galaCategory: "Executive Series",
-    installationTimeWeeks: 4,
-    warrantyYears: 12
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Claremont", 
@@ -372,8 +372,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 5′ 4″",
     galaPoints: 9450,
     galaCategory: "Luxury Collection",
-    installationTimeWeeks: 5,
-    warrantyYears: 15
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Corinthian 14", 
@@ -383,8 +383,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 6′",
     galaPoints: 9700,
     galaCategory: "Luxury Collection",
-    installationTimeWeeks: 5,
-    warrantyYears: 15
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   },
   { 
     model: "Laguna", 
@@ -394,8 +394,8 @@ const pools: Pool[] = [
     depth: "3′ 6″ to 6′",
     galaPoints: 4425,
     galaCategory: "Executive Series",
-    installationTimeWeeks: 4,
-    warrantyYears: 12
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime"
   }
 ];
 

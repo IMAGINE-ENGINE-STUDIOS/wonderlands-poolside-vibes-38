@@ -48,14 +48,14 @@ const Hero = () => {
 
       {/* Bottom Content */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 text-center px-4 max-w-4xl">
-        <p className="text-xl md:text-2xl text-white/90 mb-8 animate-fade-in-up leading-relaxed drop-shadow-lg">
+        <p className="text-xl md:text-2xl text-foreground mb-8 animate-fade-in-up leading-relaxed drop-shadow-lg">
           Transform your backyard into your personal oasis with premium fiberglass pools and patios. 
           <br className="hidden md:block" />
           Where lifestyle meets luxury.
         </p>
         
         <div className="mt-12 animate-fade-in-up">
-          <p className="text-sm text-white/70 mb-4">Trusted by 500+ families across the region</p>
+          <p className="text-sm text-muted-foreground mb-4">Trusted by 500+ families across the region</p>
         </div>
       </div>
     </section>
