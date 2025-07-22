@@ -254,7 +254,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                   size="sm"
                   onClick={() => setShowAdvanced3D(true)}
                 >
-                  Advanced 3D
+                  IMAGINALY 3D
                 </Button>
               </div>
             </div>

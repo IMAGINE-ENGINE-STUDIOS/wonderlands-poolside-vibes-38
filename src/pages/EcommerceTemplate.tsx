@@ -6,8 +6,7 @@ import ProductDetailModal from "@/components/ProductDetailModal";
 import FloridaPoolElements from "@/components/FloridaPoolElements";
 import Footer from "@/components/Footer";
 import SurveyQuoteTool from "@/components/SurveyQuoteTool";
-import { GalaGoodsProvider } from "@/contexts/GalaGoodsContext";
-import { GalaGoodsIntegration } from "@/components/GalaGoodsIntegration";
+import DeliveryApiManager from "@/components/DeliveryApiManager";
 import type { Product } from "@/components/ProductCatalog";
 import type { Service } from "@/components/ServiceSection";
 
@@ -86,80 +85,78 @@ const EcommerceTemplate = () => {
   };
 
   return (
-    <GalaGoodsProvider>
-      <div className="relative min-h-screen">
-        <FloridaPoolElements />
-        <div className="relative z-10">
-          <HeroTemplate
-            logo="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png"
-            logoAlt="Your Business Logo"
-            title="Your Amazing Business"
-            subtitle="Transform your experience with our premium products and services. Where quality meets excellence."
-            primaryButtonText="Explore Products"
-            secondaryButtonText="Get Free Quote"
-            trustBadgeText="Trusted by 500+ customers worldwide"
-            onPrimaryClick={scrollToCatalog}
-            onSecondaryClick={() => setShowQuoteModal(true)}
-            showQuoteModal={showQuoteModal}
-            QuoteComponent={() => (
-              <SurveyQuoteTool 
-                pool={null}
-                isOpen={showQuoteModal}
-                onClose={() => setShowQuoteModal(false)}
-              />
-            )}
-          />
-          
-          {/* GALA-GOODS Integration Section */}
-          <section className="py-20 px-4 bg-muted/50">
-            <div className="max-w-7xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-                  GALA-GOODS Integration
-                </h2>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Connect your store with GALA-GOODS for seamless e-commerce operations, payment processing, and marketplace integration
-                </p>
-              </div>
-              <GalaGoodsIntegration />
+    <div className="relative min-h-screen">
+      <FloridaPoolElements />
+      <div className="relative z-10">
+        <HeroTemplate
+          logo="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png"
+          logoAlt="Your Business Logo"
+          title="Your Amazing Business"
+          subtitle="Transform your experience with our premium products and services. Where quality meets excellence."
+          primaryButtonText="Explore Products"
+          secondaryButtonText="Get Free Quote"
+          trustBadgeText="Trusted by 500+ customers worldwide"
+          onPrimaryClick={scrollToCatalog}
+          onSecondaryClick={() => setShowQuoteModal(true)}
+          showQuoteModal={showQuoteModal}
+          QuoteComponent={() => (
+            <SurveyQuoteTool 
+              pool={null}
+              isOpen={showQuoteModal}
+              onClose={() => setShowQuoteModal(false)}
+            />
+          )}
+        />
+        
+        {/* Delivery API Integration Section */}
+        <section className="py-20 px-4 bg-muted/50">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
+                Delivery Integration
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Connect with leading delivery services for seamless order fulfillment and customer satisfaction
+              </p>
             </div>
-          </section>
-          
-          <ProductCatalog
-            title="Our Product Collection"
-            subtitle="Discover our premium products designed for every lifestyle and budget."
-            products={sampleProducts}
-            catalogId="product-catalog"
-            onRequestQuote={handleQuoteRequest}
-            DetailModalComponent={ProductDetailModal}
-            QuoteComponent={({ product, isOpen, onClose }: any) => (
-              <SurveyQuoteTool 
-                pool={product}
-                isOpen={isOpen}
-                onClose={onClose}
-              />
-            )}
-          />
-          
-          <ServiceSection
-            title="Our Services"
-            subtitle="Professional services to enhance your experience and ensure satisfaction."
-            services={sampleServices}
-            onRequestQuote={handleQuoteRequest}
-            QuoteComponent={({ service, isOpen, onClose, customProduct }: any) => (
-              <SurveyQuoteTool 
-                pool={null}
-                isOpen={isOpen}
-                onClose={onClose}
-                customProduct={customProduct}
-              />
-            )}
-          />
-          
-          <Footer />
-        </div>
+            <DeliveryApiManager />
+          </div>
+        </section>
+        
+        <ProductCatalog
+          title="Our Product Collection"
+          subtitle="Discover our premium products designed for every lifestyle and budget."
+          products={sampleProducts}
+          catalogId="product-catalog"
+          onRequestQuote={handleQuoteRequest}
+          DetailModalComponent={ProductDetailModal}
+          QuoteComponent={({ product, isOpen, onClose }: any) => (
+            <SurveyQuoteTool 
+              pool={product}
+              isOpen={isOpen}
+              onClose={onClose}
+            />
+          )}
+        />
+        
+        <ServiceSection
+          title="Our Services"
+          subtitle="Professional services to enhance your experience and ensure satisfaction."
+          services={sampleServices}
+          onRequestQuote={handleQuoteRequest}
+          QuoteComponent={({ service, isOpen, onClose, customProduct }: any) => (
+            <SurveyQuoteTool 
+              pool={null}
+              isOpen={isOpen}
+              onClose={onClose}
+              customProduct={customProduct}
+            />
+          )}
+        />
+        
+        <Footer />
       </div>
-    </GalaGoodsProvider>
+    </div>
   );
 };
 

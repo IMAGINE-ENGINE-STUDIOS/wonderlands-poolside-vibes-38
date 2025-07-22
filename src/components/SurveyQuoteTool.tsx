@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, Camera, FileText } from "lucide-react";
 import PoolCustomizationOptions from "./PoolCustomizationOptions";
 import { supabase } from "@/integrations/supabase/client";
-import { useGalaGoods } from "@/contexts/GalaGoodsContext";
+
 
 interface Pool {
   model: string;
@@ -77,7 +77,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
   const [currentStep, setCurrentStep] = useState<'survey' | 'options' | 'quote'>('survey');
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-  const { user } = useGalaGoods();
+  // Removed GALA-GOODS integration
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -177,7 +177,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
         recommendations: recommendations,
         uploaded_image_url: uploadedImage ? URL.createObjectURL(uploadedImage) : null,
         processed_image_url: processedImage || null,
-        gala_user_id: user?.id || null,
+        gala_user_id: null,
         status: 'pending'
       };
 

@@ -26,6 +26,7 @@ interface ImaginalyConsumerProps {
   className?: string;
   selectedPool?: string;
   onPoolChange?: (pool: string) => void;
+  disableUpload?: boolean;
 }
 
 interface ConsumerSettings {
@@ -91,7 +92,8 @@ function ImaginalyScene({ poolModel, settings, onStatsUpdate }: {
 export const ImaginalyConsumer = ({ 
   className = "", 
   selectedPool = 'Apollo 14',
-  onPoolChange 
+  onPoolChange,
+  disableUpload = false 
 }: ImaginalyConsumerProps) => {
   const { toast } = useToast();
   const [currentPool, setCurrentPool] = useState(selectedPool);

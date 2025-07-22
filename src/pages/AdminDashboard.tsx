@@ -24,10 +24,9 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useGalaGoods } from '@/contexts/GalaGoodsContext';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
-import { GalaGoodsIntegration } from '@/components/GalaGoodsIntegration';
+import DeliveryApiManager from '@/components/DeliveryApiManager';
 import AdminContentEditor from '@/components/AdminContentEditor';
 import WorkingApiManager from '@/components/WorkingApiManager';
 import Enhanced3DVisualizerConsole from '@/components/Enhanced3DVisualizerConsole';
@@ -36,15 +35,11 @@ import Advanced3DEditor from '@/components/Advanced3DEditor';
 import LathamPoolsData from '@/components/LathamPoolsData';
 
 const AdminDashboard = () => {
-  const { 
-    products, 
-    orders, 
-    businesses,
-    isLoading,
-    loadProducts,
-    loadOrders,
-    loadBusinesses
-  } = useGalaGoods();
+  // Mock data for demonstration
+  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [businesses, setBusinesses] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,25 +60,7 @@ const AdminDashboard = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        await Promise.all([
-          loadProducts(),
-          loadOrders(),
-          loadBusinesses()
-        ]);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load dashboard data",
-          variant: "destructive"
-        });
-      }
-    };
-
-    loadData();
-  }, []);
+  // Remove data loading effect since GALA-GOODS is removed
 
   // Mock GALA points data (in real implementation, this would come from API)
   const galaPointsData = {
@@ -108,23 +85,15 @@ const AdminDashboard = () => {
   });
 
   const refreshData = async () => {
-    try {
-      await Promise.all([
-        loadProducts(),
-        loadOrders(),
-        loadBusinesses()
-      ]);
+    // Mock refresh function
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
       toast({
         title: "Success",
         description: "Dashboard data refreshed",
       });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to refresh data",
-        variant: "destructive"
-      });
-    }
+    }, 1000);
   };
 
   if (!adminSession) {
@@ -153,7 +122,7 @@ const AdminDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                GALA-GOODS Admin Dashboard
+                Pool Systems Admin Dashboard
               </h1>
               <p className="text-muted-foreground">Welcome back, {adminSession.email}</p>
             </div>
@@ -188,13 +157,13 @@ const AdminDashboard = () => {
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">GALA Points</CardTitle>
+              <CardTitle className="text-sm font-medium">Active Quotes</CardTitle>
               <Star className="h-4 w-4 text-amber-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-amber-600">{galaPointsData.totalPoints.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-amber-600">24</div>
               <p className="text-xs text-muted-foreground">
-                {galaPointsData.activeUsers} active users
+                18 pending quotes
               </p>
             </CardContent>
           </Card>
@@ -258,10 +227,10 @@ const AdminDashboard = () => {
                 <Edit className="h-4 w-4" />
                 Content Editor
               </TabsTrigger>
-              <TabsTrigger value="gala-goods" className="flex items-center gap-2">
-                <Star className="h-4 w-4" />
-                Gala Goods
-              </TabsTrigger>
+               <TabsTrigger value="delivery-apis" className="flex items-center gap-2">
+                 <Star className="h-4 w-4" />
+                 Delivery APIs
+               </TabsTrigger>
               <TabsTrigger value="analytics" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
                 Analytics
@@ -274,7 +243,7 @@ const AdminDashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Order Management</CardTitle>
-                <CardDescription>Track and manage all orders in the GALA-GOODS ecosystem</CardDescription>
+                <CardDescription>Track and manage all pool installation orders</CardDescription>
                 
                 {/* Search and Filter */}
                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
@@ -369,7 +338,7 @@ const AdminDashboard = () => {
                     Add Product
                   </Button>
                 </CardTitle>
-                <CardDescription>Manage your GALA-GOODS product inventory</CardDescription>
+                <CardDescription>Manage your pool product inventory</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -577,22 +546,9 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
-          {/* Gala Goods Tab */}
-          <TabsContent value="gala-goods" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-primary" />
-                  GALA-GOODS Integration
-                </CardTitle>
-                <CardDescription>
-                  Manage your GALA-GOODS API integration and access platform features
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <GalaGoodsIntegration />
-              </CardContent>
-            </Card>
+          {/* Delivery APIs Tab */}
+          <TabsContent value="delivery-apis" className="space-y-6">
+            <DeliveryApiManager />
           </TabsContent>
 
           {/* GALA Points Tab */}
