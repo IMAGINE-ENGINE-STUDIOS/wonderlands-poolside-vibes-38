@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Zap, Leaf, Settings, DollarSign, Star } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import Pool3DViewer from "./Pool3DViewer";
+import ImaginalyFullEditor from "./ImaginalyFullEditor";
 
 interface AutomaticCover {
   name: string;
@@ -156,11 +156,13 @@ const AutomaticCoversSection = () => {
                       onClick={() => toggle3D(cover.name)}
                       className="w-full"
                     >
-                      {show3D === cover.name ? 'Hide 3D Preview' : 'Show 3D Preview'}
+                      {show3D === cover.name ? 'Hide IMAGINALY' : 'Show IMAGINALY'}
                     </Button>
                     
                     {show3D === cover.name && (
-                      <Pool3DViewer poolModel={`${cover.name} Cover`} dimensions="Interactive Demo" />
+                      <div className="mt-4">
+                        <ImaginalyFullEditor />
+                      </div>
                     )}
                   </div>
                   

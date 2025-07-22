@@ -4,10 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu } from "lucide-react";
-import Enhanced3DPoolViewer from "./Enhanced3DPoolViewer";
-import Pool3DVisualizerModal from "./Pool3DVisualizerModal";
-import NvidiaEnhanced3DViewer from "./NvidiaEnhanced3DViewer";
+import ImaginalyFullEditor from "./ImaginalyFullEditor";
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
 import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
@@ -254,14 +253,16 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                   size="sm"
                   onClick={() => setShowAdvanced3D(true)}
                 >
-                  IMAGINALY 3D
+                  IMAGINALY Editor
                 </Button>
               </div>
             </div>
             
             {/* 3D Viewer */}
             {show3D && (
-              <Enhanced3DPoolViewer poolModel={pool.model} dimensions={pool.dimensions} />
+              <div className="mt-4">
+                <ImaginalyFullEditor />
+              </div>
             )}
             
             {/* Pool Finishing Options */}
@@ -456,12 +457,12 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
         )}
       </CardContent>
       
-      {/* Advanced 3D Visualizer Modal */}
-      <Pool3DVisualizerModal
-        isOpen={showAdvanced3D}
-        onClose={() => setShowAdvanced3D(false)}
-        poolModel={pool.model}
-      />
+      {/* IMAGINALY Full Editor Modal */}
+      <Dialog open={showAdvanced3D} onOpenChange={setShowAdvanced3D}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0">
+          <ImaginalyFullEditor />
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

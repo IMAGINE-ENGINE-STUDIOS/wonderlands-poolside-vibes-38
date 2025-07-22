@@ -29,9 +29,8 @@ import { Link } from 'react-router-dom';
 import DeliveryApiManager from '@/components/DeliveryApiManager';
 import AdminContentEditor from '@/components/AdminContentEditor';
 import WorkingApiManager from '@/components/WorkingApiManager';
-import Enhanced3DVisualizerConsole from '@/components/Enhanced3DVisualizerConsole';
 import RealTimeContentEditor from '@/components/RealTimeContentEditor';
-import Advanced3DEditor from '@/components/Advanced3DEditor';
+import ImaginalyFullEditor from '@/components/ImaginalyFullEditor';
 import LathamPoolsData from '@/components/LathamPoolsData';
 
 const AdminDashboard = () => {
@@ -457,7 +456,7 @@ const AdminDashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Advanced3DEditor isAdminMode={true} />
+                <ImaginalyFullEditor />
               </CardContent>
             </Card>
           </TabsContent>
