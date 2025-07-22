@@ -4,9 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award } from "lucide-react";
+import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu } from "lucide-react";
 import Enhanced3DPoolViewer from "./Enhanced3DPoolViewer";
 import Pool3DVisualizerModal from "./Pool3DVisualizerModal";
+import NvidiaEnhanced3DViewer from "./NvidiaEnhanced3DViewer";
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
 import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
@@ -102,6 +103,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
   const [showDetails, setShowDetails] = useState(false);
   const [show3D, setShow3D] = useState(false);
   const [showAdvanced3D, setShowAdvanced3D] = useState(false);
+  const [showNvidia3D, setShowNvidia3D] = useState(false);
   const [extras, setExtras] = useState<PoolExtras>({
     liner: false,
     heater: false,

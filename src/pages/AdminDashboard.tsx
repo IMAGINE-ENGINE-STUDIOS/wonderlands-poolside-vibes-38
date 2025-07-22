@@ -14,7 +14,8 @@ import {
   Download,
   Filter,
   Search,
-  RefreshCw
+  RefreshCw,
+  Cpu
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -549,30 +550,70 @@ const AdminDashboard = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Eye className="h-5 w-5 text-primary" />
-                    3D Model Library
+                    NVIDIA-Enhanced 3D Models
                   </CardTitle>
                   <CardDescription>
-                    Manage 3D models for pools, pavers, and materials
+                    Advanced 3D visualization with NVIDIA Inception features
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
-                      { name: 'Pool Models', count: 24, type: 'pools' },
-                      { name: 'Paver Textures', count: 18, type: 'pavers' },
-                      { name: 'Material Samples', count: 32, type: 'materials' },
-                      { name: 'Landscape Items', count: 15, type: 'landscape' }
+                      { name: 'Pool Models', count: 24, type: 'pools', nvidia: true },
+                      { name: 'RTX Materials', count: 48, type: 'materials', nvidia: true },
+                      { name: 'PhysX Water', count: 12, type: 'water', nvidia: true },
+                      { name: 'AI Landscapes', count: 36, type: 'landscape', nvidia: true }
                     ].map((category) => (
-                      <div key={category.name} className="p-4 border rounded-lg text-center">
-                        <Package className="h-8 w-8 mx-auto mb-2 text-primary" />
-                        <p className="font-medium">{category.name}</p>
-                        <p className="text-sm text-muted-foreground">{category.count} models</p>
+                      <div key={category.name} className="p-4 border rounded-lg text-center bg-gradient-to-br from-green-50 to-blue-50">
+                        <div className="flex items-center justify-center mb-2">
+                          <Package className="h-6 w-6 text-green-600" />
+                          {category.nvidia && (
+                            <Badge className="ml-2 bg-green-600 text-xs">RTX</Badge>
+                          )}
+                        </div>
+                        <p className="font-medium text-sm">{category.name}</p>
+                        <p className="text-xs text-muted-foreground">{category.count} models</p>
                       </div>
                     ))}
                   </div>
-                  <Button className="w-full">
+                  
+                  {/* NVIDIA Inception Features */}
+                  <div className="bg-gradient-to-r from-green-900/10 to-blue-900/10 p-4 rounded-lg border border-green-200">
+                    <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                      <Cpu className="h-4 w-4 text-green-600" />
+                      NVIDIA Inception Integration
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span>PhysX Water Physics</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span>RTX Ray Tracing</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span>DLSS Enhancement</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span>Omniverse Ready</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span>AI Material Selection</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span>Weather Simulation</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Button className="w-full bg-green-600 hover:bg-green-700">
                     <Plus className="h-4 w-4 mr-2" />
-                    Upload New 3D Model
+                    Upload NVIDIA Optimized Model
                   </Button>
                 </CardContent>
               </Card>
