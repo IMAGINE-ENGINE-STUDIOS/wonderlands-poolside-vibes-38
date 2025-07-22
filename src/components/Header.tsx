@@ -18,7 +18,7 @@ const Header = () => {
           <Button 
             variant="outline" 
             size="sm" 
-            className="transition-all duration-300 backdrop-blur-sm border-white/30 text-white hover:bg-white/10"
+            className="transition-all duration-300"
           >
             <Shield className="mr-2 h-4 w-4" />
             Admin Dashboard
