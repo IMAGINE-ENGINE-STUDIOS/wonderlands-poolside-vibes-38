@@ -32,6 +32,8 @@ import AdminContentEditor from '@/components/AdminContentEditor';
 import WorkingApiManager from '@/components/WorkingApiManager';
 import Enhanced3DVisualizerConsole from '@/components/Enhanced3DVisualizerConsole';
 import RealTimeContentEditor from '@/components/RealTimeContentEditor';
+import Advanced3DEditor from '@/components/Advanced3DEditor';
+import LathamPoolsData from '@/components/LathamPoolsData';
 
 const AdminDashboard = () => {
   const { 
@@ -240,10 +242,14 @@ const AdminDashboard = () => {
                 <Users className="h-4 w-4" />
                 API Manager
               </TabsTrigger>
-              <TabsTrigger value="3d-visualizer" className="flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                3D Visualizer
-              </TabsTrigger>
+               <TabsTrigger value="3d-editor" className="flex items-center gap-2">
+                 <Cpu className="h-4 w-4" />
+                 3D Editor
+               </TabsTrigger>
+               <TabsTrigger value="pool-specs" className="flex items-center gap-2">
+                 <Package className="h-4 w-4" />
+                 Pool Specs
+               </TabsTrigger>
               <TabsTrigger value="delivery-logistics" className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4" />
                 Delivery & Logistics
@@ -469,9 +475,40 @@ const AdminDashboard = () => {
             <WorkingApiManager />
           </TabsContent>
 
-          {/* 3D Visualizer Tab */}
-          <TabsContent value="3d-visualizer" className="space-y-6">
-            <Enhanced3DVisualizerConsole />
+          {/* 3D Editor Tab */}
+          <TabsContent value="3d-editor" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Cpu className="h-5 w-5" />
+                  Advanced 3D Pool Editor
+                </CardTitle>
+                <CardDescription>
+                  Professional 3D editor with skybox support, shader management, and file uploads
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Advanced3DEditor isAdminMode={true} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Pool Specs Tab */}
+          <TabsContent value="pool-specs" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Latham Pools Specifications
+                </CardTitle>
+                <CardDescription>
+                  Complete pool specifications database with technical details
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <LathamPoolsData />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Delivery & Logistics Tab */}
