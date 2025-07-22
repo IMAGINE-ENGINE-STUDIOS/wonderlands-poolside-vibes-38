@@ -73,11 +73,15 @@ interface SkyboxOption {
 }
 
 const defaultSkyboxes: SkyboxOption[] = [
-  { id: 'sunset', name: 'Golden Sunset', type: 'hdri' },
-  { id: 'dawn', name: 'Morning Dawn', type: 'hdri' },
-  { id: 'studio', name: 'Studio Lighting', type: 'hdri' },
-  { id: 'forest', name: 'Forest Canopy', type: 'hdri' },
-  { id: 'warehouse', name: 'Industrial Warehouse', type: 'hdri' },
+  { id: 'warehouse', name: 'Warehouse', type: 'hdri' },
+  { id: 'city', name: 'City', type: 'hdri' },
+  { id: 'dawn', name: 'Dawn', type: 'hdri' },
+  { id: 'forest', name: 'Forest', type: 'hdri' },
+  { id: 'lobby', name: 'Lobby', type: 'hdri' },
+  { id: 'night', name: 'Night', type: 'hdri' },
+  { id: 'park', name: 'Park', type: 'hdri' },
+  { id: 'studio', name: 'Studio', type: 'hdri' },
+  { id: 'sunset', name: 'Sunset', type: 'hdri' },
   { id: 'procedural-sky', name: 'Procedural Sky', type: 'procedural' }
 ];
 
@@ -378,7 +382,7 @@ const Advanced3DEditor = ({ className = "", isAdminMode = false }: Advanced3DEdi
   
   const [settings, setSettings] = useState<EditorSettings>({
     skyboxType: 'environment',
-    selectedSkybox: 'sunset',
+    selectedSkybox: 'warehouse',
     shaderMode: 'pbr',
     enablePostProcessing: true,
     bloomIntensity: 0.5,
