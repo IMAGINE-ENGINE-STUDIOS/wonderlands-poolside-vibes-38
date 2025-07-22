@@ -7,8 +7,7 @@ import {
   Sparkles, 
   Sky,
   useTexture,
-  useCubeTexture,
-  Effects
+  useCubeTexture
 } from '@react-three/drei';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -262,18 +261,16 @@ function PostProcessingEffects({ settings }: { settings: EditorSettings }) {
   if (!settings.enablePostProcessing) return null;
 
   return (
-    <Effects>
-      <EffectComposer>
-        <Bloom 
-          intensity={settings.bloomIntensity} 
-          kernelSize={3} 
-          luminanceThreshold={0.9} 
-          luminanceSmoothing={0.025} 
-        />
-        <ChromaticAberration offset={[settings.chromaticAberration, settings.chromaticAberration]} />
-        <Vignette eskil={false} offset={settings.vignetteIntensity} darkness={0.5} />
-      </EffectComposer>
-    </Effects>
+    <EffectComposer>
+      <Bloom 
+        intensity={settings.bloomIntensity} 
+        kernelSize={3} 
+        luminanceThreshold={0.9} 
+        luminanceSmoothing={0.025} 
+      />
+      <ChromaticAberration offset={[settings.chromaticAberration, settings.chromaticAberration]} />
+      <Vignette eskil={false} offset={settings.vignetteIntensity} darkness={0.5} />
+    </EffectComposer>
   );
 }
 
