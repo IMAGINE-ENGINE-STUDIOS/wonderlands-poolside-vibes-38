@@ -27,6 +27,7 @@ import { useGalaGoods } from '@/contexts/GalaGoodsContext';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { GalaGoodsIntegration } from '@/components/GalaGoodsIntegration';
+import AdminContentEditor from '@/components/AdminContentEditor';
 
 const AdminDashboard = () => {
   const { 
@@ -43,6 +44,7 @@ const AdminDashboard = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [orderFilter, setOrderFilter] = useState('all');
+  const [showContentEditor, setShowContentEditor] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -207,7 +209,7 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="orders" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="orders" className="flex items-center gap-2">
               <ShoppingCart className="h-4 w-4" />
               Orders
@@ -215,6 +217,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="products" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
               Products
+            </TabsTrigger>
+            <TabsTrigger value="content-editor" className="flex items-center gap-2">
+              <Edit className="h-4 w-4" />
+              Content Editor
             </TabsTrigger>
             <TabsTrigger value="gala-goods" className="flex items-center gap-2">
               <Star className="h-4 w-4" />
@@ -373,6 +379,64 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* Content Editor Tab */}
+          <TabsContent value="content-editor" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Edit className="h-5 w-5 text-primary" />
+                  Content Management System
+                </CardTitle>
+                <CardDescription>
+                  Edit all text content, manage sections, add text boxes, and change images across your entire website
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Button 
+                    onClick={() => setShowContentEditor(true)}
+                    className="w-full h-16 text-lg"
+                  >
+                    <Edit className="h-6 w-6 mr-3" />
+                    Launch Content Editor
+                  </Button>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                    <Card className="p-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Edit className="h-5 w-5 text-blue-500" />
+                        <h3 className="font-semibold">Edit Text</h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Modify any text content on your website with our visual editor
+                      </p>
+                    </Card>
+                    
+                    <Card className="p-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Plus className="h-5 w-5 text-green-500" />
+                        <h3 className="font-semibold">Add Sections</h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Add new content sections and customizable text boxes anywhere
+                      </p>
+                    </Card>
+                    
+                    <Card className="p-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Package className="h-5 w-5 text-purple-500" />
+                        <h3 className="font-semibold">Manage Images</h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Upload and replace images throughout your website easily
+                      </p>
+                    </Card>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Gala Goods Tab */}
           <TabsContent value="gala-goods" className="space-y-6">
             <Card>
@@ -504,6 +568,12 @@ const AdminDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Content Editor Modal */}
+      <AdminContentEditor 
+        isOpen={showContentEditor} 
+        onClose={() => setShowContentEditor(false)} 
+      />
     </div>
   );
 };

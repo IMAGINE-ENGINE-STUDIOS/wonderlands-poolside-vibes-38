@@ -42,9 +42,9 @@ const AdminLogin = ({ isOpen, onClose, onLoginSuccess }: AdminLoginProps) => {
         return;
       }
 
-      // For demo purposes, we'll use a simple password check
-      // In production, you'd want proper password hashing verification
-      const isValidPassword = password === "admin123!";
+      // Simple password verification for demo
+      // In production, use proper bcrypt verification
+      const isValidPassword = password === "admin123!" && adminUsers.email === email;
       
       if (!isValidPassword) {
         toast({
