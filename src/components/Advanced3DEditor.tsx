@@ -187,7 +187,7 @@ function EnhancedPoolModel({ poolModel, settings }: {
       case 'unlit':
         return { emissive: new Color('#4FC3F7'), emissiveIntensity: 0.5 };
       case 'custom':
-        return { metalness: 0.5, roughness: 0.3, clearcoat: 0.8 };
+        return { metalness: 0.5, roughness: 0.3 };
       default:
         return { metalness: 0.3, roughness: 0.1 };
     }
@@ -266,20 +266,8 @@ function EnhancedPoolModel({ poolModel, settings }: {
 }
 
 function PostProcessingEffects({ settings }: { settings: EditorSettings }) {
-  if (!settings.enablePostProcessing) return null;
-
-  return (
-    <EffectComposer>
-      <Bloom 
-        intensity={settings.bloomIntensity} 
-        kernelSize={3} 
-        luminanceThreshold={0.9} 
-        luminanceSmoothing={0.025} 
-      />
-      <ChromaticAberration offset={[settings.chromaticAberration, settings.chromaticAberration]} />
-      <Vignette eskil={false} offset={settings.vignetteIntensity} darkness={0.5} />
-    </EffectComposer>
-  );
+  // Temporarily disabled to isolate the error
+  return null;
 }
 
 function Enhanced3DScene({ 
@@ -350,25 +338,20 @@ function Enhanced3DScene({
 
   return (
     <>
-      <CustomSkybox 
-        skyboxType={settings.skyboxType}
-        selectedSkybox={settings.selectedSkybox}
-        customSkyboxPath={customSkyboxPath}
-      />
+      {settings.skyboxType === 'procedural' ? (
+        <Sky sunPosition={[100, 20, 100]} />
+      ) : (
+        <Environment preset={settings.selectedSkybox as any} />
+      )}
       
-      {getLightingSetup()}
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[10, 10, 5]} intensity={1.0} />
       
-      <EnhancedPoolModel poolModel={poolModel} settings={settings} />
-      
-      <Sparkles 
-        count={30} 
-        scale={[8, 4, 8]} 
-        size={1.5} 
-        speed={0.3}
-        color="#4FC3F7"
-      />
-      
-      <PostProcessingEffects settings={settings} />
+      {/* Simple Pool Model */}
+      <mesh position={[0, -0.5, 0]}>
+        <boxGeometry args={[4, 0.2, 2]} />
+        <meshStandardMaterial color="#4FC3F7" transparent opacity={0.9} />
+      </mesh>
       
       <OrbitControls 
         enableZoom={true} 
@@ -376,8 +359,6 @@ function Enhanced3DScene({
         maxPolarAngle={Math.PI / 2}
         minDistance={3}
         maxDistance={15}
-        enableDamping
-        dampingFactor={0.05}
       />
     </>
   );
