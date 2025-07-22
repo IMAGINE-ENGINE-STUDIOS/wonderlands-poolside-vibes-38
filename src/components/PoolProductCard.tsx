@@ -20,6 +20,12 @@ interface Pool {
   galaCategory?: string;
   installationTimeWeeks?: number;
   warrantyYears?: number | string;
+  heater?: boolean;
+  saltSystem?: boolean;
+  carbonFiber?: boolean;
+  finishes?: string[];
+  liners?: string[];
+  covers?: string[];
 }
 
 interface PoolProductCardProps {
@@ -33,6 +39,10 @@ interface PoolExtras {
   heater: boolean;
   cover: boolean;
   jets: boolean;
+  saltSystem: boolean;
+  finish: string;
+  linerOption: string;
+  coverOption: string;
 }
 
 const getCategoryColor = (category: string) => {
@@ -51,9 +61,33 @@ const getExtraPrice = (extra: string) => {
     case 'heater': return 4500;
     case 'cover': return 3200;
     case 'jets': return 1800;
+    case 'saltSystem': return 7000;
     default: return 0;
   }
 };
+
+const finishOptions = [
+  { name: 'Aquamarine', color: '#7FFFD4', image: '/src/assets/finishes/aquamarine-g3.jpg' },
+  { name: 'Ocean Blue', color: '#006994', image: '/src/assets/finishes/ocean-blue-g3.jpg' },
+  { name: 'Sapphire Blue', color: '#0F52BA', image: '/src/assets/finishes/sapphire-blue-g3.jpg' },
+  { name: 'Night Sky', color: '#191970', image: '/src/assets/finishes/night-sky-g3.jpg' },
+  { name: 'Athens Pearl White', color: '#F5F5DC', image: '/src/assets/finishes/athens-pearl-white-g3.jpg' }
+];
+
+const linerOptions = [
+  { name: 'Standard Blue', color: '#4169E1', price: 0 },
+  { name: 'Lagoon Blue', color: '#20B2AA', price: 500 },
+  { name: 'Azure Blue', color: '#007FFF', price: 750 },
+  { name: 'Coastal Bronze', color: '#CD7F32', price: 1000 },
+  { name: 'Shale Gray', color: '#778899', price: 1200 }
+];
+
+const coverOptions = [
+  { name: 'Standard Safety Cover', color: '#708090', price: 0 },
+  { name: 'Automatic Cover', color: '#2F4F4F', price: 5000 },
+  { name: 'Solar Cover', color: '#4169E1', price: 800 },
+  { name: 'Winter Cover', color: '#000080', price: 400 }
+];
 
 const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
@@ -63,7 +97,11 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     liner: false,
     heater: false,
     cover: false,
-    jets: false
+    jets: false,
+    saltSystem: false,
+    finish: 'standard',
+    linerOption: 'standard',
+    coverOption: 'standard'
   });
 
   const handleImageClick = () => {
@@ -142,16 +180,27 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
           )}
         </div>
         
-        {/* GALA Category & Points */}
-        {pool.galaCategory && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-amber-500" />
-              <span className="text-sm font-medium text-amber-600">{pool.galaCategory}</span>
+        {/* Features & Tech */}
+        <div className="space-y-2">
+          {pool.heater && (
+            <div className="flex items-center gap-2 text-sm">
+              <Thermometer className="h-4 w-4 text-coral" />
+              <span className="font-medium">Heater Ready</span>
             </div>
-            <span className="text-sm text-amber-600 font-bold">+{pool.galaPoints?.toLocaleString()} GALA</span>
-          </div>
-        )}
+          )}
+          {pool.saltSystem && (
+            <div className="flex items-center gap-2 text-sm">
+              <Droplets className="h-4 w-4 text-teal" />
+              <span className="font-medium">+7,000 Salt System Compatible</span>
+            </div>
+          )}
+          {pool.carbonFiber && (
+            <div className="flex items-center gap-2 text-sm">
+              <Shield className="h-4 w-4 text-primary" />
+              <span className="font-medium">Carbon Fiber Technology</span>
+            </div>
+          )}
+        </div>
         
         {/* Basic Info */}
         <div className="text-sm text-muted-foreground space-y-1">
@@ -166,7 +215,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
           {pool.warrantyYears && (
             <div className="flex items-center gap-1">
               <Award className="h-3 w-3" />
-              <span>Warranty: {pool.warrantyYears === "Life" ? "Lifetime" : `${pool.warrantyYears} years`}</span>
+              <span className="font-bold text-primary">
+                Warranty: {pool.warrantyYears === "Life" ? "LIFETIME WARRANTY" : `${pool.warrantyYears} years`}
+              </span>
             </div>
           )}
         </div>
@@ -202,22 +253,83 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
               <Enhanced3DPoolViewer poolModel={pool.model} dimensions={pool.dimensions} />
             )}
             
+            {/* Pool Finishing Options */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-foreground">Pool Finishes</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {finishOptions.map((finish) => (
+                  <div 
+                    key={finish.name}
+                    className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                      extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'
+                    }`}
+                    onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
+                  >
+                    <div 
+                      className="w-full h-12 rounded-md mb-2"
+                      style={{ backgroundColor: finish.color }}
+                    />
+                    <p className="text-xs font-medium text-center">{finish.name}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Liner Options */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-foreground">Liner Options</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {linerOptions.map((liner) => (
+                  <div 
+                    key={liner.name}
+                    className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                      extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'
+                    }`}
+                    onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
+                  >
+                    <div 
+                      className="w-full h-12 rounded-md mb-2"
+                      style={{ backgroundColor: liner.color }}
+                    />
+                    <p className="text-xs font-medium text-center">{liner.name}</p>
+                    {liner.price > 0 && (
+                      <p className="text-xs text-muted-foreground text-center">+${liner.price}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Cover Options */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-foreground">Cover Options</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {coverOptions.map((cover) => (
+                  <div 
+                    key={cover.name}
+                    className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                      extras.coverOption === cover.name ? 'border-primary bg-primary/10' : 'border-border'
+                    }`}
+                    onClick={() => setExtras(prev => ({ ...prev, coverOption: cover.name }))}
+                  >
+                    <div 
+                      className="w-full h-12 rounded-md mb-2"
+                      style={{ backgroundColor: cover.color }}
+                    />
+                    <p className="text-xs font-medium text-center">{cover.name}</p>
+                    {cover.price > 0 && (
+                      <p className="text-xs text-muted-foreground text-center">+${cover.price}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Add-ons */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Add-ons</h4>
+              <h4 className="font-semibold text-foreground">Additional Features</h4>
               
-              <div className="grid grid-cols-2 gap-3">
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox 
-                    checked={extras.liner}
-                    onCheckedChange={() => toggleExtra('liner')}
-                  />
-                  <div className="flex items-center space-x-1">
-                    <Droplets size={16} className="text-primary" />
-                    <span className="text-sm">Liner (+${getExtraPrice('liner').toLocaleString()})</span>
-                  </div>
-                </label>
-                
+              <div className="grid grid-cols-1 gap-3">
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox 
                     checked={extras.heater}
@@ -225,18 +337,18 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                   />
                   <div className="flex items-center space-x-1">
                     <Thermometer size={16} className="text-coral" />
-                    <span className="text-sm">Heater (+${getExtraPrice('heater').toLocaleString()})</span>
+                    <span className="text-sm">Pool Heater (+${getExtraPrice('heater').toLocaleString()})</span>
                   </div>
                 </label>
                 
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox 
-                    checked={extras.cover}
-                    onCheckedChange={() => toggleExtra('cover')}
+                    checked={extras.saltSystem}
+                    onCheckedChange={() => toggleExtra('saltSystem')}
                   />
                   <div className="flex items-center space-x-1">
-                    <Shield size={16} className="text-teal" />
-                    <span className="text-sm">Cover (+${getExtraPrice('cover').toLocaleString()})</span>
+                    <Droplets size={16} className="text-teal" />
+                    <span className="text-sm">Salt System (+${getExtraPrice('saltSystem').toLocaleString()})</span>
                   </div>
                 </label>
                 
@@ -247,11 +359,32 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                   />
                   <div className="flex items-center space-x-1">
                     <Zap size={16} className="text-orange" />
-                    <span className="text-sm">Jets (+${getExtraPrice('jets').toLocaleString()})</span>
+                    <span className="text-sm">Spa Jets (+${getExtraPrice('jets').toLocaleString()})</span>
                   </div>
                 </label>
               </div>
             </div>
+
+            {/* Carbon Fiber Technology Section */}
+            {pool.carbonFiber && (
+              <div className="space-y-3 p-4 bg-gradient-to-r from-primary/5 to-teal/5 rounded-lg border border-primary/20">
+                <h4 className="font-semibold text-foreground flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  Carbon Fiber Technology
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  Our advanced carbon fiber construction provides superior strength, durability, and 
+                  longevity. This cutting-edge technology ensures your pool maintains its structural 
+                  integrity for decades while offering unmatched resistance to cracking and fading.
+                </p>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• 300% stronger than traditional fiberglass</li>
+                  <li>• Superior thermal retention</li>
+                  <li>• UV-resistant surface coating</li>
+                  <li>• Lifetime structural warranty</li>
+                </ul>
+              </div>
+            )}
             
             {/* Action Buttons */}
             <div className="flex gap-2">
@@ -272,7 +405,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                 Get Quote
               </Button>
             </div>
-          </div>
+            </div>
         )}
         
         {/* Default Action Button */}

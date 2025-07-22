@@ -33,6 +33,12 @@ interface Pool {
   galaCategory?: string;
   installationTimeWeeks?: number;
   warrantyYears?: number | string;
+  heater?: boolean;
+  saltSystem?: boolean;
+  carbonFiber?: boolean;
+  finishes?: string[];
+  liners?: string[];
+  covers?: string[];
 }
 
 const pools: Pool[] = [
@@ -47,7 +53,10 @@ const pools: Pool[] = [
     galaCategory: "Luxury Collection",
     installationTimeWeeks: 6,
     warrantyYears: "Life",
-    features: ["LED Lighting", "Premium Finish", "Advanced Filtration"]
+    features: ["LED Lighting", "Premium Finish", "Advanced Filtration"],
+    heater: true,
+    saltSystem: true,
+    carbonFiber: true
   },
   { 
     model: "Apollo 14", 
@@ -60,7 +69,10 @@ const pools: Pool[] = [
     galaCategory: "Luxury Collection",
     installationTimeWeeks: 6,
     warrantyYears: "Life",
-    features: ["Smart Pool Technology", "Energy Efficient", "Premium Materials"]
+    features: ["Smart Pool Technology", "Energy Efficient", "Premium Materials"],
+    heater: true,
+    saltSystem: true,
+    carbonFiber: true
   },
   { 
     model: "Coral 16", 
@@ -73,7 +85,10 @@ const pools: Pool[] = [
     galaCategory: "Luxury Collection",
     installationTimeWeeks: 6,
     warrantyYears: "Life",
-    features: ["Spacious Design", "Coral Reef Finish", "Built-in Steps"]
+    features: ["Spacious Design", "Coral Reef Finish", "Built-in Steps"],
+    heater: true,
+    saltSystem: true,
+    carbonFiber: true
   },
   { 
     model: "Ariel 16", 
@@ -86,7 +101,10 @@ const pools: Pool[] = [
     galaCategory: "Luxury Collection",
     installationTimeWeeks: 6,
     warrantyYears: "Life",
-    features: ["Auto Cover Ready", "Multiple Entry Points", "Premium Design"]
+    features: ["Auto Cover Ready", "Multiple Entry Points", "Premium Design"],
+    heater: true,
+    saltSystem: true,
+    carbonFiber: true
   },
   { 
     model: "Tuscan 14.40", 
@@ -97,7 +115,10 @@ const pools: Pool[] = [
     galaPoints: 11100,
     galaCategory: "Luxury Collection",
     installationTimeWeeks: 7,
-    warrantyYears: 15
+    warrantyYears: "Life",
+    heater: true,
+    saltSystem: true,
+    carbonFiber: true
   },
   { 
     model: "Corinthian 14 BME", 

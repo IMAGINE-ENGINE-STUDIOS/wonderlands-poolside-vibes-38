@@ -206,7 +206,7 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="orders" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="orders" className="flex items-center gap-2">
               <ShoppingCart className="h-4 w-4" />
               Orders
@@ -214,6 +214,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="products" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
               Products
+            </TabsTrigger>
+            <TabsTrigger value="gala-goods" className="flex items-center gap-2">
+              <Star className="h-4 w-4" />
+              Gala Goods
             </TabsTrigger>
             <TabsTrigger value="gala-points" className="flex items-center gap-2">
               <Star className="h-4 w-4" />

@@ -21,14 +21,6 @@ const Hero = () => {
       {/* Animated Landscape Background */}
       <AnimatedLandscape />
       
-      {/* Logo at Top */}
-      <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
-        <img 
-          src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png"
-          alt="Wonderlands Professional Logo" 
-          className="w-32 h-32 md:w-40 md:h-40 animate-scale-in"
-        />
-      </div>
 
       {/* Main Action Buttons - Near Logo */}
       <div className="absolute top-48 left-1/2 transform -translate-x-1/2 z-20 text-center px-4">
@@ -51,16 +43,6 @@ const Hero = () => {
           >
             Upload Your House Survey
           </Button>
-
-          <Button 
-            variant="outline" 
-            size="lg" 
-            className="hover:scale-105 transition-all duration-300 backdrop-blur-sm border-white/30 text-white hover:bg-white/10"
-            onClick={() => window.open('/catalog.pdf', '_blank')}
-          >
-            <Download className="mr-2 h-5 w-5" />
-            Download PDF Catalog
-          </Button>
         </div>
       </div>
 
@@ -74,25 +56,6 @@ const Hero = () => {
         
         <div className="mt-12 animate-fade-in-up">
           <p className="text-sm text-white/70 mb-4">Trusted by 500+ families across the region</p>
-          <div className="flex justify-center items-center gap-8 opacity-80">
-            <div className="w-12 h-2 bg-gradient-to-r from-white/60 to-white/40 rounded-full"></div>
-            <div className="w-12 h-2 bg-gradient-to-r from-white/60 to-white/40 rounded-full"></div>
-            <div className="w-12 h-2 bg-gradient-to-r from-white/60 to-white/40 rounded-full"></div>
-          </div>
-          
-          {/* Admin Dashboard Link */}
-          <div className="mt-8">
-            <Link to="/admin">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="transition-all duration-300 backdrop-blur-sm border-white/30 text-white hover:bg-white/10"
-              >
-                <Shield className="mr-2 h-4 w-4" />
-                Admin Dashboard
-              </Button>
-            </Link>
-          </div>
         </div>
       </div>
     </section>

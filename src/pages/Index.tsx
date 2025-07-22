@@ -1,4 +1,5 @@
 import Hero from "@/components/Hero";
+import Header from "@/components/Header";
 import PoolCatalog from "@/components/PoolCatalog";
 import PoolFinishesSection from "@/components/PoolFinishesSection";
 import LinersSection from "@/components/LinersSection";
@@ -10,6 +11,7 @@ import { GalaGoodsLogin } from "@/components/GalaGoodsLogin";
 const Index = () => {
   return (
     <div className="relative min-h-screen">
+      <Header />
       <GalaGoodsLogin />
       <FloridaPoolElements />
       <div className="relative z-10">
