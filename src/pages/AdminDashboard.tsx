@@ -29,6 +29,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { GalaGoodsIntegration } from '@/components/GalaGoodsIntegration';
 import AdminContentEditor from '@/components/AdminContentEditor';
+import WorkingApiManager from '@/components/WorkingApiManager';
+import Enhanced3DVisualizerConsole from '@/components/Enhanced3DVisualizerConsole';
+import RealTimeContentEditor from '@/components/RealTimeContentEditor';
 
 const AdminDashboard = () => {
   const { 
@@ -422,7 +425,7 @@ const AdminDashboard = () => {
                     className="w-full h-16 text-lg"
                   >
                     <Edit className="h-6 w-6 mr-3" />
-                    Launch Content Editor
+                    Launch Real-Time Content Editor
                   </Button>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
@@ -463,189 +466,12 @@ const AdminDashboard = () => {
 
           {/* API Manager Tab */}
           <TabsContent value="api-manager" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-primary" />
-                    Retailer API Integrations
-                  </CardTitle>
-                  <CardDescription>
-                    Manage API connections to major retailers for product sync
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {[
-                    { name: 'Home Depot', status: 'Connected', products: 1250 },
-                    { name: 'Lowes', status: 'Disconnected', products: 0 },
-                    { name: 'Target', status: 'Connected', products: 890 },
-                    { name: 'Walmart', status: 'Pending', products: 0 }
-                  ].map((retailer) => (
-                    <div key={retailer.name} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Package className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{retailer.name}</p>
-                          <p className="text-sm text-muted-foreground">{retailer.products} products synced</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge 
-                          variant={retailer.status === 'Connected' ? 'default' : 
-                                   retailer.status === 'Pending' ? 'secondary' : 'destructive'}
-                        >
-                          {retailer.status}
-                        </Badge>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>API Configuration</CardTitle>
-                  <CardDescription>Manage API keys and sync settings</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium">Home Depot API Key</label>
-                      <div className="flex gap-2 mt-1">
-                        <Input type="password" placeholder="••••••••••••••••" />
-                        <Button variant="outline" size="sm">Update</Button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Lowes API Key</label>
-                      <div className="flex gap-2 mt-1">
-                        <Input type="password" placeholder="••••••••••••••••" />
-                        <Button variant="outline" size="sm">Update</Button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Target API Key</label>
-                      <div className="flex gap-2 mt-1">
-                        <Input type="password" placeholder="••••••••••••••••" />
-                        <Button variant="outline" size="sm">Update</Button>
-                      </div>
-                    </div>
-                  </div>
-                  <Button className="w-full">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Test All Connections
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+            <WorkingApiManager />
           </TabsContent>
 
           {/* 3D Visualizer Tab */}
           <TabsContent value="3d-visualizer" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Eye className="h-5 w-5 text-primary" />
-                    NVIDIA-Enhanced 3D Models
-                  </CardTitle>
-                  <CardDescription>
-                    Advanced 3D visualization with NVIDIA Inception features
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {[
-                      { name: 'Pool Models', count: 24, type: 'pools', nvidia: true },
-                      { name: 'RTX Materials', count: 48, type: 'materials', nvidia: true },
-                      { name: 'PhysX Water', count: 12, type: 'water', nvidia: true },
-                      { name: 'AI Landscapes', count: 36, type: 'landscape', nvidia: true }
-                    ].map((category) => (
-                      <div key={category.name} className="p-4 border rounded-lg text-center bg-gradient-to-br from-green-50 to-blue-50">
-                        <div className="flex items-center justify-center mb-2">
-                          <Package className="h-6 w-6 text-green-600" />
-                          {category.nvidia && (
-                            <Badge className="ml-2 bg-green-600 text-xs">RTX</Badge>
-                          )}
-                        </div>
-                        <p className="font-medium text-sm">{category.name}</p>
-                        <p className="text-xs text-muted-foreground">{category.count} models</p>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* NVIDIA Inception Features */}
-                  <div className="bg-gradient-to-r from-green-900/10 to-blue-900/10 p-4 rounded-lg border border-green-200">
-                    <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
-                      <Cpu className="h-4 w-4 text-green-600" />
-                      NVIDIA Inception Integration
-                    </h4>
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span>PhysX Water Physics</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span>RTX Ray Tracing</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span>DLSS Enhancement</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span>Omniverse Ready</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span>AI Material Selection</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span>Weather Simulation</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Button className="w-full bg-green-600 hover:bg-green-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Upload NVIDIA Optimized Model
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>3D Library Sources</CardTitle>
-                  <CardDescription>Connect to third-party 3D model libraries</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {[
-                    { name: 'Sketchfab', status: 'Connected', models: 50 },
-                    { name: 'TurboSquid', status: 'Disconnected', models: 0 },
-                    { name: 'CGTrader', status: 'Connected', models: 25 }
-                  ].map((source) => (
-                    <div key={source.name} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{source.name}</p>
-                        <p className="text-sm text-muted-foreground">{source.models} models linked</p>
-                      </div>
-                      <Badge variant={source.status === 'Connected' ? 'default' : 'secondary'}>
-                        {source.status}
-                      </Badge>
-                    </div>
-                  ))}
-                  <Button variant="outline" className="w-full">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Library Source
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+            <Enhanced3DVisualizerConsole />
           </TabsContent>
 
           {/* Delivery & Logistics Tab */}
@@ -847,7 +673,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Content Editor Modal */}
-      <AdminContentEditor 
+      <RealTimeContentEditor 
         isOpen={showContentEditor} 
         onClose={() => setShowContentEditor(false)} 
       />
