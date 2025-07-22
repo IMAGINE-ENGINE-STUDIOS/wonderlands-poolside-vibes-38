@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Shield, Download } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import AnimatedLandscape from "./AnimatedLandscape";
 

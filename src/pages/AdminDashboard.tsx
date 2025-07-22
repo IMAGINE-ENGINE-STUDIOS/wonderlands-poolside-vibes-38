@@ -222,32 +222,42 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="orders" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="orders" className="flex items-center gap-2">
-              <ShoppingCart className="h-4 w-4" />
-              Orders
-            </TabsTrigger>
-            <TabsTrigger value="products" className="flex items-center gap-2">
-              <Package className="h-4 w-4" />
-              Products
-            </TabsTrigger>
-            <TabsTrigger value="content-editor" className="flex items-center gap-2">
-              <Edit className="h-4 w-4" />
-              Content Editor
-            </TabsTrigger>
-            <TabsTrigger value="gala-goods" className="flex items-center gap-2">
-              <Star className="h-4 w-4" />
-              Gala Goods
-            </TabsTrigger>
-            <TabsTrigger value="gala-points" className="flex items-center gap-2">
-              <Star className="h-4 w-4" />
-              GALA Points
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Analytics
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex flex-wrap gap-2 mb-6">
+            <TabsList className="flex flex-wrap gap-1">
+              <TabsTrigger value="orders" className="flex items-center gap-2">
+                <ShoppingCart className="h-4 w-4" />
+                Orders
+              </TabsTrigger>
+              <TabsTrigger value="products" className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                Products
+              </TabsTrigger>
+              <TabsTrigger value="api-manager" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                API Manager
+              </TabsTrigger>
+              <TabsTrigger value="3d-visualizer" className="flex items-center gap-2">
+                <Eye className="h-4 w-4" />
+                3D Visualizer
+              </TabsTrigger>
+              <TabsTrigger value="delivery-logistics" className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Delivery & Logistics
+              </TabsTrigger>
+              <TabsTrigger value="content-editor" className="flex items-center gap-2">
+                <Edit className="h-4 w-4" />
+                Content Editor
+              </TabsTrigger>
+              <TabsTrigger value="gala-goods" className="flex items-center gap-2">
+                <Star className="h-4 w-4" />
+                Gala Goods
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Analytics
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Orders Tab */}
           <TabsContent value="orders" className="space-y-6">
@@ -448,6 +458,219 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* API Manager Tab */}
+          <TabsContent value="api-manager" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    Retailer API Integrations
+                  </CardTitle>
+                  <CardDescription>
+                    Manage API connections to major retailers for product sync
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {[
+                    { name: 'Home Depot', status: 'Connected', products: 1250 },
+                    { name: 'Lowes', status: 'Disconnected', products: 0 },
+                    { name: 'Target', status: 'Connected', products: 890 },
+                    { name: 'Walmart', status: 'Pending', products: 0 }
+                  ].map((retailer) => (
+                    <div key={retailer.name} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Package className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">{retailer.name}</p>
+                          <p className="text-sm text-muted-foreground">{retailer.products} products synced</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant={retailer.status === 'Connected' ? 'default' : 
+                                   retailer.status === 'Pending' ? 'secondary' : 'destructive'}
+                        >
+                          {retailer.status}
+                        </Badge>
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>API Configuration</CardTitle>
+                  <CardDescription>Manage API keys and sync settings</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium">Home Depot API Key</label>
+                      <div className="flex gap-2 mt-1">
+                        <Input type="password" placeholder="••••••••••••••••" />
+                        <Button variant="outline" size="sm">Update</Button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Lowes API Key</label>
+                      <div className="flex gap-2 mt-1">
+                        <Input type="password" placeholder="••••••••••••••••" />
+                        <Button variant="outline" size="sm">Update</Button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Target API Key</label>
+                      <div className="flex gap-2 mt-1">
+                        <Input type="password" placeholder="••••••••••••••••" />
+                        <Button variant="outline" size="sm">Update</Button>
+                      </div>
+                    </div>
+                  </div>
+                  <Button className="w-full">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Test All Connections
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* 3D Visualizer Tab */}
+          <TabsContent value="3d-visualizer" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Eye className="h-5 w-5 text-primary" />
+                    3D Model Library
+                  </CardTitle>
+                  <CardDescription>
+                    Manage 3D models for pools, pavers, and materials
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      { name: 'Pool Models', count: 24, type: 'pools' },
+                      { name: 'Paver Textures', count: 18, type: 'pavers' },
+                      { name: 'Material Samples', count: 32, type: 'materials' },
+                      { name: 'Landscape Items', count: 15, type: 'landscape' }
+                    ].map((category) => (
+                      <div key={category.name} className="p-4 border rounded-lg text-center">
+                        <Package className="h-8 w-8 mx-auto mb-2 text-primary" />
+                        <p className="font-medium">{category.name}</p>
+                        <p className="text-sm text-muted-foreground">{category.count} models</p>
+                      </div>
+                    ))}
+                  </div>
+                  <Button className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Upload New 3D Model
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>3D Library Sources</CardTitle>
+                  <CardDescription>Connect to third-party 3D model libraries</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {[
+                    { name: 'Sketchfab', status: 'Connected', models: 50 },
+                    { name: 'TurboSquid', status: 'Disconnected', models: 0 },
+                    { name: 'CGTrader', status: 'Connected', models: 25 }
+                  ].map((source) => (
+                    <div key={source.name} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">{source.name}</p>
+                        <p className="text-sm text-muted-foreground">{source.models} models linked</p>
+                      </div>
+                      <Badge variant={source.status === 'Connected' ? 'default' : 'secondary'}>
+                        {source.status}
+                      </Badge>
+                    </div>
+                  ))}
+                  <Button variant="outline" className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Library Source
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Delivery & Logistics Tab */}
+          <TabsContent value="delivery-logistics" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                    Delivery Services
+                  </CardTitle>
+                  <CardDescription>
+                    Manage delivery integrations and logistics
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {[
+                    { name: 'Uber Direct', status: 'Active', deliveries: 45, avgCost: 12.50 },
+                    { name: 'DoorDash Drive', status: 'Active', deliveries: 32, avgCost: 15.00 },
+                    { name: 'Home Depot Delivery', status: 'Connected', deliveries: 18, avgCost: 25.00 },
+                    { name: 'Lowes Delivery', status: 'Disconnected', deliveries: 0, avgCost: 0 }
+                  ].map((service) => (
+                    <div key={service.name} className="p-3 border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-medium">{service.name}</p>
+                        <Badge variant={service.status === 'Active' ? 'default' : 
+                                       service.status === 'Connected' ? 'secondary' : 'destructive'}>
+                          {service.status}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span>{service.deliveries} deliveries</span>
+                        <span>Avg. ${service.avgCost}</span>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Logistics Settings</CardTitle>
+                  <CardDescription>Configure delivery zones and pricing</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium">Default Delivery Radius (miles)</label>
+                      <Input type="number" defaultValue="25" className="mt-1" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Base Delivery Fee</label>
+                      <Input type="number" defaultValue="15.00" step="0.01" className="mt-1" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Per Mile Rate</label>
+                      <Input type="number" defaultValue="1.50" step="0.01" className="mt-1" />
+                    </div>
+                  </div>
+                  <Button className="w-full">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Update Pricing
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Gala Goods Tab */}

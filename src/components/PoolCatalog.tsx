@@ -424,13 +424,9 @@ const PoolCatalog = () => {
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
               Wonderland's Pool Collection
             </h2>
-            <p className="text-xl text-foreground/80 max-w-2xl mx-auto mb-4">
-              Discover our premium fiberglass pools with integrated GALA points rewards and blockchain-verified authenticity.
+            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
+              Discover our premium fiberglass pools with lifetime warranty and carbon fiber technology.
             </p>
-            <div className="flex items-center justify-center gap-2 text-amber-600">
-              <span className="text-sm font-medium">Earn GALA Points on every purchase</span>
-              <span className="text-lg">⭐</span>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

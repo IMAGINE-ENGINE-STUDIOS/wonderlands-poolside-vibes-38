@@ -7,6 +7,15 @@ import { Separator } from "@/components/ui/separator";
 import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award } from "lucide-react";
 import Enhanced3DPoolViewer from "./Enhanced3DPoolViewer";
 import Pool3DVisualizerModal from "./Pool3DVisualizerModal";
+import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
+import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
+import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
+import nightSkyFinish from '@/assets/finishes/night-sky-g3.jpg';
+import athensPearlFinish from '@/assets/finishes/athens-pearl-white-g3.jpg';
+import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
+import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
+import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
+import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 
 interface Pool {
   model: string;
@@ -67,19 +76,19 @@ const getExtraPrice = (extra: string) => {
 };
 
 const finishOptions = [
-  { name: 'Aquamarine', color: '#7FFFD4', image: '/src/assets/finishes/aquamarine-g3.jpg' },
-  { name: 'Ocean Blue', color: '#006994', image: '/src/assets/finishes/ocean-blue-g3.jpg' },
-  { name: 'Sapphire Blue', color: '#0F52BA', image: '/src/assets/finishes/sapphire-blue-g3.jpg' },
-  { name: 'Night Sky', color: '#191970', image: '/src/assets/finishes/night-sky-g3.jpg' },
-  { name: 'Athens Pearl White', color: '#F5F5DC', image: '/src/assets/finishes/athens-pearl-white-g3.jpg' }
+  { name: 'Aquamarine', color: '#7FFFD4', image: aquamarineFinish },
+  { name: 'Ocean Blue', color: '#006994', image: oceanBlueFinish },
+  { name: 'Sapphire Blue', color: '#0F52BA', image: sapphireBlueFinish },
+  { name: 'Night Sky', color: '#191970', image: nightSkyFinish },
+  { name: 'Athens Pearl White', color: '#F5F5DC', image: athensPearlFinish }
 ];
 
 const linerOptions = [
-  { name: 'Standard Blue', color: '#4169E1', price: 0 },
-  { name: 'Lagoon Blue', color: '#20B2AA', price: 500 },
-  { name: 'Azure Blue', color: '#007FFF', price: 750 },
-  { name: 'Coastal Bronze', color: '#CD7F32', price: 1000 },
-  { name: 'Shale Gray', color: '#778899', price: 1200 }
+  { name: 'Standard Blue', color: '#4169E1', price: 0, image: azureBlueFinish },
+  { name: 'Lagoon Blue', color: '#20B2AA', price: 500, image: lagoonBlueFinish },
+  { name: 'Azure Blue', color: '#007FFF', price: 750, image: azureBlueFinish },
+  { name: 'Coastal Bronze', color: '#CD7F32', price: 1000, image: coastalBronzeFinish },
+  { name: 'Shale Gray', color: '#778899', price: 1200, image: shaleGrayFinish }
 ];
 
 const coverOptions = [
@@ -216,7 +225,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
             <div className="flex items-center gap-1">
               <Award className="h-3 w-3" />
               <span className="font-bold text-primary">
-                Warranty: {pool.warrantyYears === "Life" ? "LIFETIME WARRANTY" : `${pool.warrantyYears} years`}
+                Warranty: {pool.warrantyYears === "Lifetime" || pool.warrantyYears === "Life" ? "LIFETIME WARRANTY" : `${pool.warrantyYears} years`}
               </span>
             </div>
           )}
@@ -265,10 +274,22 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                     }`}
                     onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
                   >
-                    <div 
-                      className="w-full h-12 rounded-md mb-2"
-                      style={{ backgroundColor: finish.color }}
-                    />
+                   <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
+                      <img 
+                        src={finish.image} 
+                        alt={finish.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to color if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.style.backgroundColor = finish.color;
+                            target.style.display = 'none';
+                          }
+                        }}
+                      />
+                    </div>
                     <p className="text-xs font-medium text-center">{finish.name}</p>
                   </div>
                 ))}
@@ -287,10 +308,22 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                     }`}
                     onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
                   >
-                    <div 
-                      className="w-full h-12 rounded-md mb-2"
-                      style={{ backgroundColor: liner.color }}
-                    />
+                    <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
+                      <img 
+                        src={liner.image} 
+                        alt={liner.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to color if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.style.backgroundColor = liner.color;
+                            target.style.display = 'none';
+                          }
+                        }}
+                      />
+                    </div>
                     <p className="text-xs font-medium text-center">{liner.name}</p>
                     {liner.price > 0 && (
                       <p className="text-xs text-muted-foreground text-center">+${liner.price}</p>
