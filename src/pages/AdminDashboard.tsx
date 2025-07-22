@@ -26,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useGalaGoods } from '@/contexts/GalaGoodsContext';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
+import { GalaGoodsIntegration } from '@/components/GalaGoodsIntegration';
 
 const AdminDashboard = () => {
   const { 
@@ -368,6 +369,24 @@ const AdminDashboard = () => {
                     No products found. Add your first product to get started.
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Gala Goods Tab */}
+          <TabsContent value="gala-goods" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-primary" />
+                  GALA-GOODS Integration
+                </CardTitle>
+                <CardDescription>
+                  Manage your GALA-GOODS API integration and access platform features
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GalaGoodsIntegration />
               </CardContent>
             </Card>
           </TabsContent>
