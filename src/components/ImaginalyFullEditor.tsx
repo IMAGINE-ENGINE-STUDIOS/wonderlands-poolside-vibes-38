@@ -6,11 +6,9 @@ import {
   Sky, 
   ContactShadows,
   Stage,
-  Text3D,
   Center,
   Float,
-  Sparkles,
-  Effects
+  Sparkles
 } from '@react-three/drei';
 import { EffectComposer, Bloom, DepthOfField, Noise, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
@@ -139,15 +137,11 @@ function Advanced3DPoolModel({
           <cylinderGeometry args={[0.3, 0.3, 1.5]} />
           <meshStandardMaterial color="#666" />
         </mesh>
-        <Text3D 
-          font="/fonts/helvetiker_regular.typeface.json"
-          size={0.2}
-          height={0.02}
-          position={[0, 1, 0]}
-        >
-          FILTER
+        {/* Simple text replacement - Text3D removed due to font loading issues */}
+        <mesh position={[0, 1, 0]}>
+          <boxGeometry args={[0.8, 0.2, 0.05]} />
           <meshBasicMaterial color="#fff" />
-        </Text3D>
+        </mesh>
       </group>
       
       {enableEffects && (
@@ -515,6 +509,7 @@ export const ImaginalyFullEditor: React.FC = () => {
               enablePan={true}
               enableZoom={true}
               enableRotate={true}
+              enableDamping={true}
               dampingFactor={0.05}
               maxPolarAngle={Math.PI / 2.2}
             />
@@ -524,28 +519,26 @@ export const ImaginalyFullEditor: React.FC = () => {
             
             {/* Post Processing Effects */}
             {settings.enablePostProcessing && (
-              <Effects>
-                <EffectComposer>
-                  <Bloom 
-                    intensity={settings.bloomIntensity}
-                    luminanceThreshold={0.9}
-                    luminanceSmoothing={0.9}
+              <EffectComposer>
+                <Bloom 
+                  intensity={settings.bloomIntensity}
+                  luminanceThreshold={0.9}
+                  luminanceSmoothing={0.9}
+                />
+                {settings.depthOfField && (
+                  <DepthOfField 
+                    focusDistance={0.1}
+                    focalLength={0.02}
+                    bokehScale={5}
                   />
-                  {settings.depthOfField && (
-                    <DepthOfField 
-                      focusDistance={0.1}
-                      focalLength={0.02}
-                      bokehScale={5}
-                    />
-                  )}
-                  <Noise opacity={settings.noiseIntensity} />
-                  <Vignette 
-                    eskil={false}
-                    offset={0.1}
-                    darkness={settings.vignetteIntensity}
-                  />
-                </EffectComposer>
-              </Effects>
+                )}
+                <Noise opacity={settings.noiseIntensity} />
+                <Vignette 
+                  eskil={false}
+                  offset={0.1}
+                  darkness={settings.vignetteIntensity}
+                />
+              </EffectComposer>
             )}
           </Suspense>
         </Canvas>
