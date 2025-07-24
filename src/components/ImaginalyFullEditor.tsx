@@ -510,7 +510,6 @@ export const ImaginalyFullEditor: React.FC = () => {
               enableZoom={true}
               enableRotate={true}
               enableDamping={true}
-              dampingFactor={0.05}
               maxPolarAngle={Math.PI / 2.2}
             />
             
