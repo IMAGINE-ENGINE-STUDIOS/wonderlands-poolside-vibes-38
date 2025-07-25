@@ -28,11 +28,10 @@ import { Link } from 'react-router-dom';
 import DeliveryApiManager from '@/components/DeliveryApiManager';
 import AdminContentEditor from '@/components/AdminContentEditor';
 import RealApiManager from '@/components/RealApiManager';
-import PoolManager from '@/components/PoolManager';
 import RealTimeContentEditor from '@/components/RealTimeContentEditor';
 
 import LathamPoolsData from '@/components/LathamPoolsData';
-import ProductCardManager from '@/components/ProductCardManager';
+import EnhancedProductManager from '@/components/EnhancedProductManager';
 
 const AdminDashboard = () => {
   // Mock data for demonstration
@@ -205,15 +204,11 @@ const AdminDashboard = () => {
                 <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Orders</span>
               </TabsTrigger>
-              <TabsTrigger value="products" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                <Package className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Products</span>
-              </TabsTrigger>
-               <TabsTrigger value="pool-manager" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                 <Package className="h-3 w-3 sm:h-4 sm:w-4" />
-                 <span className="hidden sm:inline">Pool Manager</span>
-                 <span className="sm:hidden">Pools</span>
-               </TabsTrigger>
+               <TabsTrigger value="product-editor" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Product Editor</span>
+                  <span className="sm:hidden">Editor</span>
+                </TabsTrigger>
                <TabsTrigger value="api-manager" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                  <span className="hidden sm:inline">API Manager</span>
@@ -223,11 +218,6 @@ const AdminDashboard = () => {
                   <Package className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">Pool Specs</span>
                   <span className="sm:hidden">Specs</span>
-                </TabsTrigger>
-               <TabsTrigger value="product-editor" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Product Editor</span>
-                  <span className="sm:hidden">Editor</span>
                 </TabsTrigger>
               <TabsTrigger value="delivery-logistics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -343,59 +333,6 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Products Tab */}
-          <TabsContent value="products" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  Product Catalog
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Product
-                  </Button>
-                </CardTitle>
-                <CardDescription>Manage your pool product inventory</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {products.map((product) => (
-                    <Card key={product.id} className="hover:shadow-md transition-shadow">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg">{product.name}</CardTitle>
-                          <Badge variant="secondary">${product.price}</Badge>
-                        </div>
-                        <CardDescription className="line-clamp-2">
-                          {product.description || 'No description available'}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Stock: {product.stock || 'N/A'}</p>
-                            <p className="text-sm text-muted-foreground">Category: {product.category || 'Uncategorized'}</p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-                {products.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No products found. Add your first product to get started.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Content Editor Tab */}
           <TabsContent value="content-editor" className="space-y-6">
@@ -455,10 +392,6 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Pool Manager Tab */}
-          <TabsContent value="pool-manager" className="space-y-6">
-            <PoolManager />
-          </TabsContent>
 
           {/* API Manager Tab */}
           <TabsContent value="api-manager" className="space-y-6">
@@ -486,7 +419,7 @@ const AdminDashboard = () => {
 
           {/* Product Editor Tab */}
           <TabsContent value="product-editor" className="space-y-6">
-            <ProductCardManager />
+            <EnhancedProductManager />
           </TabsContent>
 
           {/* Delivery & Logistics Tab */}
