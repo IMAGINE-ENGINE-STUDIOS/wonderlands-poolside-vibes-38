@@ -32,6 +32,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import PoolProductCard from './PoolProductCard';
 import ProductCard from './ProductCard';
+import UnifiedProductCard from './UnifiedProductCard';
 import { PoolFinish } from './PoolFinishesSection';
 
 type ProductCategory = 'outdoors' | 'pools' | 'maintenance' | 'finishes' | 'liners' | 'covers';
@@ -655,34 +656,49 @@ export const EnhancedProductManager = () => {
 
   const handleSaveProduct = async (product: Product) => {
     try {
+      // Validate required fields
+      if (!product.name || !product.price || product.price <= 0) {
+        toast({
+          title: "Validation Error",
+          description: "Product name and valid price are required.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      let savedProduct = { ...product };
+
       if (product.category === 'pools' && product.subcategory === 'pools') {
         // Save to Supabase pools table
         const poolData = {
           model: product.name,
-          price: product.price,
+          price: Number(product.price),
           category: 'premium', // Default mapping
-          dimensions: product.dimensions,
-          depth: product.depth,
+          dimensions: product.dimensions || '',
+          depth: product.depth || '',
           features: product.features || [],
-          gala_points: product.galaPoints,
-          gala_category: product.galaCategory,
-          installation_time_weeks: product.installationTimeWeeks,
-          warranty_years: product.warrantyYears,
-          heater: product.heater || false,
-          salt_system: product.saltSystem || false,
-          carbon_fiber: product.carbonFiber || false,
+          gala_points: Number(product.galaPoints) || 0,
+          gala_category: product.galaCategory || '',
+          installation_time_weeks: Number(product.installationTimeWeeks) || 6,
+          warranty_years: product.warrantyYears || 'Lifetime',
+          heater: Boolean(product.heater),
+          salt_system: Boolean(product.saltSystem),
+          carbon_fiber: Boolean(product.carbonFiber),
           finishes: product.finishes || [],
           liners: product.liners || [],
           covers: product.covers || [],
-          is_active: product.isActive
+          is_active: Boolean(product.isActive)
         };
 
         if (isCreating) {
-          const { error } = await (supabase as any)
+          const { data, error } = await (supabase as any)
             .from('pools')
-            .insert([poolData]);
+            .insert([poolData])
+            .select()
+            .single();
           
           if (error) throw error;
+          savedProduct.id = data.id;
         } else {
           const { error } = await (supabase as any)
             .from('pools')
@@ -695,22 +711,35 @@ export const EnhancedProductManager = () => {
         // For non-pool products, save to products table
         const productData = {
           name: product.name,
-          price: product.price,
-          category: product.subcategory,
-          description: product.description,
-          brand: product.brand,
-          sku: product.sku,
-          stock_quantity: product.stockQuantity || 0,
-          image_url: product.image,
-          is_active: product.isActive
+          price: Number(product.price),
+          category: product.subcategory || product.category,
+          description: product.description || '',
+          brand: product.brand || '',
+          sku: product.sku || '',
+          stock_quantity: Number(product.stockQuantity) || 0,
+          image_url: product.image || '',
+          is_active: Boolean(product.isActive),
+          features_json: product.features || [],
+          material: product.material || '',
+          motor_type: product.motorType || '',
+          installation_time: product.installationTime || '',
+          benefits: product.benefits || [],
+          type_category: product.typeCategory || '',
+          collection_name: product.collectionName || '',
+          pattern: product.pattern || '',
+          durability: Number(product.durability) || 0,
+          warranty_years_text: product.warrantyYearsText || ''
         };
 
         if (isCreating) {
-          const { error } = await (supabase as any)
+          const { data, error } = await (supabase as any)
             .from('products')
-            .insert([productData]);
+            .insert([productData])
+            .select()
+            .single();
           
           if (error) throw error;
+          savedProduct.id = data.id;
         } else {
           const { error } = await (supabase as any)
             .from('products')
@@ -721,15 +750,16 @@ export const EnhancedProductManager = () => {
         }
       }
 
+      // Update local state
       if (isCreating) {
-        const updatedProducts = [...products, product];
+        const updatedProducts = [...products, savedProduct];
         saveProducts(updatedProducts);
         toast({
           title: "Product Created",
           description: `${product.name} has been added to the catalog.`
         });
       } else {
-        const updatedProducts = products.map(p => p.id === product.id ? product : p);
+        const updatedProducts = products.map(p => p.id === product.id ? savedProduct : p);
         saveProducts(updatedProducts);
         toast({
           title: "Product Updated",
@@ -740,12 +770,13 @@ export const EnhancedProductManager = () => {
       setIsEditing(false);
       setIsCreating(false);
       setSelectedProduct(null);
-      loadProducts(); // Reload from database
+      await loadProducts(); // Reload from database
     } catch (error) {
       console.error('Error saving product:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         title: "Error",
-        description: "Failed to save product. Please try again.",
+        description: `Failed to save product: ${errorMessage}`,
         variant: "destructive"
       });
     }

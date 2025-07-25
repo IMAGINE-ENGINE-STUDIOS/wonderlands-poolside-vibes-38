@@ -115,33 +115,52 @@ const ImageEditor = ({ isOpen, onClose, onImageSave, currentImage }: ImageEditor
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    // Set canvas size to crop area
-    canvas.width = cropArea.width;
-    canvas.height = cropArea.height;
-    
-    // Create image element for cropping
+    // Create a new image element to ensure we have the correct source
     const img = new Image();
-    img.onload = () => {
-      // Draw the cropped area
-      ctx.drawImage(
-        img,
-        cropArea.x, cropArea.y, cropArea.width, cropArea.height,
-        0, 0, cropArea.width, cropArea.height
-      );
+    img.crossOrigin = 'anonymous';
+    
+    return new Promise<void>((resolve) => {
+      img.onload = () => {
+        // Set canvas size to crop area
+        canvas.width = cropArea.width;
+        canvas.height = cropArea.height;
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw the cropped area
+        ctx.drawImage(
+          img,
+          cropArea.x, cropArea.y, cropArea.width, cropArea.height,
+          0, 0, cropArea.width, cropArea.height
+        );
+        
+        // Convert to blob
+        canvas.toBlob((blob) => {
+          if (blob) {
+            onImageSave(blob);
+            toast({
+              title: "Image Saved",
+              description: "Your cropped image has been saved successfully!"
+            });
+            onClose();
+          }
+          resolve();
+        }, 'image/jpeg', 0.9);
+      };
       
-      // Convert to blob
-      canvas.toBlob((blob) => {
-        if (blob) {
-          onImageSave(blob);
-          toast({
-            title: "Image Saved",
-            description: "Your cropped image has been saved successfully!"
-          });
-          onClose();
-        }
-      }, 'image/jpeg', 0.9);
-    };
-    img.src = selectedImage;
+      img.onerror = () => {
+        toast({
+          title: "Error",
+          description: "Failed to process image. Please try again.",
+          variant: "destructive"
+        });
+        resolve();
+      };
+      
+      // Load the selected image
+      img.src = selectedImage;
+    });
   };
 
   return (
