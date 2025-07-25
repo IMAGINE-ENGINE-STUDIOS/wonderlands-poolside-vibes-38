@@ -28,7 +28,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import DeliveryApiManager from '@/components/DeliveryApiManager';
 import AdminContentEditor from '@/components/AdminContentEditor';
-import WorkingApiManager from '@/components/WorkingApiManager';
+import RealApiManager from '@/components/RealApiManager';
+import PoolManager from '@/components/PoolManager';
 import RealTimeContentEditor from '@/components/RealTimeContentEditor';
 import ImaginalyFullEditor from '@/components/ImaginalyFullEditor';
 import LathamPoolsData from '@/components/LathamPoolsData';
@@ -206,10 +207,14 @@ const AdminDashboard = () => {
                 <Package className="h-4 w-4" />
                 Products
               </TabsTrigger>
-              <TabsTrigger value="api-manager" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                API Manager
-              </TabsTrigger>
+               <TabsTrigger value="pool-manager" className="flex items-center gap-2">
+                 <Package className="h-4 w-4" />
+                 Pool Manager
+               </TabsTrigger>
+               <TabsTrigger value="api-manager" className="flex items-center gap-2">
+                 <Users className="h-4 w-4" />
+                 API Manager
+               </TabsTrigger>
                <TabsTrigger value="3d-editor" className="flex items-center gap-2">
                  <Cpu className="h-4 w-4" />
                  3D Editor
@@ -438,9 +443,14 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* Pool Manager Tab */}
+          <TabsContent value="pool-manager" className="space-y-6">
+            <PoolManager />
+          </TabsContent>
+
           {/* API Manager Tab */}
           <TabsContent value="api-manager" className="space-y-6">
-            <WorkingApiManager />
+            <RealApiManager />
           </TabsContent>
 
           {/* 3D Editor Tab */}
