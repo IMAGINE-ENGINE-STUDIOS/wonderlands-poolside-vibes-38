@@ -212,58 +212,94 @@ export type Database = {
       }
       products: {
         Row: {
+          benefits: string[] | null
           brand: string | null
           category: string | null
+          collection_name: string | null
           created_at: string
           description: string | null
+          durability: number | null
           external_id: string | null
+          features_json: Json | null
           id: string
           image_url: string | null
+          installation_time: string | null
           is_active: boolean | null
           last_synced: string | null
+          material: string | null
+          motor_type: string | null
           name: string
+          pattern: string | null
           price: number
+          pricing_options: Json | null
           sku: string | null
           source_api: string | null
           stock_quantity: number | null
+          subcategory: string | null
           sync_status: string | null
+          type_category: string | null
           updated_at: string
+          warranty_years_text: string | null
         }
         Insert: {
+          benefits?: string[] | null
           brand?: string | null
           category?: string | null
+          collection_name?: string | null
           created_at?: string
           description?: string | null
+          durability?: number | null
           external_id?: string | null
+          features_json?: Json | null
           id?: string
           image_url?: string | null
+          installation_time?: string | null
           is_active?: boolean | null
           last_synced?: string | null
+          material?: string | null
+          motor_type?: string | null
           name: string
+          pattern?: string | null
           price: number
+          pricing_options?: Json | null
           sku?: string | null
           source_api?: string | null
           stock_quantity?: number | null
+          subcategory?: string | null
           sync_status?: string | null
+          type_category?: string | null
           updated_at?: string
+          warranty_years_text?: string | null
         }
         Update: {
+          benefits?: string[] | null
           brand?: string | null
           category?: string | null
+          collection_name?: string | null
           created_at?: string
           description?: string | null
+          durability?: number | null
           external_id?: string | null
+          features_json?: Json | null
           id?: string
           image_url?: string | null
+          installation_time?: string | null
           is_active?: boolean | null
           last_synced?: string | null
+          material?: string | null
+          motor_type?: string | null
           name?: string
+          pattern?: string | null
           price?: number
+          pricing_options?: Json | null
           sku?: string | null
           source_api?: string | null
           stock_quantity?: number | null
+          subcategory?: string | null
           sync_status?: string | null
+          type_category?: string | null
           updated_at?: string
+          warranty_years_text?: string | null
         }
         Relationships: []
       }
@@ -350,7 +386,87 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      consolidated_products: {
+        Row: {
+          benefits: string[] | null
+          brand: string | null
+          category: string | null
+          collection_name: string | null
+          created_at: string | null
+          description: string | null
+          durability: number | null
+          features_json: Json | null
+          id: string | null
+          image_url: string | null
+          installation_time: string | null
+          is_active: boolean | null
+          material: string | null
+          motor_type: string | null
+          name: string | null
+          pattern: string | null
+          price: number | null
+          pricing_options: Json | null
+          sku: string | null
+          stock_quantity: number | null
+          subcategory: string | null
+          type_category: string | null
+          updated_at: string | null
+          warranty_years_text: string | null
+        }
+        Insert: {
+          benefits?: string[] | null
+          brand?: string | null
+          category?: string | null
+          collection_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          durability?: number | null
+          features_json?: Json | null
+          id?: string | null
+          image_url?: string | null
+          installation_time?: string | null
+          is_active?: boolean | null
+          material?: string | null
+          motor_type?: string | null
+          name?: string | null
+          pattern?: string | null
+          price?: number | null
+          pricing_options?: Json | null
+          sku?: string | null
+          stock_quantity?: number | null
+          subcategory?: string | null
+          type_category?: string | null
+          updated_at?: string | null
+          warranty_years_text?: string | null
+        }
+        Update: {
+          benefits?: string[] | null
+          brand?: string | null
+          category?: string | null
+          collection_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          durability?: number | null
+          features_json?: Json | null
+          id?: string | null
+          image_url?: string | null
+          installation_time?: string | null
+          is_active?: boolean | null
+          material?: string | null
+          motor_type?: string | null
+          name?: string | null
+          pattern?: string | null
+          price?: number | null
+          pricing_options?: Json | null
+          sku?: string | null
+          stock_quantity?: number | null
+          subcategory?: string | null
+          type_category?: string | null
+          updated_at?: string | null
+          warranty_years_text?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       is_admin_user: {
