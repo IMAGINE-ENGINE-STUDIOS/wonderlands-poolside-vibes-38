@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 
-import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu } from "lucide-react";
+import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu, Edit, ShoppingCart } from "lucide-react";
 import StripeCheckoutButton from "./StripeCheckoutButton";
+import ImageEditor from "./ImageEditor";
+import { useShoppingCart } from "./ShoppingCart";
 
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
@@ -112,6 +114,8 @@ const tileOptions = [
 
 const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [showImageEditor, setShowImageEditor] = useState(false);
+  const [currentPoolImage, setCurrentPoolImage] = useState(pool.image);
   const [extras, setExtras] = useState<PoolExtras>({
     liner: false,
     heater: false,
@@ -124,6 +128,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     tiles: false,
     tileOption: 'Standard Waterline'
   });
+  
+  const { addToCart } = useShoppingCart();
 
   const handleImageClick = () => {
     setShowDetails(!showDetails);
@@ -162,6 +168,48 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
 
   const hasExtras = Object.values(extras).some(value => value);
 
+  const handleImageSave = (imageBlob: Blob) => {
+    // Convert blob to data URL for display
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCurrentPoolImage(reader.result as string);
+    };
+    reader.readAsDataURL(imageBlob);
+  };
+
+  const handleAddToCart = () => {
+    const cartExtras = [];
+    
+    if (extras.heater) cartExtras.push({ name: 'Pool Heater', price: getExtraPrice('heater') });
+    if (extras.saltSystem) cartExtras.push({ name: 'Salt System', price: getExtraPrice('saltSystem') });
+    if (extras.jets) cartExtras.push({ name: 'Spa Jets', price: getExtraPrice('jets') });
+    if (extras.tiles) cartExtras.push({ name: 'Premium Tiles', price: getExtraPrice('tiles') });
+    
+    const linerOption = linerOptions.find(option => option.name === extras.linerOption);
+    if (linerOption && extras.liner) {
+      cartExtras.push({ name: `${linerOption.name} Liner`, price: linerOption.price });
+    }
+    
+    const coverOption = coverOptions.find(option => option.name === extras.coverOption);
+    if (coverOption && extras.cover) {
+      cartExtras.push({ name: coverOption.name, price: coverOption.price });
+    }
+    
+    const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+    if (tileOption && extras.tiles) {
+      cartExtras.push({ name: tileOption.name, price: tileOption.price });
+    }
+
+    addToCart({
+      id: `pool_${pool.model.replace(/\s+/g, '_')}_${Date.now()}`,
+      name: pool.model,
+      price: pool.price,
+      category: pool.category,
+      image: currentPoolImage,
+      extras: cartExtras
+    });
+  };
+
   return (
     <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
       {/* Edge-to-edge Pool Image at top */}
@@ -169,9 +217,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
         className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image"
         onClick={handleImageClick}
       >
-        {pool.image ? (
+        {currentPoolImage ? (
           <img 
-            src={pool.image} 
+            src={currentPoolImage} 
             alt={pool.model}
             className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105"
           />
@@ -193,6 +241,19 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
             Click for Details
           </div>
         </div>
+        
+        {/* Image Edit Button */}
+        <Button
+          size="sm"
+          variant="secondary"
+          className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowImageEditor(true);
+          }}
+        >
+          <Edit className="h-3 w-3" />
+        </Button>
       </div>
       
       <CardContent className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
@@ -475,14 +536,26 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                   Quote
                 </Button>
               </div>
-              <StripeCheckoutButton
-                productId={`pool_${pool.model.replace(/\s+/g, '_')}`}
-                productName={pool.model}
-                price={calculateTotalPrice()}
-                variant="gradient"
-                className="w-full hover:scale-105 transition-all duration-300"
-                size="sm"
-              />
+              
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleAddToCart}
+                  variant="outline"
+                  className="flex-1"
+                  size="sm"
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Add to Cart
+                </Button>
+                <StripeCheckoutButton
+                  productId={`pool_${pool.model.replace(/\s+/g, '_')}`}
+                  productName={pool.model}
+                  price={calculateTotalPrice()}
+                  variant="gradient"
+                  className="flex-1 hover:scale-105 transition-all duration-300"
+                  size="sm"
+                />
+              </div>
             </div>
             </div>
         )}
@@ -500,6 +573,13 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
         )}
       </CardContent>
       
+      {/* Image Editor Modal */}
+      <ImageEditor
+        isOpen={showImageEditor}
+        onClose={() => setShowImageEditor(false)}
+        onImageSave={handleImageSave}
+        currentImage={currentPoolImage}
+      />
     </Card>
   );
 };
