@@ -4,9 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+
 import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu } from "lucide-react";
-import ImaginalyFullEditor from "./ImaginalyFullEditor";
+
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
 import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
@@ -111,9 +111,6 @@ const tileOptions = [
 
 const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
-  const [show3D, setShow3D] = useState(false);
-  const [showAdvanced3D, setShowAdvanced3D] = useState(false);
-  const [showNvidia3D, setShowNvidia3D] = useState(false);
   const [extras, setExtras] = useState<PoolExtras>({
     liner: false,
     heater: false,
@@ -263,34 +260,6 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
         {showDetails && (
           <div className="space-y-4 animate-fade-in-up">
             <Separator />
-            
-            {/* 3D Toggle */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">3D Preview</span>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShow3D(!show3D)}
-                >
-                  {show3D ? 'Hide 3D' : 'Show 3D'}
-                </Button>
-                <Button
-                  variant="coral"
-                  size="sm"
-                  onClick={() => setShowAdvanced3D(true)}
-                >
-                  IMAGINALY Editor
-                </Button>
-              </div>
-            </div>
-            
-            {/* 3D Viewer */}
-            {show3D && (
-              <div className="mt-4">
-                <ImaginalyFullEditor />
-              </div>
-            )}
             
             {/* Pool Tile Options */}
             <div className="space-y-3">
@@ -520,12 +489,6 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
         )}
       </CardContent>
       
-      {/* IMAGINALY Full Editor Modal */}
-      <Dialog open={showAdvanced3D} onOpenChange={setShowAdvanced3D}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0">
-          <ImaginalyFullEditor />
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 };
