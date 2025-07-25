@@ -762,6 +762,10 @@ export type Database = {
         }
         Returns: string
       }
+      promote_user_to_main_admin: {
+        Args: { user_email: string }
+        Returns: boolean
+      }
       verify_admin_password: {
         Args: { input_email: string; input_password: string }
         Returns: {
