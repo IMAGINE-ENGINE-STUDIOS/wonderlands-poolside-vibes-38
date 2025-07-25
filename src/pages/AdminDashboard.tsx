@@ -229,11 +229,6 @@ const AdminDashboard = () => {
                 <span className="hidden sm:inline">Content Editor</span>
                 <span className="sm:hidden">Content</span>
               </TabsTrigger>
-               <TabsTrigger value="delivery-apis" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                 <Star className="h-3 w-3 sm:h-4 sm:w-4" />
-                 <span className="hidden sm:inline">Delivery APIs</span>
-                 <span className="sm:hidden">APIs</span>
-               </TabsTrigger>
               <TabsTrigger value="analytics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Analytics</span>
@@ -424,73 +419,87 @@ const AdminDashboard = () => {
 
           {/* Delivery & Logistics Tab */}
           <TabsContent value="delivery-logistics" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-6">
+              {/* Delivery API Management Section */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-primary" />
-                    Delivery Services
+                    Delivery API Management
                   </CardTitle>
                   <CardDescription>
-                    Manage delivery integrations and logistics
+                    Manage third-party delivery service APIs and integrations
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {[
-                    { name: 'Uber Direct', status: 'Active', deliveries: 45, avgCost: 12.50 },
-                    { name: 'DoorDash Drive', status: 'Active', deliveries: 32, avgCost: 15.00 },
-                    { name: 'Home Depot Delivery', status: 'Connected', deliveries: 18, avgCost: 25.00 },
-                    { name: 'Lowes Delivery', status: 'Disconnected', deliveries: 0, avgCost: 0 }
-                  ].map((service) => (
-                    <div key={service.name} className="p-3 border rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="font-medium">{service.name}</p>
-                        <Badge variant={service.status === 'Active' ? 'default' : 
-                                       service.status === 'Connected' ? 'secondary' : 'destructive'}>
-                          {service.status}
-                        </Badge>
-                      </div>
-                      <div className="flex justify-between text-sm text-muted-foreground">
-                        <span>{service.deliveries} deliveries</span>
-                        <span>Avg. ${service.avgCost}</span>
-                      </div>
-                    </div>
-                  ))}
+                <CardContent>
+                  <DeliveryApiManager />
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Logistics Settings</CardTitle>
-                  <CardDescription>Configure delivery zones and pricing</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium">Default Delivery Radius (miles)</label>
-                      <Input type="number" defaultValue="25" className="mt-1" />
+              {/* Legacy Delivery Services & Logistics Settings */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                      Delivery Services
+                    </CardTitle>
+                    <CardDescription>
+                      Manage delivery integrations and logistics
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {[
+                      { name: 'Uber Direct', status: 'Active', deliveries: 45, avgCost: 12.50 },
+                      { name: 'DoorDash Drive', status: 'Active', deliveries: 32, avgCost: 15.00 },
+                      { name: 'Home Depot Delivery', status: 'Connected', deliveries: 18, avgCost: 25.00 },
+                      { name: 'Lowes Delivery', status: 'Disconnected', deliveries: 0, avgCost: 0 }
+                    ].map((service) => (
+                      <div key={service.name} className="p-3 border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="font-medium">{service.name}</p>
+                          <Badge variant={service.status === 'Active' ? 'default' : 
+                                         service.status === 'Connected' ? 'secondary' : 'destructive'}>
+                            {service.status}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between text-sm text-muted-foreground">
+                          <span>{service.deliveries} deliveries</span>
+                          <span>Avg. ${service.avgCost}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Logistics Settings</CardTitle>
+                    <CardDescription>Configure delivery zones and pricing</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium">Default Delivery Radius (miles)</label>
+                        <Input type="number" defaultValue="25" className="mt-1" />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Base Delivery Fee</label>
+                        <Input type="number" defaultValue="15.00" step="0.01" className="mt-1" />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Per Mile Rate</label>
+                        <Input type="number" defaultValue="1.50" step="0.01" className="mt-1" />
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium">Base Delivery Fee</label>
-                      <Input type="number" defaultValue="15.00" step="0.01" className="mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Per Mile Rate</label>
-                      <Input type="number" defaultValue="1.50" step="0.01" className="mt-1" />
-                    </div>
-                  </div>
-                  <Button className="w-full">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Update Pricing
-                  </Button>
-                </CardContent>
-              </Card>
+                    <Button className="w-full">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Update Pricing
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-          </TabsContent>
-
-          {/* Delivery APIs Tab */}
-          <TabsContent value="delivery-apis" className="space-y-6">
-            <DeliveryApiManager />
           </TabsContent>
 
           {/* GALA Points Tab */}
