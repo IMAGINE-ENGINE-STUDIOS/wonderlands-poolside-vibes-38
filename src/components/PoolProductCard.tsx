@@ -165,7 +165,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
       {/* Edge-to-edge Pool Image at top */}
       <div 
-        className="relative w-full h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image"
+        className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image"
         onClick={handleImageClick}
       >
         {pool.image ? (
@@ -194,21 +194,21 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
         </div>
       </div>
       
-      <CardContent className="p-6 space-y-4">
+      <CardContent className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
         
         {/* Pool Name */}
-        <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+        <h3 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors">
           {pool.model}
         </h3>
         
         {/* Price */}
         <div className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5 text-teal" />
-          <span className="text-2xl font-bold text-foreground">
-            {calculateTotalPrice().toLocaleString()}
+          <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
+          <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
+            ${calculateTotalPrice().toLocaleString()}
           </span>
           {hasExtras && (
-            <span className="text-sm text-muted-foreground line-through">
+            <span className="text-xs sm:text-sm text-muted-foreground line-through">
               ${pool.price.toLocaleString()}
             </span>
           )}
@@ -360,7 +360,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
             {/* Cover Options */}
             <div className="space-y-3">
               <h4 className="font-semibold text-foreground">Cover Options</h4>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {coverOptions.map((cover) => (
                   <div 
                     key={cover.name}

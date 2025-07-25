@@ -15,7 +15,6 @@ import {
   Filter,
   Search,
   RefreshCw,
-  Cpu
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,8 +30,9 @@ import AdminContentEditor from '@/components/AdminContentEditor';
 import RealApiManager from '@/components/RealApiManager';
 import PoolManager from '@/components/PoolManager';
 import RealTimeContentEditor from '@/components/RealTimeContentEditor';
-import ImaginalyFullEditor from '@/components/ImaginalyFullEditor';
+
 import LathamPoolsData from '@/components/LathamPoolsData';
+import ProductCardManager from '@/components/ProductCardManager';
 
 const AdminDashboard = () => {
   // Mock data for demonstration
@@ -118,30 +118,32 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
       {/* Header */}
       <div className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Pool Systems Admin Dashboard
+        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+            <div className="flex-1">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                Pool Systems Admin
               </h1>
-              <p className="text-muted-foreground">Welcome back, {adminSession.email}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Welcome back, {adminSession.email}</p>
             </div>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={refreshData} disabled={isLoading}>
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              <Button variant="outline" onClick={refreshData} disabled={isLoading} size="sm" className="flex-1 sm:flex-none">
+                <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                <span className="text-xs sm:text-sm">Refresh</span>
               </Button>
-              <Link to="/">
-                <Button variant="outline">Back to Site</Button>
+              <Link to="/" className="flex-1 sm:flex-none">
+                <Button variant="outline" size="sm" className="w-full">
+                  <span className="text-xs sm:text-sm">Back to Site</span>
+                </Button>
               </Link>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -196,48 +198,56 @@ const AdminDashboard = () => {
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="orders" className="space-y-6">
-          <div className="flex flex-wrap gap-2 mb-6">
-            <TabsList className="flex flex-wrap gap-1">
-              <TabsTrigger value="orders" className="flex items-center gap-2">
-                <ShoppingCart className="h-4 w-4" />
-                Orders
+        <Tabs defaultValue="orders" className="space-y-4 sm:space-y-6">
+          <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 sm:mb-6">
+            <TabsList className="grid w-full grid-cols-2 sm:flex sm:flex-wrap gap-1">
+              <TabsTrigger value="orders" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Orders</span>
               </TabsTrigger>
-              <TabsTrigger value="products" className="flex items-center gap-2">
-                <Package className="h-4 w-4" />
-                Products
+              <TabsTrigger value="products" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <Package className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Products</span>
               </TabsTrigger>
-               <TabsTrigger value="pool-manager" className="flex items-center gap-2">
-                 <Package className="h-4 w-4" />
-                 Pool Manager
+               <TabsTrigger value="pool-manager" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                 <Package className="h-3 w-3 sm:h-4 sm:w-4" />
+                 <span className="hidden sm:inline">Pool Manager</span>
+                 <span className="sm:hidden">Pools</span>
                </TabsTrigger>
-               <TabsTrigger value="api-manager" className="flex items-center gap-2">
-                 <Users className="h-4 w-4" />
-                 API Manager
+               <TabsTrigger value="api-manager" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                 <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                 <span className="hidden sm:inline">API Manager</span>
+                 <span className="sm:hidden">API</span>
                </TabsTrigger>
-               <TabsTrigger value="3d-editor" className="flex items-center gap-2">
-                 <Cpu className="h-4 w-4" />
-                 3D Editor
-               </TabsTrigger>
-               <TabsTrigger value="pool-specs" className="flex items-center gap-2">
-                 <Package className="h-4 w-4" />
-                 Pool Specs
-               </TabsTrigger>
-              <TabsTrigger value="delivery-logistics" className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Delivery & Logistics
+               <TabsTrigger value="pool-specs" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Package className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Pool Specs</span>
+                  <span className="sm:hidden">Specs</span>
+                </TabsTrigger>
+               <TabsTrigger value="product-editor" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Product Editor</span>
+                  <span className="sm:hidden">Editor</span>
+                </TabsTrigger>
+              <TabsTrigger value="delivery-logistics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Delivery & Logistics</span>
+                <span className="sm:hidden">Delivery</span>
               </TabsTrigger>
-              <TabsTrigger value="content-editor" className="flex items-center gap-2">
-                <Edit className="h-4 w-4" />
-                Content Editor
+              <TabsTrigger value="content-editor" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Content Editor</span>
+                <span className="sm:hidden">Content</span>
               </TabsTrigger>
-               <TabsTrigger value="delivery-apis" className="flex items-center gap-2">
-                 <Star className="h-4 w-4" />
-                 Delivery APIs
+               <TabsTrigger value="delivery-apis" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                 <Star className="h-3 w-3 sm:h-4 sm:w-4" />
+                 <span className="hidden sm:inline">Delivery APIs</span>
+                 <span className="sm:hidden">APIs</span>
                </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Analytics
+              <TabsTrigger value="analytics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Analytics</span>
+                <span className="sm:hidden">Stats</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -250,7 +260,7 @@ const AdminDashboard = () => {
                 <CardDescription>Track and manage all pool installation orders</CardDescription>
                 
                 {/* Search and Filter */}
-                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <div className="flex flex-col gap-2 sm:gap-4 pt-4">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -260,8 +270,9 @@ const AdminDashboard = () => {
                       className="pl-10"
                     />
                   </div>
-                  <Select value={orderFilter} onValueChange={setOrderFilter}>
-                    <SelectTrigger className="w-[180px]">
+                  <div className="flex gap-2">
+                    <Select value={orderFilter} onValueChange={setOrderFilter}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
                       <SelectValue placeholder="Filter by status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -272,10 +283,11 @@ const AdminDashboard = () => {
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button variant="outline">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
+                    <Button variant="outline" size="sm">
+                      <Download className="h-4 w-4 mr-1 sm:mr-2" />
+                      <span className="hidden sm:inline">Export</span>
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -453,23 +465,6 @@ const AdminDashboard = () => {
             <RealApiManager />
           </TabsContent>
 
-          {/* 3D Editor Tab */}
-          <TabsContent value="3d-editor" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Cpu className="h-5 w-5" />
-                  Advanced 3D Pool Editor
-                </CardTitle>
-                <CardDescription>
-                  Professional 3D editor with skybox support, shader management, and file uploads
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ImaginalyFullEditor />
-              </CardContent>
-            </Card>
-          </TabsContent>
           
           {/* Pool Specs Tab */}
           <TabsContent value="pool-specs" className="space-y-6">
@@ -487,6 +482,11 @@ const AdminDashboard = () => {
                 <LathamPoolsData />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Product Editor Tab */}
+          <TabsContent value="product-editor" className="space-y-6">
+            <ProductCardManager />
           </TabsContent>
 
           {/* Delivery & Logistics Tab */}

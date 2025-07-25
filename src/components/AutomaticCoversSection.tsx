@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Zap, Leaf, Settings, DollarSign, Star } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import ImaginalyFullEditor from "./ImaginalyFullEditor";
+
 
 interface AutomaticCover {
   name: string;
@@ -89,15 +89,9 @@ const getTypeIcon = (type: string) => {
 const AutomaticCoversSection = () => {
   const [selectedCover, setSelectedCover] = useState<AutomaticCover | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
-  const [show3D, setShow3D] = useState<string | null>(null);
-
   const handleRequestQuote = (cover: AutomaticCover) => {
     setSelectedCover(cover);
     setShowQuoteModal(true);
-  };
-
-  const toggle3D = (coverName: string) => {
-    setShow3D(show3D === coverName ? null : coverName);
   };
 
   return (
@@ -148,23 +142,6 @@ const AutomaticCoversSection = () => {
                     </span>
                   </div>
                   
-                  {/* 3D Toggle and Viewer */}
-                  <div className="space-y-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => toggle3D(cover.name)}
-                      className="w-full"
-                    >
-                      {show3D === cover.name ? 'Hide IMAGINALY' : 'Show IMAGINALY'}
-                    </Button>
-                    
-                    {show3D === cover.name && (
-                      <div className="mt-4">
-                        <ImaginalyFullEditor />
-                      </div>
-                    )}
-                  </div>
                   
                   {/* Specifications */}
                   <div className="space-y-2 text-sm">
