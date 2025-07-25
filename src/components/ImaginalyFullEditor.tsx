@@ -290,7 +290,6 @@ export const ImaginalyFullEditor: React.FC = () => {
     poolType: 'rectangular',
     poolDimensions: { width: 8, length: 12, depth: 1.5 },
     finish: { name: 'Aquamarine', color: '#7FFFD4' },
-    selectedTile: { name: 'Standard Waterline', color: '#4682B4' },
     waterLevel: 0.1,
     
     // Effects
@@ -336,14 +335,6 @@ export const ImaginalyFullEditor: React.FC = () => {
     { name: 'Sapphire Blue', color: '#0F52BA' },
     { name: 'Night Sky', color: '#191970' },
     { name: 'Pearl White', color: '#F5F5DC' }
-  ];
-
-  const tileOptions = [
-    { name: 'Standard Waterline', color: '#4682B4' },
-    { name: 'Premium Glass Mosaic', color: '#20B2AA' },
-    { name: 'Natural Stone', color: '#8B7355' },
-    { name: 'Ceramic Decorative', color: '#4169E1' },
-    { name: 'Iridescent Glass', color: '#9370DB' }
   ];
 
   const skyboxOptions = [
@@ -643,29 +634,6 @@ export const ImaginalyFullEditor: React.FC = () => {
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label>Pool Tiles</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {tileOptions.map(tile => (
-                        <button
-                          key={tile.name}
-                          onClick={() => handleSettingChange('selectedTile', tile)}
-                          className={`p-2 rounded border text-xs ${
-                            settings.selectedTile?.name === tile.name 
-                              ? 'border-primary bg-primary/10' 
-                              : 'border-border hover:bg-muted'
-                          }`}
-                        >
-                          <div 
-                            className="w-full h-6 rounded mb-1"
-                            style={{ backgroundColor: tile.color }}
-                          />
-                          {tile.name}
-                        </button>
-                      ))}
-                    </div>
                   </div>
 
                   <div className="space-y-3">
