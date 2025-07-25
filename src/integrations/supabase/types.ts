@@ -185,6 +185,127 @@ export type Database = {
         }
         Relationships: []
       }
+      consumer_preferences: {
+        Row: {
+          business_address: Json | null
+          consumer_id: string
+          created_at: string
+          delivery_address: Json | null
+          id: string
+          preferred_payment_methods: Json | null
+          updated_at: string
+        }
+        Insert: {
+          business_address?: Json | null
+          consumer_id: string
+          created_at?: string
+          delivery_address?: Json | null
+          id?: string
+          preferred_payment_methods?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          business_address?: Json | null
+          consumer_id?: string
+          created_at?: string
+          delivery_address?: Json | null
+          id?: string
+          preferred_payment_methods?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consumer_preferences_consumer_id_fkey"
+            columns: ["consumer_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          commission_amount: number | null
+          consumer_id: string | null
+          created_at: string
+          delivery_address: Json | null
+          id: string
+          product_id: string | null
+          quantity: number
+          status: string
+          stripe_session_id: string | null
+          supplier_amount: number | null
+          supplier_id: string | null
+          total_amount: number
+          tracking_number: string | null
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          commission_amount?: number | null
+          consumer_id?: string | null
+          created_at?: string
+          delivery_address?: Json | null
+          id?: string
+          product_id?: string | null
+          quantity?: number
+          status?: string
+          stripe_session_id?: string | null
+          supplier_amount?: number | null
+          supplier_id?: string | null
+          total_amount: number
+          tracking_number?: string | null
+          unit_price: number
+          updated_at?: string
+        }
+        Update: {
+          commission_amount?: number | null
+          consumer_id?: string | null
+          created_at?: string
+          delivery_address?: Json | null
+          id?: string
+          product_id?: string | null
+          quantity?: number
+          status?: string
+          stripe_session_id?: string | null
+          supplier_amount?: number | null
+          supplier_id?: string | null
+          total_amount?: number
+          tracking_number?: string | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_consumer_id_fkey"
+            columns: ["consumer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "consolidated_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pools: {
         Row: {
           carbon_fiber: boolean | null
@@ -283,6 +404,7 @@ export type Database = {
           source_api: string | null
           stock_quantity: number | null
           subcategory: string | null
+          supplier_id: string | null
           sync_status: string | null
           type_category: string | null
           updated_at: string
@@ -313,6 +435,7 @@ export type Database = {
           source_api?: string | null
           stock_quantity?: number | null
           subcategory?: string | null
+          supplier_id?: string | null
           sync_status?: string | null
           type_category?: string | null
           updated_at?: string
@@ -343,12 +466,101 @@ export type Database = {
           source_api?: string | null
           stock_quantity?: number | null
           subcategory?: string | null
+          supplier_id?: string | null
           sync_status?: string | null
           type_category?: string | null
           updated_at?: string
           warranty_years_text?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "products_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          company_logo_url: string | null
+          company_name: string | null
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          is_active: boolean
+          last_name: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          company_logo_url?: string | null
+          company_name?: string | null
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id: string
+          is_active?: boolean
+          last_name?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          company_logo_url?: string | null
+          company_name?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_name?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
         Relationships: []
+      }
+      supplier_banking_config: {
+        Row: {
+          bank_account_details: Json | null
+          commission_rate: number | null
+          created_at: string
+          id: string
+          is_verified: boolean | null
+          stripe_account_id: string | null
+          supplier_id: string
+          updated_at: string
+        }
+        Insert: {
+          bank_account_details?: Json | null
+          commission_rate?: number | null
+          created_at?: string
+          id?: string
+          is_verified?: boolean | null
+          stripe_account_id?: string | null
+          supplier_id: string
+          updated_at?: string
+        }
+        Update: {
+          bank_account_details?: Json | null
+          commission_rate?: number | null
+          created_at?: string
+          id?: string
+          is_verified?: boolean | null
+          stripe_account_id?: string | null
+          supplier_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_banking_config_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_quotations: {
         Row: {
@@ -520,7 +732,23 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
       is_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_consumer: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_main_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_supplier: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
@@ -543,7 +771,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "main_admin" | "supplier" | "consumer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -670,6 +898,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["main_admin", "supplier", "consumer"],
+    },
   },
 } as const
