@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Shield } from "lucide-react";
+import { Shield, User, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import AdminLogin from "./AdminLogin";
 
 const Header = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const { user, profile, signOut } = useAuth();
 
   const handleAdminAccess = () => {
     setShowAdminLogin(true);
@@ -28,17 +30,58 @@ const Header = () => {
             className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 order-1 sm:order-2"
           />
           
-          {/* Admin Dashboard Button */}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm order-2 sm:order-1"
-            onClick={handleAdminAccess}
-          >
-            <Shield className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Admin Dashboard</span>
-            <span className="sm:hidden">Admin</span>
-          </Button>
+          {/* Auth/Admin Buttons */}
+          <div className="flex items-center gap-2 order-2 sm:order-1">
+            {user ? (
+              <>
+                <Link to="/dashboard">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
+                  >
+                    <User className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Dashboard</span>
+                    <span className="sm:hidden">Profile</span>
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
+                  onClick={signOut}
+                >
+                  <LogOut className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Logout</span>
+                  <span className="sm:hidden">Out</span>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
+                  >
+                    <User className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Sign In</span>
+                    <span className="sm:hidden">Login</span>
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
+                  onClick={handleAdminAccess}
+                >
+                  <Shield className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Admin Dashboard</span>
+                  <span className="sm:hidden">Admin</span>
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
