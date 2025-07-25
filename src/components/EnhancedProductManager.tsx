@@ -22,9 +22,12 @@ import {
   Package,
   Waves,
   Car,
-  Wrench
+  Wrench,
+  Monitor
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import PoolProductCard from './PoolProductCard';
+import ProductCard from './ProductCard';
 
 type ProductCategory = 'outdoors' | 'pools' | 'maintenance';
 
@@ -73,20 +76,248 @@ export const EnhancedProductManager = () => {
   }, []);
 
   const loadProducts = async () => {
-    // Load from localStorage for existing pool products
-    const savedProducts = localStorage.getItem('poolProducts');
-    let localProducts: Product[] = [];
-    
-    if (savedProducts) {
-      const poolProducts = JSON.parse(savedProducts);
-      localProducts = poolProducts.map((p: any, index: number) => ({
-        ...p,
-        category: 'pools' as ProductCategory,
-        subcategory: 'pools',
-        name: p.model,
-        order: index + 1
-      }));
-    }
+    // Load all pools from PoolCatalog.tsx
+    const poolsFromCatalog = [
+      { 
+        model: "Astoria 12", 
+        price: 111000, 
+        category: 'premium', 
+        dimensions: "12′ × 26′",
+        depth: "3′ 6″ to 5′ 6″",
+        galaPoints: 11100,
+        galaCategory: "Luxury Collection",
+        installationTimeWeeks: 6,
+        warrantyYears: "Lifetime",
+        features: ["LED Lighting", "Premium Finish", "Advanced Filtration"],
+        heater: true,
+        saltSystem: true,
+        carbonFiber: true
+      },
+      { 
+        model: "Apollo 14", 
+        price: 98500, 
+        category: 'premium', 
+        dimensions: "14′ × 30′",
+        depth: "4′ 6″ to 6′",
+        galaPoints: 9850,
+        galaCategory: "Luxury Collection",
+        installationTimeWeeks: 6,
+        warrantyYears: "Lifetime",
+        features: ["Smart Pool Technology", "Energy Efficient", "Premium Materials"],
+        heater: true,
+        saltSystem: true,
+        carbonFiber: true
+      },
+      { 
+        model: "Coral 16", 
+        price: 96400, 
+        category: 'premium', 
+        dimensions: "16′ × 32′",
+        depth: "3′ 6″ to 6′",
+        galaPoints: 9640,
+        galaCategory: "Luxury Collection",
+        installationTimeWeeks: 6,
+        warrantyYears: "Lifetime",
+        features: ["Spacious Design", "Coral Reef Finish", "Built-in Steps"],
+        heater: true,
+        saltSystem: true,
+        carbonFiber: true
+      },
+      { 
+        model: "Ariel 16", 
+        price: 102000, 
+        category: 'premium', 
+        dimensions: "16′ × 34′",
+        depth: "3′ 6″ to 6′ 6″",
+        galaPoints: 10200,
+        galaCategory: "Luxury Collection",
+        installationTimeWeeks: 6,
+        warrantyYears: "Lifetime",
+        features: ["Auto Cover Ready", "Multiple Entry Points", "Premium Design"],
+        heater: true,
+        saltSystem: true,
+        carbonFiber: true
+      },
+      { 
+        model: "Valencia", 
+        price: 65500, 
+        category: 'standard',
+        dimensions: "14′ 6″ × 28′",
+        depth: "3′ 7″ to 5′ 10″",
+        galaPoints: 1965,
+        galaCategory: "Classic Series",
+        installationTimeWeeks: 6,
+        warrantyYears: "Lifetime"
+      },
+      { 
+        model: "Cape Cod", 
+        price: 58900, 
+        category: 'standard',
+        dimensions: "14′ × 28′",
+        depth: "3′ 6″ to 5′ 6″",
+        galaPoints: 1767,
+        galaCategory: "Classic Series",
+        installationTimeWeeks: 6,
+        warrantyYears: "Lifetime"
+      },
+      { 
+        model: "St. Lucia", 
+        price: 72500, 
+        category: 'standard',
+        dimensions: "16′ × 32′",
+        depth: "3′ 6″ to 6′",
+        galaPoints: 2175,
+        galaCategory: "Classic Series",
+        installationTimeWeeks: 6,
+        warrantyYears: "Lifetime"
+      },
+      { 
+        model: "Synergy", 
+        price: 68900, 
+        category: 'standard',
+        dimensions: "16′ × 30′",
+        depth: "3′ 6″ to 6′",
+        galaPoints: 2067,
+        galaCategory: "Classic Series",
+        installationTimeWeeks: 6,
+        warrantyYears: "Lifetime"
+      },
+      { 
+        model: "Bermuda", 
+        price: 78500, 
+        category: 'deluxe',
+        dimensions: "16′ × 34′",
+        depth: "3′ 6″ to 6′",
+        galaPoints: 3925,
+        galaCategory: "Executive Series",
+        installationTimeWeeks: 6,
+        warrantyYears: "Lifetime"
+      },
+      { 
+        model: "Fiji", 
+        price: 71200, 
+        category: 'standard',
+        dimensions: "14′ × 30′",
+        depth: "3′ 6″ to 6′",
+        galaPoints: 2136,
+        galaCategory: "Classic Series",
+        installationTimeWeeks: 6,
+        warrantyYears: "Lifetime"
+      },
+      { 
+        model: "Genesis", 
+        price: 85400, 
+        category: 'deluxe',
+        dimensions: "16′ × 36′",
+        depth: "3′ 6″ to 6′",
+        galaPoints: 4270,
+        galaCategory: "Executive Series",
+        installationTimeWeeks: 6,
+        warrantyYears: "Lifetime"
+      },
+      { 
+        model: "Jamaica", 
+        price: 46100, 
+        category: 'compact',
+        dimensions: "10′ × 20′",
+        depth: "4′ 6″ to 5′ 6″",
+        galaPoints: 922,
+        galaCategory: "Compact Collection",
+        installationTimeWeeks: 6,
+        warrantyYears: "Lifetime"
+      }
+    ];
+
+    // Convert pools to unified product format
+    let localProducts: Product[] = poolsFromCatalog.map((pool: any, index: number) => ({
+      id: `pool_${index + 1}`,
+      name: pool.model,
+      model: pool.model,
+      price: pool.price,
+      category: 'pools' as ProductCategory,
+      subcategory: 'pools',
+      dimensions: pool.dimensions,
+      depth: pool.depth,
+      features: pool.features || [],
+      galaPoints: pool.galaPoints,
+      galaCategory: pool.galaCategory,
+      installationTimeWeeks: pool.installationTimeWeeks,
+      warrantyYears: pool.warrantyYears,
+      heater: pool.heater || false,
+      saltSystem: pool.saltSystem || false,
+      carbonFiber: pool.carbonFiber || false,
+      finishes: pool.finishes || [],
+      liners: pool.liners || [],
+      covers: pool.covers || [],
+      order: index + 1,
+      isActive: true
+    }));
+
+    // Add sample maintenance products
+    const maintenanceProducts: Product[] = [
+      {
+        id: 'maint_1',
+        name: 'Pool Chlorine Tablets',
+        price: 45,
+        category: 'maintenance',
+        subcategory: 'chemicals',
+        description: 'High-quality chlorine tablets for pool sanitization',
+        brand: 'AquaChem',
+        sku: 'AC-CHLOR-50',
+        stockQuantity: 120,
+        features: ['Slow dissolving', '99% active chlorine', 'Stabilized'],
+        order: localProducts.length + 1,
+        isActive: true
+      },
+      {
+        id: 'maint_2',
+        name: 'Pool Vacuum Head',
+        price: 89,
+        category: 'maintenance',
+        subcategory: 'cleaning',
+        description: 'Professional-grade vacuum head for thorough pool cleaning',
+        brand: 'Pentair',
+        sku: 'PEN-VAC-HD',
+        stockQuantity: 45,
+        features: ['Wide cleaning path', 'Durable construction', 'Universal fit'],
+        order: localProducts.length + 2,
+        isActive: true
+      }
+    ];
+
+    // Add sample outdoor products
+    const outdoorProducts: Product[] = [
+      {
+        id: 'outdoor_1',
+        name: 'Pool Deck Chairs (Set of 4)',
+        price: 299,
+        category: 'outdoors',
+        subcategory: 'furniture',
+        description: 'Weather-resistant pool deck lounge chairs',
+        brand: 'OutdoorLux',
+        sku: 'OL-CHAIR-4SET',
+        stockQuantity: 25,
+        features: ['UV resistant', 'Adjustable backrest', 'Quick dry fabric'],
+        order: localProducts.length + 3,
+        isActive: true
+      },
+      {
+        id: 'outdoor_2',
+        name: 'Pool Umbrella - Large',
+        price: 159,
+        category: 'outdoors',
+        subcategory: 'shade',
+        description: '12ft tilting pool umbrella with wind vent',
+        brand: 'SunShade',
+        sku: 'SS-UMB-12',
+        stockQuantity: 18,
+        features: ['12ft diameter', 'Tilt mechanism', 'Fade resistant'],
+        order: localProducts.length + 4,
+        isActive: true
+      }
+    ];
+
+    localProducts = [...localProducts, ...maintenanceProducts, ...outdoorProducts];
 
     // Load from Supabase for pools table
     try {
@@ -121,7 +352,10 @@ export const EnhancedProductManager = () => {
           isActive: pool.is_active ?? true
         }));
         
-        localProducts = [...localProducts, ...supabasePools];
+        // Only add if not already in local products (avoid duplicates)
+        const existingPoolIds = new Set(localProducts.filter(p => p.category === 'pools').map(p => p.model));
+        const newPools = supabasePools.filter(pool => !existingPoolIds.has(pool.model));
+        localProducts = [...localProducts, ...newPools];
       }
     } catch (error) {
       console.error('Error loading from Supabase:', error);
@@ -585,6 +819,7 @@ interface ProductEditorProps {
 const ProductEditor = ({ product, onSave, onCancel, isCreating }: ProductEditorProps) => {
   const [editedProduct, setEditedProduct] = useState<Product>(product);
   const [featuresText, setFeaturesText] = useState(product.features?.join(', ') || '');
+  const [showPreview, setShowPreview] = useState(true);
 
   const handleSave = () => {
     const productToSave = {
@@ -603,15 +838,95 @@ const ProductEditor = ({ product, onSave, onCancel, isCreating }: ProductEditorP
     setEditedProduct(prev => ({ ...prev, [field]: items }));
   };
 
+  // Convert Product to Pool format for PoolProductCard
+  const convertToPoolFormat = (product: Product) => ({
+    model: product.name,
+    price: product.price,
+    category: 'premium' as const,
+    dimensions: product.dimensions,
+    depth: product.depth,
+    features: product.features || [],
+    galaPoints: product.galaPoints,
+    galaCategory: product.galaCategory,
+    installationTimeWeeks: product.installationTimeWeeks,
+    warrantyYears: product.warrantyYears,
+    heater: product.heater,
+    saltSystem: product.saltSystem,
+    carbonFiber: product.carbonFiber,
+    finishes: product.finishes,
+    liners: product.liners,
+    covers: product.covers,
+    image: product.image
+  });
+
+  // Convert Product to ProductCard format
+  const convertToProductFormat = (product: Product) => ({
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    category: product.subcategory || product.category,
+    dimensions: product.dimensions,
+    specifications: product.description,
+    features: product.features || [],
+    description: product.description,
+    image: product.image
+  });
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Edit className="h-5 w-5" />
-          {isCreating ? 'Create New Product' : 'Edit Product'}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="space-y-6">
+      {/* Card Preview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Monitor className="h-5 w-5" />
+              Live Card Preview
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreview(!showPreview)}
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              {showPreview ? 'Hide' : 'Show'} Preview
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        {showPreview && (
+          <CardContent>
+            <div className="bg-muted/30 p-4 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-4">
+                This is how your product will appear to customers:
+              </p>
+              <div className="max-w-md mx-auto">
+                {editedProduct.category === 'pools' ? (
+                  <PoolProductCard
+                    pool={convertToPoolFormat(editedProduct)}
+                    onViewDetails={() => {}}
+                    onRequestQuote={() => {}}
+                  />
+                ) : (
+                  <ProductCard
+                    product={convertToProductFormat(editedProduct)}
+                    onViewDetails={() => {}}
+                    onRequestQuote={() => {}}
+                  />
+                )}
+              </div>
+            </div>
+          </CardContent>
+        )}
+      </Card>
+
+      {/* Product Editor */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Edit className="h-5 w-5" />
+            {isCreating ? 'Create New Product' : 'Edit Product'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
         {/* Basic Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -815,17 +1130,18 @@ const ProductEditor = ({ product, onSave, onCancel, isCreating }: ProductEditorP
           />
         </div>
 
-        <div className="flex justify-end gap-2 pt-4">
-          <Button variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>
-            <Save className="h-4 w-4 mr-2" />
-            {isCreating ? 'Create Product' : 'Save Changes'}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>
+              <Save className="h-4 w-4 mr-2" />
+              {isCreating ? 'Create Product' : 'Save Changes'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
