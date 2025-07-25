@@ -52,6 +52,8 @@ interface PoolExtras {
   finish: string;
   linerOption: string;
   coverOption: string;
+  tiles: boolean;
+  tileOption: string;
 }
 
 const getCategoryColor = (category: string) => {
@@ -71,6 +73,7 @@ const getExtraPrice = (extra: string) => {
     case 'cover': return 3200;
     case 'jets': return 1800;
     case 'saltSystem': return 7000;
+    case 'tiles': return 3500;
     default: return 0;
   }
 };
@@ -98,6 +101,14 @@ const coverOptions = [
   { name: 'Winter Cover', color: '#000080', price: 400 }
 ];
 
+const tileOptions = [
+  { name: 'Standard Waterline', color: '#4682B4', price: 0 },
+  { name: 'Premium Glass Mosaic', color: '#20B2AA', price: 2500 },
+  { name: 'Natural Stone', color: '#8B7355', price: 3200 },
+  { name: 'Ceramic Decorative', color: '#4169E1', price: 1800 },
+  { name: 'Iridescent Glass', color: '#9370DB', price: 4000 }
+];
+
 const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [show3D, setShow3D] = useState(false);
@@ -111,7 +122,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     saltSystem: false,
     finish: 'standard',
     linerOption: 'standard',
-    coverOption: 'standard'
+    coverOption: 'standard',
+    tiles: false,
+    tileOption: 'Standard Waterline'
   });
 
   const handleImageClick = () => {
@@ -127,11 +140,25 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
 
   const calculateTotalPrice = () => {
     let total = pool.price;
-    Object.entries(extras).forEach(([key, value]) => {
-      if (value) {
-        total += getExtraPrice(key);
-      }
-    });
+    
+    // Add base extras
+    if (extras.liner) total += getExtraPrice('liner');
+    if (extras.heater) total += getExtraPrice('heater');
+    if (extras.cover) total += getExtraPrice('cover');
+    if (extras.jets) total += getExtraPrice('jets');
+    if (extras.saltSystem) total += getExtraPrice('saltSystem');
+    if (extras.tiles) total += getExtraPrice('tiles');
+    
+    // Add option prices
+    const linerOption = linerOptions.find(option => option.name === extras.linerOption);
+    if (linerOption && extras.liner) total += linerOption.price;
+    
+    const coverOption = coverOptions.find(option => option.name === extras.coverOption);
+    if (coverOption && extras.cover) total += coverOption.price;
+    
+    const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+    if (tileOption && extras.tiles) total += tileOption.price;
+    
     return total;
   };
 
@@ -265,6 +292,31 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
               </div>
             )}
             
+            {/* Pool Tile Options */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-foreground">Pool Tiles</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {tileOptions.map((tile) => (
+                  <div 
+                    key={tile.name}
+                    className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                      extras.tileOption === tile.name ? 'border-primary bg-primary/10' : 'border-border'
+                    }`}
+                    onClick={() => setExtras(prev => ({ ...prev, tileOption: tile.name }))}
+                  >
+                    <div 
+                      className="w-full h-12 rounded-md mb-2"
+                      style={{ backgroundColor: tile.color }}
+                    />
+                    <p className="text-xs font-medium text-center">{tile.name}</p>
+                    {tile.price > 0 && (
+                      <p className="text-xs text-muted-foreground text-center">+${tile.price}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Pool Finishing Options */}
             <div className="space-y-3">
               <h4 className="font-semibold text-foreground">Pool Finishes</h4>
@@ -396,6 +448,17 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                   <div className="flex items-center space-x-1">
                     <Zap size={16} className="text-orange" />
                     <span className="text-sm">Spa Jets (+${getExtraPrice('jets').toLocaleString()})</span>
+                  </div>
+                </label>
+                
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                  <Checkbox 
+                    checked={extras.tiles}
+                    onCheckedChange={() => toggleExtra('tiles')}
+                  />
+                  <div className="flex items-center space-x-1">
+                    <Star size={16} className="text-primary" />
+                    <span className="text-sm">Premium Tiles (+${getExtraPrice('tiles').toLocaleString()})</span>
                   </div>
                 </label>
               </div>

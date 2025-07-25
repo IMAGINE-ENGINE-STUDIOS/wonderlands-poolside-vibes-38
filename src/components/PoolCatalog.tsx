@@ -20,6 +20,14 @@ import synergyImage from "@/assets/pools/synergy.jpg";
 import bermudaImage from "@/assets/pools/bermuda.jpg";
 import fijiImage from "@/assets/pools/fiji.jpg";
 import genesisImage from "@/assets/pools/genesis.jpg";
+import luxurySpa1Image from "/lovable-uploads/d6ea993e-6b84-4fd9-b0f5-0ae906e45b0b.png";
+import kidneyStoneImage from "/lovable-uploads/04883240-97d8-438c-a59e-894669979b4f.png";
+import suburbanParadiseImage from "/lovable-uploads/a290ec52-c43b-4422-9e9c-347c0f0b1a2c.png";
+import backyardOasisImage from "/lovable-uploads/a84464cb-7451-4d9f-8ac1-be6bca2a816f.png";
+import compactOvalImage from "/lovable-uploads/dbd9d5bd-01b3-437a-95ea-8f14b0f487f8.png";
+import rectangularClassicImage from "/lovable-uploads/03abc64a-b016-486c-9d7b-1a4e4c28333c.png";
+import modernRectangleImage from "/lovable-uploads/9acbe973-a637-476f-bd20-bf7493afcc0c.png";
+import contemporaryRectangleImage from "/lovable-uploads/2685815b-dfd9-4d1b-aacb-76d468104870.png";
 
 interface Pool {
   model: string;
@@ -110,6 +118,7 @@ const pools: Pool[] = [
     model: "Tuscan 14.40", 
     price: 111000, 
     category: 'premium',
+    image: luxurySpa1Image,
     dimensions: "13′ 9″ × 39′ 11″",
     depth: "3′ 7″ to 6′ 2″",
     galaPoints: 11100,
@@ -124,6 +133,7 @@ const pools: Pool[] = [
     model: "Corinthian 14 BME", 
     price: 98500, 
     category: 'premium',
+    image: kidneyStoneImage,
     dimensions: "14′ × 30′",
     depth: "3′ 6″ to 6′",
     galaPoints: 9850,
@@ -135,6 +145,7 @@ const pools: Pool[] = [
     model: "Olympia 14", 
     price: 96400, 
     category: 'premium',
+    image: suburbanParadiseImage,
     dimensions: "14′ × 30′",
     depth: "3′ 6″ to 6′",
     galaPoints: 9640,
@@ -146,6 +157,7 @@ const pools: Pool[] = [
     model: "Providence 14", 
     price: 95600, 
     category: 'premium',
+    image: backyardOasisImage,
     dimensions: "14′ × 30′",
     depth: "3′ 6″ to 6′",
     galaPoints: 9560,
@@ -157,6 +169,7 @@ const pools: Pool[] = [
     model: "Laguna Deluxe", 
     price: 95300, 
     category: 'deluxe',
+    image: compactOvalImage,
     dimensions: "14′ × 30′",
     depth: "3′ 6″ to 6′",
     galaPoints: 4765,
@@ -312,6 +325,7 @@ const pools: Pool[] = [
     model: "Key West", 
     price: 64300, 
     category: 'standard',
+    image: rectangularClassicImage,
     dimensions: "14′ × 30′",
     depth: "3′ 6″ to 6′",
     galaPoints: 1929,
@@ -323,6 +337,7 @@ const pools: Pool[] = [
     model: "Enchantment 9.24", 
     price: 60800, 
     category: 'compact',
+    image: modernRectangleImage,
     dimensions: "9′ 1″ × 23′ 10″",
     depth: "4′ 9″",
     galaPoints: 1216,
@@ -346,6 +361,7 @@ const pools: Pool[] = [
     model: "Axiom 14", 
     price: 89500, 
     category: 'deluxe',
+    image: contemporaryRectangleImage,
     dimensions: "14′ × 30′",
     depth: "4′ 6″ to 6′",
     galaPoints: 4475,
