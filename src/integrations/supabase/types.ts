@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_user_id: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          resource_id: string | null
+          resource_type: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_audit_log_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_sessions: {
         Row: {
           admin_user_id: string
@@ -54,6 +98,7 @@ export type Database = {
           id: string
           is_active: boolean
           password_hash: string
+          password_salt: string | null
           role: string
           updated_at: string
         }
@@ -64,6 +109,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           password_hash: string
+          password_salt?: string | null
           role?: string
           updated_at?: string
         }
@@ -74,6 +120,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           password_hash?: string
+          password_salt?: string | null
           role?: string
           updated_at?: string
         }
@@ -469,9 +516,30 @@ export type Database = {
       }
     }
     Functions: {
+      cleanup_expired_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       is_admin_user: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      log_admin_action: {
+        Args: {
+          p_admin_user_id: string
+          p_action: string
+          p_resource_type?: string
+          p_resource_id?: string
+          p_details?: Json
+        }
+        Returns: string
+      }
+      verify_admin_password: {
+        Args: { input_email: string; input_password: string }
+        Returns: {
+          admin_data: Json
+          is_valid: boolean
+        }[]
       }
     }
     Enums: {

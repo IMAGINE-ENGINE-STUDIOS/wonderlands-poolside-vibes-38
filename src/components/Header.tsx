@@ -11,9 +11,9 @@ const Header = () => {
     setShowAdminLogin(true);
   };
 
-  const handleLoginSuccess = (adminData: any) => {
-    // Store admin session and redirect to dashboard
-    localStorage.setItem('adminSession', JSON.stringify(adminData));
+  const handleLoginSuccess = (adminSession: any) => {
+    // Session is already stored securely in AdminLogin component
+    // Just redirect to dashboard
     window.location.href = '/admin';
   };
 

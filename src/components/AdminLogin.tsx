@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff, Shield } from "lucide-react";
+import { validateEmail, rateLimiter, generateCSRFToken } from "@/utils/validation";
 
 interface AdminLoginProps {
   isOpen: boolean;
@@ -25,15 +26,36 @@ const AdminLogin = ({ isOpen, onClose, onLoginSuccess }: AdminLoginProps) => {
     setIsLoading(true);
 
     try {
-      // Query admin_users table to verify credentials
-      const { data: adminUsers, error } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('email', email)
-        .eq('is_active', true)
-        .single();
+      // Validate input
+      const emailValidation = validateEmail(email);
+      if (!emailValidation.isValid) {
+        toast({
+          title: "Invalid Email",
+          description: emailValidation.errors.join(', '),
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
 
-      if (error || !adminUsers) {
+      // Check rate limiting
+      if (!rateLimiter.isAllowed(email, 5, 15 * 60 * 1000)) {
+        toast({
+          title: "Too Many Attempts",
+          description: "Please wait 15 minutes before trying again",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Use secure server-side authentication function
+      const { data, error } = await supabase.rpc('verify_admin_password', {
+        input_email: emailValidation.sanitizedValue,
+        input_password: password
+      });
+
+      if (error || !data || data.length === 0 || !data[0].is_valid) {
         toast({
           title: "Login Failed",
           description: "Invalid credentials or account not found",
@@ -42,38 +64,60 @@ const AdminLogin = ({ isOpen, onClose, onLoginSuccess }: AdminLoginProps) => {
         return;
       }
 
-      // Simple password verification for demo
-      // In production, use proper bcrypt verification
-      const isValidPassword = password === "admin123!" && adminUsers.email === email;
+      const adminData = data[0].admin_data as any; // Type assertion for JSONB data
       
-      if (!isValidPassword) {
+      // Generate secure session token
+      const sessionToken = crypto.randomUUID();
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
+
+      // Create secure session in database (server-side)
+      const { error: sessionError } = await supabase
+        .from('admin_sessions')
+        .insert({
+          admin_user_id: adminData.id,
+          token: sessionToken,
+          expires_at: expiresAt.toISOString(),
+          ip_address: '127.0.0.1', // In production, get real IP
+          user_agent: navigator.userAgent
+        });
+
+      if (sessionError) {
         toast({
-          title: "Login Failed", 
-          description: "Invalid credentials",
+          title: "Session Error",
+          description: "Failed to create secure session",
           variant: "destructive",
         });
         return;
       }
 
-      // Store admin session in localStorage
+      // Store only session token in secure storage (not localStorage)
       const adminSession = {
-        id: adminUsers.id,
-        email: adminUsers.email,
-        role: adminUsers.role,
-        loginTime: new Date().toISOString()
+        token: sessionToken,
+        adminData,
+        expiresAt: expiresAt.toISOString()
       };
       
-      localStorage.setItem('adminSession', JSON.stringify(adminSession));
+      // Use sessionStorage instead of localStorage for better security
+      sessionStorage.setItem('adminSession', JSON.stringify(adminSession));
+      
+      // Log the admin action
+      await supabase.rpc('log_admin_action', {
+        p_admin_user_id: adminData.id,
+        p_action: 'login',
+        p_details: { ip_address: '127.0.0.1', user_agent: navigator.userAgent }
+      });
       
       toast({
         title: "Login Successful",
-        description: `Welcome back, ${adminUsers.role}!`,
+        description: `Welcome back, ${adminData.role}!`,
       });
 
       onLoginSuccess(adminSession);
       onClose();
       
     } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: "Login Error",
         description: "An error occurred during login",
