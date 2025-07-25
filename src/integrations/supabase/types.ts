@@ -87,6 +87,186 @@ export type Database = {
           },
         ]
       }
+      api_configurations: {
+        Row: {
+          api_key: string | null
+          api_secret: string | null
+          config_data: Json | null
+          created_at: string
+          error_message: string | null
+          features: string[] | null
+          id: string
+          is_enabled: boolean | null
+          last_sync: string | null
+          products_count: number | null
+          service_name: string
+          service_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          api_key?: string | null
+          api_secret?: string | null
+          config_data?: Json | null
+          created_at?: string
+          error_message?: string | null
+          features?: string[] | null
+          id?: string
+          is_enabled?: boolean | null
+          last_sync?: string | null
+          products_count?: number | null
+          service_name: string
+          service_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string | null
+          api_secret?: string | null
+          config_data?: Json | null
+          created_at?: string
+          error_message?: string | null
+          features?: string[] | null
+          id?: string
+          is_enabled?: boolean | null
+          last_sync?: string | null
+          products_count?: number | null
+          service_name?: string
+          service_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pools: {
+        Row: {
+          carbon_fiber: boolean | null
+          category: string
+          covers: string[] | null
+          created_at: string
+          depth: string | null
+          dimensions: string | null
+          features: string[] | null
+          finishes: string[] | null
+          gala_category: string | null
+          gala_points: number | null
+          heater: boolean | null
+          id: string
+          image_url: string | null
+          installation_time_weeks: number | null
+          is_active: boolean | null
+          liners: string[] | null
+          model: string
+          price: number
+          salt_system: boolean | null
+          updated_at: string
+          warranty_years: string | null
+        }
+        Insert: {
+          carbon_fiber?: boolean | null
+          category: string
+          covers?: string[] | null
+          created_at?: string
+          depth?: string | null
+          dimensions?: string | null
+          features?: string[] | null
+          finishes?: string[] | null
+          gala_category?: string | null
+          gala_points?: number | null
+          heater?: boolean | null
+          id?: string
+          image_url?: string | null
+          installation_time_weeks?: number | null
+          is_active?: boolean | null
+          liners?: string[] | null
+          model: string
+          price: number
+          salt_system?: boolean | null
+          updated_at?: string
+          warranty_years?: string | null
+        }
+        Update: {
+          carbon_fiber?: boolean | null
+          category?: string
+          covers?: string[] | null
+          created_at?: string
+          depth?: string | null
+          dimensions?: string | null
+          features?: string[] | null
+          finishes?: string[] | null
+          gala_category?: string | null
+          gala_points?: number | null
+          heater?: boolean | null
+          id?: string
+          image_url?: string | null
+          installation_time_weeks?: number | null
+          is_active?: boolean | null
+          liners?: string[] | null
+          model?: string
+          price?: number
+          salt_system?: boolean | null
+          updated_at?: string
+          warranty_years?: string | null
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          brand: string | null
+          category: string | null
+          created_at: string
+          description: string | null
+          external_id: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          last_synced: string | null
+          name: string
+          price: number
+          sku: string | null
+          source_api: string | null
+          stock_quantity: number | null
+          sync_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          external_id?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          last_synced?: string | null
+          name: string
+          price: number
+          sku?: string | null
+          source_api?: string | null
+          stock_quantity?: number | null
+          sync_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          external_id?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          last_synced?: string | null
+          name?: string
+          price?: number
+          sku?: string | null
+          source_api?: string | null
+          stock_quantity?: number | null
+          sync_status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_quotations: {
         Row: {
           access_width: string | null
