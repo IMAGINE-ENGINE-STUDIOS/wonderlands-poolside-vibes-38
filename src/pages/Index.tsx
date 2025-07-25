@@ -1,9 +1,6 @@
 import Hero from "@/components/Hero";
 import Header from "@/components/Header";
 import PoolCatalog from "@/components/PoolCatalog";
-import PoolFinishesSection from "@/components/PoolFinishesSection";
-import LinersSection from "@/components/LinersSection";
-import AutomaticCoversSection from "@/components/AutomaticCoversSection";
 import FloridaPoolElements from "@/components/FloridaPoolElements";
 import Footer from "@/components/Footer";
 
@@ -15,9 +12,6 @@ const Index = () => {
       <div className="relative z-10">
         <Hero />
         <PoolCatalog />
-        <PoolFinishesSection />
-        <LinersSection />
-        <AutomaticCoversSection />
         <Footer />
       </div>
     </div>

@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 
 import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu } from "lucide-react";
+import StripeCheckoutButton from "./StripeCheckoutButton";
 
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
@@ -455,23 +456,33 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
             )}
             
             {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => onViewDetails(pool)}
-                variant="outline"
-                className="flex-1"
-                size="sm"
-              >
-                Full Details
-              </Button>
-              <Button 
-                onClick={() => onRequestQuote(pool, extras)}
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => onViewDetails(pool)}
+                  variant="outline"
+                  className="flex-1"
+                  size="sm"
+                >
+                  Details
+                </Button>
+                <Button 
+                  onClick={() => onRequestQuote(pool, extras)}
+                  variant="outline"
+                  className="flex-1"
+                  size="sm"
+                >
+                  Quote
+                </Button>
+              </div>
+              <StripeCheckoutButton
+                productId={`pool_${pool.model.replace(/\s+/g, '_')}`}
+                productName={pool.model}
+                price={calculateTotalPrice()}
                 variant="gradient"
-                className="flex-1 hover:scale-105 transition-all duration-300"
+                className="w-full hover:scale-105 transition-all duration-300"
                 size="sm"
-              >
-                Get Quote
-              </Button>
+              />
             </div>
             </div>
         )}

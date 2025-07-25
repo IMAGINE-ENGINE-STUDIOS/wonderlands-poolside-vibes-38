@@ -23,13 +23,18 @@ import {
   Waves,
   Car,
   Wrench,
-  Monitor
+  Monitor,
+  CreditCard,
+  Palette,
+  Shield,
+  Droplets
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import PoolProductCard from './PoolProductCard';
 import ProductCard from './ProductCard';
+import { PoolFinish } from './PoolFinishesSection';
 
-type ProductCategory = 'outdoors' | 'pools' | 'maintenance';
+type ProductCategory = 'outdoors' | 'pools' | 'maintenance' | 'finishes' | 'liners' | 'covers';
 
 interface Product {
   id: string;
@@ -58,6 +63,21 @@ interface Product {
   sku?: string;
   order: number;
   isActive: boolean;
+  // New fields for consolidated products
+  pattern?: string;
+  durability?: number;
+  warrantyYearsText?: string;
+  material?: string;
+  motorType?: string;
+  installationTime?: string;
+  benefits?: string[];
+  typeCategory?: string;
+  collectionName?: string;
+  featuresJson?: any[];
+  pricingOptions?: any;
+  popular?: boolean;
+  stripeProductId?: string;
+  stripePriceId?: string;
 }
 
 export const EnhancedProductManager = () => {
@@ -317,7 +337,158 @@ export const EnhancedProductManager = () => {
       }
     ];
 
-    localProducts = [...localProducts, ...maintenanceProducts, ...outdoorProducts];
+    // Add Premium Pool Finishes
+    const poolFinishes: Product[] = [
+      {
+        id: 'finish_1',
+        name: 'Sapphire Blue G3',
+        price: 3500,
+        category: 'finishes',
+        subcategory: 'premium-finishes',
+        description: 'A stunning deep blue with crystalline sparkle that creates a luxurious Caribbean feel',
+        collectionName: 'Crystite Crystal',
+        typeCategory: 'Rich & Vibrant',
+        features: ['UV Resistant', 'Non-Slip Surface', 'Easy Maintenance', '25-Year Warranty'],
+        popular: true,
+        warrantyYearsText: '25 years',
+        order: localProducts.length + 5,
+        isActive: true
+      },
+      {
+        id: 'finish_2', 
+        name: 'Ocean Blue G3',
+        price: 3500,
+        category: 'finishes',
+        subcategory: 'premium-finishes',
+        description: 'Deep ocean blue finish that creates the perfect tropical paradise aesthetic',
+        collectionName: 'Crystite Crystal',
+        typeCategory: 'Rich & Vibrant',
+        features: ['UV Resistant', 'Crystalline Finish', 'Stain Resistant', '25-Year Warranty'],
+        warrantyYearsText: '25 years',
+        order: localProducts.length + 6,
+        isActive: true
+      },
+      {
+        id: 'finish_3',
+        name: 'Night Sky G3',
+        price: 3800,
+        category: 'finishes',
+        subcategory: 'premium-finishes',
+        description: 'Dramatic dark finish with subtle sparkle, perfect for evening ambiance',
+        collectionName: 'Crystite Crystal',
+        typeCategory: 'Deep & Dramatic',
+        features: ['Premium Crystal Technology', 'UV Resistant', 'Heat Reflective', '25-Year Warranty'],
+        warrantyYearsText: '25 years',
+        order: localProducts.length + 7,
+        isActive: true
+      }
+    ];
+
+    // Add Pool Liners
+    const poolLiners: Product[] = [
+      {
+        id: 'liner_1',
+        name: 'Ocean Blue Mosaic',
+        price: 5000,
+        category: 'liners',
+        subcategory: 'tile-liners',
+        description: 'Premium tile liner with fade resistant blue mosaic pattern',
+        typeCategory: 'tile',
+        pattern: 'Blue Mosaic',
+        durability: 25,
+        warrantyYearsText: '25 years',
+        features: ['Fade resistant', 'Easy maintenance', 'Premium finish'],
+        order: localProducts.length + 8,
+        isActive: true
+      },
+      {
+        id: 'liner_2',
+        name: 'Crystal Clear Vinyl',
+        price: 5000,
+        category: 'liners',
+        subcategory: 'vinyl-liners',
+        description: 'Budget-friendly vinyl liner with crystal clear blue finish',
+        typeCategory: 'vinyl',
+        pattern: 'Clear Blue',
+        durability: 15,
+        warrantyYearsText: '15 years',
+        features: ['Budget friendly', 'Quick installation', 'Smooth finish'],
+        order: localProducts.length + 9,
+        isActive: true
+      },
+      {
+        id: 'liner_3',
+        name: 'Natural Stone',
+        price: 5000,
+        category: 'liners',
+        subcategory: 'fiberglass-liners',
+        description: 'Ultra-durable fiberglass liner with natural stone texture',
+        typeCategory: 'fiberglass',
+        pattern: 'Stone Texture',
+        durability: 30,
+        warrantyYearsText: '30 years',
+        features: ['Ultra durable', 'Natural look', 'Low maintenance'],
+        order: localProducts.length + 10,
+        isActive: true
+      }
+    ];
+
+    // Add Automatic Pool Covers
+    const automaticCovers: Product[] = [
+      {
+        id: 'cover_1',
+        name: 'SolarMax Pro',
+        price: 18000,
+        category: 'covers',
+        subcategory: 'solar-covers',
+        description: 'Solar heating automatic cover with energy efficiency',
+        typeCategory: 'solar',
+        material: 'UV-resistant vinyl',
+        motorType: 'DC Motor',
+        warrantyYearsText: '10 years',
+        installationTime: '2-3 days',
+        features: ['Solar heating', 'Energy efficient', 'Remote control', 'Safety sensors'],
+        benefits: ['Reduces heating costs by 70%', 'Prevents evaporation', 'Keeps debris out'],
+        order: localProducts.length + 11,
+        isActive: true
+      },
+      {
+        id: 'cover_2',
+        name: 'SafetyGuard Elite',
+        price: 22000,
+        category: 'covers',
+        subcategory: 'safety-covers',
+        description: 'ASTM safety compliant automatic cover with child safety features',
+        typeCategory: 'safety',
+        material: 'Reinforced mesh',
+        motorType: 'AC Motor',
+        warrantyYearsText: '15 years',
+        installationTime: '3-4 days',
+        features: ['Child safety lock', 'Weight capacity 250lbs', 'Emergency manual override', 'LED indicators'],
+        benefits: ['ASTM safety compliant', 'Peace of mind', 'Insurance discounts'],
+        order: localProducts.length + 12,
+        isActive: true
+      },
+      {
+        id: 'cover_3',
+        name: 'ThermalShield Plus',
+        price: 20000,
+        category: 'covers',
+        subcategory: 'thermal-covers',
+        description: 'Thermal insulation cover with smart weather controls',
+        typeCategory: 'thermal',
+        material: 'Insulated fabric',
+        motorType: 'DC Motor',
+        warrantyYearsText: '12 years',
+        installationTime: '2-3 days',
+        features: ['Thermal insulation', 'Automatic timer', 'Weather sensors', 'App control'],
+        benefits: ['Reduces heat loss by 80%', 'Extends swimming season', 'Lower energy bills'],
+        order: localProducts.length + 13,
+        isActive: true
+      }
+    ];
+
+    localProducts = [...localProducts, ...maintenanceProducts, ...outdoorProducts, ...poolFinishes, ...poolLiners, ...automaticCovers];
 
     // Load from Supabase for pools table
     try {
@@ -423,6 +594,12 @@ export const EnhancedProductManager = () => {
         return 'pools';
       case 'maintenance':
         return 'cleaning-supplies';
+      case 'finishes':
+        return 'premium-finishes';
+      case 'liners':
+        return 'vinyl-liners';
+      case 'covers':
+        return 'solar-covers';
       default:
         return 'general';
     }
@@ -436,6 +613,12 @@ export const EnhancedProductManager = () => {
         return <Waves className="h-4 w-4" />;
       case 'maintenance':
         return <Wrench className="h-4 w-4" />;
+      case 'finishes':
+        return <Palette className="h-4 w-4" />;
+      case 'liners':
+        return <Droplets className="h-4 w-4" />;
+      case 'covers':
+        return <Shield className="h-4 w-4" />;
       default:
         return <Package className="h-4 w-4" />;
     }
@@ -449,6 +632,12 @@ export const EnhancedProductManager = () => {
         return 'bg-gradient-to-r from-blue-500 to-cyan-500';
       case 'maintenance':
         return 'bg-gradient-to-r from-orange-500 to-amber-500';
+      case 'finishes':
+        return 'bg-gradient-to-r from-purple-500 to-violet-500';
+      case 'liners':
+        return 'bg-gradient-to-r from-teal-500 to-cyan-500';
+      case 'covers':
+        return 'bg-gradient-to-r from-indigo-500 to-blue-500';
       default:
         return 'bg-gradient-to-r from-gray-500 to-slate-500';
     }
@@ -637,7 +826,7 @@ export const EnhancedProductManager = () => {
               Choose the category for your new product. This will determine the available fields and settings.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-1 gap-4 mt-6">
+          <div className="grid grid-cols-2 gap-4 mt-6">
             <Button
               variant="outline"
               className="h-20 flex flex-col gap-2 hover:bg-green-50"
@@ -646,7 +835,7 @@ export const EnhancedProductManager = () => {
               <Car className="h-6 w-6 text-green-600" />
               <div className="text-center">
                 <div className="font-semibold">Outdoors</div>
-                <div className="text-xs text-muted-foreground">All outdoor products and equipment</div>
+                <div className="text-xs text-muted-foreground">Outdoor products and equipment</div>
               </div>
             </Button>
             
@@ -658,7 +847,7 @@ export const EnhancedProductManager = () => {
               <Waves className="h-6 w-6 text-blue-600" />
               <div className="text-center">
                 <div className="font-semibold">Pools</div>
-                <div className="text-xs text-muted-foreground">Pools, liners, tiles, pumps, salt systems, accessories</div>
+                <div className="text-xs text-muted-foreground">Pools and pool equipment</div>
               </div>
             </Button>
             
@@ -670,7 +859,43 @@ export const EnhancedProductManager = () => {
               <Wrench className="h-6 w-6 text-orange-600" />
               <div className="text-center">
                 <div className="font-semibold">Maintenance</div>
-                <div className="text-xs text-muted-foreground">Chlorine, cleaning supplies, testing kits, nets, etc.</div>
+                <div className="text-xs text-muted-foreground">Pool maintenance supplies</div>
+              </div>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-20 flex flex-col gap-2 hover:bg-purple-50"
+              onClick={() => handleCategorySelect('finishes')}
+            >
+              <Palette className="h-6 w-6 text-purple-600" />
+              <div className="text-center">
+                <div className="font-semibold">Pool Finishes</div>
+                <div className="text-xs text-muted-foreground">Premium pool finishes</div>
+              </div>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-20 flex flex-col gap-2 hover:bg-teal-50"
+              onClick={() => handleCategorySelect('liners')}
+            >
+              <Droplets className="h-6 w-6 text-teal-600" />
+              <div className="text-center">
+                <div className="font-semibold">Pool Liners</div>
+                <div className="text-xs text-muted-foreground">Vinyl, tile, and fiberglass liners</div>
+              </div>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-20 flex flex-col gap-2 hover:bg-indigo-50"
+              onClick={() => handleCategorySelect('covers')}
+            >
+              <Shield className="h-6 w-6 text-indigo-600" />
+              <div className="text-center">
+                <div className="font-semibold">Automatic Covers</div>
+                <div className="text-xs text-muted-foreground">Safety and solar covers</div>
               </div>
             </Button>
           </div>
@@ -703,6 +928,9 @@ export const EnhancedProductManager = () => {
                 <SelectItem value="outdoors">Outdoors</SelectItem>
                 <SelectItem value="pools">Pools</SelectItem>
                 <SelectItem value="maintenance">Maintenance</SelectItem>
+                <SelectItem value="finishes">Pool Finishes</SelectItem>
+                <SelectItem value="liners">Pool Liners</SelectItem>
+                <SelectItem value="covers">Automatic Covers</SelectItem>
               </SelectContent>
             </Select>
           </div>

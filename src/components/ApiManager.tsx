@@ -14,7 +14,8 @@ import {
   Wifi,
   Package,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  CreditCard
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -32,6 +33,14 @@ interface ApiConnection {
 const ApiManager = () => {
   const { toast } = useToast();
   const [connections, setConnections] = useState<ApiConnection[]>([
+    {
+      id: 'stripe',
+      name: 'Stripe',
+      status: 'disconnected',
+      lastSync: 'Never',
+      productsCount: 0,
+      features: ['Payments', 'Checkout', 'Subscriptions', 'Webhooks']
+    },
     {
       id: 'home-depot',
       name: 'Home Depot',
@@ -197,7 +206,10 @@ const ApiManager = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Package className="h-5 w-5 text-primary" />
+                  {connection.id === 'stripe' ? 
+                    <CreditCard className="h-5 w-5 text-primary" /> : 
+                    <Package className="h-5 w-5 text-primary" />
+                  }
                   {connection.name}
                 </CardTitle>
                 <div className="flex items-center gap-2">

@@ -2,6 +2,7 @@ import { useState } from "react";
 import PoolDetailModal from "./PoolDetailModal";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import PoolProductCard from "./PoolProductCard";
+import StripeCheckoutButton from "./StripeCheckoutButton";
 import astoria12Image from "@/assets/pools/astoria-12.jpg";
 import apollo14Image from "@/assets/pools/apollo-14.jpg";
 import coral16Image from "@/assets/pools/coral-16.jpg";
