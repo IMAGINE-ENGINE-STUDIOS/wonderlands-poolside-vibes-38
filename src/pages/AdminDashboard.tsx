@@ -44,20 +44,7 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [orderFilter, setOrderFilter] = useState('all');
   const [showContentEditor, setShowContentEditor] = useState(false);
-  const [adminSession, setAdminSession] = useState(null);
-
-  // Check for admin session on component mount
-  useEffect(() => {
-    const session = localStorage.getItem('adminSession');
-    if (session) {
-      try {
-        setAdminSession(JSON.parse(session));
-      } catch (error) {
-        console.error('Failed to parse admin session:', error);
-        localStorage.removeItem('adminSession');
-      }
-    }
-  }, []);
+  // Removed authentication requirement
 
   // Remove data loading effect since GALA-GOODS is removed
 
@@ -95,23 +82,7 @@ const AdminDashboard = () => {
     }, 1000);
   };
 
-  if (!adminSession) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle>Access Denied</CardTitle>
-            <CardDescription>Please log in to access the admin dashboard</CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <Link to="/">
-              <Button>Return to Home</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Dashboard now accessible without authentication
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
@@ -123,7 +94,7 @@ const AdminDashboard = () => {
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                 Pool Systems Admin
               </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">Welcome back, {adminSession.email}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Welcome back, Administrator</p>
             </div>
             <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <Button variant="outline" onClick={refreshData} disabled={isLoading} size="sm" className="flex-1 sm:flex-none">
