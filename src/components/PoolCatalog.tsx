@@ -6,6 +6,13 @@ import StripeCheckoutButton from "./StripeCheckoutButton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { 
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { Waves, Sparkles, Flame, Plus, Sun } from "lucide-react";
 
 // Updated pool model images in order
@@ -123,6 +130,60 @@ export const poolTiles = [
     price: 15000,
     image: "/lovable-uploads/e3edd8ff-9c8e-4b4a-b540-1f735f98548f.png",
     description: "Sophisticated blue stone tile border for elegant pools"
+  },
+  {
+    name: "Nantuke",
+    price: 15000,
+    image: "/lovable-uploads/0cd49ce9-1874-458c-9a9f-a9828d1879a5.png",
+    description: "Elegant wave-pattern mosaic border with flowing blue and white tones"
+  },
+  {
+    name: "Esagoni",
+    price: 15000,
+    image: "/lovable-uploads/e7e9e75d-bd96-4d35-b0fa-7b4dd20c67a8.png",
+    description: "Contemporary hexagonal mosaic tile border in deep ocean blues"
+  },
+  {
+    name: "Whitehaven",
+    price: 15000,
+    image: "/lovable-uploads/805c3cea-4684-4e5b-acae-3405dc854aac.png",
+    description: "Sophisticated diamond pattern border with intricate mosaic detail"
+  },
+  {
+    name: "Island Wave",
+    price: 15000,
+    image: "/lovable-uploads/a985de5c-c9d0-4a3d-8584-b54f877870b9.png",
+    description: "Tropical wave-inspired border with flowing aqua and blue design"
+  },
+  {
+    name: "Durango Gray",
+    price: 15000,
+    image: "/lovable-uploads/58cf10b7-a125-4e4f-be0b-6a0deb095bac.png",
+    description: "Modern gray-toned decorative border with artistic arch pattern"
+  },
+  {
+    name: "Vintage Blue",
+    price: 15000,
+    image: "/lovable-uploads/65b3331a-e988-4fbb-a9b2-d73d1b94ae79.png",
+    description: "Classic blue mosaic tile border with timeless decorative elements"
+  },
+  {
+    name: "Royal Blue",
+    price: 15000,
+    image: "/lovable-uploads/d1c1d059-1d8d-4481-9f17-d2a5e2f89ebd.png",
+    description: "Regal blue and gold decorative border with ornate tile pattern"
+  },
+  {
+    name: "Gulf Coast",
+    price: 15000,
+    image: "/lovable-uploads/7cfaa1c7-7fe8-472a-bf41-4d1973510a5a.png",
+    description: "Coastal-inspired mosaic border with flowing rope-like pattern"
+  },
+  {
+    name: "Hamper",
+    price: 15000,
+    image: "/lovable-uploads/85d596d1-7479-4926-9732-a76fdac75eee.png",
+    description: "Elegant paisley-inspired decorative border with sophisticated blue tones"
   }
 ];
 
@@ -418,49 +479,55 @@ const PoolCatalog = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
-            {poolTiles.map((tile, index) => (
-              <Card key={tile.name} className="group hover:scale-105 transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 overflow-hidden">
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img 
-                    src={tile.image} 
-                    alt={tile.name} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                </div>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-gradient-to-r from-coral to-primary text-white border-0">
-                      Premium
-                    </Badge>
-                    <div className="text-sm font-bold text-coral">
-                      +${tile.price.toLocaleString()}
+          <Carousel className="w-full max-w-sm sm:max-w-none mx-auto">
+            <CarouselContent className="-ml-2 md:-ml-4">
+              {poolTiles.map((tile, index) => (
+                <CarouselItem key={tile.name} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
+                  <Card className="group hover:scale-105 transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 overflow-hidden h-full">
+                    <div className="aspect-[4/3] overflow-hidden">
+                      <img 
+                        src={tile.image} 
+                        alt={tile.name} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
                     </div>
-                  </div>
-                  <CardTitle className="text-lg font-bold text-foreground">
-                    {tile.name}
-                  </CardTitle>
-                  <CardDescription className="text-xs text-foreground/70 line-clamp-2">
-                    {tile.description}
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent className="pt-0 pb-4">
-                  <Button
-                    variant="outline"
-                    className="w-full text-sm"
-                    onClick={() => {
-                      // This could open a customization modal or add to quote
-                      console.log(`Selected tile: ${tile.name}`);
-                    }}
-                  >
-                    <Plus className="h-3 w-3 mr-2" />
-                    Select Tile
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <Badge className="bg-gradient-to-r from-coral to-primary text-white border-0">
+                          Premium
+                        </Badge>
+                        <div className="text-sm font-bold text-coral">
+                          +${tile.price.toLocaleString()}
+                        </div>
+                      </div>
+                      <CardTitle className="text-lg font-bold text-foreground">
+                        {tile.name}
+                      </CardTitle>
+                      <CardDescription className="text-xs text-foreground/70 line-clamp-2">
+                        {tile.description}
+                      </CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent className="pt-0 pb-4">
+                      <Button
+                        variant="outline"
+                        className="w-full text-sm"
+                        onClick={() => {
+                          // This could open a customization modal or add to quote
+                          console.log(`Selected tile: ${tile.name}`);
+                        }}
+                      >
+                        <Plus className="h-3 w-3 mr-2" />
+                        Select Tile
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-2 lg:left-4" />
+            <CarouselNext className="right-2 lg:right-4" />
+          </Carousel>
         </div>
       </section>
 
