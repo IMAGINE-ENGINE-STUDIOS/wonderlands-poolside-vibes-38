@@ -6,7 +6,7 @@ import StripeCheckoutButton from "./StripeCheckoutButton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Waves, Sparkles, Flame, Plus } from "lucide-react";
+import { Waves, Sparkles, Flame, Plus, Sun } from "lucide-react";
 
 // Updated pool model images in order
 const astoriaImage = "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png";
@@ -251,6 +251,46 @@ const pools: Pool[] = [
   },
 ];
 
+// Tanning ledge options
+export const tanningLedges = [
+  {
+    name: "Genesis",
+    price: 15000,
+    image: "/lovable-uploads/2af253b1-b9be-487f-a998-476d396772c4.png",
+    description: "Curved elegance with flowing lines for ultimate relaxation",
+    dimensions: "8′ × 12′",
+    depth: "6″ to 12″",
+    features: ["Curved Design", "Built-in Seating", "Non-slip Surface", "Perfect for Lounging"]
+  },
+  {
+    name: "Hermosa", 
+    price: 15000,
+    image: "/lovable-uploads/8228c334-6fd7-4b29-afae-98628493480d.png",
+    description: "Sophisticated curved ledge with premium comfort features",
+    dimensions: "6′ × 10′",
+    depth: "6″ to 10″",
+    features: ["Ergonomic Curve", "Heat Retention", "Easy Entry", "Stylish Profile"]
+  },
+  {
+    name: "Rectangle",
+    price: 15000,
+    image: "/lovable-uploads/c6bebb1e-d2ed-4591-b81d-0af558ed3e52.png",
+    description: "Clean modern lines with maximum lounging space",
+    dimensions: "8′ × 14′",
+    depth: "8″ to 12″",
+    features: ["Modern Design", "Spacious Layout", "Even Depth", "Contemporary Style"]
+  },
+  {
+    name: "Semicircle",
+    price: 15000,
+    image: "/lovable-uploads/b5ea8cde-c5d3-437c-ac83-5ab628dd25f3.png",
+    description: "Classic half-circle design for intimate relaxation",
+    dimensions: "7′ × 9′",
+    depth: "6″ to 10″",
+    features: ["Classic Shape", "Intimate Setting", "Smooth Transition", "Timeless Appeal"]
+  }
+];
+
 // Spa models
 const spas: Spa[] = [
   {
@@ -416,6 +456,81 @@ const PoolCatalog = () => {
                   >
                     <Plus className="h-3 w-3 mr-2" />
                     Select Tile
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Tanning Ledges Section */}
+      <section id="tanning-ledges" className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden bg-gradient-to-b from-background/80 to-background/60">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
+              <Sun className="inline-block mr-4 h-8 w-8 md:h-12 md:w-12" />
+              Tanning Ledges
+            </h2>
+            <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">
+              Add the perfect relaxation spot to your pool with our premium tanning ledge options.
+            </p>
+            <div className="mt-4 inline-flex items-center px-4 py-2 bg-coral/10 rounded-full">
+              <Sun className="h-4 w-4 mr-2 text-coral" />
+              <span className="text-sm font-medium text-coral">Premium Upgrade: $15,000</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+            {tanningLedges.map((ledge, index) => (
+              <Card key={ledge.name} className="group hover:scale-105 transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 overflow-hidden">
+                <div className="aspect-square overflow-hidden">
+                  <img 
+                    src={ledge.image} 
+                    alt={ledge.name} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge className="bg-gradient-to-r from-coral to-primary text-white border-0">
+                      Premium
+                    </Badge>
+                    <div className="text-sm font-bold text-coral">
+                      +${ledge.price.toLocaleString()}
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg font-bold text-foreground">
+                    {ledge.name}
+                  </CardTitle>
+                  <CardDescription className="text-xs text-foreground/70">
+                    {ledge.dimensions} • {ledge.depth} deep
+                  </CardDescription>
+                </CardHeader>
+                
+                <CardContent className="pt-0">
+                  <p className="text-xs text-foreground/70 mb-4 line-clamp-2">
+                    {ledge.description}
+                  </p>
+                  
+                  <div className="space-y-2 mb-4">
+                    {ledge.features?.slice(0, 2).map((feature, idx) => (
+                      <div key={idx} className="flex items-center text-xs text-foreground/80">
+                        <Sun className="h-3 w-3 mr-2 text-coral flex-shrink-0" />
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    className="w-full text-sm"
+                    onClick={() => {
+                      console.log(`Selected tanning ledge: ${ledge.name}`);
+                    }}
+                  >
+                    <Plus className="h-3 w-3 mr-2" />
+                    Add Tanning Ledge
                   </Button>
                 </CardContent>
               </Card>
