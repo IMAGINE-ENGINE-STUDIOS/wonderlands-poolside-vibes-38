@@ -62,6 +62,70 @@ export const poolFinishes = [
   "Courtstone Gray", "Courtstone Blue"
 ];
 
+// Pool tile options (premium upgrade)
+export const poolTiles = [
+  {
+    name: "Mountain",
+    price: 15000,
+    image: "/lovable-uploads/c5cd2f96-d31a-446b-943b-6dd1620f6521.png",
+    description: "Natural stone-look mosaic border with decorative diamond pattern"
+  },
+  {
+    name: "Carnegie", 
+    price: 15000,
+    image: "/lovable-uploads/5a4a4746-8777-4adb-84c6-c153dbdae3ad.png",
+    description: "Elegant diamond mosaic border with rich blue tones"
+  },
+  {
+    name: "Panama",
+    price: 15000,
+    image: "/lovable-uploads/b6d63246-ec6b-4137-9b83-6fe99f232ba3.png",
+    description: "Geometric stone mosaic border with golden accents"
+  },
+  {
+    name: "Corolla",
+    price: 15000,
+    image: "/lovable-uploads/4f27a800-295b-476c-924c-1790ab191a5c.png",
+    description: "Contemporary wave pattern border in deep blue"
+  },
+  {
+    name: "Summerwave",
+    price: 15000,
+    image: "/lovable-uploads/cd46eae1-1354-4459-84fe-890ad56d16d7.png",
+    description: "Flowing wave mosaic pattern with ocean-inspired design"
+  },
+  {
+    name: "Legends",
+    price: 15000,
+    image: "/lovable-uploads/23b627a0-fda7-408d-bb6e-d41308f8ea6a.png",
+    description: "Ornate decorative border with flowing artistic elements"
+  },
+  {
+    name: "Z terrazzo",
+    price: 15000,
+    image: "/lovable-uploads/107aebee-8f2d-4c04-a51f-f2acf731860e.png",
+    description: "Classic terrazzo-style mosaic with fan pattern detail"
+  },
+  {
+    name: "Tullism",
+    price: 15000,
+    image: "/lovable-uploads/eb055418-8b18-40d1-af88-613c4c275b20.png",
+    description: "Luxury glass tile interior with sophisticated pattern"
+  },
+  {
+    name: "Courtstone Gray",
+    price: 15000,
+    image: "/lovable-uploads/86d04882-f51e-4b4b-9c89-34031c370138.png",
+    description: "Contemporary gray stone tile border with modern appeal"
+  },
+  {
+    name: "Courtstone Blue",
+    price: 15000,
+    image: "/lovable-uploads/e3edd8ff-9c8e-4b4a-b540-1f735f98548f.png",
+    description: "Sophisticated blue stone tile border for elegant pools"
+  }
+];
+
 const pools: Pool[] = [
   { 
     model: "Astoria", 
@@ -293,6 +357,68 @@ const PoolCatalog = () => {
                 onViewDetails={handleViewDetails}
                 onRequestQuote={handleRequestQuote}
               />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pool Tiles Section */}
+      <section id="pool-tiles" className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden bg-gradient-to-b from-background to-background/80">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-teal via-coral to-primary">
+              Premium Pool Tiles
+            </h2>
+            <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">
+              Enhance your pool with our premium tile collection. Add luxury and style with decorative borders and patterns.
+            </p>
+            <div className="mt-4 inline-flex items-center px-4 py-2 bg-coral/10 rounded-full">
+              <Sparkles className="h-4 w-4 mr-2 text-coral" />
+              <span className="text-sm font-medium text-coral">Premium Upgrade: $15,000</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
+            {poolTiles.map((tile, index) => (
+              <Card key={tile.name} className="group hover:scale-105 transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 overflow-hidden">
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img 
+                    src={tile.image} 
+                    alt={tile.name} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge className="bg-gradient-to-r from-coral to-primary text-white border-0">
+                      Premium
+                    </Badge>
+                    <div className="text-sm font-bold text-coral">
+                      +${tile.price.toLocaleString()}
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg font-bold text-foreground">
+                    {tile.name}
+                  </CardTitle>
+                  <CardDescription className="text-xs text-foreground/70 line-clamp-2">
+                    {tile.description}
+                  </CardDescription>
+                </CardHeader>
+                
+                <CardContent className="pt-0 pb-4">
+                  <Button
+                    variant="outline"
+                    className="w-full text-sm"
+                    onClick={() => {
+                      // This could open a customization modal or add to quote
+                      console.log(`Selected tile: ${tile.name}`);
+                    }}
+                  >
+                    <Plus className="h-3 w-3 mr-2" />
+                    Select Tile
+                  </Button>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
