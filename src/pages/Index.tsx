@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import Header from "@/components/Header";
 import PoolCatalog from "@/components/PoolCatalog";
 import LinersSection from "@/components/LinersSection";
+import PorcelainLinersSection from "@/components/PorcelainLinersSection";
 import AutomaticCoversSection from "@/components/AutomaticCoversSection";
 import FloridaPoolElements from "@/components/FloridaPoolElements";
 import Footer from "@/components/Footer";
@@ -56,6 +57,7 @@ const Index = () => {
         <Hero />
         <PoolCatalog />
         <LinersSection />
+        <PorcelainLinersSection />
         <AutomaticCoversSection />
         <Footer />
       </div>
