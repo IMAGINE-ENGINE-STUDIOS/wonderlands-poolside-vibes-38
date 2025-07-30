@@ -92,7 +92,7 @@ const finishOptions = [
 ];
 
 // Import pool liners from PoolCatalog
-import { poolLiners, poolTiles } from './PoolCatalog';
+import { poolLiners, poolTiles } from '@/data/poolData';
 
 // Convert pool liners to liner options format
 const linerOptions = [
