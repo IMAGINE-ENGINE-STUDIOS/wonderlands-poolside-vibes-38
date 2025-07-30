@@ -91,12 +91,20 @@ const finishOptions = [
   { name: 'Athens Pearl White', color: '#F5F5DC', image: athensPearlFinish }
 ];
 
+// Import pool liners from PoolCatalog
+import { poolLiners, poolTiles } from './PoolCatalog';
+
+// Convert pool liners to liner options format
 const linerOptions = [
-  { name: 'Standard Blue', color: '#4169E1', price: 0, image: azureBlueFinish },
-  { name: 'Lagoon Blue', color: '#20B2AA', price: 500, image: lagoonBlueFinish },
-  { name: 'Azure Blue', color: '#007FFF', price: 750, image: azureBlueFinish },
-  { name: 'Coastal Bronze', color: '#CD7F32', price: 1000, image: coastalBronzeFinish },
-  { name: 'Shale Gray', color: '#778899', price: 1200, image: shaleGrayFinish }
+  { name: 'Standard Blue', color: '#4169E1', price: 0, image: azureBlueFinish, type: 'Standard', description: undefined },
+  ...poolLiners.map(liner => ({
+    name: liner.name,
+    color: '#4169E1', // fallback color
+    price: liner.price,
+    image: liner.image,
+    type: liner.type,
+    description: liner.description
+  }))
 ];
 
 const coverOptions = [
@@ -106,12 +114,16 @@ const coverOptions = [
   { name: 'Winter Cover', color: '#000080', price: 400 }
 ];
 
+// Convert pool tiles to tile options format
 const tileOptions = [
-  { name: 'Standard Waterline', color: '#4682B4', price: 0 },
-  { name: 'Premium Glass Mosaic', color: '#20B2AA', price: 2500 },
-  { name: 'Natural Stone', color: '#8B7355', price: 3200 },
-  { name: 'Ceramic Decorative', color: '#4169E1', price: 1800 },
-  { name: 'Iridescent Glass', color: '#9370DB', price: 4000 }
+  { name: 'Standard Waterline', color: '#4682B4', price: 0, image: azureBlueFinish, description: undefined },
+  ...poolTiles.map(tile => ({
+    name: tile.name,
+    color: '#4682B4', // fallback color
+    price: tile.price,
+    image: tile.image,
+    description: tile.description
+  }))
 ];
 
 const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCardProps) => {
@@ -339,13 +351,27 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                     }`}
                     onClick={() => setExtras(prev => ({ ...prev, tileOption: tile.name }))}
                   >
-                    <div 
-                      className="w-full h-12 rounded-md mb-2"
-                      style={{ backgroundColor: tile.color }}
-                    />
+                    <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
+                      <img 
+                        src={tile.image} 
+                        alt={tile.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.style.backgroundColor = tile.color;
+                            target.style.display = 'none';
+                          }
+                        }}
+                      />
+                    </div>
                     <p className="text-xs font-medium text-center">{tile.name}</p>
                     {tile.price > 0 && (
-                      <p className="text-xs text-muted-foreground text-center">+${tile.price}</p>
+                      <p className="text-xs text-muted-foreground text-center">+${tile.price.toLocaleString()}</p>
+                    )}
+                    {tile.description && (
+                      <p className="text-xs text-muted-foreground text-center mt-1 leading-tight">{tile.description}</p>
                     )}
                   </div>
                 ))}
@@ -386,9 +412,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
               </div>
             </div>
 
-            {/* Liner Options */}
+            {/* Pool Liner Options */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Liner Options</h4>
+              <h4 className="font-semibold text-foreground">Premium Pool Liners</h4>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {linerOptions.map((liner) => (
                   <div 
@@ -404,7 +430,6 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                         alt={liner.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          // Fallback to color if image fails to load
                           const target = e.target as HTMLImageElement;
                           const parent = target.parentElement;
                           if (parent) {
@@ -415,8 +440,14 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                       />
                     </div>
                     <p className="text-xs font-medium text-center">{liner.name}</p>
+                    {liner.type && liner.type !== 'Standard' && (
+                      <p className="text-xs text-primary text-center font-medium">{liner.type}</p>
+                    )}
                     {liner.price > 0 && (
-                      <p className="text-xs text-muted-foreground text-center">+${liner.price}</p>
+                      <p className="text-xs text-muted-foreground text-center">+${liner.price.toLocaleString()}</p>
+                    )}
+                    {liner.description && (
+                      <p className="text-xs text-muted-foreground text-center mt-1 leading-tight">{liner.description}</p>
                     )}
                   </div>
                 ))}

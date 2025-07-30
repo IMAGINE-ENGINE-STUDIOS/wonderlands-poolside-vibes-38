@@ -69,8 +69,9 @@ export const poolFinishes = [
   "Courtstone Gray", "Courtstone Blue"
 ];
 
-// Pool liner options - Glass Tile Collection
+// Premium Pool Liner options (all $5000+)
 export const poolLiners = [
+  // Glass Tile Collection
   {
     name: "Paradise",
     type: "Glass",
@@ -133,6 +134,56 @@ export const poolLiners = [
     price: 12000,
     image: "/lovable-uploads/96f46291-85e7-4b48-9465-623400a8e835.png",
     description: "Cool glacier-inspired glass tiles with decorative borders and flowing patterns"
+  },
+  // Porcelain & Stone Collection
+  {
+    name: "Tikal",
+    type: "Porcelain",
+    price: 5400,
+    image: "/lovable-uploads/d5e74c29-95f6-4a9a-9395-a98fe4efdadd.png",
+    description: "Marbled blue porcelain with premium durability and 25-year warranty"
+  },
+  {
+    name: "Port Royal",
+    type: "Porcelain",
+    price: 5600,
+    image: "/lovable-uploads/56fd62de-130b-4b90-98a0-596007f5dadb.png",
+    description: "Deep ocean blue porcelain with premium durability and 25-year warranty"
+  },
+  {
+    name: "Alexandria",
+    type: "Porcelain",
+    price: 5500,
+    image: "/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png",
+    description: "Golden marble porcelain with premium durability and 25-year warranty"
+  },
+  {
+    name: "San Marino",
+    type: "Italian Stone",
+    price: 5800,
+    image: "/lovable-uploads/7f823d88-d9f2-4ecf-bcd1-a9d25d8519a8.png",
+    description: "Dark granite Italian stone with luxury durability and 30-year warranty"
+  },
+  {
+    name: "Firenze",
+    type: "Italian Stone",
+    price: 5900,
+    image: "/lovable-uploads/797bcadb-19bc-4859-8319-ceb12ea23d10.png",
+    description: "Blue grey marble Italian stone with luxury durability and 30-year warranty"
+  },
+  {
+    name: "Naples",
+    type: "Italian Stone",
+    price: 5700,
+    image: "/lovable-uploads/a378df22-0a67-4626-ac93-c6cf8fe37602.png",
+    description: "Warm beige stone Italian stone with luxury durability and 30-year warranty"
+  },
+  {
+    name: "Milan",
+    type: "Italian Stone",
+    price: 6000,
+    image: "/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png",
+    description: "Charcoal stone Italian stone with luxury durability and 30-year warranty"
   }
 ];
 
