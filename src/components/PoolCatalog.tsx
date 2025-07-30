@@ -69,6 +69,73 @@ export const poolFinishes = [
   "Courtstone Gray", "Courtstone Blue"
 ];
 
+// Pool liner options - Glass Tile Collection
+export const poolLiners = [
+  {
+    name: "Paradise",
+    type: "Glass",
+    price: 12000,
+    image: "/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.png",
+    description: "Vibrant blue glass tiles with flowing striped patterns for a tropical paradise feel"
+  },
+  {
+    name: "Water Lilies",
+    type: "Glass",
+    price: 12000,
+    image: "/lovable-uploads/7f1b802e-1c58-4807-b6d6-41aab2eed1ca.png",
+    description: "Serene blue and white striped glass tiles reminiscent of peaceful water gardens"
+  },
+  {
+    name: "Sail Boat",
+    type: "Glass",
+    price: 12000,
+    image: "/lovable-uploads/c4b386e8-679d-4ea3-be08-9b8fb9e8d50e.png",
+    description: "Nautical-inspired mixed blue and brown striped glass tiles for coastal elegance"
+  },
+  {
+    name: "Stormy",
+    type: "Glass",
+    price: 12000,
+    image: "/lovable-uploads/ee0c59a8-87bb-4b74-b6e9-9eeba3633e9f.png",
+    description: "Dramatic neutral and brown striped glass tiles with stormy weather appeal"
+  },
+  {
+    name: "Ballad",
+    type: "Glass",
+    price: 12000,
+    image: "/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png",
+    description: "Mixed blue mosaic glass tiles with artistic patterns and flowing design"
+  },
+  {
+    name: "Galant",
+    type: "Glass",
+    price: 12000,
+    image: "/lovable-uploads/723a9c27-b7d5-4139-bda7-4eed2d0b23e8.png",
+    description: "Elegant blue mosaic glass tiles with iridescent effects and sophisticated style"
+  },
+  {
+    name: "Melody",
+    type: "Glass",
+    price: 12000,
+    image: "/lovable-uploads/c8e3cc34-9fbe-4ece-af71-05b7e4f94332.png",
+    description: "Harmonious iridescent glass tiles with rainbow shimmer and artistic flair"
+  },
+  {
+    name: "Soul",
+    type: "Glass",
+    price: 12000,
+    image: "/lovable-uploads/7dc956df-af5c-4c6b-b2af-6bc9d6fbf179.png",
+    description: "Sophisticated gray and white mosaic glass tiles with deep, soulful character"
+  },
+  {
+    name: "Glacier",
+    type: "Glass",
+    price: 12000,
+    image: "/lovable-uploads/96f46291-85e7-4b48-9465-623400a8e835.png",
+    description: "Cool glacier-inspired glass tiles with decorative borders and flowing patterns"
+  }
+];
+
 // Pool tile options (premium upgrade)
 export const poolTiles = [
   {
@@ -460,6 +527,73 @@ const PoolCatalog = () => {
               />
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Pool Liners Section */}
+      <section id="pool-liners" className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden bg-gradient-to-b from-background/60 to-background/80">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-teal to-coral">
+              Premium Pool Liners
+            </h2>
+            <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">
+              Transform your pool with our stunning glass tile liner collection. Each design offers unique beauty and lasting durability.
+            </p>
+            <div className="mt-4 inline-flex items-center px-4 py-2 bg-teal/10 rounded-full">
+              <Waves className="h-4 w-4 mr-2 text-teal" />
+              <span className="text-sm font-medium text-teal">Glass Collection: $12,000</span>
+            </div>
+          </div>
+
+          <Carousel className="w-full max-w-sm sm:max-w-none mx-auto">
+            <CarouselContent className="-ml-2 md:-ml-4">
+              {poolLiners.map((liner, index) => (
+                <CarouselItem key={liner.name} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
+                  <Card className="group hover:scale-105 transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 overflow-hidden h-full">
+                    <div className="aspect-square overflow-hidden">
+                      <img 
+                        src={liner.image} 
+                        alt={liner.name} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    </div>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <Badge className="bg-gradient-to-r from-teal to-primary text-white border-0">
+                          {liner.type}
+                        </Badge>
+                        <div className="text-sm font-bold text-teal">
+                          +${liner.price.toLocaleString()}
+                        </div>
+                      </div>
+                      <CardTitle className="text-lg font-bold text-foreground">
+                        {liner.name}
+                      </CardTitle>
+                      <CardDescription className="text-xs text-foreground/70 line-clamp-3">
+                        {liner.description}
+                      </CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent className="pt-0 pb-4">
+                      <Button
+                        variant="outline"
+                        className="w-full text-sm"
+                        onClick={() => {
+                          console.log(`Selected liner: ${liner.name}`);
+                        }}
+                      >
+                        <Waves className="h-3 w-3 mr-2" />
+                        Select Liner
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-2 lg:left-4" />
+            <CarouselNext className="right-2 lg:right-4" />
+          </Carousel>
         </div>
       </section>
 
