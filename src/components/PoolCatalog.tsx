@@ -190,9 +190,10 @@ const pools: Pool[] = [
 // Spa models
 const spas: Spa[] = [
   {
-    model: "Genesis",
+    model: "Mystic",
     price: 28500,
     category: 'premium',
+    image: "/lovable-uploads/14433817-4167-4a58-adb5-306a9d00c818.png",
     dimensions: "8′ × 8′",
     depth: "3′ 6″",
     features: ["Spillover Option", "LED Lighting", "Premium Jets", "Heater Ready"],
@@ -201,9 +202,10 @@ const spas: Spa[] = [
     warrantyYears: "Lifetime"
   },
   {
-    model: "Hermosa",
+    model: "Regal",
     price: 22800,
     category: 'deluxe',
+    image: "/lovable-uploads/6b61d42e-89c2-4405-aa03-4e19c28d811c.png",
     dimensions: "7′ × 7′",
     depth: "3′ 2″",
     features: ["Spillover Option", "Therapeutic Jets", "Easy Controls", "Energy Efficient"],
@@ -212,9 +214,10 @@ const spas: Spa[] = [
     warrantyYears: "Lifetime"
   },
   {
-    model: "Rectangle",
+    model: "Royal",
     price: 19500,
     category: 'standard',
+    image: "/lovable-uploads/004a8a8d-fab3-4c21-a785-6978c63916d4.png",
     dimensions: "6′ × 8′",
     depth: "3′",
     features: ["Spillover Option", "Modern Design", "Durable Construction", "Low Maintenance"],
@@ -223,9 +226,10 @@ const spas: Spa[] = [
     warrantyYears: "10 Years"
   },
   {
-    model: "Simcircle",
+    model: "Shafta",
     price: 18200,
     category: 'standard',
+    image: "/lovable-uploads/72a6a840-2aac-4daf-85ef-d02f6103bd18.png",
     dimensions: "7′ diameter",
     depth: "3′",
     features: ["Spillover Option", "Circular Design", "Compact Footprint", "Easy Entry"],
@@ -310,6 +314,15 @@ const PoolCatalog = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {spas.map((spa, index) => (
               <Card key={spa.model} className="group hover:scale-105 transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 overflow-hidden">
+                {spa.image && (
+                  <div className="aspect-square overflow-hidden">
+                    <img 
+                      src={spa.image} 
+                      alt={spa.model} 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                  </div>
+                )}
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between mb-2">
                     <Badge className={`${getSpaTypeColor(spa.category)} text-white border-0`}>
