@@ -3,32 +3,22 @@ import PoolDetailModal from "./PoolDetailModal";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import PoolProductCard from "./PoolProductCard";
 import StripeCheckoutButton from "./StripeCheckoutButton";
-import astoria12Image from "@/assets/pools/astoria-12.jpg";
-import apollo14Image from "@/assets/pools/apollo-14.jpg";
-import coral16Image from "@/assets/pools/coral-16.jpg";
-import ariel16Image from "@/assets/pools/ariel-16.jpg";
-import enchantment917Image from "@/assets/pools/enchantment-917.jpg";
-import enchantment921Image from "@/assets/pools/enchantment-921.jpg";
-import enchantment924Image from "@/assets/pools/enchantment-924.jpg";
-import tuscan1120Image from "@/assets/pools/tuscan-1120.jpg";
-import tuscan1324Image from "@/assets/pools/tuscan-1324.jpg";
-import tuscan1427Image from "@/assets/pools/tuscan-1427.jpg";
-import capecodImage from "@/assets/pools/cape-cod.jpg";
-import valenciaImage from "@/assets/pools/valencia.jpg";
-import stluciaImage from "@/assets/pools/st-lucia.jpg";
-import jamaicaImage from "@/assets/pools/jamaica.jpg";
-import synergyImage from "@/assets/pools/synergy.jpg";
-import bermudaImage from "@/assets/pools/bermuda.jpg";
-import fijiImage from "@/assets/pools/fiji.jpg";
-import genesisImage from "@/assets/pools/genesis.jpg";
-import luxurySpa1Image from "/lovable-uploads/d6ea993e-6b84-4fd9-b0f5-0ae906e45b0b.png";
-import kidneyStoneImage from "/lovable-uploads/04883240-97d8-438c-a59e-894669979b4f.png";
-import suburbanParadiseImage from "/lovable-uploads/a290ec52-c43b-4422-9e9c-347c0f0b1a2c.png";
-import backyardOasisImage from "/lovable-uploads/a84464cb-7451-4d9f-8ac1-be6bca2a816f.png";
-import compactOvalImage from "/lovable-uploads/dbd9d5bd-01b3-437a-95ea-8f14b0f487f8.png";
-import rectangularClassicImage from "/lovable-uploads/03abc64a-b016-486c-9d7b-1a4e4c28333c.png";
-import modernRectangleImage from "/lovable-uploads/9acbe973-a637-476f-bd20-bf7493afcc0c.png";
-import contemporaryRectangleImage from "/lovable-uploads/2685815b-dfd9-4d1b-aacb-76d468104870.png";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Waves, Sparkles, Flame, Plus } from "lucide-react";
+
+// Updated pool model images in order
+const astoriaImage = "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png";
+const apolloImage = "/lovable-uploads/9e491420-80df-4bb3-9db1-3933d96846ac.png";  
+const coralImage = "/lovable-uploads/1412e1fb-72ec-4219-a98f-4fcffbd15095.png";
+const ariel14Image = "/lovable-uploads/a1b42616-0c25-4010-96e3-3fbeba18aae8.png";
+const capecodImage = "/lovable-uploads/8a2b7716-7656-48a0-b1b1-6d276b4b9e73.png";
+
+// Additional pool images
+const freeformImage = "/lovable-uploads/9382c72a-0c7d-4981-8f03-878d568dd1b2.png";
+const luxuryImage = "/lovable-uploads/8033278d-a737-4b1d-84bf-fd0ac9126406.png";
+const modernImage = "/lovable-uploads/c5385549-a189-4127-a204-c196c165ac55.png";
 
 interface Pool {
   model: string;
@@ -50,377 +40,216 @@ interface Pool {
   covers?: string[];
 }
 
+interface Spa {
+  model: string;
+  price: number;
+  category: 'premium' | 'deluxe' | 'standard';
+  image?: string;
+  dimensions?: string;
+  depth?: string;
+  features?: string[];
+  spilloverFeature?: boolean;
+  installationTimeWeeks?: number;
+  warrantyYears?: number | string;
+}
+
+// Pool finish options
+export const poolFinishes = [
+  "Nantuke", "Esagoni", "Whitehaven", "Island Wave", "Durango Gray",
+  "Vintage Blue", "Royal Blue", "Gulf Coast", "Hamper", "Indigo",
+  "Cayman", "Mountain", "Carnegie", "Panama", "Corolla",
+  "Summerwave", "Legends", "Z terrazzo", "Tullism", 
+  "Courtstone Gray", "Courtstone Blue"
+];
+
 const pools: Pool[] = [
   { 
-    model: "Astoria 12", 
-    price: 111000, 
+    model: "Astoria", 
+    price: 89500, 
     category: 'premium', 
-    image: astoria12Image,
+    image: astoriaImage,
+    dimensions: "14′ × 28′",
+    depth: "3′ 6″ to 5′ 6″",
+    galaPoints: 8950,
+    galaCategory: "Luxury Collection",
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime",
+    features: ["Spa Compatible", "LED Lighting", "Premium Finish", "Advanced Filtration"],
+    heater: true,
+    saltSystem: true,
+    carbonFiber: true
+  },
+  { 
+    model: "Apollo", 
+    price: 95000, 
+    category: 'premium', 
+    image: apolloImage,
+    dimensions: "16′ × 32′",
+    depth: "4′ to 6′",
+    galaPoints: 9500,
+    galaCategory: "Luxury Collection",
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime",
+    features: ["Spa Compatible", "Smart Pool Technology", "Energy Efficient", "Premium Materials"],
+    heater: true,
+    saltSystem: true,
+    carbonFiber: true
+  },
+  { 
+    model: "Coral", 
+    price: 78500, 
+    category: 'deluxe', 
+    image: coralImage,
+    dimensions: "12′ × 24′",
+    depth: "3′ 6″ to 5′",
+    galaPoints: 7850,
+    galaCategory: "Executive Series",
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime",
+    features: ["Spa Compatible", "Spacious Design", "Built-in Steps", "Contemporary Style"],
+    heater: true,
+    saltSystem: true,
+    carbonFiber: true
+  },
+  { 
+    model: "Ariel 14", 
+    price: 82000, 
+    category: 'deluxe', 
+    image: ariel14Image,
+    dimensions: "14′ × 28′",
+    depth: "3′ 6″ to 6′",
+    galaPoints: 8200,
+    galaCategory: "Executive Series",
+    installationTimeWeeks: 6,
+    warrantyYears: "Lifetime",
+    features: ["Spa Compatible", "Modern Design", "Multiple Entry Points", "Premium Finish"],
+    heater: true,
+    saltSystem: true,
+    carbonFiber: true
+  },
+  { 
+    model: "Cape Cod", 
+    price: 68900, 
+    category: 'standard',
+    image: capecodImage,
     dimensions: "12′ × 26′",
     depth: "3′ 6″ to 5′ 6″",
-    galaPoints: 11100,
-    galaCategory: "Luxury Collection",
+    galaPoints: 6890,
+    galaCategory: "Classic Series",
     installationTimeWeeks: 6,
     warrantyYears: "Lifetime",
-    features: ["LED Lighting", "Premium Finish", "Advanced Filtration"],
+    features: ["Spa Compatible", "Traditional Design", "Easy Maintenance", "Durable Construction"],
     heater: true,
     saltSystem: true,
     carbonFiber: true
   },
   { 
-    model: "Apollo 14", 
-    price: 98500, 
-    category: 'premium', 
-    image: apollo14Image,
-    dimensions: "14′ × 30′",
-    depth: "4′ 6″ to 6′",
-    galaPoints: 9850,
-    galaCategory: "Luxury Collection",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime",
-    features: ["Smart Pool Technology", "Energy Efficient", "Premium Materials"],
-    heater: true,
-    saltSystem: true,
-    carbonFiber: true
-  },
-  { 
-    model: "Coral 16", 
-    price: 96400, 
-    category: 'premium', 
-    image: coral16Image,
-    dimensions: "16′ × 32′",
-    depth: "3′ 6″ to 6′",
-    galaPoints: 9640,
-    galaCategory: "Luxury Collection",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime",
-    features: ["Spacious Design", "Coral Reef Finish", "Built-in Steps"],
-    heater: true,
-    saltSystem: true,
-    carbonFiber: true
-  },
-  { 
-    model: "Ariel 16", 
+    model: "Freeform Elegance", 
     price: 102000, 
-    category: 'premium', 
-    image: ariel16Image,
-    dimensions: "16′ × 34′",
-    depth: "3′ 6″ to 6′ 6″",
+    category: 'premium',
+    image: freeformImage,
+    dimensions: "16′ × 28′",
+    depth: "3′ 6″ to 6′",
     galaPoints: 10200,
     galaCategory: "Luxury Collection",
     installationTimeWeeks: 6,
     warrantyYears: "Lifetime",
-    features: ["Auto Cover Ready", "Multiple Entry Points", "Premium Design"],
+    features: ["Spa Compatible", "Freeform Design", "Natural Stone Coping", "Curved Entry"],
     heater: true,
     saltSystem: true,
     carbonFiber: true
   },
   { 
-    model: "Tuscan 14.40", 
-    price: 111000, 
+    model: "Luxury Resort", 
+    price: 125000, 
     category: 'premium',
-    image: luxurySpa1Image,
-    dimensions: "13′ 9″ × 39′ 11″",
-    depth: "3′ 7″ to 6′ 2″",
-    galaPoints: 11100,
+    image: luxuryImage,
+    dimensions: "18′ × 36′",
+    depth: "4′ to 8′",
+    galaPoints: 12500,
     galaCategory: "Luxury Collection",
+    installationTimeWeeks: 8,
+    warrantyYears: "Lifetime",
+    features: ["Spa Compatible", "Multi-level Design", "Waterfall Feature", "Rock Formation"]
+  },
+  { 
+    model: "Modern Classic", 
+    price: 86400, 
+    category: 'deluxe',
+    image: modernImage,
+    dimensions: "15′ × 30′",
+    depth: "3′ 6″ to 6′",
+    galaPoints: 8640,
+    galaCategory: "Executive Series",
     installationTimeWeeks: 6,
     warrantyYears: "Lifetime",
-    heater: true,
-    saltSystem: true,
-    carbonFiber: true
+    features: ["Spa Compatible", "Contemporary Lines", "Beach Entry", "Tanning Ledge"]
   },
-  { 
-    model: "Corinthian 14 BME", 
-    price: 98500, 
+];
+
+// Spa models
+const spas: Spa[] = [
+  {
+    model: "Genesis",
+    price: 28500,
     category: 'premium',
-    image: kidneyStoneImage,
-    dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′",
-    galaPoints: 9850,
-    galaCategory: "Luxury Collection",
-    installationTimeWeeks: 6,
+    dimensions: "8′ × 8′",
+    depth: "3′ 6″",
+    features: ["Spillover Option", "LED Lighting", "Premium Jets", "Heater Ready"],
+    spilloverFeature: true,
+    installationTimeWeeks: 3,
     warrantyYears: "Lifetime"
   },
-  { 
-    model: "Olympia 14", 
-    price: 96400, 
-    category: 'premium',
-    image: suburbanParadiseImage,
-    dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′",
-    galaPoints: 9640,
-    galaCategory: "Luxury Collection",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Providence 14", 
-    price: 95600, 
-    category: 'premium',
-    image: backyardOasisImage,
-    dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′",
-    galaPoints: 9560,
-    galaCategory: "Luxury Collection",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Laguna Deluxe", 
-    price: 95300, 
+  {
+    model: "Hermosa",
+    price: 22800,
     category: 'deluxe',
-    image: compactOvalImage,
-    dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′",
-    galaPoints: 4765,
-    galaCategory: "Executive Series",
-    installationTimeWeeks: 6,
+    dimensions: "7′ × 7′",
+    depth: "3′ 2″",
+    features: ["Spillover Option", "Therapeutic Jets", "Easy Controls", "Energy Efficient"],
+    spilloverFeature: true,
+    installationTimeWeeks: 3,
     warrantyYears: "Lifetime"
   },
-  { 
-    model: "Valencia", 
-    price: 65500, 
+  {
+    model: "Rectangle",
+    price: 19500,
     category: 'standard',
-    image: valenciaImage,
-    dimensions: "14′ 6″ × 28′",
-    depth: "3′ 7″ to 5′ 10″",
-    galaPoints: 1965,
-    galaCategory: "Classic Series",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
+    dimensions: "6′ × 8′",
+    depth: "3′",
+    features: ["Spillover Option", "Modern Design", "Durable Construction", "Low Maintenance"],
+    spilloverFeature: true,
+    installationTimeWeeks: 2,
+    warrantyYears: "10 Years"
   },
-  { 
-    model: "Cape Cod", 
-    price: 58900, 
+  {
+    model: "Simcircle",
+    price: 18200,
     category: 'standard',
-    image: capecodImage,
-    dimensions: "14′ × 28′",
-    depth: "3′ 6″ to 5′ 6″",
-    galaPoints: 1767,
-    galaCategory: "Classic Series",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "St. Lucia", 
-    price: 72500, 
-    category: 'standard',
-    image: stluciaImage,
-    dimensions: "16′ × 32′",
-    depth: "3′ 6″ to 6′",
-    galaPoints: 2175,
-    galaCategory: "Classic Series",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Synergy", 
-    price: 68900, 
-    category: 'standard',
-    image: synergyImage,
-    dimensions: "16′ × 30′",
-    depth: "3′ 6″ to 6′",
-    galaPoints: 2067,
-    galaCategory: "Classic Series",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Bermuda", 
-    price: 78500, 
-    category: 'deluxe',
-    image: bermudaImage,
-    dimensions: "16′ × 34′",
-    depth: "3′ 6″ to 6′",
-    galaPoints: 3925,
-    galaCategory: "Executive Series",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Fiji", 
-    price: 71200, 
-    category: 'standard',
-    image: fijiImage,
-    dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′",
-    galaPoints: 2136,
-    galaCategory: "Classic Series",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Genesis", 
-    price: 85400, 
-    category: 'deluxe',
-    image: genesisImage,
-    dimensions: "16′ × 36′",
-    depth: "3′ 6″ to 6′",
-    galaPoints: 4270,
-    galaCategory: "Executive Series",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Enchantment 9.17", 
-    price: 58800, 
-    category: 'compact',
-    image: enchantment917Image,
-    dimensions: "9′ 1″ × 17′ 2″",
-    depth: "4′ 9″",
-    galaPoints: 1176,
-    galaCategory: "Compact Collection",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Enchantment 9.21", 
-    price: 60200, 
-    category: 'compact',
-    image: enchantment921Image,
-    dimensions: "9′ 1″ × 20′ 10″",
-    depth: "4′ 9″",
-    galaPoints: 1206,
-    galaCategory: "Compact Collection",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Tuscan 11.20", 
-    price: 74800, 
-    category: 'standard',
-    image: tuscan1120Image,
-    dimensions: "11′ × 20′",
-    depth: "3′ 7″ to 5′ 4″",
-    galaPoints: 2244,
-    galaCategory: "Classic Series",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Tuscan 13.24", 
-    price: 82900, 
-    category: 'deluxe',
-    image: tuscan1324Image,
-    dimensions: "13′ × 24′",
-    depth: "3′ 7″ to 5′ 4″",
-    galaPoints: 4145,
-    galaCategory: "Executive Series",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Tuscan 14.27", 
-    price: 89600, 
-    category: 'deluxe',
-    image: tuscan1427Image,
-    dimensions: "14′ × 27′",
-    depth: "3′ 7″ to 5′ 4″",
-    galaPoints: 4480,
-    galaCategory: "Executive Series",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Key West", 
-    price: 64300, 
-    category: 'standard',
-    image: rectangularClassicImage,
-    dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′",
-    galaPoints: 1929,
-    galaCategory: "Classic Series",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Enchantment 9.24", 
-    price: 60800, 
-    category: 'compact',
-    image: modernRectangleImage,
-    dimensions: "9′ 1″ × 23′ 10″",
-    depth: "4′ 9″",
-    galaPoints: 1216,
-    galaCategory: "Compact Collection",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Jamaica", 
-    price: 46100, 
-    category: 'compact',
-    image: jamaicaImage,
-    dimensions: "10′ × 20′",
-    depth: "4′ 6″ to 5′ 6″",
-    galaPoints: 922,
-    galaCategory: "Compact Collection",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Axiom 14", 
-    price: 89500, 
-    category: 'deluxe',
-    image: contemporaryRectangleImage,
-    dimensions: "14′ × 30′",
-    depth: "4′ 6″ to 6′",
-    galaPoints: 4475,
-    galaCategory: "Executive Series",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Bay Isle", 
-    price: 92000, 
-    category: 'deluxe',
-    dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′",
-    galaPoints: 4600,
-    galaCategory: "Executive Series",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Claremont", 
-    price: 94500, 
-    category: 'premium',
-    dimensions: "14′ × 33′",
-    depth: "3′ 6″ to 5′ 4″",
-    galaPoints: 9450,
-    galaCategory: "Luxury Collection",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Corinthian 14", 
-    price: 97000, 
-    category: 'premium',
-    dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′",
-    galaPoints: 9700,
-    galaCategory: "Luxury Collection",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
-  },
-  { 
-    model: "Laguna", 
-    price: 88500, 
-    category: 'deluxe',
-    dimensions: "14′ × 30′",
-    depth: "3′ 6″ to 6′",
-    galaPoints: 4425,
-    galaCategory: "Executive Series",
-    installationTimeWeeks: 6,
-    warrantyYears: "Lifetime"
+    dimensions: "7′ diameter",
+    depth: "3′",
+    features: ["Spillover Option", "Circular Design", "Compact Footprint", "Easy Entry"],
+    spilloverFeature: true,
+    installationTimeWeeks: 2,
+    warrantyYears: "10 Years"
   }
 ];
 
+const getSpaTypeColor = (category: string) => {
+  switch (category) {
+    case 'premium': return 'bg-gradient-to-r from-purple-500 to-pink-500';
+    case 'deluxe': return 'bg-gradient-to-r from-blue-500 to-cyan-500';
+    case 'standard': return 'bg-gradient-to-r from-green-500 to-teal-500';
+    default: return 'bg-gradient-to-r from-gray-400 to-gray-600';
+  }
+};
 
 const PoolCatalog = () => {
   const [selectedPool, setSelectedPool] = useState<Pool | null>(null);
+  const [selectedSpa, setSelectedSpa] = useState<Spa | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [showSpaModal, setShowSpaModal] = useState(false);
 
   const handleViewDetails = (pool: Pool) => {
     setSelectedPool(pool);
@@ -433,8 +262,14 @@ const PoolCatalog = () => {
     setShowQuoteModal(true);
   };
 
+  const handleSpaRequest = (spa: Spa) => {
+    setSelectedSpa(spa);
+    setShowSpaModal(true);
+  };
+
   return (
     <>
+      {/* Pool Collection Section */}
       <section id="pool-catalog" className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 sm:mb-12 lg:mb-16">
@@ -459,6 +294,84 @@ const PoolCatalog = () => {
         </div>
       </section>
 
+      {/* Spa Collection Section */}
+      <section id="spa-catalog" className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden bg-gradient-to-b from-background/50 to-background">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-coral via-primary to-purple-500">
+              <Flame className="inline-block mr-4 h-8 w-8 md:h-12 md:w-12" />
+              Wonderland's Spa Collection
+            </h2>
+            <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">
+              Add the perfect spa to complement your pool. All models include spillover feature options.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+            {spas.map((spa, index) => (
+              <Card key={spa.model} className="group hover:scale-105 transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 overflow-hidden">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge className={`${getSpaTypeColor(spa.category)} text-white border-0`}>
+                      {spa.category.charAt(0).toUpperCase() + spa.category.slice(1)}
+                    </Badge>
+                    {spa.spilloverFeature && (
+                      <Badge variant="outline" className="text-coral border-coral">
+                        <Waves className="h-3 w-3 mr-1" />
+                        Spillover
+                      </Badge>
+                    )}
+                  </div>
+                  <CardTitle className="text-lg font-bold text-foreground">
+                    {spa.model}
+                  </CardTitle>
+                  <CardDescription className="text-sm text-foreground/70">
+                    {spa.dimensions} • {spa.depth} deep
+                  </CardDescription>
+                </CardHeader>
+                
+                <CardContent className="pt-0">
+                  <div className="mb-4">
+                    <div className="text-2xl font-bold text-coral mb-2">
+                      ${spa.price.toLocaleString()}
+                    </div>
+                    <div className="text-sm text-foreground/60">
+                      {spa.installationTimeWeeks} weeks installation
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 mb-4">
+                    {spa.features?.slice(0, 3).map((feature, idx) => (
+                      <div key={idx} className="flex items-center text-sm text-foreground/80">
+                        <Sparkles className="h-3 w-3 mr-2 text-coral flex-shrink-0" />
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="space-y-3">
+                    <Button
+                      onClick={() => handleSpaRequest(spa)}
+                      className="w-full bg-gradient-to-r from-coral to-primary hover:from-coral/90 hover:to-primary/90 text-white"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add to Pool
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => handleSpaRequest(spa)}
+                    >
+                      Get Spa Quote
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <PoolDetailModal 
         pool={selectedPool}
         isOpen={showDetailModal}
@@ -468,8 +381,11 @@ const PoolCatalog = () => {
       
       <SurveyQuoteTool 
         pool={selectedPool}
-        isOpen={showQuoteModal}
-        onClose={() => setShowQuoteModal(false)}
+        isOpen={showQuoteModal || showSpaModal}
+        onClose={() => {
+          setShowQuoteModal(false);
+          setShowSpaModal(false);
+        }}
       />
     </>
   );

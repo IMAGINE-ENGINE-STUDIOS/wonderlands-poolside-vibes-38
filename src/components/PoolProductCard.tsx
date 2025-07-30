@@ -57,6 +57,8 @@ interface PoolExtras {
   coverOption: string;
   tiles: boolean;
   tileOption: string;
+  spa: boolean;
+  spaModel: string;
 }
 
 const getCategoryColor = (category: string) => {
@@ -122,11 +124,13 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     cover: false,
     jets: false,
     saltSystem: false,
-    finish: 'standard',
+    finish: 'Nantuke',
     linerOption: 'standard',
     coverOption: 'standard',
     tiles: false,
-    tileOption: 'Standard Waterline'
+    tileOption: 'Standard Waterline',
+    spa: false,
+    spaModel: 'Genesis'
   });
   
   const { addToCart } = useShoppingCart();
@@ -491,9 +495,44 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                     <Star size={16} className="text-primary" />
                     <span className="text-sm">Premium Tiles (+${getExtraPrice('tiles').toLocaleString()})</span>
                   </div>
-                </label>
-              </div>
-            </div>
+                 </label>
+                 
+                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                   <Checkbox 
+                     checked={extras.spa}
+                     onCheckedChange={() => toggleExtra('spa')}
+                   />
+                   <div className="flex items-center space-x-1">
+                     <Waves size={16} className="text-primary" />
+                     <span className="text-sm">Add Spa (+${extras.spa ? (() => {
+                       const spaPrices = { 'Genesis': 28500, 'Hermosa': 22800, 'Rectangle': 19500, 'Simcircle': 18200 };
+                       return (spaPrices[extras.spaModel as keyof typeof spaPrices] || 0).toLocaleString();
+                     })() : '0'})</span>
+                   </div>
+                 </label>
+                 
+                 {extras.spa && (
+                   <div className="ml-6 space-y-2">
+                     <label className="text-xs font-medium text-muted-foreground">Select Spa Model:</label>
+                     <div className="grid grid-cols-2 gap-2">
+                       {['Genesis', 'Hermosa', 'Rectangle', 'Simcircle'].map((spaModel) => (
+                         <button
+                           key={spaModel}
+                           onClick={() => setExtras(prev => ({ ...prev, spaModel }))}
+                           className={`p-2 text-xs rounded-md border transition-all ${
+                             extras.spaModel === spaModel 
+                               ? 'border-primary bg-primary/10 text-primary' 
+                               : 'border-border hover:border-primary/50'
+                           }`}
+                         >
+                           {spaModel}
+                         </button>
+                       ))}
+                     </div>
+                   </div>
+                 )}
+               </div>
+             </div>
 
             {/* Carbon Fiber Technology Section */}
             {pool.carbonFiber && (
