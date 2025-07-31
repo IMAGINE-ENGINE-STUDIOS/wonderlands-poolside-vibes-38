@@ -2,7 +2,7 @@ import { useState } from "react";
 import Hero from "@/components/Hero";
 import Header from "@/components/Header";
 import PoolCatalog from "@/components/PoolCatalog";
-import LinersSection from "@/components/LinersSection";
+import PoolFinishesSection from "@/components/PoolFinishesSection";
 import AutomaticCoversSection from "@/components/AutomaticCoversSection";
 import FloridaPoolElements from "@/components/FloridaPoolElements";
 import Footer from "@/components/Footer";
@@ -55,7 +55,7 @@ const Index = () => {
       <div className="relative z-10">
         <Hero />
         <PoolCatalog />
-        <LinersSection />
+        <PoolFinishesSection />
         <AutomaticCoversSection />
         <Footer />
       </div>

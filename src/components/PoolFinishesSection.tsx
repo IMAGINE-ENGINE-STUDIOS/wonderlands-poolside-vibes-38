@@ -19,7 +19,7 @@ export interface PoolFinish {
   features: string[];
 }
 
-const poolFinishes: PoolFinish[] = [
+export const poolFinishes: PoolFinish[] = [
   {
     id: "sapphire-blue-crystal",
     name: "Sapphire Blue",

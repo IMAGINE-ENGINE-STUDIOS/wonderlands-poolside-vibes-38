@@ -84,13 +84,19 @@ const getExtraPrice = (extra: string) => {
   }
 };
 
-const finishOptions = [
-  { name: 'Aquamarine', color: '#7FFFD4', image: aquamarineFinish },
-  { name: 'Ocean Blue', color: '#006994', image: oceanBlueFinish },
-  { name: 'Sapphire Blue', color: '#0F52BA', image: sapphireBlueFinish },
-  { name: 'Night Sky', color: '#191970', image: nightSkyFinish },
-  { name: 'Athens Pearl White', color: '#F5F5DC', image: athensPearlFinish }
-];
+// Import pool finishes from PoolFinishesSection
+import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
+
+// Convert pool finishes data to finish options format
+const finishOptions = poolFinishesData.map(finish => ({
+  name: finish.name,
+  color: '#4169E1', // fallback color
+  image: finish.image,
+  price: finish.price,
+  collection: finish.collection,
+  category: finish.category,
+  description: finish.description
+}));
 
 // Import pool liners from PoolCatalog
 import { poolLiners, poolTiles } from '@/data/poolData';
@@ -344,16 +350,16 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
             <div className="space-y-3">
               <h4 className="font-semibold text-foreground">Pool Tiles</h4>
               <Carousel className="w-full">
-                <CarouselContent className="-ml-2 md:-ml-4">
+                <CarouselContent className="-ml-1">
                   {tileOptions.map((tile) => (
-                    <CarouselItem key={tile.name} className="pl-2 md:pl-4 basis-1/2 sm:basis-1/3">
+                    <CarouselItem key={tile.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
                       <div 
-                        className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                           extras.tileOption === tile.name ? 'border-primary bg-primary/10' : 'border-border'
                         }`}
                         onClick={() => setExtras(prev => ({ ...prev, tileOption: tile.name }))}
                       >
-                        <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
+                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
                           <img 
                             src={tile.image} 
                             alt={tile.name}
@@ -368,13 +374,12 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                             }}
                           />
                         </div>
-                        <p className="text-xs font-medium text-center">{tile.name}</p>
-                        {tile.price > 0 && (
-                          <p className="text-xs text-muted-foreground text-center">+${tile.price.toLocaleString()}</p>
-                        )}
-                        {tile.description && (
-                          <p className="text-xs text-muted-foreground text-center mt-1 leading-tight">{tile.description}</p>
-                        )}
+                        <div className="flex-1 flex flex-col justify-between min-h-0">
+                          <p className="text-xs font-medium text-center line-clamp-2">{tile.name}</p>
+                          {tile.price > 0 && (
+                            <p className="text-xs text-primary font-semibold text-center mt-1">+${tile.price.toLocaleString()}</p>
+                          )}
+                        </div>
                       </div>
                     </CarouselItem>
                   ))}
@@ -387,51 +392,63 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
             {/* Pool Finishing Options */}
             <div className="space-y-3">
               <h4 className="font-semibold text-foreground">Pool Finishes</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {finishOptions.map((finish) => (
-                  <div 
-                    key={finish.name}
-                    className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'
-                    }`}
-                    onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
-                  >
-                   <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
-                      <img 
-                        src={finish.image} 
-                        alt={finish.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          // Fallback to color if image fails to load
-                          const target = e.target as HTMLImageElement;
-                          const parent = target.parentElement;
-                          if (parent) {
-                            parent.style.backgroundColor = finish.color;
-                            target.style.display = 'none';
-                          }
-                        }}
-                      />
-                    </div>
-                    <p className="text-xs font-medium text-center">{finish.name}</p>
-                  </div>
-                ))}
-              </div>
+              <Carousel className="w-full">
+                <CarouselContent className="-ml-1">
+                  {finishOptions.map((finish) => (
+                    <CarouselItem key={finish.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                      <div 
+                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                          extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'
+                        }`}
+                        onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
+                      >
+                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                          <img 
+                            src={finish.image} 
+                            alt={finish.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.style.backgroundColor = finish.color;
+                                target.style.display = 'none';
+                              }
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 flex flex-col justify-between min-h-0">
+                          <p className="text-xs font-medium text-center line-clamp-2">{finish.name}</p>
+                          <div className="mt-1 space-y-1">
+                            <p className="text-xs text-primary text-center font-semibold">{finish.collection}</p>
+                            {finish.price && (
+                              <p className="text-xs text-foreground font-semibold text-center">+${finish.price.toLocaleString()}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0" />
+                <CarouselNext className="right-0" />
+              </Carousel>
             </div>
 
             {/* Pool Liner Options */}
             <div className="space-y-3">
               <h4 className="font-semibold text-foreground">Premium Pool Liners</h4>
               <Carousel className="w-full">
-                <CarouselContent className="-ml-2 md:-ml-4">
+                <CarouselContent className="-ml-1">
                   {linerOptions.map((liner) => (
-                    <CarouselItem key={liner.name} className="pl-2 md:pl-4 basis-1/2 sm:basis-1/3">
+                    <CarouselItem key={liner.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
                       <div 
-                        className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                           extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'
                         }`}
                         onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
                       >
-                        <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
+                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
                           <img 
                             src={liner.image} 
                             alt={liner.name}
@@ -446,16 +463,17 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                             }}
                           />
                         </div>
-                        <p className="text-xs font-medium text-center">{liner.name}</p>
-                        {liner.type && liner.type !== 'Standard' && (
-                          <p className="text-xs text-primary text-center font-medium">{liner.type}</p>
-                        )}
-                        {liner.price > 0 && (
-                          <p className="text-xs text-muted-foreground text-center">+${liner.price.toLocaleString()}</p>
-                        )}
-                        {liner.description && (
-                          <p className="text-xs text-muted-foreground text-center mt-1 leading-tight">{liner.description}</p>
-                        )}
+                        <div className="flex-1 flex flex-col justify-between min-h-0">
+                          <p className="text-xs font-medium text-center line-clamp-2">{liner.name}</p>
+                          <div className="mt-1 space-y-1">
+                            {liner.type && liner.type !== 'Standard' && (
+                              <p className="text-xs text-primary text-center font-semibold">{liner.type}</p>
+                            )}
+                            {liner.price > 0 && (
+                              <p className="text-xs text-foreground font-semibold text-center">+${liner.price.toLocaleString()}</p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </CarouselItem>
                   ))}
