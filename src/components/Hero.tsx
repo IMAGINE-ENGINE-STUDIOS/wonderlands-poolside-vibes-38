@@ -30,15 +30,15 @@ const Hero = () => {
           <Button variant="coral" size="lg" className="hover:scale-105 transition-all duration-300 backdrop-blur-sm" onClick={() => setShowQuoteModal(true)}>
             Upload Your House Survey
           </Button>
-        </div>
-      </div>
-
-      {/* Bottom Content */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 text-center px-4 max-w-4xl">
-        
-        
-        <div className="mt-12 animate-fade-in-up">
           
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="hover:scale-105 transition-all duration-300 backdrop-blur-sm border-white/30 text-white hover:bg-white hover:text-primary"
+            onClick={() => window.open('https://calendly.com/wonderlandsworlds/30min', '_blank')}
+          >
+            Schedule Appointment
+          </Button>
         </div>
       </div>
     </section>

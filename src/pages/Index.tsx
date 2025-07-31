@@ -5,6 +5,7 @@ import PoolCatalog from "@/components/PoolCatalog";
 import PoolFinishesSection from "@/components/PoolFinishesSection";
 import AutomaticCoversSection from "@/components/AutomaticCoversSection";
 import FloridaPoolElements from "@/components/FloridaPoolElements";
+import WonderlandsBrandShowcase from "@/components/WonderlandsBrandShowcase";
 import Footer from "@/components/Footer";
 import ShoppingCart from "@/components/ShoppingCart";
 import RealTimeContentEditor from "@/components/RealTimeContentEditor";
@@ -54,6 +55,7 @@ const Index = () => {
       
       <div className="relative z-10">
         <Hero />
+        <WonderlandsBrandShowcase />
         <PoolCatalog />
         <PoolFinishesSection />
         <AutomaticCoversSection />
