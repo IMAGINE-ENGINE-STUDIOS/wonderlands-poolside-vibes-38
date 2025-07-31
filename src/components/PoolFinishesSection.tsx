@@ -110,6 +110,36 @@ const poolFinishes: PoolFinish[] = [
     image: "/lovable-uploads/75602748-6f43-4f81-9cbe-a3e8c81db8d4.png",
     price: 3200,
     features: ["Dramatic Dark Blue", "Classic Aggregate", "Twilight Appeal", "20-Year Warranty"]
+  },
+  {
+    id: "shale-gray-classic",
+    name: "Shale Gray",
+    collection: "Crystite Classic",
+    category: "Deep & Dramatic",
+    description: "Sophisticated dark gray with classic aggregate finish for contemporary appeal",
+    image: "/lovable-uploads/65596856-c21b-46d4-abeb-e241bc3b39b0.png",
+    price: 3200,
+    features: ["Contemporary Gray", "Classic Aggregate", "Modern Appeal", "20-Year Warranty"]
+  },
+  {
+    id: "coastal-bronze-classic",
+    name: "Coastal Bronze",
+    collection: "Crystite Classic",
+    category: "Rich & Vibrant",
+    description: "Warm bronze tones with classic finish for natural coastal elegance",
+    image: "/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png",
+    price: 3200,
+    features: ["Bronze Warmth", "Classic Finish", "Coastal Style", "20-Year Warranty"]
+  },
+  {
+    id: "whisper-white-classic",
+    name: "Whisper White Standard Gelcoat",
+    collection: "Crystite Classic",
+    category: "Light & Tranquil",
+    description: "Pure white standard gelcoat finish for timeless, clean pool aesthetics",
+    image: "/lovable-uploads/cbd9aade-2714-4ec4-ab12-8025f75190c6.png",
+    price: 2800,
+    features: ["Pure White", "Standard Gelcoat", "Clean Aesthetic", "15-Year Warranty"]
   }
 ];
 
