@@ -18,6 +18,10 @@ import { Waves, Sparkles, Flame, Plus, Sun } from "lucide-react";
 // Import shared pool data
 import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
 
+// Debug logging
+console.log('PoolCatalog - poolTiles:', poolTiles);
+console.log('PoolCatalog - poolLiners:', poolLiners);
+
 // Updated pool model images in order
 const astoriaImage = "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png";
 const apolloImage = "/lovable-uploads/9e491420-80df-4bb3-9db1-3933d96846ac.png";  
@@ -326,7 +330,7 @@ const PoolCatalog = () => {
 
           <Carousel className="w-full max-w-sm sm:max-w-none mx-auto">
             <CarouselContent className="-ml-2 md:-ml-4">
-              {poolLiners.map((liner, index) => (
+              {(poolLiners || []).map((liner, index) => (
                 <CarouselItem key={liner.name} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
                   <Card className="group hover:scale-105 transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 overflow-hidden h-full">
                     <div className="aspect-square overflow-hidden">
@@ -393,7 +397,7 @@ const PoolCatalog = () => {
 
           <Carousel className="w-full max-w-sm sm:max-w-none mx-auto">
             <CarouselContent className="-ml-2 md:-ml-4">
-              {poolTiles.map((tile, index) => (
+              {(poolTiles || []).map((tile, index) => (
                 <CarouselItem key={tile.name} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
                   <Card className="group hover:scale-105 transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 overflow-hidden h-full">
                     <div className="aspect-[4/3] overflow-hidden">
@@ -460,7 +464,7 @@ const PoolCatalog = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-            {tanningLedges.map((ledge, index) => (
+            {(tanningLedges || []).map((ledge, index) => (
               <Card key={ledge.name} className="group hover:scale-105 transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 overflow-hidden">
                 <div className="aspect-square overflow-hidden">
                   <img 
