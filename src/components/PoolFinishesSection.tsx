@@ -5,16 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Palette, Sparkles, Award, Eye } from "lucide-react";
 
-// Import finish images
-import sapphireBlueG3 from "@/assets/finishes/sapphire-blue-g3.jpg";
-import oceanBlueG3 from "@/assets/finishes/ocean-blue-g3.jpg";
-import nightSkyG3 from "@/assets/finishes/night-sky-g3.jpg";
-import shaleGrayG3 from "@/assets/finishes/shale-gray-g3.jpg";
-import coastalBronzeG3 from "@/assets/finishes/coastal-bronze-g3.jpg";
-import athensPearlWhiteG3 from "@/assets/finishes/athens-pearl-white-g3.jpg";
-import lagoonBlueG2 from "@/assets/finishes/lagoon-blue-g2.jpg";
-import azureBlueG2 from "@/assets/finishes/azure-blue-g2.jpg";
-import aquamarineG3 from "@/assets/finishes/aquamarine-g3.jpg";
+// Pool finishes now use uploaded images directly in the data
 
 export interface PoolFinish {
   id: string;
@@ -30,95 +21,95 @@ export interface PoolFinish {
 
 const poolFinishes: PoolFinish[] = [
   {
-    id: "sapphire-blue-g3",
-    name: "Sapphire Blue G3",
+    id: "sapphire-blue-crystal",
+    name: "Sapphire Blue",
     collection: "Crystite Crystal",
     category: "Rich & Vibrant",
     description: "A stunning deep blue with crystalline sparkle that creates a luxurious Caribbean feel",
-    image: sapphireBlueG3,
+    image: "/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png",
     price: 3500,
     popular: true,
-    features: ["UV Resistant", "Non-Slip Surface", "Easy Maintenance", "25-Year Warranty"]
+    features: ["Crystal Sparkle", "Deep Blue Color", "UV Resistant", "25-Year Warranty"]
   },
   {
-    id: "ocean-blue-g3",
-    name: "Ocean Blue G3",
+    id: "ocean-blue-crystal",
+    name: "Ocean Blue",
     collection: "Crystite Crystal",
     category: "Rich & Vibrant",
-    description: "Deep ocean blue finish that creates the perfect tropical paradise aesthetic",
-    image: oceanBlueG3,
+    description: "Deep ocean blue with crystal aggregates for a premium tropical look",
+    image: "/lovable-uploads/2103693f-cf54-423d-99c7-68d6f3951388.png",
     price: 3500,
-    features: ["UV Resistant", "Crystalline Finish", "Stain Resistant", "25-Year Warranty"]
+    features: ["Ocean Depth", "Crystal Finish", "UV Protection", "25-Year Warranty"]
   },
   {
-    id: "night-sky-g3",
-    name: "Night Sky G3",
+    id: "night-sky-crystal",
+    name: "Night Sky",
     collection: "Crystite Crystal",
     category: "Deep & Dramatic",
-    description: "Dramatic dark finish with subtle sparkle, perfect for evening ambiance",
-    image: nightSkyG3,
-    price: 3800,
-    features: ["Premium Crystal Technology", "UV Resistant", "Heat Reflective", "25-Year Warranty"]
+    description: "Dark blue with brilliant crystal flecks that shimmer like stars in the night sky",
+    image: "/lovable-uploads/90fe0136-31f1-4fa3-b816-56a7a74484fa.png",
+    price: 3500,
+    features: ["Starlike Sparkle", "Dark Dramatic Look", "Crystal Aggregates", "25-Year Warranty"]
   },
   {
-    id: "shale-gray-g3",
-    name: "Shale Gray G3",
+    id: "shale-gray-crystal",
+    name: "Shale Gray",
     collection: "Crystite Crystal",
     category: "Light & Tranquil",
-    description: "Sophisticated gray tone that complements modern architectural styles",
-    image: shaleGrayG3,
+    description: "Sophisticated gray with crystal accents for a modern, refined appearance",
+    image: "/lovable-uploads/15032ed4-f745-4152-ae9b-c26fdb52f68c.png",
     price: 3500,
-    features: ["Modern Aesthetic", "UV Resistant", "Easy Cleaning", "25-Year Warranty"]
+    features: ["Modern Gray", "Crystal Accents", "Contemporary Look", "25-Year Warranty"]
   },
   {
-    id: "coastal-bronze-g3",
-    name: "Coastal Bronze G3",
+    id: "coastal-bronze-crystal",
+    name: "Coastal Bronze",
     collection: "Crystite Crystal",
     category: "Rich & Vibrant",
-    description: "Warm bronze tones that create a natural, earthy pool environment",
-    image: coastalBronzeG3,
+    description: "Warm bronze tones with crystal sparkle reminiscent of coastal sunsets",
+    image: "/lovable-uploads/b1abd5c3-af2e-46fa-82be-5db27d20a388.png",
     price: 3500,
-    features: ["Natural Look", "UV Resistant", "Slip Resistant", "25-Year Warranty"]
+    features: ["Bronze Warmth", "Crystal Sparkle", "Coastal Appeal", "25-Year Warranty"]
   },
   {
-    id: "athens-pearl-white-g3",
-    name: "Athens Pearl White G3",
+    id: "pearl-white-crystal",
+    name: "Pearl White",
     collection: "Crystite Crystal",
     category: "Light & Tranquil",
-    description: "Elegant pearl white finish for a classic, timeless pool appearance",
-    image: athensPearlWhiteG3,
+    description: "Elegant white with pearl-like crystal finish for timeless sophistication",
+    image: "/lovable-uploads/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.png",
+    price: 3500,
+    features: ["Pearl Luster", "Crystal Clarity", "Timeless Elegance", "25-Year Warranty"]
+  },
+  {
+    id: "sapphire-blue-classic",
+    name: "Sapphire Blue",
+    collection: "Crystite Classic",
+    category: "Rich & Vibrant",
+    description: "Classic sapphire blue with traditional aggregate finish for enduring beauty",
+    image: "/lovable-uploads/822d9341-f6f8-46ee-9d13-07d0f2126252.png",
     price: 3200,
-    features: ["Classic Elegance", "UV Resistant", "Bright Appearance", "25-Year Warranty"]
+    features: ["Classic Blue", "Traditional Finish", "Durable Surface", "20-Year Warranty"]
   },
   {
-    id: "lagoon-blue-g2",
-    name: "Lagoon Blue G2",
+    id: "ocean-blue-classic",
+    name: "Ocean Blue",
     collection: "Crystite Classic",
     category: "Rich & Vibrant",
-    description: "Traditional blue finish with reliable performance and lasting beauty",
-    image: lagoonBlueG2,
-    price: 2800,
-    features: ["Traditional Blue", "UV Resistant", "Proven Performance", "20-Year Warranty"]
+    description: "Deep ocean blue with classic aggregate texture for reliable performance",
+    image: "/lovable-uploads/0eed319b-cfe9-4a44-b1b6-da0171c95beb.png",
+    price: 3200,
+    features: ["Ocean Depth", "Classic Texture", "Proven Durability", "20-Year Warranty"]
   },
   {
-    id: "azure-blue-g2",
-    name: "Azure Blue G2",
+    id: "night-sky-classic",
+    name: "Night Sky",
     collection: "Crystite Classic",
-    category: "Light & Tranquil",
-    description: "Light azure blue for a refreshing, inviting pool experience",
-    image: azureBlueG2,
-    price: 2800,
-    features: ["Light & Refreshing", "UV Resistant", "Easy Maintenance", "20-Year Warranty"]
-  },
-  {
-    id: "aquamarine-g3",
-    name: "Aquamarine G3",
-    collection: "Crystite Crystal",
-    category: "Light & Tranquil",
-    description: "Beautiful aquamarine finish with crystal clarity and tropical appeal",
-    image: aquamarineG3,
-    price: 3500,
-    features: ["Crystal Clarity", "UV Resistant", "Tropical Look", "25-Year Warranty"]
+    category: "Deep & Dramatic",
+    description: "Dramatic dark blue with classic finish that captures the mystery of twilight",
+    image: "/lovable-uploads/75602748-6f43-4f81-9cbe-a3e8c81db8d4.png",
+    price: 3200,
+    features: ["Dramatic Dark Blue", "Classic Aggregate", "Twilight Appeal", "20-Year Warranty"]
   }
 ];
 
