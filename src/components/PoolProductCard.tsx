@@ -9,6 +9,7 @@ import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Awa
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import ImageEditor from "./ImageEditor";
 import { useShoppingCart } from "./ShoppingCart";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
@@ -342,40 +343,45 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
             {/* Pool Tile Options */}
             <div className="space-y-3">
               <h4 className="font-semibold text-foreground">Pool Tiles</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {tileOptions.map((tile) => (
-                  <div 
-                    key={tile.name}
-                    className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      extras.tileOption === tile.name ? 'border-primary bg-primary/10' : 'border-border'
-                    }`}
-                    onClick={() => setExtras(prev => ({ ...prev, tileOption: tile.name }))}
-                  >
-                    <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
-                      <img 
-                        src={tile.image} 
-                        alt={tile.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          const parent = target.parentElement;
-                          if (parent) {
-                            parent.style.backgroundColor = tile.color;
-                            target.style.display = 'none';
-                          }
-                        }}
-                      />
-                    </div>
-                    <p className="text-xs font-medium text-center">{tile.name}</p>
-                    {tile.price > 0 && (
-                      <p className="text-xs text-muted-foreground text-center">+${tile.price.toLocaleString()}</p>
-                    )}
-                    {tile.description && (
-                      <p className="text-xs text-muted-foreground text-center mt-1 leading-tight">{tile.description}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <Carousel className="w-full">
+                <CarouselContent className="-ml-2 md:-ml-4">
+                  {tileOptions.map((tile) => (
+                    <CarouselItem key={tile.name} className="pl-2 md:pl-4 basis-1/2 sm:basis-1/3">
+                      <div 
+                        className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                          extras.tileOption === tile.name ? 'border-primary bg-primary/10' : 'border-border'
+                        }`}
+                        onClick={() => setExtras(prev => ({ ...prev, tileOption: tile.name }))}
+                      >
+                        <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
+                          <img 
+                            src={tile.image} 
+                            alt={tile.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.style.backgroundColor = tile.color;
+                                target.style.display = 'none';
+                              }
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs font-medium text-center">{tile.name}</p>
+                        {tile.price > 0 && (
+                          <p className="text-xs text-muted-foreground text-center">+${tile.price.toLocaleString()}</p>
+                        )}
+                        {tile.description && (
+                          <p className="text-xs text-muted-foreground text-center mt-1 leading-tight">{tile.description}</p>
+                        )}
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0" />
+                <CarouselNext className="right-0" />
+              </Carousel>
             </div>
 
             {/* Pool Finishing Options */}
@@ -415,43 +421,48 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
             {/* Pool Liner Options */}
             <div className="space-y-3">
               <h4 className="font-semibold text-foreground">Premium Pool Liners</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {linerOptions.map((liner) => (
-                  <div 
-                    key={liner.name}
-                    className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'
-                    }`}
-                    onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
-                  >
-                    <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
-                      <img 
-                        src={liner.image} 
-                        alt={liner.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          const parent = target.parentElement;
-                          if (parent) {
-                            parent.style.backgroundColor = liner.color;
-                            target.style.display = 'none';
-                          }
-                        }}
-                      />
-                    </div>
-                    <p className="text-xs font-medium text-center">{liner.name}</p>
-                    {liner.type && liner.type !== 'Standard' && (
-                      <p className="text-xs text-primary text-center font-medium">{liner.type}</p>
-                    )}
-                    {liner.price > 0 && (
-                      <p className="text-xs text-muted-foreground text-center">+${liner.price.toLocaleString()}</p>
-                    )}
-                    {liner.description && (
-                      <p className="text-xs text-muted-foreground text-center mt-1 leading-tight">{liner.description}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <Carousel className="w-full">
+                <CarouselContent className="-ml-2 md:-ml-4">
+                  {linerOptions.map((liner) => (
+                    <CarouselItem key={liner.name} className="pl-2 md:pl-4 basis-1/2 sm:basis-1/3">
+                      <div 
+                        className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                          extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'
+                        }`}
+                        onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
+                      >
+                        <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
+                          <img 
+                            src={liner.image} 
+                            alt={liner.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.style.backgroundColor = liner.color;
+                                target.style.display = 'none';
+                              }
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs font-medium text-center">{liner.name}</p>
+                        {liner.type && liner.type !== 'Standard' && (
+                          <p className="text-xs text-primary text-center font-medium">{liner.type}</p>
+                        )}
+                        {liner.price > 0 && (
+                          <p className="text-xs text-muted-foreground text-center">+${liner.price.toLocaleString()}</p>
+                        )}
+                        {liner.description && (
+                          <p className="text-xs text-muted-foreground text-center mt-1 leading-tight">{liner.description}</p>
+                        )}
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0" />
+                <CarouselNext className="right-0" />
+              </Carousel>
             </div>
 
             {/* Cover Options */}
