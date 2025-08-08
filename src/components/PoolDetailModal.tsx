@@ -123,6 +123,13 @@ const PoolDetailModal = ({ pool, isOpen, onClose, onRequestQuote }: PoolDetailMo
 
             <Separator />
 
+            {/* Salt System Note */}
+            <div className="p-3 bg-teal-50 border border-teal-200 rounded-lg">
+              <p className="text-sm text-teal-800 font-medium text-center">
+                Salt system included in final price
+              </p>
+            </div>
+
             {/* Dimensions & Depth */}
             <div className="space-y-3">
               <div className="flex items-center gap-3">

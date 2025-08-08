@@ -52,7 +52,6 @@ interface PoolExtras {
   heater: boolean;
   cover: boolean;
   jets: boolean;
-  saltSystem: boolean;
   finish: string;
   linerOption: string;
   coverOption: string;
@@ -74,12 +73,11 @@ const getCategoryColor = (category: string) => {
 
 const getExtraPrice = (extra: string) => {
   switch (extra) {
-    case 'liner': return 2500;
-    case 'heater': return 4500;
+    case 'liner': return 0; // Base cost covered by liner option price
+    case 'heater': return 5000; // Pool Heater is exactly $5,000
     case 'cover': return 3200;
     case 'jets': return 1800;
-    case 'saltSystem': return 7000;
-    case 'tiles': return 3500;
+    case 'tiles': return 0; // Base cost covered by tile option price
     default: return 0;
   }
 };
@@ -142,14 +140,13 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     heater: false,
     cover: false,
     jets: false,
-    saltSystem: false,
     finish: 'Nantuke',
-    linerOption: 'standard',
+    linerOption: 'Standard Blue',
     coverOption: 'standard',
     tiles: false,
     tileOption: 'Standard Waterline',
     spa: false,
-    spaModel: 'Genesis'
+    spaModel: 'Mystic'
   });
   
   const { addToCart } = useShoppingCart();
@@ -158,33 +155,60 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     setShowDetails(!showDetails);
   };
 
-  const toggleExtra = (extra: keyof PoolExtras) => {
-    setExtras(prev => ({
-      ...prev,
-      [extra]: !prev[extra]
-    }));
+  const toggleExtra = (extra: string) => {
+    setExtras(prev => {
+      // Handle tile/liner mutual exclusivity
+      if (extra === 'tiles' && !prev.tiles) {
+        // Selecting tiles, disable liner
+        return { ...prev, tiles: true, liner: false };
+      } else if (extra === 'liner' && !prev.liner) {
+        // Selecting liner, disable tiles
+        return { ...prev, liner: true, tiles: false };
+      } else if (extra === 'tiles') {
+        // Deselecting tiles
+        return { ...prev, tiles: !prev.tiles };
+      } else if (extra === 'liner') {
+        // Deselecting liner
+        return { ...prev, liner: !prev.liner };
+      } else if (extra === 'heater') {
+        return { ...prev, heater: !prev.heater };
+      } else if (extra === 'cover') {
+        return { ...prev, cover: !prev.cover };
+      } else if (extra === 'jets') {
+        return { ...prev, jets: !prev.jets };
+      } else if (extra === 'spa') {
+        return { ...prev, spa: !prev.spa };
+      }
+      
+      return prev;
+    });
   };
 
   const calculateTotalPrice = () => {
     let total = pool.price;
     
     // Add base extras
-    if (extras.liner) total += getExtraPrice('liner');
     if (extras.heater) total += getExtraPrice('heater');
     if (extras.cover) total += getExtraPrice('cover');
     if (extras.jets) total += getExtraPrice('jets');
-    if (extras.saltSystem) total += getExtraPrice('saltSystem');
-    if (extras.tiles) total += getExtraPrice('tiles');
     
-    // Add option prices
+    // Add option prices (liner OR tile, never both)
     const linerOption = linerOptions.find(option => option.name === extras.linerOption);
     if (linerOption && extras.liner) total += linerOption.price;
+    
+    const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+    if (tileOption && extras.tiles) total += tileOption.price;
     
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
     if (coverOption && extras.cover) total += coverOption.price;
     
-    const tileOption = tileOptions.find(option => option.name === extras.tileOption);
-    if (tileOption && extras.tiles) total += tileOption.price;
+    // Add spa price if selected
+    if (extras.spa) {
+      // Import spas from PoolCatalog
+      const { spas } = require('./PoolCatalog');
+      const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
+      if (selectedSpa) total += selectedSpa.price;
+    }
     
     return total;
   };
@@ -204,9 +228,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     const cartExtras = [];
     
     if (extras.heater) cartExtras.push({ name: 'Pool Heater', price: getExtraPrice('heater') });
-    if (extras.saltSystem) cartExtras.push({ name: 'Salt System', price: getExtraPrice('saltSystem') });
     if (extras.jets) cartExtras.push({ name: 'Spa Jets', price: getExtraPrice('jets') });
-    if (extras.tiles) cartExtras.push({ name: 'Premium Tiles', price: getExtraPrice('tiles') });
     
     const linerOption = linerOptions.find(option => option.name === extras.linerOption);
     if (linerOption && extras.liner) {
@@ -221,6 +243,14 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     const tileOption = tileOptions.find(option => option.name === extras.tileOption);
     if (tileOption && extras.tiles) {
       cartExtras.push({ name: tileOption.name, price: tileOption.price });
+    }
+
+    if (extras.spa) {
+      const { spas } = require('./PoolCatalog');
+      const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
+      if (selectedSpa) {
+        cartExtras.push({ name: `${selectedSpa.model} Spa`, price: selectedSpa.price });
+      }
     }
 
     addToCart({
@@ -301,16 +331,10 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
         
         {/* Features & Tech */}
         <div className="space-y-2">
-          {pool.heater && (
-            <div className="flex items-center gap-2 text-sm">
-              <Thermometer className="h-4 w-4 text-coral" />
-              <span className="font-medium">Heater Ready</span>
-            </div>
-          )}
           {pool.saltSystem && (
             <div className="flex items-center gap-2 text-sm">
               <Droplets className="h-4 w-4 text-teal" />
-              <span className="font-medium">+7,000 Salt System Compatible</span>
+              <span className="font-medium">Salt system included in final price</span>
             </div>
           )}
           {pool.carbonFiber && (
@@ -524,14 +548,34 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                   </div>
                 </label>
                 
+                {/* Tile/Liner Exclusivity Helper Text */}
+                <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-xs text-amber-800 font-medium text-center">
+                    Choose either tile or liner — not both.
+                  </p>
+                </div>
+                
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox 
-                    checked={extras.saltSystem}
-                    onCheckedChange={() => toggleExtra('saltSystem')}
+                    checked={extras.tiles}
+                    onCheckedChange={() => toggleExtra('tiles')}
+                    disabled={extras.liner}
                   />
                   <div className="flex items-center space-x-1">
-                    <Droplets size={16} className="text-teal" />
-                    <span className="text-sm">Salt System (+${getExtraPrice('saltSystem').toLocaleString()})</span>
+                    <Star size={16} className="text-primary" />
+                    <span className="text-sm">Premium Tiles (select from tiles above)</span>
+                  </div>
+                </label>
+                
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                  <Checkbox 
+                    checked={extras.liner}
+                    onCheckedChange={() => toggleExtra('liner')}
+                    disabled={extras.tiles}
+                  />
+                  <div className="flex items-center space-x-1">
+                    <Waves size={16} className="text-teal" />
+                    <span className="text-sm">Premium Liner (select from liners above)</span>
                   </div>
                 </label>
                 
@@ -546,16 +590,6 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                   </div>
                 </label>
                 
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox 
-                    checked={extras.tiles}
-                    onCheckedChange={() => toggleExtra('tiles')}
-                  />
-                  <div className="flex items-center space-x-1">
-                    <Star size={16} className="text-primary" />
-                    <span className="text-sm">Premium Tiles (+${getExtraPrice('tiles').toLocaleString()})</span>
-                  </div>
-                 </label>
                  
                  <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                    <Checkbox 
@@ -565,8 +599,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                    <div className="flex items-center space-x-1">
                      <Waves size={16} className="text-primary" />
                      <span className="text-sm">Add Spa (+${extras.spa ? (() => {
-                       const spaPrices = { 'Genesis': 28500, 'Hermosa': 22800, 'Rectangle': 19500, 'Simcircle': 18200 };
-                       return (spaPrices[extras.spaModel as keyof typeof spaPrices] || 0).toLocaleString();
+                       const { spas } = require('./PoolCatalog');
+                       const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
+                       return selectedSpa ? selectedSpa.price.toLocaleString() : '0';
                      })() : '0'})</span>
                    </div>
                  </label>
@@ -575,19 +610,23 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                    <div className="ml-6 space-y-2">
                      <label className="text-xs font-medium text-muted-foreground">Select Spa Model:</label>
                      <div className="grid grid-cols-2 gap-2">
-                       {['Genesis', 'Hermosa', 'Rectangle', 'Simcircle'].map((spaModel) => (
-                         <button
-                           key={spaModel}
-                           onClick={() => setExtras(prev => ({ ...prev, spaModel }))}
-                           className={`p-2 text-xs rounded-md border transition-all ${
-                             extras.spaModel === spaModel 
-                               ? 'border-primary bg-primary/10 text-primary' 
-                               : 'border-border hover:border-primary/50'
-                           }`}
-                         >
-                           {spaModel}
-                         </button>
-                       ))}
+                       {(() => {
+                         const { spas } = require('./PoolCatalog');
+                         return spas.map((spa: any) => (
+                           <button
+                             key={spa.model}
+                             onClick={() => setExtras(prev => ({ ...prev, spaModel: spa.model }))}
+                             className={`p-2 text-xs rounded-md border transition-all ${
+                               extras.spaModel === spa.model 
+                                 ? 'border-primary bg-primary/10 text-primary' 
+                                 : 'border-border hover:border-primary/50'
+                             }`}
+                           >
+                             <div>{spa.model}</div>
+                             <div className="text-xs text-muted-foreground">${spa.price.toLocaleString()}</div>
+                           </button>
+                         ));
+                       })()}
                      </div>
                    </div>
                  )}
