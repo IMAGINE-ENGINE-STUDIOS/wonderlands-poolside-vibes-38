@@ -3,7 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Palette, Sparkles, Award, Eye } from "lucide-react";
+import { Palette, Sparkles, Award, Eye, ShoppingCart } from "lucide-react";
+import { useShoppingCart } from "./ShoppingCart";
+import SurveyQuoteTool from "./SurveyQuoteTool";
 
 // Pool finishes now use uploaded images directly in the data
 
@@ -146,6 +148,24 @@ export const poolFinishes: PoolFinish[] = [
 const PoolFinishesSection = () => {
   const [selectedFinish, setSelectedFinish] = useState<PoolFinish | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const { addToCart } = useShoppingCart();
+
+  const handleAddToCart = (finish: PoolFinish) => {
+    addToCart({
+      id: `finish_${finish.id}_${Date.now()}`,
+      name: finish.name,
+      price: finish.price,
+      category: 'finish',
+      image: finish.image,
+      extras: []
+    });
+  };
+
+  const handleRequestQuote = (finish: PoolFinish) => {
+    setSelectedFinish(finish);
+    setShowQuoteModal(true);
+  };
 
   const filteredFinishes = activeCategory === "all" 
     ? poolFinishes 
@@ -280,11 +300,20 @@ const PoolFinishesSection = () => {
                     </div>
                     
                     <div className="flex gap-3">
-                      <Button className="flex-1" variant="gradient">
-                        Select This Finish
+                      <Button 
+                        onClick={() => handleAddToCart(selectedFinish)}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Add to Cart
                       </Button>
-                      <Button variant="outline" onClick={() => setSelectedFinish(null)}>
-                        Close
+                      <Button 
+                        onClick={() => handleRequestQuote(selectedFinish)}
+                        variant="gradient"
+                        className="flex-1"
+                      >
+                        Get Quote
                       </Button>
                     </div>
                   </div>
@@ -327,6 +356,17 @@ const PoolFinishesSection = () => {
           </Card>
         </div>
       </div>
+
+      <SurveyQuoteTool 
+        pool={null}
+        isOpen={showQuoteModal}
+        onClose={() => setShowQuoteModal(false)}
+        customProduct={selectedFinish ? {
+          name: selectedFinish.name,
+          price: selectedFinish.price,
+          type: 'finish'
+        } : undefined}
+      />
     </section>
   );
 };

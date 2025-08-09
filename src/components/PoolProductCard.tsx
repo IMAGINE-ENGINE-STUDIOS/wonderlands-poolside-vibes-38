@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 
-import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu, Edit, ShoppingCart } from "lucide-react";
+import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu, Edit, ShoppingCart, Sun } from "lucide-react";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import ImageEditor from "./ImageEditor";
 import { useShoppingCart } from "./ShoppingCart";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { spas } from "./PoolCatalog";
+import { tanningLedges } from "@/data/poolData";
 
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
@@ -60,6 +61,8 @@ interface PoolExtras {
   tileOption: string;
   spa: boolean;
   spaModel: string;
+  tanningLedge: boolean;
+  tanningLedgeModel: string;
 }
 
 const getCategoryColor = (category: string) => {
@@ -147,7 +150,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     tiles: false,
     tileOption: 'Standard Waterline',
     spa: false,
-    spaModel: 'Mystic'
+    spaModel: 'Mystic',
+    tanningLedge: false,
+    tanningLedgeModel: tanningLedges[0]?.name || 'Genesis'
   });
   
   const { addToCart } = useShoppingCart();
@@ -179,6 +184,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
         return { ...prev, jets: !prev.jets };
       } else if (extra === 'spa') {
         return { ...prev, spa: !prev.spa };
+      } else if (extra === 'tanningLedge') {
+        return { ...prev, tanningLedge: !prev.tanningLedge };
       }
       
       return prev;
@@ -207,6 +214,12 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     if (extras.spa) {
       const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
       if (selectedSpa) total += selectedSpa.price;
+    }
+
+    // Add tanning ledge price if selected
+    if (extras.tanningLedge) {
+      const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
+      if (selectedLedge) total += selectedLedge.price;
     }
     
     return total;
@@ -248,6 +261,13 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
       const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
       if (selectedSpa) {
         cartExtras.push({ name: `${selectedSpa.model} Spa`, price: selectedSpa.price });
+      }
+    }
+
+    if (extras.tanningLedge) {
+      const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
+      if (selectedLedge) {
+        cartExtras.push({ name: `${selectedLedge.name} Tanning Ledge`, price: selectedLedge.price });
       }
     }
 
@@ -590,40 +610,84 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                 
                  
                  <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                   <Checkbox 
-                     checked={extras.spa}
-                     onCheckedChange={() => toggleExtra('spa')}
-                   />
-                   <div className="flex items-center space-x-1">
-                     <Waves size={16} className="text-primary" />
-                      <span className="text-sm">Add Spa (+${extras.spa ? (() => {
-                        const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
-                        return selectedSpa ? selectedSpa.price.toLocaleString() : '0';
-                      })() : '0'})</span>
-                   </div>
-                 </label>
+                    <Checkbox 
+                      checked={extras.spa}
+                      onCheckedChange={() => toggleExtra('spa')}
+                    />
+                    <div className="flex items-center space-x-1">
+                      <Waves size={16} className="text-primary" />
+                       <span className="text-sm">Add Spa (+${extras.spa ? (() => {
+                         const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
+                         return selectedSpa ? selectedSpa.price.toLocaleString() : '0';
+                       })() : '0'})</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                    <Checkbox 
+                      checked={extras.tanningLedge}
+                      onCheckedChange={() => toggleExtra('tanningLedge')}
+                    />
+                    <div className="flex items-center space-x-1">
+                      <Sun size={16} className="text-coral" />
+                       <span className="text-sm">Add Tanning Ledge (+${extras.tanningLedge ? (() => {
+                         const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
+                         return selectedLedge ? selectedLedge.price.toLocaleString() : '0';
+                       })() : '0'})</span>
+                    </div>
+                  </label>
                  
-                 {extras.spa && (
-                   <div className="ml-6 space-y-2">
-                     <label className="text-xs font-medium text-muted-foreground">Select Spa Model:</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {spas.map((spa: any) => (
-                           <button
-                             key={spa.model}
-                             onClick={() => setExtras(prev => ({ ...prev, spaModel: spa.model }))}
-                             className={`p-2 text-xs rounded-md border transition-all ${
-                               extras.spaModel === spa.model 
-                                 ? 'border-primary bg-primary/10 text-primary' 
-                                 : 'border-border hover:border-primary/50'
-                             }`}
-                           >
-                             <div>{spa.model}</div>
-                             <div className="text-xs text-muted-foreground">${spa.price.toLocaleString()}</div>
-                            </button>
-                          ))}
-                     </div>
-                   </div>
-                 )}
+                  {extras.spa && (
+                    <div className="ml-6 space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground">Select Spa Model:</label>
+                       <div className="grid grid-cols-1 gap-2">
+                         {spas.map((spa: any) => (
+                            <button
+                              key={spa.model}
+                              onClick={() => setExtras(prev => ({ ...prev, spaModel: spa.model }))}
+                              className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
+                                extras.spaModel === spa.model 
+                                  ? 'border-primary bg-primary/10 text-primary' 
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              {spa.image && (
+                                <img src={spa.image} alt={spa.model} className="w-8 h-8 rounded object-cover" />
+                              )}
+                              <div className="flex-1 text-left">
+                                <div>{spa.model}</div>
+                                <div className="text-xs text-muted-foreground">${spa.price.toLocaleString()}</div>
+                              </div>
+                             </button>
+                           ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {extras.tanningLedge && (
+                    <div className="ml-6 space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground">Select Tanning Ledge Model:</label>
+                       <div className="grid grid-cols-1 gap-2">
+                         {tanningLedges.map((ledge: any) => (
+                            <button
+                              key={ledge.name}
+                              onClick={() => setExtras(prev => ({ ...prev, tanningLedgeModel: ledge.name }))}
+                              className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
+                                extras.tanningLedgeModel === ledge.name 
+                                  ? 'border-coral bg-coral/10 text-coral' 
+                                  : 'border-border hover:border-coral/50'
+                              }`}
+                            >
+                              <img src={ledge.image} alt={ledge.name} className="w-8 h-8 rounded object-cover" />
+                              <div className="flex-1 text-left">
+                                <div>{ledge.name}</div>
+                                <div className="text-xs text-muted-foreground">${ledge.price.toLocaleString()}</div>
+                              </div>
+                             </button>
+                           ))}
+                      </div>
+                    </div>
+                  )}
                </div>
              </div>
 

@@ -3,76 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Droplets, Palette, Shield, Star, DollarSign } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Droplets, Palette, Shield, Star, DollarSign, ShoppingCart } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import { useShoppingCart } from "./ShoppingCart";
+import { poolLiners } from "@/data/poolData";
 
 interface Liner {
   name: string;
   price: number;
-  type: 'vinyl' | 'fiberglass' | 'tile';
-  pattern: string;
-  durability: number;
-  warranty: string;
+  type: string;
   image?: string;
-  features: string[];
+  description: string;
 }
-
-const liners: Liner[] = [
-  {
-    name: "Ocean Blue Mosaic",
-    price: 5000,
-    type: 'tile',
-    pattern: "Blue Mosaic",
-    durability: 25,
-    warranty: "25 years",
-    features: ["Fade resistant", "Easy maintenance", "Premium finish"]
-  },
-  {
-    name: "Crystal Clear Vinyl",
-    price: 5000,
-    type: 'vinyl',
-    pattern: "Clear Blue",
-    durability: 15,
-    warranty: "15 years",
-    features: ["Budget friendly", "Quick installation", "Smooth finish"]
-  },
-  {
-    name: "Natural Stone",
-    price: 5000,
-    type: 'fiberglass',
-    pattern: "Stone Texture",
-    durability: 30,
-    warranty: "30 years",
-    features: ["Ultra durable", "Natural look", "Low maintenance"]
-  },
-  {
-    name: "Tropical Paradise",
-    price: 5000,
-    type: 'vinyl',
-    pattern: "Tropical Pattern",
-    durability: 18,
-    warranty: "18 years",
-    features: ["Vibrant colors", "Slip resistant", "UV protected"]
-  },
-  {
-    name: "Midnight Diamond",
-    price: 5000,
-    type: 'tile',
-    pattern: "Diamond Pattern",
-    durability: 25,
-    warranty: "25 years",
-    features: ["Elegant design", "Stain resistant", "Premium quality"]
-  },
-  {
-    name: "Arctic White",
-    price: 5000,
-    type: 'vinyl',
-    pattern: "Pure White",
-    durability: 16,
-    warranty: "16 years",
-    features: ["Clean appearance", "Heat resistant", "Easy clean"]
-  }
-];
 
 const getTypeColor = (type: string) => {
   switch (type) {
@@ -95,10 +38,29 @@ const getTypeIcon = (type: string) => {
 const LinersSection = () => {
   const [selectedLiner, setSelectedLiner] = useState<Liner | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const { addToCart } = useShoppingCart();
+
+  const handleLinerClick = (liner: Liner) => {
+    setSelectedLiner(liner);
+    setShowDetailModal(true);
+  };
 
   const handleRequestQuote = (liner: Liner) => {
     setSelectedLiner(liner);
+    setShowDetailModal(false);
     setShowQuoteModal(true);
+  };
+
+  const handleAddToCart = (liner: Liner) => {
+    addToCart({
+      id: `liner_${liner.name.replace(/\s+/g, '_')}_${Date.now()}`,
+      name: liner.name,
+      price: liner.price,
+      category: 'liner',
+      image: liner.image,
+      extras: []
+    });
   };
 
   return (
@@ -115,10 +77,11 @@ const LinersSection = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {liners.map((liner, index) => (
+            {poolLiners.map((liner, index) => (
               <Card 
                 key={liner.name} 
-                className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden"
+                className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer"
+                onClick={() => handleLinerClick(liner)}
               >
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between mb-3">
@@ -142,51 +105,35 @@ const LinersSection = () => {
                 
                 <CardContent className="space-y-4">
                   {/* Liner Preview */}
-                  <div className="w-full h-32 bg-gradient-to-br from-primary/20 to-teal/20 rounded-lg flex items-center justify-center border-2 border-muted">
-                    <div className="text-center">
-                      <Palette size={32} className="text-primary/60 mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">{liner.pattern}</p>
-                    </div>
+                  <div className="w-full h-32 rounded-lg overflow-hidden border-2 border-muted">
+                    <img 
+                      src={liner.image} 
+                      alt={liner.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
                   </div>
                   
                   {/* Price */}
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-5 w-5 text-teal" />
                     <span className="text-2xl font-bold text-foreground">
-                      {liner.price.toLocaleString()}
+                      ${liner.price.toLocaleString()}
                     </span>
                   </div>
                   
-                  {/* Specifications */}
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Durability:</span>
-                      <span className="font-medium">{liner.durability} years</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Warranty:</span>
-                      <span className="font-medium">{liner.warranty}</span>
-                    </div>
-                  </div>
+                  {/* Description */}
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {liner.description}
+                  </p>
                   
                   <Separator />
                   
-                  {/* Features */}
-                  <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">Features:</h4>
-                    <ul className="space-y-1">
-                      {liner.features.map((feature, idx) => (
-                        <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  
                   {/* Action Button */}
                   <Button 
-                    onClick={() => handleRequestQuote(liner)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRequestQuote(liner);
+                    }}
                     variant="gradient"
                     className="w-full hover:scale-105 transition-all duration-300"
                     size="sm"
@@ -200,6 +147,59 @@ const LinersSection = () => {
         </div>
       </section>
       
+      {/* Liner Detail Modal */}
+      <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
+        <DialogContent className="max-w-2xl">
+          {selectedLiner && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl">{selectedLiner.name}</DialogTitle>
+              </DialogHeader>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <img 
+                    src={selectedLiner.image} 
+                    alt={selectedLiner.name}
+                    className="w-full h-64 object-cover rounded-lg"
+                  />
+                </div>
+                <div className="space-y-4">
+                  <Badge className={`${getTypeColor(selectedLiner.type)} text-white`}>
+                    {selectedLiner.type}
+                  </Badge>
+                  <p className="text-foreground/80">{selectedLiner.description}</p>
+                  
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5 text-teal" />
+                    <span className="text-2xl font-bold text-foreground">
+                      ${selectedLiner.price.toLocaleString()}
+                    </span>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={() => handleAddToCart(selectedLiner)}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      Add to Cart
+                    </Button>
+                    <Button 
+                      onClick={() => handleRequestQuote(selectedLiner)}
+                      variant="gradient"
+                      className="flex-1"
+                    >
+                      Get Quote
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <SurveyQuoteTool 
         pool={null}
         isOpen={showQuoteModal}
