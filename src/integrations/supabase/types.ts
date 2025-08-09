@@ -728,6 +728,16 @@ export type Database = {
       }
     }
     Functions: {
+      admin_login: {
+        Args: { email_param: string; password_param: string }
+        Returns: {
+          success: boolean
+          admin_id: string
+          admin_email: string
+          admin_role: string
+          session_token: string
+        }[]
+      }
       cleanup_expired_sessions: {
         Args: Record<PropertyKey, never>
         Returns: number
@@ -765,6 +775,15 @@ export type Database = {
       promote_user_to_main_admin: {
         Args: { user_email: string }
         Returns: boolean
+      }
+      validate_admin_session: {
+        Args: { token: string }
+        Returns: {
+          is_valid: boolean
+          admin_id: string
+          admin_email: string
+          admin_role: string
+        }[]
       }
       verify_admin_password: {
         Args: { input_email: string; input_password: string }
