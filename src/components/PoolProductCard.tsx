@@ -10,6 +10,7 @@ import StripeCheckoutButton from "./StripeCheckoutButton";
 import ImageEditor from "./ImageEditor";
 import { useShoppingCart } from "./ShoppingCart";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { spas } from "./PoolCatalog";
 
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
@@ -204,8 +205,6 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     
     // Add spa price if selected
     if (extras.spa) {
-      // Import spas from PoolCatalog
-      const { spas } = require('./PoolCatalog');
       const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
       if (selectedSpa) total += selectedSpa.price;
     }
@@ -246,7 +245,6 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     }
 
     if (extras.spa) {
-      const { spas } = require('./PoolCatalog');
       const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
       if (selectedSpa) {
         cartExtras.push({ name: `${selectedSpa.model} Spa`, price: selectedSpa.price });
@@ -598,21 +596,18 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                    />
                    <div className="flex items-center space-x-1">
                      <Waves size={16} className="text-primary" />
-                     <span className="text-sm">Add Spa (+${extras.spa ? (() => {
-                       const { spas } = require('./PoolCatalog');
-                       const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
-                       return selectedSpa ? selectedSpa.price.toLocaleString() : '0';
-                     })() : '0'})</span>
+                      <span className="text-sm">Add Spa (+${extras.spa ? (() => {
+                        const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
+                        return selectedSpa ? selectedSpa.price.toLocaleString() : '0';
+                      })() : '0'})</span>
                    </div>
                  </label>
                  
                  {extras.spa && (
                    <div className="ml-6 space-y-2">
                      <label className="text-xs font-medium text-muted-foreground">Select Spa Model:</label>
-                     <div className="grid grid-cols-2 gap-2">
-                       {(() => {
-                         const { spas } = require('./PoolCatalog');
-                         return spas.map((spa: any) => (
+                      <div className="grid grid-cols-2 gap-2">
+                        {spas.map((spa: any) => (
                            <button
                              key={spa.model}
                              onClick={() => setExtras(prev => ({ ...prev, spaModel: spa.model }))}
@@ -624,9 +619,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                            >
                              <div>{spa.model}</div>
                              <div className="text-xs text-muted-foreground">${spa.price.toLocaleString()}</div>
-                           </button>
-                         ));
-                       })()}
+                            </button>
+                          ))}
                      </div>
                    </div>
                  )}
