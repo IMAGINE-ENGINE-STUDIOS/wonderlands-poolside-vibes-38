@@ -16,7 +16,13 @@ interface PoolTile {
   description: string;
 }
 
-const PoolTilesSection = () => {
+interface PoolTilesSectionProps {
+  onTileSelect?: (tile: PoolTile) => void;
+  selectedTile?: string;
+  allowSelection?: boolean;
+}
+
+const PoolTilesSection = ({ onTileSelect, selectedTile: selectedTileProp, allowSelection }: PoolTilesSectionProps = {}) => {
   const [selectedTile, setSelectedTile] = useState<PoolTile | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -157,23 +163,35 @@ const PoolTilesSection = () => {
                     </span>
                   </div>
                   
-                  <div className="flex gap-3">
-                    <Button 
-                      onClick={() => handleAddToCart(selectedTile)}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      Add to Cart
-                    </Button>
-                    <Button 
-                      onClick={() => handleRequestQuote(selectedTile)}
-                      variant="gradient"
-                      className="flex-1 bg-gradient-to-r from-coral to-orange"
-                    >
-                      Get Quote
-                    </Button>
-                  </div>
+                   <div className="flex gap-3">
+                     {allowSelection && !selectedTileProp && selectedTile && (
+                       <Button 
+                         onClick={() => {
+                           onTileSelect?.(selectedTile!);
+                           setShowDetailModal(false);
+                         }}
+                         variant="default"
+                         className="flex-1"
+                       >
+                         Select Tile
+                       </Button>
+                     )}
+                     <Button 
+                       onClick={() => handleAddToCart(selectedTile)}
+                       variant="outline"
+                       className="flex-1"
+                     >
+                       <ShoppingCart className="h-4 w-4 mr-2" />
+                       Add to Cart
+                     </Button>
+                     <Button 
+                       onClick={() => handleRequestQuote(selectedTile)}
+                       variant="gradient"
+                       className="flex-1 bg-gradient-to-r from-coral to-orange"
+                     >
+                       Get Quote
+                     </Button>
+                   </div>
                 </div>
               </div>
             </>

@@ -17,6 +17,12 @@ interface Liner {
   description: string;
 }
 
+interface LinersSectionProps {
+  onLinerSelect?: (liner: Liner) => void;
+  selectedLiner?: string;
+  allowSelection?: boolean;
+}
+
 const getTypeColor = (type: string) => {
   switch (type) {
     case 'tile': return 'bg-gradient-to-r from-coral to-orange';
@@ -35,7 +41,7 @@ const getTypeIcon = (type: string) => {
   }
 };
 
-const LinersSection = () => {
+const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowSelection }: LinersSectionProps = {}) => {
   const [selectedLiner, setSelectedLiner] = useState<Liner | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -177,6 +183,18 @@ const LinersSection = () => {
                   </div>
                   
                   <div className="flex gap-3">
+                    {allowSelection && !selectedLinerProp && selectedLiner && (
+                      <Button 
+                        onClick={() => {
+                          onLinerSelect?.(selectedLiner!);
+                          setShowDetailModal(false);
+                        }}
+                        variant="default"
+                        className="flex-1"
+                      >
+                        Select Liner
+                      </Button>
+                    )}
                     <Button 
                       onClick={() => handleAddToCart(selectedLiner)}
                       variant="outline"
