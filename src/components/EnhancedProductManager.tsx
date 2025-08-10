@@ -34,6 +34,7 @@ import PoolProductCard from './PoolProductCard';
 import ProductCard from './ProductCard';
 import UnifiedProductCard from './UnifiedProductCard';
 import { PoolFinish } from './PoolFinishesSection';
+import ImageUpload from './ImageUpload';
 
 type ProductCategory = 'outdoors' | 'pools' | 'maintenance' | 'finishes' | 'liners' | 'covers';
 
@@ -1208,6 +1209,14 @@ const ProductEditor = ({ product, onSave, onCancel, isCreating }: ProductEditorP
             />
           </div>
         </div>
+
+        {/* Image Upload */}
+        <ImageUpload
+          currentImage={editedProduct.image}
+          onImageChange={(imageUrl) => updateField('image', imageUrl)}
+          label="Product Image"
+          aspectRatio="aspect-video"
+        />
 
         {/* Category-specific fields */}
         {editedProduct.category === 'pools' && (

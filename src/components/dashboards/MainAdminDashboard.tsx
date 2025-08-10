@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Users, Package, BarChart3, Plus, LogOut } from 'lucide-react';
+import { Settings, Users, Package, BarChart3, Plus, Home } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import EnhancedProductManager from '@/components/EnhancedProductManager';
 import AdminUserManagement from '@/components/AdminUserManagement';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 const MainAdminDashboard = () => {
-  const { profile, signOut } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState({
     totalProducts: 0,
@@ -69,8 +69,8 @@ const MainAdminDashboard = () => {
     fetchStats();
   }, []);
 
-  const handleSignOut = async () => {
-    await signOut();
+  const handleGoHome = () => {
+    navigate('/');
   };
 
   return (
@@ -86,11 +86,11 @@ const MainAdminDashboard = () => {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-muted-foreground">
-                Welcome, {profile?.first_name} {profile?.last_name}
+                Pool Management System
               </span>
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
+              <Button variant="outline" size="sm" onClick={handleGoHome}>
+                <Home className="h-4 w-4 mr-2" />
+                Go Home
               </Button>
             </div>
           </div>
@@ -247,7 +247,7 @@ const MainAdminDashboard = () => {
                 <CardDescription>Manage all users, suppliers, and consumers</CardDescription>
               </CardHeader>
               <CardContent>
-                <AdminUserManagement currentAdmin={profile} />
+                <AdminUserManagement currentAdmin={null} />
               </CardContent>
             </Card>
           </TabsContent>
