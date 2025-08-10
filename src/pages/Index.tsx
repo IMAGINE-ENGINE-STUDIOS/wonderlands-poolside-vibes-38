@@ -11,12 +11,10 @@ import ShoppingCart from "@/components/ShoppingCart";
 import RealTimeContentEditor from "@/components/RealTimeContentEditor";
 import { Button } from "@/components/ui/button";
 import { useShoppingCart } from "@/components/ShoppingCart";
-import { ShoppingCart as CartIcon, Edit, Badge, Settings } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ShoppingCart as CartIcon, Badge } from "lucide-react";
 
 const Index = () => {
   const [showCart, setShowCart] = useState(false);
-  const [showCMSEditor, setShowCMSEditor] = useState(false);
   const { getCartCount } = useShoppingCart();
 
   return (
@@ -24,32 +22,8 @@ const Index = () => {
       <Header />
       <FloridaPoolElements />
       
-      {/* Floating Action Buttons */}
-      <div className="fixed top-20 right-4 z-50 flex flex-col gap-2">
-        {/* Admin Dashboard Button */}
-        <Link to="/dashboard">
-          <Button
-            variant="secondary"
-            size="icon"
-            className="shadow-lg"
-            title="Admin Dashboard"
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
-        </Link>
-        
-        {/* CMS Editor Button */}
-        <Button
-          onClick={() => setShowCMSEditor(true)}
-          variant="secondary"
-          size="icon"
-          className="shadow-lg"
-          title="Edit Page Content"
-        >
-          <Edit className="h-4 w-4" />
-        </Button>
-        
-        {/* Shopping Cart Button */}
+      {/* Shopping Cart Button */}
+      <div className="fixed top-20 right-4 z-50">
         <Button
           onClick={() => setShowCart(true)}
           variant="secondary"
@@ -79,12 +53,6 @@ const Index = () => {
       <ShoppingCart 
         isOpen={showCart} 
         onClose={() => setShowCart(false)} 
-      />
-      
-      {/* CMS Content Editor */}
-      <RealTimeContentEditor
-        isOpen={showCMSEditor}
-        onClose={() => setShowCMSEditor(false)}
       />
     </div>
   );
