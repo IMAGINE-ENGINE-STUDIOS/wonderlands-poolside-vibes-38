@@ -2,6 +2,7 @@ import { useState } from "react";
 import Hero from "@/components/Hero";
 import Header from "@/components/Header";
 import PoolCatalog from "@/components/PoolCatalog";
+import SpaSection from "@/components/SpaSection";
 import PoolFinishesSection from "@/components/PoolFinishesSection";
 import AutomaticCoversSection from "@/components/AutomaticCoversSection";
 import FloridaPoolElements from "@/components/FloridaPoolElements";
@@ -44,6 +45,7 @@ const Index = () => {
         <Hero />
         <WonderlandsBrandShowcase />
         <PoolCatalog />
+        <SpaSection />
         <PoolFinishesSection />
         <AutomaticCoversSection />
         <Footer />
