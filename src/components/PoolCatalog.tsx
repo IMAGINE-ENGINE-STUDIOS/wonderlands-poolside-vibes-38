@@ -168,7 +168,7 @@ const pools: Pool[] = [
     model: "Pleasant Cove", 
     price: 51300, 
     category: 'standard', 
-    image: "/src/assets/pools/cape-cod.jpg",
+    image: "/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.png",
     dimensions: "11′ × 22′",
     depth: "3′ 6″ – 5′ 6″",
     installationTimeWeeks: 4,
