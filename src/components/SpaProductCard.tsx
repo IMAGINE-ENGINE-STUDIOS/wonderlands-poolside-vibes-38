@@ -277,6 +277,7 @@ if (extras.jets) cartExtras.push({ name: 'Premium Spa Jets', price: getExtraPric
   )}
 </div>
 <p className="text-xs font-medium text-center">{finish.name}</p>
+<p className="text-[10px] text-muted-foreground text-center">Included</p>
                       </div>
                     </CarouselItem>
                   ))}
@@ -291,7 +292,7 @@ if (extras.jets) cartExtras.push({ name: 'Premium Spa Jets', price: getExtraPric
               <h4 className="font-semibold text-foreground">Spa Tiles</h4>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
-                  {poolTiles.slice(0, 6).map((tile) => (
+                  {poolTiles.map((tile) => (
                     <CarouselItem key={tile.name} className="pl-1 basis-1/2 sm:basis-1/3">
                       <div 
                         className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
@@ -330,7 +331,7 @@ if (extras.jets) cartExtras.push({ name: 'Premium Spa Jets', price: getExtraPric
               <h4 className="font-semibold text-foreground">Spa Liners</h4>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
-                  {poolLiners.slice(0, 6).map((liner) => (
+                  {poolLiners.map((liner) => (
                     <CarouselItem key={liner.name} className="pl-1 basis-1/2 sm:basis-1/3">
                       <div 
                         className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
