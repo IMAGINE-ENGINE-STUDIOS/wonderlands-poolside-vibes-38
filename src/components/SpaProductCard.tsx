@@ -8,6 +8,12 @@ import { Waves, DollarSign, Star, Clock, Award, Flame, Zap, Palette, ShoppingCar
 import { useShoppingCart } from "./ShoppingCart";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { poolLiners, poolTiles } from "@/data/poolData";
+import aquamarineImg from "@/assets/finishes/aquamarine-g3.jpg";
+import sapphireBlueImg from "@/assets/finishes/sapphire-blue-g3.jpg";
+import oceanBlueImg from "@/assets/finishes/ocean-blue-g3.jpg";
+import nightSkyImg from "@/assets/finishes/night-sky-g3.jpg";
+import athensPearlWhiteImg from "@/assets/finishes/athens-pearl-white-g3.jpg";
+import coastalBronzeImg from "@/assets/finishes/coastal-bronze-g3.jpg";
 
 interface Spa {
   model: string;
@@ -55,23 +61,23 @@ const getExtraPrice = (extra: string) => {
 
 // Pool finishes data
 const poolFinishes = [
-  { name: 'Ocean Blue' }, 
-  { name: 'Sapphire Blue' }, 
-  { name: 'Aquamarine' }, 
-  { name: 'Night Sky' },
-  { name: 'Athens Pearl White' },
-  { name: 'Coastal Bronze' }
+  { name: 'Ocean Blue', image: oceanBlueImg }, 
+  { name: 'Sapphire Blue', image: sapphireBlueImg }, 
+  { name: 'Aquamarine', image: aquamarineImg }, 
+  { name: 'Night Sky', image: nightSkyImg },
+  { name: 'Athens Pearl White', image: athensPearlWhiteImg },
+  { name: 'Coastal Bronze', image: coastalBronzeImg }
 ];
 
 const SpaProductCard = ({ spa, onViewDetails, onRequestQuote }: SpaProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
-  const [extras, setExtras] = useState<SpaExtras>({
-    finish: poolFinishes[0]?.name || '',
-    liner: poolLiners[0]?.name || '',
-    tiles: poolTiles[0]?.name || '',
-    heater: false,
-    jets: false,
-  });
+const [extras, setExtras] = useState<SpaExtras>({
+  finish: poolFinishes[0]?.name || '',
+  liner: '',
+  tiles: '',
+  heater: false,
+  jets: false,
+});
   
   const { addToCart } = useShoppingCart();
 
@@ -86,30 +92,46 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote }: SpaProductCardPr
     }));
   };
 
-  const setExtra = (extra: keyof SpaExtras, value: any) => {
-    setExtras(prev => ({
-      ...prev,
-      [extra]: value
-    }));
-  };
+const setExtra = (extra: keyof SpaExtras, value: any) => {
+  setExtras(prev => {
+    if (extra === 'tiles') {
+      return { ...prev, tiles: value, liner: '' };
+    }
+    if (extra === 'liner') {
+      return { ...prev, liner: value, tiles: '' };
+    }
+    return { ...prev, [extra]: value };
+  });
+};
 
-  const calculateTotalPrice = () => {
-    let total = spa.price;
-    if (extras.heater) total += getExtraPrice('heater');
-    if (extras.jets) total += getExtraPrice('jets');
-    return total;
-  };
+const calculateTotalPrice = () => {
+  let total = spa.price;
+  if (extras.heater) total += getExtraPrice('heater');
+  if (extras.jets) total += getExtraPrice('jets');
+  if (extras.tiles) {
+    const t = poolTiles.find(t => t.name === extras.tiles);
+    if (t?.price) total += t.price / 2;
+  }
+  if (extras.liner) {
+    const l = poolLiners.find(l => l.name === extras.liner);
+    if (l?.price) total += l.price / 2;
+  }
+  return total;
+};
 
   const hasExtras = extras.heater || extras.jets;
 
   const handleAddToCart = () => {
     const cartExtras = [];
     
-    if (extras.finish) cartExtras.push({ name: `Finish: ${extras.finish}`, price: 0 });
-    if (extras.liner) cartExtras.push({ name: `Liner: ${extras.liner}`, price: 0 });
-    if (extras.tiles) cartExtras.push({ name: `Tiles: ${extras.tiles}`, price: 0 });
-    if (extras.heater) cartExtras.push({ name: 'Spa Heater', price: getExtraPrice('heater') });
-    if (extras.jets) cartExtras.push({ name: 'Premium Spa Jets', price: getExtraPrice('jets') });
+const linerPrice = extras.liner ? (poolLiners.find(l => l.name === extras.liner)?.price || 0) / 2 : 0;
+const tilePrice = extras.tiles ? (poolTiles.find(t => t.name === extras.tiles)?.price || 0) / 2 : 0;
+
+if (extras.finish) cartExtras.push({ name: `Finish: ${extras.finish}`, price: 0 });
+if (extras.liner) cartExtras.push({ name: `Liner: ${extras.liner}`, price: linerPrice });
+if (extras.tiles) cartExtras.push({ name: `Tiles: ${extras.tiles}`, price: tilePrice });
+if (extras.heater) cartExtras.push({ name: 'Spa Heater', price: getExtraPrice('heater') });
+if (extras.jets) cartExtras.push({ name: 'Premium Spa Jets', price: getExtraPrice('jets') });
 
     addToCart({
       id: `spa_${spa.model.replace(/\s+/g, '_')}_${Date.now()}`,
@@ -240,10 +262,21 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote }: SpaProductCardPr
                         }`}
                         onClick={() => setExtra('finish', finish.name)}
                       >
-                        <div className="w-full h-12 rounded-md mb-2 bg-gradient-to-br from-primary/20 to-teal/20 flex items-center justify-center">
-                          <Palette size={20} className="text-primary/60" />
-                        </div>
-                        <p className="text-xs font-medium text-center">{finish.name}</p>
+<div className="w-full h-16 rounded-md mb-2 overflow-hidden">
+  {finish.image ? (
+    <img 
+      src={finish.image} 
+      alt={`${finish.name} finish`} 
+      className="w-full h-full object-cover"
+      loading="lazy"
+    />
+  ) : (
+    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-teal/20 flex items-center justify-center">
+      <Palette size={20} className="text-primary/60" />
+    </div>
+  )}
+</div>
+<p className="text-xs font-medium text-center">{finish.name}</p>
                       </div>
                     </CarouselItem>
                   ))}
@@ -281,7 +314,7 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote }: SpaProductCardPr
                         </div>
                         <p className="text-xs font-medium text-center">{tile.name}</p>
                         {tile.price > 0 && (
-                          <p className="text-xs text-teal font-semibold text-center">+${tile.price.toLocaleString()}</p>
+<p className="text-xs text-teal font-semibold text-center">+${(tile.price / 2).toLocaleString()}</p>
                         )}
                       </div>
                     </CarouselItem>
@@ -320,7 +353,7 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote }: SpaProductCardPr
                         </div>
                         <p className="text-xs font-medium text-center">{liner.name}</p>
                         {liner.price > 0 && (
-                          <p className="text-xs text-secondary font-semibold text-center">+${liner.price.toLocaleString()}</p>
+                          <p className="text-xs text-secondary font-semibold text-center">+${(liner.price / 2).toLocaleString()}</p>
                         )}
                       </div>
                     </CarouselItem>

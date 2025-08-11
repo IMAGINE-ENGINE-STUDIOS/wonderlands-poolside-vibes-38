@@ -625,14 +625,16 @@ const PoolCatalog = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {pools.map((pool, index) => (
-              <PoolProductCard
-                key={pool.model}
-                pool={pool}
-                onViewDetails={handleViewDetails}
-                onRequestQuote={handleRequestQuote}
-              />
-            ))}
+{pools
+  .filter((pool) => pool.model !== 'Pleasant Cove')
+  .map((pool) => (
+    <PoolProductCard
+      key={pool.model}
+      pool={pool}
+      onViewDetails={handleViewDetails}
+      onRequestQuote={handleRequestQuote}
+    />
+  ))}
           </div>
         </div>
       </section>
