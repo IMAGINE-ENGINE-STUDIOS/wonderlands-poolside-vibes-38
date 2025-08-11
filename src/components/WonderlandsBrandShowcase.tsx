@@ -169,25 +169,6 @@ const WonderlandsBrandShowcase = () => {
           </div>
         </div>
 
-        {/* Brand Stats */}
-        <div className={`mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <div className="text-center">
-            <div className="text-3xl md:text-4xl font-bold text-primary mb-2">10K+</div>
-            <div className="text-muted-foreground">Happy Customers</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl md:text-4xl font-bold text-teal mb-2">500+</div>
-            <div className="text-muted-foreground">Pool Installations</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl md:text-4xl font-bold text-coral mb-2">15+</div>
-            <div className="text-muted-foreground">Years Experience</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl md:text-4xl font-bold text-orange mb-2">100%</div>
-            <div className="text-muted-foreground">Satisfaction Rate</div>
-          </div>
-        </div>
       </div>
     </section>
   );
