@@ -4,10 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Waves, DollarSign, ShoppingCart, Star, Ruler, Thermometer } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Waves, DollarSign, ShoppingCart, Star, Ruler, Thermometer, Zap, Flame, Palette } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { useShoppingCart } from "./ShoppingCart";
 import { spas } from "./PoolCatalog";
+import { poolLiners, poolTiles } from "../data/poolData";
 
 interface Spa {
   model: string;
@@ -22,11 +24,85 @@ interface Spa {
   warrantyYears?: number | string;
 }
 
+interface SpaExtras {
+  finish: string;
+  liner: string;
+  tiles: string;
+  heater: boolean;
+  jets: boolean;
+}
+
 const SpaSection = () => {
   const [selectedSpa, setSelectedSpa] = useState<Spa | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showDetails, setShowDetails] = useState<{[key: string]: boolean}>({});
+  const [spaExtras, setSpaExtras] = useState<{[key: string]: SpaExtras}>({});
   const { addToCart } = useShoppingCart();
+
+  const getExtraPrice = (extra: string) => {
+    switch (extra) {
+      case 'heater': return 3500;
+      case 'jets': return 2500;
+      default: return 0;
+    }
+  };
+
+  // Pool finishes data
+  const poolFinishes = [
+    { name: 'Ocean Blue' }, { name: 'Sapphire Blue' }, { name: 'Aquamarine' }, { name: 'Night Sky' }
+  ];
+
+  const initializeSpaExtras = (spaModel: string) => {
+    if (!spaExtras[spaModel]) {
+      setSpaExtras(prev => ({
+        ...prev,
+        [spaModel]: {
+          finish: poolFinishes[0]?.name || '',
+          liner: poolLiners[0]?.name || '',
+          tiles: poolTiles[0]?.name || '',
+          heater: false,
+          jets: false,
+        }
+      }));
+    }
+  };
+
+  const toggleSpaExtra = (spaModel: string, extra: keyof SpaExtras) => {
+    setSpaExtras(prev => ({
+      ...prev,
+      [spaModel]: {
+        ...prev[spaModel],
+        [extra]: typeof prev[spaModel]?.[extra] === 'boolean' 
+          ? !prev[spaModel][extra] 
+          : prev[spaModel]?.[extra] || ''
+      }
+    }));
+  };
+
+  const setSpaExtra = (spaModel: string, extra: keyof SpaExtras, value: any) => {
+    setSpaExtras(prev => ({
+      ...prev,
+      [spaModel]: {
+        ...prev[spaModel],
+        finish: extra === 'finish' ? value : prev[spaModel]?.finish || '',
+        liner: extra === 'liner' ? value : prev[spaModel]?.liner || '',
+        tiles: extra === 'tiles' ? value : prev[spaModel]?.tiles || '',
+        heater: extra === 'heater' ? value : prev[spaModel]?.heater || false,
+        jets: extra === 'jets' ? value : prev[spaModel]?.jets || false,
+      }
+    }));
+  };
+
+  const calculateSpaTotal = (spa: Spa) => {
+    const extras = spaExtras[spa.model];
+    let total = spa.price;
+    
+    if (extras?.heater) total += getExtraPrice('heater');
+    if (extras?.jets) total += getExtraPrice('jets');
+    
+    return total;
+  };
 
   const handleSpaClick = (spa: Spa) => {
     setSelectedSpa(spa);
@@ -40,14 +116,31 @@ const SpaSection = () => {
   };
 
   const handleAddToCart = (spa: Spa) => {
+    const extras = spaExtras[spa.model];
+    const extrasArray = [];
+    
+    if (extras?.finish) extrasArray.push(`Finish: ${extras.finish}`);
+    if (extras?.liner) extrasArray.push(`Liner: ${extras.liner}`);
+    if (extras?.tiles) extrasArray.push(`Tiles: ${extras.tiles}`);
+    if (extras?.heater) extrasArray.push('Heater');
+    if (extras?.jets) extrasArray.push('Spa Jets');
+    
     addToCart({
       id: `spa_${spa.model.replace(/\s+/g, '_')}_${Date.now()}`,
       name: `${spa.model} Spa`,
-      price: spa.price,
+      price: calculateSpaTotal(spa),
       category: 'spa',
       image: spa.image,
-      extras: []
+      extras: extrasArray
     });
+  };
+
+  const toggleDetails = (spaModel: string) => {
+    setShowDetails(prev => ({
+      ...prev,
+      [spaModel]: !prev[spaModel]
+    }));
+    initializeSpaExtras(spaModel);
   };
 
   const getCategoryColor = (category: string) => {
@@ -73,11 +166,14 @@ const SpaSection = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {spas.map((spa, index) => (
+            {spas.map((spa, index) => {
+              const currentExtras = spaExtras[spa.model];
+              const isDetailsShown = showDetails[spa.model];
+              
+              return (
               <Card 
                 key={spa.model} 
-                className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer"
-                onClick={() => handleSpaClick(spa)}
+                className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden"
               >
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between mb-3">
@@ -101,7 +197,10 @@ const SpaSection = () => {
                 
                 <CardContent className="space-y-4">
                   {/* Spa Preview */}
-                  <div className="w-full h-32 rounded-lg overflow-hidden border-2 border-muted bg-gradient-to-br from-primary/20 to-teal/20">
+                  <div 
+                    className="w-full h-32 rounded-lg overflow-hidden border-2 border-muted bg-gradient-to-br from-primary/20 to-teal/20 cursor-pointer"
+                    onClick={() => toggleDetails(spa.model)}
+                  >
                     {spa.image ? (
                       <img 
                         src={spa.image} 
@@ -122,8 +221,13 @@ const SpaSection = () => {
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-5 w-5 text-primary" />
                     <span className="text-2xl font-bold text-foreground">
-                      ${spa.price.toLocaleString()}
+                      ${calculateSpaTotal(spa).toLocaleString()}
                     </span>
+                    {isDetailsShown && calculateSpaTotal(spa) !== spa.price && (
+                      <span className="text-sm text-muted-foreground line-through">
+                        ${spa.price.toLocaleString()}
+                      </span>
+                    )}
                   </div>
                   
                   {/* Specifications */}
@@ -159,21 +263,151 @@ const SpaSection = () => {
                     </div>
                   )}
                   
-                  {/* Action Button */}
-                  <Button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRequestQuote(spa);
-                    }}
-                    variant="gradient"
-                    className="w-full hover:scale-105 transition-all duration-300"
-                    size="sm"
-                  >
-                    Get Quote
-                  </Button>
+                  {/* Customization Options */}
+                  {isDetailsShown && (
+                    <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
+                      <h4 className="font-semibold text-sm">Customize Your Spa</h4>
+                      
+                      {/* Finishes */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                          <Palette size={12} />
+                          Finish:
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {poolFinishes.slice(0, 4).map((finish: any) => (
+                            <button
+                              key={finish.name}
+                              onClick={() => setSpaExtra(spa.model, 'finish', finish.name)}
+                              className={`p-2 text-xs rounded-md border transition-all ${
+                                currentExtras?.finish === finish.name 
+                                  ? 'border-primary bg-primary/10 text-primary' 
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              {finish.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Tiles */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground">Tiles:</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {poolTiles.slice(0, 4).map((tile: any) => (
+                            <button
+                              key={tile.name}
+                              onClick={() => setSpaExtra(spa.model, 'tiles', tile.name)}
+                              className={`p-2 text-xs rounded-md border transition-all ${
+                                currentExtras?.tiles === tile.name 
+                                  ? 'border-teal bg-teal/10 text-teal' 
+                                  : 'border-border hover:border-teal/50'
+                              }`}
+                            >
+                              {tile.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Liners */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground">Liners:</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {poolLiners.slice(0, 4).map((liner: any) => (
+                            <button
+                              key={liner.name}
+                              onClick={() => setSpaExtra(spa.model, 'liner', liner.name)}
+                              className={`p-2 text-xs rounded-md border transition-all ${
+                                currentExtras?.liner === liner.name 
+                                  ? 'border-secondary bg-secondary/10 text-secondary' 
+                                  : 'border-border hover:border-secondary/50'
+                              }`}
+                            >
+                              {liner.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Add-ons */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground">Add-ons:</label>
+                        <div className="space-y-2">
+                          <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                            <Checkbox 
+                              checked={currentExtras?.heater || false}
+                              onCheckedChange={() => toggleSpaExtra(spa.model, 'heater')}
+                            />
+                            <div className="flex items-center space-x-1">
+                              <Flame size={16} className="text-red-500" />
+                              <span className="text-sm">Heater (+${getExtraPrice('heater').toLocaleString()})</span>
+                            </div>
+                          </label>
+                          
+                          <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                            <Checkbox 
+                              checked={currentExtras?.jets || false}
+                              onCheckedChange={() => toggleSpaExtra(spa.model, 'jets')}
+                            />
+                            <div className="flex items-center space-x-1">
+                              <Zap size={16} className="text-orange" />
+                              <span className="text-sm">Spa Jets (+${getExtraPrice('jets').toLocaleString()})</span>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={() => handleSpaClick(spa)}
+                            variant="outline"
+                            className="flex-1"
+                            size="sm"
+                          >
+                            Details
+                          </Button>
+                          <Button 
+                            onClick={() => handleRequestQuote(spa)}
+                            variant="outline"
+                            className="flex-1"
+                            size="sm"
+                          >
+                            Quote
+                          </Button>
+                        </div>
+                        
+                        <Button
+                          onClick={() => handleAddToCart(spa)}
+                          variant="gradient"
+                          className="w-full hover:scale-105 transition-all duration-300"
+                          size="sm"
+                        >
+                          <ShoppingCart className="h-4 w-4 mr-2" />
+                          Add to Cart - ${calculateSpaTotal(spa).toLocaleString()}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Default Action Button */}
+                  {!isDetailsShown && (
+                    <Button 
+                      onClick={() => toggleDetails(spa.model)}
+                      variant="gradient"
+                      className="w-full hover:scale-105 transition-all duration-300"
+                      size="sm"
+                    >
+                      Customize & Order
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
