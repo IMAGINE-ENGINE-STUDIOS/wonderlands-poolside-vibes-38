@@ -396,12 +396,12 @@ const SpaSection = () => {
                   {/* Default Action Button */}
                   {!isDetailsShown && (
                     <Button 
-                      onClick={() => toggleDetails(spa.model)}
+                      onClick={() => handleSpaClick(spa)}
                       variant="gradient"
                       className="w-full hover:scale-105 transition-all duration-300"
                       size="sm"
                     >
-                      Customize & Order
+                      View Details
                     </Button>
                   )}
                 </CardContent>
@@ -414,7 +414,7 @@ const SpaSection = () => {
       
       {/* Spa Detail Modal */}
       <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           {selectedSpa && (
             <>
               <DialogHeader>
@@ -436,71 +436,201 @@ const SpaSection = () => {
                       </div>
                     </div>
                   )}
-                </div>
-                <div className="space-y-4">
-                  <Badge className={`${getCategoryColor(selectedSpa.category)} text-white capitalize`}>
-                    {selectedSpa.category} Spa
-                  </Badge>
                   
-                  {selectedSpa.dimensions && (
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Ruler className="h-4 w-4 text-primary" />
-                        <span className="font-medium">Dimensions: {selectedSpa.dimensions}</span>
-                      </div>
-                      {selectedSpa.depth && (
+                  <div className="mt-4 space-y-4">
+                    <Badge className={`${getCategoryColor(selectedSpa.category)} text-white capitalize`}>
+                      {selectedSpa.category} Spa
+                    </Badge>
+                    
+                    {selectedSpa.dimensions && (
+                      <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2">
-                          <Waves className="h-4 w-4 text-primary" />
-                          <span className="font-medium">Depth: {selectedSpa.depth}</span>
+                          <Ruler className="h-4 w-4 text-primary" />
+                          <span className="font-medium">Dimensions: {selectedSpa.dimensions}</span>
                         </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {selectedSpa.features && selectedSpa.features.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="font-semibold">Features:</h4>
-                      <ul className="space-y-1">
-                        {selectedSpa.features.map((feature, idx) => (
-                          <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {selectedSpa.spilloverFeature && (
-                    <div className="p-3 bg-primary/10 rounded-lg">
-                      <p className="text-sm text-primary font-medium">
-                        ✨ Includes spillover feature for seamless pool integration
-                      </p>
-                    </div>
-                  )}
-                  
+                        {selectedSpa.depth && (
+                          <div className="flex items-center gap-2">
+                            <Waves className="h-4 w-4 text-primary" />
+                            <span className="font-medium">Depth: {selectedSpa.depth}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {selectedSpa.features && selectedSpa.features.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="font-semibold">Features:</h4>
+                        <ul className="space-y-1">
+                          {selectedSpa.features.map((feature, idx) => (
+                            <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                              {feature}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {selectedSpa.spilloverFeature && (
+                      <div className="p-3 bg-primary/10 rounded-lg">
+                        <p className="text-sm text-primary font-medium">
+                          ✨ Includes spillover feature for seamless pool integration
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="space-y-6">
+                  {/* Price */}
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-5 w-5 text-primary" />
                     <span className="text-2xl font-bold text-foreground">
-                      ${selectedSpa.price.toLocaleString()}
+                      ${calculateSpaTotal(selectedSpa).toLocaleString()}
                     </span>
+                    {calculateSpaTotal(selectedSpa) !== selectedSpa.price && (
+                      <span className="text-lg text-muted-foreground line-through">
+                        ${selectedSpa.price.toLocaleString()}
+                      </span>
+                    )}
                   </div>
                   
-                  <div className="flex gap-3">
-                    <Button 
-                      onClick={() => handleAddToCart(selectedSpa)}
-                      variant="outline"
-                      className="flex-1"
+                  {/* Customization Options */}
+                  <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
+                    <h4 className="font-semibold text-lg">Customize Your Spa</h4>
+                    
+                    {/* Finishes */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                        <Palette size={16} />
+                        Finish:
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {poolFinishes.map((finish: any) => (
+                          <button
+                            key={finish.name}
+                            onClick={() => {
+                              initializeSpaExtras(selectedSpa.model);
+                              setSpaExtra(selectedSpa.model, 'finish', finish.name);
+                            }}
+                            className={`p-3 text-sm rounded-md border transition-all ${
+                              spaExtras[selectedSpa.model]?.finish === finish.name 
+                                ? 'border-primary bg-primary/10 text-primary' 
+                                : 'border-border hover:border-primary/50'
+                            }`}
+                          >
+                            {finish.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Tiles */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium text-muted-foreground">Tiles:</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {poolTiles.slice(0, 6).map((tile: any) => (
+                          <button
+                            key={tile.name}
+                            onClick={() => {
+                              initializeSpaExtras(selectedSpa.model);
+                              setSpaExtra(selectedSpa.model, 'tiles', tile.name);
+                            }}
+                            className={`p-3 text-sm rounded-md border transition-all ${
+                              spaExtras[selectedSpa.model]?.tiles === tile.name 
+                                ? 'border-teal bg-teal/10 text-teal' 
+                                : 'border-border hover:border-teal/50'
+                            }`}
+                          >
+                            {tile.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Liners */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium text-muted-foreground">Liners:</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {poolLiners.slice(0, 6).map((liner: any) => (
+                          <button
+                            key={liner.name}
+                            onClick={() => {
+                              initializeSpaExtras(selectedSpa.model);
+                              setSpaExtra(selectedSpa.model, 'liner', liner.name);
+                            }}
+                            className={`p-3 text-sm rounded-md border transition-all ${
+                              spaExtras[selectedSpa.model]?.liner === liner.name 
+                                ? 'border-secondary bg-secondary/10 text-secondary' 
+                                : 'border-border hover:border-secondary/50'
+                            }`}
+                          >
+                            {liner.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Add-ons */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium text-muted-foreground">Add-ons:</label>
+                      <div className="space-y-3">
+                        <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg hover:bg-muted/50 transition-colors border">
+                          <Checkbox 
+                            checked={spaExtras[selectedSpa.model]?.heater || false}
+                            onCheckedChange={() => {
+                              initializeSpaExtras(selectedSpa.model);
+                              toggleSpaExtra(selectedSpa.model, 'heater');
+                            }}
+                          />
+                          <div className="flex items-center space-x-2">
+                            <Flame size={20} className="text-red-500" />
+                            <span className="text-sm font-medium">Spa Heater</span>
+                            <span className="text-sm text-muted-foreground">(+${getExtraPrice('heater').toLocaleString()})</span>
+                          </div>
+                        </label>
+                        
+                        <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg hover:bg-muted/50 transition-colors border">
+                          <Checkbox 
+                            checked={spaExtras[selectedSpa.model]?.jets || false}
+                            onCheckedChange={() => {
+                              initializeSpaExtras(selectedSpa.model);
+                              toggleSpaExtra(selectedSpa.model, 'jets');
+                            }}
+                          />
+                          <div className="flex items-center space-x-2">
+                            <Zap size={20} className="text-orange" />
+                            <span className="text-sm font-medium">Premium Spa Jets</span>
+                            <span className="text-sm text-muted-foreground">(+${getExtraPrice('jets').toLocaleString()})</span>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="space-y-3">
+                    <Button
+                      onClick={() => {
+                        initializeSpaExtras(selectedSpa.model);
+                        handleAddToCart(selectedSpa);
+                        setShowDetailModal(false);
+                      }}
+                      variant="gradient"
+                      className="w-full hover:scale-105 transition-all duration-300"
+                      size="lg"
                     >
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      Add to Cart
+                      <ShoppingCart className="h-5 w-5 mr-2" />
+                      Add to Cart - ${calculateSpaTotal(selectedSpa).toLocaleString()}
                     </Button>
+                    
                     <Button 
                       onClick={() => handleRequestQuote(selectedSpa)}
-                      variant="gradient"
-                      className="flex-1"
+                      variant="outline"
+                      className="w-full"
+                      size="lg"
                     >
-                      Get Quote
+                      Get Custom Quote
                     </Button>
                   </div>
                 </div>
