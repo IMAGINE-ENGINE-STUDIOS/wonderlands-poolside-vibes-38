@@ -8,6 +8,11 @@
     <meta name="author" content="Wonderlands" />
     <link rel="canonical" href="/" />
 
+    <!-- Non-blocking CSS load: preload + media swap with noscript fallback -->
+    <link rel="preload" as="style" href="/src/index.css" />
+    <link rel="stylesheet" href="/src/index.css" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="/src/index.css" /></noscript>
+
     <meta property="og:title" content="Wonderlands Pools & Spas" />
     <meta property="og:description" content="Luxury fiberglass pools, spas, liners, tiles, and finishes." />
     <meta property="og:type" content="website" />
