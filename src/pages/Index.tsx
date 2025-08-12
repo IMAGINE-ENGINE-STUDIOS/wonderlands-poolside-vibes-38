@@ -1,18 +1,19 @@
-import { useState } from "react";
-import Hero from "@/components/Hero";
+import { useState, lazy, Suspense } from "react";
 import Header from "@/components/Header";
-import PoolCatalog from "@/components/PoolCatalog";
-import SpaSection from "@/components/SpaSection";
-import PoolFinishesSection from "@/components/PoolFinishesSection";
-import AutomaticCoversSection from "@/components/AutomaticCoversSection";
-import FloridaPoolElements from "@/components/FloridaPoolElements";
-import WonderlandsBrandShowcase from "@/components/WonderlandsBrandShowcase";
 import Footer from "@/components/Footer";
-import ShoppingCart from "@/components/ShoppingCart";
-import RealTimeContentEditor from "@/components/RealTimeContentEditor";
+import ShoppingCart, { useShoppingCart } from "@/components/ShoppingCart";
 import { Button } from "@/components/ui/button";
-import { useShoppingCart } from "@/components/ShoppingCart";
-import { ShoppingCart as CartIcon, Badge } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ShoppingCart as CartIcon } from "lucide-react";
+
+// Lazy-loaded heavy sections for performance
+const Hero = lazy(() => import("@/components/Hero"));
+const PoolCatalog = lazy(() => import("@/components/PoolCatalog"));
+const SpaSection = lazy(() => import("@/components/SpaSection"));
+const PoolFinishesSection = lazy(() => import("@/components/PoolFinishesSection"));
+const AutomaticCoversSection = lazy(() => import("@/components/AutomaticCoversSection"));
+const FloridaPoolElements = lazy(() => import("@/components/FloridaPoolElements"));
+const WonderlandsBrandShowcase = lazy(() => import("@/components/WonderlandsBrandShowcase"));
 
 const Index = () => {
   const [showCart, setShowCart] = useState(false);
@@ -21,7 +22,9 @@ const Index = () => {
   return (
     <div className="relative min-h-screen">
       <Header />
-      <FloridaPoolElements />
+      <Suspense fallback={<div className="sr-only" aria-busy="true">Loading visual elements…</div>}> 
+        <FloridaPoolElements />
+      </Suspense>
       
       {/* Shopping Cart Button */}
       <div className="fixed top-20 right-4 z-50">
@@ -31,6 +34,7 @@ const Index = () => {
           size="icon"
           className="shadow-lg relative"
           title="Shopping Cart"
+          aria-label="Open shopping cart"
         >
           <CartIcon className="h-4 w-4" />
           {getCartCount() > 0 && (
@@ -42,13 +46,15 @@ const Index = () => {
       </div>
       
       <div className="relative z-10">
-        <Hero />
-        <WonderlandsBrandShowcase />
-        <PoolCatalog />
-        <SpaSection />
-        <PoolFinishesSection />
-        <AutomaticCoversSection />
-        <Footer />
+        <Suspense fallback={<div className="p-8 text-center text-foreground/70" aria-busy="true">Loading content…</div>}>
+          <Hero />
+          <WonderlandsBrandShowcase />
+          <PoolCatalog />
+          <SpaSection />
+          <PoolFinishesSection />
+          <AutomaticCoversSection />
+          <Footer />
+        </Suspense>
       </div>
       
       {/* Shopping Cart Modal */}
