@@ -35,6 +35,7 @@ interface SpaExtras {
   tiles: string;
   heater: boolean;
   jets: boolean;
+  bubblers: boolean;
 }
 
 const getCategoryColor = (category: string) => {
@@ -50,6 +51,7 @@ const getExtraPrice = (extra: string) => {
   switch (extra) {
     case 'heater': return 3500;
     case 'jets': return 2500;
+    case 'bubblers': return 2500;
     default: return 0;
   }
 };
@@ -70,6 +72,7 @@ const [extras, setExtras] = useState<SpaExtras>({
   tiles: '',
   heater: false,
   jets: false,
+  bubblers: false,
 });
   
   const { addToCart } = useShoppingCart();
@@ -101,6 +104,7 @@ const calculateTotalPrice = () => {
   let total = spa.price;
   if (extras.heater) total += getExtraPrice('heater');
   if (extras.jets) total += getExtraPrice('jets');
+  if (extras.bubblers) total += getExtraPrice('bubblers');
   const selectedFinish = finishOptions.find(f => f.name === extras.finish);
   if (selectedFinish?.price) total += selectedFinish.price;
   if (extras.tiles) {
@@ -115,7 +119,7 @@ const calculateTotalPrice = () => {
 };
 
 const selectedFinishPrice = finishOptions.find(f => f.name === extras.finish)?.price || 0;
-const hasExtras = extras.heater || extras.jets || !!extras.tiles || !!extras.liner || selectedFinishPrice > 0;
+const hasExtras = extras.heater || extras.jets || extras.bubblers || !!extras.tiles || !!extras.liner || selectedFinishPrice > 0;
 
   const handleAddToCart = () => {
     const cartExtras = [];
@@ -129,6 +133,7 @@ if (extras.liner) cartExtras.push({ name: `Liner: ${extras.liner}`, price: liner
 if (extras.tiles) cartExtras.push({ name: `Tiles: ${extras.tiles}`, price: tilePrice });
 if (extras.heater) cartExtras.push({ name: 'Spa Heater', price: getExtraPrice('heater') });
 if (extras.jets) cartExtras.push({ name: 'Premium Spa Jets', price: getExtraPrice('jets') });
+if (extras.bubblers) cartExtras.push({ name: 'Spa Bubblers', price: getExtraPrice('bubblers') });
 
     addToCart({
       id: `spa_${spa.model.replace(/\s+/g, '_')}_${Date.now()}`,
@@ -213,14 +218,10 @@ if (extras.jets) cartExtras.push({ name: 'Premium Spa Jets', price: getExtraPric
               <span>Installation: {spa.installationTimeWeeks} weeks</span>
             </div>
           )}
-          {spa.warrantyYears && (
-            <div className="flex items-center gap-1">
-              <Award className="h-3 w-3" />
-              <span className="font-bold text-primary">
-                Warranty: {spa.warrantyYears === "Lifetime" || spa.warrantyYears === "Life" ? "LIFETIME WARRANTY" : `${spa.warrantyYears} years`}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-1">
+            <Award className="h-3 w-3" />
+            <span className="font-bold text-primary">Warranty: LIFETIME WARRANTY</span>
+          </div>
         </div>
 
         {/* Key Features */}
@@ -388,6 +389,18 @@ if (extras.jets) cartExtras.push({ name: 'Premium Spa Jets', price: getExtraPric
                     <Zap size={20} className="text-orange" />
                     <span className="text-sm font-medium">Therapeutic Spa Jets</span>
                     <span className="text-sm text-muted-foreground ml-auto">(+${getExtraPrice('jets').toLocaleString()})</span>
+                  </div>
+                </label>
+                
+                <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg hover:bg-muted/50 transition-colors border">
+                  <Checkbox 
+                    checked={extras.bubblers}
+                    onCheckedChange={() => toggleExtra('bubblers')}
+                  />
+                  <div className="flex items-center space-x-2 flex-1">
+                    <Waves size={20} className="text-teal" />
+                    <span className="text-sm font-medium">Relaxing Spa Bubblers</span>
+                    <span className="text-sm text-muted-foreground ml-auto">(+${getExtraPrice('bubblers').toLocaleString()})</span>
                   </div>
                 </label>
               </div>

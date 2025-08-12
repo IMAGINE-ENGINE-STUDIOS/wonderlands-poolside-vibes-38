@@ -146,7 +146,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     jets: false,
     finish: 'Nantuke',
     linerOption: 'Standard Blue',
-    coverOption: 'standard',
+    coverOption: 'Automatic Cover',
     tiles: false,
     tileOption: 'Standard Waterline',
     spa: false,
@@ -176,10 +176,11 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
       } else if (extra === 'liner') {
         // Deselecting liner
         return { ...prev, liner: !prev.liner };
-      } else if (extra === 'heater') {
-        return { ...prev, heater: !prev.heater };
       } else if (extra === 'cover') {
-        return { ...prev, cover: !prev.cover };
+        const enabling = !prev.cover;
+        return enabling
+          ? { ...prev, cover: true, coverOption: coverOptions.find(o => o.name === prev.coverOption) ? prev.coverOption : 'Automatic Cover' }
+          : { ...prev, cover: false };
       } else if (extra === 'jets') {
         return { ...prev, jets: !prev.jets };
       } else if (extra === 'spa') {
@@ -367,6 +368,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
         <div className="text-sm text-muted-foreground space-y-1">
           {pool.dimensions && <p>Dimensions: {pool.dimensions}</p>}
           {pool.depth && <p>Depth: {pool.depth}</p>}
+          <p>Includes: 3 ft perimeter pavers around pool area</p>
           {pool.installationTimeWeeks && (
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
