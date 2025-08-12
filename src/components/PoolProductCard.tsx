@@ -117,10 +117,10 @@ const linerOptions = [
 ];
 
 const coverOptions = [
-  { name: 'Standard Safety Cover', color: '#708090', price: 0 },
-  { name: 'Automatic Cover', color: '#2F4F4F', price: 5000 },
-  { name: 'Solar Cover', color: '#4169E1', price: 800 },
-  { name: 'Winter Cover', color: '#000080', price: 400 }
+  { name: 'Eclipse', color: '#2F4F4F', price: 16000 },
+  { name: 'CS3000', color: '#2F4F4F', price: 24000 },
+  { name: 'Infinity 4000', color: '#2F4F4F', price: 32000 },
+  { name: 'Atom', color: '#2F4F4F', price: 19000 }
 ];
 
 // Convert pool tiles to tile options format
@@ -146,7 +146,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     jets: false,
     finish: 'Nantuke',
     linerOption: 'Standard Blue',
-    coverOption: 'Automatic Cover',
+    coverOption: 'Eclipse',
     tiles: false,
     tileOption: 'Standard Waterline',
     spa: false,
@@ -179,7 +179,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
       } else if (extra === 'cover') {
         const enabling = !prev.cover;
         return enabling
-          ? { ...prev, cover: true, coverOption: coverOptions.find(o => o.name === prev.coverOption) ? prev.coverOption : 'Automatic Cover' }
+          ? { ...prev, cover: true, coverOption: coverOptions.find(o => o.name === prev.coverOption) ? prev.coverOption : 'Eclipse' }
           : { ...prev, cover: false };
       } else if (extra === 'jets') {
         return { ...prev, jets: !prev.jets };
