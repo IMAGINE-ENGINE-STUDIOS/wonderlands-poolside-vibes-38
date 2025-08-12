@@ -8,12 +8,7 @@ import { Waves, DollarSign, Star, Clock, Award, Flame, Zap, Palette, ShoppingCar
 import { useShoppingCart } from "./ShoppingCart";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { poolLiners, poolTiles } from "@/data/poolData";
-import aquamarineImg from "@/assets/finishes/aquamarine-g3.jpg";
-import sapphireBlueImg from "@/assets/finishes/sapphire-blue-g3.jpg";
-import oceanBlueImg from "@/assets/finishes/ocean-blue-g3.jpg";
-import nightSkyImg from "@/assets/finishes/night-sky-g3.jpg";
-import athensPearlWhiteImg from "@/assets/finishes/athens-pearl-white-g3.jpg";
-import coastalBronzeImg from "@/assets/finishes/coastal-bronze-g3.jpg";
+import { poolFinishes as poolFinishesData } from "@/components/PoolFinishesSection";
 
 interface Spa {
   model: string;
@@ -59,20 +54,18 @@ const getExtraPrice = (extra: string) => {
   }
 };
 
-// Pool finishes data
-const poolFinishes = [
-  { name: 'Ocean Blue', image: oceanBlueImg }, 
-  { name: 'Sapphire Blue', image: sapphireBlueImg }, 
-  { name: 'Aquamarine', image: aquamarineImg }, 
-  { name: 'Night Sky', image: nightSkyImg },
-  { name: 'Athens Pearl White', image: athensPearlWhiteImg },
-  { name: 'Coastal Bronze', image: coastalBronzeImg }
-];
+// Build finish options from shared data
+const finishOptions = poolFinishesData.map(finish => ({
+  name: finish.name,
+  image: finish.image,
+  price: finish.price,
+  collection: finish.collection,
+}));
 
 const SpaProductCard = ({ spa, onViewDetails, onRequestQuote }: SpaProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
 const [extras, setExtras] = useState<SpaExtras>({
-  finish: poolFinishes[0]?.name || '',
+  finish: finishOptions[0]?.name || '',
   liner: '',
   tiles: '',
   heater: false,
@@ -108,6 +101,8 @@ const calculateTotalPrice = () => {
   let total = spa.price;
   if (extras.heater) total += getExtraPrice('heater');
   if (extras.jets) total += getExtraPrice('jets');
+  const selectedFinish = finishOptions.find(f => f.name === extras.finish);
+  if (selectedFinish?.price) total += selectedFinish.price;
   if (extras.tiles) {
     const t = poolTiles.find(t => t.name === extras.tiles);
     if (t?.price) total += t.price / 2;
@@ -119,15 +114,17 @@ const calculateTotalPrice = () => {
   return total;
 };
 
-  const hasExtras = extras.heater || extras.jets;
+const selectedFinishPrice = finishOptions.find(f => f.name === extras.finish)?.price || 0;
+const hasExtras = extras.heater || extras.jets || !!extras.tiles || !!extras.liner || selectedFinishPrice > 0;
 
   const handleAddToCart = () => {
     const cartExtras = [];
     
 const linerPrice = extras.liner ? (poolLiners.find(l => l.name === extras.liner)?.price || 0) / 2 : 0;
 const tilePrice = extras.tiles ? (poolTiles.find(t => t.name === extras.tiles)?.price || 0) / 2 : 0;
+const finishPrice = finishOptions.find(f => f.name === extras.finish)?.price || 0;
 
-if (extras.finish) cartExtras.push({ name: `Finish: ${extras.finish}`, price: 0 });
+if (extras.finish) cartExtras.push({ name: `Finish: ${extras.finish}`, price: finishPrice });
 if (extras.liner) cartExtras.push({ name: `Liner: ${extras.liner}`, price: linerPrice });
 if (extras.tiles) cartExtras.push({ name: `Tiles: ${extras.tiles}`, price: tilePrice });
 if (extras.heater) cartExtras.push({ name: 'Spa Heater', price: getExtraPrice('heater') });
@@ -254,7 +251,7 @@ if (extras.jets) cartExtras.push({ name: 'Premium Spa Jets', price: getExtraPric
               </h4>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
-                  {poolFinishes.map((finish) => (
+                  {finishOptions.map((finish) => (
                     <CarouselItem key={finish.name} className="pl-1 basis-1/2 sm:basis-1/3">
                       <div 
                         className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
@@ -262,22 +259,23 @@ if (extras.jets) cartExtras.push({ name: 'Premium Spa Jets', price: getExtraPric
                         }`}
                         onClick={() => setExtra('finish', finish.name)}
                       >
-<div className="w-full h-16 rounded-md mb-2 overflow-hidden">
-  {finish.image ? (
-    <img 
-      src={finish.image} 
-      alt={`${finish.name} finish`} 
-      className="w-full h-full object-cover"
-      loading="lazy"
-    />
-  ) : (
-    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-teal/20 flex items-center justify-center">
-      <Palette size={20} className="text-primary/60" />
-    </div>
-  )}
-</div>
-<p className="text-xs font-medium text-center">{finish.name}</p>
-<p className="text-[10px] text-muted-foreground text-center">Included</p>
+                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden">
+                          <img 
+                            src={finish.image} 
+                            alt={finish.name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                        <p className="text-xs font-medium text-center">{finish.name}</p>
+                        <div className="mt-1 space-y-0.5">
+                          {finish.collection && (
+                            <p className="text-[10px] text-primary text-center font-semibold">{finish.collection}</p>
+                          )}
+                          {typeof finish.price === 'number' && (
+                            <p className="text-[10px] text-foreground font-semibold text-center">+${finish.price.toLocaleString()}</p>
+                          )}
+                        </div>
                       </div>
                     </CarouselItem>
                   ))}
