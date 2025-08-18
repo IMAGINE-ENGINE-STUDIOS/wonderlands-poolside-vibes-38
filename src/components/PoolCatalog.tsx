@@ -4,6 +4,8 @@ import SurveyQuoteTool from "./SurveyQuoteTool";
 import PoolProductCard from "./PoolProductCard";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import TileDetailModal from "./TileDetailModal";
+import { useShoppingCart } from "./ShoppingCart";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -596,6 +598,8 @@ const PoolCatalog = () => {
   const [showSpaModal, setShowSpaModal] = useState(false);
   const [selectedTile, setSelectedTile] = useState<any>(null);
   const [showTileModal, setShowTileModal] = useState(false);
+  const { addToCart } = useShoppingCart();
+  const { toast } = useToast();
 
   const handleViewDetails = (pool: Pool) => {
     setSelectedPool(pool);
@@ -837,16 +841,15 @@ const PoolCatalog = () => {
 
                   <Button
                     variant="outline"
-                    className="w-full text-sm"
+                    className="w-full text-sm hover:bg-coral/10 hover:border-coral transition-all duration-200"
                     onClick={() => {
-                      // Find the TanningLedgeSection and open the modal
-                      const tanningSection = document.querySelector('[data-tanning-ledge-section]');
-                      if (tanningSection) {
-                        const event = new CustomEvent('openTanningLedgeModal', { 
-                          detail: { ledge } 
-                        });
-                        window.dispatchEvent(event);
-                      }
+                      addToCart({
+                        id: `tanning-ledge-${ledge.name}-${Date.now()}`,
+                        name: ledge.name,
+                        price: ledge.price,
+                        category: 'Tanning Ledges',
+                        image: ledge.image,
+                      });
                     }}
                   >
                     <Plus className="h-3 w-3 mr-2" />
