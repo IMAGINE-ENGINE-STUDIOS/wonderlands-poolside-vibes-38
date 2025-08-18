@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,20 @@ const TanningLedgeSection = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const { addToCart } = useShoppingCart();
 
+  // Listen for external modal open events
+  React.useEffect(() => {
+    const handleOpenModal = (event: CustomEvent) => {
+      const { ledge } = event.detail;
+      setSelectedLedge(ledge);
+      setShowDetailModal(true);
+    };
+
+    window.addEventListener('openTanningLedgeModal', handleOpenModal as EventListener);
+    return () => {
+      window.removeEventListener('openTanningLedgeModal', handleOpenModal as EventListener);
+    };
+  }, []);
+
   const handleLedgeClick = (ledge: TanningLedge) => {
     setSelectedLedge(ledge);
     setShowDetailModal(true);
@@ -49,7 +63,7 @@ const TanningLedgeSection = () => {
 
   return (
     <>
-      <section className="py-20 px-4 bg-gradient-to-br from-background to-coral/5">
+      <section className="py-20 px-4 bg-gradient-to-br from-background to-coral/5" data-tanning-ledge-section>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-coral via-orange to-amber-500">

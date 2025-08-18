@@ -165,10 +165,12 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     setExtras(prev => {
       // Handle tile/liner mutual exclusivity
       if (extra === 'tiles' && !prev.tiles) {
-        // Selecting tiles, disable liner
+        // Selecting tiles, disable liner and expand details
+        setShowDetails(true);
         return { ...prev, tiles: true, liner: false };
       } else if (extra === 'liner' && !prev.liner) {
-        // Selecting liner, disable tiles
+        // Selecting liner, disable tiles and expand details
+        setShowDetails(true);
         return { ...prev, liner: true, tiles: false };
       } else if (extra === 'tiles') {
         // Deselecting tiles

@@ -30,8 +30,24 @@ const Header = () => {
             className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 order-1 sm:order-2"
           />
           
-          {/* Auth/Admin Buttons */}
+          {/* Navigation and Auth Buttons */}
           <div className="flex items-center gap-2 order-2 sm:order-1">
+            {/* Catalog Navigation Button */}
+            <Button 
+              variant="gradient" 
+              size="sm" 
+              className="transition-all duration-300 bg-gradient-to-r from-primary to-teal text-white hover:scale-105 text-xs sm:text-sm"
+              onClick={() => {
+                const poolSection = document.getElementById('pool-catalog');
+                if (poolSection) {
+                  poolSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+            >
+              <span className="hidden sm:inline">View Catalog</span>
+              <span className="sm:hidden">Pools</span>
+            </Button>
+            
             {user ? (
               <>
                 <Link to="/dashboard">

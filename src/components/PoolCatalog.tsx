@@ -835,7 +835,14 @@ const PoolCatalog = () => {
                     variant="outline"
                     className="w-full text-sm"
                     onClick={() => {
-                      console.log(`Selected tanning ledge: ${ledge.name}`);
+                      // Find the TanningLedgeSection and open the modal
+                      const tanningSection = document.querySelector('[data-tanning-ledge-section]');
+                      if (tanningSection) {
+                        const event = new CustomEvent('openTanningLedgeModal', { 
+                          detail: { ledge } 
+                        });
+                        window.dispatchEvent(event);
+                      }
                     }}
                   >
                     <Plus className="h-3 w-3 mr-2" />
