@@ -3,6 +3,7 @@ import PoolDetailModal from "./PoolDetailModal";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import PoolProductCard from "./PoolProductCard";
 import StripeCheckoutButton from "./StripeCheckoutButton";
+import TileDetailModal from "./TileDetailModal";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -593,6 +594,8 @@ const PoolCatalog = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showSpaModal, setShowSpaModal] = useState(false);
+  const [selectedTile, setSelectedTile] = useState<any>(null);
+  const [showTileModal, setShowTileModal] = useState(false);
 
   const handleViewDetails = (pool: Pool) => {
     setSelectedPool(pool);
@@ -751,18 +754,19 @@ const PoolCatalog = () => {
                       </CardDescription>
                     </CardHeader>
                     
-                    <CardContent className="pt-0 pb-4">
-                      <Button
-                        variant="outline"
-                        className="w-full text-sm"
-                        onClick={() => {
-                          console.log(`Selected tile: ${tile.name}`);
-                        }}
-                      >
-                        <Plus className="h-3 w-3 mr-2" />
-                        Select Tile
-                      </Button>
-                    </CardContent>
+                     <CardContent className="pt-0 pb-4">
+                       <Button
+                         variant="outline"
+                         className="w-full text-sm hover:bg-coral/10 hover:border-coral transition-all duration-200"
+                         onClick={() => {
+                           setSelectedTile(tile);
+                           setShowTileModal(true);
+                         }}
+                       >
+                         <Plus className="h-3 w-3 mr-2" />
+                         View & Add to Cart
+                       </Button>
+                     </CardContent>
                   </Card>
                 </CarouselItem>
               ))}
@@ -870,6 +874,12 @@ const PoolCatalog = () => {
           setShowQuoteModal(false);
           setShowSpaModal(false);
         }}
+      />
+
+      <TileDetailModal
+        tile={selectedTile}
+        isOpen={showTileModal}
+        onClose={() => setShowTileModal(false)}
       />
     </>
   );
