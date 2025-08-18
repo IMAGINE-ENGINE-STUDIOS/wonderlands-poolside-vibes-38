@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -731,11 +731,11 @@ export type Database = {
       admin_login: {
         Args: { email_param: string; password_param: string }
         Returns: {
-          success: boolean
-          admin_id: string
           admin_email: string
+          admin_id: string
           admin_role: string
           session_token: string
+          success: boolean
         }[]
       }
       cleanup_expired_sessions: {
@@ -764,11 +764,11 @@ export type Database = {
       }
       log_admin_action: {
         Args: {
-          p_admin_user_id: string
           p_action: string
-          p_resource_type?: string
-          p_resource_id?: string
+          p_admin_user_id: string
           p_details?: Json
+          p_resource_id?: string
+          p_resource_type?: string
         }
         Returns: string
       }
@@ -779,10 +779,10 @@ export type Database = {
       validate_admin_session: {
         Args: { token: string }
         Returns: {
-          is_valid: boolean
-          admin_id: string
           admin_email: string
+          admin_id: string
           admin_role: string
+          is_valid: boolean
         }[]
       }
       verify_admin_password: {
