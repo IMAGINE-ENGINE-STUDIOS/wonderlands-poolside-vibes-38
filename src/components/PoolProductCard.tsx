@@ -559,14 +559,16 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
               <h4 className="font-semibold text-foreground">Additional Features</h4>
               
               <div className="grid grid-cols-1 gap-3">
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg hover:bg-muted/50 transition-all duration-200 border border-muted/20 hover:border-coral/30">
                   <Checkbox 
                     checked={extras.heater}
                     onCheckedChange={() => toggleExtra('heater')}
+                    className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
                   />
-                  <div className="flex items-center space-x-1">
+                  <div className="flex items-center space-x-2 flex-1">
                     <Thermometer size={16} className="text-coral" />
-                    <span className="text-sm">Pool Heater (+${getExtraPrice('heater').toLocaleString()})</span>
+                    <span className="text-sm font-medium">Pool Heater</span>
+                    <span className="text-sm text-muted-foreground ml-auto">+${getExtraPrice('heater').toLocaleString()}</span>
                   </div>
                 </label>
                 
