@@ -161,7 +161,16 @@ const WonderlandsBrandShowcase = () => {
                   Schedule Consultation
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
-                <Button variant="outline" size="lg">
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  onClick={() => {
+                    const poolSection = document.getElementById('pool-catalog');
+                    if (poolSection) {
+                      poolSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                >
                   View Our Catalog
                 </Button>
               </div>
