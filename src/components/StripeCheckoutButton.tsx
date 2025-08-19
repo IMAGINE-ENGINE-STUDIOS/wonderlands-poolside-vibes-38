@@ -131,30 +131,36 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
       </Button>
 
       {/* Financing Option */}
-      <div className="border rounded-lg p-4 bg-muted/50">
+      <div className="border rounded-lg p-3 bg-gradient-to-r from-muted/30 to-muted/50 border-primary/20">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <Calculator className="h-4 w-4 text-primary" />
-            <span className="font-medium">Financing Available</span>
+            <span className="font-medium text-sm">Finance This Purchase</span>
           </div>
-          <div className="text-sm text-muted-foreground">
-            As low as <span className="font-semibold text-primary">${monthlyPayment.toFixed(0)}/mo</span>
+          <div className="text-right">
+            <div className="text-xs text-muted-foreground">As low as</div>
+            <div className="text-sm font-bold text-primary">${monthlyPayment.toFixed(0)}/mo</div>
           </div>
         </div>
         
-        <div className="text-xs text-muted-foreground mb-3">
-          60 months at 7.99% APR (estimated)
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-xs text-muted-foreground">
+            60 months at 7.99% APR*
+          </div>
+          <div className="text-xs text-green-600 font-medium">
+            Lyon Financial
+          </div>
         </div>
         
         <Button
           onClick={handleFinancing}
           disabled={isFinancingLoading || isLoading}
           variant="outline"
-          size={size}
-          className={`w-full ${isFinancingLoading ? 'opacity-50' : ''}`}
+          size="sm"
+          className={`w-full border-primary/30 hover:border-primary ${isFinancingLoading ? 'opacity-50' : ''}`}
         >
-          <DollarSign className="h-4 w-4 mr-2" />
-          {isFinancingLoading ? 'Opening Application...' : 'Apply for Financing'}
+          <DollarSign className="h-3 w-3 mr-2" />
+          {isFinancingLoading ? 'Opening...' : 'Apply for Financing'}
         </Button>
       </div>
     </div>
