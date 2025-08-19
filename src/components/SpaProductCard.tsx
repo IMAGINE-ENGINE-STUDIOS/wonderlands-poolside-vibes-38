@@ -9,6 +9,7 @@ import { useShoppingCart } from "./ShoppingCart";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { poolLiners, poolTiles } from "@/data/poolData";
 import { poolFinishes as poolFinishesData } from "@/components/PoolFinishesSection";
+import StripeCheckoutButton from "./StripeCheckoutButton";
 
 interface Spa {
   model: string;
@@ -426,16 +427,39 @@ if (extras.bubblers) cartExtras.push({ name: 'Spa Bubblers', price: getExtraPric
                   Get Quote
                 </Button>
               </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleAddToCart}
+                  variant="outline"
+                  className="flex-1"
+                  size="sm"
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Add to Cart
+                </Button>
+                <StripeCheckoutButton
+                  productId={`spa_${spa.model.replace(/\s+/g, '_')}`}
+                  productName={`${spa.model} Spa`}
+                  price={calculateTotalPrice()}
+                  variant="gradient"
+                  className="flex-1 hover:scale-105 transition-all duration-300"
+                  size="sm"
+                  showFinancingOptions={false}
+                />
+              </div>
               
-              <Button
-                onClick={handleAddToCart}
-                variant="gradient"
-                className="w-full hover:scale-105 transition-all duration-300"
-                size="sm"
-              >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Add to Cart - ${calculateTotalPrice().toLocaleString()}
-              </Button>
+              {/* Financing Option */}
+              <div className="mt-2">
+                <StripeCheckoutButton
+                  productId={`spa_${spa.model.replace(/\s+/g, '_')}`}
+                  productName={`${spa.model} Spa`}
+                  price={calculateTotalPrice()}
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                  showFinancingOptions={true}
+                />
+              </div>
             </div>
           </div>
         )}
