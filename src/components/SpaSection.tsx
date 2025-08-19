@@ -1,6 +1,7 @@
 import { useState } from "react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import SpaProductCard from "./SpaProductCard";
+import SpaDetailModal from "./SpaDetailModal";
 import { spas } from "./PoolCatalog";
 
 interface Spa {
@@ -27,14 +28,16 @@ interface SpaExtras {
 const SpaSection = () => {
   const [selectedSpa, setSelectedSpa] = useState<Spa | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   const handleViewDetails = (spa: Spa) => {
     setSelectedSpa(spa);
-    // We can add a detail modal here if needed, but the card already shows details
+    setShowDetailModal(true);
   };
 
   const handleRequestQuote = (spa: Spa, extras?: SpaExtras) => {
     setSelectedSpa(spa);
+    setShowDetailModal(false); // Close detail modal if open
     setShowQuoteModal(true);
   };
 
@@ -63,6 +66,13 @@ const SpaSection = () => {
           </div>
         </div>
       </section>
+
+      <SpaDetailModal
+        spa={selectedSpa}
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        onRequestQuote={(spa) => handleRequestQuote(spa)}
+      />
 
       <SurveyQuoteTool 
         pool={null}
