@@ -101,36 +101,9 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
   const totalAmount = price * quantity;
   const monthlyPayment = calculateMonthlyPayment(totalAmount);
 
-  if (!showFinancingOptions) {
+  // If showFinancingOptions is true, only show the financing section
+  if (showFinancingOptions) {
     return (
-      <Button
-        onClick={handleCheckout}
-        disabled={isLoading}
-        variant={variant}
-        size={size}
-        className={`${className} ${isLoading ? 'opacity-50' : ''}`}
-      >
-        <CreditCard className="h-4 w-4 mr-2" />
-        {isLoading ? 'Processing...' : `Buy Now - $${totalAmount.toLocaleString()}`}
-      </Button>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-3 w-full">
-      {/* Pay in Full Option */}
-      <Button
-        onClick={handleCheckout}
-        disabled={isLoading || isFinancingLoading}
-        variant={variant}
-        size={size}
-        className={`${className} ${isLoading ? 'opacity-50' : ''}`}
-      >
-        <CreditCard className="h-4 w-4 mr-2" />
-        {isLoading ? 'Processing...' : `Pay in Full - $${totalAmount.toLocaleString()}`}
-      </Button>
-
-      {/* Financing Option */}
       <div className="border rounded-lg p-3 bg-gradient-to-r from-muted/30 to-muted/50 border-primary/20">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
@@ -163,7 +136,21 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
           {isFinancingLoading ? 'Opening...' : 'Apply for Financing'}
         </Button>
       </div>
-    </div>
+    );
+  }
+
+  // If showFinancingOptions is false, only show the payment button
+  return (
+    <Button
+      onClick={handleCheckout}
+      disabled={isLoading}
+      variant={variant}
+      size={size}
+      className={`${className} ${isLoading ? 'opacity-50' : ''}`}
+    >
+      <CreditCard className="h-4 w-4 mr-2" />
+      {isLoading ? 'Processing...' : `Buy Now - $${totalAmount.toLocaleString()}`}
+    </Button>
   );
 };
 

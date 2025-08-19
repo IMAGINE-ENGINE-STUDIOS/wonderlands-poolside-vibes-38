@@ -756,6 +756,20 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                   variant="gradient"
                   className="flex-1 hover:scale-105 transition-all duration-300"
                   size="sm"
+                  showFinancingOptions={false}
+                />
+              </div>
+              
+              {/* Financing Option */}
+              <div className="mt-2">
+                <StripeCheckoutButton
+                  productId={`pool_${pool.model.replace(/\s+/g, '_')}`}
+                  productName={pool.model}
+                  price={calculateTotalPrice()}
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                  showFinancingOptions={true}
                 />
               </div>
             </div>
