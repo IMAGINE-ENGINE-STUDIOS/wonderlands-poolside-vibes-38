@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Shield, User, LogOut } from "lucide-react";
+import { Shield, User, LogOut, Briefcase } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminLogin from "./AdminLogin";
@@ -47,6 +47,18 @@ const Header = () => {
               <span className="hidden sm:inline">View Catalog</span>
               <span className="sm:hidden">Pools</span>
             </Button>
+
+            <Link to="/procurement">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
+              >
+                <Briefcase className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Procurement</span>
+                <span className="sm:hidden">Jobs</span>
+              </Button>
+            </Link>
             
             {user ? (
               <>

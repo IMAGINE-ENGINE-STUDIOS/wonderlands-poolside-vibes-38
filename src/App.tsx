@@ -11,6 +11,7 @@ import EcommerceTemplate from "./pages/EcommerceTemplate";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./components/AuthPage";
 import RoleBasedDashboard from "./components/RoleBasedDashboard";
+import ProcurementSystem from "./pages/ProcurementSystem";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/procurement" element={<ProcurementSystem />} />
             <Route path="/dashboard" element={<RoleBasedDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/template" element={<EcommerceTemplate />} />

@@ -223,6 +223,183 @@ export type Database = {
           },
         ]
       }
+      job_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          job_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          job_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          job_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_attachments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_postings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_postings: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          business_id: string | null
+          category: string
+          created_at: string
+          deadline: string | null
+          description: string | null
+          id: string
+          location: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          business_id?: string | null
+          category: string
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          business_id?: string | null
+          category?: string
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_postings_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_proposals: {
+        Row: {
+          created_at: string
+          estimated_timeline: string | null
+          id: string
+          job_id: string | null
+          proposal_text: string | null
+          proposed_price: number | null
+          status: string
+          supplier_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          estimated_timeline?: string | null
+          id?: string
+          job_id?: string | null
+          proposal_text?: string | null
+          proposed_price?: number | null
+          status?: string
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          estimated_timeline?: string | null
+          id?: string
+          job_id?: string | null
+          proposal_text?: string | null
+          proposed_price?: number | null
+          status?: string
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_proposals_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_postings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_proposals_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_requirements: {
+        Row: {
+          created_at: string
+          id: string
+          is_mandatory: boolean | null
+          job_id: string | null
+          order_index: number | null
+          requirement_text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_mandatory?: boolean | null
+          job_id?: string | null
+          order_index?: number | null
+          requirement_text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_mandatory?: boolean | null
+          job_id?: string | null
+          order_index?: number | null
+          requirement_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_requirements_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_postings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           commission_amount: number | null
@@ -520,6 +697,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      proposal_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          proposal_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          proposal_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          proposal_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_attachments_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "job_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       supplier_banking_config: {
         Row: {
