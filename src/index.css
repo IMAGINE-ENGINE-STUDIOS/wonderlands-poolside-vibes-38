@@ -500,6 +500,71 @@
   50% { opacity: 0.3; transform: translateX(5px); }
 }
 
+/* Procurement System Animations */
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(var(--primary), 0.2); 
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(var(--primary), 0.4); 
+    transform: scale(1.02);
+  }
+}
+
+@keyframes slide-up {
+  from { 
+    transform: translateY(30px); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateY(0); 
+    opacity: 1; 
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+
+@keyframes float-bounce {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-8px) rotate(1deg); }
+  75% { transform: translateY(-4px) rotate(-1deg); }
+}
+
+.procurement-pulse {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.procurement-slide-up {
+  animation: slide-up 0.6s ease-out;
+}
+
+.procurement-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background-size: 200px 100%;
+  animation: shimmer 2s infinite;
+}
+
+.procurement-float {
+  animation: float-bounce 4s ease-in-out infinite;
+}
+
+/* Glassmorphism Effects */
+.glass-card {
+  background: rgba(var(--background), 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(var(--border), 0.2);
+}
+
+.glass-button {
+  background: rgba(var(--primary), 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(var(--primary), 0.3);
+}
+
 .pool-ripple {
   position: absolute;
   border: 2px solid rgba(255, 255, 255, 0.4);
