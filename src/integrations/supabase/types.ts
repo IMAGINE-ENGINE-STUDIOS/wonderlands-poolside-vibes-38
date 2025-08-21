@@ -1047,7 +1047,7 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
-      get_installer_profile: {
+      get_installer_profile_safe: {
         Args: { installer_uuid: string }
         Returns: Json
       }

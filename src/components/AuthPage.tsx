@@ -33,7 +33,7 @@ const AuthPage = () => {
     confirmPassword: '',
     firstName: '',
     lastName: '',
-    role: 'consumer' as 'consumer' | 'supplier',
+    role: 'consumer' as 'consumer' | 'supplier' | 'installer',
     companyName: '',
   });
 
@@ -79,10 +79,10 @@ const AuthPage = () => {
       return;
     }
 
-    if (signUpData.role === 'supplier' && !signUpData.companyName) {
+    if ((signUpData.role === 'supplier' || signUpData.role === 'installer') && !signUpData.companyName) {
       toast({
         title: "Error",
-        description: "Company name is required for supplier accounts.",
+        description: "Company name is required for supplier and installer accounts.",
         variant: "destructive",
       });
       return;
@@ -95,7 +95,7 @@ const AuthPage = () => {
         first_name: signUpData.firstName,
         last_name: signUpData.lastName,
         role: signUpData.role,
-        ...(signUpData.role === 'supplier' && { company_name: signUpData.companyName }),
+        ...((signUpData.role === 'supplier' || signUpData.role === 'installer') && { company_name: signUpData.companyName }),
       };
 
       const { error } = await signUp(signUpData.email, signUpData.password, userData);
@@ -219,18 +219,19 @@ const AuthPage = () => {
                 
                 <div className="space-y-2">
                   <Label htmlFor="role">Account Type</Label>
-                  <Select value={signUpData.role} onValueChange={(value: 'consumer' | 'supplier') => setSignUpData({ ...signUpData, role: value })}>
+                  <Select value={signUpData.role} onValueChange={(value: 'consumer' | 'supplier' | 'installer') => setSignUpData({ ...signUpData, role: value })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="consumer">Consumer</SelectItem>
                       <SelectItem value="supplier">Supplier</SelectItem>
+                      <SelectItem value="installer">Installer</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
-                {signUpData.role === 'supplier' && (
+                {(signUpData.role === 'supplier' || signUpData.role === 'installer') && (
                   <div className="space-y-2">
                     <Label htmlFor="company-name">Company Name</Label>
                     <Input
