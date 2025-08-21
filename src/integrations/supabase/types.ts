@@ -223,6 +223,96 @@ export type Database = {
           },
         ]
       }
+      florida_locations: {
+        Row: {
+          city: string
+          county: string
+          created_at: string
+          id: string
+          region: string
+          zip_codes: string[] | null
+        }
+        Insert: {
+          city: string
+          county: string
+          created_at?: string
+          id?: string
+          region: string
+          zip_codes?: string[] | null
+        }
+        Update: {
+          city?: string
+          county?: string
+          created_at?: string
+          id?: string
+          region?: string
+          zip_codes?: string[] | null
+        }
+        Relationships: []
+      }
+      installer_licenses: {
+        Row: {
+          created_at: string
+          expiration_date: string | null
+          id: string
+          installer_id: string
+          is_verified: boolean | null
+          issuing_authority: string | null
+          license_number: string | null
+          license_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expiration_date?: string | null
+          id?: string
+          installer_id: string
+          is_verified?: boolean | null
+          issuing_authority?: string | null
+          license_number?: string | null
+          license_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expiration_date?: string | null
+          id?: string
+          installer_id?: string
+          is_verified?: boolean | null
+          issuing_authority?: string | null
+          license_number?: string | null
+          license_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      installer_service_areas: {
+        Row: {
+          additional_fee: number | null
+          created_at: string
+          id: string
+          installer_id: string
+          location_id: string
+          travel_radius: number | null
+        }
+        Insert: {
+          additional_fee?: number | null
+          created_at?: string
+          id?: string
+          installer_id: string
+          location_id: string
+          travel_radius?: number | null
+        }
+        Update: {
+          additional_fee?: number | null
+          created_at?: string
+          id?: string
+          installer_id?: string
+          location_id?: string
+          travel_radius?: number | null
+        }
+        Relationships: []
+      }
       job_attachments: {
         Row: {
           created_at: string
@@ -956,6 +1046,10 @@ export type Database = {
       cleanup_expired_sessions: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      get_installer_profile: {
+        Args: { installer_uuid: string }
+        Returns: Json
       }
       get_user_role: {
         Args: { user_id: string }
