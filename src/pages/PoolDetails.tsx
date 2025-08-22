@@ -430,6 +430,54 @@ const PoolDetails = () => {
     }
     return pool.image;
   };
+
+  const getConfigurationItems = () => {
+    const items: { name: string; price: number; image?: string; category?: string }[] = [];
+    // Heater
+    if (extras.heater) {
+      const selectedHeater = poolHeaters.find(h => h.name === extras.heaterModel);
+      if (selectedHeater) items.push({ name: selectedHeater.name, price: selectedHeater.price, image: selectedHeater.image, category: 'Pool Heater' });
+    }
+    // Jets
+    if (extras.jets) {
+      items.push({ name: `Spa Jets (${extras.jetQuantity}x)`, price: getExtraPrice('jets') * extras.jetQuantity, image: pool.image, category: 'Pool Jets' });
+    }
+    // Liner
+    const liner = linerOptions.find(l => l.name === extras.linerOption);
+    if (liner && extras.liner && liner.price > 0) items.push({ name: liner.name, price: liner.price, image: liner.image, category: 'Pool Liner' });
+    // Tiles
+    if (extras.tiles) {
+      const tile = tileOptions.find(t => t.name === extras.tileOption);
+      if (tile && tile.price > 0) items.push({ name: tile.name, price: tile.price, image: tile.image, category: 'Pool Tiles' });
+    }
+    // Cover
+    if (extras.cover) {
+      const cover = coverOptions.find(c => c.name === extras.coverOption);
+      if (cover) items.push({ name: cover.name, price: cover.price, image: cover.image, category: 'Pool Cover' });
+    }
+    // Pavers
+    const paver = paverOptions.find(p => p.name === extras.paverOption);
+    if (paver && paver.price > 0) items.push({ name: `${paver.name} (${paverArea} sq ft)`, price: paver.price * paverArea, image: paver.image, category: 'Pavers' });
+    // Coping
+    const coping = copingPaverOptions.find(c => c.name === extras.copingPaverOption);
+    if (coping && coping.price > 0) items.push({ name: `${coping.name} (${copingLength} linear ft)`, price: coping.price * copingLength, image: coping.image, category: 'Coping' });
+    // Spa
+    if (extras.spa) {
+      const spa = spas.find((s: any) => s.model === extras.spaModel);
+      if (spa) items.push({ name: spa.model, price: spa.price, image: spa.image, category: 'Spa' });
+    }
+    // Tanning Ledge
+    if (extras.tanningLedge) {
+      const ledge = tanningLedges.find((l: any) => l.name === extras.tanningLedgeModel);
+      if (ledge) items.push({ name: ledge.name, price: ledge.price, image: ledge.image, category: 'Tanning Ledge' });
+    }
+    // Marketplace products
+    selectedProducts.forEach(product => {
+      items.push({ name: product.name, price: product.price, image: product.image_url, category: product.category });
+    });
+    return items;
+  };
+
   const handleAddToCart = () => {
     const selectedExtras = [];
     if (extras.heater) {
@@ -1587,547 +1635,5 @@ const PoolDetails = () => {
       </div>
     </div>
   );
-      {/* Header - Responsive for all devices */}
-      <div className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-2 sm:py-4">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
-              size="sm"
-            >
-              <X className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Back</span>
-            </Button>
-            
-            {/* Search Engine - Hidden on mobile, visible on tablet+ */}
-            <div className="hidden md:flex flex-1 max-w-md mx-4">
-              <div className="relative w-full">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-                <Input 
-                  type="text" 
-                  placeholder="Search products..." 
-                  value={searchQuery} 
-                  onChange={e => setSearchQuery(e.target.value)} 
-                  className="pl-6 sm:pl-8 text-xs sm:text-sm h-8 sm:h-9" 
-                />
-              </div>
-            </div>
-            
-            {/* Price Dropdown - Higher z-index to appear above everything */}
-            <div className="relative">
-              <Button
-                variant="outline"
-                onClick={() => setShowPriceDropdown(!showPriceDropdown)}
-                className="flex items-center gap-1 sm:gap-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs sm:text-sm px-2 sm:px-4"
-                size="sm"
-              >
-                <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline">${calculateTotalPrice().toLocaleString()}</span>
-                <span className="xs:hidden">${(calculateTotalPrice() / 1000).toFixed(0)}k</span>
-                <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
-              </Button>
-
-              {showPriceDropdown && (
-                <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-popover border border-border rounded-lg shadow-lg z-[70] max-h-80 sm:max-h-96 overflow-y-auto">
-                  <div className="p-3 sm:p-4">
-                    <h3 className="font-semibold mb-3 text-sm sm:text-base">Configuration Breakdown</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center text-xs sm:text-sm">
-                        <span>Base Pool ({pool.model})</span>
-                        <span>${pool.price.toLocaleString()}</span>
-                      </div>
-                      
-                      {getConfigurationItems().map((item, index) => (
-                        <div key={index} className="flex justify-between items-center text-xs bg-muted/50 p-2 rounded">
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <span className="truncate">{item.name}</span>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => removeConfigItem(item)}
-                              className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground shrink-0"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                          <span className="shrink-0 ml-2">${item.price.toLocaleString()}</span>
-                        </div>
-                      ))}
-                      
-                      <div className="border-t pt-2">
-                        <div className="flex justify-between items-center font-semibold text-sm">
-                          <span>Total</span>
-                          <span>${calculateTotalPrice().toLocaleString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Mobile Search Bar */}
-          <div className="md:hidden mt-2">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-              <Input 
-                type="text" 
-                placeholder="Search products..." 
-                value={searchQuery} 
-                onChange={e => setSearchQuery(e.target.value)} 
-                className="pl-6 text-xs h-8" 
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content - Responsive Layout */}
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-3 sm:py-6">
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 sm:gap-6">
-          {/* Left Panel - Pool Visualization - Responsive */}
-          <div className="xl:col-span-8">
-            <Card className="overflow-hidden">
-              <CardContent className="p-0 relative">
-                {/* Selected Products Snapshots - Responsive */}
-                {getConfigurationItems().length > 0 && (
-                  <div className="absolute top-2 left-2 z-20 flex flex-wrap gap-1 max-w-[150px] sm:max-w-[200px]">
-                    {getConfigurationItems().slice(0, 4).map((item, index) => (
-                      <div key={index} className="w-6 h-6 sm:w-8 sm:h-8 rounded border bg-background/90 overflow-hidden">
-                        <img 
-                          src={item.image || pool.image} 
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))}
-                    {getConfigurationItems().length > 4 && (
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded border bg-background/90 flex items-center justify-center text-[10px] sm:text-xs">
-                        +{getConfigurationItems().length - 4}
-                      </div>
-                    )}
-                  </div>
-                )}
-                
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img
-                    src={getCurrentImage()}
-                    alt={pool.model}
-                    className="w-full h-full object-cover transition-all duration-500"
-                  />
-                </div>
-                
-                {/* Pool Info Overlay - Responsive */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent text-white p-2 sm:p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h1 className="text-sm sm:text-xl font-bold">{pool.model}</h1>
-                      <Badge className={getCategoryColor(pool.category) + " text-xs"}>
-                        {pool.category}
-                      </Badge>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg sm:text-2xl font-bold">${pool.price.toLocaleString()}</div>
-                      <div className="text-xs sm:text-sm opacity-90">Base Price</div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Pool Details - Responsive Grid */}
-            <Card className="mt-3 sm:mt-4">
-              <CardContent className="p-3 sm:p-4">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 text-xs sm:text-sm">
-                  {pool.dimensions && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-primary/10 flex items-center justify-center">
-                        <span className="text-primary text-[10px] sm:text-xs">📏</span>
-                      </div>
-                      <div>
-                        <div className="font-medium">Dimensions</div>
-                        <div className="text-muted-foreground text-[10px] sm:text-xs">{pool.dimensions}</div>
-                      </div>
-                    </div>
-                  )}
-                  {pool.depth && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-primary/10 flex items-center justify-center">
-                        <Droplets className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
-                      </div>
-                      <div>
-                        <div className="font-medium">Depth</div>
-                        <div className="text-muted-foreground text-[10px] sm:text-xs">{pool.depth}</div>
-                      </div>
-                    </div>
-                  )}
-                  {pool.installationTimeWeeks && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-primary/10 flex items-center justify-center">
-                        <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
-                      </div>
-                      <div>
-                        <div className="font-medium">Installation</div>
-                        <div className="text-muted-foreground text-[10px] sm:text-xs">{pool.installationTimeWeeks} weeks</div>
-                      </div>
-                    </div>
-                  )}
-                  {pool.warrantyYears && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-primary/10 flex items-center justify-center">
-                        <Shield className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
-                      </div>
-                      <div>
-                        <div className="font-medium">Warranty</div>
-                        <div className="text-muted-foreground text-[10px] sm:text-xs">{pool.warrantyYears} years</div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Panel - Pool Studio - Responsive */}
-          <div className="xl:col-span-4">
-            <Card>
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <h2 className="text-sm sm:text-lg font-semibold">Pool Studio</h2>
-                  <div className="flex gap-1 sm:gap-2">
-                    <Button size="sm" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 p-0">
-                      <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </Button>
-                    <Button size="sm" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 p-0">
-                      <Printer className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Category Selection Dropdown */}
-                <div className="mb-3 sm:mb-4">
-                  <select 
-                    value={activePanel || ''} 
-                    onChange={(e) => {
-                      const newPanel = e.target.value as ActivePanel || null;
-                      setActivePanel(newPanel);
-                      setSearchQuery('');
-                    }} 
-                    className="w-full p-2 text-xs sm:text-sm border rounded-md bg-background"
-                  >
-                    <option value="">Select a Category</option>
-                    <option value="finishes">Pool Finishes</option>
-                    <option value="liners">Pool Liners</option>
-                    <option value="pavers">Pavers & Decking</option>
-                    <option value="coping">Coping Options</option>
-                    <option value="covers">Pool Covers</option>
-                    <option value="heaters">Heating Systems</option>
-                    <option value="spas">Spa Options</option>
-                    <option value="tanning">Tanning Ledges</option>
-                    <option value="tiles">Pool Tiles</option>
-                    <option value="jets">Pool Jets</option>
-                    <option value="furniture">Outdoor Furniture</option>
-                    <option value="fireplace">Fire Features</option>
-                  </select>
-                </div>
-
-      <div className="flex h-[calc(100vh-8rem)]">
-        {/* Enhanced Product Showcase */}
-        <div className="flex-1 bg-muted p-6">
-          <div className="h-full flex flex-col">
-            {/* Large Main Pool Image */}
-            <div className="relative flex-1 mb-4">
-              <img 
-                src={getCurrentImage()} 
-                alt={pool.model} 
-                className="w-full h-full object-cover rounded-lg border shadow-lg" 
-              />
-              
-              {/* Pool Info Overlay - Bottom Left */}
-              <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm px-4 py-3 rounded-lg shadow-md">
-                <p className="text-base font-semibold">{pool.model}</p>
-                <p className="text-sm text-muted-foreground">{pool.dimensions || 'Custom Pool Design'}</p>
-                <Badge className={`mt-2 ${getCategoryColor(pool.category)}`}>{pool.category}</Badge>
-              </div>
-
-              {/* Enhanced Product Snapshots Grid - Top Left */}
-              {(getSelectedConfigItems().length > 0 || selectedProducts.length > 0) && (
-                <div className="absolute top-4 left-4 grid grid-cols-4 gap-2 max-w-sm">
-                  {getSelectedConfigItems().slice(0, 6).map((item, index) => (
-                    <div key={index} className="relative group">
-                      <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-background shadow-md bg-background">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover" 
-                        />
-                      </div>
-                      <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-                        {item.category === 'Pool Jets' ? extras.jetQuantity : '1'}
-                      </div>
-                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-background/95 border rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                        {item.name} - ${item.price?.toLocaleString()}
-                      </div>
-                      <Button 
-                        size="sm" 
-                        variant="destructive" 
-                        className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => removeConfigItem(item)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                  
-                  {selectedProducts.slice(0, 2).map(product => (
-                    <div key={product.id} className="relative group">
-                      <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-background shadow-md bg-background">
-                        {product.image_url ? (
-                          <img 
-                            src={product.image_url} 
-                            alt={product.name} 
-                            className="w-full h-full object-cover" 
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Package className="h-6 w-6 text-muted-foreground" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-background/95 border rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                        {product.name} - ${product.price.toLocaleString()}
-                      </div>
-                      <Button 
-                        size="sm" 
-                        variant="destructive" 
-                        className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => {
-                          setSelectedProducts(prev => prev.filter(p => p.id !== product.id));
-                          toast({
-                            title: "Product Removed",
-                            description: `${product.name} removed!`
-                          });
-                        }}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                  
-                  {/* Show count if more products */}
-                  {getSelectedConfigItems().length + selectedProducts.length > 8 && (
-                    <div className="w-16 h-16 rounded-lg border-2 border-background shadow-md bg-background/90 flex items-center justify-center">
-                      <span className="text-sm font-semibold">
-                        +{getSelectedConfigItems().length + selectedProducts.length - 8}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Compact Right Sidebar - Browse Categories */}
-        <div className="w-72 border-l bg-background flex flex-col">
-            {/* Category Dropdown Only */}
-            <div className="p-3 border-b">
-              <label className="text-xs font-medium text-muted-foreground mb-2 block">Browse Categories</label>
-              <select 
-                value={activePanel || ''} 
-                onChange={(e) => {
-                  const newPanel = e.target.value as ActivePanel || null;
-                  setActivePanel(newPanel);
-                  // Auto-close when switching categories and reset search
-                  setSearchQuery('');
-                }} 
-                className="w-full p-2 text-sm border rounded-md bg-background"
-              >
-                <option value="">All Categories</option>
-              <option value="finishes">Pool Finishes</option>
-              <option value="liners">Pool Liners</option>
-              <option value="pavers">Pavers & Decking</option>
-              <option value="coping">Coping Options</option>
-              <option value="covers">Pool Covers</option>
-              <option value="heaters">Heating Systems</option>
-              <option value="spas">Spa Options</option>
-              <option value="tanning">Tanning Ledges</option>
-              <option value="tiles">Pool Tiles</option>
-              <option value="jets">Pool Jets</option>
-              <option value="engines">Pool Equipment</option>
-              <option value="furniture">Outdoor Furniture</option>
-              <option value="fireplace">Fire Features</option>
-              <option value="outdoor-kitchens">Outdoor Kitchens</option>
-              <option value="bbq">BBQ & Grills</option>
-              <option value="pergolas">Pergolas & Shade</option>
-              <option value="sound-system">Sound Systems</option>
-            </select>
-          </div>
-
-          {/* Compact Content Area */}
-          <div className="flex-1 overflow-auto">
-            {/* Search Results */}
-            {searchQuery && searchResults.length > 0 && <div className="p-3">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-semibold">Search Results ({searchResults.length})</h4>
-                  <Button variant="ghost" size="sm" onClick={() => setSearchQuery('')}>
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  {searchResults.map(product => <div key={product.id} className={`p-2 border rounded-md hover:bg-muted/50 cursor-pointer transition-all ${selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => {
-                setSelectedProducts(prev => {
-                  const isAlreadySelected = prev.some(p => p.id === product.id);
-                  if (isAlreadySelected) {
-                    toast({
-                      title: "Removed from Configuration",
-                      description: `${product.name} removed from pool configuration!`
-                    });
-                    return prev.filter(p => p.id !== product.id);
-                  } else {
-                    toast({
-                      title: "Added to Configuration",
-                      description: `${product.name} added to pool configuration!`
-                    });
-                    return [...prev, product];
-                  }
-                });
-              }}>
-                      <div className="flex gap-2">
-                        {product.image_url && <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
-                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                          </div>}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{product.name}</p>
-                          {product.brand && <p className="text-xs text-primary truncate">{product.brand}</p>}
-                          <p className="text-xs font-semibold">${product.price.toLocaleString()}</p>
-                        </div>
-                      </div>
-                    </div>)}
-                </div>
-              </div>}
-
-            {/* Category Products */}
-            {activePanel && !searchQuery && <div className="p-3">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-semibold">
-                    {activePanel === 'finishes' && 'Pool Finishes'}
-                    {activePanel === 'liners' && 'Pool Liners'}
-                    {activePanel === 'pavers' && 'Pavers'}
-                    {activePanel === 'coping' && 'Coping'}
-                    {activePanel === 'covers' && 'Pool Covers'}
-                    {activePanel === 'heaters' && 'Heaters'}
-                    {activePanel === 'engines' && 'Equipment'}
-                    {activePanel === 'spas' && 'Spas'}
-                    {activePanel === 'tanning' && 'Tanning Ledges'}
-                    {activePanel === 'tiles' && 'Tiles'}
-                    {activePanel === 'jets' && 'Jets'}
-                    {activePanel === 'furniture' && 'Furniture'}
-                    {activePanel === 'fireplace' && 'Fire Features'}
-                    {activePanel === 'outdoor-kitchens' && 'Kitchens'}
-                    {activePanel === 'bbq' && 'BBQ & Grills'}
-                    {activePanel === 'pergolas' && 'Pergolas'}
-                    {activePanel === 'sound-system' && 'Sound'}
-                  </h4>
-                  <Button variant="ghost" size="sm" onClick={() => setActivePanel(null)}>
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  {renderCategoryContent()}
-                </div>
-              </div>}
-
-            {/* Default State - Show All Products */}
-            {!activePanel && !searchQuery && (
-              <div className="p-3">
-                <h4 className="text-sm font-semibold mb-3">All Products ({marketplaceProducts.length})</h4>
-                <div className="space-y-2">
-                  {marketplaceProducts.map(product => (
-                    <div 
-                      key={product.id} 
-                      className={`p-2 border rounded-md hover:bg-muted/50 cursor-pointer transition-all ${
-                        selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'
-                      }`}
-                      onClick={() => {
-                        setSelectedProducts(prev => {
-                          const isAlreadySelected = prev.some(p => p.id === product.id);
-                          if (isAlreadySelected) {
-                            toast({
-                              title: "Removed from Configuration",
-                              description: `${product.name} removed from pool configuration!`
-                            });
-                            return prev.filter(p => p.id !== product.id);
-                          } else {
-                            toast({
-                              title: "Added to Configuration", 
-                              description: `${product.name} added to pool configuration!`
-                            });
-                            return [...prev, product];
-                          }
-                        });
-                      }}
-                    >
-                      <div className="flex gap-2">
-                        {product.image_url && (
-                          <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
-                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{product.name}</p>
-                          {product.brand && <p className="text-xs text-primary truncate">{product.brand}</p>}
-                          <p className="text-xs font-semibold">${product.price.toLocaleString()}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Dashboard */}
-      <div className="h-20 border-t bg-background/95 backdrop-blur-sm flex items-center justify-between px-6">
-        <div className="flex items-center gap-4">
-          {/* Circular Feature Snapshots */}
-          <div className="flex items-center gap-2">
-            {getSelectedFeatureIcons().map((feature, index) => <div key={index} className="relative group">
-                <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
-                  <feature.icon className="h-4 w-4 text-primary" />
-                </div>
-                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-background border rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                  {feature.label}
-                </div>
-              </div>)}
-          </div>
-          
-          {/* Finance This Purchase Button */}
-          <StripeCheckoutButton productId={`pool_${pool.model}`} productName={`${pool.model} Complete Configuration`} price={calculateTotalPrice()} variant="outline" showFinancingOptions={true} className="bg-gradient-to-r from-primary to-secondary text-white border-0" />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={downloadQuote} className="w-10 h-10 p-0">
-            <Download className="h-4 w-4" />
-          </Button>
-          
-          <Button variant="outline" size="sm" onClick={generateQuote} className="w-10 h-10 p-0">
-            <Printer className="h-4 w-4" />
-          </Button>
-
-          <Button variant="outline" size="sm" onClick={handleAddToCart} className="w-10 h-10 p-0">
-            <CartIcon className="h-4 w-4" />
-          </Button>
-
-          <StripeCheckoutButton productId={pool.model} productName={`${pool.model} Complete Pool Configuration`} price={calculateTotalPrice()} variant="default" showFinancingOptions={false} />
-        </div>
-      </div>
-    </div>;
 };
 export default PoolDetails;
