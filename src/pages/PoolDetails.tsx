@@ -443,37 +443,64 @@ const PoolDetails = () => {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Pool Quote - ${quoteId}</title>
+          <title>Pool Configuration Quote - ${quoteId}</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
           <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 40px; line-height: 1.6; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
-            .quote-container { background: white; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden; max-width: 900px; margin: 0 auto; }
-            .header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 40px; text-align: center; position: relative; }
+            body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 40px; line-height: 1.6; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+            .quote-container { background: white; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden; max-width: 1000px; margin: 0 auto; }
+            .header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 50px 40px; text-align: center; position: relative; }
             .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png') center/cover; opacity: 0.1; }
             .header-content { position: relative; z-index: 2; }
-            .logo { font-size: 32px; font-weight: bold; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-            .quote-id { color: rgba(255,255,255,0.9); font-size: 14px; margin: 5px 0; }
-            .content { padding: 40px; }
-            .pool-details { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 30px; margin: 0 -40px 30px -40px; }
-            .pool-details h2 { margin: 0 0 15px 0; font-size: 28px; }
-            .extras-list { margin: 30px 0; }
-            .extras-list h3 { color: #333; font-size: 24px; margin-bottom: 20px; border-bottom: 3px solid #4facfe; padding-bottom: 10px; }
-            .extra-item { padding: 20px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-            .item-info { display: flex; align-items: center; gap: 20px; flex: 1; }
-            .item-image { width: 80px; height: 80px; object-fit: cover; border-radius: 12px; border: 2px solid #eee; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-            .item-details h4 { margin: 0 0 5px 0; font-size: 18px; color: #333; }
-            .item-details p { margin: 0; font-size: 14px; color: #666; line-height: 1.4; }
-            .item-details .features { font-size: 12px; color: #4facfe; margin-top: 5px; }
-            .item-price { font-weight: bold; font-size: 18px; color: #f5576c; background: rgba(245,87,108,0.1); padding: 8px 16px; border-radius: 25px; }
-            .total { font-size: 32px; font-weight: bold; text-align: center; margin-top: 40px; padding: 30px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border-radius: 15px; }
-            .footer { margin-top: 40px; text-align: center; color: #666; font-size: 14px; background: #f8f9fa; padding: 30px; margin: 40px -40px -40px -40px; border-top: 1px solid #eee; }
-            .image-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin: 30px 0; }
+            .logo { font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 700; margin-bottom: 15px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+            .header-title { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 600; margin: 20px 0 15px 0; }
+            .quote-id { color: rgba(255,255,255,0.9); font-size: 16px; margin: 8px 0; font-weight: 500; }
+            .content { padding: 50px; }
+            .pool-details { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 40px; margin: 0 -50px 40px -50px; border-radius: 0; }
+            .pool-details h2 { font-family: 'Playfair Display', serif; margin: 0 0 20px 0; font-size: 38px; font-weight: 600; }
+            .pool-specs { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 25px; }
+            .spec-item { background: rgba(255,255,255,0.15); padding: 20px; border-radius: 12px; backdrop-filter: blur(10px); }
+            .spec-label { font-weight: 600; font-size: 14px; opacity: 0.9; margin-bottom: 5px; }
+            .spec-value { font-size: 18px; font-weight: 700; }
+            .pricing-section { background: #f8fafc; padding: 40px; margin: 0 -50px; border-radius: 0; }
+            .pricing-title { font-family: 'Playfair Display', serif; font-size: 32px; color: #1e293b; margin-bottom: 30px; text-align: center; }
+            .pricing-breakdown { display: grid; gap: 20px; margin-bottom: 30px; }
+            .pricing-item { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+            .pricing-item-main { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600; }
+            .item-name { font-weight: 600; font-size: 16px; }
+            .item-category { font-size: 12px; color: #64748b; margin-top: 2px; }
+            .item-price { font-weight: 700; font-size: 18px; color: #0f172a; }
+            .item-price-main { color: white; }
+            .extras-list { margin: 40px 0; }
+            .extras-list h3 { font-family: 'Playfair Display', serif; color: #1e293b; font-size: 28px; margin-bottom: 25px; text-align: center; }
+            .extra-item { padding: 25px 0; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+            .item-info { display: flex; align-items: center; gap: 25px; flex: 1; }
+            .item-image { width: 100px; height: 100px; object-fit: cover; border-radius: 15px; border: 3px solid #f1f5f9; box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+            .item-details h4 { margin: 0 0 8px 0; font-size: 20px; color: #1e293b; font-weight: 600; }
+            .item-details p { margin: 0; font-size: 15px; color: #64748b; line-height: 1.5; }
+            .item-details .features { font-size: 13px; color: #4facfe; margin-top: 8px; font-weight: 500; }
+            .item-price-large { font-weight: 700; font-size: 22px; color: #f5576c; background: rgba(245,87,108,0.1); padding: 12px 20px; border-radius: 30px; }
+            .total-section { margin-top: 50px; }
+            .total { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 700; text-align: center; padding: 40px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border-radius: 20px; margin: 0 -20px; }
+            .total-subtitle { font-family: 'Inter', sans-serif; font-size: 18px; margin-top: 15px; opacity: 0.95; font-weight: 400; }
+            .investment-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0; }
+            .breakdown-item { text-align: center; padding: 20px; background: rgba(255,255,255,0.15); border-radius: 15px; }
+            .breakdown-label { font-size: 14px; opacity: 0.9; margin-bottom: 8px; }
+            .breakdown-value { font-size: 24px; font-weight: 700; }
+            .footer { margin-top: 50px; text-align: center; color: #64748b; font-size: 15px; background: #f8fafc; padding: 40px; margin: 50px -50px -50px -50px; border-top: 1px solid #e2e8f0; }
+            .footer-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: #1e293b; margin-bottom: 20px; }
+            .footer p { margin: 10px 0; }
+            .footer-highlight { color: #4facfe; font-weight: 600; font-size: 16px; margin-top: 20px; }
+            .image-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 25px; margin: 40px 0; }
             .gallery-item { text-align: center; }
-            .gallery-image { width: 100%; height: 150px; object-fit: cover; border-radius: 12px; border: 2px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-            .gallery-caption { font-size: 12px; margin-top: 8px; color: #666; font-weight: 500; }
+            .gallery-image { width: 100%; height: 180px; object-fit: cover; border-radius: 15px; border: 3px solid #f1f5f9; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+            .gallery-caption { font-size: 13px; margin-top: 12px; color: #64748b; font-weight: 500; }
             @media print { 
               body { background: white; } 
               .quote-container { box-shadow: none; }
               .header, .pool-details, .total { background: #4facfe !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+              .pricing-section { background: #f8fafc !important; -webkit-print-color-adjust: exact; }
             }
           </style>
         </head>
@@ -482,39 +509,93 @@ const PoolDetails = () => {
             <div class="header">
               <div class="header-content">
                 <div class="logo">🏊‍♂️ Wonderlands Pools</div>
-                <h1 style="margin: 15px 0 10px 0; font-size: 28px;">Premium Pool Configuration Quote</h1>
-                <p class="quote-id">Quote ID: ${quoteId}</p>
-                <p class="quote-id">Generated: ${new Date(timestamp).toLocaleDateString('en-US', { 
-                  year: 'numeric', month: 'long', day: 'numeric', 
-                  hour: '2-digit', minute: '2-digit' 
-                })}</p>
+                <h1 class="header-title">Premium Pool Configuration</h1>
+                <div style="background: rgba(255,255,255,0.2); padding: 15px 30px; border-radius: 50px; display: inline-block; margin-top: 15px;">
+                  <p class="quote-id">Quote ID: ${quoteId}</p>
+                  <p class="quote-id">Generated: ${new Date(timestamp).toLocaleDateString('en-US', { 
+                    year: 'numeric', month: 'long', day: 'numeric', 
+                    hour: '2-digit', minute: '2-digit' 
+                  })}</p>
+                </div>
               </div>
             </div>
 
             <div class="content">
               <div class="pool-details">
                 <h2>${pool.model}</h2>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
-                  <p><strong>Category:</strong> ${pool.category}</p>
-                  <p><strong>Base Price:</strong> $${pool.price.toLocaleString()}</p>
-                  ${pool.dimensions ? `<p><strong>Dimensions:</strong> ${pool.dimensions}</p>` : ''}
-                  ${pool.depth ? `<p><strong>Depth:</strong> ${pool.depth}</p>` : ''}
+                <div class="pool-specs">
+                  <div class="spec-item">
+                    <div class="spec-label">Category</div>
+                    <div class="spec-value">${pool.category.charAt(0).toUpperCase() + pool.category.slice(1)}</div>
+                  </div>
+                  <div class="spec-item">
+                    <div class="spec-label">Base Investment</div>
+                    <div class="spec-value">$${pool.price.toLocaleString()}</div>
+                  </div>
+                  ${pool.dimensions ? `
+                    <div class="spec-item">
+                      <div class="spec-label">Dimensions</div>
+                      <div class="spec-value">${pool.dimensions}</div>
+                    </div>
+                  ` : ''}
+                  ${pool.depth ? `
+                    <div class="spec-item">
+                      <div class="spec-label">Depth</div>
+                      <div class="spec-value">${pool.depth}</div>
+                    </div>
+                  ` : ''}
                 </div>
               </div>
 
+              <div class="pricing-section">
+                <h2 class="pricing-title">Investment Breakdown</h2>
+                
+                <div class="pricing-breakdown">
+                  <div class="pricing-item pricing-item-main">
+                    <div>
+                      <div class="item-name">${pool.model} Pool</div>
+                      <div class="item-category">Base Pool Package</div>
+                    </div>
+                    <div class="item-price item-price-main">$${pool.price.toLocaleString()}</div>
+                  </div>
+
+                  ${selectedItems.map(item => `
+                    <div class="pricing-item">
+                      <div>
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-category">${item.category}</div>
+                      </div>
+                      <div class="item-price">$${item.price.toLocaleString()}</div>
+                    </div>
+                  `).join('')}
+                  
+                  ${extras.jets ? `
+                    <div class="pricing-item">
+                      <div>
+                        <div class="item-name">Premium Spa Jets (${extras.jetQuantity}x)</div>
+                        <div class="item-category">Hydrotherapy Enhancement</div>
+                      </div>
+                      <div class="item-price">$${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()}</div>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+
+              ${selectedItems.length > 0 ? `
               <div class="extras-list">
-                <h3>Selected Options & Premium Add-ons</h3>
+                <h3>Premium Features & Upgrades</h3>
                 ${selectedItems.map(item => `
                   <div class="extra-item">
                     <div class="item-info">
                       <img src="${item.image || '/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png'}" alt="${item.name}" class="item-image" onerror="this.src='/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png'" />
                       <div class="item-details">
-                        <h4>${item.category}: ${item.name}</h4>
+                        <h4>${item.name}</h4>
                         ${item.description ? `<p>${item.description}</p>` : ''}
-                        ${item.brand ? `<p class="features">Brand: ${item.brand}</p>` : ''}
+                        ${item.brand ? `<p class="features">Premium Brand: ${item.brand}</p>` : ''}
+                        <p class="features">${item.category} • Professional Installation Included</p>
                       </div>
                     </div>
-                    <div class="item-price">$${item.price.toLocaleString()}</div>
+                    <div class="item-price-large">$${item.price.toLocaleString()}</div>
                   </div>
                 `).join('')}
                 
@@ -523,40 +604,42 @@ const PoolDetails = () => {
                     <div class="item-info">
                       <img src="/lovable-uploads/57670513-84aa-4ae5-86ee-6a95737004b5.png" alt="Spa Jets" class="item-image" />
                       <div class="item-details">
-                        <h4>Premium Spa Jets (${extras.jetQuantity}x)</h4>
-                        <p>High-performance spa jets for ultimate relaxation and hydrotherapy</p>
-                        <p class="features">Adjustable pressure • Stainless steel construction</p>
+                        <h4>Premium Spa Jets (${extras.jetQuantity} Units)</h4>
+                        <p>High-performance hydrotherapy jets with adjustable pressure settings for ultimate relaxation and therapeutic benefits</p>
+                        <p class="features">Stainless Steel Construction • Variable Flow Control • Lifetime Warranty</p>
                       </div>
                     </div>
-                    <div class="item-price">$${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()}</div>
+                    <div class="item-price-large">$${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()}</div>
                   </div>` : ''}
-              </div>
-
-              ${selectedItems.length > 0 ? `
-              <div>
-                <h3 style="color: #333; font-size: 24px; margin-bottom: 20px; border-bottom: 3px solid #4facfe; padding-bottom: 10px;">Product Showcase</h3>
-                <div class="image-gallery">
-                  ${selectedItems.map(item => `
-                    <div class="gallery-item">
-                      <img src="${item.image || '/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png'}" alt="${item.name}" class="gallery-image" onerror="this.src='/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png'" />
-                      <p class="gallery-caption">${item.name}</p>
-                    </div>
-                  `).join('')}
-                </div>
               </div>
               ` : ''}
 
-              <div class="total">
-                <div>Total Investment: $${totalPrice.toLocaleString()}</div>
-                <div style="font-size: 16px; margin-top: 10px; opacity: 0.9;">Transform your backyard into paradise</div>
+              <div class="total-section">
+                <div class="total">
+                  <div>Total Investment</div>
+                  <div style="font-size: 64px; margin: 10px 0;">$${totalPrice.toLocaleString()}</div>
+                  <div class="total-subtitle">Transform Your Backyard Into Paradise</div>
+                  
+                  <div class="investment-breakdown">
+                    <div class="breakdown-item">
+                      <div class="breakdown-label">Pool Package</div>
+                      <div class="breakdown-value">$${pool.price.toLocaleString()}</div>
+                    </div>
+                    <div class="breakdown-item">
+                      <div class="breakdown-label">Premium Upgrades</div>
+                      <div class="breakdown-value">$${(totalPrice - pool.price).toLocaleString()}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
             <div class="footer">
-              <p style="font-size: 16px; font-weight: bold; color: #333; margin-bottom: 15px;">🏊‍♂️ Wonderlands Pools - Creating Backyard Paradise</p>
-              <p>This quote is valid for 30 days from the generation date.</p>
-              <p>Contact us for financing options and installation scheduling.</p>
-              <p style="margin-top: 15px; color: #4facfe;"><strong>📞 Call us today to start your pool journey!</strong></p>
+              <div class="footer-title">🏊‍♂️ Wonderlands Pools - Your Dream Pool Specialists</div>
+              <p><strong>This comprehensive quote is valid for 30 days</strong> from the generation date and includes:</p>
+              <p>• Professional design consultation • Premium materials & equipment • Expert installation • Comprehensive warranty</p>
+              <p>• Ongoing maintenance support • Financing options available</p>
+              <p class="footer-highlight">📞 Contact us today to schedule your pool consultation and bring your backyard dreams to life!</p>
             </div>
           </div>
 
@@ -602,11 +685,16 @@ const PoolDetails = () => {
     }));
   };
 
-  // Enhanced search functionality
+  // Enhanced search functionality - exclude pools
   useEffect(() => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       const filtered = marketplaceProducts.filter(product => {
+        // Exclude pools from search results
+        if (product.category?.toLowerCase().includes('pool') && !product.category?.toLowerCase().includes('equipment')) {
+          return false;
+        }
+        
         const matchesName = product.name.toLowerCase().includes(query);
         const matchesDescription = product.description?.toLowerCase().includes(query);
         const matchesCategory = product.category?.toLowerCase().includes(query);
@@ -729,19 +817,31 @@ const PoolDetails = () => {
         return finishOptions.map((finish) => (
           <div 
             key={finish.name}
-            className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
+            className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
               extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'
             }`}
             onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
           >
-            <div className="flex gap-3">
-              <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+            <div className="flex gap-2">
+              <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                 <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{finish.name}</p>
+                <p className="text-xs font-medium truncate">{finish.name}</p>
                 <p className="text-xs text-primary">{finish.collection}</p>
                 {finish.price && <p className="text-xs font-semibold">+${finish.price.toLocaleString()}</p>}
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="mt-1 h-6 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Navigate to editor studio for this product
+                  }}
+                >
+                  <Settings className="h-3 w-3 mr-1" />
+                  Editor Studio
+                </Button>
               </div>
             </div>
           </div>
@@ -751,19 +851,31 @@ const PoolDetails = () => {
         return linerOptions.map((liner) => (
           <div 
             key={liner.name}
-            className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
+            className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
               extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'
             }`}
             onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
           >
-            <div className="flex gap-3">
-              <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+            <div className="flex gap-2">
+              <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                 <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{liner.name}</p>
+                <p className="text-xs font-medium truncate">{liner.name}</p>
                 {liner.type && liner.type !== 'Standard' && <p className="text-xs text-primary">{liner.type}</p>}
                 {liner.price > 0 && <p className="text-xs font-semibold">+${liner.price.toLocaleString()}</p>}
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="mt-1 h-6 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Navigate to editor studio for this product
+                  }}
+                >
+                  <Settings className="h-3 w-3 mr-1" />
+                  Editor Studio
+                </Button>
               </div>
             </div>
           </div>
@@ -771,25 +883,27 @@ const PoolDetails = () => {
 
       case 'jets':
         return (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div>
-                <p className="text-sm font-medium">Spa Jets</p>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between p-2 border rounded-md">
+              <div className="flex-1">
+                <p className="text-xs font-medium">Spa Jets</p>
                 <p className="text-xs text-muted-foreground">Premium spa jets for relaxation</p>
                 <p className="text-xs font-semibold">${getExtraPrice('jets').toLocaleString()} each</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <Button 
                   size="sm" 
                   variant="outline" 
+                  className="h-6 w-6 p-0"
                   onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))}
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
-                <span className="text-sm px-2 py-1 bg-muted rounded">{extras.jetQuantity}</span>
+                <span className="text-xs px-1 py-1 bg-muted rounded min-w-[24px] text-center">{extras.jetQuantity}</span>
                 <Button 
                   size="sm" 
                   variant="outline" 
+                  className="h-6 w-6 p-0"
                   onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))}
                 >
                   <Plus className="h-3 w-3" />
@@ -797,7 +911,7 @@ const PoolDetails = () => {
               </div>
             </div>
             <Button 
-              className="w-full"
+              className="w-full h-7 text-xs"
               variant={extras.jets ? "default" : "outline"}
               onClick={() => toggleExtra('jets')}
             >
@@ -823,17 +937,29 @@ const PoolDetails = () => {
           return options.map((option: any) => (
             <div 
               key={option.name || option.model}
-              className="p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50"
+              className="p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50"
               onClick={() => handleOptionSelect(activePanel!, option)}
             >
-              <div className="flex gap-3">
-                <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+              <div className="flex gap-2">
+                <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                   <img src={option.image} alt={option.name || option.model} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{option.name || option.model}</p>
+                  <p className="text-xs font-medium truncate">{option.name || option.model}</p>
                   <p className="text-xs font-semibold">+${option.price.toLocaleString()}</p>
                   {option.description && <p className="text-xs text-muted-foreground truncate">{option.description}</p>}
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="mt-1 h-6 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Navigate to editor studio for this product
+                    }}
+                  >
+                    <Settings className="h-3 w-3 mr-1" />
+                    Editor Studio
+                  </Button>
                 </div>
               </div>
             </div>
@@ -860,32 +986,44 @@ const PoolDetails = () => {
         }).map((product) => (
           <div 
             key={product.id}
-            className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
+            className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
               selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'
             }`}
             onClick={() => {
               setSelectedProducts(prev => {
                 const isAlreadySelected = prev.some(p => p.id === product.id);
                 if (isAlreadySelected) {
-                  toast({ title: "Product Removed", description: `${product.name} removed!` });
+                  toast({ title: "Removed", description: `${product.name} removed!` });
                   return prev.filter(p => p.id !== product.id);
                 } else {
-                  toast({ title: "Product Added", description: `${product.name} added!` });
+                  toast({ title: "Added", description: `${product.name} added!` });
                   return [...prev, product];
                 }
               });
             }}
           >
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               {product.image_url && (
-                <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+                <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                   <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{product.name}</p>
+                <p className="text-xs font-medium truncate">{product.name}</p>
                 {product.brand && <p className="text-xs text-primary">{product.brand}</p>}
-                <p className="text-sm font-semibold">${product.price.toLocaleString()}</p>
+                <p className="text-xs font-semibold">${product.price.toLocaleString()}</p>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="mt-1 h-6 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Navigate to editor studio for this product
+                  }}
+                >
+                  <Settings className="h-3 w-3 mr-1" />
+                  Editor Studio
+                </Button>
               </div>
             </div>
           </div>
@@ -921,7 +1059,7 @@ const PoolDetails = () => {
 
   return (
     <div className="fixed inset-0 bg-background overflow-hidden flex flex-col">
-      {/* Top Header with Price */}
+      {/* Top Header with Price and Main Search */}
       <div className="h-20 border-b flex items-center justify-between px-6 bg-background/95 backdrop-blur-sm">
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={() => navigate(-1)}>
@@ -934,6 +1072,26 @@ const PoolDetails = () => {
           </div>
           <Badge className={getCategoryColor(pool.category)}>{pool.category}</Badge>
         </div>
+
+        {/* Main Search Engine */}
+        <div className="flex-1 max-w-md mx-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Main Search Engine - Find any product..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-background"
+            />
+          </div>
+        </div>
+
+        {/* Editor Studio Button */}
+        <Button variant="outline" className="mr-4">
+          <Settings className="h-4 w-4 mr-2" />
+          Editor Studio
+        </Button>
         
         {/* Always Visible Price */}
         <div className="text-right">
@@ -962,7 +1120,13 @@ const PoolDetails = () => {
               <Button 
                 size="sm"
                 className="absolute top-4 right-4 w-10 h-10 rounded-full p-0 bg-primary/90 hover:bg-primary border-2 border-background shadow-lg"
-                onClick={() => setActivePanel('finishes')}
+                onClick={() => {
+                  // Cycle through main categories when clicking +
+                  const mainCategories = ['finishes', 'liners', 'covers', 'heaters', 'spas', 'tiles'];
+                  const currentIndex = activePanel ? mainCategories.indexOf(activePanel) : -1;
+                  const nextIndex = (currentIndex + 1) % mainCategories.length;
+                  setActivePanel(mainCategories[nextIndex] as ActivePanel);
+                }}
               >
                 <Plus className="h-5 w-5" />
               </Button>
@@ -1064,95 +1228,97 @@ const PoolDetails = () => {
           </div>
         </div>
 
-        {/* Simplified Right Sidebar - Search & Single Category Dropdown */}
-        <div className="w-80 border-l bg-background flex flex-col">
-          {/* Search Engine */}
-          <div className="p-4 border-b space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search all products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            {/* Single Category Dropdown */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">Browse Categories</label>
-              <select 
-                value={activePanel || ''} 
-                onChange={(e) => setActivePanel(e.target.value as ActivePanel || null)}
-                className="w-full p-2 border rounded-md bg-background"
-              >
-                <option value="">All Categories</option>
-                <option value="finishes">Pool Finishes</option>
-                <option value="liners">Pool Liners</option>
-                <option value="pavers">Pavers & Decking</option>
-                <option value="coping">Coping Options</option>
-                <option value="covers">Pool Covers</option>
-                <option value="heaters">Heating Systems</option>
-                <option value="spas">Spa Options</option>
-                <option value="tanning">Tanning Ledges</option>
-                <option value="tiles">Pool Tiles</option>
-                <option value="jets">Pool Jets</option>
-                <option value="engines">Pool Equipment</option>
-                <option value="furniture">Outdoor Furniture</option>
-                <option value="fireplace">Fire Features</option>
-                <option value="outdoor-kitchens">Outdoor Kitchens</option>
-                <option value="bbq">BBQ & Grills</option>
-                <option value="pergolas">Pergolas & Shade</option>
-                <option value="sound-system">Sound Systems</option>
-              </select>
-            </div>
+        {/* Compact Right Sidebar - Browse Categories */}
+        <div className="w-72 border-l bg-background flex flex-col">
+          {/* Category Dropdown Only */}
+          <div className="p-3 border-b">
+            <label className="text-xs font-medium text-muted-foreground mb-2 block">Browse Categories</label>
+            <select 
+              value={activePanel || ''} 
+              onChange={(e) => {
+                const newPanel = e.target.value as ActivePanel || null;
+                setActivePanel(newPanel);
+                // Auto-close when switching categories
+                if (newPanel) {
+                  setSearchQuery('');
+                }
+              }}
+              className="w-full p-2 text-sm border rounded-md bg-background"
+            >
+              <option value="">All Categories</option>
+              <option value="finishes">Pool Finishes</option>
+              <option value="liners">Pool Liners</option>
+              <option value="pavers">Pavers & Decking</option>
+              <option value="coping">Coping Options</option>
+              <option value="covers">Pool Covers</option>
+              <option value="heaters">Heating Systems</option>
+              <option value="spas">Spa Options</option>
+              <option value="tanning">Tanning Ledges</option>
+              <option value="tiles">Pool Tiles</option>
+              <option value="jets">Pool Jets</option>
+              <option value="engines">Pool Equipment</option>
+              <option value="furniture">Outdoor Furniture</option>
+              <option value="fireplace">Fire Features</option>
+              <option value="outdoor-kitchens">Outdoor Kitchens</option>
+              <option value="bbq">BBQ & Grills</option>
+              <option value="pergolas">Pergolas & Shade</option>
+              <option value="sound-system">Sound Systems</option>
+            </select>
           </div>
 
-          {/* Dynamic Content Area */}
+          {/* Compact Content Area */}
           <div className="flex-1 overflow-auto">
             {/* Search Results */}
             {searchQuery && searchResults.length > 0 && (
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold">Search Results ({searchResults.length})</h3>
+              <div className="p-3">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-semibold">Results ({searchResults.length})</h4>
                   <Button variant="ghost" size="sm" onClick={() => setSearchQuery('')}>
-                    <X className="h-4 w-4" />
+                    <X className="h-3 w-3" />
                   </Button>
                 </div>
-                <div className="grid grid-cols-1 gap-3">
+                <div className="space-y-2">
                   {searchResults.map((product) => (
                     <div 
                       key={product.id}
-                      className={`p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all ${
+                      className={`p-2 border rounded-md hover:bg-muted/50 cursor-pointer transition-all ${
                         selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'
                       }`}
                       onClick={() => {
                         setSelectedProducts(prev => {
                           const isAlreadySelected = prev.some(p => p.id === product.id);
                           if (isAlreadySelected) {
-                            toast({ title: "Product Removed", description: `${product.name} removed from configuration!` });
+                            toast({ title: "Removed", description: `${product.name} removed!` });
                             return prev.filter(p => p.id !== product.id);
                           } else {
-                            toast({ title: "Product Added", description: `${product.name} added to configuration!` });
+                            toast({ title: "Added", description: `${product.name} added!` });
                             return [...prev, product];
                           }
                         });
                       }}
                     >
-                      <div className="flex gap-3">
+                      <div className="flex gap-2">
                         {product.image_url && (
-                          <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+                          <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                             <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{product.name}</p>
-                          {product.brand && <p className="text-xs text-primary">{product.brand}</p>}
+                          <p className="text-xs font-medium truncate">{product.name}</p>
+                          {product.brand && <p className="text-xs text-primary truncate">{product.brand}</p>}
                           <p className="text-xs font-semibold">${product.price.toLocaleString()}</p>
-                          {product.description && (
-                            <p className="text-xs text-muted-foreground truncate">{product.description}</p>
-                          )}
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="mt-1 h-6 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Navigate to editor studio for this product
+                            }}
+                          >
+                            <Settings className="h-3 w-3 mr-1" />
+                            Editor Studio
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -1163,34 +1329,33 @@ const PoolDetails = () => {
 
             {/* Category Products */}
             {activePanel && !searchQuery && (
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold">
+              <div className="p-3">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-semibold">
                     {activePanel === 'finishes' && 'Pool Finishes'}
                     {activePanel === 'liners' && 'Pool Liners'}
                     {activePanel === 'pavers' && 'Pavers'}
-                    {activePanel === 'coping' && 'Coping Pavers'}
+                    {activePanel === 'coping' && 'Coping'}
                     {activePanel === 'covers' && 'Pool Covers'}
-                    {activePanel === 'heaters' && 'Pool Heaters'}
-                    {activePanel === 'engines' && 'Pool Equipment'}
-                    {activePanel === 'spas' && 'Spa Options'}
+                    {activePanel === 'heaters' && 'Heaters'}
+                    {activePanel === 'engines' && 'Equipment'}
+                    {activePanel === 'spas' && 'Spas'}
                     {activePanel === 'tanning' && 'Tanning Ledges'}
-                    {activePanel === 'tiles' && 'Pool Tiles'}
-                    {activePanel === 'jets' && 'Pool Jets'}
-                    {activePanel === 'furniture' && 'Outdoor Furniture'}
+                    {activePanel === 'tiles' && 'Tiles'}
+                    {activePanel === 'jets' && 'Jets'}
+                    {activePanel === 'furniture' && 'Furniture'}
                     {activePanel === 'fireplace' && 'Fire Features'}
-                    {activePanel === 'outdoor-kitchens' && 'Outdoor Kitchens'}
+                    {activePanel === 'outdoor-kitchens' && 'Kitchens'}
                     {activePanel === 'bbq' && 'BBQ & Grills'}
-                    {activePanel === 'pergolas' && 'Pergolas & Shade'}
-                    {activePanel === 'sound-system' && 'Sound Systems'}
-                  </h3>
+                    {activePanel === 'pergolas' && 'Pergolas'}
+                    {activePanel === 'sound-system' && 'Sound'}
+                  </h4>
                   <Button variant="ghost" size="sm" onClick={() => setActivePanel(null)}>
-                    <X className="h-4 w-4" />
+                    <X className="h-3 w-3" />
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3">
-                  {/* Dynamic Category Content - Render appropriate options based on activePanel */}
+                <div className="space-y-2">
                   {renderCategoryContent()}
                 </div>
               </div>
@@ -1198,12 +1363,10 @@ const PoolDetails = () => {
 
             {/* Default State */}
             {!activePanel && !searchQuery && (
-              <div className="p-4 text-center text-muted-foreground">
-                <div className="py-8">
-                  <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium mb-2">Select Category or Search</p>
-                  <p className="text-sm">Choose a category above or search for specific products to customize your pool</p>
-                </div>
+              <div className="p-6 text-center text-muted-foreground">
+                <Package className="h-8 w-8 mx-auto mb-3 opacity-50" />
+                <p className="text-sm font-medium mb-1">Select Category</p>
+                <p className="text-xs">Choose a category to browse products</p>
               </div>
             )}
           </div>
