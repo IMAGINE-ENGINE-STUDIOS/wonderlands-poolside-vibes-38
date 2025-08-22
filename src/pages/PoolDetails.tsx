@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart as CartIcon, Search, ChevronDown, Settings, Armchair, Flame, ChefHat, Utensils, Home, Music, Package } from "lucide-react";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
+import RealTimeContentEditor from "@/components/RealTimeContentEditor";
 import { useShoppingCart } from "@/components/ShoppingCart";
 import { spas } from "@/components/PoolCatalog";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
@@ -275,6 +276,7 @@ const PoolDetails = () => {
   const [showPriceDropdown, setShowPriceDropdown] = useState(false);
   const [coverColor, setCoverColor] = useState<string>('');
   const [coverEngine, setCoverEngine] = useState<string>('');
+  const [showEditorStudio, setShowEditorStudio] = useState(false);
 
   // Remove config item function
   const removeConfigItem = (item: any) => {
@@ -375,7 +377,13 @@ const PoolDetails = () => {
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
     if (coverOption && extras.cover) total += coverOption.price;
     const paverOption = paverOptions.find(option => option.name === extras.paverOption);
-    if (paverOption) total += paverOption.price * paverArea; // price per sq ft * area
+    // Calculate paver area with 3ft buffer on all sides around pool + user specified area
+    const poolDimensions = pool.dimensions?.split('x').map(d => parseInt(d.trim().replace(/['"]/g, ''))) || [16, 32];
+    const poolWidth = poolDimensions[0];
+    const poolLength = poolDimensions[1];
+    const paverAreaWithBuffer = (poolWidth + 6) * (poolLength + 6); // 3ft on each side = 6ft total
+    const totalPaverArea = paverAreaWithBuffer + paverArea;
+    if (paverOption) total += 15 * totalPaverArea; // $15 per sq ft * total area including installation
 
     const copingPaverOption = copingPaverOptions.find(option => option.name === extras.copingPaverOption);
     if (copingPaverOption) total += copingPaverOption.price * copingLength; // price per linear ft * length
@@ -457,7 +465,14 @@ const PoolDetails = () => {
     }
     // Pavers
     const paver = paverOptions.find(p => p.name === extras.paverOption);
-    if (paver && paver.price > 0) items.push({ name: `${paver.name} (${paverArea} sq ft)`, price: paver.price * paverArea, image: paver.image, category: 'Pavers' });
+    if (paver) {
+      const poolDimensions = pool.dimensions?.split('x').map(d => parseInt(d.trim().replace(/['"]/g, ''))) || [16, 32];
+      const poolWidth = poolDimensions[0];
+      const poolLength = poolDimensions[1];
+      const paverAreaWithBuffer = (poolWidth + 6) * (poolLength + 6);
+      const totalPaverArea = paverAreaWithBuffer + paverArea;
+      items.push({ name: `${paver.name} (${totalPaverArea} sq ft incl. installation)`, price: 15 * totalPaverArea, image: paver.image, category: 'Pavers' });
+    }
     // Coping
     const coping = copingPaverOptions.find(c => c.name === extras.copingPaverOption);
     if (coping && coping.price > 0) items.push({ name: `${coping.name} (${copingLength} linear ft)`, price: coping.price * copingLength, image: coping.image, category: 'Coping' });
@@ -522,10 +537,17 @@ const PoolDetails = () => {
       price: liner.price
     });
     const paver = paverOptions.find(p => p.name === extras.paverOption);
-    if (paver && paver.price > 0) selectedExtras.push({
-      name: `${paver.name} (${paverArea} sq ft)`,
-      price: paver.price * paverArea
-    });
+    if (paver) {
+      const poolDimensions = pool.dimensions?.split('x').map(d => parseInt(d.trim().replace(/['"]/g, ''))) || [16, 32];
+      const poolWidth = poolDimensions[0];
+      const poolLength = poolDimensions[1];
+      const paverAreaWithBuffer = (poolWidth + 6) * (poolLength + 6);
+      const totalPaverArea = paverAreaWithBuffer + paverArea;
+      selectedExtras.push({
+        name: `${paver.name} (${totalPaverArea} sq ft incl. installation)`,
+        price: 15 * totalPaverArea
+      });
+    }
     const coping = copingPaverOptions.find(c => c.name === extras.copingPaverOption);
     if (coping && coping.price > 0) selectedExtras.push({
       name: `${coping.name} (${copingLength} linear ft)`,
@@ -1180,8 +1202,14 @@ const PoolDetails = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{option.name}</p>
-                      <p className="text-xs font-semibold">${option.price}/sq ft</p>
-                      <p className="text-xs text-primary">Total: ${(option.price * paverArea).toLocaleString()}</p>
+                      <p className="text-xs font-semibold">$15/sq ft (incl. installation)</p>
+                      <p className="text-xs text-primary">Total: ${(15 * ((() => {
+                        const poolDimensions = pool.dimensions?.split('x').map(d => parseInt(d.trim().replace(/['"]/g, ''))) || [16, 32];
+                        const poolWidth = poolDimensions[0];
+                        const poolLength = poolDimensions[1];
+                        const paverAreaWithBuffer = (poolWidth + 6) * (poolLength + 6);
+                        return paverAreaWithBuffer + paverArea;
+                      })())).toLocaleString()}</p>
                       {option.description && <p className="text-xs text-muted-foreground mt-1">{option.description}</p>}
                     </div>
                   </div>
@@ -1612,6 +1640,16 @@ const PoolDetails = () => {
                   <Button 
                     variant="outline" 
                     size="sm" 
+                    onClick={() => setShowEditorStudio(true)}
+                    className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
+                  >
+                    <Settings className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                    Editor Studio
+                  </Button>
+                  
+                  <Button
+                    variant="outline" 
+                    size="sm" 
                     onClick={handleAddToCart}
                     className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
                   >
@@ -1632,6 +1670,7 @@ const PoolDetails = () => {
           </div>
         </div>
       </div>
+      <RealTimeContentEditor isOpen={showEditorStudio} onClose={() => setShowEditorStudio(false)} />
     </div>
   );
 };
