@@ -1009,6 +1009,13 @@ const PoolDetails = () => {
                 <p className="text-xs font-medium truncate">{finish.name}</p>
                 <p className="text-xs text-primary">{finish.collection}</p>
                 {finish.price && <p className="text-xs font-semibold">+${finish.price.toLocaleString()}</p>}
+                <Button size="sm" variant="outline" className="mt-1 h-6 text-xs" onClick={e => {
+                e.stopPropagation();
+                // Navigate to editor studio for this product
+              }}>
+                  <Settings className="h-3 w-3 mr-1" />
+                  Editor Studio
+                </Button>
               </div>
             </div>
           </div>);
@@ -1395,7 +1402,7 @@ const PoolDetails = () => {
           
           {/* Price Breakdown Dropdown */}
           {showPriceDropdown && (
-            <div className="absolute top-full right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-background border rounded-lg shadow-lg z-[9999] p-4">
+            <div className="absolute top-full right-0 mt-2 w-80 bg-background border rounded-lg shadow-lg z-50 p-4">
               <h3 className="font-semibold mb-3">Configuration Breakdown</h3>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {/* Base Pool */}
@@ -1464,12 +1471,12 @@ const PoolDetails = () => {
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row h-auto md:h-[calc(100vh-8rem)] min-h-[600px]">
+      <div className="flex h-[calc(100vh-8rem)]">
         {/* Enhanced Product Showcase */}
-        <div className="flex-1 bg-muted p-3 sm:p-4 md:p-6">
+        <div className="flex-1 bg-muted p-6">
           <div className="h-full flex flex-col">
             {/* Large Main Pool Image */}
-            <div className="relative flex-1 mb-4 min-h-[400px] md:min-h-0">
+            <div className="relative flex-1 mb-4">
               <img 
                 src={getCurrentImage()} 
                 alt={pool.model} 
@@ -1485,36 +1492,36 @@ const PoolDetails = () => {
 
               {/* Enhanced Product Snapshots Grid - Top Left */}
               {(getSelectedConfigItems().length > 0 || selectedProducts.length > 0) && (
-                <div className="absolute top-2 sm:top-4 left-2 sm:left-4 grid grid-cols-3 sm:grid-cols-4 gap-1 sm:gap-2 max-w-[200px] sm:max-w-sm">
+                <div className="absolute top-4 left-4 grid grid-cols-4 gap-2 max-w-sm">
                   {getSelectedConfigItems().slice(0, 6).map((item, index) => (
                     <div key={index} className="relative group">
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 border-background shadow-md bg-background">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-background shadow-md bg-background">
                         <img 
                           src={item.image} 
                           alt={item.name} 
                           className="w-full h-full object-cover" 
                         />
                       </div>
-                      <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[10px] sm:text-xs font-bold">
+                      <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
                         {item.category === 'Pool Jets' ? extras.jetQuantity : '1'}
                       </div>
-                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-background/95 border rounded text-[10px] sm:text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-background/95 border rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
                         {item.name} - ${item.price?.toLocaleString()}
                       </div>
                       <Button 
                         size="sm" 
                         variant="destructive" 
-                        className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-4 h-4 sm:w-5 sm:h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => removeConfigItem(item)}
                       >
-                        <X className="h-2 w-2 sm:h-3 sm:w-3" />
+                        <X className="h-3 w-3" />
                       </Button>
                     </div>
                   ))}
                   
                   {selectedProducts.slice(0, 2).map(product => (
                     <div key={product.id} className="relative group">
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 border-background shadow-md bg-background">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-background shadow-md bg-background">
                         {product.image_url ? (
                           <img 
                             src={product.image_url} 
@@ -1523,17 +1530,17 @@ const PoolDetails = () => {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <Package className="h-4 w-4 sm:h-6 sm:w-6 text-muted-foreground" />
+                            <Package className="h-6 w-6 text-muted-foreground" />
                           </div>
                         )}
                       </div>
-                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-background/95 border rounded text-[10px] sm:text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-background/95 border rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
                         {product.name} - ${product.price.toLocaleString()}
                       </div>
                       <Button 
                         size="sm" 
                         variant="destructive" 
-                        className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-4 h-4 sm:w-5 sm:h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => {
                           setSelectedProducts(prev => prev.filter(p => p.id !== product.id));
                           toast({
@@ -1542,15 +1549,15 @@ const PoolDetails = () => {
                           });
                         }}
                       >
-                        <X className="h-2 w-2 sm:h-3 sm:w-3" />
+                        <X className="h-3 w-3" />
                       </Button>
                     </div>
                   ))}
                   
                   {/* Show count if more products */}
                   {getSelectedConfigItems().length + selectedProducts.length > 8 && (
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg border-2 border-background shadow-md bg-background/90 flex items-center justify-center">
-                      <span className="text-xs sm:text-sm font-semibold">
+                    <div className="w-16 h-16 rounded-lg border-2 border-background shadow-md bg-background/90 flex items-center justify-center">
+                      <span className="text-sm font-semibold">
                         +{getSelectedConfigItems().length + selectedProducts.length - 8}
                       </span>
                     </div>
@@ -1562,9 +1569,9 @@ const PoolDetails = () => {
         </div>
 
         {/* Compact Right Sidebar - Browse Categories */}
-      <div className="w-full sm:w-80 md:w-72 lg:w-80 xl:w-96 border-l bg-background flex flex-col">
+        <div className="w-72 border-l bg-background flex flex-col">
             {/* Category Dropdown Only */}
-            <div className="p-2 sm:p-3 border-b">
+            <div className="p-3 border-b">
               <label className="text-xs font-medium text-muted-foreground mb-2 block">Browse Categories</label>
               <select 
                 value={activePanel || ''} 
@@ -1576,7 +1583,7 @@ const PoolDetails = () => {
                 }} 
                 className="w-full p-2 text-sm border rounded-md bg-background"
               >
-                <option value="">Select a Category</option>
+                <option value="">All Categories</option>
               <option value="finishes">Pool Finishes</option>
               <option value="liners">Pool Liners</option>
               <option value="pavers">Pavers & Decking</option>
@@ -1672,13 +1679,50 @@ const PoolDetails = () => {
                 </div>
               </div>}
 
-            {/* Default State - Select Category Message */}
+            {/* Default State - Show All Products */}
             {!activePanel && !searchQuery && (
-              <div className="p-3 text-center">
-                <div className="flex flex-col items-center justify-center py-8">
-                  <Package className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h4 className="text-sm font-semibold mb-2">Select a Category</h4>
-                  <p className="text-xs text-muted-foreground">Choose a category above to browse available products and options for your pool configuration.</p>
+              <div className="p-3">
+                <h4 className="text-sm font-semibold mb-3">All Products ({marketplaceProducts.length})</h4>
+                <div className="space-y-2">
+                  {marketplaceProducts.map(product => (
+                    <div 
+                      key={product.id} 
+                      className={`p-2 border rounded-md hover:bg-muted/50 cursor-pointer transition-all ${
+                        selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'
+                      }`}
+                      onClick={() => {
+                        setSelectedProducts(prev => {
+                          const isAlreadySelected = prev.some(p => p.id === product.id);
+                          if (isAlreadySelected) {
+                            toast({
+                              title: "Removed from Configuration",
+                              description: `${product.name} removed from pool configuration!`
+                            });
+                            return prev.filter(p => p.id !== product.id);
+                          } else {
+                            toast({
+                              title: "Added to Configuration", 
+                              description: `${product.name} added to pool configuration!`
+                            });
+                            return [...prev, product];
+                          }
+                        });
+                      }}
+                    >
+                      <div className="flex gap-2">
+                        {product.image_url && (
+                          <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
+                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium truncate">{product.name}</p>
+                          {product.brand && <p className="text-xs text-primary truncate">{product.brand}</p>}
+                          <p className="text-xs font-semibold">${product.price.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -1687,10 +1731,10 @@ const PoolDetails = () => {
       </div>
 
       {/* Bottom Dashboard */}
-      <div className="h-16 sm:h-20 border-t bg-background/95 backdrop-blur-sm flex items-center justify-between px-3 sm:px-6">
-        <div className="flex items-center gap-2 sm:gap-4">
+      <div className="h-20 border-t bg-background/95 backdrop-blur-sm flex items-center justify-between px-6">
+        <div className="flex items-center gap-4">
           {/* Circular Feature Snapshots */}
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-2">
             {getSelectedFeatureIcons().map((feature, index) => <div key={index} className="relative group">
                 <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
                   <feature.icon className="h-4 w-4 text-primary" />
