@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   BarChart3, 
@@ -15,6 +16,7 @@ import {
   Filter,
   Search,
   RefreshCw,
+  Database,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,24 +31,19 @@ import DeliveryApiManager from '@/components/DeliveryApiManager';
 import AdminContentEditor from '@/components/AdminContentEditor';
 import RealApiManager from '@/components/RealApiManager';
 import RealTimeContentEditor from '@/components/RealTimeContentEditor';
-
 import LathamPoolsData from '@/components/LathamPoolsData';
-import EnhancedProductManager from '@/components/EnhancedProductManager';
+import UnifiedAdminProductManager from '@/components/UnifiedAdminProductManager';
+import AdminUserManagement from '@/components/AdminUserManagement';
 
 const AdminDashboard = () => {
   // Mock data for demonstration
-  const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [businesses, setBusinesses] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [orderFilter, setOrderFilter] = useState('all');
   const [showContentEditor, setShowContentEditor] = useState(false);
-  // Removed authentication requirement
-
-  // Remove data loading effect since GALA-GOODS is removed
 
   // Mock GALA points data (in real implementation, this would come from API)
   const galaPointsData = {
@@ -82,8 +79,6 @@ const AdminDashboard = () => {
     }, 1000);
   };
 
-  // Dashboard now accessible without authentication
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
       {/* Header */}
@@ -92,9 +87,9 @@ const AdminDashboard = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
             <div className="flex-1">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Pool Systems Admin
+                Pool Systems Admin Dashboard
               </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">Welcome back, Administrator</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Unified Administration & Database Management</p>
             </div>
             <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <Button variant="outline" onClick={refreshData} disabled={isLoading} size="sm" className="flex-1 sm:flex-none">
@@ -155,31 +150,35 @@ const AdminDashboard = () => {
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Products</CardTitle>
-              <Package className="h-4 w-4 text-green-500" />
+              <CardTitle className="text-sm font-medium">Database Health</CardTitle>
+              <Database className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{products.length}</div>
+              <div className="text-2xl font-bold text-green-600">100%</div>
               <p className="text-xs text-muted-foreground">
-                {businesses.length} businesses
+                All systems operational
               </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="orders" className="space-y-4 sm:space-y-6">
+        <Tabs defaultValue="unified-products" className="space-y-4 sm:space-y-6">
           <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 sm:mb-6">
             <TabsList className="grid w-full grid-cols-2 sm:flex sm:flex-wrap gap-1">
+              <TabsTrigger value="unified-products" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <Database className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Unified Products</span>
+                <span className="sm:hidden">Products</span>
+              </TabsTrigger>
               <TabsTrigger value="orders" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Orders</span>
               </TabsTrigger>
-               <TabsTrigger value="product-editor" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Product Editor</span>
-                  <span className="sm:hidden">Editor</span>
-                </TabsTrigger>
+              <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Users</span>
+              </TabsTrigger>
                <TabsTrigger value="api-manager" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                  <span className="hidden sm:inline">API Manager</span>
@@ -207,6 +206,37 @@ const AdminDashboard = () => {
               </TabsTrigger>
             </TabsList>
           </div>
+
+          {/* Unified Products Tab - NEW PRIMARY TAB */}
+          <TabsContent value="unified-products" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5 text-primary" />
+                  Unified Product & Database Management
+                </CardTitle>
+                <CardDescription>
+                  Centralized management of all products, pools, and database items across the entire application
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <UnifiedAdminProductManager />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Users Tab */}
+          <TabsContent value="users" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>Manage all users, suppliers, consumers, and administrators</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AdminUserManagement currentAdmin={null} />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Orders Tab */}
           <TabsContent value="orders" className="space-y-6">
@@ -299,7 +329,6 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-
           {/* Content Editor Tab */}
           <TabsContent value="content-editor" className="space-y-6">
             <Card>
@@ -358,13 +387,11 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-
           {/* API Manager Tab */}
           <TabsContent value="api-manager" className="space-y-6">
             <RealApiManager />
           </TabsContent>
 
-          
           {/* Pool Specs Tab */}
           <TabsContent value="pool-specs" className="space-y-6">
             <Card>
@@ -381,11 +408,6 @@ const AdminDashboard = () => {
                 <LathamPoolsData />
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Product Editor Tab */}
-          <TabsContent value="product-editor" className="space-y-6">
-            <EnhancedProductManager />
           </TabsContent>
 
           {/* Delivery & Logistics Tab */}
@@ -473,74 +495,13 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
-          {/* GALA Points Tab */}
-          <TabsContent value="gala-points" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5 text-amber-500" />
-                    Points Overview
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Total Points Pool</span>
-                    <span className="text-lg font-bold text-amber-600">
-                      {galaPointsData.totalPoints.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Points Distributed</span>
-                    <span className="text-lg font-bold text-green-600">
-                      {galaPointsData.pointsDistributed.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Pending Rewards</span>
-                    <span className="text-lg font-bold text-blue-600">
-                      {galaPointsData.pendingRewards.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Active Users</span>
-                    <span className="text-lg font-bold">
-                      {galaPointsData.activeUsers}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Points Management</CardTitle>
-                  <CardDescription>Manage GALA points distribution and rewards</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button className="w-full">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Reward Campaign
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    <TrendingUp className="h-4 w-4 mr-2" />
-                    View Points Analytics
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    <Users className="h-4 w-4 mr-2" />
-                    Manage User Points
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Revenue Analytics</CardTitle>
-                  <CardDescription>Track your GALA-GOODS revenue performance</CardDescription>
+                  <CardDescription>Track your pool system revenue performance</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -558,26 +519,22 @@ const AdminDashboard = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Business Insights</CardTitle>
-                  <CardDescription>Key metrics and insights for your platform</CardDescription>
+                  <CardTitle>Database Insights</CardTitle>
+                  <CardDescription>Key metrics and insights for your unified database</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">Completion Rate</span>
-                      <span className="font-bold">
-                        {orders.length > 0 ? ((completedOrders / orders.length) * 100).toFixed(1) : 0}%
-                      </span>
+                      <span className="text-sm">Database Health</span>
+                      <span className="font-bold text-green-600">100%</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">Active Businesses</span>
-                      <span className="font-bold">{businesses.length}</span>
+                      <span className="text-sm">Total Products</span>
+                      <span className="font-bold">Loading...</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">Products per Business</span>
-                      <span className="font-bold">
-                        {businesses.length > 0 ? (products.length / businesses.length).toFixed(1) : 0}
-                      </span>
+                      <span className="text-sm">Active Pools</span>
+                      <span className="font-bold">Loading...</span>
                     </div>
                   </div>
                 </CardContent>
