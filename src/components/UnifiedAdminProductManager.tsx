@@ -6,13 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, RefreshCw, Database, AlertCircle, TrendingUp, Package, Eye, Plus, Building, Edit } from "lucide-react";
+import { Loader2, RefreshCw, Database, AlertCircle, TrendingUp, Package, Eye, Plus, Building } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ProductPreview from "./ProductPreview";
 import ProcurementForm from "./ProcurementForm";
-import UserManagement from "./UserManagement";
-import ProductEditor from "./ProductEditor";
 
 interface UnifiedProduct {
   id: string;
@@ -39,8 +37,6 @@ const UnifiedAdminProductManager = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [editingProduct, setEditingProduct] = useState<UnifiedProduct | null>(null);
-  const [isProductEditorOpen, setIsProductEditorOpen] = useState(false);
   
   const categories = ['all', 'pool', 'spa', 'liner', 'tile', 'tanning_ledge', 'finish', 'other'];
   const sortOptions = ['name', 'price', 'category', 'stock', 'created_at'];
@@ -77,7 +73,7 @@ const UnifiedAdminProductManager = () => {
 
       if (productsError) throw productsError;
 
-      // Fetch pools separately
+      // Fetch pools
       const { data: poolsData, error: poolsError } = await supabase
         .from('pools')
         .select('*')
@@ -86,8 +82,28 @@ const UnifiedAdminProductManager = () => {
 
       if (poolsError) throw poolsError;
 
-      // Transform products to unified format (only from products table)
+      // Transform products to unified format
       const unifiedProducts: UnifiedProduct[] = [
+        // Add pool products from pools table
+        ...(poolsData || []).map(pool => ({
+          id: pool.id,
+          name: pool.model,
+          category: 'pool' as const,
+          subcategory: pool.category,
+          price: pool.price,
+          image: pool.image_url,
+          description: `${pool.category} pool - ${pool.dimensions || ''} - Depth: ${pool.depth || 'N/A'}`,
+          features: Array.isArray(pool.features) ? pool.features.map(f => String(f)) : [],
+          stock: 5, // Default pool stock
+          isActive: pool.is_active,
+          source: 'front_page_sync',
+          sku: `POOL-${pool.model.toUpperCase().replace(/\s+/g, '-')}`,
+          material: 'Fiberglass',
+          warranty: pool.warranty_years,
+          installation: pool.installation_time_weeks ? `${pool.installation_time_weeks} weeks` : 'N/A',
+          collection: 'Latham Pools'
+        })),
+        // Add other products from products table
         ...(productsData || []).map(product => ({
           id: product.id,
           name: product.name,
@@ -108,7 +124,7 @@ const UnifiedAdminProductManager = () => {
         }))
       ];
 
-      // Set products and pools separately
+      // Set products and pools
       setProducts(unifiedProducts);
       setPools(poolsData || []);
     } catch (error) {
@@ -154,20 +170,6 @@ const UnifiedAdminProductManager = () => {
     }
   });
 
-  // Filter pools separately
-  const filteredPools = pools.filter(pool => {
-    const matchesSearch = pool.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         pool.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         pool.dimensions?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
-  }).sort((a, b) => {
-    if (sortOrder === 'asc') {
-      return a.model.toLowerCase() < b.model.toLowerCase() ? -1 : 1;
-    } else {
-      return a.model.toLowerCase() > b.model.toLowerCase() ? -1 : 1;
-    }
-  });
-
   const syncPoolsToProducts = async () => {
     try {
       toast.success('Database sync completed! All products are now up to date with front page.');
@@ -176,26 +178,12 @@ const UnifiedAdminProductManager = () => {
     }
   };
 
-  const handleEditProduct = (product: UnifiedProduct) => {
-    setEditingProduct(product);
-    setIsProductEditorOpen(true);
-  };
-
-  const handleCreateProduct = () => {
-    setEditingProduct(null);
-    setIsProductEditorOpen(true);
-  };
-
-  const handleProductSaved = () => {
-    loadProducts();
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p>Loading product data...</p>
+          <p>Loading unified product data...</p>
         </div>
       </div>
     );
@@ -205,19 +193,13 @@ const UnifiedAdminProductManager = () => {
     <div className="space-y-6">
       <Tabs defaultValue="products" className="space-y-6">
         <div className="flex justify-between items-center">
-          <TabsList className="grid grid-cols-5 w-auto">
+          <TabsList className="grid grid-cols-3 w-auto">
             <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
-            <TabsTrigger value="pools">Pools ({pools.length})</TabsTrigger>
             <TabsTrigger value="procurement">Procurement</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
           
           <div className="flex gap-2">
-            <Button onClick={handleCreateProduct}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Product
-            </Button>
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="outline">
@@ -288,20 +270,11 @@ const UnifiedAdminProductManager = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredProducts.map((product) => (
-                <div key={product.id} className="relative">
-                  <ProductPreview
-                    product={product}
-                    variant="default"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm"
-                    onClick={() => handleEditProduct(product)}
-                  >
-                    <Edit className="h-3 w-3" />
-                  </Button>
-                </div>
+                <ProductPreview
+                  key={product.id}
+                  product={product}
+                  variant="default"
+                />
               ))}
             </div>
 
@@ -315,171 +288,6 @@ const UnifiedAdminProductManager = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="pools">
-          <div className="space-y-6">
-            <div className="flex gap-4 mb-6 flex-wrap">
-              <div className="flex-1 min-w-[250px]">
-                <Input
-                  placeholder="Search pools..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <Button
-                variant="outline"
-                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="px-3"
-              >
-                {sortOrder === 'asc' ? '↑' : '↓'}
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredPools.map((pool) => (
-                <Card key={pool.id} className="group hover:shadow-xl transition-all duration-300 hover:scale-[1.02] bg-card/50 backdrop-blur-sm">
-                  <div className="relative overflow-hidden">
-                    <img 
-                      src={pool.image_url} 
-                      alt={pool.model}
-                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-                      onError={(e) => {
-                        e.currentTarget.src = '/placeholder.svg';
-                      }}
-                    />
-                    <Badge className="absolute top-2 left-2 bg-blue-500">
-                      {pool.category}
-                    </Badge>
-                    {pool.gala_points && (
-                      <Badge variant="secondary" className="absolute top-2 right-2">
-                        {pool.gala_points} pts
-                      </Badge>
-                    )}
-                  </div>
-
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg line-clamp-2">{pool.model}</CardTitle>
-                    <CardDescription className="text-sm">
-                      {pool.dimensions} • {pool.depth}
-                    </CardDescription>
-                  </CardHeader>
-
-                  <CardContent className="pt-0">
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                      {pool.category} pool with {pool.features?.length || 0} features
-                    </p>
-                    
-                    {pool.features && pool.features.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="font-semibold text-sm mb-2">Features:</h4>
-                        <div className="flex flex-wrap gap-1">
-                          {pool.features.slice(0, 3).map((feature, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {feature}
-                            </Badge>
-                          ))}
-                          {pool.features.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{pool.features.length - 3} more
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between items-center mb-4">
-                      <div>
-                        <span className="text-2xl font-bold text-primary">${pool.price?.toLocaleString()}</span>
-                        <p className="text-xs text-muted-foreground">Fiberglass</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium">In Stock</p>
-                        {pool.warranty_years && (
-                          <p className="text-xs text-muted-foreground">{pool.warranty_years} warranty</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" className="flex-1">
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-3xl">
-                          <DialogHeader>
-                            <DialogTitle>{pool.model}</DialogTitle>
-                            <DialogDescription>{pool.category} Pool</DialogDescription>
-                          </DialogHeader>
-                          <div className="grid md:grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                              <img
-                                src={pool.image_url}
-                                alt={pool.model}
-                                className="w-full h-64 object-cover rounded-lg"
-                              />
-                              <div className="grid grid-cols-2 gap-2">
-                                <Badge className="bg-blue-500">
-                                  {pool.category}
-                                </Badge>
-                                {pool.gala_category && (
-                                  <Badge variant="outline">{pool.gala_category}</Badge>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <div className="space-y-6">
-                              <div>
-                                <h3 className="text-xl font-bold mb-2">${pool.price?.toLocaleString()}</h3>
-                                <p className="text-muted-foreground">{pool.category} pool model</p>
-                              </div>
-                              
-                              <div>
-                                <h4 className="font-semibold mb-3">Specifications:</h4>
-                                <div className="space-y-2 text-sm">
-                                  <div><span className="font-medium">Dimensions:</span> {pool.dimensions}</div>
-                                  <div><span className="font-medium">Depth:</span> {pool.depth}</div>
-                                  <div><span className="font-medium">Material:</span> Fiberglass</div>
-                                  {pool.warranty_years && <div><span className="font-medium">Warranty:</span> {pool.warranty_years}</div>}
-                                  {pool.installation_time_weeks && <div><span className="font-medium">Installation:</span> {pool.installation_time_weeks} weeks</div>}
-                                  {pool.gala_points && <div><span className="font-medium">Points:</span> {pool.gala_points}</div>}
-                                </div>
-                              </div>
-                              
-                              {pool.features && pool.features.length > 0 && (
-                                <div>
-                                  <h4 className="font-semibold mb-3">Features:</h4>
-                                  <ul className="space-y-2">
-                                    {pool.features.map((feature, index) => (
-                                      <li key={index} className="flex items-center gap-2 text-sm">
-                                        <div className="w-2 h-2 bg-primary rounded-full"></div>
-                                        <span>{feature}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {filteredPools.length === 0 && (
-              <div className="text-center py-12">
-                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No pools found</h3>
-                <p className="text-muted-foreground">Try adjusting your search criteria.</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
 
         <TabsContent value="procurement">
           <div className="space-y-6">
@@ -499,10 +307,6 @@ const UnifiedAdminProductManager = () => {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
-
-        <TabsContent value="users">
-          <UserManagement />
         </TabsContent>
 
         <TabsContent value="analytics">
@@ -580,11 +384,7 @@ const UnifiedAdminProductManager = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="capitalize">Pool Models</span>
-                    <Badge variant="secondary">{pools.length}</Badge>
-                  </div>
-                  {categories.filter(cat => cat !== 'all' && cat !== 'pool').map(category => {
+                  {categories.filter(cat => cat !== 'all').map(category => {
                     const count = products.filter(p => p.category === category).length;
                     return count > 0 ? (
                       <div key={category} className="flex justify-between">
@@ -599,13 +399,6 @@ const UnifiedAdminProductManager = () => {
           </div>
         </TabsContent>
       </Tabs>
-
-      <ProductEditor
-        product={editingProduct}
-        isOpen={isProductEditorOpen}
-        onClose={() => setIsProductEditorOpen(false)}
-        onSave={handleProductSaved}
-      />
     </div>
   );
 };
