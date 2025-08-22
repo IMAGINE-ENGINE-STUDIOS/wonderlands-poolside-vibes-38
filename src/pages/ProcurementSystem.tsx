@@ -24,6 +24,8 @@ import EnhancedJobPostingForm from '@/components/procurement/EnhancedJobPostingF
 import JobFeed from '@/components/procurement/JobFeed';
 import JobDetailModal from '@/components/procurement/JobDetailModal';
 import QuickProposalModal from '@/components/procurement/QuickProposalModal';
+import MessagingSystem from '@/components/procurement/MessagingSystem';
+import UserProfileModal from '@/components/UserProfileModal';
 
 interface JobPosting {
   id: string;
@@ -55,6 +57,9 @@ const ProcurementSystem = () => {
   const [showJobForm, setShowJobForm] = useState(false);
   const [showQuickProposal, setShowQuickProposal] = useState(false);
   const [quickProposalJob, setQuickProposalJob] = useState<JobPosting | null>(null);
+  const [showMessaging, setShowMessaging] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
 
   const categories = [
     { value: 'all', label: 'All Categories' },
@@ -101,11 +106,19 @@ const ProcurementSystem = () => {
     fetchJobs();
   }, [selectedCategory]);
 
-  const filteredJobs = jobs.filter(job =>
-    job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.location?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredJobs = jobs.filter(job => {
+    const matchesSearch = searchTerm === '' || 
+      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.profiles?.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.profiles?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.profiles?.last_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = selectedCategory === 'all' || job.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   const handleJobCreated = () => {
     setShowJobForm(false);
@@ -157,12 +170,32 @@ const ProcurementSystem = () => {
               <div className="flex flex-wrap items-center gap-2 md:gap-4 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  {jobs.length} Active Jobs
+                  {filteredJobs.length} Active Jobs
                 </span>
                 <span className="hidden sm:inline">•</span>
                 <span>Trusted Network</span>
                 <span className="hidden sm:inline">•</span>
                 <span>Quality Assured</span>
+                <span className="hidden sm:inline">•</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowMessaging(true)}
+                  className="text-primary hover:text-teal"
+                >
+                  Messages
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedProfileId(null);
+                    setShowProfile(true);
+                  }}
+                  className="text-primary hover:text-teal"
+                >
+                  My Profile
+                </Button>
               </div>
             </div>
 
@@ -310,6 +343,23 @@ const ProcurementSystem = () => {
           // Here you would typically send to your backend
           fetchJobs();
         }}
+      />
+
+      {/* Messaging System */}
+      <MessagingSystem
+        isOpen={showMessaging}
+        onClose={() => setShowMessaging(false)}
+      />
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        isOpen={showProfile}
+        onClose={() => {
+          setShowProfile(false);
+          setSelectedProfileId(null);
+        }}
+        userId={selectedProfileId || undefined}
+        isOwnProfile={!selectedProfileId}
       />
     </div>
   );

@@ -139,7 +139,14 @@ const JobPostCard = ({ job, onJobClick, onQuickProposal, variant = 'default' }: 
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-4 flex-1">
-            <Avatar className="h-12 w-12 border-2 border-primary/20">
+            <Avatar 
+              className="h-12 w-12 border-2 border-primary/20 cursor-pointer hover:scale-105 transition-transform"
+              onClick={(e) => {
+                e.stopPropagation();
+                // This would open the profile modal - we'll add this functionality
+                console.log('Open profile for:', job.business_id);
+              }}
+            >
               <AvatarFallback className="bg-gradient-to-br from-primary to-teal text-white font-semibold">
                 {getInitials(
                   job.profiles?.first_name || '',
@@ -233,10 +240,19 @@ const JobPostCard = ({ job, onJobClick, onQuickProposal, variant = 'default' }: 
               <span>{Math.floor(Math.random() * 50) + 10}</span> views
             </div>
 
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"
+              onClick={(e) => {
+                e.stopPropagation();
+                // This would open messaging - we'll add this functionality
+                console.log('Open messages for job:', job.id);
+              }}
+            >
               <MessageSquare className="h-4 w-4" />
               <span>{Math.floor(Math.random() * 5) + 1}</span> messages
-            </div>
+            </Button>
           </div>
           
           <div className="flex gap-2">

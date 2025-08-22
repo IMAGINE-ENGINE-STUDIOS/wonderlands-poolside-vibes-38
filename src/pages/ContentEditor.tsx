@@ -616,77 +616,52 @@ const ContentEditor = () => {
         </div>
 
         <div className="flex flex-1">
-          {/* Left Sidebar - Tools and Controls */}
-          <div className="w-80 border-r bg-muted/30 p-4 space-y-6 overflow-y-auto max-h-[calc(100vh-80px)]">
-            {/* Content Tools */}
-            <div className="p-4 border-b">
-              <h3 className="font-semibold mb-3">Content Tools</h3>
-              <div className="space-y-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => addCustomElement('text', 'New Text')}
-                    >
-                      <Type className="h-4 w-4 mr-2" />
-                      Add Text
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Add editable text element</TooltipContent>
-                </Tooltip>
-                
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => addCustomElement('heading', 'New Heading')}
-                    >
-                      <Type className="h-4 w-4 mr-2" />
-                      Add Heading
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Add heading with custom styling</TooltipContent>
-                </Tooltip>
-                
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Image className="h-4 w-4 mr-2" />
-                      Add Image
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Upload and add image to page</TooltipContent>
-                </Tooltip>
-                
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => addCustomElement('button', 'Click Me')}
-                    >
-                      <MousePointer className="h-4 w-4 mr-2" />
-                      Add Button
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Add interactive button element</TooltipContent>
-                </Tooltip>
+          {/* Top Controls Bar */}
+          <div className="fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b p-4">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              {/* Content Tools */}
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-sm">Tools:</h3>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => addCustomElement('text', 'New Text')}
+                >
+                  <Type className="h-4 w-4 mr-1" />
+                  Text
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => addCustomElement('heading', 'New Heading')}
+                >
+                  <Type className="h-4 w-4 mr-1" />
+                  Heading
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Image className="h-4 w-4 mr-1" />
+                  Image
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => addCustomElement('button', 'Click Me')}
+                >
+                  <MousePointer className="h-4 w-4 mr-1" />
+                  Button
+                </Button>
               </div>
-            </div>
 
-            {/* Product Library */}
-            <div className="p-4 border-b">
-              <h3 className="font-semibold mb-3">Product Library</h3>
-              <div className="space-y-2">
+              {/* Product Library */}
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-sm">Products:</h3>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map(cat => (
@@ -696,126 +671,73 @@ const ContentEditor = () => {
                     ))}
                   </SelectContent>
                 </Select>
-                
-                <div className="max-h-60 overflow-y-auto">
-                  {loadingProducts ? (
-                    <div className="text-center py-4">Loading products...</div>
-                  ) : (
-                    <div className="space-y-2">
-                      {products.map(product => (
-                        <Button
-                          key={product.id}
-                          variant="outline"
-                          className="w-full justify-start text-left h-auto p-3"
-                          onClick={() => addProductElement(product)}
-                        >
-                          <div className="flex items-center gap-2">
-                            <Package className="h-4 w-4 text-primary flex-shrink-0" />
-                            <div className="min-w-0 flex-1">
-                              <div className="truncate text-sm font-medium">{product.name}</div>
-                              <div className="text-xs text-muted-foreground">
-                                ${product.price.toLocaleString()}
-                              </div>
-                            </div>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                </div>
               </div>
-            </div>
 
-            {/* Settings Panel */}
-            <div className="p-4 border-b">
-              <h3 className="font-semibold mb-3">Page Settings</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Show Outlines</span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant={showOutlines ? "default" : "outline"}
-                        onClick={() => setShowOutlines(!showOutlines)}
-                      >
-                        <Layout className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Toggle element outlines</TooltipContent>
-                  </Tooltip>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Live Preview</span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant={isLivePreview ? "default" : "outline"}
-                        onClick={() => setIsLivePreview(!isLivePreview)}
-                      >
-                        <RefreshCw className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Toggle live preview updates</TooltipContent>
-                  </Tooltip>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Preview Mode</span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant={isPreviewMode ? "default" : "outline"}
-                        onClick={() => setIsPreviewMode(!isPreviewMode)}
-                      >
-                        {isPreviewMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Disable interactions in preview</TooltipContent>
-                  </Tooltip>
-                </div>
+              {/* Settings */}
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-sm">Settings:</h3>
+                <Button
+                  size="sm"
+                  variant={showOutlines ? "default" : "outline"}
+                  onClick={() => setShowOutlines(!showOutlines)}
+                >
+                  <Layout className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant={isLivePreview ? "default" : "outline"}
+                  onClick={() => setIsLivePreview(!isLivePreview)}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant={isPreviewMode ? "default" : "outline"}
+                  onClick={() => setIsPreviewMode(!isPreviewMode)}
+                >
+                  {isPreviewMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
               </div>
-            </div>
 
-            {/* Actions */}
-            <div className="p-4">
-              <div className="space-y-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button className="w-full" onClick={saveAsDraft}>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Draft
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Save current changes as draft</TooltipContent>
-                </Tooltip>
-                
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="outline" className="w-full">
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy Page
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Duplicate current page</TooltipContent>
-                </Tooltip>
-                
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="outline" className="w-full">
-                      <Database className="h-4 w-4 mr-2" />
-                      Backup
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Create backup of all content</TooltipContent>
-                </Tooltip>
+              {/* Actions */}
+              <div className="flex items-center gap-2">
+                <Button size="sm" onClick={saveAsDraft}>
+                  <Save className="h-4 w-4 mr-1" />
+                  Save
+                </Button>
+                <Button size="sm" variant="outline">
+                  <Copy className="h-4 w-4 mr-1" />
+                  Copy
+                </Button>
+                <Button size="sm" variant="outline">
+                  <Database className="h-4 w-4 mr-1" />
+                  Backup
+                </Button>
               </div>
             </div>
+            
+            {/* Product Grid */}
+            {!loadingProducts && products.length > 0 && (
+              <div className="mt-4 grid grid-cols-6 gap-2">
+                {products.slice(0, 6).map(product => (
+                  <Button
+                    key={product.id}
+                    variant="outline"
+                    size="sm"
+                    className="h-auto p-2 flex flex-col items-center"
+                    onClick={() => addProductElement(product)}
+                  >
+                    <Package className="h-3 w-3 mb-1" />
+                    <span className="text-xs truncate w-full">{product.name}</span>
+                    <span className="text-xs text-primary">${product.price}</span>
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Right Side - Preview Area */}
-          <div className="flex-1 bg-white">
+          {/* Main Content Area */}
+          <div className="flex-1 bg-white pt-32">
             <SitePreview
               elements={elements}
               onElementClick={handleElementClick}
