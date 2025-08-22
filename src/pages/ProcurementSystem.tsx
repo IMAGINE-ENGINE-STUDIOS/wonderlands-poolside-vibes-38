@@ -5,7 +5,18 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { PlusCircle, Search, Filter, MapPin, Calendar, DollarSign } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { 
+  PlusCircle, 
+  Search, 
+  Filter, 
+  MapPin, 
+  Calendar, 
+  DollarSign, 
+  Building2, 
+  AlertTriangle,
+  CheckCircle2
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -99,6 +110,26 @@ const ProcurementSystem = () => {
     toast.success('Job posted successfully!');
   };
 
+  const isCompanyProfileComplete = () => {
+    if (!profile) return false;
+    // Check if user has completed essential company information
+    return profile.company_name && (profile.first_name || profile.last_name);
+  };
+
+  const handlePostJobClick = () => {
+    if (!user) {
+      toast.error('Please sign in to post jobs');
+      return;
+    }
+    
+    if (!isCompanyProfileComplete()) {
+      toast.error('Please complete your company profile before posting jobs');
+      return;
+    }
+    
+    setShowJobForm(true);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5 relative overflow-hidden">
       {/* Animated Background Elements */}
@@ -113,70 +144,102 @@ const ProcurementSystem = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
             <div className="space-y-3">
-              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-teal to-coral bg-clip-text text-transparent procurement-pulse">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-teal to-coral bg-clip-text text-transparent procurement-pulse">
                 Procurement Network
               </h1>
-              <p className="text-muted-foreground text-lg max-w-2xl">
+              <p className="text-muted-foreground text-base md:text-lg max-w-2xl leading-relaxed">
                 Connect with top-rated professionals for your construction and improvement projects. 
                 Post jobs, receive proposals, and build your dream project.
               </p>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-2 md:gap-4 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                   {jobs.length} Active Jobs
                 </span>
-                <span>•</span>
+                <span className="hidden sm:inline">•</span>
                 <span>Trusted Network</span>
-                <span>•</span>
+                <span className="hidden sm:inline">•</span>
                 <span>Quality Assured</span>
               </div>
             </div>
 
-            {user && (
-              <Dialog open={showJobForm} onOpenChange={setShowJobForm}>
-                <DialogTrigger asChild>
-                  <Button className="bg-gradient-to-r from-primary via-teal to-coral text-white hover:scale-105 transition-all duration-300 procurement-pulse shadow-lg px-8 py-3 text-lg">
-                    <PlusCircle className="mr-2 h-6 w-6" />
-                    Post New Job
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden p-0">
-                  <div className="p-6">
-                    <EnhancedJobPostingForm onJobCreated={handleJobCreated} />
+            <div className="w-full md:w-auto">
+              {user ? (
+                isCompanyProfileComplete() ? (
+                  <Dialog open={showJobForm} onOpenChange={setShowJobForm}>
+                    <DialogTrigger asChild>
+                      <Button className="w-full md:w-auto bg-gradient-to-r from-primary via-teal to-coral text-white hover:scale-105 transition-all duration-300 procurement-pulse shadow-lg px-6 md:px-8 py-3 text-base md:text-lg">
+                        <PlusCircle className="mr-2 h-5 w-5 md:h-6 md:w-6" />
+                        Post New Job
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-full md:max-w-7xl max-h-[95vh] overflow-hidden p-0 m-2">
+                      <div className="p-4 md:p-6">
+                        <EnhancedJobPostingForm onJobCreated={handleJobCreated} />
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                ) : (
+                  <div className="space-y-3">
+                    <Alert>
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertDescription>
+                        Complete your company profile to start posting jobs
+                      </AlertDescription>
+                    </Alert>
+                    <Button 
+                      variant="outline" 
+                      className="w-full md:w-auto glass-button"
+                      onClick={() => window.location.href = '/auth'}
+                    >
+                      <Building2 className="mr-2 h-4 w-4" />
+                      Complete Profile
+                    </Button>
                   </div>
-                </DialogContent>
-              </Dialog>
-            )}
+                )
+              ) : (
+                <Button 
+                  className="w-full md:w-auto bg-gradient-to-r from-primary to-teal text-white hover:scale-105 transition-all duration-300 shadow-lg px-6 md:px-8 py-3"
+                  onClick={() => window.location.href = '/auth'}
+                >
+                  <Building2 className="mr-2 h-5 w-5" />
+                  Sign In to Post Jobs
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Enhanced Filters */}
-          <div className="flex flex-col lg:flex-row gap-6 mt-8">
-            <div className="relative flex-1">
+          <div className="flex flex-col gap-4 md:gap-6 mt-6 md:mt-8">
+            <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 placeholder="Search jobs, locations, descriptions, skills..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 pr-4 py-3 text-lg glass-card border-border/30 focus:border-primary/50 transition-all duration-300 procurement-shimmer"
+                className="pl-12 pr-4 py-3 text-base md:text-lg glass-card border-border/30 focus:border-primary/50 transition-all duration-300 procurement-shimmer"
               />
             </div>
 
-            <div className="flex gap-3">
-              <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full lg:w-auto">
-                <TabsList className="grid grid-cols-2 lg:grid-cols-6 glass-card p-1 gap-1">
-                  {categories.map((category) => (
-                    <TabsTrigger
-                      key={category.value}
-                      value={category.value}
-                      className="text-sm font-medium px-4 py-2 rounded-lg transition-all duration-300 hover:scale-105"
-                    >
-                      {category.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
+                  <TabsList className="grid grid-cols-3 sm:grid-cols-6 glass-card p-1 gap-1 w-full">
+                    {categories.map((category) => (
+                      <TabsTrigger
+                        key={category.value}
+                        value={category.value}
+                        className="text-xs sm:text-sm font-medium px-2 sm:px-4 py-2 rounded-lg transition-all duration-300 hover:scale-105"
+                      >
+                        <span className="hidden sm:inline">{category.label}</span>
+                        <span className="sm:hidden">{category.label.split(' ')[0]}</span>
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              </div>
               
-              <Button variant="outline" className="glass-button px-6">
+              <Button variant="outline" className="glass-button px-4 sm:px-6 whitespace-nowrap">
                 <Filter className="mr-2 h-4 w-4" />
                 Filters
               </Button>
@@ -186,9 +249,9 @@ const ProcurementSystem = () => {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-8 md:py-12">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12">
           {[
             { label: 'Active Jobs', value: filteredJobs.length, color: 'text-blue-500' },
             { label: 'Categories', value: categories.length - 1, color: 'text-green-500' },
@@ -196,9 +259,9 @@ const ProcurementSystem = () => {
             { label: 'Success Rate', value: '98%', color: 'text-orange-500' }
           ].map((stat, index) => (
             <Card key={index} className="glass-card procurement-slide-up border-border/30 hover:scale-105 transition-all duration-300" style={{ animationDelay: `${index * 0.1}s` }}>
-              <CardContent className="p-6 text-center">
-                <div className={`text-3xl font-bold ${stat.color} mb-1`}>{stat.value}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
+              <CardContent className="p-4 md:p-6 text-center">
+                <div className={`text-xl md:text-3xl font-bold ${stat.color} mb-1`}>{stat.value}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">{stat.label}</div>
               </CardContent>
             </Card>
           ))}
