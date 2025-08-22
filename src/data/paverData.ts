@@ -18,11 +18,11 @@ export interface PaverColor {
 }
 
 export const paverTypes: PaverType[] = [
-  // Dean Collection
+  // Appian Collection
   {
-    id: 'dean-adobe',
-    name: 'Dean Adobe',
-    description: 'Premium Dean Collection Adobe pavers with authentic earthen tones',
+    id: 'appian-adobe',
+    name: 'Appian Adobe',
+    description: 'Premium Appian Collection Adobe pavers with authentic earthen tones',
     basePrice: 28,
     category: 'paver',
     image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
@@ -33,9 +33,9 @@ export const paverTypes: PaverType[] = [
     ]
   },
   {
-    id: 'dean-amaretto',
-    name: 'Dean Amaretto',
-    description: 'Rich Amaretto tones from the Dean Collection',
+    id: 'appian-amaretto',
+    name: 'Appian Amaretto',
+    description: 'Rich Amaretto tones from the Appian Collection',
     basePrice: 30,
     category: 'paver',
     image: '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png',
@@ -46,9 +46,9 @@ export const paverTypes: PaverType[] = [
     ]
   },
   {
-    id: 'dean-harvest-blend',
-    name: 'Dean Harvest Blend',
-    description: 'Multi-toned Harvest Blend from the Dean Collection',
+    id: 'appian-harvest-blend',
+    name: 'Appian Harvest Blend',
+    description: 'Multi-toned Harvest Blend from the Appian Collection',
     basePrice: 32,
     category: 'paver',
     image: '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png',
@@ -59,9 +59,9 @@ export const paverTypes: PaverType[] = [
     ]
   },
   {
-    id: 'dean-knightsbridge',
-    name: 'Dean Knightsbridge',
-    description: 'Elegant Knightsbridge style from the Dean Collection',
+    id: 'appian-knightsbridge',
+    name: 'Appian Knightsbridge',
+    description: 'Elegant Knightsbridge style from the Appian Collection',
     basePrice: 35,
     category: 'paver',
     image: '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png',
@@ -72,9 +72,9 @@ export const paverTypes: PaverType[] = [
     ]
   },
   {
-    id: 'dean-napoli',
-    name: 'Dean Napoli',
-    description: 'Mediterranean Napoli style from the Dean Collection',
+    id: 'appian-napoli',
+    name: 'Appian Napoli',
+    description: 'Mediterranean Napoli style from the Appian Collection',
     basePrice: 33,
     category: 'paver',
     image: '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.png',
@@ -85,9 +85,9 @@ export const paverTypes: PaverType[] = [
     ]
   },
   {
-    id: 'dean-rio',
-    name: 'Dean Rio',
-    description: 'Warm Rio tones from the Dean Collection',
+    id: 'appian-rio',
+    name: 'Appian Rio',
+    description: 'Warm Rio tones from the Appian Collection',
     basePrice: 29,
     category: 'paver',
     image: '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.png',
@@ -98,9 +98,9 @@ export const paverTypes: PaverType[] = [
     ]
   },
   {
-    id: 'dean-slate',
-    name: 'Dean Slate',
-    description: 'Modern Slate finish from the Dean Collection',
+    id: 'appian-slate',
+    name: 'Appian Slate',
+    description: 'Modern Slate finish from the Appian Collection',
     basePrice: 34,
     category: 'paver',
     image: '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.png',
@@ -111,9 +111,9 @@ export const paverTypes: PaverType[] = [
     ]
   },
   {
-    id: 'dean-titanium',
-    name: 'Dean Titanium',
-    description: 'Contemporary Titanium finish from the Dean Collection',
+    id: 'appian-titanium',
+    name: 'Appian Titanium',
+    description: 'Contemporary Titanium finish from the Appian Collection',
     basePrice: 36,
     category: 'paver',
     image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
@@ -124,9 +124,9 @@ export const paverTypes: PaverType[] = [
     ]
   },
   {
-    id: 'dean-charco',
-    name: 'Dean Charco',
-    description: 'Deep Charco tones from the Dean Collection',
+    id: 'appian-charco',
+    name: 'Appian Charco',
+    description: 'Deep Charco tones from the Appian Collection',
     basePrice: 31,
     category: 'paver',
     image: '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.png',

@@ -11,6 +11,7 @@ const Hero = lazy(() => import("@/components/Hero"));
 const PoolCatalog = lazy(() => import("@/components/PoolCatalog"));
 const SpaSection = lazy(() => import("@/components/SpaSection"));
 const PoolFinishesSection = lazy(() => import("@/components/PoolFinishesSection"));
+const AppianPaversSection = lazy(() => import("@/components/AppianPaversSection"));
 const AutomaticCoversSection = lazy(() => import("@/components/AutomaticCoversSection"));
 const FloridaPoolElements = lazy(() => import("@/components/FloridaPoolElements"));
 const WonderlandsBrandShowcase = lazy(() => import("@/components/WonderlandsBrandShowcase"));
@@ -52,6 +53,7 @@ const Index = () => {
           <PoolCatalog />
           <SpaSection />
           <PoolFinishesSection />
+          <AppianPaversSection />
           <AutomaticCoversSection />
           <Footer />
         </Suspense>

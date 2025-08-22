@@ -1068,8 +1068,8 @@ const PoolDetails = () => {
   const renderCategoryContent = () => {
     switch (activePanel) {
       case 'finishes':
-        return finishOptions.map(finish => (
-          <div key={finish.name} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+        return finishOptions.map((finish, index) => (
+          <div key={`details-${finish.name}-${finish.collection || index}`} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
             ...prev,
             finish: finish.name
           }))}>

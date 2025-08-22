@@ -415,10 +415,17 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
       
       <CardContent className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
         
-        {/* Pool Name */}
-        <h3 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors">
-          {pool.model}
-        </h3>
+        {/* Pool Name & Collection */}
+        <div className="space-y-2">
+          <h3 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+            {pool.model}
+          </h3>
+          {pool.galaCategory && (
+            <Badge variant="secondary" className="text-xs font-semibold">
+              {pool.galaCategory} Collection
+            </Badge>
+          )}
+        </div>
         
         {/* Price */}
         <div className="flex items-center gap-2">
@@ -523,8 +530,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
               <h4 className="font-semibold text-foreground">Pool Finishes</h4>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
-                  {finishOptions.map((finish) => (
-                    <CarouselItem key={finish.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                  {finishOptions.map((finish, idx) => (
+                    <CarouselItem key={`pool-${finish.name}-${idx}`} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
                       <div 
                         className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                           extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'
