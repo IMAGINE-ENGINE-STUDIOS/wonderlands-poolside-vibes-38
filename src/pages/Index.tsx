@@ -8,6 +8,7 @@ import { ShoppingCart as CartIcon } from "lucide-react";
 
 // Lazy-loaded heavy sections for performance
 const Hero = lazy(() => import("@/components/Hero"));
+const SummerSaleSection = lazy(() => import("@/components/SummerSaleSection"));
 const PoolCatalog = lazy(() => import("@/components/PoolCatalog"));
 const SpaSection = lazy(() => import("@/components/SpaSection"));
 const PoolFinishesSection = lazy(() => import("@/components/PoolFinishesSection"));
@@ -48,6 +49,7 @@ const Index = () => {
       <div className="relative z-10">
         <Suspense fallback={<div className="p-8 text-center text-foreground/70" aria-busy="true">Loading content…</div>}>
           <Hero />
+          <SummerSaleSection />
           <WonderlandsBrandShowcase />
           <PoolCatalog />
           <SpaSection />
