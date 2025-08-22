@@ -7,7 +7,6 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart as CartIcon, Search, ChevronDown, Settings, Armchair, Flame, ChefHat, Utensils, Home, Music, Package } from "lucide-react";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
-import RealTimeContentEditor from "@/components/RealTimeContentEditor";
 import { useShoppingCart } from "@/components/ShoppingCart";
 import { spas } from "@/components/PoolCatalog";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
@@ -276,7 +275,6 @@ const PoolDetails = () => {
   const [showPriceDropdown, setShowPriceDropdown] = useState(false);
   const [coverColor, setCoverColor] = useState<string>('');
   const [coverEngine, setCoverEngine] = useState<string>('');
-  const [showEditorStudio, setShowEditorStudio] = useState(false);
 
   // Remove config item function
   const removeConfigItem = (item: any) => {
@@ -1634,7 +1632,6 @@ const PoolDetails = () => {
           </div>
         </div>
       </div>
-      <RealTimeContentEditor isOpen={showEditorStudio} onClose={() => setShowEditorStudio(false)} />
     </div>
   );
 };
