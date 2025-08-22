@@ -40,9 +40,10 @@ interface EditableElement {
 interface DragDropEditorProps {
   isActive: boolean;
   onToggle: () => void;
+  showEnableButton?: boolean;
 }
 
-export const DragDropEditor: React.FC<DragDropEditorProps> = ({ isActive, onToggle }) => {
+export const DragDropEditor: React.FC<DragDropEditorProps> = ({ isActive, onToggle, showEnableButton = false }) => {
   const { toast } = useToast();
   const [elements, setElements] = useState<EditableElement[]>([]);
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
@@ -260,6 +261,8 @@ export const DragDropEditor: React.FC<DragDropEditorProps> = ({ isActive, onTogg
   const selectedElementData = elements.find(el => el.id === selectedElement);
 
   if (!isActive) {
+    if (!showEnableButton) return null;
+    
     return (
       <Button
         onClick={onToggle}

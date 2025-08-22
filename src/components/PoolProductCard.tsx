@@ -685,11 +685,11 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                   onChange={(e) => setCopingSurfaceArea(e.target.value)}
                   className="mb-2"
                 />
-                {copingSurfaceArea && !isNaN(parseFloat(copingSurfaceArea)) && (
-                  <div className="text-xs text-green-600 font-medium">
-                    Calculated Cost: ${(parseFloat(copingSurfaceArea) * 15).toLocaleString()} (${copingSurfaceArea} sq ft × $15/sq ft)
-                  </div>
-                )}
+                 {copingSurfaceArea && !isNaN(parseFloat(copingSurfaceArea)) && (
+                   <div className="text-xs text-green-600 font-medium">
+                     Calculated Cost: ${(parseFloat(copingSurfaceArea) * 15).toLocaleString()} ({copingSurfaceArea} sq ft × $15/sq ft)
+                   </div>
+                 )}
               </div>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">

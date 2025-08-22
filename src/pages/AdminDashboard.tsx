@@ -36,6 +36,7 @@ import RealTimeContentEditor from '@/components/RealTimeContentEditor';
 import LathamPoolsData from '@/components/LathamPoolsData';
 import UnifiedAdminProductManager from '@/components/UnifiedAdminProductManager';
 import AdminUserManagement from '@/components/AdminUserManagement';
+import { DragDropEditor } from '@/components/DragDropEditor';
 
 const AdminDashboard = () => {
   // Mock data for demonstration
@@ -45,6 +46,7 @@ const AdminDashboard = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [orderFilter, setOrderFilter] = useState('all');
+  const [editorActive, setEditorActive] = useState(false);
   
 
   // Mock GALA points data (in real implementation, this would come from API)
@@ -352,11 +354,17 @@ const AdminDashboard = () => {
                   </p>
                   <Button
                     onClick={() => window.open('/content-editor', '_blank')}
-                    className="w-full max-w-md"
+                    className="w-full max-w-md mb-4"
                   >
                     <Edit className="mr-2 h-4 w-4" />
                     Open Content Editor (New Tab)
                   </Button>
+                  
+                  <DragDropEditor 
+                    isActive={editorActive} 
+                    onToggle={() => setEditorActive(!editorActive)}
+                    showEnableButton={true}
+                  />
                 </div>
                 
                 {/* Quick Summary */}

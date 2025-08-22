@@ -1648,7 +1648,7 @@ const PoolDetails = () => {
                     <CartIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                     Cart
                   </Button>
-                  
+                 
                   <StripeCheckoutButton 
                     productId={pool.model} 
                     productName={`${pool.model} Configuration`} 
@@ -1657,42 +1657,37 @@ const PoolDetails = () => {
                     className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
                   />
                 </div>
+
+                {/* Financing Section */}
+                <div className="border-t mt-3 pt-3">
+                  <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-3">
+                    <h5 className="font-semibold text-sm text-primary mb-2">💰 Financing Available</h5>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">Total Cost:</span>
+                        <span className="font-semibold">${calculateTotalPrice().toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">Est. Monthly:</span>
+                        <span className="font-semibold text-primary">${(calculateTotalPrice() / 60).toFixed(0)}/mo</span>
+                      </div>
+                      <Button size="sm" className="w-full mt-2" variant="outline">
+                        Apply for Financing
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
       
-      {/* Finance Information Panel */}
-      <div className="fixed bottom-4 left-4 z-40">
-        <Card className="w-80 shadow-xl">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-primary">
-              💰 Financing Available
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">Total Cost:</span>
-              <span className="font-semibold">${calculateTotalPrice().toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">Est. Monthly:</span>
-              <span className="font-semibold text-primary">${(calculateTotalPrice() / 60).toFixed(0)}/mo</span>
-            </div>
-            <div className="text-xs text-muted-foreground">
-              *5-year financing at 6.9% APR
-            </div>
-            <Button size="sm" className="w-full" variant="outline">
-              Apply for Financing
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
       
       <DragDropEditor 
         isActive={editorActive} 
-        onToggle={() => setEditorActive(!editorActive)} 
+        onToggle={() => setEditorActive(!editorActive)}
+        showEnableButton={false}
       />
       
     </div>

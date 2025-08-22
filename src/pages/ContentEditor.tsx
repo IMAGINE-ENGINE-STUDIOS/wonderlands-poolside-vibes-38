@@ -426,6 +426,53 @@ const ContentEditor = () => {
     }
   };
 
+  const handleScreenChange = (screenValue: string) => {
+    setSelectedScreen(screenValue);
+    
+    // Navigate to different screens based on selection
+    switch (screenValue) {
+      case 'main':
+        // Show main homepage components
+        setIsLivePreview(true);
+        break;
+      case 'pools':
+        // Show pool catalog
+        window.open('/pool/enchantment-917', '_blank');
+        break;
+      case 'spas':
+        // Show spa section
+        toast({
+          title: "Screen Preview",
+          description: "Loading Spa Section preview...",
+        });
+        break;
+      case 'finishes':
+        // Show finishes section
+        toast({
+          title: "Screen Preview", 
+          description: "Loading Pool Finishes preview...",
+        });
+        break;
+      case 'covers':
+        // Show covers section
+        toast({
+          title: "Screen Preview",
+          description: "Loading Pool Covers preview...",
+        });
+        break;
+      case 'admin':
+        // Show admin dashboard
+        window.open('/admin', '_blank');
+        break;
+      case 'procurement':
+        // Show procurement system
+        window.open('/procurement', '_blank');
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <div className="h-screen bg-gradient-to-br from-background via-muted/5 to-background flex flex-col">
       {/* Header */}
@@ -503,7 +550,7 @@ const ContentEditor = () => {
               <CardTitle className="text-sm">Screen Navigation</CardTitle>
             </CardHeader>
             <CardContent>
-              <Select value={selectedScreen} onValueChange={setSelectedScreen}>
+              <Select value={selectedScreen} onValueChange={handleScreenChange}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
