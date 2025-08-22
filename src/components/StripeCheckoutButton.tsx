@@ -62,7 +62,7 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
     try {
       setIsFinancingLoading(true);
       
-      // Create financing application with Lyon Financial
+      // Create comprehensive financing application with Lyon Financial
       const financingData = {
         productName,
         price,
@@ -70,8 +70,14 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
         productId
       };
       
-      // Open Lyon Financial application in new tab
-      const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?amount=${price * quantity}&product=${encodeURIComponent(productName)}`;
+      // Enhanced Lyon Financial URL with comprehensive product data
+      const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + 
+        `amount=${price * quantity}&` +
+        `product=${encodeURIComponent(productName)}&` +
+        `description=${encodeURIComponent(`Complete pool configuration including ${productName}`)}&` +
+        `monthly_payment=${Math.round((price * quantity) * 0.008)}&` +
+        `loan_term=60&` +
+        `project_type=Pool%20Installation`;
       window.open(lyonFinancialUrl, '_blank');
       
       toast({
@@ -101,39 +107,28 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
   const totalAmount = price * quantity;
   const monthlyPayment = calculateMonthlyPayment(totalAmount);
 
-  // If showFinancingOptions is true, only show the financing section
+  // If showFinancingOptions is true, show integrated financing section
   if (showFinancingOptions) {
     return (
-      <div className="border rounded-lg p-3 bg-gradient-to-r from-muted/30 to-muted/50 border-primary/20">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3 bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/10 rounded-xl p-3">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
             <Calculator className="h-4 w-4 text-primary" />
-            <span className="font-medium text-sm">Finance This Purchase</span>
           </div>
-          <div className="text-right">
-            <div className="text-xs text-muted-foreground">As low as</div>
-            <div className="text-sm font-bold text-primary">${monthlyPayment.toFixed(0)}/mo</div>
-          </div>
-        </div>
-        
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-xs text-muted-foreground">
-            60 months at 7.99% APR*
-          </div>
-          <div className="text-xs text-green-600 font-medium">
-            Lyon Financial
+          <div>
+            <div className="text-sm font-semibold">Finance from ${monthlyPayment.toFixed(0)}/mo</div>
+            <div className="text-xs text-muted-foreground">60 months • Lyon Financial</div>
           </div>
         </div>
         
         <Button
           onClick={handleFinancing}
           disabled={isFinancingLoading || isLoading}
-          variant="outline"
           size="sm"
-          className={`w-full border-primary/30 hover:border-primary ${isFinancingLoading ? 'opacity-50' : ''}`}
+          className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white border-0"
         >
-          <DollarSign className="h-3 w-3 mr-2" />
-          {isFinancingLoading ? 'Opening...' : 'Apply for Financing'}
+          <DollarSign className="h-3 w-3 mr-1" />
+          {isFinancingLoading ? 'Opening...' : 'Apply Now'}
         </Button>
       </div>
     );

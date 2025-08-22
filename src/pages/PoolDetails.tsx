@@ -25,7 +25,7 @@ import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 interface Pool {
   model: string;
   price: number;
-  category: 'premium' | 'deluxe' | 'standard' | 'compact';
+  category: 'premium' | 'deluxe' | 'standard' | 'compact' | 'classic';
   image?: string;
   dimensions?: string;
   depth?: string;
@@ -220,7 +220,7 @@ const getCategoryColor = (category: string) => {
       return 'bg-gradient-to-r from-coral to-orange';
     case 'deluxe':
       return 'bg-gradient-to-r from-primary to-teal';
-    case 'standard':
+    case 'classic':
       return 'bg-gradient-to-r from-secondary to-accent';
     case 'compact':
       return 'bg-gradient-to-r from-teal to-primary';
@@ -267,7 +267,7 @@ const PoolDetails = () => {
   const pool: Pool = {
     model: searchParams.get('model') || 'Pool Model',
     price: parseInt(searchParams.get('price') || '0'),
-    category: searchParams.get('category') as Pool['category'] || 'standard',
+    category: searchParams.get('category') as Pool['category'] || 'classic',
     image: searchParams.get('image') || undefined,
     dimensions: searchParams.get('dimensions') || undefined,
     depth: searchParams.get('depth') || undefined,
@@ -286,17 +286,17 @@ const PoolDetails = () => {
     jets: false,
     jetQuantity: 1,
     finish: 'Nantuke',
-    linerOption: 'Standard Blue',
+    linerOption: 'Classic Blue',
     coverOption: 'Eclipse Automatic Cover',
     tiles: false,
-    tileOption: 'Standard Waterline',
+    tileOption: 'Classic Waterline',
     spa: false,
     spaModel: 'Mystic',
     tanningLedge: false,
     tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
     heaterModel: poolHeaters[0]?.name || 'Heat Pump - Eco Series',
-    paverOption: 'Standard Concrete',
-    copingPaverOption: 'Standard Pool Coping'
+    paverOption: 'Classic Concrete',
+    copingPaverOption: 'Classic Pool Coping'
   });
 
   // Load cached selections and marketplace products on mount
@@ -1324,18 +1324,16 @@ const PoolDetails = () => {
 
         {/* Compact Right Sidebar - Browse Categories */}
         <div className="w-72 border-l bg-background flex flex-col">
-          {/* Category Dropdown Only */}
-          <div className="p-3 border-b">
-            <label className="text-xs font-medium text-muted-foreground mb-2 block">Browse Categories</label>
-            <select value={activePanel || ''} onChange={e => {
-            const newPanel = e.target.value as ActivePanel || null;
-            setActivePanel(newPanel);
-            // Auto-close when switching categories
-            if (newPanel) {
+            {/* Category Dropdown Only */}
+            <div className="p-3 border-b">
+              <label className="text-xs font-medium text-muted-foreground mb-2 block">Browse Categories</label>
+              <select value={activePanel || ''} onChange={e => {
+              const newPanel = e.target.value as ActivePanel || null;
+              setActivePanel(newPanel);
+              // Auto-close when switching categories and reset search
               setSearchQuery('');
-            }
-          }} className="w-full p-2 text-sm border rounded-md bg-background">
-              <option value="">All Categories</option>
+            }} className="w-full p-2 text-sm border rounded-md bg-background">
+                <option value="">All Categories</option>
               <option value="finishes">Pool Finishes</option>
               <option value="liners">Pool Liners</option>
               <option value="pavers">Pavers & Decking</option>
@@ -1431,11 +1429,43 @@ const PoolDetails = () => {
                 </div>
               </div>}
 
-            {/* Default State */}
-            {!activePanel && !searchQuery && <div className="p-6 text-center text-muted-foreground">
-                <Package className="h-8 w-8 mx-auto mb-3 opacity-50" />
-                <p className="text-sm font-medium mb-1">Select Category</p>
-                <p className="text-xs">Choose a category to browse products</p>
+            {/* Default State - Show All Products */}
+            {!activePanel && !searchQuery && <div className="p-3">
+                <h4 className="text-sm font-semibold mb-3">All Products ({marketplaceProducts.length})</h4>
+                <div className="space-y-2">
+                  {marketplaceProducts.slice(0, 20).map(product => <div key={product.id} className={`p-2 border rounded-md hover:bg-muted/50 cursor-pointer transition-all ${selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => {
+                setSelectedProducts(prev => {
+                  const isAlreadySelected = prev.some(p => p.id === product.id);
+                  if (isAlreadySelected) {
+                    toast({
+                      title: "Removed from Configuration",
+                      description: `${product.name} removed from pool configuration!`
+                    });
+                    return prev.filter(p => p.id !== product.id);
+                  } else {
+                    toast({
+                      title: "Added to Configuration",
+                      description: `${product.name} added to pool configuration!`
+                    });
+                    return [...prev, product];
+                  }
+                });
+              }}>
+                      <div className="flex gap-2">
+                        {product.image_url && <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
+                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                          </div>}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium truncate">{product.name}</p>
+                          {product.brand && <p className="text-xs text-primary truncate">{product.brand}</p>}
+                          <p className="text-xs font-semibold">${product.price.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </div>)}
+                  {marketplaceProducts.length > 20 && <p className="text-xs text-muted-foreground text-center p-2">
+                      Showing first 20 products. Use categories to browse more.
+                    </p>}
+                </div>
               </div>}
           </div>
         </div>
@@ -1460,23 +1490,20 @@ const PoolDetails = () => {
           <StripeCheckoutButton productId={`pool_${pool.model}`} productName={`${pool.model} Complete Configuration`} price={calculateTotalPrice()} variant="outline" showFinancingOptions={true} className="bg-gradient-to-r from-primary to-secondary text-white border-0" />
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={downloadQuote}>
-            <Download className="h-4 w-4 mr-2" />
-            Download Quote
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={downloadQuote} className="w-10 h-10 p-0">
+            <Download className="h-4 w-4" />
           </Button>
           
-          <Button variant="outline" onClick={generateQuote}>
-            <Printer className="h-4 w-4 mr-2" />
-            Print Quote
+          <Button variant="outline" size="sm" onClick={generateQuote} className="w-10 h-10 p-0">
+            <Printer className="h-4 w-4" />
           </Button>
 
-          <Button variant="outline" onClick={handleAddToCart}>
-            <CartIcon className="h-4 w-4 mr-2" />
-            Add to Cart
+          <Button variant="outline" size="sm" onClick={handleAddToCart} className="w-10 h-10 p-0">
+            <CartIcon className="h-4 w-4" />
           </Button>
 
-          <StripeCheckoutButton productId={pool.model} productName={pool.model} price={calculateTotalPrice()} variant="default" showFinancingOptions={false} />
+          <StripeCheckoutButton productId={pool.model} productName={`${pool.model} Complete Pool Configuration`} price={calculateTotalPrice()} variant="default" showFinancingOptions={false} />
         </div>
       </div>
     </div>;
