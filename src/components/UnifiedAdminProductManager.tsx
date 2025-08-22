@@ -6,11 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, RefreshCw, Database, AlertCircle, TrendingUp, Package, Eye, Plus, Building } from "lucide-react";
+import { Loader2, RefreshCw, Database, AlertCircle, TrendingUp, Package, Eye, Plus, Building, Edit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ProductPreview from "./ProductPreview";
 import ProcurementForm from "./ProcurementForm";
+import UserManagement from "./UserManagement";
+import ProductEditor from "./ProductEditor";
 
 interface UnifiedProduct {
   id: string;
@@ -37,6 +39,8 @@ const UnifiedAdminProductManager = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [editingProduct, setEditingProduct] = useState<UnifiedProduct | null>(null);
+  const [isProductEditorOpen, setIsProductEditorOpen] = useState(false);
   
   const categories = ['all', 'pool', 'spa', 'liner', 'tile', 'tanning_ledge', 'finish', 'other'];
   const sortOptions = ['name', 'price', 'category', 'stock', 'created_at'];
@@ -178,6 +182,20 @@ const UnifiedAdminProductManager = () => {
     }
   };
 
+  const handleEditProduct = (product: UnifiedProduct) => {
+    setEditingProduct(product);
+    setIsProductEditorOpen(true);
+  };
+
+  const handleCreateProduct = () => {
+    setEditingProduct(null);
+    setIsProductEditorOpen(true);
+  };
+
+  const handleProductSaved = () => {
+    loadProducts();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -193,13 +211,18 @@ const UnifiedAdminProductManager = () => {
     <div className="space-y-6">
       <Tabs defaultValue="products" className="space-y-6">
         <div className="flex justify-between items-center">
-          <TabsList className="grid grid-cols-3 w-auto">
+          <TabsList className="grid grid-cols-4 w-auto">
             <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
             <TabsTrigger value="procurement">Procurement</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
           
           <div className="flex gap-2">
+            <Button onClick={handleCreateProduct}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Product
+            </Button>
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="outline">
@@ -270,11 +293,20 @@ const UnifiedAdminProductManager = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredProducts.map((product) => (
-                <ProductPreview
-                  key={product.id}
-                  product={product}
-                  variant="default"
-                />
+                <div key={product.id} className="relative">
+                  <ProductPreview
+                    product={product}
+                    variant="default"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm"
+                    onClick={() => handleEditProduct(product)}
+                  >
+                    <Edit className="h-3 w-3" />
+                  </Button>
+                </div>
               ))}
             </div>
 
@@ -399,6 +431,13 @@ const UnifiedAdminProductManager = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      <ProductEditor
+        product={editingProduct}
+        isOpen={isProductEditorOpen}
+        onClose={() => setIsProductEditorOpen(false)}
+        onSave={handleProductSaved}
+      />
     </div>
   );
 };
