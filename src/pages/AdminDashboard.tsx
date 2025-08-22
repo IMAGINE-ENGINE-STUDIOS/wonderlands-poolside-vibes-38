@@ -91,9 +91,9 @@ const AdminDashboard = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
             <div className="flex-1">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Pool Systems Admin Dashboard
+                Admin Dashboard
               </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">Unified Administration & Database Management</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Manage products, orders, and content</p>
             </div>
             <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <Button variant="outline" onClick={refreshData} disabled={isLoading} size="sm" className="flex-1 sm:flex-none">
@@ -217,10 +217,10 @@ const AdminDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Database className="h-5 w-5 text-primary" />
-                  Unified Product & Database Management
+                  Product Management
                 </CardTitle>
                 <CardDescription>
-                  Centralized management of all products, pools, and database items across the entire application
+                  Manage all products, pools, and inventory
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -233,8 +233,8 @@ const AdminDashboard = () => {
           <TabsContent value="users" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>Manage all users, suppliers, consumers, and administrators</CardDescription>
+                <CardTitle>Users</CardTitle>
+                <CardDescription>Manage users and permissions</CardDescription>
               </CardHeader>
               <CardContent>
                 <AdminUserManagement currentAdmin={null} />
@@ -246,8 +246,8 @@ const AdminDashboard = () => {
           <TabsContent value="orders" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Order Management</CardTitle>
-                <CardDescription>Track and manage all pool installation orders</CardDescription>
+                <CardTitle>Orders</CardTitle>
+                <CardDescription>Track and manage orders</CardDescription>
                 
                 {/* Search and Filter */}
                 <div className="flex flex-col gap-2 sm:gap-4 pt-4">
@@ -339,18 +339,18 @@ const AdminDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Edit className="h-5 w-5 text-primary" />
-                  Live Content Editor & Marketplace Manager
+                  Content Editor
                 </CardTitle>
                 <CardDescription>
-                  Edit all website content, manage products, and customize the marketplace in a full-screen editor
+                  Edit website content and manage the marketplace
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center py-8">
                   <Globe className="h-16 w-16 text-primary mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Full-Screen Content Editor</h3>
+                  <h3 className="text-lg font-semibold mb-2">Content Editor</h3>
                   <p className="text-muted-foreground mb-4">
-                    Open the content editor in a separate tab for the best editing experience with full responsive preview and drag-and-drop product marketplace integration.
+                    Edit website content with live preview and drag-and-drop functionality.
                   </p>
                   <Button
                     onClick={() => window.open('/content-editor', '_blank')}
@@ -360,11 +360,6 @@ const AdminDashboard = () => {
                     Open Content Editor (New Tab)
                   </Button>
                   
-                  <DragDropEditor 
-                    isActive={editorActive} 
-                    onToggle={() => setEditorActive(!editorActive)}
-                    showEnableButton={true}
-                  />
                 </div>
                 
                 {/* Quick Summary */}

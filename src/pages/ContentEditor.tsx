@@ -428,49 +428,12 @@ const ContentEditor = () => {
 
   const handleScreenChange = (screenValue: string) => {
     setSelectedScreen(screenValue);
+    setIsLivePreview(true);
     
-    // Navigate to different screens based on selection
-    switch (screenValue) {
-      case 'main':
-        // Show main homepage components
-        setIsLivePreview(true);
-        break;
-      case 'pools':
-        // Show pool catalog
-        window.open('/pool/enchantment-917', '_blank');
-        break;
-      case 'spas':
-        // Show spa section
-        toast({
-          title: "Screen Preview",
-          description: "Loading Spa Section preview...",
-        });
-        break;
-      case 'finishes':
-        // Show finishes section
-        toast({
-          title: "Screen Preview", 
-          description: "Loading Pool Finishes preview...",
-        });
-        break;
-      case 'covers':
-        // Show covers section
-        toast({
-          title: "Screen Preview",
-          description: "Loading Pool Covers preview...",
-        });
-        break;
-      case 'admin':
-        // Show admin dashboard
-        window.open('/admin', '_blank');
-        break;
-      case 'procurement':
-        // Show procurement system
-        window.open('/procurement', '_blank');
-        break;
-      default:
-        break;
-    }
+    toast({
+      title: "Screen Preview",
+      description: `Loading ${screens.find(s => s.value === screenValue)?.label} preview...`,
+    });
   };
 
   return (
@@ -492,10 +455,21 @@ const ContentEditor = () => {
             </div>
             <div>
               <h1 className="text-lg lg:text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Live Content Editor & Marketplace
+                Content Editor
               </h1>
-              <p className="text-xs lg:text-sm text-muted-foreground">Real-time website editing with drag & drop products</p>
+              <p className="text-xs lg:text-sm text-muted-foreground">Live website editing with drag & drop</p>
             </div>
+            
+            {/* Enable Editor Button */}
+            <Button
+              onClick={() => setEditMode(!editMode)}
+              variant={editMode ? "destructive" : "default"}
+              size="sm"
+              className="ml-auto"
+            >
+              <Edit3 className="h-4 w-4 mr-2" />
+              {editMode ? "Disable Editor" : "Enable Editor"}
+            </Button>
             {pendingChanges > 0 && (
               <Badge variant="secondary" className="animate-pulse">
                 {pendingChanges} pending
