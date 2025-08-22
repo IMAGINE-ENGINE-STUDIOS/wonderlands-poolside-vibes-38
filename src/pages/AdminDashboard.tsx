@@ -331,58 +331,18 @@ const AdminDashboard = () => {
 
           {/* Content Editor Tab */}
           <TabsContent value="content-editor" className="space-y-6">
-            <Card>
+            <Card className="h-[calc(100vh-200px)]">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Edit className="h-5 w-5 text-primary" />
-                  Content Management System
+                  Real-Time Content Editor & Marketplace Manager
                 </CardTitle>
                 <CardDescription>
-                  Edit all text content, manage sections, add text boxes, and change images across your entire website
+                  Edit all website content, manage products, and customize the marketplace directly from the admin panel
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <Button 
-                    onClick={() => setShowContentEditor(true)}
-                    className="w-full h-16 text-lg"
-                  >
-                    <Edit className="h-6 w-6 mr-3" />
-                    Launch Real-Time Content Editor
-                  </Button>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                    <Card className="p-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Edit className="h-5 w-5 text-blue-500" />
-                        <h3 className="font-semibold">Edit Text</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Modify any text content on your website with our visual editor
-                      </p>
-                    </Card>
-                    
-                    <Card className="p-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Plus className="h-5 w-5 text-green-500" />
-                        <h3 className="font-semibold">Add Sections</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Add new content sections and customizable text boxes anywhere
-                      </p>
-                    </Card>
-                    
-                    <Card className="p-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Package className="h-5 w-5 text-purple-500" />
-                        <h3 className="font-semibold">Manage Images</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Upload and replace images throughout your website easily
-                      </p>
-                    </Card>
-                  </div>
-                </div>
+              <CardContent className="p-0 h-full">
+                <RealTimeContentEditor isOpen={true} onClose={() => {}} />
               </CardContent>
             </Card>
           </TabsContent>
