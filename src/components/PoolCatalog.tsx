@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PoolDetailModal from "./PoolDetailModal";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import EditableProductCard from "./EditableProductCard";
+import PoolProductCard from "./PoolProductCard";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import TileDetailModal from "./TileDetailModal";
 import { useShoppingCart } from "./ShoppingCart";
@@ -601,40 +601,6 @@ const PoolCatalog = () => {
   const { addToCart } = useShoppingCart();
   const { toast } = useToast();
 
-  // Transform pool data to Product format for EditableProductCard
-  const transformPoolToProduct = (pool: any) => ({
-    id: pool.model.replace(/\s+/g, '_').toLowerCase(),
-    name: pool.model,
-    category: 'pool',
-    subcategory: pool.category,
-    price: pool.price,
-    image: pool.image,
-    description: `${pool.category} pool - ${pool.dimensions || ''} - Depth: ${pool.depth || 'N/A'}`,
-    features: pool.features || [],
-    stock: 5, // Default pool stock
-    isActive: true,
-    source: 'pools_table',
-    sku: `POOL-${pool.model.toUpperCase().replace(/\s+/g, '-')}`,
-    material: 'Fiberglass',
-    warranty: pool.warrantyYears,
-    installation: pool.installationTimeWeeks ? `${pool.installationTimeWeeks} weeks` : 'N/A',
-    collection: 'Wonderland Pools',
-    // Pool-specific fields
-    model: pool.model,
-    dimensions: pool.dimensions,
-    depth: pool.depth,
-    galaPoints: pool.galaPoints,
-    galaCategory: pool.galaCategory,
-    installationTimeWeeks: pool.installationTimeWeeks,
-    warrantyYears: pool.warrantyYears,
-    heater: pool.heater,
-    saltSystem: pool.saltSystem,
-    carbonFiber: pool.carbonFiber,
-    finishes: pool.finishes,
-    liners: pool.liners,
-    covers: pool.covers
-  });
-
   const handleViewDetails = (pool: Pool) => {
     setSelectedPool(pool);
     setShowDetailModal(true);
@@ -669,13 +635,11 @@ const PoolCatalog = () => {
             {pools
               .filter((pool) => pool.model !== 'Pleasant Cove')
               .map((pool) => (
-                <EditableProductCard
+                <PoolProductCard
                   key={pool.model}
-                  product={transformPoolToProduct(pool)}
-                  onUpdate={() => {
-                    // Reload or refresh pools data if needed
-                    console.log('Pool updated:', pool.model);
-                  }}
+                  pool={pool}
+                  onViewDetails={handleViewDetails}
+                  onRequestQuote={handleRequestQuote}
                 />
               ))}
           </div>

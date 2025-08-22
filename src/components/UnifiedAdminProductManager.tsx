@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, RefreshCw, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import EditablePoolProductCard from "./EditablePoolProductCard";
 import EditableProductCard from "./EditableProductCard";
 
 interface UnifiedProduct {
@@ -26,6 +27,19 @@ interface UnifiedProduct {
   warranty?: string;
   installation?: string;
   collection?: string;
+  // Pool-specific fields
+  dimensions?: string;
+  depth?: string;
+  galaPoints?: number;
+  galaCategory?: string;
+  installationTimeWeeks?: number;
+  warrantyYears?: number | string;
+  heater?: boolean;
+  saltSystem?: boolean;
+  carbonFiber?: boolean;
+  finishes?: string[];
+  liners?: string[];
+  covers?: string[];
 }
 
 const UnifiedAdminProductManager = () => {
@@ -139,7 +153,20 @@ const UnifiedAdminProductManager = () => {
           material: 'Fiberglass',
           warranty: pool.warranty_years,
           installation: pool.installation_time_weeks ? `${pool.installation_time_weeks} weeks` : 'N/A',
-          collection: 'Latham Pools'
+          collection: 'Latham Pools',
+          // Pool-specific fields
+          dimensions: pool.dimensions,
+          depth: pool.depth,
+          galaPoints: pool.gala_points,
+          galaCategory: pool.gala_category,
+          installationTimeWeeks: pool.installation_time_weeks,
+          warrantyYears: pool.warranty_years,
+          heater: pool.heater,
+          saltSystem: pool.salt_system,
+          carbonFiber: pool.carbon_fiber,
+          finishes: pool.finishes,
+          liners: pool.liners,
+          covers: pool.covers
         })),
         // Add other products from products table
         ...(productsData || []).map(product => ({
@@ -307,11 +334,41 @@ const UnifiedAdminProductManager = () => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                       {categoryProducts.map((product) => (
-                        <EditableProductCard
-                          key={product.id}
-                          product={product}
-                          onUpdate={() => loadProducts()}
-                        />
+                        product.source === 'pools_table' ? (
+                          <EditablePoolProductCard
+                            key={product.id}
+                            pool={{
+                              model: product.name,
+                              price: product.price,
+                              category: (product.subcategory || product.category) as any,
+                              image: product.image,
+                              dimensions: product.dimensions,
+                              depth: product.depth,
+                              features: product.features,
+                              galaPoints: product.galaPoints,
+                              galaCategory: product.galaCategory,
+                              installationTimeWeeks: product.installationTimeWeeks,
+                              warrantyYears: product.warrantyYears,
+                              heater: product.heater,
+                              saltSystem: product.saltSystem,
+                              carbonFiber: product.carbonFiber,
+                              finishes: product.finishes,
+                              liners: product.liners,
+                              covers: product.covers
+                            }}
+                            isEditable={true}
+                            onUpdate={(updatedPool) => {
+                              console.log('Pool updated:', updatedPool);
+                              loadProducts();
+                            }}
+                          />
+                        ) : (
+                          <EditableProductCard
+                            key={product.id}
+                            product={product}
+                            onUpdate={() => loadProducts()}
+                          />
+                        )
                       ))}
                     </div>
                   </div>
@@ -322,11 +379,41 @@ const UnifiedAdminProductManager = () => {
             // Show filtered products for selected category
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredProducts.map((product) => (
-                <EditableProductCard
-                  key={product.id}
-                  product={product}
-                  onUpdate={() => loadProducts()}
-                />
+                product.source === 'pools_table' ? (
+                  <EditablePoolProductCard
+                    key={product.id}
+                    pool={{
+                      model: product.name,
+                      price: product.price,
+                      category: (product.subcategory || product.category) as any,
+                      image: product.image,
+                      dimensions: product.dimensions,
+                      depth: product.depth,
+                      features: product.features,
+                      galaPoints: product.galaPoints,
+                      galaCategory: product.galaCategory,
+                      installationTimeWeeks: product.installationTimeWeeks,
+                      warrantyYears: product.warrantyYears,
+                      heater: product.heater,
+                      saltSystem: product.saltSystem,
+                      carbonFiber: product.carbonFiber,
+                      finishes: product.finishes,
+                      liners: product.liners,
+                      covers: product.covers
+                    }}
+                    isEditable={true}
+                    onUpdate={(updatedPool) => {
+                      console.log('Pool updated:', updatedPool);
+                      loadProducts();
+                    }}
+                  />
+                ) : (
+                  <EditableProductCard
+                    key={product.id}
+                    product={product}
+                    onUpdate={() => loadProducts()}
+                  />
+                )
               ))}
             </div>
           )}
