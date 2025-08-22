@@ -42,6 +42,47 @@ const UnifiedAdminProductManager = () => {
 
   useEffect(() => {
     loadProducts();
+    
+    // Set up real-time subscriptions for automatic synchronization
+    const productsChannel = supabase
+      .channel('products-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'products'
+        },
+        (payload) => {
+          console.log('Products table changed:', payload);
+          // Reload products when any change occurs
+          loadProducts();
+        }
+      )
+      .subscribe();
+
+    const poolsChannel = supabase
+      .channel('pools-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'pools'
+        },
+        (payload) => {
+          console.log('Pools table changed:', payload);
+          // Reload products when any change occurs
+          loadProducts();
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      supabase.removeChannel(productsChannel);
+      supabase.removeChannel(poolsChannel);
+    };
   }, []);
 
   const getCategoryColor = (category: string) => {
