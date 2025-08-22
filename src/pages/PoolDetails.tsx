@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart as CartIcon, Search, ChevronDown, Settings, Armchair, Flame, ChefHat, Utensils, Home, Music, Package } from "lucide-react";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
-import RealTimeContentEditor from "@/components/RealTimeContentEditor";
+import { DragDropEditor } from "@/components/DragDropEditor";
 import { useShoppingCart } from "@/components/ShoppingCart";
 import { spas } from "@/components/PoolCatalog";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
@@ -276,7 +276,8 @@ const PoolDetails = () => {
   const [showPriceDropdown, setShowPriceDropdown] = useState(false);
   const [coverColor, setCoverColor] = useState<string>('');
   const [coverEngine, setCoverEngine] = useState<string>('');
-  const [showEditorStudio, setShowEditorStudio] = useState(false);
+  const [editorActive, setEditorActive] = useState(false);
+  
 
   // Remove config item function
   const removeConfigItem = (item: any) => {
@@ -1637,15 +1638,6 @@ const PoolDetails = () => {
                     Quote
                   </Button>
                   
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setShowEditorStudio(true)}
-                    className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
-                  >
-                    <Settings className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                    Editor Studio
-                  </Button>
                   
                   <Button
                     variant="outline" 
@@ -1670,7 +1662,39 @@ const PoolDetails = () => {
           </div>
         </div>
       </div>
-      <RealTimeContentEditor isOpen={showEditorStudio} onClose={() => setShowEditorStudio(false)} />
+      
+      {/* Finance Information Panel */}
+      <div className="fixed bottom-4 left-4 z-40">
+        <Card className="w-80 shadow-xl">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold text-primary">
+              💰 Financing Available
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-muted-foreground">Total Cost:</span>
+              <span className="font-semibold">${calculateTotalPrice().toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-muted-foreground">Est. Monthly:</span>
+              <span className="font-semibold text-primary">${(calculateTotalPrice() / 60).toFixed(0)}/mo</span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              *5-year financing at 6.9% APR
+            </div>
+            <Button size="sm" className="w-full" variant="outline">
+              Apply for Financing
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <DragDropEditor 
+        isActive={editorActive} 
+        onToggle={() => setEditorActive(!editorActive)} 
+      />
+      
     </div>
   );
 };
