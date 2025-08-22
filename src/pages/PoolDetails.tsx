@@ -1362,114 +1362,477 @@ const PoolDetails = () => {
         break;
     }
   };
-  return <div className="fixed inset-0 bg-background overflow-hidden flex flex-col">
-      {/* Top Header with Price and Main Search */}
-      <div className="h-20 border-b flex items-center justify-between px-6 bg-background/95 backdrop-blur-sm">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate(-1)}>
-            <X className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-xl font-semibold">Editor Studio</h1>
-            <p className="text-sm text-muted-foreground">{pool.model}</p>
-          </div>
-          <Badge className={getCategoryColor(pool.category)}>{pool.category}</Badge>
-        </div>
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header - Responsive for all devices */}
+      <div className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-2 sm:py-4">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+              size="sm"
+            >
+              <X className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Back</span>
+            </Button>
+            
+            {/* Price Dropdown - Higher z-index to appear above everything */}
+            <div className="relative">
+              <Button
+                variant="outline"
+                onClick={() => setShowPriceDropdown(!showPriceDropdown)}
+                className="flex items-center gap-1 sm:gap-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs sm:text-sm px-2 sm:px-4"
+                size="sm"
+              >
+                <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">${calculateTotalPrice().toLocaleString()}</span>
+                <span className="xs:hidden">${(calculateTotalPrice() / 1000).toFixed(0)}k</span>
+                <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
 
-        {/* Main Search Engine */}
-        <div className="flex-1 max-w-md mx-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input type="text" placeholder="Main Search Engine - Find any product..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 bg-background" />
-          </div>
-        </div>
-
-        {/* Always Visible Price Dropdown */}
-        <div className="text-right relative">
-          <div 
-            className="cursor-pointer"
-            onClick={() => setShowPriceDropdown(!showPriceDropdown)}
-          >
-            <div className="text-2xl font-bold text-primary flex items-center gap-2">
-              ${calculateTotalPrice().toLocaleString()}
-              <ChevronDown className="h-4 w-4" />
+              {showPriceDropdown && (
+                <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-popover border border-border rounded-lg shadow-lg z-[70] max-h-80 sm:max-h-96 overflow-y-auto">
+                  <div className="p-3 sm:p-4">
+                    <h3 className="font-semibold mb-3 text-sm sm:text-base">Configuration Breakdown</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-xs sm:text-sm">
+                        <span>Base Pool ({pool.model})</span>
+                        <span>${pool.price.toLocaleString()}</span>
+                      </div>
+                      
+                      {getConfigurationItems().map((item, index) => (
+                        <div key={index} className="flex justify-between items-center text-xs bg-muted/50 p-2 rounded">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="truncate">{item.name}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removeConfigItem(item)}
+                              className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground shrink-0"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <span className="shrink-0 ml-2">${item.price.toLocaleString()}</span>
+                        </div>
+                      ))}
+                      
+                      <div className="border-t pt-2">
+                        <div className="flex justify-between items-center font-semibold text-sm">
+                          <span>Total</span>
+                          <span>${calculateTotalPrice().toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="text-sm text-muted-foreground">
-              Base: ${pool.price.toLocaleString()} + ${(calculateTotalPrice() - pool.price).toLocaleString()}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content - Responsive Layout */}
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-3 sm:py-6">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 sm:gap-6">
+          {/* Left Panel - Pool Visualization - Responsive */}
+          <div className="xl:col-span-8">
+            <Card className="overflow-hidden">
+              <CardContent className="p-0 relative">
+                {/* Selected Products Snapshots - Responsive */}
+                {getConfigurationItems().length > 0 && (
+                  <div className="absolute top-2 left-2 z-20 flex flex-wrap gap-1 max-w-[150px] sm:max-w-[200px]">
+                    {getConfigurationItems().slice(0, 4).map((item, index) => (
+                      <div key={index} className="w-6 h-6 sm:w-8 sm:h-8 rounded border bg-background/90 overflow-hidden">
+                        <img 
+                          src={item.image || pool.image} 
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                    {getConfigurationItems().length > 4 && (
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded border bg-background/90 flex items-center justify-center text-[10px] sm:text-xs">
+                        +{getConfigurationItems().length - 4}
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img
+                    src={getCurrentImage()}
+                    alt={pool.model}
+                    className="w-full h-full object-cover transition-all duration-500"
+                  />
+                </div>
+                
+                {/* Pool Info Overlay - Responsive */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent text-white p-2 sm:p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h1 className="text-sm sm:text-xl font-bold">{pool.model}</h1>
+                      <Badge className={getCategoryColor(pool.category) + " text-xs"}>
+                        {pool.category}
+                      </Badge>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg sm:text-2xl font-bold">${pool.price.toLocaleString()}</div>
+                      <div className="text-xs sm:text-sm opacity-90">Base Price</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Panel - Pool Studio - Responsive */}
+          <div className="xl:col-span-4">
+            <Card>
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <h2 className="text-sm sm:text-lg font-semibold">Pool Studio</h2>
+                </div>
+
+                {/* Category Selection Dropdown */}
+                <div className="mb-3 sm:mb-4">
+                  <select 
+                    value={activePanel || ''} 
+                    onChange={(e) => {
+                      const newPanel = e.target.value as ActivePanel || null;
+                      setActivePanel(newPanel);
+                      setSearchQuery('');
+                    }} 
+                    className="w-full p-2 text-xs sm:text-sm border rounded-md bg-background"
+                  >
+                    <option value="">Select a Category</option>
+                    <option value="finishes">Pool Finishes</option>
+                    <option value="liners">Pool Liners</option>
+                    <option value="pavers">Pavers & Decking</option>
+                    <option value="coping">Coping Options</option>
+                    <option value="covers">Pool Covers</option>
+                    <option value="heaters">Heating Systems</option>
+                    <option value="spas">Spa Options</option>
+                    <option value="tanning">Tanning Ledges</option>
+                    <option value="tiles">Pool Tiles</option>
+                    <option value="jets">Pool Jets</option>
+                    <option value="furniture">Outdoor Furniture</option>
+                    <option value="fireplace">Fire Features</option>
+                  </select>
+                </div>
+
+                {/* Content Area - Responsive */}
+                <div className="space-y-2 sm:space-y-3 max-h-80 sm:max-h-96 overflow-y-auto">
+                  {activePanel ? (
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-semibold mb-2">
+                        {activePanel === 'finishes' && 'Pool Finishes'}
+                        {activePanel === 'liners' && 'Pool Liners'}
+                        {activePanel === 'pavers' && 'Pavers & Decking'}
+                        {activePanel === 'coping' && 'Coping Options'}
+                        {activePanel === 'covers' && 'Pool Covers'}
+                        {activePanel === 'heaters' && 'Heating Systems'}
+                        {activePanel === 'spas' && 'Spa Options'}
+                        {activePanel === 'tanning' && 'Tanning Ledges'}
+                        {activePanel === 'tiles' && 'Pool Tiles'}
+                        {activePanel === 'jets' && 'Pool Jets'}
+                        {activePanel === 'furniture' && 'Outdoor Furniture'}
+                        {activePanel === 'fireplace' && 'Fire Features'}
+                      </h4>
+                      {renderCategoryContent()}
+                    </div>
+                  ) : (
+                    <div className="text-center text-xs sm:text-sm text-muted-foreground py-8">
+                      Select a category to browse products
+                    </div>
+                  )}
+                </div>
+
+                {/* Bottom Actions - Responsive */}
+                <div className="border-t mt-3 sm:mt-4 pt-3 sm:pt-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={generateQuote}
+                    className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
+                  >
+                    <Printer className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                    Quote
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleAddToCart}
+                    className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
+                  >
+                    <CartIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                    Cart
+                  </Button>
+                  
+                  <StripeCheckoutButton 
+                    productId={pool.model} 
+                    productName={`${pool.model} Configuration`} 
+                    price={calculateTotalPrice()} 
+                    variant="default"
+                    className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+      {/* Header - Responsive for all devices */}
+      <div className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-2 sm:py-4">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+              size="sm"
+            >
+              <X className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Back</span>
+            </Button>
+            
+            {/* Search Engine - Hidden on mobile, visible on tablet+ */}
+            <div className="hidden md:flex flex-1 max-w-md mx-4">
+              <div className="relative w-full">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+                <Input 
+                  type="text" 
+                  placeholder="Search products..." 
+                  value={searchQuery} 
+                  onChange={e => setSearchQuery(e.target.value)} 
+                  className="pl-6 sm:pl-8 text-xs sm:text-sm h-8 sm:h-9" 
+                />
+              </div>
+            </div>
+            
+            {/* Price Dropdown - Higher z-index to appear above everything */}
+            <div className="relative">
+              <Button
+                variant="outline"
+                onClick={() => setShowPriceDropdown(!showPriceDropdown)}
+                className="flex items-center gap-1 sm:gap-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs sm:text-sm px-2 sm:px-4"
+                size="sm"
+              >
+                <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">${calculateTotalPrice().toLocaleString()}</span>
+                <span className="xs:hidden">${(calculateTotalPrice() / 1000).toFixed(0)}k</span>
+                <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+
+              {showPriceDropdown && (
+                <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-popover border border-border rounded-lg shadow-lg z-[70] max-h-80 sm:max-h-96 overflow-y-auto">
+                  <div className="p-3 sm:p-4">
+                    <h3 className="font-semibold mb-3 text-sm sm:text-base">Configuration Breakdown</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-xs sm:text-sm">
+                        <span>Base Pool ({pool.model})</span>
+                        <span>${pool.price.toLocaleString()}</span>
+                      </div>
+                      
+                      {getConfigurationItems().map((item, index) => (
+                        <div key={index} className="flex justify-between items-center text-xs bg-muted/50 p-2 rounded">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="truncate">{item.name}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removeConfigItem(item)}
+                              className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground shrink-0"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <span className="shrink-0 ml-2">${item.price.toLocaleString()}</span>
+                        </div>
+                      ))}
+                      
+                      <div className="border-t pt-2">
+                        <div className="flex justify-between items-center font-semibold text-sm">
+                          <span>Total</span>
+                          <span>${calculateTotalPrice().toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           
-          {/* Price Breakdown Dropdown */}
-          {showPriceDropdown && (
-            <div className="absolute top-full right-0 mt-2 w-80 bg-background border rounded-lg shadow-lg z-50 p-4">
-              <h3 className="font-semibold mb-3">Configuration Breakdown</h3>
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {/* Base Pool */}
-                <div className="flex justify-between items-center p-2 bg-primary/10 rounded">
-                  <span className="font-medium">{pool.model}</span>
-                  <span className="font-semibold">${pool.price.toLocaleString()}</span>
-                </div>
-                
-                {/* All selected items */}
-                {getSelectedConfigItems().map((item, index) => (
-                  <div key={index} className="flex justify-between items-center p-2 border rounded hover:bg-muted/50">
-                    <div className="flex items-center gap-2">
-                      <img src={item.image} alt={item.name} className="w-6 h-6 rounded object-cover" />
-                      <span className="text-sm">{item.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">${item.price?.toLocaleString()}</span>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                        onClick={() => removeConfigItem(item)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                
-                {/* Selected marketplace products */}
-                {selectedProducts.map(product => (
-                  <div key={product.id} className="flex justify-between items-center p-2 border rounded hover:bg-muted/50">
-                    <div className="flex items-center gap-2">
-                      {product.image_url && <img src={product.image_url} alt={product.name} className="w-6 h-6 rounded object-cover" />}
-                      <span className="text-sm">{product.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">${product.price.toLocaleString()}</span>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                        onClick={() => {
-                          setSelectedProducts(prev => prev.filter(p => p.id !== product.id));
-                          toast({
-                            title: "Product Removed",
-                            description: `${product.name} removed!`
-                          });
-                        }}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="border-t mt-3 pt-3">
-                <div className="flex justify-between items-center font-bold">
-                  <span>Total Investment</span>
-                  <span className="text-primary">${calculateTotalPrice().toLocaleString()}</span>
-                </div>
-              </div>
+          {/* Mobile Search Bar */}
+          <div className="md:hidden mt-2">
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+              <Input 
+                type="text" 
+                placeholder="Search products..." 
+                value={searchQuery} 
+                onChange={e => setSearchQuery(e.target.value)} 
+                className="pl-6 text-xs h-8" 
+              />
             </div>
-          )}
+          </div>
         </div>
       </div>
+
+      {/* Main Content - Responsive Layout */}
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-3 sm:py-6">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 sm:gap-6">
+          {/* Left Panel - Pool Visualization - Responsive */}
+          <div className="xl:col-span-8">
+            <Card className="overflow-hidden">
+              <CardContent className="p-0 relative">
+                {/* Selected Products Snapshots - Responsive */}
+                {getConfigurationItems().length > 0 && (
+                  <div className="absolute top-2 left-2 z-20 flex flex-wrap gap-1 max-w-[150px] sm:max-w-[200px]">
+                    {getConfigurationItems().slice(0, 4).map((item, index) => (
+                      <div key={index} className="w-6 h-6 sm:w-8 sm:h-8 rounded border bg-background/90 overflow-hidden">
+                        <img 
+                          src={item.image || pool.image} 
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                    {getConfigurationItems().length > 4 && (
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded border bg-background/90 flex items-center justify-center text-[10px] sm:text-xs">
+                        +{getConfigurationItems().length - 4}
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img
+                    src={getCurrentImage()}
+                    alt={pool.model}
+                    className="w-full h-full object-cover transition-all duration-500"
+                  />
+                </div>
+                
+                {/* Pool Info Overlay - Responsive */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent text-white p-2 sm:p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h1 className="text-sm sm:text-xl font-bold">{pool.model}</h1>
+                      <Badge className={getCategoryColor(pool.category) + " text-xs"}>
+                        {pool.category}
+                      </Badge>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg sm:text-2xl font-bold">${pool.price.toLocaleString()}</div>
+                      <div className="text-xs sm:text-sm opacity-90">Base Price</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Pool Details - Responsive Grid */}
+            <Card className="mt-3 sm:mt-4">
+              <CardContent className="p-3 sm:p-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 text-xs sm:text-sm">
+                  {pool.dimensions && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-primary/10 flex items-center justify-center">
+                        <span className="text-primary text-[10px] sm:text-xs">📏</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">Dimensions</div>
+                        <div className="text-muted-foreground text-[10px] sm:text-xs">{pool.dimensions}</div>
+                      </div>
+                    </div>
+                  )}
+                  {pool.depth && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-primary/10 flex items-center justify-center">
+                        <Droplets className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+                      </div>
+                      <div>
+                        <div className="font-medium">Depth</div>
+                        <div className="text-muted-foreground text-[10px] sm:text-xs">{pool.depth}</div>
+                      </div>
+                    </div>
+                  )}
+                  {pool.installationTimeWeeks && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-primary/10 flex items-center justify-center">
+                        <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+                      </div>
+                      <div>
+                        <div className="font-medium">Installation</div>
+                        <div className="text-muted-foreground text-[10px] sm:text-xs">{pool.installationTimeWeeks} weeks</div>
+                      </div>
+                    </div>
+                  )}
+                  {pool.warrantyYears && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded bg-primary/10 flex items-center justify-center">
+                        <Shield className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+                      </div>
+                      <div>
+                        <div className="font-medium">Warranty</div>
+                        <div className="text-muted-foreground text-[10px] sm:text-xs">{pool.warrantyYears} years</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Panel - Pool Studio - Responsive */}
+          <div className="xl:col-span-4">
+            <Card>
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <h2 className="text-sm sm:text-lg font-semibold">Pool Studio</h2>
+                  <div className="flex gap-1 sm:gap-2">
+                    <Button size="sm" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 p-0">
+                      <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+                    <Button size="sm" variant="outline" className="h-6 w-6 sm:h-8 sm:w-8 p-0">
+                      <Printer className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Category Selection Dropdown */}
+                <div className="mb-3 sm:mb-4">
+                  <select 
+                    value={activePanel || ''} 
+                    onChange={(e) => {
+                      const newPanel = e.target.value as ActivePanel || null;
+                      setActivePanel(newPanel);
+                      setSearchQuery('');
+                    }} 
+                    className="w-full p-2 text-xs sm:text-sm border rounded-md bg-background"
+                  >
+                    <option value="">Select a Category</option>
+                    <option value="finishes">Pool Finishes</option>
+                    <option value="liners">Pool Liners</option>
+                    <option value="pavers">Pavers & Decking</option>
+                    <option value="coping">Coping Options</option>
+                    <option value="covers">Pool Covers</option>
+                    <option value="heaters">Heating Systems</option>
+                    <option value="spas">Spa Options</option>
+                    <option value="tanning">Tanning Ledges</option>
+                    <option value="tiles">Pool Tiles</option>
+                    <option value="jets">Pool Jets</option>
+                    <option value="furniture">Outdoor Furniture</option>
+                    <option value="fireplace">Fire Features</option>
+                  </select>
+                </div>
 
       <div className="flex h-[calc(100vh-8rem)]">
         {/* Enhanced Product Showcase */}
