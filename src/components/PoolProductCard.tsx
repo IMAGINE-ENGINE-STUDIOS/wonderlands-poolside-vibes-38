@@ -63,6 +63,7 @@ interface PoolExtras {
   spaModel: string;
   tanningLedge: boolean;
   tanningLedgeModel: string;
+  heaterModel: string;
 }
 
 const getCategoryColor = (category: string) => {
@@ -102,6 +103,16 @@ const finishOptions = poolFinishesData.map(finish => ({
 
 // Import pool liners from PoolCatalog
 import { poolLiners, poolTiles } from '@/data/poolData';
+
+// Pool heater options
+const poolHeaters = [
+  { name: 'Heat Pump - Eco Series', price: 4500, image: azureBlueFinish, description: 'Energy-efficient heat pump, ideal for mild climates' },
+  { name: 'Heat Pump - Pro Series', price: 5500, image: oceanBlueFinish, description: 'Professional grade heat pump with advanced controls' },
+  { name: 'Gas Heater - Standard', price: 3200, image: sapphireBlueFinish, description: 'Traditional gas heater for quick heating' },
+  { name: 'Gas Heater - High Efficiency', price: 4200, image: nightSkyFinish, description: 'High-efficiency gas heater with digital controls' },
+  { name: 'Solar Heater - Basic', price: 2800, image: lagoonBlueFinish, description: 'Eco-friendly solar heating system' },
+  { name: 'Solar Heater - Premium', price: 3800, image: coastalBronzeFinish, description: 'Advanced solar system with backup heating' }
+];
 
 // Convert pool liners to liner options format
 const linerOptions = [
@@ -152,7 +163,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     spa: false,
     spaModel: 'Mystic',
     tanningLedge: false,
-    tanningLedgeModel: tanningLedges[0]?.name || 'Genesis'
+    tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
+    heaterModel: poolHeaters[0]?.name || 'Heat Pump - Eco Series'
   });
   
   const { addToCart } = useShoppingCart();
@@ -183,8 +195,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
         return enabling
           ? { ...prev, cover: true, coverOption: coverOptions.find(o => o.name === prev.coverOption) ? prev.coverOption : 'Eclipse' }
           : { ...prev, cover: false };
-      } else if (extra === 'jets') {
-        return { ...prev, jets: !prev.jets };
+      } else if (extra === 'heater') {
+        return { ...prev, heater: !prev.heater };
       } else if (extra === 'spa') {
         return { ...prev, spa: !prev.spa };
       } else if (extra === 'tanningLedge') {
@@ -198,8 +210,11 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
   const calculateTotalPrice = () => {
     let total = pool.price;
     
-    // Add base extras
-    if (extras.heater) total += getExtraPrice('heater');
+    // Add heater price if selected (dynamic price based on model)
+    if (extras.heater) {
+      const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
+      if (selectedHeater) total += selectedHeater.price;
+    }
     if (extras.cover) total += getExtraPrice('cover');
     if (extras.jets) total += getExtraPrice('jets');
     
@@ -242,7 +257,12 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
   const handleAddToCart = () => {
     const cartExtras = [];
     
-    if (extras.heater) cartExtras.push({ name: 'Pool Heater', price: getExtraPrice('heater') });
+    if (extras.heater) {
+      const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
+      if (selectedHeater) {
+        cartExtras.push({ name: `${selectedHeater.name}`, price: selectedHeater.price });
+      }
+    }
     if (extras.jets) cartExtras.push({ name: 'Spa Jets', price: getExtraPrice('jets') });
     
     const linerOption = linerOptions.find(option => option.name === extras.linerOption);
@@ -559,18 +579,48 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
               <h4 className="font-semibold text-foreground">Additional Features</h4>
               
               <div className="grid grid-cols-1 gap-3">
-                <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg hover:bg-muted/50 transition-all duration-200 border border-muted/20 hover:border-coral/30">
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox 
                     checked={extras.heater}
                     onCheckedChange={() => toggleExtra('heater')}
                     className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
                   />
-                  <div className="flex items-center space-x-2 flex-1">
+                  <div className="flex items-center space-x-1">
                     <Thermometer size={16} className="text-coral" />
-                    <span className="text-sm font-medium">Pool Heater</span>
-                    <span className="text-sm text-muted-foreground ml-auto">+${getExtraPrice('heater').toLocaleString()}</span>
+                    <span className="text-sm">Add Pool Heater (+${extras.heater ? (() => {
+                      const selectedHeater = poolHeaters.find((heater) => heater.name === extras.heaterModel);
+                      return selectedHeater ? selectedHeater.price.toLocaleString() : '0';
+                    })() : '0'})</span>
                   </div>
                 </label>
+
+                {extras.heater && (
+                  <div className="ml-6 space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">Select Heater Model:</label>
+                     <div className="grid grid-cols-1 gap-2">
+                       {poolHeaters.map((heater) => (
+                          <button
+                            key={heater.name}
+                            onClick={() => setExtras(prev => ({ ...prev, heaterModel: heater.name }))}
+                            className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
+                              extras.heaterModel === heater.name 
+                                ? 'border-coral bg-coral/10 text-coral' 
+                                : 'border-border hover:border-coral/50'
+                            }`}
+                          >
+                            <img src={heater.image} alt={heater.name} className="w-8 h-8 rounded object-cover" />
+                            <div className="flex-1 text-left">
+                              <div>{heater.name}</div>
+                              <div className="text-xs text-muted-foreground">${heater.price.toLocaleString()}</div>
+                              {heater.description && (
+                                <div className="text-xs text-muted-foreground">{heater.description}</div>
+                              )}
+                            </div>
+                           </button>
+                         ))}
+                    </div>
+                  </div>
+                )}
                 
                 {/* Tile/Liner Exclusivity Helper Text */}
                 <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg">
