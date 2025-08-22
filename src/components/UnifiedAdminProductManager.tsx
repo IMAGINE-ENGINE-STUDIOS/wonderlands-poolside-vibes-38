@@ -195,7 +195,7 @@ const UnifiedAdminProductManager = () => {
         <div className="flex justify-between items-center">
           <TabsList className="grid grid-cols-4 w-auto">
             <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
-            <TabsTrigger value="pools">Pools ({pools.length})</TabsTrigger>
+            <TabsTrigger value="pools">Products ({pools.length})</TabsTrigger>
             <TabsTrigger value="procurement">Procurement</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
