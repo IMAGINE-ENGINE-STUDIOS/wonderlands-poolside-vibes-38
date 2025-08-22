@@ -115,35 +115,43 @@ const linerOptions = [{
   description: liner.description
 }))];
 
-// Cover options
+// Cover options with color and engine variants
 const coverOptions = [{
   name: 'Eclipse Automatic Cover',
   color: '#2F4F4F',
   price: 16000,
   image: nightSkyFinish,
   category: 'cover',
-  description: 'Premium automatic pool cover with solar heating'
+  description: 'Premium automatic pool cover with solar heating',
+  colors: ['Charcoal', 'Navy Blue', 'Forest Green', 'Brown'],
+  engines: ['Standard Motor', 'Quiet Motor', 'Smart Motor']
 }, {
   name: 'CS3000 Safety Cover',
   color: '#2F4F4F',
   price: 24000,
   image: shaleGrayFinish,
   category: 'cover',
-  description: 'Heavy-duty safety cover with anchoring system'
+  description: 'Heavy-duty safety cover with anchoring system',
+  colors: ['Black', 'Green', 'Blue', 'Tan'],
+  engines: ['Manual', 'Semi-Auto', 'Full Auto']
 }, {
   name: 'Infinity 4000 Smart Cover',
   color: '#2F4F4F',
   price: 32000,
   image: coastalBronzeFinish,
   category: 'cover',
-  description: 'Smart automated cover with app control'
+  description: 'Smart automated cover with app control',
+  colors: ['Slate Gray', 'Ocean Blue', 'Midnight Black'],
+  engines: ['AI Smart Motor', 'Wi-Fi Motor', 'Premium Quiet Motor']
 }, {
   name: 'Atom Loop-Loc Cover',
   color: '#2F4F4F',
   price: 19000,
   image: aquamarineFinish,
   category: 'cover',
-  description: 'Mesh safety cover for all seasons'
+  description: 'Mesh safety cover for all seasons',
+  colors: ['Green', 'Blue', 'Black', 'Tan', 'Gray'],
+  engines: ['Spring System', 'Lever System', 'Ratchet System']
 }];
 
 // Convert pool tiles to tile options format
@@ -262,6 +270,29 @@ const PoolDetails = () => {
   const [selectedProducts, setSelectedProducts] = useState<MarketplaceProduct[]>([]);
   const [paverArea, setPaverArea] = useState<number>(100); // square feet
   const [copingLength, setCopingLength] = useState<number>(50); // linear feet
+  const [paverQuantity, setPaverQuantity] = useState<number>(50); // quantity of pavers
+  const [copingQuantity, setCopingQuantity] = useState<number>(25); // quantity of coping pieces
+  const [showPriceDropdown, setShowPriceDropdown] = useState(false);
+  const [coverColor, setCoverColor] = useState<string>('');
+  const [coverEngine, setCoverEngine] = useState<string>('');
+
+  // Remove config item function
+  const removeConfigItem = (item: any) => {
+    if (item.category === 'Pool Cover') setExtras(prev => ({ ...prev, cover: false }));
+    if (item.category === 'Pool Heater') setExtras(prev => ({ ...prev, heater: false }));
+    if (item.category === 'Spa') setExtras(prev => ({ ...prev, spa: false }));
+    if (item.category === 'Tanning Ledge') setExtras(prev => ({ ...prev, tanningLedge: false }));
+    if (item.category === 'Pool Tiles') setExtras(prev => ({ ...prev, tiles: false }));
+    if (item.category === 'Pool Jets') setExtras(prev => ({ ...prev, jets: false }));
+    if (item.category === 'Pool Liner') setExtras(prev => ({ ...prev, linerOption: 'Classic Blue' }));
+    if (item.category === 'Pavers') setExtras(prev => ({ ...prev, paverOption: 'Classic Concrete' }));
+    if (item.category === 'Coping') setExtras(prev => ({ ...prev, copingPaverOption: 'Classic Pool Coping' }));
+    
+    toast({
+      title: "Item Removed",
+      description: `${item.name} removed from configuration!`
+    });
+  };
 
   // Parse pool data from URL params
   const pool: Pool = {
@@ -1059,48 +1090,176 @@ const PoolDetails = () => {
             </div>);
         }
 
-        // Special handling for pavers with area input
+        // Special handling for pavers with area/quantity input
         if (activePanel === 'pavers') {
-          return <div className="space-y-2">
-              <div className="border rounded-md p-2">
-                <label className="text-xs font-medium">Area (sq ft):</label>
-                <input type="number" value={paverArea} onChange={e => setPaverArea(Number(e.target.value))} className="w-full mt-1 p-1 border rounded text-xs" min="1" />
+          return (
+            <div className="space-y-3">
+              <div className="border rounded-md p-3 bg-muted/30">
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <div>
+                    <label className="text-xs font-medium block mb-1">Area (sq ft):</label>
+                    <input 
+                      type="number" 
+                      value={paverArea} 
+                      onChange={(e) => setPaverArea(Number(e.target.value))} 
+                      className="w-full p-2 border rounded text-xs" 
+                      min="1" 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium block mb-1">Quantity:</label>
+                    <input 
+                      type="number" 
+                      value={paverQuantity} 
+                      onChange={(e) => setPaverQuantity(Number(e.target.value))} 
+                      className="w-full p-2 border rounded text-xs" 
+                      min="1" 
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">Choose calculation method and adjust values above</p>
               </div>
-              {paverOptions.map(option => <div key={option.name} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.paverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => handleOptionSelect('pavers', option)}>
-                  <div className="flex gap-2">
-                    <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
+              {paverOptions.map(option => (
+                <div 
+                  key={option.name} 
+                  className={`p-3 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
+                    extras.paverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'
+                  }`}
+                  onClick={() => handleOptionSelect('pavers', option)}
+                >
+                  <div className="flex gap-3">
+                    <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
                       <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate">{option.name}</p>
+                      <p className="text-sm font-medium">{option.name}</p>
                       <p className="text-xs font-semibold">${option.price}/sq ft</p>
                       <p className="text-xs text-primary">Total: ${(option.price * paverArea).toLocaleString()}</p>
+                      {option.description && <p className="text-xs text-muted-foreground mt-1">{option.description}</p>}
                     </div>
                   </div>
-                </div>)}
-            </div>;
+                </div>
+              ))}
+            </div>
+          );
         }
 
-        // Special handling for coping with length input
+        // Special handling for coping with length/quantity input
         if (activePanel === 'coping') {
-          return <div className="space-y-2">
-              <div className="border rounded-md p-2">
-                <label className="text-xs font-medium">Length (linear ft):</label>
-                <input type="number" value={copingLength} onChange={e => setCopingLength(Number(e.target.value))} className="w-full mt-1 p-1 border rounded text-xs" min="1" />
+          return (
+            <div className="space-y-3">
+              <div className="border rounded-md p-3 bg-muted/30">
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <div>
+                    <label className="text-xs font-medium block mb-1">Length (linear ft):</label>
+                    <input 
+                      type="number" 
+                      value={copingLength} 
+                      onChange={(e) => setCopingLength(Number(e.target.value))} 
+                      className="w-full p-2 border rounded text-xs" 
+                      min="1" 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium block mb-1">Quantity:</label>
+                    <input 
+                      type="number" 
+                      value={copingQuantity} 
+                      onChange={(e) => setCopingQuantity(Number(e.target.value))} 
+                      className="w-full p-2 border rounded text-xs" 
+                      min="1" 
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">Choose calculation method and adjust values above</p>
               </div>
-              {copingPaverOptions.map(option => <div key={option.name} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.copingPaverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => handleOptionSelect('coping', option)}>
-                  <div className="flex gap-2">
-                    <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
+              {copingPaverOptions.map(option => (
+                <div 
+                  key={option.name} 
+                  className={`p-3 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
+                    extras.copingPaverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'
+                  }`}
+                  onClick={() => handleOptionSelect('coping', option)}
+                >
+                  <div className="flex gap-3">
+                    <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
                       <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate">{option.name}</p>
+                      <p className="text-sm font-medium">{option.name}</p>
                       <p className="text-xs font-semibold">${option.price}/linear ft</p>
                       <p className="text-xs text-primary">Total: ${(option.price * copingLength).toLocaleString()}</p>
+                      {option.description && <p className="text-xs text-muted-foreground mt-1">{option.description}</p>}
                     </div>
                   </div>
-                </div>)}
-            </div>;
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        // Enhanced covers section with color and engine options
+        if (activePanel === 'covers') {
+          return (
+            <div className="space-y-3">
+              {coverOptions.map(option => (
+                <div 
+                  key={option.name} 
+                  className={`p-3 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
+                    extras.coverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'
+                  }`}
+                  onClick={() => handleOptionSelect('covers', option)}
+                >
+                  <div className="flex gap-3">
+                    <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
+                      <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">{option.name}</p>
+                      <p className="text-xs font-semibold">${option.price.toLocaleString()}</p>
+                      {option.description && <p className="text-xs text-muted-foreground mt-1">{option.description}</p>}
+                      
+                      {/* Color Options */}
+                      {option.colors && extras.coverOption === option.name && (
+                        <div className="mt-2">
+                          <label className="text-xs font-medium block mb-1">Color:</label>
+                          <select 
+                            value={coverColor} 
+                            onChange={(e) => setCoverColor(e.target.value)}
+                            className="w-full p-1 border rounded text-xs"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <option value="">Select Color</option>
+                            {option.colors.map(color => (
+                              <option key={color} value={color}>{color}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      
+                      {/* Engine Options */}
+                      {option.engines && extras.coverOption === option.name && (
+                        <div className="mt-2">
+                          <label className="text-xs font-medium block mb-1">Engine:</label>
+                          <select 
+                            value={coverEngine} 
+                            onChange={(e) => setCoverEngine(e.target.value)}
+                            className="w-full p-1 border rounded text-xs"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <option value="">Select Engine</option>
+                            {option.engines.map(engine => (
+                              <option key={engine} value={engine}>{engine}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
         }
 
         // For marketplace product categories - now adds to configuration instead of cart
@@ -1226,15 +1385,89 @@ const PoolDetails = () => {
           </div>
         </div>
 
-        
-        {/* Always Visible Price */}
-        <div className="text-right">
-          <div className="text-2xl font-bold text-primary">
-            ${calculateTotalPrice().toLocaleString()}
+        {/* Always Visible Price Dropdown */}
+        <div className="text-right relative">
+          <div 
+            className="cursor-pointer"
+            onClick={() => setShowPriceDropdown(!showPriceDropdown)}
+          >
+            <div className="text-2xl font-bold text-primary flex items-center gap-2">
+              ${calculateTotalPrice().toLocaleString()}
+              <ChevronDown className="h-4 w-4" />
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Base: ${pool.price.toLocaleString()} + ${(calculateTotalPrice() - pool.price).toLocaleString()}
+            </div>
           </div>
-          <div className="text-sm text-muted-foreground">
-            Base: ${pool.price.toLocaleString()} + ${(calculateTotalPrice() - pool.price).toLocaleString()}
-          </div>
+          
+          {/* Price Breakdown Dropdown */}
+          {showPriceDropdown && (
+            <div className="absolute top-full right-0 mt-2 w-80 bg-background border rounded-lg shadow-lg z-50 p-4">
+              <h3 className="font-semibold mb-3">Configuration Breakdown</h3>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {/* Base Pool */}
+                <div className="flex justify-between items-center p-2 bg-primary/10 rounded">
+                  <span className="font-medium">{pool.model}</span>
+                  <span className="font-semibold">${pool.price.toLocaleString()}</span>
+                </div>
+                
+                {/* All selected items */}
+                {getSelectedConfigItems().map((item, index) => (
+                  <div key={index} className="flex justify-between items-center p-2 border rounded hover:bg-muted/50">
+                    <div className="flex items-center gap-2">
+                      <img src={item.image} alt={item.name} className="w-6 h-6 rounded object-cover" />
+                      <span className="text-sm">{item.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">${item.price?.toLocaleString()}</span>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                        onClick={() => removeConfigItem(item)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Selected marketplace products */}
+                {selectedProducts.map(product => (
+                  <div key={product.id} className="flex justify-between items-center p-2 border rounded hover:bg-muted/50">
+                    <div className="flex items-center gap-2">
+                      {product.image_url && <img src={product.image_url} alt={product.name} className="w-6 h-6 rounded object-cover" />}
+                      <span className="text-sm">{product.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">${product.price.toLocaleString()}</span>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                        onClick={() => {
+                          setSelectedProducts(prev => prev.filter(p => p.id !== product.id));
+                          toast({
+                            title: "Product Removed",
+                            description: `${product.name} removed!`
+                          });
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="border-t mt-3 pt-3">
+                <div className="flex justify-between items-center font-bold">
+                  <span>Total Investment</span>
+                  <span className="text-primary">${calculateTotalPrice().toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1244,9 +1477,12 @@ const PoolDetails = () => {
           <div className="h-full flex flex-col">
             {/* Large Main Pool Image */}
             <div className="relative flex-1 mb-4">
-              <img src={getCurrentImage()} alt={pool.model} className="w-full h-full object-cover rounded-lg border shadow-lg" />
+              <img 
+                src={getCurrentImage()} 
+                alt={pool.model} 
+                className="w-full h-full object-cover rounded-lg border shadow-lg" 
+              />
               
-
               {/* Pool Info Overlay - Bottom Left */}
               <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm px-4 py-3 rounded-lg shadow-md">
                 <p className="text-base font-semibold">{pool.model}</p>
@@ -1254,71 +1490,81 @@ const PoolDetails = () => {
                 <Badge className={`mt-2 ${getCategoryColor(pool.category)}`}>{pool.category}</Badge>
               </div>
 
-              {/* Selected Products Indicators - Top Left */}
-              {(getSelectedConfigItems().length > 0 || selectedProducts.length > 0) && <div className="absolute top-4 left-4 flex flex-wrap gap-2 max-w-xs">
-                  {getSelectedConfigItems().slice(0, 3).map((item, index) => <div key={index} className="relative group">
-                      <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-background shadow-sm bg-background">
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+              {/* Enhanced Product Snapshots Grid - Top Left */}
+              {(getSelectedConfigItems().length > 0 || selectedProducts.length > 0) && (
+                <div className="absolute top-4 left-4 grid grid-cols-4 gap-2 max-w-sm">
+                  {getSelectedConfigItems().slice(0, 6).map((item, index) => (
+                    <div key={index} className="relative group">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-background shadow-md bg-background">
+                        <img 
+                          src={item.image} 
+                          alt={item.name} 
+                          className="w-full h-full object-cover" 
+                        />
                       </div>
-                      <Button size="sm" variant="destructive" className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => {
-                  // Handle removal based on category
-                  if (item.category === 'Pool Cover') setExtras(prev => ({
-                    ...prev,
-                    cover: false
-                  }));
-                  if (item.category === 'Pool Heater') setExtras(prev => ({
-                    ...prev,
-                    heater: false
-                  }));
-                  if (item.category === 'Spa') setExtras(prev => ({
-                    ...prev,
-                    spa: false
-                  }));
-                  if (item.category === 'Tanning Ledge') setExtras(prev => ({
-                    ...prev,
-                    tanningLedge: false
-                  }));
-                  if (item.category === 'Pool Tiles') setExtras(prev => ({
-                    ...prev,
-                    tiles: false
-                  }));
-                  if (item.category === 'Pool Jets') setExtras(prev => ({
-                    ...prev,
-                    jets: false
-                  }));
-                }}>
+                      <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                        {item.category === 'Pool Jets' ? extras.jetQuantity : '1'}
+                      </div>
+                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-background/95 border rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        {item.name} - ${item.price?.toLocaleString()}
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="destructive" 
+                        className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => removeConfigItem(item)}
+                      >
                         <X className="h-3 w-3" />
                       </Button>
-                    </div>)}
+                    </div>
+                  ))}
                   
-                  {selectedProducts.slice(0, 2).map(product => <div key={product.id} className="relative group">
-                      <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-background shadow-sm bg-background">
-                        {product.image_url ? <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                          </div>}
+                  {selectedProducts.slice(0, 2).map(product => (
+                    <div key={product.id} className="relative group">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-background shadow-md bg-background">
+                        {product.image_url ? (
+                          <img 
+                            src={product.image_url} 
+                            alt={product.name} 
+                            className="w-full h-full object-cover" 
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        )}
                       </div>
-                      <Button size="sm" variant="destructive" className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => {
-                  setSelectedProducts(prev => prev.filter(p => p.id !== product.id));
-                  toast({
-                    title: "Product Removed",
-                    description: `${product.name} removed!`
-                  });
-                }}>
+                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-background/95 border rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        {product.name} - ${product.price.toLocaleString()}
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="destructive" 
+                        className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => {
+                          setSelectedProducts(prev => prev.filter(p => p.id !== product.id));
+                          toast({
+                            title: "Product Removed",
+                            description: `${product.name} removed!`
+                          });
+                        }}
+                      >
                         <X className="h-3 w-3" />
                       </Button>
-                    </div>)}
+                    </div>
+                  ))}
                   
                   {/* Show count if more products */}
-                  {getSelectedConfigItems().length + selectedProducts.length > 5 && <div className="w-12 h-12 rounded-lg border-2 border-background shadow-sm bg-background/90 flex items-center justify-center">
-                      <span className="text-xs font-semibold">
-                        +{getSelectedConfigItems().length + selectedProducts.length - 5}
+                  {getSelectedConfigItems().length + selectedProducts.length > 8 && (
+                    <div className="w-16 h-16 rounded-lg border-2 border-background shadow-md bg-background/90 flex items-center justify-center">
+                      <span className="text-sm font-semibold">
+                        +{getSelectedConfigItems().length + selectedProducts.length - 8}
                       </span>
-                    </div>}
-                </div>}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-
-            {/* Product Description Area */}
-            
           </div>
         </div>
 
@@ -1327,12 +1573,16 @@ const PoolDetails = () => {
             {/* Category Dropdown Only */}
             <div className="p-3 border-b">
               <label className="text-xs font-medium text-muted-foreground mb-2 block">Browse Categories</label>
-              <select value={activePanel || ''} onChange={e => {
-              const newPanel = e.target.value as ActivePanel || null;
-              setActivePanel(newPanel);
-              // Auto-close when switching categories and reset search
-              setSearchQuery('');
-            }} className="w-full p-2 text-sm border rounded-md bg-background">
+              <select 
+                value={activePanel || ''} 
+                onChange={(e) => {
+                  const newPanel = e.target.value as ActivePanel || null;
+                  setActivePanel(newPanel);
+                  // Auto-close when switching categories and reset search
+                  setSearchQuery('');
+                }} 
+                className="w-full p-2 text-sm border rounded-md bg-background"
+              >
                 <option value="">All Categories</option>
               <option value="finishes">Pool Finishes</option>
               <option value="liners">Pool Liners</option>
@@ -1430,43 +1680,52 @@ const PoolDetails = () => {
               </div>}
 
             {/* Default State - Show All Products */}
-            {!activePanel && !searchQuery && <div className="p-3">
+            {!activePanel && !searchQuery && (
+              <div className="p-3">
                 <h4 className="text-sm font-semibold mb-3">All Products ({marketplaceProducts.length})</h4>
                 <div className="space-y-2">
-                  {marketplaceProducts.slice(0, 20).map(product => <div key={product.id} className={`p-2 border rounded-md hover:bg-muted/50 cursor-pointer transition-all ${selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => {
-                setSelectedProducts(prev => {
-                  const isAlreadySelected = prev.some(p => p.id === product.id);
-                  if (isAlreadySelected) {
-                    toast({
-                      title: "Removed from Configuration",
-                      description: `${product.name} removed from pool configuration!`
-                    });
-                    return prev.filter(p => p.id !== product.id);
-                  } else {
-                    toast({
-                      title: "Added to Configuration",
-                      description: `${product.name} added to pool configuration!`
-                    });
-                    return [...prev, product];
-                  }
-                });
-              }}>
+                  {marketplaceProducts.map(product => (
+                    <div 
+                      key={product.id} 
+                      className={`p-2 border rounded-md hover:bg-muted/50 cursor-pointer transition-all ${
+                        selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'
+                      }`}
+                      onClick={() => {
+                        setSelectedProducts(prev => {
+                          const isAlreadySelected = prev.some(p => p.id === product.id);
+                          if (isAlreadySelected) {
+                            toast({
+                              title: "Removed from Configuration",
+                              description: `${product.name} removed from pool configuration!`
+                            });
+                            return prev.filter(p => p.id !== product.id);
+                          } else {
+                            toast({
+                              title: "Added to Configuration", 
+                              description: `${product.name} added to pool configuration!`
+                            });
+                            return [...prev, product];
+                          }
+                        });
+                      }}
+                    >
                       <div className="flex gap-2">
-                        {product.image_url && <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
+                        {product.image_url && (
+                          <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                             <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                          </div>}
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium truncate">{product.name}</p>
                           {product.brand && <p className="text-xs text-primary truncate">{product.brand}</p>}
                           <p className="text-xs font-semibold">${product.price.toLocaleString()}</p>
                         </div>
                       </div>
-                    </div>)}
-                  {marketplaceProducts.length > 20 && <p className="text-xs text-muted-foreground text-center p-2">
-                      Showing first 20 products. Use categories to browse more.
-                    </p>}
+                    </div>
+                  ))}
                 </div>
-              </div>}
+              </div>
+            )}
           </div>
         </div>
       </div>
