@@ -449,14 +449,16 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
     });
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[98vw] max-h-[98vh] w-full h-full overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
+    <div className="fixed inset-0 z-50 bg-background">
+      <div className="flex h-screen flex-col">
+        <div className="border-b px-6 py-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Globe className="h-5 w-5" />
-              Real-Time Content Editor
+              <h1 className="text-xl font-semibold">Real-Time Content Editor</h1>
               {pendingChanges > 0 && (
                 <Badge variant="secondary">{pendingChanges} pending changes</Badge>
               )}
@@ -465,14 +467,17 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
               <Badge className={isLivePreview ? 'bg-green-500' : 'bg-gray-500'}>
                 {isLivePreview ? 'Live Preview' : 'Draft Mode'}
               </Badge>
+              <Button variant="ghost" onClick={onClose}>
+                ✕
+              </Button>
             </div>
-          </DialogTitle>
-        </DialogHeader>
+          </div>
+        </div>
 
-        <div className="flex h-full gap-4">
+        <div className="flex flex-1 gap-4 p-4 overflow-hidden">
           {/* Main Editor Area */}
-          <div className="flex-1 flex flex-col">
-            <Tabs defaultValue="editor" className="h-full">
+          <div className="flex-1 flex flex-col min-w-0">
+            <Tabs defaultValue="editor" className="flex-1 flex flex-col">
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="editor">Visual Editor</TabsTrigger>
                 <TabsTrigger value="elements">Element Library</TabsTrigger>
@@ -480,9 +485,9 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
                 <TabsTrigger value="publish">Publish</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="editor" className="h-full mt-4">
+              <TabsContent value="editor" className="flex-1 mt-4 overflow-hidden">
                 <div className="flex gap-4 h-full">
-                  <div className="w-64 border-r pr-4 space-y-4">
+                  <div className="w-64 border-r pr-4 space-y-4 overflow-y-auto">
                     <Card>
                       <CardHeader>
                         <CardTitle className="text-sm">Editor Controls</CardTitle>
@@ -594,7 +599,7 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
                   </div>
 
                   {/* Live Preview */}
-                  <div className="flex-1 border rounded-lg bg-white relative overflow-auto">
+                  <div className="flex-1 border rounded-lg bg-white relative overflow-auto min-w-0">
                     <SitePreview
                       elements={elements}
                       onElementClick={handleElementClick}
@@ -709,67 +714,6 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
               </TabsContent>
             </Tabs>
 
-            {/* Edit Element Dialog */}
-            <Dialog open={editDialog} onOpenChange={setEditDialog}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Edit Element</DialogTitle>
-                </DialogHeader>
-                {selectedElement && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Content</label>
-                      <Textarea
-                        value={selectedElement.content}
-                        onChange={(e) => setSelectedElement({
-                          ...selectedElement,
-                          content: e.target.value
-                        })}
-                      />
-                    </div>
-                    {selectedElement.id.startsWith('custom-') && (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">X Position</label>
-                          <Input
-                            type="number"
-                            value={selectedElement.position.x}
-                            onChange={(e) => setSelectedElement({
-                              ...selectedElement,
-                              position: { ...selectedElement.position, x: parseInt(e.target.value) || 0 }
-                            })}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Y Position</label>
-                          <Input
-                            type="number"
-                            value={selectedElement.position.y}
-                            onChange={(e) => setSelectedElement({
-                              ...selectedElement,
-                              position: { ...selectedElement.position, y: parseInt(e.target.value) || 0 }
-                            })}
-                          />
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex gap-2">
-                      <Button 
-                        onClick={() => {
-                          updateElement(selectedElement);
-                          setEditDialog(false);
-                        }}
-                      >
-                        Update & Apply
-                      </Button>
-                      <Button variant="outline" onClick={() => setEditDialog(false)}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </DialogContent>
-            </Dialog>
           </div>
 
           {/* Right Sidebar - Product Categories */}
@@ -823,48 +767,109 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
           </div>
         </div>
 
-        {/* Surface Area Calculator Dialog */}
-        <Dialog open={showSurfaceAreaDialog} onOpenChange={setShowSurfaceAreaDialog}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Calculate Surface Area Cost</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Surface Area (sq ft)</label>
-                <Input
-                  type="number"
-                  placeholder="Enter surface area in square feet"
-                  value={surfaceArea}
-                  onChange={(e) => setSurfaceArea(e.target.value)}
-                />
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Price: $15 per sq ft (includes installation)
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={calculatePaverCost} className="flex-1">
-                  Calculate Cost
-                </Button>
-                <Button variant="outline" onClick={() => setShowSurfaceAreaDialog(false)}>
-                  Cancel
-                </Button>
-              </div>
-              {calculatedCost > 0 && (
-                <div className="p-3 bg-green-50 rounded-lg">
-                  <div className="text-lg font-bold text-green-800">
-                    Total Cost: ${calculatedCost.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-green-600">
-                    {surfaceArea} sq ft × $15 = ${calculatedCost.toLocaleString()}
-                  </div>
+        {/* Edit Element Dialog */}
+        {editDialog && selectedElement && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+            <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+              <h3 className="text-lg font-semibold mb-4">Edit Element</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Content</label>
+                  <Textarea
+                    value={selectedElement.content}
+                    onChange={(e) => setSelectedElement({
+                      ...selectedElement,
+                      content: e.target.value
+                    })}
+                  />
                 </div>
-              )}
+                {selectedElement.id.startsWith('custom-') && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">X Position</label>
+                      <Input
+                        type="number"
+                        value={selectedElement.position.x}
+                        onChange={(e) => setSelectedElement({
+                          ...selectedElement,
+                          position: { ...selectedElement.position, x: parseInt(e.target.value) || 0 }
+                        })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Y Position</label>
+                      <Input
+                        type="number"
+                        value={selectedElement.position.y}
+                        onChange={(e) => setSelectedElement({
+                          ...selectedElement,
+                          position: { ...selectedElement.position, y: parseInt(e.target.value) || 0 }
+                        })}
+                      />
+                    </div>
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => {
+                      updateElement(selectedElement);
+                      setEditDialog(false);
+                    }}
+                  >
+                    Update & Apply
+                  </Button>
+                  <Button variant="outline" onClick={() => setEditDialog(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
             </div>
-          </DialogContent>
-        </Dialog>
-      </DialogContent>
-    </Dialog>
+          </div>
+        )}
+
+        {/* Surface Area Calculator Dialog */}
+        {showSurfaceAreaDialog && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+            <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw]">
+              <h3 className="text-lg font-semibold mb-4">Calculate Surface Area Cost</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Surface Area (sq ft)</label>
+                  <Input
+                    type="number"
+                    placeholder="Enter surface area in square feet"
+                    value={surfaceArea}
+                    onChange={(e) => setSurfaceArea(e.target.value)}
+                  />
+                </div>
+                <div className="text-sm text-gray-600">
+                  Cost: $15 per sq ft (includes installation)
+                  {surfaceArea && !isNaN(parseFloat(surfaceArea)) && (
+                    <div className="mt-2 text-lg font-bold text-green-600">
+                      Estimated Total: ${(parseFloat(surfaceArea) * 15).toLocaleString()}
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={calculatePaverCost} className="flex-1">
+                    Calculate Cost
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setShowSurfaceAreaDialog(false);
+                      setSurfaceArea('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
