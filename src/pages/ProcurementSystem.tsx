@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import EnhancedJobPostingForm from '@/components/procurement/EnhancedJobPostingForm';
 import JobFeed from '@/components/procurement/JobFeed';
 import JobDetailModal from '@/components/procurement/JobDetailModal';
+import QuickProposalModal from '@/components/procurement/QuickProposalModal';
 
 interface JobPosting {
   id: string;
@@ -52,6 +53,8 @@ const ProcurementSystem = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);
   const [showJobForm, setShowJobForm] = useState(false);
+  const [showQuickProposal, setShowQuickProposal] = useState(false);
+  const [quickProposalJob, setQuickProposalJob] = useState<JobPosting | null>(null);
 
   const categories = [
     { value: 'all', label: 'All Categories' },
@@ -271,6 +274,13 @@ const ProcurementSystem = () => {
           jobs={filteredJobs}
           loading={loading}
           onJobClick={setSelectedJob}
+          onQuickProposal={(jobId) => {
+            const job = [...filteredJobs].find(j => j.id === jobId);
+            if (job) {
+              setQuickProposalJob(job);
+              setShowQuickProposal(true);
+            }
+          }}
         />
       </div>
 
@@ -286,6 +296,21 @@ const ProcurementSystem = () => {
           }}
         />
       )}
+
+      {/* Quick Proposal Modal */}
+      <QuickProposalModal
+        job={quickProposalJob}
+        isOpen={showQuickProposal}
+        onClose={() => {
+          setShowQuickProposal(false);
+          setQuickProposalJob(null);
+        }}
+        onSubmit={(proposalData) => {
+          console.log('Quick proposal submitted:', proposalData);
+          // Here you would typically send to your backend
+          fetchJobs();
+        }}
+      />
     </div>
   );
 };

@@ -1,11 +1,9 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, DollarSign, MapPin, Users, Building2, Clock } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Building2 } from 'lucide-react';
+import JobPostCard from './JobPostCard';
 
 interface JobPosting {
   id: string;
@@ -31,37 +29,82 @@ interface JobFeedProps {
   jobs: JobPosting[];
   loading: boolean;
   onJobClick: (job: JobPosting) => void;
+  onQuickProposal?: (jobId: string) => void;
 }
 
-const JobFeed = ({ jobs, loading, onJobClick }: JobFeedProps) => {
-  const getCategoryColor = (category: string) => {
-    const colors = {
-      pools: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-      outdoors: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-      patios: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
-      improvements: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
-      construction: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-    };
-    return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
-  };
-
-  const formatBudget = (min: number, max: number) => {
-    if (min && max) {
-      return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
-    } else if (min) {
-      return `From $${min.toLocaleString()}`;
-    } else if (max) {
-      return `Up to $${max.toLocaleString()}`;
+const JobFeed = ({ jobs, loading, onJobClick, onQuickProposal }: JobFeedProps) => {
+  // Add sample mock data to showcase functionality
+  const mockJobs = [
+    {
+      id: 'mock-1',
+      title: 'Luxury Pool Installation - Custom Design',
+      description: 'Looking for experienced pool contractor to install a custom luxury pool with spa integration, waterfall features, and LED lighting system. Must have experience with high-end residential projects and proper licensing.',
+      category: 'pools',
+      budget_min: 45000,
+      budget_max: 65000,
+      deadline: '2025-04-15',
+      location: 'Miami, FL',
+      status: 'open',
+      created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      business_id: 'mock-business-1',
+      profiles: {
+        first_name: 'John',
+        last_name: 'Smith',
+        company_name: 'Luxury Homes Development'
+      },
+      job_proposals: [{ count: 8 }],
+      urgency: 'high' as const,
+      rating: 4.8,
+      image_url: '/lovable-uploads/3bdd9802-26f9-47ab-8498-e0e66344685c.png'
+    },
+    {
+      id: 'mock-2',
+      title: 'Commercial Patio Renovation',
+      description: 'Restaurant patio needs complete renovation including new concrete work, tile installation, outdoor kitchen setup, and landscaping. Must work nights/weekends to minimize disruption.',
+      category: 'patios',
+      budget_min: 25000,
+      budget_max: 40000,
+      deadline: '2025-03-30',
+      location: 'Orlando, FL',
+      status: 'open',
+      created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+      business_id: 'mock-business-2',
+      profiles: {
+        first_name: 'Maria',
+        last_name: 'Rodriguez',
+        company_name: 'Oceanview Restaurant Group'
+      },
+      job_proposals: [{ count: 12 }],
+      urgency: 'medium' as const,
+      rating: 4.5,
+      image_url: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
+    },
+    {
+      id: 'mock-3',
+      title: 'Outdoor Kitchen & Entertainment Area',
+      description: 'Complete outdoor living space construction including kitchen with built-in grill, bar seating, fire pit area, and pergola. High-end finishes required.',
+      category: 'outdoors',
+      budget_min: 35000,
+      budget_max: 55000,
+      deadline: '2025-06-15',
+      location: 'Jacksonville, FL',
+      status: 'open',
+      created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+      business_id: 'mock-business-3',
+      profiles: {
+        first_name: 'Sarah',
+        last_name: 'Williams',
+        company_name: 'Elite Property Management'
+      },
+      job_proposals: [{ count: 5 }],
+      urgency: 'low' as const,
+      rating: 4.9,
+      image_url: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
     }
-    return 'Budget TBD';
-  };
+  ];
 
-  const getInitials = (firstName: string, lastName: string, companyName: string) => {
-    if (companyName) {
-      return companyName.substring(0, 2).toUpperCase();
-    }
-    return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase() || 'U';
-  };
+  // Combine real jobs with mock data for demonstration
+  const allJobs = [...jobs, ...mockJobs];
 
   if (loading) {
     return (
@@ -91,7 +134,7 @@ const JobFeed = ({ jobs, loading, onJobClick }: JobFeedProps) => {
     );
   }
 
-  if (jobs.length === 0) {
+  if (allJobs.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center mb-4">
@@ -105,101 +148,14 @@ const JobFeed = ({ jobs, loading, onJobClick }: JobFeedProps) => {
 
   return (
     <div className="space-y-6">
-      {jobs.map((job) => (
-        <Card 
-          key={job.id} 
-          className="w-full hover:shadow-lg transition-all duration-300 cursor-pointer bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/20"
-          onClick={() => onJobClick(job)}
-        >
-          <CardHeader className="pb-3">
-            <div className="flex items-start justify-between">
-              <div className="flex items-start space-x-4 flex-1">
-                <Avatar className="h-12 w-12 border-2 border-primary/20">
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-teal text-white font-semibold">
-                    {getInitials(
-                      job.profiles?.first_name || '',
-                      job.profiles?.last_name || '',
-                      job.profiles?.company_name || ''
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-lg font-semibold text-foreground mb-1 line-clamp-2">
-                    {job.title}
-                  </CardTitle>
-                  
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                    <span className="font-medium">
-                      {job.profiles?.company_name || 
-                       `${job.profiles?.first_name} ${job.profiles?.last_name}`.trim() || 
-                       'Anonymous'}
-                    </span>
-                    <span>•</span>
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 mb-3">
-                    <Badge className={getCategoryColor(job.category)}>
-                      {job.category.charAt(0).toUpperCase() + job.category.slice(1)}
-                    </Badge>
-                    
-                    {job.location && (
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <MapPin className="h-3 w-3" />
-                        {job.location}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="text-right ml-4">
-                <div className="flex items-center gap-1 text-sm font-medium text-primary mb-1">
-                  <DollarSign className="h-4 w-4" />
-                  {formatBudget(job.budget_min, job.budget_max)}
-                </div>
-                
-                {job.deadline && (
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Calendar className="h-3 w-3" />
-                    {new Date(job.deadline).toLocaleDateString()}
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-          
-          <CardContent className="pt-0">
-            {job.description && (
-              <p className="text-muted-foreground text-sm line-clamp-3 mb-4">
-                {job.description}
-              </p>
-            )}
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <Users className="h-4 w-4" />
-                {job.job_proposals?.[0]?.count || 0} proposals
-              </div>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="hover:bg-primary hover:text-white transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onJobClick(job);
-                }}
-              >
-                View Details
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      {allJobs.map((job, index) => (
+        <JobPostCard
+          key={job.id}
+          job={job}
+          onJobClick={onJobClick}
+          onQuickProposal={onQuickProposal}
+          variant={index === 0 ? 'featured' : 'default'}
+        />
       ))}
     </div>
   );
