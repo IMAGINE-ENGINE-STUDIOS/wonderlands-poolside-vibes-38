@@ -12,6 +12,7 @@ import EcommerceTemplate from "./pages/EcommerceTemplate";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./components/AuthPage";
 import ProcurementSystem from "./pages/ProcurementSystem";
+import PoolDetails from "./pages/PoolDetails";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/procurement" element={<ProcurementSystem />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/template" element={<EcommerceTemplate />} />
+            <Route path="/pool/:poolId" element={<PoolDetails />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

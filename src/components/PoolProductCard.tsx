@@ -915,7 +915,21 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
             <div className="space-y-2">
               <div className="flex gap-2">
                 <Button 
-                  onClick={() => onViewDetails(pool)}
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      model: pool.model,
+                      price: pool.price.toString(),
+                      category: pool.category,
+                      ...(pool.image && { image: pool.image }),
+                      ...(pool.dimensions && { dimensions: pool.dimensions }),
+                      ...(pool.depth && { depth: pool.depth }),
+                      ...(pool.installationTimeWeeks && { installationTimeWeeks: pool.installationTimeWeeks.toString() }),
+                      ...(pool.warrantyYears && { warrantyYears: pool.warrantyYears.toString() }),
+                      saltSystem: pool.saltSystem?.toString() || 'false',
+                      carbonFiber: pool.carbonFiber?.toString() || 'false'
+                    });
+                    window.open(`/pool/${pool.model.replace(/\s+/g, '-').toLowerCase()}?${params.toString()}`, '_blank');
+                  }}
                   variant="outline"
                   className="flex-1"
                   size="sm"
