@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, RefreshCw, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import ProductPreview from "./ProductPreview";
+import EditableProductCard from "./EditableProductCard";
 
 interface UnifiedProduct {
   id: string;
@@ -307,10 +307,10 @@ const UnifiedAdminProductManager = () => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                       {categoryProducts.map((product) => (
-                        <ProductPreview
+                        <EditableProductCard
                           key={product.id}
                           product={product}
-                          variant="default"
+                          onUpdate={() => loadProducts()}
                         />
                       ))}
                     </div>
@@ -322,10 +322,10 @@ const UnifiedAdminProductManager = () => {
             // Show filtered products for selected category
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredProducts.map((product) => (
-                <ProductPreview
+                <EditableProductCard
                   key={product.id}
                   product={product}
-                  variant="default"
+                  onUpdate={() => loadProducts()}
                 />
               ))}
             </div>
