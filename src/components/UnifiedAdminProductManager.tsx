@@ -193,9 +193,8 @@ const UnifiedAdminProductManager = () => {
     <div className="space-y-6">
       <Tabs defaultValue="products" className="space-y-6">
         <div className="flex justify-between items-center">
-          <TabsList className="grid grid-cols-4 w-auto">
+          <TabsList className="grid grid-cols-3 w-auto">
             <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
-            <TabsTrigger value="pools">Products ({pools.length})</TabsTrigger>
             <TabsTrigger value="procurement">Procurement</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
@@ -289,42 +288,6 @@ const UnifiedAdminProductManager = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="pools">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pool Products Database</CardTitle>
-                <CardDescription>Synchronized pool models from the front page catalog</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {pools.map((pool) => (
-                    <Card key={pool.id} className="hover:shadow-lg transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex gap-3">
-                          <img 
-                            src={pool.image_url} 
-                            alt={pool.model}
-                            className="w-20 h-20 object-cover rounded-lg"
-                            onError={(e) => {
-                              e.currentTarget.src = '/placeholder.svg';
-                            }}
-                          />
-                          <div className="flex-1">
-                            <h3 className="font-semibold">{pool.model}</h3>
-                            <p className="text-sm text-muted-foreground">{pool.category}</p>
-                            <p className="font-bold text-lg text-primary">${pool.price?.toLocaleString()}</p>
-                            <p className="text-xs text-muted-foreground">{pool.dimensions}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
 
         <TabsContent value="procurement">
           <div className="space-y-6">
