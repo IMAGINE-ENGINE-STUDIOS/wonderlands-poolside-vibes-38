@@ -13,7 +13,6 @@ import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
 import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
 import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
@@ -23,7 +22,6 @@ import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
 import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
-
 interface Pool {
   model: string;
   price: number;
@@ -36,7 +34,6 @@ interface Pool {
   saltSystem?: boolean;
   carbonFiber?: boolean;
 }
-
 interface PoolExtras {
   liner: boolean;
   heater: boolean;
@@ -58,14 +55,37 @@ interface PoolExtras {
 }
 
 // Pool heater options
-const poolHeaters = [
-  { name: 'Heat Pump - Eco Series', price: 4500, image: azureBlueFinish, description: 'Energy-efficient heat pump, ideal for mild climates' },
-  { name: 'Heat Pump - Pro Series', price: 5500, image: oceanBlueFinish, description: 'Professional grade heat pump with advanced controls' },
-  { name: 'Gas Heater - Standard', price: 3200, image: sapphireBlueFinish, description: 'Traditional gas heater for quick heating' },
-  { name: 'Gas Heater - High Efficiency', price: 4200, image: nightSkyFinish, description: 'High-efficiency gas heater with digital controls' },
-  { name: 'Solar Heater - Basic', price: 2800, image: lagoonBlueFinish, description: 'Eco-friendly solar heating system' },
-  { name: 'Solar Heater - Premium', price: 3800, image: coastalBronzeFinish, description: 'Advanced solar system with backup heating' }
-];
+const poolHeaters = [{
+  name: 'Heat Pump - Eco Series',
+  price: 4500,
+  image: azureBlueFinish,
+  description: 'Energy-efficient heat pump, ideal for mild climates'
+}, {
+  name: 'Heat Pump - Pro Series',
+  price: 5500,
+  image: oceanBlueFinish,
+  description: 'Professional grade heat pump with advanced controls'
+}, {
+  name: 'Gas Heater - Standard',
+  price: 3200,
+  image: sapphireBlueFinish,
+  description: 'Traditional gas heater for quick heating'
+}, {
+  name: 'Gas Heater - High Efficiency',
+  price: 4200,
+  image: nightSkyFinish,
+  description: 'High-efficiency gas heater with digital controls'
+}, {
+  name: 'Solar Heater - Basic',
+  price: 2800,
+  image: lagoonBlueFinish,
+  description: 'Eco-friendly solar heating system'
+}, {
+  name: 'Solar Heater - Premium',
+  price: 3800,
+  image: coastalBronzeFinish,
+  description: 'Advanced solar system with backup heating'
+}];
 
 // Convert pool finishes data to finish options format
 const finishOptions = poolFinishesData.map(finish => ({
@@ -79,73 +99,144 @@ const finishOptions = poolFinishesData.map(finish => ({
 }));
 
 // Convert pool liners to liner options format
-const linerOptions = [
-  { name: 'Standard Blue', color: '#4169E1', price: 0, image: azureBlueFinish, type: 'Standard', description: undefined },
-  ...poolLiners.map(liner => ({
-    name: liner.name,
-    color: '#4169E1',
-    price: liner.price,
-    image: liner.image,
-    type: liner.type,
-    description: liner.description
-  }))
-];
+const linerOptions = [{
+  name: 'Standard Blue',
+  color: '#4169E1',
+  price: 0,
+  image: azureBlueFinish,
+  type: 'Standard',
+  description: undefined
+}, ...poolLiners.map(liner => ({
+  name: liner.name,
+  color: '#4169E1',
+  price: liner.price,
+  image: liner.image,
+  type: liner.type,
+  description: liner.description
+}))];
 
 // Cover options
-const coverOptions = [
-  { name: 'Eclipse Automatic Cover', color: '#2F4F4F', price: 16000, image: nightSkyFinish, category: 'cover', description: 'Premium automatic pool cover with solar heating' },
-  { name: 'CS3000 Safety Cover', color: '#2F4F4F', price: 24000, image: shaleGrayFinish, category: 'cover', description: 'Heavy-duty safety cover with anchoring system' },
-  { name: 'Infinity 4000 Smart Cover', color: '#2F4F4F', price: 32000, image: coastalBronzeFinish, category: 'cover', description: 'Smart automated cover with app control' },
-  { name: 'Atom Loop-Loc Cover', color: '#2F4F4F', price: 19000, image: aquamarineFinish, category: 'cover', description: 'Mesh safety cover for all seasons' }
-];
+const coverOptions = [{
+  name: 'Eclipse Automatic Cover',
+  color: '#2F4F4F',
+  price: 16000,
+  image: nightSkyFinish,
+  category: 'cover',
+  description: 'Premium automatic pool cover with solar heating'
+}, {
+  name: 'CS3000 Safety Cover',
+  color: '#2F4F4F',
+  price: 24000,
+  image: shaleGrayFinish,
+  category: 'cover',
+  description: 'Heavy-duty safety cover with anchoring system'
+}, {
+  name: 'Infinity 4000 Smart Cover',
+  color: '#2F4F4F',
+  price: 32000,
+  image: coastalBronzeFinish,
+  category: 'cover',
+  description: 'Smart automated cover with app control'
+}, {
+  name: 'Atom Loop-Loc Cover',
+  color: '#2F4F4F',
+  price: 19000,
+  image: aquamarineFinish,
+  category: 'cover',
+  description: 'Mesh safety cover for all seasons'
+}];
 
 // Convert pool tiles to tile options format
-const tileOptions = [
-  { name: 'Standard Waterline', color: '#4682B4', price: 0, image: azureBlueFinish, description: undefined },
-  ...poolTiles.map(tile => ({
-    name: tile.name,
-    color: '#4682B4',
-    price: tile.price,
-    image: tile.image,
-    description: tile.description
-  }))
-];
+const tileOptions = [{
+  name: 'Standard Waterline',
+  color: '#4682B4',
+  price: 0,
+  image: azureBlueFinish,
+  description: undefined
+}, ...poolTiles.map(tile => ({
+  name: tile.name,
+  color: '#4682B4',
+  price: tile.price,
+  image: tile.image,
+  description: tile.description
+}))];
 
 // Paver options
-const paverOptions = [
-  { name: 'Standard Concrete', color: '#D3D3D3', price: 0, image: azureBlueFinish, description: 'Basic concrete pavers around pool perimeter' },
-  { name: 'Natural Stone', color: '#8B7355', price: 2500, image: shaleGrayFinish, description: 'Premium natural stone pavers' },
-  { name: 'Travertine', color: '#F5DEB3', price: 3200, image: athensPearlFinish, description: 'Elegant travertine paving stones' },
-  { name: 'Brick Pavers', color: '#B22222', price: 2800, image: coastalBronzeFinish, description: 'Classic brick paver design' }
-];
+const paverOptions = [{
+  name: 'Standard Concrete',
+  color: '#D3D3D3',
+  price: 0,
+  image: azureBlueFinish,
+  description: 'Basic concrete pavers around pool perimeter'
+}, {
+  name: 'Natural Stone',
+  color: '#8B7355',
+  price: 2500,
+  image: shaleGrayFinish,
+  description: 'Premium natural stone pavers'
+}, {
+  name: 'Travertine',
+  color: '#F5DEB3',
+  price: 3200,
+  image: athensPearlFinish,
+  description: 'Elegant travertine paving stones'
+}, {
+  name: 'Brick Pavers',
+  color: '#B22222',
+  price: 2800,
+  image: coastalBronzeFinish,
+  description: 'Classic brick paver design'
+}];
 
 // Coping paver options
-const copingPaverOptions = [
-  { name: 'Standard Pool Coping', color: '#A9A9A9', price: 0, image: azureBlueFinish, description: 'Basic pool edge coping' },
-  { name: 'Bullnose Coping', color: '#696969', price: 1500, image: nightSkyFinish, description: 'Rounded edge bullnose coping' },
-  { name: 'Natural Stone Coping', color: '#708090', price: 2200, image: shaleGrayFinish, description: 'Premium natural stone pool edge' },
-  { name: 'Cantilever Coping', color: '#2F4F4F', price: 1800, image: sapphireBlueFinish, description: 'Modern cantilever edge design' }
-];
-
+const copingPaverOptions = [{
+  name: 'Standard Pool Coping',
+  color: '#A9A9A9',
+  price: 0,
+  image: azureBlueFinish,
+  description: 'Basic pool edge coping'
+}, {
+  name: 'Bullnose Coping',
+  color: '#696969',
+  price: 1500,
+  image: nightSkyFinish,
+  description: 'Rounded edge bullnose coping'
+}, {
+  name: 'Natural Stone Coping',
+  color: '#708090',
+  price: 2200,
+  image: shaleGrayFinish,
+  description: 'Premium natural stone pool edge'
+}, {
+  name: 'Cantilever Coping',
+  color: '#2F4F4F',
+  price: 1800,
+  image: sapphireBlueFinish,
+  description: 'Modern cantilever edge design'
+}];
 const getCategoryColor = (category: string) => {
   switch (category) {
-    case 'premium': return 'bg-gradient-to-r from-coral to-orange';
-    case 'deluxe': return 'bg-gradient-to-r from-primary to-teal';
-    case 'standard': return 'bg-gradient-to-r from-secondary to-accent';
-    case 'compact': return 'bg-gradient-to-r from-teal to-primary';
-    default: return 'bg-gradient-to-r from-primary to-teal';
+    case 'premium':
+      return 'bg-gradient-to-r from-coral to-orange';
+    case 'deluxe':
+      return 'bg-gradient-to-r from-primary to-teal';
+    case 'standard':
+      return 'bg-gradient-to-r from-secondary to-accent';
+    case 'compact':
+      return 'bg-gradient-to-r from-teal to-primary';
+    default:
+      return 'bg-gradient-to-r from-primary to-teal';
   }
 };
-
 const getExtraPrice = (extra: string) => {
   switch (extra) {
-    case 'jets': return 1800;
-    default: return 0;
+    case 'jets':
+      return 1800;
+    default:
+      return 0;
   }
 };
-
 type ActivePanel = 'finishes' | 'liners' | 'pavers' | 'coping' | 'covers' | 'heaters' | 'spas' | 'tanning' | 'jets' | 'tiles' | 'engines' | 'furniture' | 'fireplace' | 'outdoor-kitchens' | 'bbq' | 'pergolas' | 'sound-system' | null;
-
 interface MarketplaceProduct {
   id: string;
   name: string;
@@ -155,12 +246,15 @@ interface MarketplaceProduct {
   category?: string;
   brand?: string;
 }
-
 const PoolDetails = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { addToCart } = useShoppingCart();
-  const { toast } = useToast();
+  const {
+    addToCart
+  } = useShoppingCart();
+  const {
+    toast
+  } = useToast();
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [marketplaceProducts, setMarketplaceProducts] = useState<MarketplaceProduct[]>([]);
@@ -173,7 +267,7 @@ const PoolDetails = () => {
   const pool: Pool = {
     model: searchParams.get('model') || 'Pool Model',
     price: parseInt(searchParams.get('price') || '0'),
-    category: (searchParams.get('category') as Pool['category']) || 'standard',
+    category: searchParams.get('category') as Pool['category'] || 'standard',
     image: searchParams.get('image') || undefined,
     dimensions: searchParams.get('dimensions') || undefined,
     depth: searchParams.get('depth') || undefined,
@@ -185,7 +279,6 @@ const PoolDetails = () => {
 
   // Cache key for user selections
   const cacheKey = `pool_studio_${pool.model}_selections`;
-
   const [extras, setExtras] = useState<PoolExtras>({
     liner: true,
     heater: false,
@@ -216,21 +309,17 @@ const PoolDetails = () => {
         console.error('Error loading cached selections:', e);
       }
     }
-    
+
     // Load marketplace products
     loadMarketplaceProducts();
   }, [cacheKey]);
-  
   const loadMarketplaceProducts = async () => {
     try {
-      const { data: products, error } = await supabase
-        .from('products')
-        .select('id, name, price, image_url, description, category, brand')
-        .eq('is_active', true)
-        .gt('stock_quantity', 0);
-        
+      const {
+        data: products,
+        error
+      } = await supabase.from('products').select('id, name, price, image_url, description, category, brand').eq('is_active', true).gt('stock_quantity', 0);
       if (error) throw error;
-      
       setMarketplaceProducts(products || []);
     } catch (error) {
       console.error('Error loading marketplace products:', error);
@@ -241,36 +330,29 @@ const PoolDetails = () => {
   useEffect(() => {
     localStorage.setItem(cacheKey, JSON.stringify(extras));
   }, [extras, cacheKey]);
-
   const calculateTotalPrice = () => {
     let total = pool.price;
-    
     if (extras.heater) {
       const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
       if (selectedHeater) total += selectedHeater.price;
     }
     if (extras.jets) total += getExtraPrice('jets') * extras.jetQuantity;
-    
     const linerOption = linerOptions.find(option => option.name === extras.linerOption);
     if (linerOption && extras.liner) total += linerOption.price;
-    
     const tileOption = tileOptions.find(option => option.name === extras.tileOption);
     if (tileOption && extras.tiles) total += tileOption.price;
-    
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
     if (coverOption && extras.cover) total += coverOption.price;
-
     const paverOption = paverOptions.find(option => option.name === extras.paverOption);
     if (paverOption) total += paverOption.price * paverArea; // price per sq ft * area
 
     const copingPaverOption = copingPaverOptions.find(option => option.name === extras.copingPaverOption);
     if (copingPaverOption) total += copingPaverOption.price * copingLength; // price per linear ft * length
-    
+
     if (extras.spa) {
       const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
       if (selectedSpa) total += selectedSpa.price;
     }
-
     if (extras.tanningLedge) {
       const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
       if (selectedLedge) total += selectedLedge.price;
@@ -280,10 +362,8 @@ const PoolDetails = () => {
     selectedProducts.forEach(product => {
       total += product.price;
     });
-    
     return total;
   };
-
   const getCurrentImage = () => {
     if (activePanel === 'finishes') {
       const selectedFinish = finishOptions.find(f => f.name === extras.finish);
@@ -319,49 +399,66 @@ const PoolDetails = () => {
     }
     return pool.image;
   };
-
   const handleAddToCart = () => {
     const selectedExtras = [];
-
     if (extras.heater) {
       const heater = poolHeaters.find(h => h.name === extras.heaterModel);
-      if (heater) selectedExtras.push({ name: heater.name, price: heater.price });
+      if (heater) selectedExtras.push({
+        name: heater.name,
+        price: heater.price
+      });
     }
-
     if (extras.jets) {
-      selectedExtras.push({ name: `Spa Jets (${extras.jetQuantity}x)`, price: getExtraPrice('jets') * extras.jetQuantity });
+      selectedExtras.push({
+        name: `Spa Jets (${extras.jetQuantity}x)`,
+        price: getExtraPrice('jets') * extras.jetQuantity
+      });
     }
-
     if (extras.cover) {
       const cover = coverOptions.find(c => c.name === extras.coverOption);
-      if (cover) selectedExtras.push({ name: cover.name, price: cover.price });
+      if (cover) selectedExtras.push({
+        name: cover.name,
+        price: cover.price
+      });
     }
-
     if (extras.spa) {
       const spa = spas.find((s: any) => s.model === extras.spaModel);
-      if (spa) selectedExtras.push({ name: spa.model, price: spa.price });
+      if (spa) selectedExtras.push({
+        name: spa.model,
+        price: spa.price
+      });
     }
-
     if (extras.tanningLedge) {
       const ledge = tanningLedges.find((l: any) => l.name === extras.tanningLedgeModel);
-      if (ledge) selectedExtras.push({ name: ledge.name, price: ledge.price });
+      if (ledge) selectedExtras.push({
+        name: ledge.name,
+        price: ledge.price
+      });
     }
 
     // Add mandatory selections
     const liner = linerOptions.find(l => l.name === extras.linerOption);
-    if (liner && liner.price > 0) selectedExtras.push({ name: liner.name, price: liner.price });
-
+    if (liner && liner.price > 0) selectedExtras.push({
+      name: liner.name,
+      price: liner.price
+    });
     const paver = paverOptions.find(p => p.name === extras.paverOption);
-    if (paver && paver.price > 0) selectedExtras.push({ name: `${paver.name} (${paverArea} sq ft)`, price: paver.price * paverArea });
-
+    if (paver && paver.price > 0) selectedExtras.push({
+      name: `${paver.name} (${paverArea} sq ft)`,
+      price: paver.price * paverArea
+    });
     const coping = copingPaverOptions.find(c => c.name === extras.copingPaverOption);
-    if (coping && coping.price > 0) selectedExtras.push({ name: `${coping.name} (${copingLength} linear ft)`, price: coping.price * copingLength });
-
+    if (coping && coping.price > 0) selectedExtras.push({
+      name: `${coping.name} (${copingLength} linear ft)`,
+      price: coping.price * copingLength
+    });
     if (extras.tiles) {
       const tile = tileOptions.find(t => t.name === extras.tileOption);
-      if (tile && tile.price > 0) selectedExtras.push({ name: tile.name, price: tile.price });
+      if (tile && tile.price > 0) selectedExtras.push({
+        name: tile.name,
+        price: tile.price
+      });
     }
-
     addToCart({
       id: `${pool.model}_${Date.now()}`,
       name: pool.model,
@@ -371,7 +468,6 @@ const PoolDetails = () => {
       extras: selectedExtras
     });
   };
-
   const generateQuote = () => {
     const quoteData = {
       pool,
@@ -392,42 +488,57 @@ const PoolDetails = () => {
       printWindow.document.write(generatePrintableQuote(quoteData));
       printWindow.document.close();
     }
-
     toast({
       title: "Quote Generated",
       description: "Your quote has been generated and saved!"
     });
   };
-
   const generatePrintableQuote = (quoteData: any) => {
-    const { pool, extras, totalPrice, quoteId, timestamp } = quoteData;
+    const {
+      pool,
+      extras,
+      totalPrice,
+      quoteId,
+      timestamp
+    } = quoteData;
 
     // Get selected items with images
     const selectedItems = [];
-    
     if (extras.liner && extras.linerOption !== 'Standard Blue') {
       const liner = linerOptions.find(l => l.name === extras.linerOption);
-      if (liner) selectedItems.push({ ...liner, category: 'Liner' });
+      if (liner) selectedItems.push({
+        ...liner,
+        category: 'Liner'
+      });
     }
-    
     if (extras.paverOption !== 'Standard Concrete') {
       const paver = paverOptions.find(p => p.name === extras.paverOption);
-      if (paver) selectedItems.push({ ...paver, category: 'Pavers' });
+      if (paver) selectedItems.push({
+        ...paver,
+        category: 'Pavers'
+      });
     }
-    
     if (extras.cover) {
       const cover = coverOptions.find(c => c.name === extras.coverOption);
-      if (cover) selectedItems.push({ ...cover, category: 'Cover' });
+      if (cover) selectedItems.push({
+        ...cover,
+        category: 'Cover'
+      });
     }
-    
     if (extras.heater) {
       const heater = poolHeaters.find(h => h.name === extras.heaterModel);
-      if (heater) selectedItems.push({ ...heater, category: 'Heater' });
+      if (heater) selectedItems.push({
+        ...heater,
+        category: 'Heater'
+      });
     }
-    
     if (extras.spa) {
       const spa = spas.find((s: any) => s.model === extras.spaModel);
-      if (spa) selectedItems.push({ ...spa, name: spa.model, category: 'Spa' });
+      if (spa) selectedItems.push({
+        ...spa,
+        name: spa.model,
+        category: 'Spa'
+      });
     }
 
     // Add selected marketplace products
@@ -440,7 +551,6 @@ const PoolDetails = () => {
         category: product.category || 'Product'
       });
     });
-
     return `
       <!DOCTYPE html>
       <html>
@@ -514,10 +624,13 @@ const PoolDetails = () => {
                 <h1 class="header-title">Premium Pool Configuration</h1>
                 <div style="background: rgba(255,255,255,0.2); padding: 15px 30px; border-radius: 50px; display: inline-block; margin-top: 15px;">
                   <p class="quote-id">Quote ID: ${quoteId}</p>
-                  <p class="quote-id">Generated: ${new Date(timestamp).toLocaleDateString('en-US', { 
-                    year: 'numeric', month: 'long', day: 'numeric', 
-                    hour: '2-digit', minute: '2-digit' 
-                  })}</p>
+                  <p class="quote-id">Generated: ${new Date(timestamp).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })}</p>
                 </div>
               </div>
             </div>
@@ -666,7 +779,6 @@ const PoolDetails = () => {
       </html>
     `;
   };
-
   const downloadQuote = () => {
     const quoteData = {
       pool,
@@ -675,7 +787,6 @@ const PoolDetails = () => {
       timestamp: new Date().toISOString(),
       quoteId: `QUOTE-${Date.now()}`
     };
-
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(quoteData, null, 2));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
@@ -683,13 +794,11 @@ const PoolDetails = () => {
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
-
     toast({
       title: "Quote Downloaded",
       description: "Your quote has been downloaded as a JSON file!"
     });
   };
-
   const toggleExtra = (extra: keyof PoolExtras, value?: any) => {
     setExtras(prev => ({
       ...prev,
@@ -706,12 +815,11 @@ const PoolDetails = () => {
         if (product.category?.toLowerCase().includes('pool') && !product.category?.toLowerCase().includes('equipment')) {
           return false;
         }
-        
         const matchesName = product.name.toLowerCase().includes(query);
         const matchesDescription = product.description?.toLowerCase().includes(query);
         const matchesCategory = product.category?.toLowerCase().includes(query);
         const matchesBrand = product.brand?.toLowerCase().includes(query);
-        
+
         // Category-specific matching
         const categoryMatches = {
           'pavers': ['paver', 'stone', 'concrete', 'brick', 'travertine'],
@@ -727,11 +835,7 @@ const PoolDetails = () => {
           'pergolas': ['pergola', 'gazebo', 'shade', 'canopy', 'arbor'],
           'sound-system': ['speaker', 'audio', 'sound', 'music', 'bluetooth']
         };
-        
-        const matchesKeywords = Object.values(categoryMatches).flat().some(keyword => 
-          product.name.toLowerCase().includes(keyword) && query.includes(keyword)
-        );
-        
+        const matchesKeywords = Object.values(categoryMatches).flat().some(keyword => product.name.toLowerCase().includes(keyword) && query.includes(keyword));
         return matchesName || matchesDescription || matchesCategory || matchesBrand || matchesKeywords;
       });
       setSearchResults(filtered);
@@ -739,101 +843,133 @@ const PoolDetails = () => {
       setSearchResults([]);
     }
   }, [searchQuery, marketplaceProducts]);
-
   const filteredOptions = (options: any[], query: string) => {
     if (!query) return options;
-    return options.filter(option => 
-      option.name.toLowerCase().includes(query.toLowerCase()) ||
-      (option.description && option.description.toLowerCase().includes(query.toLowerCase()))
-    );
+    return options.filter(option => option.name.toLowerCase().includes(query.toLowerCase()) || option.description && option.description.toLowerCase().includes(query.toLowerCase()));
   };
-
   const getSelectedFeatureIcons = () => {
     const features = [];
-    if (extras.heater) features.push({ icon: Thermometer, label: 'Heater' });
-    if (extras.cover) features.push({ icon: Shield, label: 'Cover' });
-    if (extras.spa) features.push({ icon: Waves, label: 'Spa' });
-    if (extras.tanningLedge) features.push({ icon: Sun, label: 'Tanning Ledge' });
-    if (extras.jets) features.push({ icon: Zap, label: 'Jets' });
-    if (extras.tiles) features.push({ icon: Layers, label: 'Tiles' });
+    if (extras.heater) features.push({
+      icon: Thermometer,
+      label: 'Heater'
+    });
+    if (extras.cover) features.push({
+      icon: Shield,
+      label: 'Cover'
+    });
+    if (extras.spa) features.push({
+      icon: Waves,
+      label: 'Spa'
+    });
+    if (extras.tanningLedge) features.push({
+      icon: Sun,
+      label: 'Tanning Ledge'
+    });
+    if (extras.jets) features.push({
+      icon: Zap,
+      label: 'Jets'
+    });
+    if (extras.tiles) features.push({
+      icon: Layers,
+      label: 'Tiles'
+    });
     return features;
   };
-
   const getSelectedConfigItems = () => {
     const items = [];
-    
+
     // Liner (always selected)
     const liner = linerOptions.find(l => l.name === extras.linerOption);
     if (liner && liner.price > 0) {
-      items.push({ ...liner, category: 'Pool Liner' });
+      items.push({
+        ...liner,
+        category: 'Pool Liner'
+      });
     }
-    
+
     // Pavers
     const paver = paverOptions.find(p => p.name === extras.paverOption);
     if (paver && paver.price > 0) {
-      items.push({ ...paver, category: 'Pavers' });
+      items.push({
+        ...paver,
+        category: 'Pavers'
+      });
     }
-    
+
     // Coping
     const coping = copingPaverOptions.find(c => c.name === extras.copingPaverOption);
     if (coping && coping.price > 0) {
-      items.push({ ...coping, category: 'Coping' });
+      items.push({
+        ...coping,
+        category: 'Coping'
+      });
     }
-    
+
     // Cover
     if (extras.cover) {
       const cover = coverOptions.find(c => c.name === extras.coverOption);
-      if (cover) items.push({ ...cover, category: 'Pool Cover' });
+      if (cover) items.push({
+        ...cover,
+        category: 'Pool Cover'
+      });
     }
-    
+
     // Heater
     if (extras.heater) {
       const heater = poolHeaters.find(h => h.name === extras.heaterModel);
-      if (heater) items.push({ ...heater, category: 'Pool Heater' });
+      if (heater) items.push({
+        ...heater,
+        category: 'Pool Heater'
+      });
     }
-    
+
     // Spa
     if (extras.spa) {
       const spa = spas.find((s: any) => s.model === extras.spaModel);
-      if (spa) items.push({ ...spa, name: spa.model, category: 'Spa' });
+      if (spa) items.push({
+        ...spa,
+        name: spa.model,
+        category: 'Spa'
+      });
     }
-    
+
     // Tanning Ledge
     if (extras.tanningLedge) {
       const ledge = tanningLedges.find((l: any) => l.name === extras.tanningLedgeModel);
-      if (ledge) items.push({ ...ledge, category: 'Tanning Ledge' });
+      if (ledge) items.push({
+        ...ledge,
+        category: 'Tanning Ledge'
+      });
     }
-    
+
     // Tiles
     if (extras.tiles) {
       const tile = tileOptions.find(t => t.name === extras.tileOption);
-      if (tile && tile.price > 0) items.push({ ...tile, category: 'Pool Tiles' });
+      if (tile && tile.price > 0) items.push({
+        ...tile,
+        category: 'Pool Tiles'
+      });
     }
-    
+
     // Jets
     if (extras.jets) {
       items.push({
         name: `Spa Jets (${extras.jetQuantity}x)`,
         price: getExtraPrice('jets') * extras.jetQuantity,
-        image: azureBlueFinish, // Default image
+        image: azureBlueFinish,
+        // Default image
         category: 'Pool Jets'
       });
     }
-    
     return items;
   };
-
   const renderCategoryContent = () => {
     switch (activePanel) {
       case 'finishes':
-        return finishOptions.map((finish) => (
-          <div 
-            key={finish.name}
-            className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
-              extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'
-            }`}
-            onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
-          >
+        return finishOptions.map(finish => <div key={finish.name} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+          ...prev,
+          finish: finish.name
+        }))}>
             <div className="flex gap-2">
               <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                 <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
@@ -842,32 +978,21 @@ const PoolDetails = () => {
                 <p className="text-xs font-medium truncate">{finish.name}</p>
                 <p className="text-xs text-primary">{finish.collection}</p>
                 {finish.price && <p className="text-xs font-semibold">+${finish.price.toLocaleString()}</p>}
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="mt-1 h-6 text-xs"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // Navigate to editor studio for this product
-                  }}
-                >
+                <Button size="sm" variant="outline" className="mt-1 h-6 text-xs" onClick={e => {
+                e.stopPropagation();
+                // Navigate to editor studio for this product
+              }}>
                   <Settings className="h-3 w-3 mr-1" />
                   Editor Studio
                 </Button>
               </div>
             </div>
-          </div>
-        ));
-
+          </div>);
       case 'liners':
-        return linerOptions.map((liner) => (
-          <div 
-            key={liner.name}
-            className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
-              extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'
-            }`}
-            onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
-          >
+        return linerOptions.map(liner => <div key={liner.name} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+          ...prev,
+          linerOption: liner.name
+        }))}>
             <div className="flex gap-2">
               <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                 <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" />
@@ -878,12 +1003,9 @@ const PoolDetails = () => {
                 {liner.price > 0 && <p className="text-xs font-semibold">+${liner.price.toLocaleString()}</p>}
               </div>
             </div>
-          </div>
-        ));
-
+          </div>);
       case 'jets':
-        return (
-          <div className="space-y-2">
+        return <div className="space-y-2">
             <div className="flex items-center justify-between p-2 border rounded-md">
               <div className="flex-1">
                 <p className="text-xs font-medium">Spa Jets</p>
@@ -891,35 +1013,25 @@ const PoolDetails = () => {
                 <p className="text-xs font-semibold">${getExtraPrice('jets').toLocaleString()} each</p>
               </div>
               <div className="flex items-center gap-1">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="h-6 w-6 p-0"
-                  onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))}
-                >
+                <Button size="sm" variant="outline" className="h-6 w-6 p-0" onClick={() => setExtras(prev => ({
+                ...prev,
+                jetQuantity: Math.max(1, prev.jetQuantity - 1)
+              }))}>
                   <Minus className="h-3 w-3" />
                 </Button>
                 <span className="text-xs px-1 py-1 bg-muted rounded min-w-[24px] text-center">{extras.jetQuantity}</span>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="h-6 w-6 p-0"
-                  onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))}
-                >
+                <Button size="sm" variant="outline" className="h-6 w-6 p-0" onClick={() => setExtras(prev => ({
+                ...prev,
+                jetQuantity: prev.jetQuantity + 1
+              }))}>
                   <Plus className="h-3 w-3" />
                 </Button>
               </div>
             </div>
-            <Button 
-              className="w-full h-7 text-xs"
-              variant={extras.jets ? "default" : "outline"}
-              onClick={() => toggleExtra('jets')}
-            >
+            <Button className="w-full h-7 text-xs" variant={extras.jets ? "default" : "outline"} onClick={() => toggleExtra('jets')}>
               {extras.jets ? 'Remove Jets' : 'Add Jets'}
             </Button>
-          </div>
-        );
-
+          </div>;
       default:
         // For marketplace categories and other standard options
         const categoryMap = {
@@ -931,15 +1043,9 @@ const PoolDetails = () => {
           'tanning': tanningLedges,
           'tiles': tileOptions
         };
-
         const options = categoryMap[activePanel as keyof typeof categoryMap];
         if (options) {
-          return options.map((option: any) => (
-            <div 
-              key={option.name || option.model}
-              className="p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50"
-              onClick={() => handleOptionSelect(activePanel!, option)}
-            >
+          return options.map((option: any) => <div key={option.name || option.model} className="p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50" onClick={() => handleOptionSelect(activePanel!, option)}>
               <div className="flex gap-2">
                 <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                   <img src={option.image} alt={option.name || option.model} className="w-full h-full object-cover" />
@@ -950,32 +1056,17 @@ const PoolDetails = () => {
                   {option.description && <p className="text-xs text-muted-foreground truncate">{option.description}</p>}
                 </div>
               </div>
-            </div>
-          ));
+            </div>);
         }
 
         // Special handling for pavers with area input
         if (activePanel === 'pavers') {
-          return (
-            <div className="space-y-2">
+          return <div className="space-y-2">
               <div className="border rounded-md p-2">
                 <label className="text-xs font-medium">Area (sq ft):</label>
-                <input
-                  type="number"
-                  value={paverArea}
-                  onChange={(e) => setPaverArea(Number(e.target.value))}
-                  className="w-full mt-1 p-1 border rounded text-xs"
-                  min="1"
-                />
+                <input type="number" value={paverArea} onChange={e => setPaverArea(Number(e.target.value))} className="w-full mt-1 p-1 border rounded text-xs" min="1" />
               </div>
-              {paverOptions.map((option) => (
-                <div 
-                  key={option.name}
-                  className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
-                    extras.paverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'
-                  }`}
-                  onClick={() => handleOptionSelect('pavers', option)}
-                >
+              {paverOptions.map(option => <div key={option.name} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.paverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => handleOptionSelect('pavers', option)}>
                   <div className="flex gap-2">
                     <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                       <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
@@ -986,34 +1077,18 @@ const PoolDetails = () => {
                       <p className="text-xs text-primary">Total: ${(option.price * paverArea).toLocaleString()}</p>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          );
+                </div>)}
+            </div>;
         }
 
         // Special handling for coping with length input
         if (activePanel === 'coping') {
-          return (
-            <div className="space-y-2">
+          return <div className="space-y-2">
               <div className="border rounded-md p-2">
                 <label className="text-xs font-medium">Length (linear ft):</label>
-                <input
-                  type="number"
-                  value={copingLength}
-                  onChange={(e) => setCopingLength(Number(e.target.value))}
-                  className="w-full mt-1 p-1 border rounded text-xs"
-                  min="1"
-                />
+                <input type="number" value={copingLength} onChange={e => setCopingLength(Number(e.target.value))} className="w-full mt-1 p-1 border rounded text-xs" min="1" />
               </div>
-              {copingPaverOptions.map((option) => (
-                <div 
-                  key={option.name}
-                  className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
-                    extras.copingPaverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'
-                  }`}
-                  onClick={() => handleOptionSelect('coping', option)}
-                >
+              {copingPaverOptions.map(option => <div key={option.name} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.copingPaverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => handleOptionSelect('coping', option)}>
                   <div className="flex gap-2">
                     <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                       <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
@@ -1024,10 +1099,8 @@ const PoolDetails = () => {
                       <p className="text-xs text-primary">Total: ${(option.price * copingLength).toLocaleString()}</p>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          );
+                </div>)}
+            </div>;
         }
 
         // For marketplace product categories - now adds to configuration instead of cart
@@ -1041,81 +1114,96 @@ const PoolDetails = () => {
             'pergolas': ['pergola', 'gazebo', 'shade', 'canopy'],
             'sound-system': ['speaker', 'audio', 'sound', 'music']
           };
-          
           const keywords = categoryKeywords[activePanel as keyof typeof categoryKeywords] || [];
-          return keywords.some(keyword => 
-            product.name.toLowerCase().includes(keyword) || 
-            product.category?.toLowerCase().includes(keyword)
-          );
-        }).map((product) => (
-          <div 
-            key={product.id}
-            className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
-              selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'
-            }`}
-            onClick={() => {
-              setSelectedProducts(prev => {
-                const isAlreadySelected = prev.some(p => p.id === product.id);
-                if (isAlreadySelected) {
-                  toast({ title: "Removed from Configuration", description: `${product.name} removed from pool configuration!` });
-                  return prev.filter(p => p.id !== product.id);
-                } else {
-                  toast({ title: "Added to Configuration", description: `${product.name} added to pool configuration!` });
-                  return [...prev, product];
-                }
+          return keywords.some(keyword => product.name.toLowerCase().includes(keyword) || product.category?.toLowerCase().includes(keyword));
+        }).map(product => <div key={product.id} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => {
+          setSelectedProducts(prev => {
+            const isAlreadySelected = prev.some(p => p.id === product.id);
+            if (isAlreadySelected) {
+              toast({
+                title: "Removed from Configuration",
+                description: `${product.name} removed from pool configuration!`
               });
-            }}
-          >
+              return prev.filter(p => p.id !== product.id);
+            } else {
+              toast({
+                title: "Added to Configuration",
+                description: `${product.name} added to pool configuration!`
+              });
+              return [...prev, product];
+            }
+          });
+        }}>
             <div className="flex gap-2">
-              {product.image_url && (
-                <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
+              {product.image_url && <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                   <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                </div>
-              )}
+                </div>}
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{product.name}</p>
                 {product.brand && <p className="text-xs text-primary">{product.brand}</p>}
                 <p className="text-xs font-semibold">${product.price.toLocaleString()}</p>
               </div>
             </div>
-          </div>
-        ));
+          </div>);
     }
   };
-
   const handleOptionSelect = (category: string, option: any) => {
     switch (category) {
       case 'pavers':
-        setExtras(prev => ({ ...prev, paverOption: option.name }));
+        setExtras(prev => ({
+          ...prev,
+          paverOption: option.name
+        }));
         break;
       case 'coping':
-        setExtras(prev => ({ ...prev, copingPaverOption: option.name }));
+        setExtras(prev => ({
+          ...prev,
+          copingPaverOption: option.name
+        }));
         break;
       case 'covers':
         // Only allow one cover
-        setExtras(prev => ({ ...prev, coverOption: option.name, cover: true }));
+        setExtras(prev => ({
+          ...prev,
+          coverOption: option.name,
+          cover: true
+        }));
         break;
       case 'heaters':
         // Only allow one heater
-        setExtras(prev => ({ ...prev, heaterModel: option.name, heater: true }));
+        setExtras(prev => ({
+          ...prev,
+          heaterModel: option.name,
+          heater: true
+        }));
         break;
       case 'spas':
         // Only allow one spa
-        setExtras(prev => ({ ...prev, spaModel: option.model, spa: true }));
+        setExtras(prev => ({
+          ...prev,
+          spaModel: option.model,
+          spa: true
+        }));
         break;
       case 'tanning':
         // Only allow one tanning ledge
-        setExtras(prev => ({ ...prev, tanningLedgeModel: option.name, tanningLedge: true }));
+        setExtras(prev => ({
+          ...prev,
+          tanningLedgeModel: option.name,
+          tanningLedge: true
+        }));
         break;
       case 'tiles':
         // Only allow one tile option
-        setExtras(prev => ({ ...prev, tileOption: option.name, tiles: true }));
+        setExtras(prev => ({
+          ...prev,
+          tileOption: option.name,
+          tiles: true
+        }));
         break;
     }
   };
-
-  return (
-    <div className="fixed inset-0 bg-background overflow-hidden flex flex-col">
+  return <div className="fixed inset-0 bg-background overflow-hidden flex flex-col">
       {/* Top Header with Price and Main Search */}
       <div className="h-20 border-b flex items-center justify-between px-6 bg-background/95 backdrop-blur-sm">
         <div className="flex items-center gap-4">
@@ -1134,13 +1222,7 @@ const PoolDetails = () => {
         <div className="flex-1 max-w-md mx-8">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Main Search Engine - Find any product..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-background"
-            />
+            <Input type="text" placeholder="Main Search Engine - Find any product..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 bg-background" />
           </div>
         </div>
 
@@ -1162,11 +1244,7 @@ const PoolDetails = () => {
           <div className="h-full flex flex-col">
             {/* Large Main Pool Image */}
             <div className="relative flex-1 mb-4">
-              <img
-                src={getCurrentImage()}
-                alt={pool.model}
-                className="w-full h-full object-cover rounded-lg border shadow-lg"
-              />
+              <img src={getCurrentImage()} alt={pool.model} className="w-full h-full object-cover rounded-lg border shadow-lg" />
               
 
               {/* Pool Info Overlay - Bottom Left */}
@@ -1177,92 +1255,70 @@ const PoolDetails = () => {
               </div>
 
               {/* Selected Products Indicators - Top Left */}
-              {(getSelectedConfigItems().length > 0 || selectedProducts.length > 0) && (
-                <div className="absolute top-4 left-4 flex flex-wrap gap-2 max-w-xs">
-                  {getSelectedConfigItems().slice(0, 3).map((item, index) => (
-                    <div key={index} className="relative group">
+              {(getSelectedConfigItems().length > 0 || selectedProducts.length > 0) && <div className="absolute top-4 left-4 flex flex-wrap gap-2 max-w-xs">
+                  {getSelectedConfigItems().slice(0, 3).map((item, index) => <div key={index} className="relative group">
                       <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-background shadow-sm bg-background">
                         <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       </div>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => {
-                          // Handle removal based on category
-                          if (item.category === 'Pool Cover') setExtras(prev => ({ ...prev, cover: false }));
-                          if (item.category === 'Pool Heater') setExtras(prev => ({ ...prev, heater: false }));
-                          if (item.category === 'Spa') setExtras(prev => ({ ...prev, spa: false }));
-                          if (item.category === 'Tanning Ledge') setExtras(prev => ({ ...prev, tanningLedge: false }));
-                          if (item.category === 'Pool Tiles') setExtras(prev => ({ ...prev, tiles: false }));
-                          if (item.category === 'Pool Jets') setExtras(prev => ({ ...prev, jets: false }));
-                        }}
-                      >
+                      <Button size="sm" variant="destructive" className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => {
+                  // Handle removal based on category
+                  if (item.category === 'Pool Cover') setExtras(prev => ({
+                    ...prev,
+                    cover: false
+                  }));
+                  if (item.category === 'Pool Heater') setExtras(prev => ({
+                    ...prev,
+                    heater: false
+                  }));
+                  if (item.category === 'Spa') setExtras(prev => ({
+                    ...prev,
+                    spa: false
+                  }));
+                  if (item.category === 'Tanning Ledge') setExtras(prev => ({
+                    ...prev,
+                    tanningLedge: false
+                  }));
+                  if (item.category === 'Pool Tiles') setExtras(prev => ({
+                    ...prev,
+                    tiles: false
+                  }));
+                  if (item.category === 'Pool Jets') setExtras(prev => ({
+                    ...prev,
+                    jets: false
+                  }));
+                }}>
                         <X className="h-3 w-3" />
                       </Button>
-                    </div>
-                  ))}
+                    </div>)}
                   
-                  {selectedProducts.slice(0, 2).map((product) => (
-                    <div key={product.id} className="relative group">
+                  {selectedProducts.slice(0, 2).map(product => <div key={product.id} className="relative group">
                       <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-background shadow-sm bg-background">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
+                        {product.image_url ? <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center">
                             <Package className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                        )}
+                          </div>}
                       </div>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => {
-                          setSelectedProducts(prev => prev.filter(p => p.id !== product.id));
-                          toast({ title: "Product Removed", description: `${product.name} removed!` });
-                        }}
-                      >
+                      <Button size="sm" variant="destructive" className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => {
+                  setSelectedProducts(prev => prev.filter(p => p.id !== product.id));
+                  toast({
+                    title: "Product Removed",
+                    description: `${product.name} removed!`
+                  });
+                }}>
                         <X className="h-3 w-3" />
                       </Button>
-                    </div>
-                  ))}
+                    </div>)}
                   
                   {/* Show count if more products */}
-                  {(getSelectedConfigItems().length + selectedProducts.length) > 5 && (
-                    <div className="w-12 h-12 rounded-lg border-2 border-background shadow-sm bg-background/90 flex items-center justify-center">
+                  {getSelectedConfigItems().length + selectedProducts.length > 5 && <div className="w-12 h-12 rounded-lg border-2 border-background shadow-sm bg-background/90 flex items-center justify-center">
                       <span className="text-xs font-semibold">
-                        +{(getSelectedConfigItems().length + selectedProducts.length) - 5}
+                        +{getSelectedConfigItems().length + selectedProducts.length - 5}
                       </span>
-                    </div>
-                  )}
-                </div>
-              )}
+                    </div>}
+                </div>}
             </div>
 
             {/* Product Description Area */}
-            <div className="bg-background rounded-lg p-4 border shadow-sm min-h-[80px]">
-              {getCurrentImage() !== pool.image ? (
-                <div>
-                  <h4 className="font-semibold text-sm mb-2">Currently Viewing:</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {activePanel === 'finishes' && `${extras.finish} Pool Finish`}
-                    {activePanel === 'liners' && `${extras.linerOption} Pool Liner`}
-                    {activePanel === 'covers' && `${extras.coverOption} Pool Cover`}
-                    {activePanel === 'heaters' && `${extras.heaterModel} Pool Heater`}
-                    {activePanel === 'spas' && `${extras.spaModel} Spa Addition`}
-                    {activePanel === 'tanning' && `${extras.tanningLedgeModel} Tanning Ledge`}
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <h4 className="font-semibold text-sm mb-2">Pool Configuration</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Select products from the categories on the right to customize your pool design and see them visualized here.
-                  </p>
-                </div>
-              )}
-            </div>
+            
           </div>
         </div>
 
@@ -1271,18 +1327,14 @@ const PoolDetails = () => {
           {/* Category Dropdown Only */}
           <div className="p-3 border-b">
             <label className="text-xs font-medium text-muted-foreground mb-2 block">Browse Categories</label>
-            <select 
-              value={activePanel || ''} 
-              onChange={(e) => {
-                const newPanel = e.target.value as ActivePanel || null;
-                setActivePanel(newPanel);
-                // Auto-close when switching categories
-                if (newPanel) {
-                  setSearchQuery('');
-                }
-              }}
-              className="w-full p-2 text-sm border rounded-md bg-background"
-            >
+            <select value={activePanel || ''} onChange={e => {
+            const newPanel = e.target.value as ActivePanel || null;
+            setActivePanel(newPanel);
+            // Auto-close when switching categories
+            if (newPanel) {
+              setSearchQuery('');
+            }
+          }} className="w-full p-2 text-sm border rounded-md bg-background">
               <option value="">All Categories</option>
               <option value="finishes">Pool Finishes</option>
               <option value="liners">Pool Liners</option>
@@ -1307,8 +1359,7 @@ const PoolDetails = () => {
           {/* Compact Content Area */}
           <div className="flex-1 overflow-auto">
             {/* Search Results */}
-            {searchQuery && searchResults.length > 0 && (
-              <div className="p-3">
+            {searchQuery && searchResults.length > 0 && <div className="p-3">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-sm font-semibold">Search Results ({searchResults.length})</h4>
                   <Button variant="ghost" size="sm" onClick={() => setSearchQuery('')}>
@@ -1316,46 +1367,40 @@ const PoolDetails = () => {
                   </Button>
                 </div>
                 <div className="space-y-2">
-                  {searchResults.map((product) => (
-                    <div 
-                      key={product.id}
-                      className={`p-2 border rounded-md hover:bg-muted/50 cursor-pointer transition-all ${
-                        selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'
-                      }`}
-                      onClick={() => {
-                        setSelectedProducts(prev => {
-                          const isAlreadySelected = prev.some(p => p.id === product.id);
-                          if (isAlreadySelected) {
-                            toast({ title: "Removed from Configuration", description: `${product.name} removed from pool configuration!` });
-                            return prev.filter(p => p.id !== product.id);
-                          } else {
-                            toast({ title: "Added to Configuration", description: `${product.name} added to pool configuration!` });
-                            return [...prev, product];
-                          }
-                        });
-                      }}
-                    >
+                  {searchResults.map(product => <div key={product.id} className={`p-2 border rounded-md hover:bg-muted/50 cursor-pointer transition-all ${selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => {
+                setSelectedProducts(prev => {
+                  const isAlreadySelected = prev.some(p => p.id === product.id);
+                  if (isAlreadySelected) {
+                    toast({
+                      title: "Removed from Configuration",
+                      description: `${product.name} removed from pool configuration!`
+                    });
+                    return prev.filter(p => p.id !== product.id);
+                  } else {
+                    toast({
+                      title: "Added to Configuration",
+                      description: `${product.name} added to pool configuration!`
+                    });
+                    return [...prev, product];
+                  }
+                });
+              }}>
                       <div className="flex gap-2">
-                        {product.image_url && (
-                          <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
+                        {product.image_url && <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                             <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                          </div>
-                        )}
+                          </div>}
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium truncate">{product.name}</p>
                           {product.brand && <p className="text-xs text-primary truncate">{product.brand}</p>}
                           <p className="text-xs font-semibold">${product.price.toLocaleString()}</p>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
-              </div>
-            )}
+              </div>}
 
             {/* Category Products */}
-            {activePanel && !searchQuery && (
-              <div className="p-3">
+            {activePanel && !searchQuery && <div className="p-3">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-sm font-semibold">
                     {activePanel === 'finishes' && 'Pool Finishes'}
@@ -1384,17 +1429,14 @@ const PoolDetails = () => {
                 <div className="space-y-2">
                   {renderCategoryContent()}
                 </div>
-              </div>
-            )}
+              </div>}
 
             {/* Default State */}
-            {!activePanel && !searchQuery && (
-              <div className="p-6 text-center text-muted-foreground">
+            {!activePanel && !searchQuery && <div className="p-6 text-center text-muted-foreground">
                 <Package className="h-8 w-8 mx-auto mb-3 opacity-50" />
                 <p className="text-sm font-medium mb-1">Select Category</p>
                 <p className="text-xs">Choose a category to browse products</p>
-              </div>
-            )}
+              </div>}
           </div>
         </div>
       </div>
@@ -1404,27 +1446,18 @@ const PoolDetails = () => {
         <div className="flex items-center gap-4">
           {/* Circular Feature Snapshots */}
           <div className="flex items-center gap-2">
-            {getSelectedFeatureIcons().map((feature, index) => (
-              <div key={index} className="relative group">
+            {getSelectedFeatureIcons().map((feature, index) => <div key={index} className="relative group">
                 <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
                   <feature.icon className="h-4 w-4 text-primary" />
                 </div>
                 <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-background border rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                   {feature.label}
                 </div>
-              </div>
-            ))}
+              </div>)}
           </div>
           
           {/* Finance This Purchase Button */}
-          <StripeCheckoutButton
-            productId={`pool_${pool.model}`}
-            productName={`${pool.model} Complete Configuration`}
-            price={calculateTotalPrice()}
-            variant="outline"
-            showFinancingOptions={true}
-            className="bg-gradient-to-r from-primary to-secondary text-white border-0"
-          />
+          <StripeCheckoutButton productId={`pool_${pool.model}`} productName={`${pool.model} Complete Configuration`} price={calculateTotalPrice()} variant="outline" showFinancingOptions={true} className="bg-gradient-to-r from-primary to-secondary text-white border-0" />
         </div>
 
         <div className="flex items-center gap-3">
@@ -1443,17 +1476,9 @@ const PoolDetails = () => {
             Add to Cart
           </Button>
 
-          <StripeCheckoutButton
-            productId={pool.model}
-            productName={pool.model}
-            price={calculateTotalPrice()}
-            variant="default"
-            showFinancingOptions={false}
-          />
+          <StripeCheckoutButton productId={pool.model} productName={pool.model} price={calculateTotalPrice()} variant="default" showFinancingOptions={false} />
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default PoolDetails;
