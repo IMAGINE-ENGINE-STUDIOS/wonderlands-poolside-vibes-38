@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ProductCard from "./ProductCard";
+import PoolProductCard from "./PoolProductCard";
 import ProductDetailModal from "./ProductDetailModal";
 
 export interface Product {
@@ -67,11 +67,24 @@ const ProductCatalog = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product, index) => (
-              <ProductCard
+              <PoolProductCard
                 key={product.id}
-                product={product}
-                onViewDetails={handleViewDetails}
-                onRequestQuote={handleRequestQuote}
+                pool={{
+                  model: product.name,
+                  price: product.price,
+                  category: product.category as any,
+                  image: product.image,
+                  dimensions: product.dimensions,
+                  features: product.features
+                }}
+                onViewDetails={(pool) => handleViewDetails({
+                  ...product,
+                  name: pool.model || product.name
+                })}
+                onRequestQuote={(pool, extras) => handleRequestQuote({
+                  ...product,
+                  name: pool.model || product.name
+                }, extras)}
               />
             ))}
           </div>

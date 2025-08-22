@@ -34,14 +34,38 @@ import AdminContentEditor from '@/components/AdminContentEditor';
 import RealApiManager from '@/components/RealApiManager';
 import RealTimeContentEditor from '@/components/RealTimeContentEditor';
 import LathamPoolsData from '@/components/LathamPoolsData';
-import UnifiedAdminProductManager from '@/components/UnifiedAdminProductManager';
+import StandardizedProductManager from '@/components/StandardizedProductManager';
 import AdminUserManagement from '@/components/AdminUserManagement';
-import PaverManagementComponent from '@/components/PaverManagementComponent';
 import { DragDropEditor } from '@/components/DragDropEditor';
 
 const AdminDashboard = () => {
-  // Mock data for demonstration
-  const [orders, setOrders] = useState([]);
+  // Sample orders data
+  const [orders, setOrders] = useState([
+    {
+      id: 'ORD001',
+      customerId: 'john.consumer@example.com',
+      products: [{ name: 'Hayward Super Pump VS', quantity: 1 }],
+      total: 1299,
+      status: 'completed',
+      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'ORD002', 
+      customerId: 'john.consumer@example.com',
+      products: [{ name: 'Polaris 360 Pool Cleaner', quantity: 2 }],
+      total: 798,
+      status: 'processing',
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: 'ORD003',
+      customerId: 'john.consumer@example.com', 
+      products: [{ name: 'Pentair FNS Plus Sand Filter', quantity: 1 }],
+      total: 850,
+      status: 'pending',
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  ]);
   const [isLoading, setIsLoading] = useState(false);
   
   const { toast } = useToast();
@@ -195,10 +219,6 @@ const AdminDashboard = () => {
                 <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Delivery</span>
               </TabsTrigger>
-              <TabsTrigger value="pavers" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                <Package className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Pavers</span>
-              </TabsTrigger>
               <TabsTrigger value="content-editor" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Content Editor</span>
@@ -225,7 +245,7 @@ const AdminDashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <UnifiedAdminProductManager />
+                <StandardizedProductManager />
               </CardContent>
             </Card>
           </TabsContent>
