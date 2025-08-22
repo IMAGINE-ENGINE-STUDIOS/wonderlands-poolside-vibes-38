@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import AuthPage from "./components/AuthPage";
 import ProcurementSystem from "./pages/ProcurementSystem";
 import PoolDetails from "./pages/PoolDetails";
+import ContentEditor from "./pages/ContentEditor";
 
 const queryClient = new QueryClient();
 
@@ -28,9 +29,9 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/procurement" element={<ProcurementSystem />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/content-editor" element={<ContentEditor />} />
             <Route path="/template" element={<EcommerceTemplate />} />
             <Route path="/pool/:poolId" element={<PoolDetails />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -17,6 +17,8 @@ import {
   Search,
   RefreshCw,
   Database,
+  Globe,
+  Smartphone,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -331,18 +333,62 @@ const AdminDashboard = () => {
 
           {/* Content Editor Tab */}
           <TabsContent value="content-editor" className="space-y-6">
-            <Card className="h-[calc(100vh-200px)]">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Edit className="h-5 w-5 text-primary" />
-                  Real-Time Content Editor & Marketplace Manager
+                  Live Content Editor & Marketplace Manager
                 </CardTitle>
                 <CardDescription>
-                  Edit all website content, manage products, and customize the marketplace directly from the admin panel
+                  Edit all website content, manage products, and customize the marketplace in a full-screen editor
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-0 h-full">
-                <RealTimeContentEditor isOpen={true} onClose={() => {}} />
+              <CardContent className="space-y-4">
+                <div className="text-center py-8">
+                  <Globe className="h-16 w-16 text-primary mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Full-Screen Content Editor</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Open the content editor in a separate tab for the best editing experience with full responsive preview and drag-and-drop product marketplace integration.
+                  </p>
+                  <Button
+                    onClick={() => window.open('/content-editor', '_blank')}
+                    className="w-full max-w-md"
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Open Content Editor (New Tab)
+                  </Button>
+                </div>
+                
+                {/* Quick Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+                  <Card className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Database className="h-4 w-4 text-blue-500" />
+                      <span className="font-medium text-sm">Product Integration</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Drag and drop products from the live database directly onto any page
+                    </p>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Smartphone className="h-4 w-4 text-green-500" />
+                      <span className="font-medium text-sm">Responsive Preview</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Test your changes on desktop, tablet, and mobile devices instantly
+                    </p>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <RefreshCw className="h-4 w-4 text-purple-500" />
+                      <span className="font-medium text-sm">Live Updates</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      See your changes applied to the website in real-time
+                    </p>
+                  </Card>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
