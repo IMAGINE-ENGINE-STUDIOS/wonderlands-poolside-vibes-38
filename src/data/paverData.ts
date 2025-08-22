@@ -18,6 +18,124 @@ export interface PaverColor {
 }
 
 export const paverTypes: PaverType[] = [
+  // Dean Collection
+  {
+    id: 'dean-adobe',
+    name: 'Dean Adobe',
+    description: 'Premium Dean Collection Adobe pavers with authentic earthen tones',
+    basePrice: 28,
+    category: 'paver',
+    image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
+    colors: [
+      { name: 'Adobe Clay', hex: '#B8956B', priceModifier: 1.0 },
+      { name: 'Desert Sand', hex: '#D2B48C', priceModifier: 1.05 },
+      { name: 'Terracotta', hex: '#C65D07', priceModifier: 1.1 }
+    ]
+  },
+  {
+    id: 'dean-amaretto',
+    name: 'Dean Amaretto',
+    description: 'Rich Amaretto tones from the Dean Collection',
+    basePrice: 30,
+    category: 'paver',
+    image: '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png',
+    colors: [
+      { name: 'Amaretto', hex: '#C4A484', priceModifier: 1.0 },
+      { name: 'Warm Beige', hex: '#D4B896', priceModifier: 1.05 },
+      { name: 'Golden Brown', hex: '#B8956B', priceModifier: 1.1 }
+    ]
+  },
+  {
+    id: 'dean-harvest-blend',
+    name: 'Dean Harvest Blend',
+    description: 'Multi-toned Harvest Blend from the Dean Collection',
+    basePrice: 32,
+    category: 'paver',
+    image: '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png',
+    colors: [
+      { name: 'Harvest Mix', hex: '#B8956B', priceModifier: 1.0 },
+      { name: 'Autumn Blend', hex: '#C4A484', priceModifier: 1.05 },
+      { name: 'Golden Harvest', hex: '#D2B48C', priceModifier: 1.1 }
+    ]
+  },
+  {
+    id: 'dean-knightsbridge',
+    name: 'Dean Knightsbridge',
+    description: 'Elegant Knightsbridge style from the Dean Collection',
+    basePrice: 35,
+    category: 'paver',
+    image: '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png',
+    colors: [
+      { name: 'Knightsbridge Gray', hex: '#8B7765', priceModifier: 1.0 },
+      { name: 'English Stone', hex: '#9C8A7A', priceModifier: 1.05 },
+      { name: 'London Fog', hex: '#A69B8E', priceModifier: 1.1 }
+    ]
+  },
+  {
+    id: 'dean-napoli',
+    name: 'Dean Napoli',
+    description: 'Mediterranean Napoli style from the Dean Collection',
+    basePrice: 33,
+    category: 'paver',
+    image: '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.png',
+    colors: [
+      { name: 'Napoli Stone', hex: '#A69B8E', priceModifier: 1.0 },
+      { name: 'Mediterranean', hex: '#B8A897', priceModifier: 1.05 },
+      { name: 'Tuscan Blend', hex: '#C4B5A6', priceModifier: 1.1 }
+    ]
+  },
+  {
+    id: 'dean-rio',
+    name: 'Dean Rio',
+    description: 'Warm Rio tones from the Dean Collection',
+    basePrice: 29,
+    category: 'paver',
+    image: '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.png',
+    colors: [
+      { name: 'Rio Sand', hex: '#D2B48C', priceModifier: 1.0 },
+      { name: 'Copacabana', hex: '#DEB887', priceModifier: 1.05 },
+      { name: 'Brazilian Tan', hex: '#CD853F', priceModifier: 1.1 }
+    ]
+  },
+  {
+    id: 'dean-slate',
+    name: 'Dean Slate',
+    description: 'Modern Slate finish from the Dean Collection',
+    basePrice: 34,
+    category: 'paver',
+    image: '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.png',
+    colors: [
+      { name: 'Slate Gray', hex: '#708090', priceModifier: 1.0 },
+      { name: 'Charcoal Slate', hex: '#36454F', priceModifier: 1.05 },
+      { name: 'Storm Gray', hex: '#696969', priceModifier: 1.1 }
+    ]
+  },
+  {
+    id: 'dean-titanium',
+    name: 'Dean Titanium',
+    description: 'Contemporary Titanium finish from the Dean Collection',
+    basePrice: 36,
+    category: 'paver',
+    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
+    colors: [
+      { name: 'Titanium', hex: '#5F6A6B', priceModifier: 1.0 },
+      { name: 'Platinum', hex: '#71797E', priceModifier: 1.05 },
+      { name: 'Steel Gray', hex: '#6C7B7F', priceModifier: 1.1 }
+    ]
+  },
+  {
+    id: 'dean-charco',
+    name: 'Dean Charco',
+    description: 'Deep Charco tones from the Dean Collection',
+    basePrice: 31,
+    category: 'paver',
+    image: '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.png',
+    colors: [
+      { name: 'Charco', hex: '#36454F', priceModifier: 1.0 },
+      { name: 'Dark Slate', hex: '#2F4F4F', priceModifier: 1.05 },
+      { name: 'Midnight Gray', hex: '#2C3539', priceModifier: 1.1 }
+    ]
+  },
   {
     id: 'concrete',
     name: 'Concrete Pavers',
