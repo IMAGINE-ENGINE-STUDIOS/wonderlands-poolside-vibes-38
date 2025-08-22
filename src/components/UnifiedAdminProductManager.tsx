@@ -50,7 +50,7 @@ const UnifiedAdminProductManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   
-  const categories = ['all', 'pool', 'spa', 'liner', 'tile', 'tanning_ledge', 'finish', 'other'];
+  const categories = ['all', 'pool', 'spa', 'liner', 'tile', 'tanning_ledge', 'finish', 'heater', 'other'];
   const sortOptions = ['name', 'price', 'category', 'stock', 'created_at'];
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -108,6 +108,7 @@ const UnifiedAdminProductManager = () => {
       tile: 'bg-orange-500',
       finish: 'bg-pink-500',
       tanning_ledge: 'bg-yellow-500',
+      heater: 'bg-red-500',
       other: 'bg-gray-500'
     };
     return colors[category] || colors.other;

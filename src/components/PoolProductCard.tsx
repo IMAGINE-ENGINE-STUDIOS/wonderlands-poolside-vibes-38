@@ -54,6 +54,7 @@ interface PoolExtras {
   heater: boolean;
   cover: boolean;
   jets: boolean;
+  jetQuantity: number;
   finish: string;
   linerOption: string;
   coverOption: string;
@@ -128,10 +129,10 @@ const linerOptions = [
 ];
 
 const coverOptions = [
-  { name: 'Eclipse', color: '#2F4F4F', price: 16000 },
-  { name: 'CS3000', color: '#2F4F4F', price: 24000 },
-  { name: 'Infinity 4000', color: '#2F4F4F', price: 32000 },
-  { name: 'Atom', color: '#2F4F4F', price: 19000 }
+  { name: 'Eclipse', color: '#2F4F4F', price: 16000, image: nightSkyFinish },
+  { name: 'CS3000', color: '#2F4F4F', price: 24000, image: shaleGrayFinish },
+  { name: 'Infinity 4000', color: '#2F4F4F', price: 32000, image: coastalBronzeFinish },
+  { name: 'Atom', color: '#2F4F4F', price: 19000, image: aquamarineFinish }
 ];
 
 // Convert pool tiles to tile options format
@@ -155,6 +156,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     heater: false,
     cover: false,
     jets: false,
+    jetQuantity: 1,
     finish: 'Nantuke',
     linerOption: 'Standard Blue',
     coverOption: 'Eclipse',
@@ -216,7 +218,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
       if (selectedHeater) total += selectedHeater.price;
     }
     if (extras.cover) total += getExtraPrice('cover');
-    if (extras.jets) total += getExtraPrice('jets');
+    if (extras.jets) total += getExtraPrice('jets') * extras.jetQuantity;
     
     // Add option prices (liner OR tile, never both)
     const linerOption = linerOptions.find(option => option.name === extras.linerOption);
@@ -263,7 +265,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
         cartExtras.push({ name: `${selectedHeater.name}`, price: selectedHeater.price });
       }
     }
-    if (extras.jets) cartExtras.push({ name: 'Spa Jets', price: getExtraPrice('jets') });
+    if (extras.jets) cartExtras.push({ name: `Spa Jets (${extras.jetQuantity})`, price: getExtraPrice('jets') * extras.jetQuantity });
     
     const linerOption = linerOptions.find(option => option.name === extras.linerOption);
     if (linerOption && extras.liner) {
@@ -552,26 +554,44 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
             {/* Cover Options */}
             <div className="space-y-3">
               <h4 className="font-semibold text-foreground">Cover Options</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {coverOptions.map((cover) => (
-                  <div 
-                    key={cover.name}
-                    className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      extras.coverOption === cover.name ? 'border-primary bg-primary/10' : 'border-border'
-                    }`}
-                    onClick={() => setExtras(prev => ({ ...prev, coverOption: cover.name }))}
-                  >
-                    <div 
-                      className="w-full h-12 rounded-md mb-2"
-                      style={{ backgroundColor: cover.color }}
-                    />
-                    <p className="text-xs font-medium text-center">{cover.name}</p>
-                    {cover.price > 0 && (
-                      <p className="text-xs text-muted-foreground text-center">+${cover.price}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <Carousel className="w-full">
+                <CarouselContent className="-ml-1">
+                  {coverOptions.map((cover) => (
+                    <CarouselItem key={cover.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                      <div 
+                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                          extras.coverOption === cover.name ? 'border-primary bg-primary/10' : 'border-border'
+                        }`}
+                        onClick={() => setExtras(prev => ({ ...prev, coverOption: cover.name }))}
+                      >
+                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                          <img 
+                            src={cover.image} 
+                            alt={cover.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.style.backgroundColor = cover.color;
+                                target.style.display = 'none';
+                              }
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 flex flex-col justify-between min-h-0">
+                          <p className="text-xs font-medium text-center line-clamp-2">{cover.name}</p>
+                          {cover.price > 0 && (
+                            <p className="text-xs text-primary font-semibold text-center mt-1">+${cover.price.toLocaleString()}</p>
+                          )}
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0" />
+                <CarouselNext className="right-0" />
+              </Carousel>
             </div>
 
             {/* Add-ons */}
@@ -621,46 +641,53 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                     </div>
                   </div>
                 )}
-                
-                {/* Tile/Liner Exclusivity Helper Text */}
-                <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-xs text-amber-800 font-medium text-center">
-                    Choose either tile or liner — not both.
-                  </p>
+                 
+                <div className="flex items-center justify-between p-2 border rounded-lg">
+                  <label className="flex items-center space-x-2 cursor-pointer flex-1">
+                    <Checkbox 
+                      checked={extras.jets}
+                      onCheckedChange={() => toggleExtra('jets')}
+                    />
+                    <div className="flex items-center space-x-1">
+                      <Zap size={16} className="text-orange" />
+                      <span className="text-sm">Spa Jets (+${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()})</span>
+                    </div>
+                  </label>
+                  {extras.jets && (
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))}
+                        className="h-8 w-8 p-0"
+                      >
+                        -
+                      </Button>
+                      <span className="text-sm font-medium w-8 text-center">{extras.jetQuantity}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))}
+                        className="h-8 w-8 p-0"
+                      >
+                        +
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 
+                {/* Cover Option */}
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox 
-                    checked={extras.tiles}
-                    onCheckedChange={() => toggleExtra('tiles')}
-                    disabled={extras.liner}
+                    checked={extras.cover}
+                    onCheckedChange={() => toggleExtra('cover')}
                   />
                   <div className="flex items-center space-x-1">
-                    <Star size={16} className="text-primary" />
-                    <span className="text-sm">Premium Tiles (select from tiles above)</span>
-                  </div>
-                </label>
-                
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox 
-                    checked={extras.liner}
-                    onCheckedChange={() => toggleExtra('liner')}
-                    disabled={extras.tiles}
-                  />
-                  <div className="flex items-center space-x-1">
-                    <Waves size={16} className="text-teal" />
-                    <span className="text-sm">Premium Liner (select from liners above)</span>
-                  </div>
-                </label>
-                
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox 
-                    checked={extras.jets}
-                    onCheckedChange={() => toggleExtra('jets')}
-                  />
-                  <div className="flex items-center space-x-1">
-                    <Zap size={16} className="text-orange" />
-                    <span className="text-sm">Spa Jets (+${getExtraPrice('jets').toLocaleString()})</span>
+                    <Shield size={16} className="text-primary" />
+                    <span className="text-sm">Add Cover (+${extras.cover ? (() => {
+                      const selectedCover = coverOptions.find((cover) => cover.name === extras.coverOption);
+                      return selectedCover ? selectedCover.price.toLocaleString() : '0';
+                    })() : '0'})</span>
                   </div>
                 </label>
                 
