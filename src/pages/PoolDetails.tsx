@@ -166,6 +166,8 @@ const PoolDetails = () => {
   const [marketplaceProducts, setMarketplaceProducts] = useState<MarketplaceProduct[]>([]);
   const [searchResults, setSearchResults] = useState<MarketplaceProduct[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<MarketplaceProduct[]>([]);
+  const [paverArea, setPaverArea] = useState<number>(100); // square feet
+  const [copingLength, setCopingLength] = useState<number>(50); // linear feet
 
   // Parse pool data from URL params
   const pool: Pool = {
@@ -259,10 +261,10 @@ const PoolDetails = () => {
     if (coverOption && extras.cover) total += coverOption.price;
 
     const paverOption = paverOptions.find(option => option.name === extras.paverOption);
-    if (paverOption) total += paverOption.price;
+    if (paverOption) total += paverOption.price * paverArea; // price per sq ft * area
 
     const copingPaverOption = copingPaverOptions.find(option => option.name === extras.copingPaverOption);
-    if (copingPaverOption) total += copingPaverOption.price;
+    if (copingPaverOption) total += copingPaverOption.price * copingLength; // price per linear ft * length
     
     if (extras.spa) {
       const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
@@ -350,10 +352,10 @@ const PoolDetails = () => {
     if (liner && liner.price > 0) selectedExtras.push({ name: liner.name, price: liner.price });
 
     const paver = paverOptions.find(p => p.name === extras.paverOption);
-    if (paver && paver.price > 0) selectedExtras.push({ name: paver.name, price: paver.price });
+    if (paver && paver.price > 0) selectedExtras.push({ name: `${paver.name} (${paverArea} sq ft)`, price: paver.price * paverArea });
 
     const coping = copingPaverOptions.find(c => c.name === extras.copingPaverOption);
-    if (coping && coping.price > 0) selectedExtras.push({ name: coping.name, price: coping.price });
+    if (coping && coping.price > 0) selectedExtras.push({ name: `${coping.name} (${copingLength} linear ft)`, price: coping.price * copingLength });
 
     if (extras.tiles) {
       const tile = tileOptions.find(t => t.name === extras.tileOption);
@@ -446,25 +448,25 @@ const PoolDetails = () => {
           <title>Pool Configuration Quote - ${quoteId}</title>
           <link rel="preconnect" href="https://fonts.googleapis.com">
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
           <style>
             body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 40px; line-height: 1.6; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
             .quote-container { background: white; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden; max-width: 1000px; margin: 0 auto; }
             .header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 50px 40px; text-align: center; position: relative; }
             .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png') center/cover; opacity: 0.1; }
             .header-content { position: relative; z-index: 2; }
-            .logo { font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 700; margin-bottom: 15px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-            .header-title { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 600; margin: 20px 0 15px 0; }
+            .logo { font-family: 'Poppins', sans-serif; font-size: 48px; font-weight: 800; margin-bottom: 15px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); letter-spacing: -1px; }
+            .header-title { font-family: 'Poppins', sans-serif; font-size: 42px; font-weight: 700; margin: 20px 0 15px 0; letter-spacing: -0.5px; }
             .quote-id { color: rgba(255,255,255,0.9); font-size: 16px; margin: 8px 0; font-weight: 500; }
             .content { padding: 50px; }
             .pool-details { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 40px; margin: 0 -50px 40px -50px; border-radius: 0; }
-            .pool-details h2 { font-family: 'Playfair Display', serif; margin: 0 0 20px 0; font-size: 38px; font-weight: 600; }
+            .pool-details h2 { font-family: 'Poppins', sans-serif; margin: 0 0 20px 0; font-size: 44px; font-weight: 800; letter-spacing: -0.5px; }
             .pool-specs { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 25px; }
             .spec-item { background: rgba(255,255,255,0.15); padding: 20px; border-radius: 12px; backdrop-filter: blur(10px); }
             .spec-label { font-weight: 600; font-size: 14px; opacity: 0.9; margin-bottom: 5px; }
             .spec-value { font-size: 18px; font-weight: 700; }
             .pricing-section { background: #f8fafc; padding: 40px; margin: 0 -50px; border-radius: 0; }
-            .pricing-title { font-family: 'Playfair Display', serif; font-size: 32px; color: #1e293b; margin-bottom: 30px; text-align: center; }
+            .pricing-title { font-family: 'Poppins', sans-serif; font-size: 36px; font-weight: 700; color: #1e293b; margin-bottom: 30px; text-align: center; letter-spacing: -0.5px; }
             .pricing-breakdown { display: grid; gap: 20px; margin-bottom: 30px; }
             .pricing-item { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
             .pricing-item-main { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600; }
@@ -482,14 +484,14 @@ const PoolDetails = () => {
             .item-details .features { font-size: 13px; color: #4facfe; margin-top: 8px; font-weight: 500; }
             .item-price-large { font-weight: 700; font-size: 22px; color: #f5576c; background: rgba(245,87,108,0.1); padding: 12px 20px; border-radius: 30px; }
             .total-section { margin-top: 50px; }
-            .total { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 700; text-align: center; padding: 40px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border-radius: 20px; margin: 0 -20px; }
+            .total { font-family: 'Poppins', sans-serif; font-size: 56px; font-weight: 900; text-align: center; padding: 40px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border-radius: 20px; margin: 0 -20px; letter-spacing: -1px; }
             .total-subtitle { font-family: 'Inter', sans-serif; font-size: 18px; margin-top: 15px; opacity: 0.95; font-weight: 400; }
             .investment-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0; }
             .breakdown-item { text-align: center; padding: 20px; background: rgba(255,255,255,0.15); border-radius: 15px; }
             .breakdown-label { font-size: 14px; opacity: 0.9; margin-bottom: 8px; }
             .breakdown-value { font-size: 24px; font-weight: 700; }
             .footer { margin-top: 50px; text-align: center; color: #64748b; font-size: 15px; background: #f8fafc; padding: 40px; margin: 50px -50px -50px -50px; border-top: 1px solid #e2e8f0; }
-            .footer-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: #1e293b; margin-bottom: 20px; }
+            .footer-title { font-family: 'Poppins', sans-serif; font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
             .footer p { margin: 10px 0; }
             .footer-highlight { color: #4facfe; font-weight: 600; font-size: 16px; margin-top: 20px; }
             .image-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 25px; margin: 40px 0; }
@@ -548,7 +550,11 @@ const PoolDetails = () => {
               </div>
 
               <div class="pricing-section">
-                <h2 class="pricing-title">Investment Breakdown</h2>
+                <h2 class="pricing-title">Professional Investment Analysis</h2>
+                <div style="text-align: center; margin-bottom: 30px; padding: 20px; background: rgba(79, 172, 254, 0.1); border-radius: 15px;">
+                  <h3 style="font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 600; color: #1e293b; margin: 0 0 10px 0;">Complete Pool Configuration Package</h3>
+                  <p style="font-size: 14px; color: #64748b; margin: 0;">Premium materials, professional installation, and comprehensive warranty included</p>
+                </div>
                 
                 <div class="pricing-breakdown">
                   <div class="pricing-item pricing-item-main">
@@ -617,8 +623,14 @@ const PoolDetails = () => {
               <div class="total-section">
                 <div class="total">
                   <div>Total Investment</div>
-                  <div style="font-size: 64px; margin: 10px 0;">$${totalPrice.toLocaleString()}</div>
-                  <div class="total-subtitle">Transform Your Backyard Into Paradise</div>
+                  <div style="font-size: 72px; margin: 10px 0; font-weight: 900;">$${totalPrice.toLocaleString()}</div>
+                  <div class="total-subtitle">Complete Backyard Transformation Package</div>
+                  <div style="font-size: 16px; margin-top: 15px; opacity: 0.9; font-weight: 500;">
+                    Professional Design • Premium Materials • Expert Installation • Full Warranty
+                  </div>
+                  <div style="font-size: 14px; margin-top: 10px; opacity: 0.8; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 25px; display: inline-block;">
+                    Financing Available • Monthly Payments from $${Math.round(totalPrice * 0.008).toLocaleString()}
+                  </div>
                   
                   <div class="investment-breakdown">
                     <div class="breakdown-item">
@@ -864,18 +876,6 @@ const PoolDetails = () => {
                 <p className="text-xs font-medium truncate">{liner.name}</p>
                 {liner.type && liner.type !== 'Standard' && <p className="text-xs text-primary">{liner.type}</p>}
                 {liner.price > 0 && <p className="text-xs font-semibold">+${liner.price.toLocaleString()}</p>}
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="mt-1 h-6 text-xs"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // Navigate to editor studio for this product
-                  }}
-                >
-                  <Settings className="h-3 w-3 mr-1" />
-                  Editor Studio
-                </Button>
               </div>
             </div>
           </div>
@@ -948,25 +948,89 @@ const PoolDetails = () => {
                   <p className="text-xs font-medium truncate">{option.name || option.model}</p>
                   <p className="text-xs font-semibold">+${option.price.toLocaleString()}</p>
                   {option.description && <p className="text-xs text-muted-foreground truncate">{option.description}</p>}
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="mt-1 h-6 text-xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Navigate to editor studio for this product
-                    }}
-                  >
-                    <Settings className="h-3 w-3 mr-1" />
-                    Editor Studio
-                  </Button>
                 </div>
               </div>
             </div>
           ));
         }
 
-        // For marketplace product categories
+        // Special handling for pavers with area input
+        if (activePanel === 'pavers') {
+          return (
+            <div className="space-y-2">
+              <div className="border rounded-md p-2">
+                <label className="text-xs font-medium">Area (sq ft):</label>
+                <input
+                  type="number"
+                  value={paverArea}
+                  onChange={(e) => setPaverArea(Number(e.target.value))}
+                  className="w-full mt-1 p-1 border rounded text-xs"
+                  min="1"
+                />
+              </div>
+              {paverOptions.map((option) => (
+                <div 
+                  key={option.name}
+                  className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
+                    extras.paverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'
+                  }`}
+                  onClick={() => handleOptionSelect('pavers', option)}
+                >
+                  <div className="flex gap-2">
+                    <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
+                      <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium truncate">{option.name}</p>
+                      <p className="text-xs font-semibold">${option.price}/sq ft</p>
+                      <p className="text-xs text-primary">Total: ${(option.price * paverArea).toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        // Special handling for coping with length input
+        if (activePanel === 'coping') {
+          return (
+            <div className="space-y-2">
+              <div className="border rounded-md p-2">
+                <label className="text-xs font-medium">Length (linear ft):</label>
+                <input
+                  type="number"
+                  value={copingLength}
+                  onChange={(e) => setCopingLength(Number(e.target.value))}
+                  className="w-full mt-1 p-1 border rounded text-xs"
+                  min="1"
+                />
+              </div>
+              {copingPaverOptions.map((option) => (
+                <div 
+                  key={option.name}
+                  className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
+                    extras.copingPaverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'
+                  }`}
+                  onClick={() => handleOptionSelect('coping', option)}
+                >
+                  <div className="flex gap-2">
+                    <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
+                      <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium truncate">{option.name}</p>
+                      <p className="text-xs font-semibold">${option.price}/linear ft</p>
+                      <p className="text-xs text-primary">Total: ${(option.price * copingLength).toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        // For marketplace product categories - now adds to configuration instead of cart
         return marketplaceProducts.filter(product => {
           const categoryKeywords = {
             'engines': ['pump', 'motor', 'filtration', 'circulation'],
@@ -993,10 +1057,10 @@ const PoolDetails = () => {
               setSelectedProducts(prev => {
                 const isAlreadySelected = prev.some(p => p.id === product.id);
                 if (isAlreadySelected) {
-                  toast({ title: "Removed", description: `${product.name} removed!` });
+                  toast({ title: "Removed from Configuration", description: `${product.name} removed from pool configuration!` });
                   return prev.filter(p => p.id !== product.id);
                 } else {
-                  toast({ title: "Added", description: `${product.name} added!` });
+                  toast({ title: "Added to Configuration", description: `${product.name} added to pool configuration!` });
                   return [...prev, product];
                 }
               });
@@ -1012,18 +1076,6 @@ const PoolDetails = () => {
                 <p className="text-xs font-medium truncate">{product.name}</p>
                 {product.brand && <p className="text-xs text-primary">{product.brand}</p>}
                 <p className="text-xs font-semibold">${product.price.toLocaleString()}</p>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="mt-1 h-6 text-xs"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // Navigate to editor studio for this product
-                  }}
-                >
-                  <Settings className="h-3 w-3 mr-1" />
-                  Editor Studio
-                </Button>
               </div>
             </div>
           </div>
@@ -1040,18 +1092,23 @@ const PoolDetails = () => {
         setExtras(prev => ({ ...prev, copingPaverOption: option.name }));
         break;
       case 'covers':
+        // Only allow one cover
         setExtras(prev => ({ ...prev, coverOption: option.name, cover: true }));
         break;
       case 'heaters':
+        // Only allow one heater
         setExtras(prev => ({ ...prev, heaterModel: option.name, heater: true }));
         break;
       case 'spas':
+        // Only allow one spa
         setExtras(prev => ({ ...prev, spaModel: option.model, spa: true }));
         break;
       case 'tanning':
+        // Only allow one tanning ledge
         setExtras(prev => ({ ...prev, tanningLedgeModel: option.name, tanningLedge: true }));
         break;
       case 'tiles':
+        // Only allow one tile option
         setExtras(prev => ({ ...prev, tileOption: option.name, tiles: true }));
         break;
     }
@@ -1087,11 +1144,6 @@ const PoolDetails = () => {
           </div>
         </div>
 
-        {/* Editor Studio Button */}
-        <Button variant="outline" className="mr-4">
-          <Settings className="h-4 w-4 mr-2" />
-          Editor Studio
-        </Button>
         
         {/* Always Visible Price */}
         <div className="text-right">
@@ -1116,20 +1168,6 @@ const PoolDetails = () => {
                 className="w-full h-full object-cover rounded-lg border shadow-lg"
               />
               
-              {/* Add Product Button - Top Right Corner */}
-              <Button 
-                size="sm"
-                className="absolute top-4 right-4 w-10 h-10 rounded-full p-0 bg-primary/90 hover:bg-primary border-2 border-background shadow-lg"
-                onClick={() => {
-                  // Cycle through main categories when clicking +
-                  const mainCategories = ['finishes', 'liners', 'covers', 'heaters', 'spas', 'tiles'];
-                  const currentIndex = activePanel ? mainCategories.indexOf(activePanel) : -1;
-                  const nextIndex = (currentIndex + 1) % mainCategories.length;
-                  setActivePanel(mainCategories[nextIndex] as ActivePanel);
-                }}
-              >
-                <Plus className="h-5 w-5" />
-              </Button>
 
               {/* Pool Info Overlay - Bottom Left */}
               <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm px-4 py-3 rounded-lg shadow-md">
@@ -1272,7 +1310,7 @@ const PoolDetails = () => {
             {searchQuery && searchResults.length > 0 && (
               <div className="p-3">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-semibold">Results ({searchResults.length})</h4>
+                  <h4 className="text-sm font-semibold">Search Results ({searchResults.length})</h4>
                   <Button variant="ghost" size="sm" onClick={() => setSearchQuery('')}>
                     <X className="h-3 w-3" />
                   </Button>
@@ -1288,10 +1326,10 @@ const PoolDetails = () => {
                         setSelectedProducts(prev => {
                           const isAlreadySelected = prev.some(p => p.id === product.id);
                           if (isAlreadySelected) {
-                            toast({ title: "Removed", description: `${product.name} removed!` });
+                            toast({ title: "Removed from Configuration", description: `${product.name} removed from pool configuration!` });
                             return prev.filter(p => p.id !== product.id);
                           } else {
-                            toast({ title: "Added", description: `${product.name} added!` });
+                            toast({ title: "Added to Configuration", description: `${product.name} added to pool configuration!` });
                             return [...prev, product];
                           }
                         });
@@ -1307,18 +1345,6 @@ const PoolDetails = () => {
                           <p className="text-xs font-medium truncate">{product.name}</p>
                           {product.brand && <p className="text-xs text-primary truncate">{product.brand}</p>}
                           <p className="text-xs font-semibold">${product.price.toLocaleString()}</p>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="mt-1 h-6 text-xs"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Navigate to editor studio for this product
-                            }}
-                          >
-                            <Settings className="h-3 w-3 mr-1" />
-                            Editor Studio
-                          </Button>
                         </div>
                       </div>
                     </div>
@@ -1391,10 +1417,14 @@ const PoolDetails = () => {
           </div>
           
           {/* Finance This Purchase Button */}
-          <Button variant="outline" className="bg-gradient-to-r from-primary to-secondary text-white border-0">
-            <DollarSign className="h-4 w-4 mr-2" />
-            Finance This Purchase
-          </Button>
+          <StripeCheckoutButton
+            productId={`pool_${pool.model}`}
+            productName={`${pool.model} Complete Configuration`}
+            price={calculateTotalPrice()}
+            variant="outline"
+            showFinancingOptions={true}
+            className="bg-gradient-to-r from-primary to-secondary text-white border-0"
+          />
         </div>
 
         <div className="flex items-center gap-3">
