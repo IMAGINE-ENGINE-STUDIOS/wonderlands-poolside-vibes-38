@@ -144,7 +144,7 @@ const getExtraPrice = (extra: string) => {
   }
 };
 
-type ActivePanel = 'finishes' | 'liners' | 'pavers' | 'coping' | 'covers' | 'heaters' | 'spas' | 'tanning' | 'jets' | 'tiles' | null;
+type ActivePanel = 'finishes' | 'liners' | 'pavers' | 'coping' | 'covers' | 'heaters' | 'spas' | 'tanning' | 'jets' | 'tiles' | 'engines' | 'furniture' | 'fireplace' | 'outdoor-kitchens' | 'bbq' | 'pergolas' | 'sound-system' | null;
 
 interface MarketplaceProduct {
   id: string;
@@ -394,20 +394,56 @@ const PoolDetails = () => {
   const generatePrintableQuote = (quoteData: any) => {
     const { pool, extras, totalPrice, quoteId, timestamp } = quoteData;
 
+    // Get selected items with images
+    const selectedItems = [];
+    
+    if (extras.liner && extras.linerOption !== 'Standard Blue') {
+      const liner = linerOptions.find(l => l.name === extras.linerOption);
+      if (liner) selectedItems.push({ ...liner, category: 'Liner' });
+    }
+    
+    if (extras.paverOption !== 'Standard Concrete') {
+      const paver = paverOptions.find(p => p.name === extras.paverOption);
+      if (paver) selectedItems.push({ ...paver, category: 'Pavers' });
+    }
+    
+    if (extras.cover) {
+      const cover = coverOptions.find(c => c.name === extras.coverOption);
+      if (cover) selectedItems.push({ ...cover, category: 'Cover' });
+    }
+    
+    if (extras.heater) {
+      const heater = poolHeaters.find(h => h.name === extras.heaterModel);
+      if (heater) selectedItems.push({ ...heater, category: 'Heater' });
+    }
+    
+    if (extras.spa) {
+      const spa = spas.find((s: any) => s.model === extras.spaModel);
+      if (spa) selectedItems.push({ ...spa, name: spa.model, category: 'Spa' });
+    }
+
     return `
       <!DOCTYPE html>
       <html>
         <head>
           <title>Pool Quote - ${quoteId}</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 40px; }
+            body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
             .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
             .quote-id { color: #666; font-size: 14px; }
             .pool-details { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 8px; }
             .extras-list { margin: 20px 0; }
-            .extra-item { padding: 10px 0; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; }
+            .extra-item { padding: 15px 0; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+            .item-info { display: flex; align-items: center; gap: 15px; }
+            .item-image { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
+            .item-details h4 { margin: 0; font-size: 16px; color: #333; }
+            .item-details p { margin: 0; font-size: 12px; color: #666; }
+            .item-price { font-weight: bold; font-size: 16px; color: #333; }
             .total { font-size: 24px; font-weight: bold; text-align: right; margin-top: 30px; padding-top: 20px; border-top: 2px solid #333; }
             .footer { margin-top: 50px; text-align: center; color: #666; font-size: 12px; }
+            .image-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0; }
+            .gallery-item { text-align: center; }
+            .gallery-image { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
             @media print { body { margin: 20px; } }
           </style>
         </head>
@@ -428,49 +464,54 @@ const PoolDetails = () => {
 
           <div class="extras-list">
             <h3>Selected Options & Add-ons:</h3>
-            <div class="extra-item">
-              <span>Liner: ${extras.linerOption}</span>
-              <span>$${linerOptions.find(l => l.name === extras.linerOption)?.price.toLocaleString() || '0'}</span>
-            </div>
-            <div class="extra-item">
-              <span>Pavers: ${extras.paverOption}</span>
-              <span>$${paverOptions.find(p => p.name === extras.paverOption)?.price.toLocaleString() || '0'}</span>
-            </div>
-            <div class="extra-item">
-              <span>Coping: ${extras.copingPaverOption}</span>
-              <span>$${copingPaverOptions.find(c => c.name === extras.copingPaverOption)?.price.toLocaleString() || '0'}</span>
-            </div>
-            ${extras.heater ? `
+            ${selectedItems.map(item => `
               <div class="extra-item">
-                <span>Heater: ${extras.heaterModel}</span>
-                <span>$${poolHeaters.find(h => h.name === extras.heaterModel)?.price.toLocaleString() || '0'}</span>
-              </div>` : ''}
-            ${extras.cover ? `
-              <div class="extra-item">
-                <span>Cover: ${extras.coverOption}</span>
-                <span>$${coverOptions.find(c => c.name === extras.coverOption)?.price.toLocaleString() || '0'}</span>
-              </div>` : ''}
+                <div class="item-info">
+                  <img src="${item.image || ''}" alt="${item.name}" class="item-image" onerror="this.style.display='none'" />
+                  <div class="item-details">
+                    <h4>${item.category}: ${item.name}</h4>
+                    ${item.description ? `<p>${item.description}</p>` : ''}
+                  </div>
+                </div>
+                <div class="item-price">$${item.price.toLocaleString()}</div>
+              </div>
+            `).join('')}
+            
             ${extras.jets ? `
               <div class="extra-item">
-                <span>Spa Jets (${extras.jetQuantity}x)</span>
-                <span>$${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()}</span>
+                <div class="item-info">
+                  <div class="item-details">
+                    <h4>Spa Jets (${extras.jetQuantity}x)</h4>
+                    <p>Premium spa jets for relaxation</p>
+                  </div>
+                </div>
+                <div class="item-price">$${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()}</div>
               </div>` : ''}
-            ${extras.spa ? `
+            
+            ${extras.tiles && extras.tileOption !== 'Standard Waterline' ? `
               <div class="extra-item">
-                <span>Spa: ${extras.spaModel}</span>
-                <span>$${spas.find((s: any) => s.model === extras.spaModel)?.price.toLocaleString() || '0'}</span>
-              </div>` : ''}
-            ${extras.tanningLedge ? `
-              <div class="extra-item">
-                <span>Tanning Ledge: ${extras.tanningLedgeModel}</span>
-                <span>$${tanningLedges.find((l: any) => l.name === extras.tanningLedgeModel)?.price.toLocaleString() || '0'}</span>
-              </div>` : ''}
-            ${extras.tiles ? `
-              <div class="extra-item">
-                <span>Tiles: ${extras.tileOption}</span>
-                <span>$${tileOptions.find(t => t.name === extras.tileOption)?.price.toLocaleString() || '0'}</span>
+                <div class="item-info">
+                  <div class="item-details">
+                    <h4>Tiles: ${extras.tileOption}</h4>
+                  </div>
+                </div>
+                <div class="item-price">$${tileOptions.find(t => t.name === extras.tileOption)?.price.toLocaleString() || '0'}</div>
               </div>` : ''}
           </div>
+
+          ${selectedItems.length > 0 ? `
+          <div>
+            <h3>Product Images:</h3>
+            <div class="image-gallery">
+              ${selectedItems.map(item => `
+                <div class="gallery-item">
+                  <img src="${item.image || ''}" alt="${item.name}" class="gallery-image" onerror="this.style.display='none'" />
+                  <p style="font-size: 12px; margin-top: 8px;">${item.name}</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          ` : ''}
 
           <div class="total">
             <p>Total Quote: $${totalPrice.toLocaleString()}</p>
@@ -523,15 +564,38 @@ const PoolDetails = () => {
     }));
   };
 
-  // Search functionality
+  // Enhanced search functionality
   useEffect(() => {
     if (searchQuery.trim()) {
-      const filtered = marketplaceProducts.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (product.category && product.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (product.brand && product.brand.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
+      const query = searchQuery.toLowerCase();
+      const filtered = marketplaceProducts.filter(product => {
+        const matchesName = product.name.toLowerCase().includes(query);
+        const matchesDescription = product.description?.toLowerCase().includes(query);
+        const matchesCategory = product.category?.toLowerCase().includes(query);
+        const matchesBrand = product.brand?.toLowerCase().includes(query);
+        
+        // Category-specific matching
+        const categoryMatches = {
+          'pavers': ['paver', 'stone', 'concrete', 'brick', 'travertine'],
+          'liners': ['liner', 'vinyl', 'mesh', 'safety'],
+          'spas': ['spa', 'hot tub', 'jacuzzi'],
+          'heaters': ['heater', 'heat pump', 'gas heater', 'solar'],
+          'covers': ['cover', 'automatic', 'safety cover'],
+          'engines': ['pump', 'motor', 'filtration', 'circulation'],
+          'furniture': ['chair', 'table', 'lounge', 'furniture', 'seating'],
+          'fireplace': ['fireplace', 'fire pit', 'fire bowl', 'outdoor fire'],
+          'outdoor-kitchens': ['kitchen', 'grill', 'outdoor cooking', 'appliance'],
+          'bbq': ['bbq', 'barbecue', 'grill', 'smoker'],
+          'pergolas': ['pergola', 'gazebo', 'shade', 'canopy', 'arbor'],
+          'sound-system': ['speaker', 'audio', 'sound', 'music', 'bluetooth']
+        };
+        
+        const matchesKeywords = Object.values(categoryMatches).flat().some(keyword => 
+          product.name.toLowerCase().includes(keyword) && query.includes(keyword)
+        );
+        
+        return matchesName || matchesDescription || matchesCategory || matchesBrand || matchesKeywords;
+      });
       setSearchResults(filtered);
     } else {
       setSearchResults([]);
@@ -615,88 +679,37 @@ const PoolDetails = () => {
               />
             </div>
             
-            {/* Category Buttons */}
+            {/* Enhanced Category Grid */}
             <div className="grid grid-cols-2 gap-2">
-              <Button 
-                size="sm" 
-                variant={activePanel === 'finishes' ? 'default' : 'outline'} 
-                onClick={() => setActivePanel(activePanel === 'finishes' ? null : 'finishes')}
-              >
-                <Palette className="h-3 w-3 mr-1" />
-                Finishes
-              </Button>
-              <Button 
-                size="sm" 
-                variant={activePanel === 'liners' ? 'default' : 'outline'} 
-                onClick={() => setActivePanel(activePanel === 'liners' ? null : 'liners')}
-              >
-                <Layers className="h-3 w-3 mr-1" />
-                Liners
-              </Button>
-              <Button 
-                size="sm" 
-                variant={activePanel === 'pavers' ? 'default' : 'outline'} 
-                onClick={() => setActivePanel(activePanel === 'pavers' ? null : 'pavers')}
-              >
-                <Shield className="h-3 w-3 mr-1" />
-                Pavers
-              </Button>
-              <Button 
-                size="sm" 
-                variant={activePanel === 'coping' ? 'default' : 'outline'} 
-                onClick={() => setActivePanel(activePanel === 'coping' ? null : 'coping')}
-              >
-                <Award className="h-3 w-3 mr-1" />
-                Coping
-              </Button>
-              <Button 
-                size="sm" 
-                variant={activePanel === 'covers' ? 'default' : 'outline'} 
-                onClick={() => setActivePanel(activePanel === 'covers' ? null : 'covers')}
-              >
-                <Shield className="h-3 w-3 mr-1" />
-                Covers
-              </Button>
-              <Button 
-                size="sm" 
-                variant={activePanel === 'heaters' ? 'default' : 'outline'} 
-                onClick={() => setActivePanel(activePanel === 'heaters' ? null : 'heaters')}
-              >
-                <Thermometer className="h-3 w-3 mr-1" />
-                Heaters
-              </Button>
-              <Button 
-                size="sm" 
-                variant={activePanel === 'spas' ? 'default' : 'outline'} 
-                onClick={() => setActivePanel(activePanel === 'spas' ? null : 'spas')}
-              >
-                <Waves className="h-3 w-3 mr-1" />
-                Spas
-              </Button>
-              <Button 
-                size="sm" 
-                variant={activePanel === 'tanning' ? 'default' : 'outline'} 
-                onClick={() => setActivePanel(activePanel === 'tanning' ? null : 'tanning')}
-              >
-                <Sun className="h-3 w-3 mr-1" />
-                Tanning
-              </Button>
-              <Button 
-                size="sm" 
-                variant={activePanel === 'jets' ? 'default' : 'outline'} 
-                onClick={() => setActivePanel(activePanel === 'jets' ? null : 'jets')}
-              >
-                <Zap className="h-3 w-3 mr-1" />
-                Jets
-              </Button>
-              <Button 
-                size="sm" 
-                variant={activePanel === 'tiles' ? 'default' : 'outline'} 
-                onClick={() => setActivePanel(activePanel === 'tiles' ? null : 'tiles')}
-              >
-                <Layers className="h-3 w-3 mr-1" />
-                Tiles
-              </Button>
+              {[
+                { key: 'finishes', label: 'Finishes', icon: Palette },
+                { key: 'liners', label: 'Liners', icon: Layers },
+                { key: 'pavers', label: 'Pavers', icon: Shield },
+                { key: 'coping', label: 'Coping', icon: Award },
+                { key: 'covers', label: 'Covers', icon: Shield },
+                { key: 'heaters', label: 'Heaters', icon: Thermometer },
+                { key: 'engines', label: 'Engines', icon: Zap },
+                { key: 'spas', label: 'Spas', icon: Waves },
+                { key: 'tanning', label: 'Tanning', icon: Sun },
+                { key: 'tiles', label: 'Tiles', icon: Layers },
+                { key: 'furniture', label: 'Furniture', icon: Shield },
+                { key: 'fireplace', label: 'Fireplace', icon: Thermometer },
+                { key: 'outdoor-kitchens', label: 'Kitchens', icon: Shield },
+                { key: 'bbq', label: 'BBQ', icon: Thermometer },
+                { key: 'pergolas', label: 'Pergolas', icon: Shield },
+                { key: 'sound-system', label: 'Sound', icon: Zap }
+              ].map((category) => (
+                <Button 
+                  key={category.key}
+                  size="sm" 
+                  variant={activePanel === category.key ? 'default' : 'outline'} 
+                  onClick={() => setActivePanel(activePanel === category.key ? null : category.key as ActivePanel)}
+                  className="justify-start"
+                >
+                  <category.icon className="h-3 w-3 mr-2" />
+                  <span className="text-xs truncate">{category.label}</span>
+                </Button>
+              ))}
             </div>
           </div>
 
@@ -760,10 +773,16 @@ const PoolDetails = () => {
                     {activePanel === 'coping' && 'Coping Pavers'}
                     {activePanel === 'covers' && 'Pool Covers'}
                     {activePanel === 'heaters' && 'Pool Heaters'}
+                    {activePanel === 'engines' && 'Pool Engines'}
                     {activePanel === 'spas' && 'Spa Options'}
                     {activePanel === 'tanning' && 'Tanning Ledges'}
-                    {activePanel === 'jets' && 'Spa Jets'}
                     {activePanel === 'tiles' && 'Pool Tiles'}
+                    {activePanel === 'furniture' && 'Outdoor Furniture'}
+                    {activePanel === 'fireplace' && 'Fire Features'}
+                    {activePanel === 'outdoor-kitchens' && 'Outdoor Kitchens'}
+                    {activePanel === 'bbq' && 'BBQ & Grills'}
+                    {activePanel === 'pergolas' && 'Pergolas & Shade'}
+                    {activePanel === 'sound-system' && 'Sound Systems'}
                   </h3>
                   <Button variant="ghost" size="sm" onClick={() => setActivePanel(null)}>
                     <X className="h-4 w-4" />
@@ -771,6 +790,60 @@ const PoolDetails = () => {
                 </div>
 
                 <div className="grid grid-cols-1 gap-3">
+                  {/* Dynamic Category Content */}
+                  {activePanel && ['engines', 'furniture', 'fireplace', 'outdoor-kitchens', 'bbq', 'pergolas', 'sound-system'].includes(activePanel) && (
+                    <div className="space-y-3">
+                      {filteredOptions(marketplaceProducts.filter(product => {
+                        const categoryMap = {
+                          'engines': ['pump', 'motor', 'filtration', 'circulation'],
+                          'furniture': ['chair', 'table', 'lounge', 'furniture', 'seating'],
+                          'fireplace': ['fireplace', 'fire pit', 'fire bowl'],
+                          'outdoor-kitchens': ['kitchen', 'outdoor cooking', 'appliance'],
+                          'bbq': ['bbq', 'barbecue', 'grill', 'smoker'],
+                          'pergolas': ['pergola', 'gazebo', 'shade', 'canopy'],
+                          'sound-system': ['speaker', 'audio', 'sound', 'music']
+                        };
+                        const keywords = categoryMap[activePanel as keyof typeof categoryMap] || [];
+                        return keywords.some(keyword => 
+                          product.name.toLowerCase().includes(keyword) || 
+                          product.category?.toLowerCase().includes(keyword)
+                        );
+                      }), searchQuery).map((product) => (
+                        <div 
+                          key={product.id}
+                          className="p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 border-border"
+                          onClick={() => {
+                            addToCart({
+                              id: product.id,
+                              name: product.name,
+                              price: product.price,
+                              category: product.category || activePanel || 'marketplace',
+                              image: product.image_url,
+                              extras: []
+                            });
+                            toast({ title: "Added to Cart", description: `${product.name} has been added to your cart!` });
+                          }}
+                        >
+                          <div className="flex gap-3">
+                            {product.image_url && (
+                              <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0">
+                                <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium">{product.name}</p>
+                              {product.brand && <p className="text-xs text-primary">{product.brand}</p>}
+                              <p className="text-sm font-semibold">${product.price.toLocaleString()}</p>
+                              {product.description && (
+                                <p className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   {/* Finishes */}
                   {activePanel === 'finishes' && filteredOptions(finishOptions, searchQuery).map((finish) => (
                     <div 
@@ -1049,142 +1122,106 @@ const PoolDetails = () => {
                   <Separator />
 
                   <div className="space-y-2">
-                    <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                      <span className="text-muted-foreground">Liner:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-xs">{extras.linerOption}</span>
-                        <Button size="sm" variant="ghost" onClick={() => setActivePanel('liners')}>
-                          <Camera className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                      <span className="text-muted-foreground">Pavers:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-xs">{extras.paverOption}</span>
-                        <Button size="sm" variant="ghost" onClick={() => setActivePanel('pavers')}>
-                          <Camera className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                      <span className="text-muted-foreground">Coping:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-xs">{extras.copingPaverOption}</span>
-                        <Button size="sm" variant="ghost" onClick={() => setActivePanel('coping')}>
-                          <Camera className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-                  <h4 className="font-medium">Optional Add-ons</h4>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Button
-                        size="sm"
-                        variant={extras.heater ? "default" : "outline"}
-                        onClick={() => toggleExtra('heater')}
-                      >
-                        <Thermometer className="h-3 w-3 mr-1" />
-                        Heater
-                      </Button>
-                      {extras.heater && (
-                        <Button size="sm" variant="ghost" onClick={() => setActivePanel('heaters')}>
-                          <Camera className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <Button
-                        size="sm"
-                        variant={extras.cover ? "default" : "outline"}
-                        onClick={() => toggleExtra('cover')}
-                      >
-                        <Shield className="h-3 w-3 mr-1" />
-                        Cover
-                      </Button>
-                      {extras.cover && (
-                        <Button size="sm" variant="ghost" onClick={() => setActivePanel('covers')}>
-                          <Camera className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <Button
-                        size="sm"
-                        variant={extras.spa ? "default" : "outline"}
-                        onClick={() => toggleExtra('spa')}
-                      >
-                        <Waves className="h-3 w-3 mr-1" />
-                        Spa
-                      </Button>
-                      {extras.spa && (
-                        <Button size="sm" variant="ghost" onClick={() => setActivePanel('spas')}>
-                          <Camera className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <Button
-                        size="sm"
-                        variant={extras.tanningLedge ? "default" : "outline"}
-                        onClick={() => toggleExtra('tanningLedge')}
-                      >
-                        <Sun className="h-3 w-3 mr-1" />
-                        Tanning Ledge
-                      </Button>
-                      {extras.tanningLedge && (
-                        <Button size="sm" variant="ghost" onClick={() => setActivePanel('tanning')}>
-                          <Camera className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <Button
-                        size="sm"
-                        variant={extras.jets ? "default" : "outline"}
-                        onClick={() => toggleExtra('jets')}
-                      >
-                        <Zap className="h-3 w-3 mr-1" />
-                        Jets
-                      </Button>
-                      {extras.jets && (
-                        <div className="flex items-center gap-1">
-                          <Button size="sm" variant="outline" onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))}>
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="text-xs px-2">{extras.jetQuantity}</span>
-                          <Button size="sm" variant="outline" onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))}>
-                            <Plus className="h-3 w-3" />
+                    {extras.liner && (
+                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                        <span className="text-muted-foreground">Liner:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-xs">{extras.linerOption}</span>
+                          <Button size="sm" variant="ghost" onClick={() => setActivePanel('liners')}>
+                            <Camera className="h-3 w-3" />
                           </Button>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
-                    <div className="flex items-center justify-between">
-                      <Button
-                        size="sm"
-                        variant={extras.tiles ? "default" : "outline"}
-                        onClick={() => toggleExtra('tiles')}
-                      >
-                        <Layers className="h-3 w-3 mr-1" />
-                        Tiles
-                      </Button>
-                      {extras.tiles && (
-                        <Button size="sm" variant="ghost" onClick={() => setActivePanel('tiles')}>
-                          <Camera className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
+                    {extras.paverOption !== 'Standard Concrete' && (
+                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                        <span className="text-muted-foreground">Pavers:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-xs">{extras.paverOption}</span>
+                          <Button size="sm" variant="ghost" onClick={() => setActivePanel('pavers')}>
+                            <Camera className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {extras.cover && (
+                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                        <span className="text-muted-foreground">Cover:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-xs">{extras.coverOption}</span>
+                          <Button size="sm" variant="ghost" onClick={() => setActivePanel('covers')}>
+                            <Camera className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {extras.heater && (
+                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                        <span className="text-muted-foreground">Heater:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-xs">{extras.heaterModel}</span>
+                          <Button size="sm" variant="ghost" onClick={() => setActivePanel('heaters')}>
+                            <Camera className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {extras.spa && (
+                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                        <span className="text-muted-foreground">Spa:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-xs">{extras.spaModel}</span>
+                          <Button size="sm" variant="ghost" onClick={() => setActivePanel('spas')}>
+                            <Camera className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {extras.tanningLedge && (
+                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                        <span className="text-muted-foreground">Tanning Ledge:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-xs">{extras.tanningLedgeModel}</span>
+                          <Button size="sm" variant="ghost" onClick={() => setActivePanel('tanning')}>
+                            <Camera className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {extras.jets && (
+                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                        <span className="text-muted-foreground">Jets:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-xs">{extras.jetQuantity}x Jets</span>
+                          <div className="flex items-center gap-1">
+                            <Button size="sm" variant="outline" onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))}>
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))}>
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {extras.tiles && (
+                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                        <span className="text-muted-foreground">Tiles:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-xs">{extras.tileOption}</span>
+                          <Button size="sm" variant="ghost" onClick={() => setActivePanel('tiles')}>
+                            <Camera className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
