@@ -934,7 +934,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                   className="flex-1"
                   size="sm"
                 >
-                  Details
+                  Editor Studio
                 </Button>
                 <Button 
                   onClick={() => onRequestQuote(pool, extras)}

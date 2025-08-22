@@ -1,13 +1,16 @@
-import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart as CartIcon } from "lucide-react";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import { useShoppingCart } from "@/components/ShoppingCart";
 import { spas } from "@/components/PoolCatalog";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
 import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
+import { useToast } from "@/hooks/use-toast";
 
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
@@ -139,11 +142,13 @@ const getExtraPrice = (extra: string) => {
   }
 };
 
-type ActivePanel = 'finishes' | 'liners' | 'pavers' | 'coping' | 'covers' | 'heaters' | 'spas' | 'tanning' | 'jets' | null;
+type ActivePanel = 'finishes' | 'liners' | 'pavers' | 'coping' | 'covers' | 'heaters' | 'spas' | 'tanning' | 'jets' | 'tiles' | null;
 
 const PoolDetails = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { addToCart } = useShoppingCart();
+  const { toast } = useToast();
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
 
   // Parse pool data from URL params
@@ -159,6 +164,9 @@ const PoolDetails = () => {
     saltSystem: searchParams.get('saltSystem') === 'true',
     carbonFiber: searchParams.get('carbonFiber') === 'true'
   };
+
+  // Cache key for user selections
+  const cacheKey = `pool_studio_${pool.model}_selections`;
 
   const [extras, setExtras] = useState<PoolExtras>({
     liner: true,
@@ -179,6 +187,23 @@ const PoolDetails = () => {
     paverOption: 'Standard Concrete',
     copingPaverOption: 'Standard Pool Coping'
   });
+
+  // Load cached selections on mount
+  useEffect(() => {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        setExtras(JSON.parse(cached));
+      } catch (e) {
+        console.error('Error loading cached selections:', e);
+      }
+    }
+  }, [cacheKey]);
+
+  // Save selections to cache whenever extras change
+  useEffect(() => {
+    localStorage.setItem(cacheKey, JSON.stringify(extras));
+  }, [extras, cacheKey]);
 
   const calculateTotalPrice = () => {
     let total = pool.price;
@@ -253,401 +278,544 @@ const PoolDetails = () => {
     return pool.image;
   };
 
-  const renderPanel = () => {
-    if (!activePanel) return null;
+  const handleAddToCart = () => {
+    const selectedExtras = [];
 
-    const panelClass = "absolute inset-0 bg-background/95 backdrop-blur-sm z-30 p-6 overflow-auto";
-
-    switch (activePanel) {
-      case 'finishes':
-        return (
-          <div className={panelClass}>
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold">Pool Finishes</h3>
-              <Button variant="ghost" size="sm" onClick={() => setActivePanel(null)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {finishOptions.map((finish) => (
-                <div 
-                  key={finish.name}
-                  className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                    extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
-                  }`}
-                  onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
-                >
-                  <div className="w-full h-24 rounded-md mb-3 overflow-hidden">
-                    <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
-                  </div>
-                  <p className="text-sm font-medium text-center">{finish.name}</p>
-                  <p className="text-xs text-primary text-center mt-1">{finish.collection}</p>
-                  {finish.price && (
-                    <p className="text-xs text-foreground font-semibold text-center">+${finish.price.toLocaleString()}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      
-      case 'liners':
-        return (
-          <div className={panelClass}>
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold">Pool Liners</h3>
-              <Button variant="ghost" size="sm" onClick={() => setActivePanel(null)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {linerOptions.map((liner) => (
-                <div 
-                  key={liner.name}
-                  className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                    extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
-                  }`}
-                  onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
-                >
-                  <div className="w-full h-24 rounded-md mb-3 overflow-hidden">
-                    <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" />
-                  </div>
-                  <p className="text-sm font-medium text-center">{liner.name}</p>
-                  {liner.type && liner.type !== 'Standard' && (
-                    <p className="text-xs text-primary text-center">{liner.type}</p>
-                  )}
-                  {liner.price > 0 && (
-                    <p className="text-xs text-foreground font-semibold text-center">+${liner.price.toLocaleString()}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'pavers':
-        return (
-          <div className={panelClass}>
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold">Pavers</h3>
-              <Button variant="ghost" size="sm" onClick={() => setActivePanel(null)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {paverOptions.map((paver) => (
-                <div 
-                  key={paver.name}
-                  className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                    extras.paverOption === paver.name ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
-                  }`}
-                  onClick={() => setExtras(prev => ({ ...prev, paverOption: paver.name }))}
-                >
-                  <div className="w-full h-24 rounded-md mb-3 overflow-hidden">
-                    <img src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
-                  </div>
-                  <p className="text-sm font-medium text-center">{paver.name}</p>
-                  {paver.price > 0 && (
-                    <p className="text-xs text-primary font-semibold text-center">+${paver.price.toLocaleString()}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'coping':
-        return (
-          <div className={panelClass}>
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold">Coping Pavers</h3>
-              <Button variant="ghost" size="sm" onClick={() => setActivePanel(null)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {copingPaverOptions.map((coping) => (
-                <div 
-                  key={coping.name}
-                  className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                    extras.copingPaverOption === coping.name ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
-                  }`}
-                  onClick={() => setExtras(prev => ({ ...prev, copingPaverOption: coping.name }))}
-                >
-                  <div className="w-full h-24 rounded-md mb-3 overflow-hidden">
-                    <img src={coping.image} alt={coping.name} className="w-full h-full object-cover" />
-                  </div>
-                  <p className="text-sm font-medium text-center">{coping.name}</p>
-                  {coping.price > 0 && (
-                    <p className="text-xs text-primary font-semibold text-center">+${coping.price.toLocaleString()}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'covers':
-        return (
-          <div className={panelClass}>
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold">Pool Covers</h3>
-              <Button variant="ghost" size="sm" onClick={() => setActivePanel(null)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="mb-4">
-              <Button
-                variant={extras.cover ? "default" : "outline"}
-                onClick={() => setExtras(prev => ({ ...prev, cover: !prev.cover }))}
-                className="mb-4"
-              >
-                {extras.cover ? 'Remove Cover' : 'Add Cover'}
-              </Button>
-            </div>
-            {extras.cover && (
-              <div className="grid grid-cols-2 gap-4">
-                {coverOptions.map((cover) => (
-                  <div 
-                    key={cover.name}
-                    className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                      extras.coverOption === cover.name ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
-                    }`}
-                    onClick={() => setExtras(prev => ({ ...prev, coverOption: cover.name }))}
-                  >
-                    <div className="w-full h-24 rounded-md mb-3 overflow-hidden">
-                      <img src={cover.image} alt={cover.name} className="w-full h-full object-cover" />
-                    </div>
-                    <p className="text-sm font-medium text-center">{cover.name}</p>
-                    <p className="text-xs text-primary font-semibold text-center">+${cover.price.toLocaleString()}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-
-      case 'jets':
-        return (
-          <div className={panelClass}>
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold">Spa Jets</h3>
-              <Button variant="ghost" size="sm" onClick={() => setActivePanel(null)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="space-y-4">
-              <Button
-                variant={extras.jets ? "default" : "outline"}
-                onClick={() => setExtras(prev => ({ ...prev, jets: !prev.jets }))}
-                className="mb-4"
-              >
-                {extras.jets ? 'Remove Spa Jets' : 'Add Spa Jets'}
-              </Button>
-              {extras.jets && (
-                <div className="flex items-center justify-center gap-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <span className="text-lg font-semibold">{extras.jetQuantity} Jets</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-              {extras.jets && (
-                <p className="text-center text-sm text-muted-foreground">
-                  Total: +${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()}
-                </p>
-              )}
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
+    if (extras.heater) {
+      const heater = poolHeaters.find(h => h.name === extras.heaterModel);
+      if (heater) selectedExtras.push({ name: heater.name, price: heater.price });
     }
+
+    if (extras.jets) {
+      selectedExtras.push({ name: `Spa Jets (${extras.jetQuantity}x)`, price: getExtraPrice('jets') * extras.jetQuantity });
+    }
+
+    if (extras.cover) {
+      const cover = coverOptions.find(c => c.name === extras.coverOption);
+      if (cover) selectedExtras.push({ name: cover.name, price: cover.price });
+    }
+
+    if (extras.spa) {
+      const spa = spas.find((s: any) => s.model === extras.spaModel);
+      if (spa) selectedExtras.push({ name: spa.model, price: spa.price });
+    }
+
+    if (extras.tanningLedge) {
+      const ledge = tanningLedges.find((l: any) => l.name === extras.tanningLedgeModel);
+      if (ledge) selectedExtras.push({ name: ledge.name, price: ledge.price });
+    }
+
+    // Add mandatory selections
+    const liner = linerOptions.find(l => l.name === extras.linerOption);
+    if (liner && liner.price > 0) selectedExtras.push({ name: liner.name, price: liner.price });
+
+    const paver = paverOptions.find(p => p.name === extras.paverOption);
+    if (paver && paver.price > 0) selectedExtras.push({ name: paver.name, price: paver.price });
+
+    const coping = copingPaverOptions.find(c => c.name === extras.copingPaverOption);
+    if (coping && coping.price > 0) selectedExtras.push({ name: coping.name, price: coping.price });
+
+    if (extras.tiles) {
+      const tile = tileOptions.find(t => t.name === extras.tileOption);
+      if (tile && tile.price > 0) selectedExtras.push({ name: tile.name, price: tile.price });
+    }
+
+    addToCart({
+      id: `${pool.model}_${Date.now()}`,
+      name: pool.model,
+      price: pool.price,
+      category: pool.category,
+      image: pool.image,
+      extras: selectedExtras
+    });
+  };
+
+  const generateQuote = () => {
+    const quoteData = {
+      pool,
+      extras,
+      totalPrice: calculateTotalPrice(),
+      timestamp: new Date().toISOString(),
+      quoteId: `QUOTE-${Date.now()}`
+    };
+
+    // Save quote to localStorage
+    const savedQuotes = JSON.parse(localStorage.getItem('pool_quotes') || '[]');
+    savedQuotes.push(quoteData);
+    localStorage.setItem('pool_quotes', JSON.stringify(savedQuotes));
+
+    // Open printable quote in new window
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(generatePrintableQuote(quoteData));
+      printWindow.document.close();
+    }
+
+    toast({
+      title: "Quote Generated",
+      description: "Your quote has been generated and saved!"
+    });
+  };
+
+  const generatePrintableQuote = (quoteData: any) => {
+    const { pool, extras, totalPrice, quoteId, timestamp } = quoteData;
+
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Pool Quote - ${quoteId}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+            .quote-id { color: #666; font-size: 14px; }
+            .pool-details { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 8px; }
+            .extras-list { margin: 20px 0; }
+            .extra-item { padding: 10px 0; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; }
+            .total { font-size: 24px; font-weight: bold; text-align: right; margin-top: 30px; padding-top: 20px; border-top: 2px solid #333; }
+            .footer { margin-top: 50px; text-align: center; color: #666; font-size: 12px; }
+            @media print { body { margin: 20px; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Pool Configuration Quote</h1>
+            <p class="quote-id">Quote ID: ${quoteId}</p>
+            <p class="quote-id">Generated: ${new Date(timestamp).toLocaleString()}</p>
+          </div>
+
+          <div class="pool-details">
+            <h2>${pool.model}</h2>
+            <p><strong>Category:</strong> ${pool.category}</p>
+            <p><strong>Base Price:</strong> $${pool.price.toLocaleString()}</p>
+            ${pool.dimensions ? `<p><strong>Dimensions:</strong> ${pool.dimensions}</p>` : ''}
+            ${pool.depth ? `<p><strong>Depth:</strong> ${pool.depth}</p>` : ''}
+          </div>
+
+          <div class="extras-list">
+            <h3>Selected Options & Add-ons:</h3>
+            <div class="extra-item">
+              <span>Liner: ${extras.linerOption}</span>
+              <span>$${linerOptions.find(l => l.name === extras.linerOption)?.price.toLocaleString() || '0'}</span>
+            </div>
+            <div class="extra-item">
+              <span>Pavers: ${extras.paverOption}</span>
+              <span>$${paverOptions.find(p => p.name === extras.paverOption)?.price.toLocaleString() || '0'}</span>
+            </div>
+            <div class="extra-item">
+              <span>Coping: ${extras.copingPaverOption}</span>
+              <span>$${copingPaverOptions.find(c => c.name === extras.copingPaverOption)?.price.toLocaleString() || '0'}</span>
+            </div>
+            ${extras.heater ? `
+              <div class="extra-item">
+                <span>Heater: ${extras.heaterModel}</span>
+                <span>$${poolHeaters.find(h => h.name === extras.heaterModel)?.price.toLocaleString() || '0'}</span>
+              </div>` : ''}
+            ${extras.cover ? `
+              <div class="extra-item">
+                <span>Cover: ${extras.coverOption}</span>
+                <span>$${coverOptions.find(c => c.name === extras.coverOption)?.price.toLocaleString() || '0'}</span>
+              </div>` : ''}
+            ${extras.jets ? `
+              <div class="extra-item">
+                <span>Spa Jets (${extras.jetQuantity}x)</span>
+                <span>$${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()}</span>
+              </div>` : ''}
+            ${extras.spa ? `
+              <div class="extra-item">
+                <span>Spa: ${extras.spaModel}</span>
+                <span>$${spas.find((s: any) => s.model === extras.spaModel)?.price.toLocaleString() || '0'}</span>
+              </div>` : ''}
+            ${extras.tanningLedge ? `
+              <div class="extra-item">
+                <span>Tanning Ledge: ${extras.tanningLedgeModel}</span>
+                <span>$${tanningLedges.find((l: any) => l.name === extras.tanningLedgeModel)?.price.toLocaleString() || '0'}</span>
+              </div>` : ''}
+            ${extras.tiles ? `
+              <div class="extra-item">
+                <span>Tiles: ${extras.tileOption}</span>
+                <span>$${tileOptions.find(t => t.name === extras.tileOption)?.price.toLocaleString() || '0'}</span>
+              </div>` : ''}
+          </div>
+
+          <div class="total">
+            <p>Total Quote: $${totalPrice.toLocaleString()}</p>
+          </div>
+
+          <div class="footer">
+            <p>This quote is valid for 30 days from the generation date.</p>
+            <p>Contact us for financing options and installation scheduling.</p>
+          </div>
+
+          <script>
+            window.addEventListener('load', function() {
+              setTimeout(function() {
+                window.print();
+              }, 500);
+            });
+          </script>
+        </body>
+      </html>
+    `;
+  };
+
+  const downloadQuote = () => {
+    const quoteData = {
+      pool,
+      extras,
+      totalPrice: calculateTotalPrice(),
+      timestamp: new Date().toISOString(),
+      quoteId: `QUOTE-${Date.now()}`
+    };
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(quoteData, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `pool-quote-${quoteData.quoteId}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+
+    toast({
+      title: "Quote Downloaded",
+      description: "Your quote has been downloaded as a JSON file!"
+    });
+  };
+
+  const toggleExtra = (extra: keyof PoolExtras, value?: any) => {
+    setExtras(prev => ({
+      ...prev,
+      [extra]: value !== undefined ? value : !prev[extra]
+    }));
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-background to-muted overflow-hidden relative">
-      {/* Close Button */}
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => window.close()}
-        className="absolute top-4 right-4 z-50 bg-background/80 backdrop-blur-sm"
-      >
-        <X className="h-4 w-4" />
-      </Button>
-
-      {/* Main Layout - Fixed Grid */}
-      <div className="h-full grid grid-cols-12">
-        
-        {/* Left - Fixed Image */}
-        <div className="col-span-7 p-6 flex flex-col">
-          <div className="flex-1 relative bg-gradient-to-br from-primary/10 to-teal/10 rounded-2xl overflow-hidden">
-            <img 
-              src={getCurrentImage()} 
-              alt={pool.model}
-              className="w-full h-full object-cover transition-all duration-300"
-            />
-            
-            {/* Category Badge */}
-            <div className="absolute top-6 left-6">
-              <Badge className={`${getCategoryColor(pool.category)} text-white capitalize font-medium px-4 py-2 text-lg`}>
-                {pool.category}
-              </Badge>
-            </div>
-
-            {/* Pool Info Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-              <h1 className="text-2xl font-bold text-white mb-2">{pool.model}</h1>
-              <div className="flex items-center gap-2 mb-2">
-                <DollarSign className="h-5 w-5 text-teal-400" />
-                <span className="text-2xl font-bold text-white">
-                  ${calculateTotalPrice().toLocaleString()}
-                </span>
-              </div>
-              <div className="flex gap-4 text-sm text-white/80">
-                {pool.dimensions && <span>{pool.dimensions}</span>}
-                {pool.depth && <span>{pool.depth}</span>}
-              </div>
-            </div>
-          </div>
+    <div className="fixed inset-0 bg-background overflow-hidden">
+      {/* Header */}
+      <div className="h-16 border-b flex items-center justify-between px-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={() => navigate(-1)}>
+            <X className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <h1 className="text-xl font-semibold">Editor Studio</h1>
+          <Badge className={getCategoryColor(pool.category)}>{pool.category}</Badge>
         </div>
-
-        {/* Right Panel */}
-        <div className="col-span-5 relative bg-background/50 backdrop-blur-sm">
-          
-          {/* Current Selection Display */}
-          <div className="p-6 border-b bg-background/80">
-            <h2 className="text-lg font-semibold mb-4">Current Selection</h2>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>Finish:</span>
-                <span className="font-medium">{extras.finish}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Liner:</span>
-                <span className="font-medium">{extras.linerOption}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Pavers:</span>
-                <span className="font-medium">{extras.paverOption}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Coping:</span>
-                <span className="font-medium">{extras.copingPaverOption}</span>
-              </div>
-              {extras.cover && (
-                <div className="flex justify-between">
-                  <span>Cover:</span>
-                  <span className="font-medium">{extras.coverOption}</span>
-                </div>
-              )}
-              {extras.jets && (
-                <div className="flex justify-between">
-                  <span>Jets:</span>
-                  <span className="font-medium">{extras.jetQuantity}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="p-6 space-y-4">
-            <StripeCheckoutButton
-              productId={`pool_${pool.model.replace(/\s+/g, '_')}`}
-              productName={pool.model}
-              price={calculateTotalPrice()}
-              variant="gradient"
-              className="w-full"
-              size="lg"
-              showFinancingOptions={false}
-            />
-            
-            <Button
-              onClick={() => addToCart({
-                id: `pool_${pool.model.replace(/\s+/g, '_')}_${Date.now()}`,
-                name: pool.model,
-                price: pool.price,
-                category: pool.category,
-                image: pool.image,
-                extras: []
-              })}
-              variant="outline"
-              className="w-full"
-              size="lg"
-            >
-              Add to Cart
-            </Button>
-          </div>
-
-          {/* Panel Overlay */}
-          {renderPanel()}
+        
+        {/* Right side options menu */}
+        <div className="flex gap-2">
+          <Button size="sm" variant={activePanel === 'finishes' ? 'default' : 'outline'} onClick={() => setActivePanel(activePanel === 'finishes' ? null : 'finishes')}>
+            <Palette className="h-4 w-4 mr-1" />
+            Finishes
+          </Button>
+          <Button size="sm" variant={activePanel === 'liners' ? 'default' : 'outline'} onClick={() => setActivePanel(activePanel === 'liners' ? null : 'liners')}>
+            <Layers className="h-4 w-4 mr-1" />
+            Liners
+          </Button>
+          <Button size="sm" variant={activePanel === 'pavers' ? 'default' : 'outline'} onClick={() => setActivePanel(activePanel === 'pavers' ? null : 'pavers')}>
+            <Shield className="h-4 w-4 mr-1" />
+            Pavers
+          </Button>
+          <Button size="sm" variant={activePanel === 'coping' ? 'default' : 'outline'} onClick={() => setActivePanel(activePanel === 'coping' ? null : 'coping')}>
+            <Award className="h-4 w-4 mr-1" />
+            Coping
+          </Button>
         </div>
       </div>
 
-      {/* Bottom Toolbar - Fixed */}
-      <div className="absolute bottom-0 left-0 right-0 bg-background/90 backdrop-blur-sm border-t p-4">
-        <div className="flex justify-center gap-2">
-          <Button
-            variant={activePanel === 'finishes' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setActivePanel(activePanel === 'finishes' ? null : 'finishes')}
-          >
-            <Palette className="h-4 w-4 mr-2" />
-            Finishes
+      <div className="flex h-[calc(100vh-4rem)]">
+        {/* Main Image Area */}
+        <div className="flex-1 relative bg-muted">
+          <div className="absolute inset-4">
+            <img
+              src={getCurrentImage()}
+              alt={pool.model}
+              className="w-full h-full object-cover rounded-lg border"
+            />
+          </div>
+
+          {/* Overlay Panel */}
+          {activePanel && (
+            <div className="absolute inset-0 bg-background/95 backdrop-blur-sm p-6 overflow-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold">
+                  {activePanel === 'finishes' && 'Pool Finishes'}
+                  {activePanel === 'liners' && 'Pool Liners'}
+                  {activePanel === 'pavers' && 'Pavers'}
+                  {activePanel === 'coping' && 'Coping Pavers'}
+                  {activePanel === 'covers' && 'Pool Covers'}
+                  {activePanel === 'heaters' && 'Pool Heaters'}
+                  {activePanel === 'spas' && 'Spa Options'}
+                  {activePanel === 'tanning' && 'Tanning Ledges'}
+                  {activePanel === 'jets' && 'Spa Jets'}
+                </h3>
+                <Button variant="ghost" size="sm" onClick={() => setActivePanel(null)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Finishes */}
+                {activePanel === 'finishes' && finishOptions.map((finish) => (
+                  <div 
+                    key={finish.name}
+                    className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                      extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
+                  >
+                    <div className="w-full h-24 rounded-md mb-3 overflow-hidden">
+                      <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
+                    </div>
+                    <p className="text-sm font-medium text-center">{finish.name}</p>
+                    <p className="text-xs text-primary text-center mt-1">{finish.collection}</p>
+                    {finish.price && (
+                      <p className="text-xs text-foreground font-semibold text-center">+${finish.price.toLocaleString()}</p>
+                    )}
+                  </div>
+                ))}
+
+                {/* Liners */}
+                {activePanel === 'liners' && linerOptions.map((liner) => (
+                  <div 
+                    key={liner.name}
+                    className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                      extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
+                  >
+                    <div className="w-full h-24 rounded-md mb-3 overflow-hidden">
+                      <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" />
+                    </div>
+                    <p className="text-sm font-medium text-center">{liner.name}</p>
+                    {liner.type && liner.type !== 'Standard' && (
+                      <p className="text-xs text-primary text-center">{liner.type}</p>
+                    )}
+                    {liner.price > 0 && (
+                      <p className="text-xs text-foreground font-semibold text-center">+${liner.price.toLocaleString()}</p>
+                    )}
+                  </div>
+                ))}
+
+                {/* Pavers */}
+                {activePanel === 'pavers' && paverOptions.map((paver) => (
+                  <div 
+                    key={paver.name}
+                    className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                      extras.paverOption === paver.name ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => setExtras(prev => ({ ...prev, paverOption: paver.name }))}
+                  >
+                    <div className="w-full h-24 rounded-md mb-3 overflow-hidden">
+                      <img src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
+                    </div>
+                    <p className="text-sm font-medium text-center">{paver.name}</p>
+                    {paver.price > 0 && (
+                      <p className="text-xs text-primary font-semibold text-center">+${paver.price.toLocaleString()}</p>
+                    )}
+                  </div>
+                ))}
+
+                {/* Coping */}
+                {activePanel === 'coping' && copingPaverOptions.map((coping) => (
+                  <div 
+                    key={coping.name}
+                    className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                      extras.copingPaverOption === coping.name ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => setExtras(prev => ({ ...prev, copingPaverOption: coping.name }))}
+                  >
+                    <div className="w-full h-24 rounded-md mb-3 overflow-hidden">
+                      <img src={coping.image} alt={coping.name} className="w-full h-full object-cover" />
+                    </div>
+                    <p className="text-sm font-medium text-center">{coping.name}</p>
+                    {coping.price > 0 && (
+                      <p className="text-xs text-primary font-semibold text-center">+${coping.price.toLocaleString()}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Sidebar - Current Selections */}
+        <div className="w-80 border-l bg-background p-4 overflow-auto">
+          <h3 className="font-semibold mb-4">Current Configuration</h3>
+          
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Pool Model:</span>
+              <span className="font-medium">{pool.model}</span>
+            </div>
+            
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Base Price:</span>
+              <span className="font-medium">${pool.price.toLocaleString()}</span>
+            </div>
+
+            <Separator />
+
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Liner:</span>
+              <span className="font-medium">{extras.linerOption}</span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Pavers:</span>
+              <span className="font-medium">{extras.paverOption}</span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Coping:</span>
+              <span className="font-medium">{extras.copingPaverOption}</span>
+            </div>
+
+            {/* Add-ons */}
+            <Separator />
+            <h4 className="font-medium">Optional Add-ons</h4>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Button
+                  size="sm"
+                  variant={extras.heater ? "default" : "outline"}
+                  onClick={() => toggleExtra('heater')}
+                >
+                  <Thermometer className="h-3 w-3 mr-1" />
+                  Heater
+                </Button>
+                {extras.heater && (
+                  <Button size="sm" variant="ghost" onClick={() => setActivePanel('heaters')}>
+                    <Camera className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Button
+                  size="sm"
+                  variant={extras.cover ? "default" : "outline"}
+                  onClick={() => toggleExtra('cover')}
+                >
+                  <Shield className="h-3 w-3 mr-1" />
+                  Cover
+                </Button>
+                {extras.cover && (
+                  <Button size="sm" variant="ghost" onClick={() => setActivePanel('covers')}>
+                    <Camera className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Button
+                  size="sm"
+                  variant={extras.spa ? "default" : "outline"}
+                  onClick={() => toggleExtra('spa')}
+                >
+                  <Waves className="h-3 w-3 mr-1" />
+                  Spa
+                </Button>
+                {extras.spa && (
+                  <Button size="sm" variant="ghost" onClick={() => setActivePanel('spas')}>
+                    <Camera className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Button
+                  size="sm"
+                  variant={extras.tanningLedge ? "default" : "outline"}
+                  onClick={() => toggleExtra('tanningLedge')}
+                >
+                  <Sun className="h-3 w-3 mr-1" />
+                  Tanning Ledge
+                </Button>
+                {extras.tanningLedge && (
+                  <Button size="sm" variant="ghost" onClick={() => setActivePanel('tanning')}>
+                    <Camera className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Button
+                  size="sm"
+                  variant={extras.jets ? "default" : "outline"}
+                  onClick={() => toggleExtra('jets')}
+                >
+                  <Zap className="h-3 w-3 mr-1" />
+                  Jets
+                </Button>
+                {extras.jets && (
+                  <div className="flex items-center gap-1">
+                    <Button size="sm" variant="outline" onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))}>
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                    <span className="text-xs px-2">{extras.jetQuantity}</span>
+                    <Button size="sm" variant="outline" onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))}>
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Button
+                  size="sm"
+                  variant={extras.tiles ? "default" : "outline"}
+                  onClick={() => toggleExtra('tiles')}
+                >
+                  <Layers className="h-3 w-3 mr-1" />
+                  Tiles
+                </Button>
+                {extras.tiles && (
+                  <Button size="sm" variant="ghost" onClick={() => setActivePanel('tiles')}>
+                    <Camera className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Dashboard */}
+      <div className="h-20 border-t bg-background/95 backdrop-blur-sm flex items-center justify-between px-6">
+        <div className="flex items-center gap-4">
+          <div className="text-2xl font-bold">
+            Total: ${calculateTotalPrice().toLocaleString()}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            Additional: ${(calculateTotalPrice() - pool.price).toLocaleString()}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={downloadQuote}>
+            <Download className="h-4 w-4 mr-2" />
+            Download Quote
           </Button>
-          <Button
-            variant={activePanel === 'liners' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setActivePanel(activePanel === 'liners' ? null : 'liners')}
-          >
-            <Layers className="h-4 w-4 mr-2" />
-            Liners
+          
+          <Button variant="outline" onClick={generateQuote}>
+            <Printer className="h-4 w-4 mr-2" />
+            Print Quote
           </Button>
-          <Button
-            variant={activePanel === 'pavers' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setActivePanel(activePanel === 'pavers' ? null : 'pavers')}
-          >
-            <Camera className="h-4 w-4 mr-2" />
-            Pavers
+
+          <Button variant="outline" onClick={handleAddToCart}>
+            <CartIcon className="h-4 w-4 mr-2" />
+            Add to Cart
           </Button>
-          <Button
-            variant={activePanel === 'coping' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setActivePanel(activePanel === 'coping' ? null : 'coping')}
-          >
-            <Shield className="h-4 w-4 mr-2" />
-            Coping
-          </Button>
-          <Button
-            variant={activePanel === 'covers' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setActivePanel(activePanel === 'covers' ? null : 'covers')}
-          >
-            <Shield className="h-4 w-4 mr-2" />
-            Cover
-          </Button>
-          <Button
-            variant={activePanel === 'jets' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setActivePanel(activePanel === 'jets' ? null : 'jets')}
-          >
-            <Zap className="h-4 w-4 mr-2" />
-            Jets
-          </Button>
+
+          <StripeCheckoutButton
+            productId={pool.model}
+            productName={pool.model}
+            price={calculateTotalPrice()}
+            variant="default"
+            showFinancingOptions={false}
+          />
         </div>
       </div>
     </div>
