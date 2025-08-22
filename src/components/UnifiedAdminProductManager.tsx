@@ -4,13 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, RefreshCw, Database, AlertCircle, TrendingUp, Package, Eye, Plus, Building } from "lucide-react";
+import { Loader2, RefreshCw, Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ProductPreview from "./ProductPreview";
-import ProcurementForm from "./ProcurementForm";
 
 interface UnifiedProduct {
   id: string;
@@ -178,12 +175,18 @@ const UnifiedAdminProductManager = () => {
     }
   };
 
+  // Group products by category for organized display
+  const productsByCategory = categories.filter(cat => cat !== 'all').reduce((acc, category) => {
+    acc[category] = filteredProducts.filter(product => product.category === category);
+    return acc;
+  }, {} as Record<string, UnifiedProduct[]>);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p>Loading unified product data...</p>
+          <p>Loading product database...</p>
         </div>
       </div>
     );
@@ -191,84 +194,91 @@ const UnifiedAdminProductManager = () => {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="products" className="space-y-6">
-        <div className="flex justify-between items-center">
-          <TabsList className="grid grid-cols-4 w-auto">
-            <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
-            <TabsTrigger value="pools">Pools ({pools.length})</TabsTrigger>
-            <TabsTrigger value="procurement">Procurement</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          </TabsList>
-          
-          <div className="flex gap-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Building className="h-4 w-4 mr-2" />
-                  New Procurement
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Create Procurement Opportunity</DialogTitle>
-                  <DialogDescription>
-                    Post a new procurement opportunity for the supplier network
-                  </DialogDescription>
-                </DialogHeader>
-                <ProcurementForm />
-              </DialogContent>
-            </Dialog>
-            <Button onClick={syncPoolsToProducts}>
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Product Database Management</CardTitle>
+              <CardDescription>Manage all products organized by category ({products.length} total products)</CardDescription>
+            </div>
+            <Button onClick={syncPoolsToProducts} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
               Sync Data
             </Button>
           </div>
-        </div>
-
-        <TabsContent value="products">
-          <div className="space-y-6">
-            <div className="flex gap-4 mb-6 flex-wrap">
-              <div className="flex-1 min-w-[250px]">
-                <Input
-                  placeholder="Search products..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map(category => (
-                    <SelectItem key={category} value={category}>
-                      {category.charAt(0).toUpperCase() + category.slice(1).replace('_', ' ')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sortOptions.map(option => (
-                    <SelectItem key={option} value={option}>
-                      {option.charAt(0).toUpperCase() + option.slice(1).replace('_', ' ')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                variant="outline"
-                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="px-3"
-              >
-                {sortOrder === 'asc' ? '↑' : '↓'}
-              </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4 mb-6 flex-wrap">
+            <div className="flex-1 min-w-[250px]">
+              <Input
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
             </div>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map(category => (
+                  <SelectItem key={category} value={category}>
+                    {category.charAt(0).toUpperCase() + category.slice(1).replace('_', ' ')}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                {sortOptions.map(option => (
+                  <SelectItem key={option} value={option}>
+                    {option.charAt(0).toUpperCase() + option.slice(1).replace('_', ' ')}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="px-3"
+            >
+              {sortOrder === 'asc' ? '↑' : '↓'}
+            </Button>
+          </div>
 
+          {selectedCategory === 'all' ? (
+            // Show products organized by category
+            <div className="space-y-8">
+              {Object.entries(productsByCategory).map(([category, categoryProducts]) => (
+                categoryProducts.length > 0 && (
+                  <div key={category} className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-lg font-semibold capitalize">
+                        {category.replace('_', ' ')} Products
+                      </h3>
+                      <Badge variant="secondary" className={getCategoryColor(category)}>
+                        {categoryProducts.length}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {categoryProducts.map((product) => (
+                        <ProductPreview
+                          key={product.id}
+                          product={product}
+                          variant="default"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )
+              ))}
+            </div>
+          ) : (
+            // Show filtered products for selected category
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredProducts.map((product) => (
                 <ProductPreview
@@ -278,164 +288,17 @@ const UnifiedAdminProductManager = () => {
                 />
               ))}
             </div>
+          )}
 
-            {filteredProducts.length === 0 && (
-              <div className="text-center py-12">
-                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No products found</h3>
-                <p className="text-muted-foreground">Try adjusting your search or filter criteria.</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="pools">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pool Products Database</CardTitle>
-                <CardDescription>Synchronized pool models from the front page catalog</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {pools.map((pool) => (
-                    <Card key={pool.id} className="hover:shadow-lg transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex gap-3">
-                          <img 
-                            src={pool.image_url} 
-                            alt={pool.model}
-                            className="w-20 h-20 object-cover rounded-lg"
-                            onError={(e) => {
-                              e.currentTarget.src = '/placeholder.svg';
-                            }}
-                          />
-                          <div className="flex-1">
-                            <h3 className="font-semibold">{pool.model}</h3>
-                            <p className="text-sm text-muted-foreground">{pool.category}</p>
-                            <p className="font-bold text-lg text-primary">${pool.price?.toLocaleString()}</p>
-                            <p className="text-xs text-muted-foreground">{pool.dimensions}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="procurement">
-          <div className="space-y-6">
-            <ProcurementForm />
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Procurement Opportunities</CardTitle>
-                <CardDescription>Latest postings for the supplier network</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <Building className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No procurement opportunities yet.</p>
-                  <p className="text-sm">Create your first opportunity above to get started.</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="analytics">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{products.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Active products in catalog
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Pools</CardTitle>
-                <Database className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{pools.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Pool models available
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Categories</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{categories.length - 1}</div>
-                <p className="text-xs text-muted-foreground">
-                  Product categories
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle>Database Health</CardTitle>
-                <CardDescription>Current status of product synchronization</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-sm">Products table: {products.length} records</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-sm">Pools table: {pools.length} records</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-sm">Front page sync: Complete</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="text-sm">Last sync: Just now</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Product Distribution</CardTitle>
-                <CardDescription>Breakdown by category</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  {categories.filter(cat => cat !== 'all').map(category => {
-                    const count = products.filter(p => p.category === category).length;
-                    return count > 0 ? (
-                      <div key={category} className="flex justify-between">
-                        <span className="capitalize">{category.replace('_', ' ')}</span>
-                        <Badge variant="secondary">{count}</Badge>
-                      </div>
-                    ) : null;
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+          {filteredProducts.length === 0 && (
+            <div className="text-center py-12">
+              <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No products found</h3>
+              <p className="text-muted-foreground">Try adjusting your search or filter criteria.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
