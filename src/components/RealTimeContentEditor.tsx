@@ -59,8 +59,8 @@ interface EditableElement {
 }
 
 interface RealTimeContentEditorProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 interface SitePreviewProps {
@@ -220,7 +220,7 @@ const SitePreview = ({ elements, onElementClick, editMode, showOutlines, selecte
   );
 };
 
-const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) => {
+const RealTimeContentEditor = ({ isOpen = true, onClose }: RealTimeContentEditorProps) => {
   const [editMode, setEditMode] = useState(false);
   const [selectedElement, setSelectedElement] = useState<EditableElement | null>(null);
   const [showOutlines, setShowOutlines] = useState(true);
@@ -388,29 +388,52 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
     });
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="h-full bg-background">
+    <div className="h-full bg-gradient-to-br from-background via-muted/5 to-background">
       <div className="flex h-full flex-col">
-        <div className="border-b px-4 py-2">
+        {/* Enhanced Header */}
+        <div className="border-b bg-card/50 backdrop-blur-sm px-4 py-3 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Globe className="h-4 w-4" />
-              <h1 className="text-lg font-semibold">Content Editor & Marketplace Manager</h1>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Globe className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  Live Content Editor & Marketplace
+                </h1>
+                <p className="text-sm text-muted-foreground">Real-time website editing with instant preview</p>
+              </div>
               {pendingChanges > 0 && (
-                <Badge variant="secondary">{pendingChanges} pending changes</Badge>
+                <Badge variant="secondary" className="animate-pulse">
+                  {pendingChanges} pending changes
+                </Badge>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <Badge className={isLivePreview ? 'bg-green-500' : 'bg-gray-500'}>
+            <div className="flex items-center gap-3">
+              <Badge className={`${isLivePreview ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'} px-3 py-1`}>
+                <div className={`w-2 h-2 rounded-full mr-2 ${isLivePreview ? 'bg-green-200 animate-pulse' : 'bg-gray-200'}`} />
                 {isLivePreview ? 'Live Preview' : 'Draft Mode'}
               </Badge>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-1 gap-2 p-2 overflow-hidden">
-          {/* Main Editor Area - Live Preview */}
-          <div className="flex-1 border rounded-lg bg-white relative overflow-auto min-w-0">
+        <div className="flex flex-1 gap-4 p-4 overflow-hidden">
+          {/* Main Editor Area - Enhanced Live Preview */}
+          <div className="flex-1 border-2 rounded-xl bg-white relative overflow-auto min-w-0 shadow-lg">
+            <div className="absolute top-4 left-4 z-40 flex gap-2">
+              <Badge variant="outline" className="bg-white/90 backdrop-blur-sm">
+                {selectedDevice} preview
+              </Badge>
+              {editMode && (
+                <Badge className="bg-blue-500 text-white">
+                  Edit Mode Active - Click elements to edit
+                </Badge>
+              )}
+            </div>
             <SitePreview
               elements={elements}
               onElementClick={handleElementClick}
@@ -420,8 +443,8 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
             />
           </div>
 
-          {/* Right Sidebar - All Tools and Controls */}
-          <div className="w-80 bg-white border rounded-lg p-3 flex flex-col space-y-3 overflow-y-auto">
+          {/* Enhanced Right Sidebar - Tools Panel */}
+          <div className="w-96 bg-card border rounded-xl p-4 flex flex-col space-y-4 overflow-y-auto shadow-lg">
             
             {/* Screen Navigation */}
             <Card>
@@ -631,12 +654,12 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
                         </div>
                       </Button>
                       
-                      {selectedCategory === category.id && (
-                         <div className="space-y-1 ml-2">
+              {selectedCategory === category.id && (
+                         <div className="space-y-2 ml-2">
                            {category.products.map((product, idx) => (
                              <div
                                key={idx}
-                               className="flex items-center gap-2 p-2 bg-gray-50 rounded cursor-grab hover:bg-gray-100 transition-colors border-l-2 border-transparent hover:border-blue-400"
+                               className="group flex items-center gap-3 p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg cursor-grab hover:from-blue-50 hover:to-blue-100 transition-all duration-200 border border-transparent hover:border-blue-200 hover:shadow-md"
                                draggable
                                onDragStart={(e) => {
                                  e.dataTransfer.setData('text/plain', JSON.stringify({
@@ -647,18 +670,29 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
                                  }));
                                }}
                                onDragEnd={(e) => {
-                                 // Auto-add to page when dropped
                                  const rect = e.currentTarget.getBoundingClientRect();
                                  addCustomElement('product', `${category.name}: ${product}`);
+                                 toast({
+                                   title: "Product Added",
+                                   description: `${product} added to page`,
+                                 });
                                }}
                              >
-                               <MousePointer className="h-3 w-3 text-gray-400" />
-                               <span className="text-xs font-medium">{product}</span>
-                               <ArrowRight className="h-3 w-3 text-gray-400 ml-auto" />
+                               <div className="p-1 bg-blue-100 rounded group-hover:bg-blue-200 transition-colors">
+                                 <Package className="h-4 w-4 text-blue-600" />
+                               </div>
+                               <div className="flex-1">
+                                 <span className="text-sm font-medium text-gray-700 group-hover:text-blue-700">{product}</span>
+                                 <div className="text-xs text-gray-500">{category.name}</div>
+                               </div>
+                               <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                 <ArrowRight className="h-4 w-4 text-blue-500" />
+                               </div>
                              </div>
                            ))}
-                           <div className="text-xs text-gray-500 mt-2 italic">
-                             ✨ Drag anywhere on the page to add products instantly
+                           <div className="mt-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                             <div className="text-xs font-medium text-blue-700 mb-1">✨ Drag & Drop Instructions:</div>
+                             <div className="text-xs text-blue-600">Drag any product to the preview area to add it instantly to your page</div>
                            </div>
                          </div>
                       )}

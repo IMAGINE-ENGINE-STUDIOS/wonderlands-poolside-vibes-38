@@ -43,7 +43,7 @@ const AdminDashboard = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [orderFilter, setOrderFilter] = useState('all');
-  const [showContentEditor, setShowContentEditor] = useState(false);
+  
 
   // Mock GALA points data (in real implementation, this would come from API)
   const galaPointsData = {
@@ -504,11 +504,6 @@ const AdminDashboard = () => {
         </Tabs>
       </div>
 
-      {/* Content Editor Modal */}
-      <RealTimeContentEditor 
-        isOpen={showContentEditor} 
-        onClose={() => setShowContentEditor(false)} 
-      />
     </div>
   );
 };
