@@ -947,79 +947,117 @@ const PoolDetails = () => {
       </div>
 
       <div className="flex h-[calc(100vh-8rem)]">
-        {/* Dynamic Products Showcase */}
+        {/* Enhanced Product Showcase */}
         <div className="flex-1 bg-muted p-6">
           <div className="h-full flex flex-col">
-            {/* Main Pool Image */}
-            <div className="relative mb-6">
+            {/* Large Main Pool Image */}
+            <div className="relative flex-1 mb-4">
               <img
                 src={getCurrentImage()}
                 alt={pool.model}
-                className="w-full h-64 object-cover rounded-lg border shadow-lg"
+                className="w-full h-full object-cover rounded-lg border shadow-lg"
               />
-              <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm px-3 py-2 rounded-md">
-                <p className="text-sm font-medium">{pool.model}</p>
-                <p className="text-xs text-muted-foreground">{pool.dimensions || 'Custom Pool'}</p>
-              </div>
-            </div>
-
-            {/* Selected Products Grid */}
-            <div className="flex-1 overflow-auto">
-              <h3 className="text-lg font-semibold mb-4">Selected Configuration</h3>
               
-              {/* Selected Products Display */}
-              {(getSelectedConfigItems().length > 0 || selectedProducts.length > 0) ? (
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Configuration Items */}
-                  {getSelectedConfigItems().map((item, index) => (
-                    <div key={index} className="bg-background rounded-lg p-4 border shadow-sm">
-                      <div className="aspect-square mb-3 rounded-lg overflow-hidden bg-muted">
-                        <img 
-                          src={item.image} 
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
+              {/* Add Product Button - Top Right Corner */}
+              <Button 
+                size="sm"
+                className="absolute top-4 right-4 w-10 h-10 rounded-full p-0 bg-primary/90 hover:bg-primary border-2 border-background shadow-lg"
+                onClick={() => setActivePanel('finishes')}
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
+
+              {/* Pool Info Overlay - Bottom Left */}
+              <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm px-4 py-3 rounded-lg shadow-md">
+                <p className="text-base font-semibold">{pool.model}</p>
+                <p className="text-sm text-muted-foreground">{pool.dimensions || 'Custom Pool Design'}</p>
+                <Badge className={`mt-2 ${getCategoryColor(pool.category)}`}>{pool.category}</Badge>
+              </div>
+
+              {/* Selected Products Indicators - Top Left */}
+              {(getSelectedConfigItems().length > 0 || selectedProducts.length > 0) && (
+                <div className="absolute top-4 left-4 flex flex-wrap gap-2 max-w-xs">
+                  {getSelectedConfigItems().slice(0, 3).map((item, index) => (
+                    <div key={index} className="relative group">
+                      <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-background shadow-sm bg-background">
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide">{item.category}</p>
-                        <p className="text-sm font-medium">{item.name}</p>
-                        <p className="text-sm font-semibold text-primary">${item.price.toLocaleString()}</p>
-                      </div>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => {
+                          // Handle removal based on category
+                          if (item.category === 'Pool Cover') setExtras(prev => ({ ...prev, cover: false }));
+                          if (item.category === 'Pool Heater') setExtras(prev => ({ ...prev, heater: false }));
+                          if (item.category === 'Spa') setExtras(prev => ({ ...prev, spa: false }));
+                          if (item.category === 'Tanning Ledge') setExtras(prev => ({ ...prev, tanningLedge: false }));
+                          if (item.category === 'Pool Tiles') setExtras(prev => ({ ...prev, tiles: false }));
+                          if (item.category === 'Pool Jets') setExtras(prev => ({ ...prev, jets: false }));
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
                     </div>
                   ))}
                   
-                  {/* Marketplace Products */}
-                  {selectedProducts.map((product) => (
-                    <div key={product.id} className="bg-background rounded-lg p-4 border shadow-sm">
-                      <div className="aspect-square mb-3 rounded-lg overflow-hidden bg-muted">
+                  {selectedProducts.slice(0, 2).map((product) => (
+                    <div key={product.id} className="relative group">
+                      <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-background shadow-sm bg-background">
                         {product.image_url ? (
-                          <img 
-                            src={product.image_url} 
-                            alt={product.name}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                            <Package className="h-8 w-8" />
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="h-4 w-4 text-muted-foreground" />
                           </div>
                         )}
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide">{product.category}</p>
-                        <p className="text-sm font-medium">{product.name}</p>
-                        {product.brand && <p className="text-xs text-primary">{product.brand}</p>}
-                        <p className="text-sm font-semibold text-primary">${product.price.toLocaleString()}</p>
-                      </div>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => {
+                          setSelectedProducts(prev => prev.filter(p => p.id !== product.id));
+                          toast({ title: "Product Removed", description: `${product.name} removed!` });
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
                     </div>
                   ))}
+                  
+                  {/* Show count if more products */}
+                  {(getSelectedConfigItems().length + selectedProducts.length) > 5 && (
+                    <div className="w-12 h-12 rounded-lg border-2 border-background shadow-sm bg-background/90 flex items-center justify-center">
+                      <span className="text-xs font-semibold">
+                        +{(getSelectedConfigItems().length + selectedProducts.length) - 5}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Product Description Area */}
+            <div className="bg-background rounded-lg p-4 border shadow-sm min-h-[80px]">
+              {getCurrentImage() !== pool.image ? (
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">Currently Viewing:</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {activePanel === 'finishes' && `${extras.finish} Pool Finish`}
+                    {activePanel === 'liners' && `${extras.linerOption} Pool Liner`}
+                    {activePanel === 'covers' && `${extras.coverOption} Pool Cover`}
+                    {activePanel === 'heaters' && `${extras.heaterModel} Pool Heater`}
+                    {activePanel === 'spas' && `${extras.spaModel} Spa Addition`}
+                    {activePanel === 'tanning' && `${extras.tanningLedgeModel} Tanning Ledge`}
+                  </p>
                 </div>
               ) : (
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="text-center text-muted-foreground">
-                    <Package className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg font-medium mb-2">No Products Selected</p>
-                    <p className="text-sm">Use the search or categories to add products to your pool configuration</p>
-                  </div>
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">Pool Configuration</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Select products from the categories on the right to customize your pool design and see them visualized here.
+                  </p>
                 </div>
               )}
             </div>
