@@ -1,0 +1,3 @@
+-- Insert sample products for engines category
+INSERT INTO public.products (name, category, subcategory, price, description, image_url, brand, stock_quantity, is_active, features_json) VALUES
+('AquaPro Variable Speed Pump', 'engines', 'pumps', 1899, 'Energy-efficient variable speed pool pump with digital controls', '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png', 'AquaPro', 15, true, '["Variable Speed Control", "Energy Star Certified", "Digital Display", "Self-Priming"]');
