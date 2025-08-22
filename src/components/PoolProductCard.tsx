@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 
 import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu, Edit, ShoppingCart, Sun } from "lucide-react";
 import StripeCheckoutButton from "./StripeCheckoutButton";
@@ -133,6 +134,7 @@ const linerOptions = [
 
 // Cover options - using real products from database (placeholder until API integration)
 const coverOptions = [
+  { name: 'NO COVER', color: '#808080', price: 0, image: shaleGrayFinish, category: 'cover', description: 'No pool cover needed' },
   { name: 'Eclipse Automatic Cover', color: '#2F4F4F', price: 16000, image: nightSkyFinish, category: 'cover', description: 'Premium automatic pool cover with solar heating' },
   { name: 'CS3000 Safety Cover', color: '#2F4F4F', price: 24000, image: shaleGrayFinish, category: 'cover', description: 'Heavy-duty safety cover with anchoring system' },
   { name: 'Infinity 4000 Smart Cover', color: '#2F4F4F', price: 32000, image: coastalBronzeFinish, category: 'cover', description: 'Smart automated cover with app control' },
@@ -179,7 +181,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
     jetQuantity: 1,
     finish: 'Nantuke',
     linerOption: 'Standard Blue',
-    coverOption: 'Eclipse Automatic Cover',
+    coverOption: 'NO COVER',
     tiles: false,
     tileOption: 'Standard Waterline',
     spa: false,
@@ -190,6 +192,10 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
     paverOption: 'Standard Concrete',
     copingPaverOption: 'Standard Pool Coping'
   });
+  
+  const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
+  const [copingSurfaceArea, setCopingSurfaceArea] = useState('');
+  const [showFinancing, setShowFinancing] = useState(false);
   
   const { addToCart } = useShoppingCart();
 
@@ -252,14 +258,24 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
     if (tileOption && extras.tiles) total += tileOption.price;
     
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
-    if (coverOption && extras.cover) total += coverOption.price;
+    if (coverOption && extras.cover && coverOption.name !== 'NO COVER') total += coverOption.price;
 
     // Add paver prices (mandatory options)
     const paverOption = paverOptions.find(option => option.name === extras.paverOption);
     if (paverOption) total += paverOption.price;
+    
+    // Add calculated paver surface area cost
+    if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+      total += parseFloat(paverSurfaceArea) * 15;
+    }
 
     const copingPaverOption = copingPaverOptions.find(option => option.name === extras.copingPaverOption);
     if (copingPaverOption) total += copingPaverOption.price;
+    
+    // Add calculated coping surface area cost
+    if (copingSurfaceArea && !isNaN(parseFloat(copingSurfaceArea))) {
+      total += parseFloat(copingSurfaceArea) * 15;
+    }
     
     // Add spa price if selected
     if (extras.spa) {
@@ -304,7 +320,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
     }
     
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
-    if (coverOption && extras.cover) {
+    if (coverOption && extras.cover && coverOption.name !== 'NO COVER') {
       cartExtras.push({ name: coverOption.name, price: coverOption.price });
     }
     
@@ -597,7 +613,24 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
 
             {/* Pavers Options */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Pavers</h4>
+              <h4 className="font-semibold text-foreground">Pavers & Surface Area Calculator</h4>
+              <div className="mb-3">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                  Paver Surface Area (sq ft)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Enter surface area for pavers"
+                  value={paverSurfaceArea}
+                  onChange={(e) => setPaverSurfaceArea(e.target.value)}
+                  className="mb-2"
+                />
+                {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
+                  <div className="text-xs text-green-600 font-medium">
+                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()} (${paverSurfaceArea} sq ft × $15/sq ft)
+                  </div>
+                )}
+              </div>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
                   {paverOptions.map((paver) => (
@@ -640,7 +673,24 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
 
             {/* Coping Pavers Options */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Coping Pavers</h4>
+              <h4 className="font-semibold text-foreground">Coping Pavers & Surface Area Calculator</h4>
+              <div className="mb-3">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                  Coping Surface Area (sq ft)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Enter surface area for coping"
+                  value={copingSurfaceArea}
+                  onChange={(e) => setCopingSurfaceArea(e.target.value)}
+                  className="mb-2"
+                />
+                {copingSurfaceArea && !isNaN(parseFloat(copingSurfaceArea)) && (
+                  <div className="text-xs text-green-600 font-medium">
+                    Calculated Cost: ${(parseFloat(copingSurfaceArea) * 15).toLocaleString()} (${copingSurfaceArea} sq ft × $15/sq ft)
+                  </div>
+                )}
+              </div>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
                   {copingPaverOptions.map((coping) => (
@@ -942,7 +992,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                   className="flex-1"
                   size="sm"
                 >
-                  Quote
+                  Download Quote
                 </Button>
               </div>
               
@@ -954,7 +1004,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                   size="sm"
                 >
                   <ShoppingCart className="h-4 w-4 mr-2" />
-                  Add to Cart
+                  Cart
                 </Button>
                 <StripeCheckoutButton
                   productId={`pool_${pool.model.replace(/\s+/g, '_')}`}
@@ -966,33 +1016,90 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                   showFinancingOptions={false}
                 />
               </div>
-              
-              {/* Financing Option */}
-              <div className="mt-2">
-                <StripeCheckoutButton
-                  productId={`pool_${pool.model.replace(/\s+/g, '_')}`}
-                  productName={pool.model}
-                  price={calculateTotalPrice()}
-                  variant="outline"
-                  className="w-full"
-                  size="sm"
-                  showFinancingOptions={true}
-                />
+            </div>
+            
+            {/* Bottom Dashboard - Integrated Financing */}
+            <div className="mt-4 p-4 bg-gradient-to-r from-teal/5 to-primary/5 rounded-lg border border-teal/20">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h5 className="font-semibold text-sm text-foreground">Finance This Purchase</h5>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowFinancing(!showFinancing)}
+                    className="text-xs"
+                  >
+                    {showFinancing ? 'Hide' : 'Show'} Options
+                  </Button>
+                </div>
+                
+                {showFinancing && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="text-center p-2 bg-white/50 rounded">
+                        <div className="font-semibold">12 Months</div>
+                        <div className="text-teal-600">${(calculateTotalPrice() / 12).toLocaleString()}/mo</div>
+                      </div>
+                      <div className="text-center p-2 bg-white/50 rounded">
+                        <div className="font-semibold">24 Months</div>
+                        <div className="text-teal-600">${(calculateTotalPrice() / 24).toLocaleString()}/mo</div>
+                      </div>
+                    </div>
+                    
+                    <StripeCheckoutButton
+                      productId={`pool_${pool.model.replace(/\s+/g, '_')}`}
+                      productName={pool.model}
+                      price={calculateTotalPrice()}
+                      variant="outline"
+                      className="w-full"
+                      size="sm"
+                      showFinancingOptions={true}
+                    />
+                    
+                    <div className="text-xs text-muted-foreground text-center">
+                      *Financing subject to credit approval. APR varies.
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             </div>
         )}
         
-        {/* Default Action Button */}
+        {/* Default Action Buttons */}
         {!showDetails && (
-          <Button 
-            onClick={handleImageClick}
-            variant="gradient"
-            className="w-full hover:scale-105 transition-all duration-300"
-            size="sm"
-          >
-            View Details
-          </Button>
+          <div className="space-y-2">
+            <Button 
+              onClick={() => {
+                const params = new URLSearchParams({
+                  model: pool.model,
+                  price: pool.price.toString(),
+                  category: pool.category,
+                  ...(pool.image && { image: pool.image }),
+                  ...(pool.dimensions && { dimensions: pool.dimensions }),
+                  ...(pool.depth && { depth: pool.depth }),
+                  ...(pool.installationTimeWeeks && { installationTimeWeeks: pool.installationTimeWeeks.toString() }),
+                  ...(pool.warrantyYears && { warrantyYears: pool.warrantyYears.toString() }),
+                  saltSystem: pool.saltSystem?.toString() || 'false',
+                  carbonFiber: pool.carbonFiber?.toString() || 'false'
+                });
+                window.open(`/pool/${pool.model.replace(/\s+/g, '-').toLowerCase()}?${params.toString()}`, '_blank');
+              }}
+              variant="outline"
+              className="w-full"
+              size="sm"
+            >
+              Editor Studio
+            </Button>
+            <Button 
+              onClick={handleImageClick}
+              variant="gradient"
+              className="w-full hover:scale-105 transition-all duration-300"
+              size="sm"
+            >
+              View Details
+            </Button>
+          </div>
         )}
       </CardContent>
       

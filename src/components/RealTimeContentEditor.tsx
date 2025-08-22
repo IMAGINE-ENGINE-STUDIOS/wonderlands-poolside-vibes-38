@@ -233,6 +233,7 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
   const [showSurfaceAreaDialog, setShowSurfaceAreaDialog] = useState(false);
   const [surfaceArea, setSurfaceArea] = useState('');
   const [calculatedCost, setCalculatedCost] = useState(0);
+  const [selectedScreen, setSelectedScreen] = useState('main');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -422,6 +423,29 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
           {/* Right Sidebar - All Tools and Controls */}
           <div className="w-80 bg-white border rounded-lg p-3 flex flex-col space-y-3 overflow-y-auto">
             
+            {/* Screen Navigation */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Screen Navigation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Select value={selectedScreen} onValueChange={setSelectedScreen}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white z-50">
+                    <SelectItem value="main">Main Homepage</SelectItem>
+                    <SelectItem value="pools">Pool Catalog</SelectItem>
+                    <SelectItem value="spas">Spa Section</SelectItem>
+                    <SelectItem value="finishes">Pool Finishes</SelectItem>
+                    <SelectItem value="covers">Automatic Covers</SelectItem>
+                    <SelectItem value="admin">Admin Dashboard</SelectItem>
+                    <SelectItem value="procurement">Procurement System</SelectItem>
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+
             {/* Editor Controls */}
             <Card>
               <CardHeader>
@@ -585,14 +609,15 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
               <CardContent>
                 <div className="space-y-2">
                   {[
-                    { id: 'pools', name: 'Swimming Pools', description: 'Custom pool designs', products: ['Apollo 14', 'Ariel 16', 'Coral 16', 'Astoria 12'] },
                     { id: 'spas', name: 'Spas & Hot Tubs', description: 'Relaxation solutions', products: ['Luxury Spa', 'Corner Spa', 'Family Spa'] },
                     { id: 'pavers', name: 'Pavers', description: '$15/sq ft (incl. installation)', products: ['Travertine Pavers', 'Concrete Pavers', 'Natural Stone'] },
                     { id: 'copings', name: 'Copings', description: '$15/sq ft (incl. installation)', products: ['Pool Coping Edge', 'Decorative Coping', 'Safety Coping'] },
                     { id: 'tiles', name: 'Pool Tiles', description: 'Decorative finishes', products: ['Ceramic Tiles', 'Glass Tiles', 'Natural Stone Tiles'] },
-                    { id: 'covers', name: 'Pool Covers', description: 'Safety & maintenance', products: ['Automatic Cover', 'Safety Cover', 'Solar Cover'] },
+                    { id: 'covers', name: 'Pool Covers', description: 'Safety & maintenance', products: ['NO COVER', 'Automatic Cover', 'Safety Cover', 'Solar Cover'] },
                     { id: 'lighting', name: 'LED Lighting', description: 'Ambiance & safety', products: ['Underwater LED', 'Landscape Lighting', 'Color Changing Lights'] },
                     { id: 'heating', name: 'Pool Heating', description: 'Extend swimming season', products: ['Heat Pump', 'Solar Heater', 'Gas Heater'] },
+                    { id: 'liners', name: 'Pool Liners', description: 'Premium finishes', products: ['Vinyl Liner', 'Pattern Liner', 'Designer Liner'] },
+                    { id: 'automation', name: 'Pool Automation', description: 'Smart controls', products: ['Control System', 'Mobile App', 'Voice Control'] },
                   ].map((category) => (
                     <div key={category.id} className="border rounded-lg p-2">
                       <Button
@@ -607,29 +632,35 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
                       </Button>
                       
                       {selectedCategory === category.id && (
-                        <div className="space-y-1 ml-2">
-                          {category.products.map((product, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-center gap-2 p-2 bg-gray-50 rounded cursor-grab hover:bg-gray-100 transition-colors"
-                              draggable
-                              onDragStart={(e) => {
-                                e.dataTransfer.setData('text/plain', JSON.stringify({
-                                  type: 'product',
-                                  content: product,
-                                  category: category.name
-                                }));
-                              }}
-                            >
-                              <MousePointer className="h-3 w-3 text-gray-400" />
-                              <span className="text-xs font-medium">{product}</span>
-                              <ArrowRight className="h-3 w-3 text-gray-400 ml-auto" />
-                            </div>
-                          ))}
-                          <div className="text-xs text-gray-500 mt-2 italic">
-                            Drag products to add them to the page
-                          </div>
-                        </div>
+                         <div className="space-y-1 ml-2">
+                           {category.products.map((product, idx) => (
+                             <div
+                               key={idx}
+                               className="flex items-center gap-2 p-2 bg-gray-50 rounded cursor-grab hover:bg-gray-100 transition-colors border-l-2 border-transparent hover:border-blue-400"
+                               draggable
+                               onDragStart={(e) => {
+                                 e.dataTransfer.setData('text/plain', JSON.stringify({
+                                   type: 'product',
+                                   content: product,
+                                   category: category.name,
+                                   price: category.id === 'pavers' || category.id === 'copings' ? 15 : Math.floor(Math.random() * 5000) + 1000
+                                 }));
+                               }}
+                               onDragEnd={(e) => {
+                                 // Auto-add to page when dropped
+                                 const rect = e.currentTarget.getBoundingClientRect();
+                                 addCustomElement('product', `${category.name}: ${product}`);
+                               }}
+                             >
+                               <MousePointer className="h-3 w-3 text-gray-400" />
+                               <span className="text-xs font-medium">{product}</span>
+                               <ArrowRight className="h-3 w-3 text-gray-400 ml-auto" />
+                             </div>
+                           ))}
+                           <div className="text-xs text-gray-500 mt-2 italic">
+                             ✨ Drag anywhere on the page to add products instantly
+                           </div>
+                         </div>
                       )}
                     </div>
                   ))}
