@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Plus, Package, ArrowUpDown } from 'lucide-react';
+import { Search, Plus, Package, ArrowUpDown, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import PoolProductCard from './PoolProductCard';
+import EditableProductPreview from './EditableProductPreview';
 
 interface Product {
   id: string;
@@ -17,24 +18,25 @@ interface Product {
   category: string;
   subcategory?: string;
   image?: string;
+  image_url?: string;
   description?: string;
   dimensions?: string;
   depth?: string;
   features?: string[];
-  galaPoints?: number;
-  galaCategory?: string;
-  installationTimeWeeks?: number;
-  warrantyYears?: number | string;
+  gala_points?: number;
+  gala_category?: string;
+  installation_time_weeks?: number;
+  warranty_years?: number | string;
   heater?: boolean;
-  saltSystem?: boolean;
-  carbonFiber?: boolean;
+  salt_system?: boolean;
+  carbon_fiber?: boolean;
   finishes?: string[];
   liners?: string[];
   covers?: string[];
-  stockQuantity?: number;
+  stock_quantity?: number;
   brand?: string;
   sku?: string;
-  isActive: boolean;
+  is_active: boolean;
   source?: string;
 }
 
@@ -46,6 +48,8 @@ export const StandardizedProductManager = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   
   const { toast } = useToast();
 
@@ -84,21 +88,22 @@ export const StandardizedProductManager = () => {
         price: pool.price,
         category: 'pools',
         subcategory: pool.category,
-        image: pool.image_url,
+        image_url: pool.image_url,
         dimensions: pool.dimensions,
         depth: pool.depth,
         features: pool.features || [],
-        galaPoints: pool.gala_points,
-        galaCategory: pool.gala_category,
-        installationTimeWeeks: pool.installation_time_weeks,
-        warrantyYears: pool.warranty_years,
+        gala_points: pool.gala_points,
+        gala_category: pool.gala_category,
+        installation_time_weeks: pool.installation_time_weeks,
+        warranty_years: pool.warranty_years,
         heater: pool.heater,
-        saltSystem: pool.salt_system,
-        carbonFiber: pool.carbon_fiber,
+        salt_system: pool.salt_system,
+        carbon_fiber: pool.carbon_fiber,
         finishes: pool.finishes || [],
         liners: pool.liners || [],
         covers: pool.covers || [],
-        isActive: pool.is_active,
+        stock_quantity: 100, // Default for pools
+        is_active: pool.is_active,
         source: 'pools_table'
       }));
 
@@ -109,15 +114,15 @@ export const StandardizedProductManager = () => {
         price: product.price,
         category: product.category,
         subcategory: product.subcategory,
-        image: product.image_url,
+        image_url: product.image_url,
         description: product.description,
         features: Array.isArray(product.features_json) 
           ? product.features_json.filter((f): f is string => typeof f === 'string')
           : [],
         brand: product.brand,
         sku: product.sku,
-        stockQuantity: product.stock_quantity,
-        isActive: product.is_active,
+        stock_quantity: product.stock_quantity,
+        is_active: product.is_active,
         source: 'products_table'
       }));
 
@@ -129,7 +134,8 @@ export const StandardizedProductManager = () => {
       toast({
         title: "Error",
         description: "Failed to load products",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000
       });
     } finally {
       setLoading(false);
@@ -191,8 +197,19 @@ export const StandardizedProductManager = () => {
     );
     toast({
       title: "Success",
-      description: "Product updated successfully"
+      description: "Product updated successfully",
+      duration: 3000
     });
+  };
+
+  const handleProductPreview = (product: Product) => {
+    setSelectedProduct(product);
+    setShowPreview(true);
+  };
+
+  const handlePreviewUpdate = (updatedProduct: Product) => {
+    handleProductUpdate(updatedProduct);
+    setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
   };
 
   const categories = [...new Set(products.map(p => p.category))];
@@ -270,41 +287,43 @@ export const StandardizedProductManager = () => {
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredProducts.map((product) => (
-          <PoolProductCard
-            key={product.id}
-            pool={{
-              model: product.name,
-              price: product.price,
-              category: product.subcategory as any || 'standard',
-              image: product.image,
-              dimensions: product.dimensions,
-              depth: product.depth,
-              features: product.features,
-              galaPoints: product.galaPoints,
-              galaCategory: product.galaCategory,
-              installationTimeWeeks: product.installationTimeWeeks,
-              warrantyYears: product.warrantyYears,
-              heater: product.heater,
-              saltSystem: product.saltSystem,
-              carbonFiber: product.carbonFiber,
-              finishes: product.finishes,
-              liners: product.liners,
-              covers: product.covers
-            }}
-            onViewDetails={(pool) => {
-              toast({
-                title: "Product Details",
-                description: `Viewing ${pool.model}`
-              });
-            }}
-            onRequestQuote={(pool) => {
-              toast({
-                title: "Quote Request",
-                description: `Quote requested for ${pool.model}`
-              });
-            }}
-            isAdmin={true}
-          />
+          <div key={product.id} className="relative group">
+            <PoolProductCard
+              pool={{
+                model: product.name,
+                price: product.price,
+                category: product.subcategory as any || 'standard',
+                image: product.image_url,
+                dimensions: product.dimensions,
+                depth: product.depth,
+                features: product.features,
+                galaPoints: product.gala_points,
+                galaCategory: product.gala_category,
+                installationTimeWeeks: product.installation_time_weeks,
+                warrantyYears: product.warranty_years,
+                heater: product.heater,
+                saltSystem: product.salt_system,
+                carbonFiber: product.carbon_fiber,
+                finishes: product.finishes,
+                liners: product.liners,
+                covers: product.covers
+              }}
+              onViewDetails={() => handleProductPreview(product)}
+              onRequestQuote={() => console.log('Request quote:', product)}
+              isAdmin={true}
+            />
+            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => handleProductPreview(product)}
+                className="shadow-lg"
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+            </div>
+          </div>
         ))}
       </div>
 
@@ -319,6 +338,18 @@ export const StandardizedProductManager = () => {
             }
           </p>
         </div>
+      )}
+      
+      {/* Product Preview Modal */}
+      {showPreview && selectedProduct && (
+        <EditableProductPreview
+          product={selectedProduct}
+          onUpdate={handlePreviewUpdate}
+          onClose={() => {
+            setShowPreview(false);
+            setSelectedProduct(null);
+          }}
+        />
       )}
     </div>
   );

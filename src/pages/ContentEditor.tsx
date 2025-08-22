@@ -42,6 +42,7 @@ import {
   Moon,
   Sun
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Lazy-loaded components
 const Hero = lazy(() => import("@/components/Hero"));
@@ -498,519 +499,477 @@ const ContentEditor = () => {
     });
   };
 
-  const loadDraft = () => {
-    const saved = localStorage.getItem('contentEditorDraft');
-    if (saved) {
-      setElements(JSON.parse(saved));
-      showToast({
-        title: "Draft Loaded",
-        description: "Previously saved draft has been loaded",
-      });
-    }
-  };
-
-  const handleScreenChange = (screenValue: string) => {
-    setSelectedScreen(screenValue);
-    setIsLivePreview(true);
-    
-    showToast({
-      title: "Screen Preview",
-      description: `Loading ${screens.find(s => s.value === screenValue)?.label} preview...`,
-    });
-  };
-
   return (
-    <div className="h-screen bg-gradient-to-br from-background via-muted/5 to-background flex flex-col">
-      {/* Simplified Header */}
-      <div className="border-b bg-card/80 backdrop-blur-md px-6 py-4 shadow-sm shrink-0">
-        <div className="flex items-center justify-between">
-          {/* Left Section */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-xl">
-                <Edit3 className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">Content Editor</h1>
-                <p className="text-sm text-muted-foreground">Design mode active</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Center Controls */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 p-1 bg-muted/50 rounded-lg">
-              <Button
-                variant={editMode ? "default" : "ghost"}
-                size="sm"
-                onClick={() => {
-                  setEditMode(!editMode);
-                  showToast({
-                    title: editMode ? "Edit Mode Disabled" : "Edit Mode Enabled",
-                    description: editMode ? "Click elements to edit them" : "Edit mode is now active"
-                  });
-                }}
-                className="px-3"
-                title="Toggle edit mode - click elements to edit when enabled"
-              >
-                <Edit3 className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Button
-                variant={selectedDevice === 'desktop' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => {
-                  setSelectedDevice('desktop');
-                  showToast({
-                    title: "Desktop View",
-                    description: "Switched to desktop preview"
-                  });
-                }}
-                title="Desktop view - full width preview"
-              >
-                <Monitor className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={selectedDevice === 'tablet' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => {
-                  setSelectedDevice('tablet');
-                  showToast({
-                    title: "Tablet View",
-                    description: "Switched to tablet preview"
-                  });
-                }}
-                title="Tablet view - medium width preview"
-              >
-                <Tablet className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={selectedDevice === 'mobile' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => {
-                  setSelectedDevice('mobile');
-                  showToast({
-                    title: "Mobile View",
-                    description: "Switched to mobile preview"
-                  });
-                }}
-                title="Mobile view - small width preview"
-              >
-                <Smartphone className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Right Section */}
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const newDarkMode = !isDarkMode;
-                setIsDarkMode(newDarkMode);
-                if (newDarkMode) {
-                  document.documentElement.classList.add('dark');
-                } else {
-                  document.documentElement.classList.remove('dark');
-                }
-                showToast({
-                  title: newDarkMode ? "Dark Mode Enabled" : "Light Mode Enabled",
-                  description: `Switched to ${newDarkMode ? 'dark' : 'light'} theme`
-                });
-              }}
-              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-            
-            {pendingChanges > 0 && (
-              <Badge variant="secondary" className="animate-pulse">
-                {pendingChanges} changes
-              </Badge>
-            )}
-            
-            <Button
-              onClick={publishChanges}
-              disabled={pendingChanges === 0}
-              size="sm"
-              className="px-4"
-              title={`Publish ${pendingChanges} pending changes to live site`}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Publish
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Main Editor Area */}
-        <div className="flex-1 bg-background relative overflow-auto">
-          <div className="absolute top-4 left-4 z-40 flex gap-2">
-            <Badge variant="outline" className="bg-card/90 backdrop-blur-sm">
-              {selectedDevice} • {selectedScreen}
-            </Badge>
-            {editMode && !isPreviewMode && (
-              <Badge className="bg-primary text-primary-foreground">
-                Edit Mode Active
-              </Badge>
-            )}
-            {isPreviewMode && (
-              <Badge className="bg-green-500 text-white">
-                Preview Mode - Interactions Disabled
-              </Badge>
-            )}
-          </div>
-          <SitePreview
-            elements={elements}
-            onElementClick={handleElementClick}
-            editMode={editMode && !isPreviewMode}
-            showOutlines={showOutlines}
-            selectedDevice={selectedDevice}
-            selectedScreen={selectedScreen}
-            isPreviewMode={isPreviewMode}
-          />
-        </div>
-
-        {/* Sidebar Tools */}
-        <div className="w-80 lg:w-96 bg-card/50 backdrop-blur-sm border-l p-4 flex flex-col space-y-4 overflow-y-auto">
-          
-          {/* Quick Navigation */}
-          <Card className="glass-card">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Globe className="h-4 w-4 text-primary" />
-                Page Navigation
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select value={selectedScreen} onValueChange={handleScreenChange}>
-                <SelectTrigger className="bg-card">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-card border z-50">
-                  {screens.map(screen => (
-                    <SelectItem key={screen.value} value={screen.value}>
-                      {screen.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-
-          {/* Edit Controls */}
-          <Card className="glass-card">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Settings className="h-4 w-4 text-primary" />
-                Edit Controls
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex gap-2">
-                <Button 
-                  onClick={() => {
-                    setShowOutlines(!showOutlines);
-                    showToast({
-                      title: showOutlines ? "Outlines Hidden" : "Outlines Shown",
-                      description: showOutlines ? "Element borders are now hidden" : "Element borders are now visible"
-                    });
-                  }}
-                  variant={showOutlines ? "default" : "outline"}
-                  size="sm"
-                  className="flex-1"
-                  title="Toggle element outlines visibility"
-                >
-                  {showOutlines ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                </Button>
-                <Button 
-                  onClick={() => {
-                    setIsLivePreview(!isLivePreview);
-                    showToast({
-                      title: isLivePreview ? "Live Preview Disabled" : "Live Preview Enabled",
-                      description: isLivePreview ? "Changes will be applied manually" : "Changes will be applied in real-time"
-                    });
-                  }}
-                  variant={isLivePreview ? "default" : "outline"}
-                  size="sm" 
-                  className="flex-1"
-                  title="Toggle live preview mode"
-                >
-                  <RefreshCw className="h-3 w-3" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Add Elements */}
-          <Card className="glass-card">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Plus className="h-4 w-4 text-primary" />
-                Add Elements
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  onClick={() => {
-                    addCustomElement('text', 'New text');
-                    showToast({
-                      title: "Text Added",
-                      description: "New text element added to page"
-                    });
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="justify-center"
-                  title="Add text element"
-                >
-                  <Type className="h-4 w-4" />
-                </Button>
-                <Button
-                  onClick={() => {
-                    addCustomElement('heading', 'New Heading');
-                    showToast({
-                      title: "Heading Added",
-                      description: "New heading element added to page"
-                    });
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="justify-center"
-                  title="Add heading element"
-                >
-                  <Layout className="h-4 w-4" />
-                </Button>
-                <Button
-                  onClick={() => {
-                    addCustomElement('button', 'Click Me');
-                    showToast({
-                      title: "Button Added",
-                      description: "New button element added to page"
-                    });
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="justify-center"
-                  title="Add button element"
-                >
-                  <MousePointer className="h-4 w-4" />
-                </Button>
-                <Button
-                  onClick={() => fileInputRef.current?.click()}
-                  variant="outline"
-                  size="sm"
-                  className="justify-center"
-                  title="Upload and add image"
-                >
-                  <Upload className="h-4 w-4" />
-                </Button>
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-            </CardContent>
-          </Card>
-
-
-          {/* Product Library */}
-          <Card className="flex-1 glass-card">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Database className="h-4 w-4 text-primary" />
-                Product Library
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="text-sm bg-card">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-card border z-50">
-                  {categories.map(cat => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
-                {loadingProducts ? (
-                  <div className="text-center py-6">
-                    <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-primary" />
-                    <p className="text-xs text-muted-foreground">Loading...</p>
+    <TooltipProvider>
+      <div className="min-h-screen bg-background">
+        {/* Simplified Top Dashboard */}
+        <div className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-teal bg-clip-text text-transparent">
+                  Content Editor
+                </h1>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Globe className="h-4 w-4 mr-1" />
+                    Live Preview
                   </div>
-                ) : products.length > 0 ? (
-                  products.map((product) => (
-                    <div
-                      key={product.id}
-                      className="border rounded-lg p-3 bg-card/50 hover:bg-card transition-colors cursor-pointer group"
-                      onClick={() => addProductElement(product)}
+                  {pendingChanges > 0 && (
+                    <Badge variant="secondary">{pendingChanges} pending</Badge>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {/* Dark Mode Toggle */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => setIsDarkMode(!isDarkMode)}
+                      variant="outline"
+                      size="sm"
                     >
-                      {product.image_url && (
-                        <img 
-                          src={product.image_url} 
-                          alt={product.name}
-                          className="w-full h-16 object-cover rounded mb-2"
-                        />
-                      )}
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-xs truncate group-hover:text-primary transition-colors">{product.name}</h4>
-                          <p className="text-xs text-green-600 font-semibold">
-                            ${product.price.toLocaleString()}
-                          </p>
-                          <Badge variant="outline" className="text-xs mt-1">
-                            {product.category}
-                          </Badge>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-6 w-6 p-0 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            addProductElement(product);
-                          }}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-6">
-                    <Package className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-xs text-muted-foreground">
-                      No products available
-                    </p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Actions */}
-          <Card className="glass-card">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Save className="h-4 w-4 text-primary" />
-                Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  onClick={saveAsDraft}
-                  variant="outline"
-                  size="sm"
-                  title="Save current changes as draft"
-                >
-                  <Save className="h-3 w-3" />
-                </Button>
-                <Button 
-                  onClick={loadDraft}
-                  variant="outline"
-                  size="sm"
-                  title="Load previously saved draft"
-                >
-                  <RefreshCw className="h-3 w-3" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Edit Element Dialog */}
-      <Dialog open={editDialog} onOpenChange={setEditDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Element</DialogTitle>
-          </DialogHeader>
-          {selectedElement && (
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Content</label>
-                <Textarea
-                  value={selectedElement.content}
-                  onChange={(e) => setSelectedElement({
-                    ...selectedElement,
-                    content: e.target.value
-                  })}
-                  className="mt-1"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Width</label>
-                  <Input
-                    type="number"
-                    value={selectedElement.size?.width || 300}
-                    onChange={(e) => setSelectedElement({
-                      ...selectedElement,
-                      size: {
-                        ...selectedElement.size,
-                        width: parseInt(e.target.value) || 300,
-                        height: selectedElement.size?.height || 100
-                      }
-                    })}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Height</label>
-                  <Input
-                    type="number"
-                    value={selectedElement.size?.height || 100}
-                    onChange={(e) => setSelectedElement({
-                      ...selectedElement,
-                      size: {
-                        ...selectedElement.size,
-                        width: selectedElement.size?.width || 300,
-                        height: parseInt(e.target.value) || 100
-                      }
-                    })}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => {
-                    if (selectedElement) {
-                      updateElement(selectedElement);
-                      setEditDialog(false);
-                    }
-                  }}
-                  className="flex-1"
-                >
-                  Save Changes
-                </Button>
-                <Button
-                  onClick={() => setEditDialog(false)}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
+                      {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Toggle Dark Mode</TooltipContent>
+                </Tooltip>
+                
+                {/* Edit Mode Toggle */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => setEditMode(!editMode)}
+                      variant={editMode ? "default" : "outline"}
+                      size="sm"
+                    >
+                      <Edit3 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Toggle Edit Mode</TooltipContent>
+                </Tooltip>
+                
+                {/* Device Preview */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Select value={selectedDevice} onValueChange={setSelectedDevice}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="desktop">
+                          <div className="flex items-center gap-2">
+                            <Monitor className="h-4 w-4" />
+                            Desktop
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="tablet">
+                          <div className="flex items-center gap-2">
+                            <Tablet className="h-4 w-4" />
+                            Tablet
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="mobile">
+                          <div className="flex items-center gap-2">
+                            <Smartphone className="h-4 w-4" />
+                            Mobile
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TooltipTrigger>
+                  <TooltipContent>Select Device View</TooltipContent>
+                </Tooltip>
+                
+                {/* Screen Selection */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Select value={selectedScreen} onValueChange={setSelectedScreen}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {screens.map(screen => (
+                          <SelectItem key={screen.value} value={screen.value}>
+                            {screen.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TooltipTrigger>
+                  <TooltipContent>Select Page to Edit</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button onClick={publishChanges} disabled={pendingChanges === 0}>
+                      <Globe className="h-4 w-4 mr-2" />
+                      Publish {pendingChanges > 0 && `(${pendingChanges})`}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Publish Changes to Live Site</TooltipContent>
+                </Tooltip>
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+          </div>
+        </div>
+
+        <div className="flex flex-1">
+          {/* Left Sidebar - Tools and Controls */}
+          <div className="w-80 border-r bg-muted/30 p-4 space-y-6 overflow-y-auto max-h-[calc(100vh-80px)]">
+            {/* Content Tools */}
+            <div className="p-4 border-b">
+              <h3 className="font-semibold mb-3">Content Tools</h3>
+              <div className="space-y-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => addCustomElement('text', 'New Text')}
+                    >
+                      <Type className="h-4 w-4 mr-2" />
+                      Add Text
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Add editable text element</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => addCustomElement('heading', 'New Heading')}
+                    >
+                      <Type className="h-4 w-4 mr-2" />
+                      Add Heading
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Add heading with custom styling</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Image className="h-4 w-4 mr-2" />
+                      Add Image
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Upload and add image to page</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => addCustomElement('button', 'Click Me')}
+                    >
+                      <MousePointer className="h-4 w-4 mr-2" />
+                      Add Button
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Add interactive button element</TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+
+            {/* Product Library */}
+            <div className="p-4 border-b">
+              <h3 className="font-semibold mb-3">Product Library</h3>
+              <div className="space-y-2">
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map(cat => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <div className="max-h-60 overflow-y-auto">
+                  {loadingProducts ? (
+                    <div className="text-center py-4">Loading products...</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {products.map(product => (
+                        <Button
+                          key={product.id}
+                          variant="outline"
+                          className="w-full justify-start text-left h-auto p-3"
+                          onClick={() => addProductElement(product)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Package className="h-4 w-4 text-primary flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-sm font-medium">{product.name}</div>
+                              <div className="text-xs text-muted-foreground">
+                                ${product.price.toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Settings Panel */}
+            <div className="p-4 border-b">
+              <h3 className="font-semibold mb-3">Page Settings</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Show Outlines</span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant={showOutlines ? "default" : "outline"}
+                        onClick={() => setShowOutlines(!showOutlines)}
+                      >
+                        <Layout className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Toggle element outlines</TooltipContent>
+                  </Tooltip>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Live Preview</span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant={isLivePreview ? "default" : "outline"}
+                        onClick={() => setIsLivePreview(!isLivePreview)}
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Toggle live preview updates</TooltipContent>
+                  </Tooltip>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Preview Mode</span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant={isPreviewMode ? "default" : "outline"}
+                        onClick={() => setIsPreviewMode(!isPreviewMode)}
+                      >
+                        {isPreviewMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Disable interactions in preview</TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="p-4">
+              <div className="space-y-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button className="w-full" onClick={saveAsDraft}>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Draft
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Save current changes as draft</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy Page
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Duplicate current page</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      <Database className="h-4 w-4 mr-2" />
+                      Backup
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Create backup of all content</TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side - Preview Area */}
+          <div className="flex-1 bg-white">
+            <SitePreview
+              elements={elements}
+              onElementClick={handleElementClick}
+              editMode={editMode}
+              showOutlines={showOutlines}
+              selectedDevice={selectedDevice}
+              selectedScreen={selectedScreen}
+              isPreviewMode={isPreviewMode}
+            />
+          </div>
+        </div>
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          className="hidden"
+        />
+
+        {/* Edit Dialog */}
+        <Dialog open={editDialog} onOpenChange={setEditDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Element</DialogTitle>
+            </DialogHeader>
+            {selectedElement && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Content</label>
+                  <Textarea
+                    value={selectedElement.content}
+                    onChange={(e) => setSelectedElement({...selectedElement, content: e.target.value})}
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-sm font-medium">Position X</label>
+                    <Input
+                      type="number"
+                      value={selectedElement.position.x}
+                      onChange={(e) => setSelectedElement({
+                        ...selectedElement, 
+                        position: {...selectedElement.position, x: parseInt(e.target.value) || 0}
+                      })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Position Y</label>
+                    <Input
+                      type="number"
+                      value={selectedElement.position.y}
+                      onChange={(e) => setSelectedElement({
+                        ...selectedElement, 
+                        position: {...selectedElement.position, y: parseInt(e.target.value) || 0}
+                      })}
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-sm font-medium">Width</label>
+                    <Input
+                      type="number"
+                      value={selectedElement.size?.width || 300}
+                      onChange={(e) => setSelectedElement({
+                        ...selectedElement, 
+                        size: {...selectedElement.size, width: parseInt(e.target.value) || 300}
+                      })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Height</label>
+                    <Input
+                      type="number"
+                      value={selectedElement.size?.height || 100}
+                      onChange={(e) => setSelectedElement({
+                        ...selectedElement, 
+                        size: {...selectedElement.size, height: parseInt(e.target.value) || 100}
+                      })}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Background Color</label>
+                  <Input
+                    type="color"
+                    onChange={(e) => {
+                      const currentStyles = selectedElement.styles || '';
+                      const newStyles = currentStyles.replace(/bg-\[\#[a-fA-F0-9]{6}\]/g, '') + ` bg-[${e.target.value}]`;
+                      setSelectedElement({...selectedElement, styles: newStyles.trim()});
+                    }}
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Text Size</label>
+                  <Select 
+                    value={selectedElement.styles?.includes('text-') ? 
+                      selectedElement.styles.match(/text-(xs|sm|base|lg|xl|2xl|3xl|4xl)/)?.[0] || 'text-base' : 'text-base'
+                    }
+                    onValueChange={(value) => {
+                      const currentStyles = selectedElement.styles || '';
+                      const newStyles = currentStyles.replace(/text-(xs|sm|base|lg|xl|2xl|3xl|4xl)/g, '') + ` ${value}`;
+                      setSelectedElement({...selectedElement, styles: newStyles.trim()});
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="text-xs">Extra Small</SelectItem>
+                      <SelectItem value="text-sm">Small</SelectItem>
+                      <SelectItem value="text-base">Base</SelectItem>
+                      <SelectItem value="text-lg">Large</SelectItem>
+                      <SelectItem value="text-xl">Extra Large</SelectItem>
+                      <SelectItem value="text-2xl">2XL</SelectItem>
+                      <SelectItem value="text-3xl">3XL</SelectItem>
+                      <SelectItem value="text-4xl">4XL</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Custom Styles</label>
+                  <Input
+                    value={selectedElement.styles || ''}
+                    onChange={(e) => setSelectedElement({...selectedElement, styles: e.target.value})}
+                    placeholder="CSS classes..."
+                  />
+                </div>
+                
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setEditDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={() => {
+                    updateElement(selectedElement);
+                    setEditDialog(false);
+                  }}>
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
+    </TooltipProvider>
   );
 };
 

@@ -173,6 +173,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
   const [showDetails, setShowDetails] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [currentPoolImage, setCurrentPoolImage] = useState(pool.image);
+  const [isEditable, setIsEditable] = useState(isAdmin);
   const [extras, setExtras] = useState<PoolExtras>({
     liner: false,
     heater: false,
@@ -397,7 +398,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
         </div>
         
         {/* Image Edit Button - Only visible for admins */}
-        {isAdmin && (
+        {isAdmin && isEditable && (
           <Button
             size="sm"
             variant="secondary"
