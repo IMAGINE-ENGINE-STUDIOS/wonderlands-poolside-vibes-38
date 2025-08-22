@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ShoppingCart, { useShoppingCart } from "@/components/ShoppingCart";
@@ -174,94 +173,94 @@ const SitePreview = ({ elements, onElementClick, editMode, showOutlines, selecte
     }
   };
 
-  return (
-    <div className={`${getDeviceStyles()} bg-background min-h-full overflow-auto transition-all relative ${isPreviewMode ? 'pointer-events-none' : ''}`}>
-      <div className={isPreviewMode ? 'pointer-events-none' : ''}>
-        <Header />
-      </div>
-      
-      <Suspense fallback={<div className="p-8 text-center" aria-busy="true">Loading...</div>}> 
-        <FloridaPoolElements />
-      </Suspense>
-      
-      {!isPreviewMode && (
-        <div className="fixed top-20 right-4 z-50">
-          <Button
-            onClick={() => setShowCart(true)}
-            variant="secondary"
-            size="icon"
-            className="shadow-lg relative"
-          >
-            <CartIcon className="h-4 w-4" />
-            {getCartCount() > 0 && (
-              <Badge className="absolute -top-2 -right-2 px-1 min-w-5 h-5 text-xs">
-                {getCartCount()}
-              </Badge>
-            )}
-          </Button>
+    return (
+      <div className={`${getDeviceStyles()} bg-background min-h-full overflow-auto transition-all relative ${isPreviewMode ? 'pointer-events-none select-none' : ''}`}>
+        <div className={isPreviewMode ? 'pointer-events-none select-none' : ''}>
+          <Header />
         </div>
-      )}
       
-      <div className={`relative z-10 ${isPreviewMode ? 'pointer-events-none' : ''}`}>
-        <Suspense fallback={<div className="p-8 text-center" aria-busy="true">Loading content...</div>}>
-          {renderScreenContent()}
-          <div className={isPreviewMode ? 'pointer-events-none' : ''}>
-            <Footer />
-          </div>
+        <Suspense fallback={<div className="p-8 text-center" aria-busy="true">Loading...</div>}> 
+          <FloridaPoolElements />
         </Suspense>
-      </div>
       
-      {!isPreviewMode && <ShoppingCart isOpen={showCart} onClose={() => setShowCart(false)} />}
-
-      {/* Dynamic Elements Overlay */}
-      {elements.filter(e => e.id.startsWith('custom-')).map((element) => (
-        <div
-          key={element.id}
-          className={`absolute cursor-move ${element.styles || 'bg-white border border-gray-300 p-4 rounded shadow'} ${
-            editMode && showOutlines ? 'outline-dashed outline-2 outline-red-500' : ''
-          } ${editMode ? 'hover:shadow-lg transition-shadow' : ''}`}
-          style={{
-            left: element.position.x,
-            top: element.position.y,
-            width: element.size?.width,
-            height: element.size?.height,
-          }}
-          onClick={() => editMode && onElementClick(element)}
-          draggable={editMode}
-        >
-          {element.type === 'image' ? (
-            <img 
-              src={element.content} 
-              alt="Custom" 
-              className="w-full h-full object-cover rounded"
-            />
-          ) : element.type === 'product' ? (
-            <div className="border rounded-lg p-3 bg-white shadow-sm max-w-xs">
-              {element.productData?.image_url && (
-                <img 
-                  src={element.productData.image_url} 
-                  alt={element.content}
-                  className="w-full h-32 object-cover rounded mb-2"
-                />
+        {!isPreviewMode && (
+          <div className="fixed top-20 right-4 z-50">
+            <Button
+              onClick={() => setShowCart(true)}
+              variant="secondary"
+              size="icon"
+              className="shadow-lg relative"
+            >
+              <CartIcon className="h-4 w-4" />
+              {getCartCount() > 0 && (
+                <Badge className="absolute -top-2 -right-2 px-1 min-w-5 h-5 text-xs">
+                  {getCartCount()}
+                </Badge>
               )}
-              <div className="flex items-center gap-2 mb-2">
-                <Package className="h-4 w-4 text-blue-500" />
-                <span className="font-medium text-sm">{element.content}</span>
-              </div>
-              {element.productData?.price && (
-                <div className="text-sm text-green-600 font-semibold">
-                  ${element.productData.price.toLocaleString()}
-                </div>
-              )}
-              <div className="text-xs text-gray-500 mt-1">
-                {element.productData?.description || 'Product from marketplace'}
-              </div>
+            </Button>
+          </div>
+        )}
+      
+        <div className={`relative z-10 ${isPreviewMode ? 'pointer-events-none select-none' : ''}`}>
+          <Suspense fallback={<div className="p-8 text-center" aria-busy="true">Loading content...</div>}>
+            {renderScreenContent()}
+            <div className={isPreviewMode ? 'pointer-events-none select-none' : ''}>
+              <Footer />
             </div>
-          ) : (
-            <div>{element.content}</div>
-          )}
+          </Suspense>
+        </div>
+      
+        {!isPreviewMode && <ShoppingCart isOpen={showCart} onClose={() => setShowCart(false)} />}
+
+        {/* Dynamic Elements Overlay */}
+        {elements.filter(e => e.id.startsWith('custom-')).map((element) => (
+          <div
+            key={element.id}
+            className={`absolute cursor-move ${element.styles || 'bg-white border border-gray-300 p-4 rounded shadow'} ${
+              editMode && showOutlines ? 'outline-dashed outline-2 outline-red-500' : ''
+            } ${editMode ? 'hover:shadow-lg transition-shadow' : ''} ${isPreviewMode ? 'pointer-events-none select-none' : ''}`}
+            style={{
+              left: element.position.x,
+              top: element.position.y,
+              width: element.size?.width,
+              height: element.size?.height,
+            }}
+            onClick={() => editMode && !isPreviewMode && onElementClick(element)}
+            draggable={editMode && !isPreviewMode}
+          >
+            {element.type === 'image' ? (
+              <img 
+                src={element.content} 
+                alt="Custom" 
+                className={`w-full h-full object-cover rounded ${isPreviewMode ? 'pointer-events-none' : ''}`}
+              />
+            ) : element.type === 'product' ? (
+              <div className={`border rounded-lg p-3 bg-white shadow-sm max-w-xs ${isPreviewMode ? 'pointer-events-none' : ''}`}>
+                {element.productData?.image_url && (
+                  <img 
+                    src={element.productData.image_url} 
+                    alt={element.content}
+                    className={`w-full h-32 object-cover rounded mb-2 ${isPreviewMode ? 'pointer-events-none' : ''}`}
+                  />
+                )}
+                <div className="flex items-center gap-2 mb-2">
+                  <Package className="h-4 w-4 text-blue-500" />
+                  <span className="font-medium text-sm">{element.content}</span>
+                </div>
+                {element.productData?.price && (
+                  <div className="text-sm text-green-600 font-semibold">
+                    ${element.productData.price.toLocaleString()}
+                  </div>
+                )}
+                <div className="text-xs text-gray-500 mt-1">
+                  {element.productData?.description || 'Product from marketplace'}
+                </div>
+              </div>
+            ) : (
+              <div className={isPreviewMode ? 'pointer-events-none select-none' : ''}>{element.content}</div>
+            )}
           
-          {editMode && (
+          {editMode && !isPreviewMode && (
             <div className="absolute -top-8 right-0 flex gap-1">
               <Button
                 size="sm"
@@ -288,18 +287,18 @@ const SitePreview = ({ elements, onElementClick, editMode, showOutlines, selecte
             </div>
           )}
         </div>
-      ))}
+        ))}
 
-      {editMode && (
-        <div className="fixed inset-0 bg-blue-500/10 pointer-events-none z-40">
-          <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-            Edit Mode Active
+        {editMode && !isPreviewMode && (
+          <div className="fixed inset-0 bg-blue-500/10 pointer-events-none z-40">
+            <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+              Edit Mode Active
+            </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
-};
+        )}
+      </div>
+    );
+  };
 
 const ContentEditor = () => {
   const [editMode, setEditMode] = useState(false);
@@ -544,20 +543,18 @@ const ContentEditor = () => {
               <Button
                 variant={editMode ? "default" : "ghost"}
                 size="sm"
-                onClick={() => setEditMode(!editMode)}
+                onClick={() => {
+                  setEditMode(!editMode);
+                  showToast({
+                    title: editMode ? "Edit Mode Disabled" : "Edit Mode Enabled",
+                    description: editMode ? "Click elements to edit them" : "Edit mode is now active"
+                  });
+                }}
                 className="px-3"
+                title="Toggle edit mode - click elements to edit when enabled"
               >
                 <Edit3 className="h-4 w-4 mr-2" />
                 Edit
-              </Button>
-              <Button
-                variant={isPreviewMode ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setIsPreviewMode(!isPreviewMode)}
-                className="px-3"
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                Preview
               </Button>
             </div>
             
@@ -565,21 +562,42 @@ const ContentEditor = () => {
               <Button
                 variant={selectedDevice === 'desktop' ? 'default' : 'ghost'}
                 size="sm"
-                onClick={() => setSelectedDevice('desktop')}
+                onClick={() => {
+                  setSelectedDevice('desktop');
+                  showToast({
+                    title: "Desktop View",
+                    description: "Switched to desktop preview"
+                  });
+                }}
+                title="Desktop view - full width preview"
               >
                 <Monitor className="h-4 w-4" />
               </Button>
               <Button
                 variant={selectedDevice === 'tablet' ? 'default' : 'ghost'}
                 size="sm"
-                onClick={() => setSelectedDevice('tablet')}
+                onClick={() => {
+                  setSelectedDevice('tablet');
+                  showToast({
+                    title: "Tablet View",
+                    description: "Switched to tablet preview"
+                  });
+                }}
+                title="Tablet view - medium width preview"
               >
                 <Tablet className="h-4 w-4" />
               </Button>
               <Button
                 variant={selectedDevice === 'mobile' ? 'default' : 'ghost'}
                 size="sm"
-                onClick={() => setSelectedDevice('mobile')}
+                onClick={() => {
+                  setSelectedDevice('mobile');
+                  showToast({
+                    title: "Mobile View",
+                    description: "Switched to mobile preview"
+                  });
+                }}
+                title="Mobile view - small width preview"
               >
                 <Smartphone className="h-4 w-4" />
               </Button>
@@ -591,7 +609,20 @@ const ContentEditor = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsDarkMode(!isDarkMode)}
+              onClick={() => {
+                const newDarkMode = !isDarkMode;
+                setIsDarkMode(newDarkMode);
+                if (newDarkMode) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+                showToast({
+                  title: newDarkMode ? "Dark Mode Enabled" : "Light Mode Enabled",
+                  description: `Switched to ${newDarkMode ? 'dark' : 'light'} theme`
+                });
+              }}
+              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
             >
               {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
@@ -607,6 +638,7 @@ const ContentEditor = () => {
               disabled={pendingChanges === 0}
               size="sm"
               className="px-4"
+              title={`Publish ${pendingChanges} pending changes to live site`}
             >
               <Save className="h-4 w-4 mr-2" />
               Publish
@@ -682,18 +714,32 @@ const ContentEditor = () => {
             <CardContent className="space-y-3">
               <div className="flex gap-2">
                 <Button 
-                  onClick={() => setShowOutlines(!showOutlines)}
+                  onClick={() => {
+                    setShowOutlines(!showOutlines);
+                    showToast({
+                      title: showOutlines ? "Outlines Hidden" : "Outlines Shown",
+                      description: showOutlines ? "Element borders are now hidden" : "Element borders are now visible"
+                    });
+                  }}
                   variant={showOutlines ? "default" : "outline"}
                   size="sm"
                   className="flex-1"
+                  title="Toggle element outlines visibility"
                 >
                   {showOutlines ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                 </Button>
                 <Button 
-                  onClick={() => setIsLivePreview(!isLivePreview)}
+                  onClick={() => {
+                    setIsLivePreview(!isLivePreview);
+                    showToast({
+                      title: isLivePreview ? "Live Preview Disabled" : "Live Preview Enabled",
+                      description: isLivePreview ? "Changes will be applied manually" : "Changes will be applied in real-time"
+                    });
+                  }}
                   variant={isLivePreview ? "default" : "outline"}
                   size="sm" 
                   className="flex-1"
+                  title="Toggle live preview mode"
                 >
                   <RefreshCw className="h-3 w-3" />
                 </Button>
@@ -712,26 +758,47 @@ const ContentEditor = () => {
             <CardContent className="space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <Button
-                  onClick={() => addCustomElement('text', 'New text')}
+                  onClick={() => {
+                    addCustomElement('text', 'New text');
+                    showToast({
+                      title: "Text Added",
+                      description: "New text element added to page"
+                    });
+                  }}
                   variant="outline"
                   size="sm"
                   className="justify-center"
+                  title="Add text element"
                 >
                   <Type className="h-4 w-4" />
                 </Button>
                 <Button
-                  onClick={() => addCustomElement('heading', 'New Heading')}
+                  onClick={() => {
+                    addCustomElement('heading', 'New Heading');
+                    showToast({
+                      title: "Heading Added",
+                      description: "New heading element added to page"
+                    });
+                  }}
                   variant="outline"
                   size="sm"
                   className="justify-center"
+                  title="Add heading element"
                 >
                   <Layout className="h-4 w-4" />
                 </Button>
                 <Button
-                  onClick={() => addCustomElement('button', 'Click Me')}
+                  onClick={() => {
+                    addCustomElement('button', 'Click Me');
+                    showToast({
+                      title: "Button Added",
+                      description: "New button element added to page"
+                    });
+                  }}
                   variant="outline"
                   size="sm"
                   className="justify-center"
+                  title="Add button element"
                 >
                   <MousePointer className="h-4 w-4" />
                 </Button>
@@ -740,6 +807,7 @@ const ContentEditor = () => {
                   variant="outline"
                   size="sm"
                   className="justify-center"
+                  title="Upload and add image"
                 >
                   <Upload className="h-4 w-4" />
                 </Button>
@@ -847,6 +915,7 @@ const ContentEditor = () => {
                   onClick={saveAsDraft}
                   variant="outline"
                   size="sm"
+                  title="Save current changes as draft"
                 >
                   <Save className="h-3 w-3" />
                 </Button>
@@ -854,6 +923,7 @@ const ContentEditor = () => {
                   onClick={loadDraft}
                   variant="outline"
                   size="sm"
+                  title="Load previously saved draft"
                 >
                   <RefreshCw className="h-3 w-3" />
                 </Button>

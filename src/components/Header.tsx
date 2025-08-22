@@ -47,6 +47,7 @@ const Header = () => {
                       poolSection.scrollIntoView({ behavior: 'smooth' });
                     }
                   }}
+                  title="Browse our pool catalog"
                 >
                   <span className="hidden sm:inline">View Catalog</span>
                   <span className="sm:hidden">Pools</span>
@@ -57,6 +58,7 @@ const Header = () => {
                     variant="outline" 
                     size="sm" 
                     className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
+                    title="Access procurement and job posting system"
                   >
                     <Briefcase className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="hidden sm:inline">Procurement</span>
@@ -75,6 +77,7 @@ const Header = () => {
                         variant="outline" 
                         size="sm" 
                         className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
+                        title="View your personal dashboard"
                       >
                         <User className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                         <span className="hidden sm:inline">Dashboard</span>
@@ -86,6 +89,7 @@ const Header = () => {
                       size="sm" 
                       className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
                       onClick={signOut}
+                      title="Sign out of your account"
                     >
                       <LogOut className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                       <span className="hidden sm:inline">Logout</span>
@@ -99,6 +103,7 @@ const Header = () => {
                         variant="outline" 
                         size="sm" 
                         className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
+                        title="Sign in to your account"
                       >
                         <User className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                         <span className="hidden sm:inline">Sign In</span>
@@ -110,6 +115,7 @@ const Header = () => {
                       size="sm" 
                       className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
                       onClick={handleAdminAccess}
+                      title="Access admin dashboard"
                     >
                       <Shield className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                       <span className="hidden sm:inline">Admin Dashboard</span>
