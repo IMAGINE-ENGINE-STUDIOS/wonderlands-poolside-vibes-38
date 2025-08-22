@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import EditablePoolProductCard from "./EditablePoolProductCard";
 import EditableProductCard from "./EditableProductCard";
+import ProductPreview from "./ProductPreview";
 
 interface UnifiedProduct {
   id: string;
@@ -362,13 +363,13 @@ const UnifiedAdminProductManager = () => {
                               loadProducts();
                             }}
                           />
-                        ) : (
-                          <EditableProductCard
-                            key={product.id}
-                            product={product}
-                            onUpdate={() => loadProducts()}
-                          />
-                        )
+                          ) : (
+                            <ProductPreview
+                              key={product.id}
+                              product={product}
+                              variant="default"
+                            />
+                          )
                       ))}
                     </div>
                   </div>
@@ -407,13 +408,13 @@ const UnifiedAdminProductManager = () => {
                       loadProducts();
                     }}
                   />
-                ) : (
-                  <EditableProductCard
-                    key={product.id}
-                    product={product}
-                    onUpdate={() => loadProducts()}
-                  />
-                )
+                  ) : (
+                    <ProductPreview
+                      key={product.id}
+                      product={product}
+                      variant="default"
+                    />
+                  )
               ))}
             </div>
           )}
