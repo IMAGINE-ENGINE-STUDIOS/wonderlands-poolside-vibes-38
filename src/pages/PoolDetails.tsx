@@ -1045,10 +1045,11 @@ const PoolDetails = () => {
   const renderCategoryContent = () => {
     switch (activePanel) {
       case 'finishes':
-        return finishOptions.map(finish => <div key={finish.name} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
-          ...prev,
-          finish: finish.name
-        }))}>
+        return finishOptions.map(finish => (
+          <div key={finish.name} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+            ...prev,
+            finish: finish.name
+          }))}>
             <div className="flex gap-2">
               <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                 <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
@@ -1057,21 +1058,16 @@ const PoolDetails = () => {
                 <p className="text-xs font-medium truncate">{finish.name}</p>
                 <p className="text-xs text-primary">{finish.collection}</p>
                 {finish.price && <p className="text-xs font-semibold">+${finish.price.toLocaleString()}</p>}
-                <Button size="sm" variant="outline" className="mt-1 h-6 text-xs" onClick={e => {
-                e.stopPropagation();
-                // Navigate to editor studio for this product
-              }}>
-                  <Settings className="h-3 w-3 mr-1" />
-                  Editor Studio
-                </Button>
               </div>
             </div>
-          </div>);
+          </div>
+        ));
       case 'liners':
-        return linerOptions.map(liner => <div key={liner.name} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
-          ...prev,
-          linerOption: liner.name
-        }))}>
+        return linerOptions.map(liner => (
+          <div key={liner.name} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+            ...prev,
+            linerOption: liner.name
+          }))}>
             <div className="flex gap-2">
               <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                 <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" />
@@ -1082,7 +1078,8 @@ const PoolDetails = () => {
                 {liner.price > 0 && <p className="text-xs font-semibold">+${liner.price.toLocaleString()}</p>}
               </div>
             </div>
-          </div>);
+          </div>
+        ));
       case 'jets':
         return <div className="space-y-2">
             <div className="flex items-center justify-between p-2 border rounded-md">
@@ -1124,7 +1121,8 @@ const PoolDetails = () => {
         };
         const options = categoryMap[activePanel as keyof typeof categoryMap];
         if (options) {
-          return options.map((option: any) => <div key={option.name || option.model} className="p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50" onClick={() => handleOptionSelect(activePanel!, option)}>
+          return options.map((option: any) => (
+            <div key={option.name || option.model} className="p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50" onClick={() => handleOptionSelect(activePanel!, option)}>
               <div className="flex gap-2">
                 <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                   <img src={option.image} alt={option.name || option.model} className="w-full h-full object-cover" />
@@ -1135,7 +1133,8 @@ const PoolDetails = () => {
                   {option.description && <p className="text-xs text-muted-foreground truncate">{option.description}</p>}
                 </div>
               </div>
-            </div>);
+            </div>
+          ));
         }
 
         // Special handling for pavers with area/quantity input
