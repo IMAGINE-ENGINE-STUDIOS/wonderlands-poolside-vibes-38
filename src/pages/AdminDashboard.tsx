@@ -440,24 +440,6 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Pavers Tab */}
-          <TabsContent value="pavers" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5 text-primary" />
-                  Paver & Coping Management
-                </CardTitle>
-                <CardDescription>
-                  Manage different paver types, colors, and pricing options
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <PaverManagementComponent />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
           {/* Delivery & Logistics Tab */}
           <TabsContent value="delivery-logistics" className="space-y-6">
             <div className="space-y-6">
