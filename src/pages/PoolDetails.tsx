@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart as CartIcon, Search } from "lucide-react";
+import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart as CartIcon, Search, ChevronDown, Settings, Armchair, Flame, ChefHat, Utensils, Home, Music } from "lucide-react";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import { useShoppingCart } from "@/components/ShoppingCart";
 import { spas } from "@/components/PoolCatalog";
@@ -165,6 +165,7 @@ const PoolDetails = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [marketplaceProducts, setMarketplaceProducts] = useState<MarketplaceProduct[]>([]);
   const [searchResults, setSearchResults] = useState<MarketplaceProduct[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<MarketplaceProduct[]>([]);
 
   // Parse pool data from URL params
   const pool: Pool = {
@@ -272,6 +273,11 @@ const PoolDetails = () => {
       const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
       if (selectedLedge) total += selectedLedge.price;
     }
+
+    // Add selected marketplace products
+    selectedProducts.forEach(product => {
+      total += product.price;
+    });
     
     return total;
   };
@@ -422,111 +428,143 @@ const PoolDetails = () => {
       if (spa) selectedItems.push({ ...spa, name: spa.model, category: 'Spa' });
     }
 
+    // Add selected marketplace products
+    selectedProducts.forEach(product => {
+      selectedItems.push({
+        name: product.name,
+        price: product.price,
+        image: product.image_url,
+        description: product.description,
+        category: product.category || 'Product'
+      });
+    });
+
     return `
       <!DOCTYPE html>
       <html>
         <head>
           <title>Pool Quote - ${quoteId}</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
-            .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
-            .quote-id { color: #666; font-size: 14px; }
-            .pool-details { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 8px; }
-            .extras-list { margin: 20px 0; }
-            .extra-item { padding: 15px 0; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
-            .item-info { display: flex; align-items: center; gap: 15px; }
-            .item-image { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
-            .item-details h4 { margin: 0; font-size: 16px; color: #333; }
-            .item-details p { margin: 0; font-size: 12px; color: #666; }
-            .item-price { font-weight: bold; font-size: 16px; color: #333; }
-            .total { font-size: 24px; font-weight: bold; text-align: right; margin-top: 30px; padding-top: 20px; border-top: 2px solid #333; }
-            .footer { margin-top: 50px; text-align: center; color: #666; font-size: 12px; }
-            .image-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 40px; line-height: 1.6; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+            .quote-container { background: white; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden; max-width: 900px; margin: 0 auto; }
+            .header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 40px; text-align: center; position: relative; }
+            .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png') center/cover; opacity: 0.1; }
+            .header-content { position: relative; z-index: 2; }
+            .logo { font-size: 32px; font-weight: bold; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+            .quote-id { color: rgba(255,255,255,0.9); font-size: 14px; margin: 5px 0; }
+            .content { padding: 40px; }
+            .pool-details { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 30px; margin: 0 -40px 30px -40px; }
+            .pool-details h2 { margin: 0 0 15px 0; font-size: 28px; }
+            .extras-list { margin: 30px 0; }
+            .extras-list h3 { color: #333; font-size: 24px; margin-bottom: 20px; border-bottom: 3px solid #4facfe; padding-bottom: 10px; }
+            .extra-item { padding: 20px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+            .item-info { display: flex; align-items: center; gap: 20px; flex: 1; }
+            .item-image { width: 80px; height: 80px; object-fit: cover; border-radius: 12px; border: 2px solid #eee; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+            .item-details h4 { margin: 0 0 5px 0; font-size: 18px; color: #333; }
+            .item-details p { margin: 0; font-size: 14px; color: #666; line-height: 1.4; }
+            .item-details .features { font-size: 12px; color: #4facfe; margin-top: 5px; }
+            .item-price { font-weight: bold; font-size: 18px; color: #f5576c; background: rgba(245,87,108,0.1); padding: 8px 16px; border-radius: 25px; }
+            .total { font-size: 32px; font-weight: bold; text-align: center; margin-top: 40px; padding: 30px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border-radius: 15px; }
+            .footer { margin-top: 40px; text-align: center; color: #666; font-size: 14px; background: #f8f9fa; padding: 30px; margin: 40px -40px -40px -40px; border-top: 1px solid #eee; }
+            .image-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin: 30px 0; }
             .gallery-item { text-align: center; }
-            .gallery-image { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
-            @media print { body { margin: 20px; } }
+            .gallery-image { width: 100%; height: 150px; object-fit: cover; border-radius: 12px; border: 2px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+            .gallery-caption { font-size: 12px; margin-top: 8px; color: #666; font-weight: 500; }
+            @media print { 
+              body { background: white; } 
+              .quote-container { box-shadow: none; }
+              .header, .pool-details, .total { background: #4facfe !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            }
           </style>
         </head>
         <body>
-          <div class="header">
-            <h1>Pool Configuration Quote</h1>
-            <p class="quote-id">Quote ID: ${quoteId}</p>
-            <p class="quote-id">Generated: ${new Date(timestamp).toLocaleString()}</p>
-          </div>
-
-          <div class="pool-details">
-            <h2>${pool.model}</h2>
-            <p><strong>Category:</strong> ${pool.category}</p>
-            <p><strong>Base Price:</strong> $${pool.price.toLocaleString()}</p>
-            ${pool.dimensions ? `<p><strong>Dimensions:</strong> ${pool.dimensions}</p>` : ''}
-            ${pool.depth ? `<p><strong>Depth:</strong> ${pool.depth}</p>` : ''}
-          </div>
-
-          <div class="extras-list">
-            <h3>Selected Options & Add-ons:</h3>
-            ${selectedItems.map(item => `
-              <div class="extra-item">
-                <div class="item-info">
-                  <img src="${item.image || ''}" alt="${item.name}" class="item-image" onerror="this.style.display='none'" />
-                  <div class="item-details">
-                    <h4>${item.category}: ${item.name}</h4>
-                    ${item.description ? `<p>${item.description}</p>` : ''}
-                  </div>
-                </div>
-                <div class="item-price">$${item.price.toLocaleString()}</div>
+          <div class="quote-container">
+            <div class="header">
+              <div class="header-content">
+                <div class="logo">🏊‍♂️ Wonderlands Pools</div>
+                <h1 style="margin: 15px 0 10px 0; font-size: 28px;">Premium Pool Configuration Quote</h1>
+                <p class="quote-id">Quote ID: ${quoteId}</p>
+                <p class="quote-id">Generated: ${new Date(timestamp).toLocaleDateString('en-US', { 
+                  year: 'numeric', month: 'long', day: 'numeric', 
+                  hour: '2-digit', minute: '2-digit' 
+                })}</p>
               </div>
-            `).join('')}
-            
-            ${extras.jets ? `
-              <div class="extra-item">
-                <div class="item-info">
-                  <div class="item-details">
-                    <h4>Spa Jets (${extras.jetQuantity}x)</h4>
-                    <p>Premium spa jets for relaxation</p>
-                  </div>
-                </div>
-                <div class="item-price">$${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()}</div>
-              </div>` : ''}
-            
-            ${extras.tiles && extras.tileOption !== 'Standard Waterline' ? `
-              <div class="extra-item">
-                <div class="item-info">
-                  <div class="item-details">
-                    <h4>Tiles: ${extras.tileOption}</h4>
-                  </div>
-                </div>
-                <div class="item-price">$${tileOptions.find(t => t.name === extras.tileOption)?.price.toLocaleString() || '0'}</div>
-              </div>` : ''}
-          </div>
-
-          ${selectedItems.length > 0 ? `
-          <div>
-            <h3>Product Images:</h3>
-            <div class="image-gallery">
-              ${selectedItems.map(item => `
-                <div class="gallery-item">
-                  <img src="${item.image || ''}" alt="${item.name}" class="gallery-image" onerror="this.style.display='none'" />
-                  <p style="font-size: 12px; margin-top: 8px;">${item.name}</p>
-                </div>
-              `).join('')}
             </div>
-          </div>
-          ` : ''}
 
-          <div class="total">
-            <p>Total Quote: $${totalPrice.toLocaleString()}</p>
-          </div>
+            <div class="content">
+              <div class="pool-details">
+                <h2>${pool.model}</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                  <p><strong>Category:</strong> ${pool.category}</p>
+                  <p><strong>Base Price:</strong> $${pool.price.toLocaleString()}</p>
+                  ${pool.dimensions ? `<p><strong>Dimensions:</strong> ${pool.dimensions}</p>` : ''}
+                  ${pool.depth ? `<p><strong>Depth:</strong> ${pool.depth}</p>` : ''}
+                </div>
+              </div>
 
-          <div class="footer">
-            <p>This quote is valid for 30 days from the generation date.</p>
-            <p>Contact us for financing options and installation scheduling.</p>
+              <div class="extras-list">
+                <h3>Selected Options & Premium Add-ons</h3>
+                ${selectedItems.map(item => `
+                  <div class="extra-item">
+                    <div class="item-info">
+                      <img src="${item.image || '/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png'}" alt="${item.name}" class="item-image" onerror="this.src='/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png'" />
+                      <div class="item-details">
+                        <h4>${item.category}: ${item.name}</h4>
+                        ${item.description ? `<p>${item.description}</p>` : ''}
+                        ${item.brand ? `<p class="features">Brand: ${item.brand}</p>` : ''}
+                      </div>
+                    </div>
+                    <div class="item-price">$${item.price.toLocaleString()}</div>
+                  </div>
+                `).join('')}
+                
+                ${extras.jets ? `
+                  <div class="extra-item">
+                    <div class="item-info">
+                      <img src="/lovable-uploads/57670513-84aa-4ae5-86ee-6a95737004b5.png" alt="Spa Jets" class="item-image" />
+                      <div class="item-details">
+                        <h4>Premium Spa Jets (${extras.jetQuantity}x)</h4>
+                        <p>High-performance spa jets for ultimate relaxation and hydrotherapy</p>
+                        <p class="features">Adjustable pressure • Stainless steel construction</p>
+                      </div>
+                    </div>
+                    <div class="item-price">$${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()}</div>
+                  </div>` : ''}
+              </div>
+
+              ${selectedItems.length > 0 ? `
+              <div>
+                <h3 style="color: #333; font-size: 24px; margin-bottom: 20px; border-bottom: 3px solid #4facfe; padding-bottom: 10px;">Product Showcase</h3>
+                <div class="image-gallery">
+                  ${selectedItems.map(item => `
+                    <div class="gallery-item">
+                      <img src="${item.image || '/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png'}" alt="${item.name}" class="gallery-image" onerror="this.src='/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png'" />
+                      <p class="gallery-caption">${item.name}</p>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+              ` : ''}
+
+              <div class="total">
+                <div>Total Investment: $${totalPrice.toLocaleString()}</div>
+                <div style="font-size: 16px; margin-top: 10px; opacity: 0.9;">Transform your backyard into paradise</div>
+              </div>
+            </div>
+
+            <div class="footer">
+              <p style="font-size: 16px; font-weight: bold; color: #333; margin-bottom: 15px;">🏊‍♂️ Wonderlands Pools - Creating Backyard Paradise</p>
+              <p>This quote is valid for 30 days from the generation date.</p>
+              <p>Contact us for financing options and installation scheduling.</p>
+              <p style="margin-top: 15px; color: #4facfe;"><strong>📞 Call us today to start your pool journey!</strong></p>
+            </div>
           </div>
 
           <script>
             window.addEventListener('load', function() {
               setTimeout(function() {
                 window.print();
-              }, 500);
+              }, 1000);
             });
           </script>
         </body>
@@ -679,35 +717,41 @@ const PoolDetails = () => {
               />
             </div>
             
-            {/* Enhanced Category Grid */}
-            <div className="grid grid-cols-2 gap-2">
+            {/* Enhanced Category Dropdowns */}
+            <div className="grid grid-cols-1 gap-2">
               {[
-                { key: 'finishes', label: 'Finishes', icon: Palette },
-                { key: 'liners', label: 'Liners', icon: Layers },
-                { key: 'pavers', label: 'Pavers', icon: Shield },
-                { key: 'coping', label: 'Coping', icon: Award },
-                { key: 'covers', label: 'Covers', icon: Shield },
-                { key: 'heaters', label: 'Heaters', icon: Thermometer },
-                { key: 'engines', label: 'Engines', icon: Zap },
-                { key: 'spas', label: 'Spas', icon: Waves },
-                { key: 'tanning', label: 'Tanning', icon: Sun },
-                { key: 'tiles', label: 'Tiles', icon: Layers },
-                { key: 'furniture', label: 'Furniture', icon: Shield },
-                { key: 'fireplace', label: 'Fireplace', icon: Thermometer },
-                { key: 'outdoor-kitchens', label: 'Kitchens', icon: Shield },
-                { key: 'bbq', label: 'BBQ', icon: Thermometer },
-                { key: 'pergolas', label: 'Pergolas', icon: Shield },
-                { key: 'sound-system', label: 'Sound', icon: Zap }
+                { key: 'finishes', label: 'Pool Finishes', icon: Palette },
+                { key: 'liners', label: 'Pool Liners', icon: Layers },
+                { key: 'pavers', label: 'Pavers & Decking', icon: Shield },
+                { key: 'coping', label: 'Coping Options', icon: Award },
+                { key: 'covers', label: 'Pool Covers', icon: Shield },
+                { key: 'heaters', label: 'Heating Systems', icon: Thermometer },
+                { key: 'engines', label: 'Pool Equipment', icon: Settings },
+                { key: 'spas', label: 'Spa Options', icon: Waves },
+                { key: 'tanning', label: 'Tanning Ledges', icon: Sun },
+                { key: 'tiles', label: 'Pool Tiles', icon: Layers },
+                { key: 'furniture', label: 'Outdoor Furniture', icon: Armchair },
+                { key: 'fireplace', label: 'Fire Features', icon: Flame },
+                { key: 'outdoor-kitchens', label: 'Outdoor Kitchens', icon: ChefHat },
+                { key: 'bbq', label: 'BBQ & Grills', icon: Utensils },
+                { key: 'pergolas', label: 'Pergolas & Shade', icon: Home },
+                { key: 'sound-system', label: 'Sound Systems', icon: Music }
               ].map((category) => (
                 <Button 
                   key={category.key}
                   size="sm" 
                   variant={activePanel === category.key ? 'default' : 'outline'} 
-                  onClick={() => setActivePanel(activePanel === category.key ? null : category.key as ActivePanel)}
-                  className="justify-start"
+                  onClick={() => {
+                    // Auto-close other panels and open selected one
+                    setActivePanel(activePanel === category.key ? null : category.key as ActivePanel);
+                  }}
+                  className="justify-between w-full"
                 >
-                  <category.icon className="h-3 w-3 mr-2" />
-                  <span className="text-xs truncate">{category.label}</span>
+                  <div className="flex items-center">
+                    <category.icon className="h-4 w-4 mr-3" />
+                    <span className="text-sm">{category.label}</span>
+                  </div>
+                  <ChevronDown className={`h-3 w-3 transition-transform ${activePanel === category.key ? 'rotate-180' : ''}`} />
                 </Button>
               ))}
             </div>
@@ -728,17 +772,21 @@ const PoolDetails = () => {
                   {searchResults.map((product) => (
                     <div 
                       key={product.id}
-                      className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
+                    className={`p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all ${
+                      selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'
+                    }`}
                       onClick={() => {
-                        addToCart({
-                          id: product.id,
-                          name: product.name,
-                          price: product.price,
-                          category: product.category || 'marketplace',
-                          image: product.image_url,
-                          extras: []
+                        // Add to selected products instead of cart
+                        setSelectedProducts(prev => {
+                          const isAlreadySelected = prev.some(p => p.id === product.id);
+                          if (isAlreadySelected) {
+                            toast({ title: "Product Removed", description: `${product.name} has been removed from your configuration!` });
+                            return prev.filter(p => p.id !== product.id);
+                          } else {
+                            toast({ title: "Product Added", description: `${product.name} has been added to your pool configuration!` });
+                            return [...prev, product];
+                          }
                         });
-                        toast({ title: "Added to Cart", description: `${product.name} has been added to your cart!` });
                       }}
                     >
                       <div className="flex gap-3">
@@ -811,17 +859,21 @@ const PoolDetails = () => {
                       }), searchQuery).map((product) => (
                         <div 
                           key={product.id}
-                          className="p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 border-border"
+                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
+                            selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'
+                          }`}
                           onClick={() => {
-                            addToCart({
-                              id: product.id,
-                              name: product.name,
-                              price: product.price,
-                              category: product.category || activePanel || 'marketplace',
-                              image: product.image_url,
-                              extras: []
+                            // Add to selected products instead of cart
+                            setSelectedProducts(prev => {
+                              const isAlreadySelected = prev.some(p => p.id === product.id);
+                              if (isAlreadySelected) {
+                                toast({ title: "Product Removed", description: `${product.name} has been removed from your configuration!` });
+                                return prev.filter(p => p.id !== product.id);
+                              } else {
+                                toast({ title: "Product Added", description: `${product.name} has been added to your pool configuration!` });
+                                return [...prev, product];
+                              }
                             });
-                            toast({ title: "Added to Cart", description: `${product.name} has been added to your cart!` });
                           }}
                         >
                           <div className="flex gap-3">

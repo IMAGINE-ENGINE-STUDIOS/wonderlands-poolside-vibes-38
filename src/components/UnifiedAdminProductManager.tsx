@@ -268,7 +268,7 @@ const UnifiedAdminProductManager = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Product Database Management</CardTitle>
+              <CardTitle>Products</CardTitle>
               <CardDescription>Manage all products organized by category ({products.length} total products)</CardDescription>
             </div>
             <Button onClick={syncPoolsToProducts} variant="outline">
