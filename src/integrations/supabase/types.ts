@@ -573,6 +573,48 @@ export type Database = {
           },
         ]
       }
+      pavers: {
+        Row: {
+          base_price: number
+          category: string
+          collection: string
+          colors: Json | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          base_price?: number
+          category?: string
+          collection: string
+          colors?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          category?: string
+          collection?: string
+          colors?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pools: {
         Row: {
           carbon_fiber: boolean | null
