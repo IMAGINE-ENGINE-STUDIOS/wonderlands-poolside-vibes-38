@@ -50,6 +50,8 @@ const PoolFinishesSection = lazy(() => import("@/components/PoolFinishesSection"
 const AutomaticCoversSection = lazy(() => import("@/components/AutomaticCoversSection"));
 const FloridaPoolElements = lazy(() => import("@/components/FloridaPoolElements"));
 const WonderlandsBrandShowcase = lazy(() => import("@/components/WonderlandsBrandShowcase"));
+const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
+const ProcurementSystem = lazy(() => import("@/pages/ProcurementSystem"));
 
 interface EditableElement {
   id: string;
@@ -80,10 +82,11 @@ interface SitePreviewProps {
   editMode: boolean;
   showOutlines: boolean;
   selectedDevice: string;
+  selectedScreen: string;
 }
 
 // Live Site Preview Component
-const SitePreview = ({ elements, onElementClick, editMode, showOutlines, selectedDevice }: SitePreviewProps) => {
+const SitePreview = ({ elements, onElementClick, editMode, showOutlines, selectedDevice, selectedScreen }: SitePreviewProps) => {
   const [showCart, setShowCart] = useState(false);
   const { getCartCount } = useShoppingCart();
 
@@ -95,6 +98,76 @@ const SitePreview = ({ elements, onElementClick, editMode, showOutlines, selecte
         return 'max-w-2xl mx-auto scale-90 origin-top';
       default:
         return 'w-full';
+    }
+  };
+
+  const renderScreenContent = () => {
+    switch (selectedScreen) {
+      case 'main':
+        return (
+          <>
+            <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-blue-500' : ''}>
+              <Hero />
+            </div>
+            <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-green-500' : ''}>
+              <WonderlandsBrandShowcase />
+            </div>
+            <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-purple-500' : ''}>
+              <PoolCatalog />
+            </div>
+            <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-red-500' : ''}>
+              <SpaSection />
+            </div>
+            <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-yellow-500' : ''}>
+              <PoolFinishesSection />
+            </div>
+            <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-pink-500' : ''}>
+              <AutomaticCoversSection />
+            </div>
+          </>
+        );
+      case 'pools':
+        return (
+          <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-purple-500' : ''}>
+            <PoolCatalog />
+          </div>
+        );
+      case 'spas':
+        return (
+          <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-red-500' : ''}>
+            <SpaSection />
+          </div>
+        );
+      case 'finishes':
+        return (
+          <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-yellow-500' : ''}>
+            <PoolFinishesSection />
+          </div>
+        );
+      case 'covers':
+        return (
+          <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-pink-500' : ''}>
+            <AutomaticCoversSection />
+          </div>
+        );
+      case 'admin':
+        return (
+          <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-indigo-500' : ''}>
+            <AdminDashboard />
+          </div>
+        );
+      case 'procurement':
+        return (
+          <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-teal-500' : ''}>
+            <ProcurementSystem />
+          </div>
+        );
+      default:
+        return (
+          <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-blue-500' : ''}>
+            <Hero />
+          </div>
+        );
     }
   };
 
@@ -124,24 +197,7 @@ const SitePreview = ({ elements, onElementClick, editMode, showOutlines, selecte
       
       <div className="relative z-10">
         <Suspense fallback={<div className="p-8 text-center" aria-busy="true">Loading content...</div>}>
-          <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-blue-500' : ''}>
-            <Hero />
-          </div>
-          <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-green-500' : ''}>
-            <WonderlandsBrandShowcase />
-          </div>
-          <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-purple-500' : ''}>
-            <PoolCatalog />
-          </div>
-          <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-red-500' : ''}>
-            <SpaSection />
-          </div>
-          <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-yellow-500' : ''}>
-            <PoolFinishesSection />
-          </div>
-          <div className={editMode && showOutlines ? 'outline-dashed outline-2 outline-pink-500' : ''}>
-            <AutomaticCoversSection />
-          </div>
+          {renderScreenContent()}
           <Footer />
         </Suspense>
       </div>
@@ -512,6 +568,7 @@ const ContentEditor = () => {
             editMode={editMode}
             showOutlines={showOutlines}
             selectedDevice={selectedDevice}
+            selectedScreen={selectedScreen}
           />
         </div>
 

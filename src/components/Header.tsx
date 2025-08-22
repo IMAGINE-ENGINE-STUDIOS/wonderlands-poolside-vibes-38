@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Shield, User, LogOut, Briefcase } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminLogin from "./AdminLogin";
 
 const Header = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const { user, profile, signOut } = useAuth();
+  const location = useLocation();
+  const isContentEditor = location.pathname === '/content-editor';
 
   const handleAdminAccess = () => {
     setShowAdminLogin(true);
@@ -27,86 +29,94 @@ const Header = () => {
           <img 
             src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png"
             alt="Wonderlands Professional Logo" 
-            className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 order-1 sm:order-2"
+            className={`${isContentEditor ? 'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24' : 'w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20'} order-1 sm:order-2`}
           />
           
           {/* Navigation and Auth Buttons */}
-          <div className="flex items-center gap-2 order-2 sm:order-1">
-            {/* Catalog Navigation Button */}
-            <Button 
-              variant="gradient" 
-              size="sm" 
-              className="transition-all duration-300 bg-gradient-to-r from-primary to-teal text-white hover:scale-105 text-xs sm:text-sm"
-              onClick={() => {
-                const poolSection = document.getElementById('pool-catalog');
-                if (poolSection) {
-                  poolSection.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-            >
-              <span className="hidden sm:inline">View Catalog</span>
-              <span className="sm:hidden">Pools</span>
-            </Button>
+          <div className={`flex items-center gap-2 order-2 sm:order-1 ${isContentEditor ? 'opacity-0 pointer-events-none' : ''}`}>
+            {!isContentEditor && (
+              <>
+                {/* Catalog Navigation Button */}
+                <Button 
+                  variant="gradient" 
+                  size="sm" 
+                  className="transition-all duration-300 bg-gradient-to-r from-primary to-teal text-white hover:scale-105 text-xs sm:text-sm"
+                  onClick={() => {
+                    const poolSection = document.getElementById('pool-catalog');
+                    if (poolSection) {
+                      poolSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  <span className="hidden sm:inline">View Catalog</span>
+                  <span className="sm:hidden">Pools</span>
+                </Button>
 
-            <Link to="/procurement">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
-              >
-                <Briefcase className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Procurement</span>
-                <span className="sm:hidden">Jobs</span>
-              </Button>
-            </Link>
-            
-            {user ? (
-              <>
-                <Link to="/dashboard">
+                <Link to="/procurement">
                   <Button 
                     variant="outline" 
                     size="sm" 
                     className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
                   >
-                    <User className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Dashboard</span>
-                    <span className="sm:hidden">Profile</span>
+                    <Briefcase className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Procurement</span>
+                    <span className="sm:hidden">Jobs</span>
                   </Button>
                 </Link>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
-                  onClick={signOut}
-                >
-                  <LogOut className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Logout</span>
-                  <span className="sm:hidden">Out</span>
-                </Button>
               </>
-            ) : (
+            )}
+            
+            {!isContentEditor && (
               <>
-                <Link to="/auth">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
-                  >
-                    <User className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Sign In</span>
-                    <span className="sm:hidden">Login</span>
-                  </Button>
-                </Link>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
-                  onClick={handleAdminAccess}
-                >
-                  <Shield className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Admin Dashboard</span>
-                  <span className="sm:hidden">Admin</span>
-                </Button>
+                {user ? (
+                  <>
+                    <Link to="/dashboard">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
+                      >
+                        <User className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">Dashboard</span>
+                        <span className="sm:hidden">Profile</span>
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
+                      onClick={signOut}
+                    >
+                      <LogOut className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Logout</span>
+                      <span className="sm:hidden">Out</span>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/auth">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
+                      >
+                        <User className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">Sign In</span>
+                        <span className="sm:hidden">Login</span>
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="transition-all duration-300 bg-background/80 backdrop-blur-sm border-primary/20 hover:bg-primary/10 text-xs sm:text-sm"
+                      onClick={handleAdminAccess}
+                    >
+                      <Shield className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Admin Dashboard</span>
+                      <span className="sm:hidden">Admin</span>
+                    </Button>
+                  </>
+                )}
               </>
             )}
           </div>
