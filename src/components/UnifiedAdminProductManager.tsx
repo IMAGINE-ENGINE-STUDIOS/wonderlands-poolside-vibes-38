@@ -359,6 +359,7 @@ const UnifiedAdminProductManager = () => {
                               covers: product.covers
                             }}
                             isEditable={true}
+                            isAdmin={true}
                             onUpdate={(updatedPool) => {
                               console.log('Pool updated:', updatedPool);
                               loadProducts();
@@ -404,6 +405,7 @@ const UnifiedAdminProductManager = () => {
                       covers: product.covers
                     }}
                     isEditable={true}
+                    isAdmin={true}
                     onUpdate={(updatedPool) => {
                       console.log('Pool updated:', updatedPool);
                       loadProducts();

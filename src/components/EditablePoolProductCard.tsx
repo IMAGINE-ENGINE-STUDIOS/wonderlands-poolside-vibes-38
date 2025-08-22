@@ -52,6 +52,7 @@ interface Pool {
 interface EditablePoolProductCardProps {
   pool: Pool;
   isEditable?: boolean;
+  isAdmin?: boolean;
   onUpdate?: (updatedPool: Pool) => void;
   onViewDetails?: (pool: Pool) => void;
   onRequestQuote?: (pool: Pool, extras?: PoolExtras) => void;
@@ -140,6 +141,7 @@ const tileOptions = [
 const EditablePoolProductCard = ({ 
   pool, 
   isEditable = false, 
+  isAdmin = false,
   onUpdate, 
   onViewDetails, 
   onRequestQuote 

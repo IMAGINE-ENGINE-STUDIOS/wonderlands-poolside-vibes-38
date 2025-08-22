@@ -47,6 +47,7 @@ interface PoolProductCardProps {
   pool: Pool;
   onViewDetails: (pool: Pool) => void;
   onRequestQuote: (pool: Pool, extras?: PoolExtras) => void;
+  isAdmin?: boolean;
 }
 
 interface PoolExtras {
@@ -65,6 +66,8 @@ interface PoolExtras {
   tanningLedge: boolean;
   tanningLedgeModel: string;
   heaterModel: string;
+  paverOption: string;
+  copingPaverOption: string;
 }
 
 const getCategoryColor = (category: string) => {
@@ -148,7 +151,23 @@ const tileOptions = [
   }))
 ];
 
-const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCardProps) => {
+// Paver options
+const paverOptions = [
+  { name: 'Standard Concrete', color: '#D3D3D3', price: 0, image: azureBlueFinish, description: 'Basic concrete pavers around pool perimeter' },
+  { name: 'Natural Stone', color: '#8B7355', price: 2500, image: shaleGrayFinish, description: 'Premium natural stone pavers' },
+  { name: 'Travertine', color: '#F5DEB3', price: 3200, image: athensPearlFinish, description: 'Elegant travertine paving stones' },
+  { name: 'Brick Pavers', color: '#B22222', price: 2800, image: coastalBronzeFinish, description: 'Classic brick paver design' }
+];
+
+// Coping paver options
+const copingPaverOptions = [
+  { name: 'Standard Pool Coping', color: '#A9A9A9', price: 0, image: azureBlueFinish, description: 'Basic pool edge coping' },
+  { name: 'Bullnose Coping', color: '#696969', price: 1500, image: nightSkyFinish, description: 'Rounded edge bullnose coping' },
+  { name: 'Natural Stone Coping', color: '#708090', price: 2200, image: shaleGrayFinish, description: 'Premium natural stone pool edge' },
+  { name: 'Cantilever Coping', color: '#2F4F4F', price: 1800, image: sapphireBlueFinish, description: 'Modern cantilever edge design' }
+];
+
+const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false }: PoolProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [currentPoolImage, setCurrentPoolImage] = useState(pool.image);
@@ -167,7 +186,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     spaModel: 'Mystic',
     tanningLedge: false,
     tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
-    heaterModel: poolHeaters[0]?.name || 'Heat Pump - Eco Series'
+    heaterModel: poolHeaters[0]?.name || 'Heat Pump - Eco Series',
+    paverOption: 'Standard Concrete',
+    copingPaverOption: 'Standard Pool Coping'
   });
   
   const { addToCart } = useShoppingCart();
@@ -232,6 +253,13 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
     if (coverOption && extras.cover) total += coverOption.price;
+
+    // Add paver prices (mandatory options)
+    const paverOption = paverOptions.find(option => option.name === extras.paverOption);
+    if (paverOption) total += paverOption.price;
+
+    const copingPaverOption = copingPaverOptions.find(option => option.name === extras.copingPaverOption);
+    if (copingPaverOption) total += copingPaverOption.price;
     
     // Add spa price if selected
     if (extras.spa) {
@@ -283,6 +311,17 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     const tileOption = tileOptions.find(option => option.name === extras.tileOption);
     if (tileOption && extras.tiles) {
       cartExtras.push({ name: tileOption.name, price: tileOption.price });
+    }
+
+    // Add paver options (always included)
+    const paverOption = paverOptions.find(option => option.name === extras.paverOption);
+    if (paverOption && paverOption.price > 0) {
+      cartExtras.push({ name: paverOption.name, price: paverOption.price });
+    }
+
+    const copingPaverOption = copingPaverOptions.find(option => option.name === extras.copingPaverOption);
+    if (copingPaverOption && copingPaverOption.price > 0) {
+      cartExtras.push({ name: copingPaverOption.name, price: copingPaverOption.price });
     }
 
     if (extras.spa) {
@@ -341,18 +380,20 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
           </div>
         </div>
         
-        {/* Image Edit Button */}
-        <Button
-          size="sm"
-          variant="secondary"
-          className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowImageEditor(true);
-          }}
-        >
-          <Edit className="h-3 w-3" />
-        </Button>
+        {/* Image Edit Button - Only visible for admins */}
+        {isAdmin && (
+          <Button
+            size="sm"
+            variant="secondary"
+            className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowImageEditor(true);
+            }}
+          >
+            <Edit className="h-3 w-3" />
+          </Button>
+        )}
       </div>
       
       <CardContent className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
@@ -554,6 +595,92 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
               </Carousel>
             </div>
 
+            {/* Pavers Options */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-foreground">Pavers</h4>
+              <Carousel className="w-full">
+                <CarouselContent className="-ml-1">
+                  {paverOptions.map((paver) => (
+                    <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                      <div 
+                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                          extras.paverOption === paver.name ? 'border-primary bg-primary/10' : 'border-border'
+                        }`}
+                        onClick={() => setExtras(prev => ({ ...prev, paverOption: paver.name }))}
+                      >
+                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                          <img 
+                            src={paver.image} 
+                            alt={paver.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.style.backgroundColor = paver.color;
+                                target.style.display = 'none';
+                              }
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 flex flex-col justify-between min-h-0">
+                          <p className="text-xs font-medium text-center line-clamp-2">{paver.name}</p>
+                          {paver.price > 0 && (
+                            <p className="text-xs text-primary font-semibold text-center mt-1">+${paver.price.toLocaleString()}</p>
+                          )}
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0" />
+                <CarouselNext className="right-0" />
+              </Carousel>
+            </div>
+
+            {/* Coping Pavers Options */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-foreground">Coping Pavers</h4>
+              <Carousel className="w-full">
+                <CarouselContent className="-ml-1">
+                  {copingPaverOptions.map((coping) => (
+                    <CarouselItem key={coping.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                      <div 
+                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                          extras.copingPaverOption === coping.name ? 'border-primary bg-primary/10' : 'border-border'
+                        }`}
+                        onClick={() => setExtras(prev => ({ ...prev, copingPaverOption: coping.name }))}
+                      >
+                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                          <img 
+                            src={coping.image} 
+                            alt={coping.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.style.backgroundColor = coping.color;
+                                target.style.display = 'none';
+                              }
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 flex flex-col justify-between min-h-0">
+                          <p className="text-xs font-medium text-center line-clamp-2">{coping.name}</p>
+                          {coping.price > 0 && (
+                            <p className="text-xs text-primary font-semibold text-center mt-1">+${coping.price.toLocaleString()}</p>
+                          )}
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0" />
+                <CarouselNext className="right-0" />
+              </Carousel>
+            </div>
+
             {/* Cover Options */}
             <div className="space-y-3">
               <h4 className="font-semibold text-foreground">Cover Options</h4>
@@ -679,78 +806,22 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                   )}
                 </div>
                 
-                {/* Cover Option */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox 
-                    checked={extras.cover}
-                    onCheckedChange={() => toggleExtra('cover')}
-                  />
-                  <div className="flex items-center space-x-1">
-                    <Shield size={16} className="text-primary" />
-                    <span className="text-sm">Add Cover (+${extras.cover ? (() => {
-                      const selectedCover = coverOptions.find((cover) => cover.name === extras.coverOption);
-                      return selectedCover ? selectedCover.price.toLocaleString() : '0';
-                    })() : '0'})</span>
-                  </div>
-                </label>
-
-                {extras.cover && (
-                  <div className="ml-6 space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">Select Cover Model:</label>
-                    <div className="grid grid-cols-1 gap-2">
-                      {coverOptions.map((cover) => (
-                        <button
-                          key={cover.name}
-                          onClick={() => setExtras(prev => ({ ...prev, coverOption: cover.name }))}
-                          className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
-                            extras.coverOption === cover.name 
-                              ? 'border-primary bg-primary/10 text-primary' 
-                              : 'border-border hover:border-primary/50'
-                          }`}
-                        >
-                          <img src={cover.image} alt={cover.name} className="w-8 h-8 rounded object-cover" />
-                          <div className="flex-1 text-left">
-                            <div>{cover.name}</div>
-                            <div className="text-xs text-muted-foreground">${cover.price.toLocaleString()}</div>
-                            {cover.description && (
-                              <div className="text-xs text-muted-foreground">{cover.description}</div>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
+                {/* Remove Cover from Additional Features - it's now in main options */}
                  
-                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                    <Checkbox 
-                      checked={extras.spa}
-                      onCheckedChange={() => toggleExtra('spa')}
-                    />
-                    <div className="flex items-center space-x-1">
-                      <Waves size={16} className="text-primary" />
-                       <span className="text-sm">Add Spa (+${extras.spa ? (() => {
-                         const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
-                         return selectedSpa ? selectedSpa.price.toLocaleString() : '0';
-                       })() : '0'})</span>
-                    </div>
-                  </label>
-
                   <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                    <Checkbox 
-                      checked={extras.tanningLedge}
-                      onCheckedChange={() => toggleExtra('tanningLedge')}
-                    />
-                    <div className="flex items-center space-x-1">
-                      <Sun size={16} className="text-coral" />
-                       <span className="text-sm">Add Tanning Ledge (+${extras.tanningLedge ? (() => {
-                         const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
-                         return selectedLedge ? selectedLedge.price.toLocaleString() : '0';
-                       })() : '0'})</span>
-                    </div>
-                  </label>
-                 
+                     <Checkbox 
+                       checked={extras.spa}
+                       onCheckedChange={() => toggleExtra('spa')}
+                     />
+                     <div className="flex items-center space-x-1">
+                       <Waves size={16} className="text-primary" />
+                        <span className="text-sm">Add Spa (+${extras.spa ? (() => {
+                          const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
+                          return selectedSpa ? selectedSpa.price.toLocaleString() : '0';
+                        })() : '0'})</span>
+                     </div>
+                   </label>
+
                   {extras.spa && (
                     <div className="ml-6 space-y-2">
                       <label className="text-xs font-medium text-muted-foreground">Select Spa Model:</label>
@@ -777,6 +848,20 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                       </div>
                     </div>
                   )}
+
+                   <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                     <Checkbox 
+                       checked={extras.tanningLedge}
+                       onCheckedChange={() => toggleExtra('tanningLedge')}
+                     />
+                     <div className="flex items-center space-x-1">
+                       <Sun size={16} className="text-coral" />
+                        <span className="text-sm">Add Tanning Ledge (+${extras.tanningLedge ? (() => {
+                          const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
+                          return selectedLedge ? selectedLedge.price.toLocaleString() : '0';
+                        })() : '0'})</span>
+                     </div>
+                   </label>
 
                   {extras.tanningLedge && (
                     <div className="ml-6 space-y-2">
