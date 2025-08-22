@@ -128,11 +128,12 @@ const linerOptions = [
   }))
 ];
 
+// Cover options - using real products from database (placeholder until API integration)
 const coverOptions = [
-  { name: 'Eclipse', color: '#2F4F4F', price: 16000, image: nightSkyFinish },
-  { name: 'CS3000', color: '#2F4F4F', price: 24000, image: shaleGrayFinish },
-  { name: 'Infinity 4000', color: '#2F4F4F', price: 32000, image: coastalBronzeFinish },
-  { name: 'Atom', color: '#2F4F4F', price: 19000, image: aquamarineFinish }
+  { name: 'Eclipse Automatic Cover', color: '#2F4F4F', price: 16000, image: nightSkyFinish, category: 'cover', description: 'Premium automatic pool cover with solar heating' },
+  { name: 'CS3000 Safety Cover', color: '#2F4F4F', price: 24000, image: shaleGrayFinish, category: 'cover', description: 'Heavy-duty safety cover with anchoring system' },
+  { name: 'Infinity 4000 Smart Cover', color: '#2F4F4F', price: 32000, image: coastalBronzeFinish, category: 'cover', description: 'Smart automated cover with app control' },
+  { name: 'Atom Loop-Loc Cover', color: '#2F4F4F', price: 19000, image: aquamarineFinish, category: 'cover', description: 'Mesh safety cover for all seasons' }
 ];
 
 // Convert pool tiles to tile options format
@@ -159,7 +160,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
     jetQuantity: 1,
     finish: 'Nantuke',
     linerOption: 'Standard Blue',
-    coverOption: 'Eclipse',
+    coverOption: 'Eclipse Automatic Cover',
     tiles: false,
     tileOption: 'Standard Waterline',
     spa: false,
@@ -195,7 +196,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
       } else if (extra === 'cover') {
         const enabling = !prev.cover;
         return enabling
-          ? { ...prev, cover: true, coverOption: coverOptions.find(o => o.name === prev.coverOption) ? prev.coverOption : 'Eclipse' }
+          ? { ...prev, cover: true, coverOption: coverOptions.find(o => o.name === prev.coverOption) ? prev.coverOption : 'Eclipse Automatic Cover' }
           : { ...prev, cover: false };
       } else if (extra === 'heater') {
         return { ...prev, heater: !prev.heater };
@@ -203,6 +204,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
         return { ...prev, spa: !prev.spa };
       } else if (extra === 'tanningLedge') {
         return { ...prev, tanningLedge: !prev.tanningLedge };
+      } else if (extra === 'jets') {
+        return { ...prev, jets: !prev.jets };
       }
       
       return prev;
@@ -690,6 +693,34 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCar
                     })() : '0'})</span>
                   </div>
                 </label>
+
+                {extras.cover && (
+                  <div className="ml-6 space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">Select Cover Model:</label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {coverOptions.map((cover) => (
+                        <button
+                          key={cover.name}
+                          onClick={() => setExtras(prev => ({ ...prev, coverOption: cover.name }))}
+                          className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
+                            extras.coverOption === cover.name 
+                              ? 'border-primary bg-primary/10 text-primary' 
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <img src={cover.image} alt={cover.name} className="w-8 h-8 rounded object-cover" />
+                          <div className="flex-1 text-left">
+                            <div>{cover.name}</div>
+                            <div className="text-xs text-muted-foreground">${cover.price.toLocaleString()}</div>
+                            {cover.description && (
+                              <div className="text-xs text-muted-foreground">{cover.description}</div>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 
                  
                  <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">

@@ -50,7 +50,7 @@ const UnifiedAdminProductManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   
-  const categories = ['all', 'pool', 'spa', 'liner', 'tile', 'tanning_ledge', 'finish', 'heater', 'other'];
+  const categories = ['all', 'pool', 'spa', 'liner', 'tile', 'tanning_ledge', 'finish', 'heater', 'cover', 'jets', 'other'];
   const sortOptions = ['name', 'price', 'category', 'stock', 'created_at'];
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
