@@ -39,7 +39,9 @@ import {
   Package,
   Home,
   Database,
-  X
+  X,
+  Moon,
+  Sun
 } from "lucide-react";
 
 // Lazy-loaded components
@@ -83,10 +85,11 @@ interface SitePreviewProps {
   showOutlines: boolean;
   selectedDevice: string;
   selectedScreen: string;
+  isPreviewMode: boolean;
 }
 
 // Live Site Preview Component
-const SitePreview = ({ elements, onElementClick, editMode, showOutlines, selectedDevice, selectedScreen }: SitePreviewProps) => {
+const SitePreview = ({ elements, onElementClick, editMode, showOutlines, selectedDevice, selectedScreen, isPreviewMode }: SitePreviewProps) => {
   const [showCart, setShowCart] = useState(false);
   const { getCartCount } = useShoppingCart();
 
@@ -172,37 +175,43 @@ const SitePreview = ({ elements, onElementClick, editMode, showOutlines, selecte
   };
 
   return (
-    <div className={`${getDeviceStyles()} bg-white min-h-full overflow-auto transition-all relative`}>
-      <Header />
+    <div className={`${getDeviceStyles()} bg-background min-h-full overflow-auto transition-all relative ${isPreviewMode ? 'pointer-events-none' : ''}`}>
+      <div className={isPreviewMode ? 'pointer-events-none' : ''}>
+        <Header />
+      </div>
       
       <Suspense fallback={<div className="p-8 text-center" aria-busy="true">Loading...</div>}> 
         <FloridaPoolElements />
       </Suspense>
       
-      <div className="fixed top-20 right-4 z-50">
-        <Button
-          onClick={() => setShowCart(true)}
-          variant="secondary"
-          size="icon"
-          className="shadow-lg relative"
-        >
-          <CartIcon className="h-4 w-4" />
-          {getCartCount() > 0 && (
-            <Badge className="absolute -top-2 -right-2 px-1 min-w-5 h-5 text-xs">
-              {getCartCount()}
-            </Badge>
-          )}
-        </Button>
-      </div>
+      {!isPreviewMode && (
+        <div className="fixed top-20 right-4 z-50">
+          <Button
+            onClick={() => setShowCart(true)}
+            variant="secondary"
+            size="icon"
+            className="shadow-lg relative"
+          >
+            <CartIcon className="h-4 w-4" />
+            {getCartCount() > 0 && (
+              <Badge className="absolute -top-2 -right-2 px-1 min-w-5 h-5 text-xs">
+                {getCartCount()}
+              </Badge>
+            )}
+          </Button>
+        </div>
+      )}
       
-      <div className="relative z-10">
+      <div className={`relative z-10 ${isPreviewMode ? 'pointer-events-none' : ''}`}>
         <Suspense fallback={<div className="p-8 text-center" aria-busy="true">Loading content...</div>}>
           {renderScreenContent()}
-          <Footer />
+          <div className={isPreviewMode ? 'pointer-events-none' : ''}>
+            <Footer />
+          </div>
         </Suspense>
       </div>
       
-      <ShoppingCart isOpen={showCart} onClose={() => setShowCart(false)} />
+      {!isPreviewMode && <ShoppingCart isOpen={showCart} onClose={() => setShowCart(false)} />}
 
       {/* Dynamic Elements Overlay */}
       {elements.filter(e => e.id.startsWith('custom-')).map((element) => (
@@ -305,8 +314,27 @@ const ContentEditor = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Dark mode toggle
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  // Auto-dismiss toasts after 3 seconds
+  const showToast = (message: { title: string; description: string; variant?: any }) => {
+    toast({
+      ...message,
+      duration: 3000
+    });
+  };
 
   const categories = [
     { value: 'all', label: 'All Products' },
@@ -353,7 +381,7 @@ const ContentEditor = () => {
       setProducts(data || []);
     } catch (error) {
       console.error('Error loading products:', error);
-      toast({
+      showToast({
         title: "Error",
         description: "Failed to load products from database",
         variant: "destructive",
@@ -386,7 +414,7 @@ const ContentEditor = () => {
       applyChangesToLiveSite(updatedElement);
     }
     
-    toast({
+    showToast({
       title: "Element Updated",
       description: "Content has been updated in real-time",
     });
@@ -397,7 +425,7 @@ const ContentEditor = () => {
     
     if (element.selector) {
       setTimeout(() => {
-        toast({
+        showToast({
           title: "Live Update Applied",
           description: `Changes applied to ${element.selector}`,
         });
@@ -418,7 +446,7 @@ const ContentEditor = () => {
     };
     
     setElements(prev => [...prev, newElement]);
-    toast({
+    showToast({
       title: "Product Added",
       description: `${product.name} added to the page`,
     });
@@ -438,7 +466,7 @@ const ContentEditor = () => {
     };
     
     setElements(prev => [...prev, newElement]);
-    toast({
+    showToast({
       title: "Element Added",
       description: `New ${type} element added to the page`,
     });
@@ -456,7 +484,7 @@ const ContentEditor = () => {
   };
 
   const publishChanges = () => {
-    toast({
+    showToast({
       title: "Changes Published",
       description: `${pendingChanges} changes have been published to the live site`,
     });
@@ -465,7 +493,7 @@ const ContentEditor = () => {
 
   const saveAsDraft = () => {
     localStorage.setItem('contentEditorDraft', JSON.stringify(elements));
-    toast({
+    showToast({
       title: "Draft Saved",
       description: "Changes saved as draft",
     });
@@ -475,7 +503,7 @@ const ContentEditor = () => {
     const saved = localStorage.getItem('contentEditorDraft');
     if (saved) {
       setElements(JSON.parse(saved));
-      toast({
+      showToast({
         title: "Draft Loaded",
         description: "Previously saved draft has been loaded",
       });
@@ -486,7 +514,7 @@ const ContentEditor = () => {
     setSelectedScreen(screenValue);
     setIsLivePreview(true);
     
-    toast({
+    showToast({
       title: "Screen Preview",
       description: `Loading ${screens.find(s => s.value === screenValue)?.label} preview...`,
     });
@@ -494,56 +522,94 @@ const ContentEditor = () => {
 
   return (
     <div className="h-screen bg-gradient-to-br from-background via-muted/5 to-background flex flex-col">
-      {/* Header */}
-      <div className="border-b bg-card/50 backdrop-blur-sm px-4 py-3 shadow-sm shrink-0">
+      {/* Simplified Header */}
+      <div className="border-b bg-card/80 backdrop-blur-md px-6 py-4 shadow-sm shrink-0">
         <div className="flex items-center justify-between">
+          {/* Left Section */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-xl">
+                <Edit3 className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-foreground">Content Editor</h1>
+                <p className="text-sm text-muted-foreground">Design mode active</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Center Controls */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 p-1 bg-muted/50 rounded-lg">
+              <Button
+                variant={editMode ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setEditMode(!editMode)}
+                className="px-3"
+              >
+                <Edit3 className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+              <Button
+                variant={isPreviewMode ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setIsPreviewMode(!isPreviewMode)}
+                className="px-3"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Preview
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant={selectedDevice === 'desktop' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setSelectedDevice('desktop')}
+              >
+                <Monitor className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={selectedDevice === 'tablet' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setSelectedDevice('tablet')}
+              >
+                <Tablet className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={selectedDevice === 'mobile' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setSelectedDevice('mobile')}
+              >
+                <Smartphone className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Right Section */}
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => window.close()}
-              className="lg:hidden"
+              onClick={() => setIsDarkMode(!isDarkMode)}
             >
-              <X className="h-4 w-4" />
+              {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Globe className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-lg lg:text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Content Editor
-              </h1>
-              <p className="text-xs lg:text-sm text-muted-foreground">Live website editing with drag & drop</p>
-            </div>
             
-            {/* Enable Editor Button */}
-            <Button
-              onClick={() => setEditMode(!editMode)}
-              variant={editMode ? "destructive" : "default"}
-              size="sm"
-              className="ml-auto"
-            >
-              <Edit3 className="h-4 w-4 mr-2" />
-              {editMode ? "Disable Editor" : "Enable Editor"}
-            </Button>
             {pendingChanges > 0 && (
               <Badge variant="secondary" className="animate-pulse">
-                {pendingChanges} pending
+                {pendingChanges} changes
               </Badge>
             )}
-          </div>
-          <div className="flex items-center gap-2 lg:gap-3">
-            <Badge className={`${isLivePreview ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'} px-3 py-1`}>
-              <div className={`w-2 h-2 rounded-full mr-2 ${isLivePreview ? 'bg-green-200 animate-pulse' : 'bg-gray-200'}`} />
-              {isLivePreview ? 'Live' : 'Draft'}
-            </Badge>
+            
             <Button
-              variant="ghost"
+              onClick={publishChanges}
+              disabled={pendingChanges === 0}
               size="sm"
-              onClick={() => window.open('/', '_blank')}
+              className="px-4"
             >
-              <Home className="h-4 w-4 mr-2" />
-              <span className="hidden lg:inline">Home</span>
+              <Save className="h-4 w-4 mr-2" />
+              Publish
             </Button>
           </div>
         </div>
@@ -551,41 +617,50 @@ const ContentEditor = () => {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Main Editor Area */}
-        <div className="flex-1 bg-white relative overflow-auto">
+        <div className="flex-1 bg-background relative overflow-auto">
           <div className="absolute top-4 left-4 z-40 flex gap-2">
-            <Badge variant="outline" className="bg-white/90 backdrop-blur-sm">
-              {selectedDevice} preview
+            <Badge variant="outline" className="bg-card/90 backdrop-blur-sm">
+              {selectedDevice} • {selectedScreen}
             </Badge>
-            {editMode && (
-              <Badge className="bg-blue-500 text-white">
-                Edit Mode - Click elements to edit
+            {editMode && !isPreviewMode && (
+              <Badge className="bg-primary text-primary-foreground">
+                Edit Mode Active
+              </Badge>
+            )}
+            {isPreviewMode && (
+              <Badge className="bg-green-500 text-white">
+                Preview Mode - Interactions Disabled
               </Badge>
             )}
           </div>
           <SitePreview
             elements={elements}
             onElementClick={handleElementClick}
-            editMode={editMode}
+            editMode={editMode && !isPreviewMode}
             showOutlines={showOutlines}
             selectedDevice={selectedDevice}
             selectedScreen={selectedScreen}
+            isPreviewMode={isPreviewMode}
           />
         </div>
 
         {/* Sidebar Tools */}
-        <div className="w-80 lg:w-96 bg-card border-l p-4 flex flex-col space-y-4 overflow-y-auto">
+        <div className="w-80 lg:w-96 bg-card/50 backdrop-blur-sm border-l p-4 flex flex-col space-y-4 overflow-y-auto">
           
-          {/* Screen Navigation */}
-          <Card>
+          {/* Quick Navigation */}
+          <Card className="glass-card">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Screen Navigation</CardTitle>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Globe className="h-4 w-4 text-primary" />
+                Page Navigation
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Select value={selectedScreen} onValueChange={handleScreenChange}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-card">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-white z-50">
+                <SelectContent className="bg-card border z-50">
                   {screens.map(screen => (
                     <SelectItem key={screen.value} value={screen.value}>
                       {screen.label}
@@ -596,115 +671,79 @@ const ContentEditor = () => {
             </CardContent>
           </Card>
 
-          {/* Editor Controls */}
-          <Card>
+          {/* Edit Controls */}
+          <Card className="glass-card">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Editor Controls</CardTitle>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Settings className="h-4 w-4 text-primary" />
+                Edit Controls
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <Button 
-                onClick={() => setEditMode(!editMode)}
-                variant={editMode ? "default" : "outline"}
-                className="w-full text-sm"
-              >
-                {editMode ? <Eye className="mr-2 h-4 w-4" /> : <Edit3 className="mr-2 h-4 w-4" />}
-                {editMode ? 'View Mode' : 'Edit Mode'}
-              </Button>
-              
+            <CardContent className="space-y-3">
               <div className="flex gap-2">
                 <Button 
                   onClick={() => setShowOutlines(!showOutlines)}
-                  variant="outline"
-                  className="flex-1 text-xs"
+                  variant={showOutlines ? "default" : "outline"}
+                  size="sm"
+                  className="flex-1"
                 >
-                  {showOutlines ? <EyeOff className="mr-1 h-3 w-3" /> : <Eye className="mr-1 h-3 w-3" />}
-                  Outlines
+                  {showOutlines ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                 </Button>
                 <Button 
                   onClick={() => setIsLivePreview(!isLivePreview)}
-                  variant="outline"
-                  className="flex-1 text-xs"
-                >
-                  <RefreshCw className="mr-1 h-3 w-3" />
-                  {isLivePreview ? 'Live' : 'Draft'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Device Preview */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Device Preview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-2">
-                <Button
-                  variant={selectedDevice === 'desktop' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedDevice('desktop')}
+                  variant={isLivePreview ? "default" : "outline"}
+                  size="sm" 
                   className="flex-1"
                 >
-                  <Monitor className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={selectedDevice === 'tablet' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedDevice('tablet')}
-                  className="flex-1"
-                >
-                  <Tablet className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={selectedDevice === 'mobile' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedDevice('mobile')}
-                  className="flex-1"
-                >
-                  <Smartphone className="h-4 w-4" />
+                  <RefreshCw className="h-3 w-3" />
                 </Button>
               </div>
             </CardContent>
           </Card>
 
           {/* Add Elements */}
-          <Card>
+          <Card className="glass-card">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Add Elements</CardTitle>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Plus className="h-4 w-4 text-primary" />
+                Add Elements
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button
-                onClick={() => addCustomElement('text', 'New text element')}
-                variant="outline"
-                className="w-full justify-start text-sm"
-              >
-                <Type className="mr-2 h-4 w-4" />
-                Add Text
-              </Button>
-              <Button
-                onClick={() => addCustomElement('heading', 'New Heading')}
-                variant="outline"
-                className="w-full justify-start text-sm"
-              >
-                <Type className="mr-2 h-4 w-4" />
-                Add Heading
-              </Button>
-              <Button
-                onClick={() => addCustomElement('button', 'Click Me')}
-                variant="outline"
-                className="w-full justify-start text-sm"
-              >
-                <MousePointer className="mr-2 h-4 w-4" />
-                Add Button
-              </Button>
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                variant="outline"
-                className="w-full justify-start text-sm"
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Image
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={() => addCustomElement('text', 'New text')}
+                  variant="outline"
+                  size="sm"
+                  className="justify-center"
+                >
+                  <Type className="h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={() => addCustomElement('heading', 'New Heading')}
+                  variant="outline"
+                  size="sm"
+                  className="justify-center"
+                >
+                  <Layout className="h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={() => addCustomElement('button', 'Click Me')}
+                  variant="outline"
+                  size="sm"
+                  className="justify-center"
+                >
+                  <MousePointer className="h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  variant="outline"
+                  size="sm"
+                  className="justify-center"
+                >
+                  <Upload className="h-4 w-4" />
+                </Button>
+              </div>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -715,53 +754,21 @@ const ContentEditor = () => {
             </CardContent>
           </Card>
 
-          {/* Paver & Coping Editor */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Package className="h-4 w-4" />
-                Paver & Coping Editor
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                  Paver Surface Area (sq ft)
-                </label>
-                <Input
-                  type="number"
-                  placeholder="Enter surface area for pavers"
-                  className="mb-2"
-                />
-              </div>
-              
-              <div>
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                  Coping Surface Area (sq ft)
-                </label>
-                <Input
-                  type="number"
-                  placeholder="Enter surface area for coping"
-                  className="mb-2"
-                />
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Product Marketplace */}
-          <Card className="flex-1">
+          {/* Product Library */}
+          <Card className="flex-1 glass-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
-                <Database className="h-4 w-4" />
-                Product Marketplace
+                <Database className="h-4 w-4 text-primary" />
+                Product Library
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="text-sm">
+                <SelectTrigger className="text-sm bg-card">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-white z-50">
+                <SelectContent className="bg-card border z-50">
                   {categories.map(cat => (
                     <SelectItem key={cat.value} value={cat.value}>
                       {cat.label}
@@ -770,41 +777,40 @@ const ContentEditor = () => {
                 </SelectContent>
               </Select>
 
-              <div className="space-y-2 max-h-96 overflow-y-auto">
+              <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
                 {loadingProducts ? (
-                  <div className="text-center py-4">
-                    <RefreshCw className="h-4 w-4 animate-spin mx-auto mb-2" />
-                    <p className="text-xs text-muted-foreground">Loading products...</p>
+                  <div className="text-center py-6">
+                    <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-primary" />
+                    <p className="text-xs text-muted-foreground">Loading...</p>
                   </div>
                 ) : products.length > 0 ? (
                   products.map((product) => (
                     <div
                       key={product.id}
-                      className="border rounded-lg p-3 bg-white hover:shadow-md transition-shadow cursor-pointer"
-                      draggable
+                      className="border rounded-lg p-3 bg-card/50 hover:bg-card transition-colors cursor-pointer group"
                       onClick={() => addProductElement(product)}
                     >
                       {product.image_url && (
                         <img 
                           src={product.image_url} 
                           alt={product.name}
-                          className="w-full h-20 object-cover rounded mb-2"
+                          className="w-full h-16 object-cover rounded mb-2"
                         />
                       )}
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-xs truncate">{product.name}</h4>
+                          <h4 className="font-medium text-xs truncate group-hover:text-primary transition-colors">{product.name}</h4>
                           <p className="text-xs text-green-600 font-semibold">
-                            {product.price.toLocaleString()}
+                            ${product.price.toLocaleString()}
                           </p>
-                          <p className="text-xs text-muted-foreground capitalize">
+                          <Badge variant="outline" className="text-xs mt-1">
                             {product.category}
-                          </p>
+                          </Badge>
                         </div>
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-6 w-6 p-0 shrink-0"
+                          className="h-6 w-6 p-0 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => {
                             e.stopPropagation();
                             addProductElement(product);
@@ -816,10 +822,10 @@ const ContentEditor = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-4">
+                  <div className="text-center py-6">
                     <Package className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                     <p className="text-xs text-muted-foreground">
-                      No products found in this category
+                      No products available
                     </p>
                   </div>
                 )}
@@ -827,36 +833,31 @@ const ContentEditor = () => {
             </CardContent>
           </Card>
 
-          {/* Save & Publish */}
-          <Card>
+          {/* Actions */}
+          <Card className="glass-card">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Save & Publish</CardTitle>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Save className="h-4 w-4 text-primary" />
+                Actions
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button 
-                onClick={saveAsDraft}
-                variant="outline"
-                className="w-full text-sm"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                Save Draft
-              </Button>
-              <Button 
-                onClick={loadDraft}
-                variant="outline"
-                className="w-full text-sm"
-              >
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Load Draft
-              </Button>
-              <Button 
-                onClick={publishChanges}
-                disabled={pendingChanges === 0}
-                className="w-full text-sm"
-              >
-                <Globe className="mr-2 h-4 w-4" />
-                Publish Changes ({pendingChanges})
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  onClick={saveAsDraft}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Save className="h-3 w-3" />
+                </Button>
+                <Button 
+                  onClick={loadDraft}
+                  variant="outline"
+                  size="sm"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
