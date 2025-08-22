@@ -4,13 +4,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart as CartIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart as CartIcon, Search } from "lucide-react";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import { useShoppingCart } from "@/components/ShoppingCart";
 import { spas } from "@/components/PoolCatalog";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
 import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
@@ -144,12 +146,25 @@ const getExtraPrice = (extra: string) => {
 
 type ActivePanel = 'finishes' | 'liners' | 'pavers' | 'coping' | 'covers' | 'heaters' | 'spas' | 'tanning' | 'jets' | 'tiles' | null;
 
+interface MarketplaceProduct {
+  id: string;
+  name: string;
+  price: number;
+  image_url?: string;
+  description?: string;
+  category?: string;
+  brand?: string;
+}
+
 const PoolDetails = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { addToCart } = useShoppingCart();
   const { toast } = useToast();
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [marketplaceProducts, setMarketplaceProducts] = useState<MarketplaceProduct[]>([]);
+  const [searchResults, setSearchResults] = useState<MarketplaceProduct[]>([]);
 
   // Parse pool data from URL params
   const pool: Pool = {
@@ -188,7 +203,7 @@ const PoolDetails = () => {
     copingPaverOption: 'Standard Pool Coping'
   });
 
-  // Load cached selections on mount
+  // Load cached selections and marketplace products on mount
   useEffect(() => {
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
@@ -198,7 +213,26 @@ const PoolDetails = () => {
         console.error('Error loading cached selections:', e);
       }
     }
+    
+    // Load marketplace products
+    loadMarketplaceProducts();
   }, [cacheKey]);
+  
+  const loadMarketplaceProducts = async () => {
+    try {
+      const { data: products, error } = await supabase
+        .from('products')
+        .select('id, name, price, image_url, description, category, brand')
+        .eq('is_active', true)
+        .gt('stock_quantity', 0);
+        
+      if (error) throw error;
+      
+      setMarketplaceProducts(products || []);
+    } catch (error) {
+      console.error('Error loading marketplace products:', error);
+    }
+  };
 
   // Save selections to cache whenever extras change
   useEffect(() => {
@@ -489,7 +523,20 @@ const PoolDetails = () => {
     }));
   };
 
-  const [searchQuery, setSearchQuery] = useState('');
+  // Search functionality
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const filtered = marketplaceProducts.filter(product =>
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (product.category && product.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (product.brand && product.brand.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+      setSearchResults(filtered);
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchQuery, marketplaceProducts]);
 
   const filteredOptions = (options: any[], query: string) => {
     if (!query) return options;
@@ -497,6 +544,17 @@ const PoolDetails = () => {
       option.name.toLowerCase().includes(query.toLowerCase()) ||
       (option.description && option.description.toLowerCase().includes(query.toLowerCase()))
     );
+  };
+
+  const getSelectedFeatureIcons = () => {
+    const features = [];
+    if (extras.heater) features.push({ icon: Thermometer, label: 'Heater' });
+    if (extras.cover) features.push({ icon: Shield, label: 'Cover' });
+    if (extras.spa) features.push({ icon: Waves, label: 'Spa' });
+    if (extras.tanningLedge) features.push({ icon: Sun, label: 'Tanning Ledge' });
+    if (extras.jets) features.push({ icon: Zap, label: 'Jets' });
+    if (extras.tiles) features.push({ icon: Layers, label: 'Tiles' });
+    return features;
   };
 
   return (
@@ -542,11 +600,23 @@ const PoolDetails = () => {
           </div>
         </div>
 
-        {/* Enhanced Right Sidebar - Configuration & Options */}
+        {/* Enhanced Right Sidebar - All Categories & Search */}
         <div className="w-96 border-l bg-background flex flex-col">
-          {/* Category Navigation */}
+          {/* Search Engine */}
           <div className="p-4 border-b">
-            <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search marketplace products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {/* Category Buttons */}
+            <div className="grid grid-cols-2 gap-2">
               <Button 
                 size="sm" 
                 variant={activePanel === 'finishes' ? 'default' : 'outline'} 
@@ -628,24 +698,58 @@ const PoolDetails = () => {
                 Tiles
               </Button>
             </div>
-            
-            {/* Search Bar */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search options..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-3 py-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                🔍
-              </div>
-            </div>
           </div>
 
           {/* Dynamic Content Area */}
           <div className="flex-1 overflow-auto">
+            {/* Search Results */}
+            {searchQuery && searchResults.length > 0 && (
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold">Search Results ({searchResults.length})</h3>
+                  <Button variant="ghost" size="sm" onClick={() => setSearchQuery('')}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 gap-3">
+                  {searchResults.map((product) => (
+                    <div 
+                      key={product.id}
+                      className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all"
+                      onClick={() => {
+                        addToCart({
+                          id: product.id,
+                          name: product.name,
+                          price: product.price,
+                          category: product.category || 'marketplace',
+                          image: product.image_url,
+                          extras: []
+                        });
+                        toast({ title: "Added to Cart", description: `${product.name} has been added to your cart!` });
+                      }}
+                    >
+                      <div className="flex gap-3">
+                        {product.image_url && (
+                          <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{product.name}</p>
+                          {product.brand && <p className="text-xs text-primary">{product.brand}</p>}
+                          <p className="text-xs font-semibold">${product.price.toLocaleString()}</p>
+                          {product.description && (
+                            <p className="text-xs text-muted-foreground truncate">{product.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Category Options */}
             {activePanel && (
               <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
@@ -927,7 +1031,7 @@ const PoolDetails = () => {
               </div>
             )}
 
-            {!activePanel && (
+            {!activePanel && !searchQuery && (
               <div className="p-4">
                 <h3 className="font-semibold mb-4">Current Configuration</h3>
                 
@@ -1092,12 +1196,25 @@ const PoolDetails = () => {
       {/* Bottom Dashboard */}
       <div className="h-20 border-t bg-background/95 backdrop-blur-sm flex items-center justify-between px-6">
         <div className="flex items-center gap-4">
-          <div className="text-2xl font-bold">
-            Total: ${calculateTotalPrice().toLocaleString()}
+          {/* Circular Feature Snapshots */}
+          <div className="flex items-center gap-2">
+            {getSelectedFeatureIcons().map((feature, index) => (
+              <div key={index} className="relative group">
+                <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                  <feature.icon className="h-4 w-4 text-primary" />
+                </div>
+                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-background border rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                  {feature.label}
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="text-sm text-muted-foreground">
-            Additional: ${(calculateTotalPrice() - pool.price).toLocaleString()}
-          </div>
+          
+          {/* Finance This Purchase Button */}
+          <Button variant="outline" className="bg-gradient-to-r from-primary to-secondary text-white border-0">
+            <DollarSign className="h-4 w-4 mr-2" />
+            Finance This Purchase
+          </Button>
         </div>
 
         <div className="flex items-center gap-3">
