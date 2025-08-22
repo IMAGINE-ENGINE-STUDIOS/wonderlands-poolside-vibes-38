@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart as CartIcon, Search, ChevronDown, Settings, Armchair, Flame, ChefHat, Utensils, Home, Music } from "lucide-react";
+import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart as CartIcon, Search, ChevronDown, Settings, Armchair, Flame, ChefHat, Utensils, Home, Music, Package } from "lucide-react";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import { useShoppingCart } from "@/components/ShoppingCart";
 import { spas } from "@/components/PoolCatalog";
@@ -659,6 +659,266 @@ const PoolDetails = () => {
     return features;
   };
 
+  const getSelectedConfigItems = () => {
+    const items = [];
+    
+    // Liner (always selected)
+    const liner = linerOptions.find(l => l.name === extras.linerOption);
+    if (liner && liner.price > 0) {
+      items.push({ ...liner, category: 'Pool Liner' });
+    }
+    
+    // Pavers
+    const paver = paverOptions.find(p => p.name === extras.paverOption);
+    if (paver && paver.price > 0) {
+      items.push({ ...paver, category: 'Pavers' });
+    }
+    
+    // Coping
+    const coping = copingPaverOptions.find(c => c.name === extras.copingPaverOption);
+    if (coping && coping.price > 0) {
+      items.push({ ...coping, category: 'Coping' });
+    }
+    
+    // Cover
+    if (extras.cover) {
+      const cover = coverOptions.find(c => c.name === extras.coverOption);
+      if (cover) items.push({ ...cover, category: 'Pool Cover' });
+    }
+    
+    // Heater
+    if (extras.heater) {
+      const heater = poolHeaters.find(h => h.name === extras.heaterModel);
+      if (heater) items.push({ ...heater, category: 'Pool Heater' });
+    }
+    
+    // Spa
+    if (extras.spa) {
+      const spa = spas.find((s: any) => s.model === extras.spaModel);
+      if (spa) items.push({ ...spa, name: spa.model, category: 'Spa' });
+    }
+    
+    // Tanning Ledge
+    if (extras.tanningLedge) {
+      const ledge = tanningLedges.find((l: any) => l.name === extras.tanningLedgeModel);
+      if (ledge) items.push({ ...ledge, category: 'Tanning Ledge' });
+    }
+    
+    // Tiles
+    if (extras.tiles) {
+      const tile = tileOptions.find(t => t.name === extras.tileOption);
+      if (tile && tile.price > 0) items.push({ ...tile, category: 'Pool Tiles' });
+    }
+    
+    // Jets
+    if (extras.jets) {
+      items.push({
+        name: `Spa Jets (${extras.jetQuantity}x)`,
+        price: getExtraPrice('jets') * extras.jetQuantity,
+        image: azureBlueFinish, // Default image
+        category: 'Pool Jets'
+      });
+    }
+    
+    return items;
+  };
+
+  const renderCategoryContent = () => {
+    switch (activePanel) {
+      case 'finishes':
+        return finishOptions.map((finish) => (
+          <div 
+            key={finish.name}
+            className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
+              extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'
+            }`}
+            onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
+          >
+            <div className="flex gap-3">
+              <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+                <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{finish.name}</p>
+                <p className="text-xs text-primary">{finish.collection}</p>
+                {finish.price && <p className="text-xs font-semibold">+${finish.price.toLocaleString()}</p>}
+              </div>
+            </div>
+          </div>
+        ));
+
+      case 'liners':
+        return linerOptions.map((liner) => (
+          <div 
+            key={liner.name}
+            className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
+              extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'
+            }`}
+            onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
+          >
+            <div className="flex gap-3">
+              <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+                <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{liner.name}</p>
+                {liner.type && liner.type !== 'Standard' && <p className="text-xs text-primary">{liner.type}</p>}
+                {liner.price > 0 && <p className="text-xs font-semibold">+${liner.price.toLocaleString()}</p>}
+              </div>
+            </div>
+          </div>
+        ));
+
+      case 'jets':
+        return (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <p className="text-sm font-medium">Spa Jets</p>
+                <p className="text-xs text-muted-foreground">Premium spa jets for relaxation</p>
+                <p className="text-xs font-semibold">${getExtraPrice('jets').toLocaleString()} each</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))}
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
+                <span className="text-sm px-2 py-1 bg-muted rounded">{extras.jetQuantity}</span>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+            <Button 
+              className="w-full"
+              variant={extras.jets ? "default" : "outline"}
+              onClick={() => toggleExtra('jets')}
+            >
+              {extras.jets ? 'Remove Jets' : 'Add Jets'}
+            </Button>
+          </div>
+        );
+
+      default:
+        // For marketplace categories and other standard options
+        const categoryMap = {
+          'pavers': paverOptions,
+          'coping': copingPaverOptions,
+          'covers': coverOptions,
+          'heaters': poolHeaters,
+          'spas': spas,
+          'tanning': tanningLedges,
+          'tiles': tileOptions
+        };
+
+        const options = categoryMap[activePanel as keyof typeof categoryMap];
+        if (options) {
+          return options.map((option: any) => (
+            <div 
+              key={option.name || option.model}
+              className="p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50"
+              onClick={() => handleOptionSelect(activePanel!, option)}
+            >
+              <div className="flex gap-3">
+                <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+                  <img src={option.image} alt={option.name || option.model} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{option.name || option.model}</p>
+                  <p className="text-xs font-semibold">+${option.price.toLocaleString()}</p>
+                  {option.description && <p className="text-xs text-muted-foreground truncate">{option.description}</p>}
+                </div>
+              </div>
+            </div>
+          ));
+        }
+
+        // For marketplace product categories
+        return marketplaceProducts.filter(product => {
+          const categoryKeywords = {
+            'engines': ['pump', 'motor', 'filtration', 'circulation'],
+            'furniture': ['chair', 'table', 'lounge', 'furniture', 'seating'],
+            'fireplace': ['fireplace', 'fire pit', 'fire bowl'],
+            'outdoor-kitchens': ['kitchen', 'outdoor cooking', 'appliance'],
+            'bbq': ['bbq', 'barbecue', 'grill', 'smoker'],
+            'pergolas': ['pergola', 'gazebo', 'shade', 'canopy'],
+            'sound-system': ['speaker', 'audio', 'sound', 'music']
+          };
+          
+          const keywords = categoryKeywords[activePanel as keyof typeof categoryKeywords] || [];
+          return keywords.some(keyword => 
+            product.name.toLowerCase().includes(keyword) || 
+            product.category?.toLowerCase().includes(keyword)
+          );
+        }).map((product) => (
+          <div 
+            key={product.id}
+            className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
+              selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'
+            }`}
+            onClick={() => {
+              setSelectedProducts(prev => {
+                const isAlreadySelected = prev.some(p => p.id === product.id);
+                if (isAlreadySelected) {
+                  toast({ title: "Product Removed", description: `${product.name} removed!` });
+                  return prev.filter(p => p.id !== product.id);
+                } else {
+                  toast({ title: "Product Added", description: `${product.name} added!` });
+                  return [...prev, product];
+                }
+              });
+            }}
+          >
+            <div className="flex gap-3">
+              {product.image_url && (
+                <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
+                  <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">{product.name}</p>
+                {product.brand && <p className="text-xs text-primary">{product.brand}</p>}
+                <p className="text-sm font-semibold">${product.price.toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+        ));
+    }
+  };
+
+  const handleOptionSelect = (category: string, option: any) => {
+    switch (category) {
+      case 'pavers':
+        setExtras(prev => ({ ...prev, paverOption: option.name }));
+        break;
+      case 'coping':
+        setExtras(prev => ({ ...prev, copingPaverOption: option.name }));
+        break;
+      case 'covers':
+        setExtras(prev => ({ ...prev, coverOption: option.name, cover: true }));
+        break;
+      case 'heaters':
+        setExtras(prev => ({ ...prev, heaterModel: option.name, heater: true }));
+        break;
+      case 'spas':
+        setExtras(prev => ({ ...prev, spaModel: option.model, spa: true }));
+        break;
+      case 'tanning':
+        setExtras(prev => ({ ...prev, tanningLedgeModel: option.name, tanningLedge: true }));
+        break;
+      case 'tiles':
+        setExtras(prev => ({ ...prev, tileOption: option.name, tiles: true }));
+        break;
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-background overflow-hidden flex flex-col">
       {/* Top Header with Price */}
@@ -687,73 +947,127 @@ const PoolDetails = () => {
       </div>
 
       <div className="flex h-[calc(100vh-8rem)]">
-        {/* Fixed Pool Image */}
-        <div className="flex-1 flex items-center justify-center bg-muted p-8">
-          <div className="w-[600px] h-[400px] relative">
-            <img
-              src={getCurrentImage()}
-              alt={pool.model}
-              className="w-full h-full object-cover rounded-lg border shadow-lg"
-            />
-            <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm px-3 py-2 rounded-md">
-              <p className="text-sm font-medium">{pool.model}</p>
-              <p className="text-xs text-muted-foreground">{pool.dimensions || 'Custom Pool'}</p>
+        {/* Dynamic Products Showcase */}
+        <div className="flex-1 bg-muted p-6">
+          <div className="h-full flex flex-col">
+            {/* Main Pool Image */}
+            <div className="relative mb-6">
+              <img
+                src={getCurrentImage()}
+                alt={pool.model}
+                className="w-full h-64 object-cover rounded-lg border shadow-lg"
+              />
+              <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm px-3 py-2 rounded-md">
+                <p className="text-sm font-medium">{pool.model}</p>
+                <p className="text-xs text-muted-foreground">{pool.dimensions || 'Custom Pool'}</p>
+              </div>
+            </div>
+
+            {/* Selected Products Grid */}
+            <div className="flex-1 overflow-auto">
+              <h3 className="text-lg font-semibold mb-4">Selected Configuration</h3>
+              
+              {/* Selected Products Display */}
+              {(getSelectedConfigItems().length > 0 || selectedProducts.length > 0) ? (
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Configuration Items */}
+                  {getSelectedConfigItems().map((item, index) => (
+                    <div key={index} className="bg-background rounded-lg p-4 border shadow-sm">
+                      <div className="aspect-square mb-3 rounded-lg overflow-hidden bg-muted">
+                        <img 
+                          src={item.image} 
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide">{item.category}</p>
+                        <p className="text-sm font-medium">{item.name}</p>
+                        <p className="text-sm font-semibold text-primary">${item.price.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Marketplace Products */}
+                  {selectedProducts.map((product) => (
+                    <div key={product.id} className="bg-background rounded-lg p-4 border shadow-sm">
+                      <div className="aspect-square mb-3 rounded-lg overflow-hidden bg-muted">
+                        {product.image_url ? (
+                          <img 
+                            src={product.image_url} 
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                            <Package className="h-8 w-8" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide">{product.category}</p>
+                        <p className="text-sm font-medium">{product.name}</p>
+                        {product.brand && <p className="text-xs text-primary">{product.brand}</p>}
+                        <p className="text-sm font-semibold text-primary">${product.price.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center text-muted-foreground">
+                    <Package className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium mb-2">No Products Selected</p>
+                    <p className="text-sm">Use the search or categories to add products to your pool configuration</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Enhanced Right Sidebar - All Categories & Search */}
-        <div className="w-96 border-l bg-background flex flex-col">
+        {/* Simplified Right Sidebar - Search & Single Category Dropdown */}
+        <div className="w-80 border-l bg-background flex flex-col">
           {/* Search Engine */}
-          <div className="p-4 border-b">
-            <div className="relative mb-4">
+          <div className="p-4 border-b space-y-4">
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search marketplace products..."
+                placeholder="Search all products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
             
-            {/* Enhanced Category Dropdowns */}
-            <div className="grid grid-cols-1 gap-2">
-              {[
-                { key: 'finishes', label: 'Pool Finishes', icon: Palette },
-                { key: 'liners', label: 'Pool Liners', icon: Layers },
-                { key: 'pavers', label: 'Pavers & Decking', icon: Shield },
-                { key: 'coping', label: 'Coping Options', icon: Award },
-                { key: 'covers', label: 'Pool Covers', icon: Shield },
-                { key: 'heaters', label: 'Heating Systems', icon: Thermometer },
-                { key: 'engines', label: 'Pool Equipment', icon: Settings },
-                { key: 'spas', label: 'Spa Options', icon: Waves },
-                { key: 'tanning', label: 'Tanning Ledges', icon: Sun },
-                { key: 'tiles', label: 'Pool Tiles', icon: Layers },
-                { key: 'furniture', label: 'Outdoor Furniture', icon: Armchair },
-                { key: 'fireplace', label: 'Fire Features', icon: Flame },
-                { key: 'outdoor-kitchens', label: 'Outdoor Kitchens', icon: ChefHat },
-                { key: 'bbq', label: 'BBQ & Grills', icon: Utensils },
-                { key: 'pergolas', label: 'Pergolas & Shade', icon: Home },
-                { key: 'sound-system', label: 'Sound Systems', icon: Music }
-              ].map((category) => (
-                <Button 
-                  key={category.key}
-                  size="sm" 
-                  variant={activePanel === category.key ? 'default' : 'outline'} 
-                  onClick={() => {
-                    // Auto-close other panels and open selected one
-                    setActivePanel(activePanel === category.key ? null : category.key as ActivePanel);
-                  }}
-                  className="justify-between w-full"
-                >
-                  <div className="flex items-center">
-                    <category.icon className="h-4 w-4 mr-3" />
-                    <span className="text-sm">{category.label}</span>
-                  </div>
-                  <ChevronDown className={`h-3 w-3 transition-transform ${activePanel === category.key ? 'rotate-180' : ''}`} />
-                </Button>
-              ))}
+            {/* Single Category Dropdown */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">Browse Categories</label>
+              <select 
+                value={activePanel || ''} 
+                onChange={(e) => setActivePanel(e.target.value as ActivePanel || null)}
+                className="w-full p-2 border rounded-md bg-background"
+              >
+                <option value="">All Categories</option>
+                <option value="finishes">Pool Finishes</option>
+                <option value="liners">Pool Liners</option>
+                <option value="pavers">Pavers & Decking</option>
+                <option value="coping">Coping Options</option>
+                <option value="covers">Pool Covers</option>
+                <option value="heaters">Heating Systems</option>
+                <option value="spas">Spa Options</option>
+                <option value="tanning">Tanning Ledges</option>
+                <option value="tiles">Pool Tiles</option>
+                <option value="jets">Pool Jets</option>
+                <option value="engines">Pool Equipment</option>
+                <option value="furniture">Outdoor Furniture</option>
+                <option value="fireplace">Fire Features</option>
+                <option value="outdoor-kitchens">Outdoor Kitchens</option>
+                <option value="bbq">BBQ & Grills</option>
+                <option value="pergolas">Pergolas & Shade</option>
+                <option value="sound-system">Sound Systems</option>
+              </select>
             </div>
           </div>
 
@@ -772,18 +1086,17 @@ const PoolDetails = () => {
                   {searchResults.map((product) => (
                     <div 
                       key={product.id}
-                    className={`p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all ${
-                      selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'
-                    }`}
+                      className={`p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-all ${
+                        selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'
+                      }`}
                       onClick={() => {
-                        // Add to selected products instead of cart
                         setSelectedProducts(prev => {
                           const isAlreadySelected = prev.some(p => p.id === product.id);
                           if (isAlreadySelected) {
-                            toast({ title: "Product Removed", description: `${product.name} has been removed from your configuration!` });
+                            toast({ title: "Product Removed", description: `${product.name} removed from configuration!` });
                             return prev.filter(p => p.id !== product.id);
                           } else {
-                            toast({ title: "Product Added", description: `${product.name} has been added to your pool configuration!` });
+                            toast({ title: "Product Added", description: `${product.name} added to configuration!` });
                             return [...prev, product];
                           }
                         });
@@ -810,8 +1123,8 @@ const PoolDetails = () => {
               </div>
             )}
 
-            {/* Category Options */}
-            {activePanel && (
+            {/* Category Products */}
+            {activePanel && !searchQuery && (
               <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold">
@@ -821,10 +1134,11 @@ const PoolDetails = () => {
                     {activePanel === 'coping' && 'Coping Pavers'}
                     {activePanel === 'covers' && 'Pool Covers'}
                     {activePanel === 'heaters' && 'Pool Heaters'}
-                    {activePanel === 'engines' && 'Pool Engines'}
+                    {activePanel === 'engines' && 'Pool Equipment'}
                     {activePanel === 'spas' && 'Spa Options'}
                     {activePanel === 'tanning' && 'Tanning Ledges'}
                     {activePanel === 'tiles' && 'Pool Tiles'}
+                    {activePanel === 'jets' && 'Pool Jets'}
                     {activePanel === 'furniture' && 'Outdoor Furniture'}
                     {activePanel === 'fireplace' && 'Fire Features'}
                     {activePanel === 'outdoor-kitchens' && 'Outdoor Kitchens'}
@@ -838,443 +1152,19 @@ const PoolDetails = () => {
                 </div>
 
                 <div className="grid grid-cols-1 gap-3">
-                  {/* Dynamic Category Content */}
-                  {activePanel && ['engines', 'furniture', 'fireplace', 'outdoor-kitchens', 'bbq', 'pergolas', 'sound-system'].includes(activePanel) && (
-                    <div className="space-y-3">
-                      {filteredOptions(marketplaceProducts.filter(product => {
-                        const categoryMap = {
-                          'engines': ['pump', 'motor', 'filtration', 'circulation'],
-                          'furniture': ['chair', 'table', 'lounge', 'furniture', 'seating'],
-                          'fireplace': ['fireplace', 'fire pit', 'fire bowl'],
-                          'outdoor-kitchens': ['kitchen', 'outdoor cooking', 'appliance'],
-                          'bbq': ['bbq', 'barbecue', 'grill', 'smoker'],
-                          'pergolas': ['pergola', 'gazebo', 'shade', 'canopy'],
-                          'sound-system': ['speaker', 'audio', 'sound', 'music']
-                        };
-                        const keywords = categoryMap[activePanel as keyof typeof categoryMap] || [];
-                        return keywords.some(keyword => 
-                          product.name.toLowerCase().includes(keyword) || 
-                          product.category?.toLowerCase().includes(keyword)
-                        );
-                      }), searchQuery).map((product) => (
-                        <div 
-                          key={product.id}
-                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
-                            selectedProducts.some(p => p.id === product.id) ? 'border-primary bg-primary/10' : 'border-border'
-                          }`}
-                          onClick={() => {
-                            // Add to selected products instead of cart
-                            setSelectedProducts(prev => {
-                              const isAlreadySelected = prev.some(p => p.id === product.id);
-                              if (isAlreadySelected) {
-                                toast({ title: "Product Removed", description: `${product.name} has been removed from your configuration!` });
-                                return prev.filter(p => p.id !== product.id);
-                              } else {
-                                toast({ title: "Product Added", description: `${product.name} has been added to your pool configuration!` });
-                                return [...prev, product];
-                              }
-                            });
-                          }}
-                        >
-                          <div className="flex gap-3">
-                            {product.image_url && (
-                              <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0">
-                                <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium">{product.name}</p>
-                              {product.brand && <p className="text-xs text-primary">{product.brand}</p>}
-                              <p className="text-sm font-semibold">${product.price.toLocaleString()}</p>
-                              {product.description && (
-                                <p className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Finishes */}
-                  {activePanel === 'finishes' && filteredOptions(finishOptions, searchQuery).map((finish) => (
-                    <div 
-                      key={finish.name}
-                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
-                        extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'
-                      }`}
-                      onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
-                    >
-                      <div className="flex gap-3">
-                        <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                          <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{finish.name}</p>
-                          <p className="text-xs text-primary">{finish.collection}</p>
-                          {finish.price && (
-                            <p className="text-xs font-semibold">+${finish.price.toLocaleString()}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Liners */}
-                  {activePanel === 'liners' && filteredOptions(linerOptions, searchQuery).map((liner) => (
-                    <div 
-                      key={liner.name}
-                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
-                        extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'
-                      }`}
-                      onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
-                    >
-                      <div className="flex gap-3">
-                        <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                          <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{liner.name}</p>
-                          {liner.type && liner.type !== 'Standard' && (
-                            <p className="text-xs text-primary">{liner.type}</p>
-                          )}
-                          {liner.price > 0 && (
-                            <p className="text-xs font-semibold">+${liner.price.toLocaleString()}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Pavers */}
-                  {activePanel === 'pavers' && filteredOptions(paverOptions, searchQuery).map((paver) => (
-                    <div 
-                      key={paver.name}
-                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
-                        extras.paverOption === paver.name ? 'border-primary bg-primary/10' : 'border-border'
-                      }`}
-                      onClick={() => setExtras(prev => ({ ...prev, paverOption: paver.name }))}
-                    >
-                      <div className="flex gap-3">
-                        <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                          <img src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{paver.name}</p>
-                          {paver.price > 0 && (
-                            <p className="text-xs font-semibold">+${paver.price.toLocaleString()}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Coping */}
-                  {activePanel === 'coping' && filteredOptions(copingPaverOptions, searchQuery).map((coping) => (
-                    <div 
-                      key={coping.name}
-                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
-                        extras.copingPaverOption === coping.name ? 'border-primary bg-primary/10' : 'border-border'
-                      }`}
-                      onClick={() => setExtras(prev => ({ ...prev, copingPaverOption: coping.name }))}
-                    >
-                      <div className="flex gap-3">
-                        <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                          <img src={coping.image} alt={coping.name} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{coping.name}</p>
-                          {coping.price > 0 && (
-                            <p className="text-xs font-semibold">+${coping.price.toLocaleString()}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Covers */}
-                  {activePanel === 'covers' && filteredOptions(coverOptions, searchQuery).map((cover) => (
-                    <div 
-                      key={cover.name}
-                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
-                        extras.coverOption === cover.name && extras.cover ? 'border-primary bg-primary/10' : 'border-border'
-                      }`}
-                      onClick={() => {
-                        setExtras(prev => ({ ...prev, coverOption: cover.name, cover: true }));
-                      }}
-                    >
-                      <div className="flex gap-3">
-                        <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                          <img src={cover.image} alt={cover.name} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{cover.name}</p>
-                          <p className="text-xs font-semibold">+${cover.price.toLocaleString()}</p>
-                          <p className="text-xs text-muted-foreground truncate">{cover.description}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Heaters */}
-                  {activePanel === 'heaters' && filteredOptions(poolHeaters, searchQuery).map((heater) => (
-                    <div 
-                      key={heater.name}
-                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
-                        extras.heaterModel === heater.name && extras.heater ? 'border-primary bg-primary/10' : 'border-border'
-                      }`}
-                      onClick={() => {
-                        setExtras(prev => ({ ...prev, heaterModel: heater.name, heater: true }));
-                      }}
-                    >
-                      <div className="flex gap-3">
-                        <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                          <img src={heater.image} alt={heater.name} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{heater.name}</p>
-                          <p className="text-xs font-semibold">+${heater.price.toLocaleString()}</p>
-                          <p className="text-xs text-muted-foreground truncate">{heater.description}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Spas */}
-                  {activePanel === 'spas' && filteredOptions(spas, searchQuery).map((spa: any) => (
-                    <div 
-                      key={spa.model}
-                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
-                        extras.spaModel === spa.model && extras.spa ? 'border-primary bg-primary/10' : 'border-border'
-                      }`}
-                      onClick={() => {
-                        setExtras(prev => ({ ...prev, spaModel: spa.model, spa: true }));
-                      }}
-                    >
-                      <div className="flex gap-3">
-                        <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                          <img src={spa.image} alt={spa.model} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{spa.model}</p>
-                          <p className="text-xs font-semibold">+${spa.price.toLocaleString()}</p>
-                          <p className="text-xs text-muted-foreground truncate">{spa.features}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Tanning Ledges */}
-                  {activePanel === 'tanning' && filteredOptions(tanningLedges, searchQuery).map((ledge: any) => (
-                    <div 
-                      key={ledge.name}
-                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
-                        extras.tanningLedgeModel === ledge.name && extras.tanningLedge ? 'border-primary bg-primary/10' : 'border-border'
-                      }`}
-                      onClick={() => {
-                        setExtras(prev => ({ ...prev, tanningLedgeModel: ledge.name, tanningLedge: true }));
-                      }}
-                    >
-                      <div className="flex gap-3">
-                        <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                          <img src={ledge.image} alt={ledge.name} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{ledge.name}</p>
-                          <p className="text-xs font-semibold">+${ledge.price.toLocaleString()}</p>
-                          <p className="text-xs text-muted-foreground truncate">{ledge.description}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Tiles */}
-                  {activePanel === 'tiles' && filteredOptions(tileOptions, searchQuery).map((tile) => (
-                    <div 
-                      key={tile.name}
-                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
-                        extras.tileOption === tile.name && extras.tiles ? 'border-primary bg-primary/10' : 'border-border'
-                      }`}
-                      onClick={() => {
-                        setExtras(prev => ({ ...prev, tileOption: tile.name, tiles: true }));
-                      }}
-                    >
-                      <div className="flex gap-3">
-                        <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
-                          <img src={tile.image} alt={tile.name} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{tile.name}</p>
-                          {tile.price > 0 && (
-                            <p className="text-xs font-semibold">+${tile.price.toLocaleString()}</p>
-                          )}
-                          {tile.description && (
-                            <p className="text-xs text-muted-foreground truncate">{tile.description}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Jets - Special handling for quantity */}
-                  {activePanel === 'jets' && (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="text-sm font-medium">Spa Jets</p>
-                          <p className="text-xs text-muted-foreground">Premium spa jets for relaxation</p>
-                          <p className="text-xs font-semibold">${getExtraPrice('jets').toLocaleString()} each</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))}
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="text-sm px-2 py-1 bg-muted rounded">{extras.jetQuantity}</span>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      <Button 
-                        className="w-full"
-                        variant={extras.jets ? "default" : "outline"}
-                        onClick={() => toggleExtra('jets')}
-                      >
-                        {extras.jets ? 'Remove Jets' : 'Add Jets'}
-                      </Button>
-                    </div>
-                  )}
+                  {/* Dynamic Category Content - Render appropriate options based on activePanel */}
+                  {renderCategoryContent()}
                 </div>
               </div>
             )}
 
+            {/* Default State */}
             {!activePanel && !searchQuery && (
-              <div className="p-4">
-                <h3 className="font-semibold mb-4">Current Configuration</h3>
-                
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Pool Model:</span>
-                    <span className="font-medium">{pool.model}</span>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Base Price:</span>
-                    <span className="font-medium">${pool.price.toLocaleString()}</span>
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-2">
-                    {extras.liner && (
-                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                        <span className="text-muted-foreground">Liner:</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-xs">{extras.linerOption}</span>
-                          <Button size="sm" variant="ghost" onClick={() => setActivePanel('liners')}>
-                            <Camera className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {extras.paverOption !== 'Standard Concrete' && (
-                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                        <span className="text-muted-foreground">Pavers:</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-xs">{extras.paverOption}</span>
-                          <Button size="sm" variant="ghost" onClick={() => setActivePanel('pavers')}>
-                            <Camera className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {extras.cover && (
-                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                        <span className="text-muted-foreground">Cover:</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-xs">{extras.coverOption}</span>
-                          <Button size="sm" variant="ghost" onClick={() => setActivePanel('covers')}>
-                            <Camera className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {extras.heater && (
-                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                        <span className="text-muted-foreground">Heater:</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-xs">{extras.heaterModel}</span>
-                          <Button size="sm" variant="ghost" onClick={() => setActivePanel('heaters')}>
-                            <Camera className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {extras.spa && (
-                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                        <span className="text-muted-foreground">Spa:</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-xs">{extras.spaModel}</span>
-                          <Button size="sm" variant="ghost" onClick={() => setActivePanel('spas')}>
-                            <Camera className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {extras.tanningLedge && (
-                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                        <span className="text-muted-foreground">Tanning Ledge:</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-xs">{extras.tanningLedgeModel}</span>
-                          <Button size="sm" variant="ghost" onClick={() => setActivePanel('tanning')}>
-                            <Camera className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {extras.jets && (
-                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                        <span className="text-muted-foreground">Jets:</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-xs">{extras.jetQuantity}x Jets</span>
-                          <div className="flex items-center gap-1">
-                            <Button size="sm" variant="outline" onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))}>
-                              <Minus className="h-3 w-3" />
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))}>
-                              <Plus className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {extras.tiles && (
-                      <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                        <span className="text-muted-foreground">Tiles:</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-xs">{extras.tileOption}</span>
-                          <Button size="sm" variant="ghost" onClick={() => setActivePanel('tiles')}>
-                            <Camera className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+              <div className="p-4 text-center text-muted-foreground">
+                <div className="py-8">
+                  <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium mb-2">Select Category or Search</p>
+                  <p className="text-sm">Choose a category above or search for specific products to customize your pool</p>
                 </div>
               </div>
             )}
