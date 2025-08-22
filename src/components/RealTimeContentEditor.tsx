@@ -310,6 +310,10 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
   const [selectedDevice, setSelectedDevice] = useState('desktop');
   const [isLivePreview, setIsLivePreview] = useState(true);
   const [pendingChanges, setPendingChanges] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [showSurfaceAreaDialog, setShowSurfaceAreaDialog] = useState(false);
+  const [surfaceArea, setSurfaceArea] = useState('');
+  const [calculatedCost, setCalculatedCost] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -419,9 +423,35 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
     }
   };
 
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+    if (category === 'pavers' || category === 'copings') {
+      setShowSurfaceAreaDialog(true);
+    }
+  };
+
+  const calculatePaverCost = () => {
+    const area = parseFloat(surfaceArea);
+    if (isNaN(area) || area <= 0) {
+      toast({
+        title: "Invalid Input",
+        description: "Please enter a valid surface area",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const cost = area * 15; // $15 per sq ft including installation
+    setCalculatedCost(cost);
+    toast({
+      title: "Cost Calculated",
+      description: `Total cost for ${area} sq ft: $${cost.toLocaleString()}`,
+    });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl h-[95vh] overflow-hidden">
+      <DialogContent className="max-w-[98vw] max-h-[98vh] w-full h-full overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -439,303 +469,398 @@ const RealTimeContentEditor = ({ isOpen, onClose }: RealTimeContentEditorProps) 
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="editor" className="h-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="editor">Visual Editor</TabsTrigger>
-            <TabsTrigger value="elements">Element Library</TabsTrigger>
-            <TabsTrigger value="settings">Site Settings</TabsTrigger>
-            <TabsTrigger value="publish">Publish</TabsTrigger>
-          </TabsList>
+        <div className="flex h-full gap-4">
+          {/* Main Editor Area */}
+          <div className="flex-1 flex flex-col">
+            <Tabs defaultValue="editor" className="h-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="editor">Visual Editor</TabsTrigger>
+                <TabsTrigger value="elements">Element Library</TabsTrigger>
+                <TabsTrigger value="settings">Site Settings</TabsTrigger>
+                <TabsTrigger value="publish">Publish</TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="editor" className="h-full mt-4">
-            <div className="flex gap-4 h-full">
-              {/* Toolbar */}
-              <div className="w-64 border-r pr-4 space-y-4">
+              <TabsContent value="editor" className="h-full mt-4">
+                <div className="flex gap-4 h-full">
+                  <div className="w-64 border-r pr-4 space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-sm">Editor Controls</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <Button 
+                          onClick={() => setEditMode(!editMode)}
+                          variant={editMode ? "default" : "outline"}
+                          className="w-full"
+                        >
+                          {editMode ? <Eye className="mr-2 h-4 w-4" /> : <Edit3 className="mr-2 h-4 w-4" />}
+                          {editMode ? 'View Mode' : 'Edit Mode'}
+                        </Button>
+                        
+                        <Button 
+                          onClick={() => setShowOutlines(!showOutlines)}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          {showOutlines ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
+                          {showOutlines ? 'Hide Outlines' : 'Show Outlines'}
+                        </Button>
+
+                        <Button 
+                          onClick={() => setIsLivePreview(!isLivePreview)}
+                          variant={isLivePreview ? "default" : "outline"}
+                          className="w-full"
+                        >
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          {isLivePreview ? 'Live Mode' : 'Draft Mode'}
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-sm">Device Preview</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <Select value={selectedDevice} onValueChange={setSelectedDevice}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="desktop">
+                              <div className="flex items-center gap-2">
+                                <Monitor className="h-4 w-4" />
+                                Desktop
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="tablet">
+                              <div className="flex items-center gap-2">
+                                <Tablet className="h-4 w-4" />
+                                Tablet
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="mobile">
+                              <div className="flex items-center gap-2">
+                                <Smartphone className="h-4 w-4" />
+                                Mobile
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-sm">Quick Actions</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <Button onClick={saveAsDraft} variant="outline" className="w-full">
+                          <Save className="mr-2 h-4 w-4" />
+                          Save Draft
+                        </Button>
+
+                        <Button onClick={loadDraft} variant="outline" className="w-full">
+                          <Upload className="mr-2 h-4 w-4" />
+                          Load Draft
+                        </Button>
+
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                        <Button 
+                          onClick={() => fileInputRef.current?.click()}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <Image className="mr-2 h-4 w-4" />
+                          Add Image
+                        </Button>
+
+                        <Button 
+                          onClick={() => addCustomElement('text', 'New text element')}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <Type className="mr-2 h-4 w-4" />
+                          Add Text
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Live Preview */}
+                  <div className="flex-1 border rounded-lg bg-white relative overflow-auto">
+                    <SitePreview
+                      elements={elements}
+                      onElementClick={handleElementClick}
+                      editMode={editMode}
+                      showOutlines={showOutlines}
+                      selectedDevice={selectedDevice}
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="elements" className="mt-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { type: 'text', icon: Type, label: 'Text Block' },
+                    { type: 'heading', icon: Type, label: 'Heading' },
+                    { type: 'button', icon: Layout, label: 'Button' },
+                    { type: 'image', icon: Image, label: 'Image' }
+                  ].map(({ type, icon: Icon, label }) => (
+                    <Card key={type} className="hover:shadow-md transition-shadow cursor-pointer">
+                      <CardContent className="p-4 text-center">
+                        <Icon className="h-8 w-8 mx-auto mb-2 text-primary" />
+                        <p className="text-sm font-medium">{label}</p>
+                        <Button 
+                          size="sm" 
+                          className="mt-2"
+                          onClick={() => addCustomElement(type as any, `New ${type}`)}
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="settings" className="mt-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-sm">Editor Controls</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <Button 
-                      onClick={() => setEditMode(!editMode)}
-                      variant={editMode ? "default" : "outline"}
-                      className="w-full"
-                    >
-                      {editMode ? <Eye className="mr-2 h-4 w-4" /> : <Edit3 className="mr-2 h-4 w-4" />}
-                      {editMode ? 'View Mode' : 'Edit Mode'}
-                    </Button>
-                    
-                    <Button 
-                      onClick={() => setShowOutlines(!showOutlines)}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      {showOutlines ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
-                      {showOutlines ? 'Hide Outlines' : 'Show Outlines'}
-                    </Button>
-
-                    <Button 
-                      onClick={() => setIsLivePreview(!isLivePreview)}
-                      variant={isLivePreview ? "default" : "outline"}
-                      className="w-full"
-                    >
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                      {isLivePreview ? 'Live Mode' : 'Draft Mode'}
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Device Preview</CardTitle>
+                    <CardTitle>Global Settings</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <Select value={selectedDevice} onValueChange={setSelectedDevice}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="desktop">
-                          <div className="flex items-center gap-2">
-                            <Monitor className="h-4 w-4" />
-                            Desktop
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="tablet">
-                          <div className="flex items-center gap-2">
-                            <Tablet className="h-4 w-4" />
-                            Tablet
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="mobile">
-                          <div className="flex items-center gap-2">
-                            <Smartphone className="h-4 w-4" />
-                            Mobile
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Site Title</label>
+                        <Input 
+                          defaultValue="Wonderlands Pools" 
+                          onChange={(e) => updateElement({
+                            id: 'site-title',
+                            type: 'heading',
+                            content: e.target.value,
+                            position: { x: 0, y: 0 },
+                            editable: true,
+                            selector: 'h1'
+                          })}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Site Description</label>
+                        <Textarea 
+                          defaultValue="Transform your backyard into a paradise" 
+                          onChange={(e) => updateElement({
+                            id: 'site-subtitle',
+                            type: 'text',
+                            content: e.target.value,
+                            position: { x: 0, y: 0 },
+                            editable: true,
+                            selector: 'header p'
+                          })}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Primary Color</label>
+                        <Input type="color" defaultValue="#3b82f6" />
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
 
+              <TabsContent value="publish" className="mt-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-sm">Quick Actions</CardTitle>
+                    <CardTitle>Publish Changes</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2">
-                    <Button onClick={saveAsDraft} variant="outline" className="w-full">
-                      <Save className="mr-2 h-4 w-4" />
-                      Save Draft
-                    </Button>
-
-                    <Button onClick={loadDraft} variant="outline" className="w-full">
-                      <Upload className="mr-2 h-4 w-4" />
-                      Load Draft
-                    </Button>
-
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                    <Button 
-                      onClick={() => fileInputRef.current?.click()}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <Image className="mr-2 h-4 w-4" />
-                      Add Image
-                    </Button>
-
-                    <Button 
-                      onClick={() => addCustomElement('text', 'New text element')}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <Type className="mr-2 h-4 w-4" />
-                      Add Text
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Live Preview */}
-              <div className="flex-1 border rounded-lg bg-white relative overflow-auto">
-                <SitePreview
-                  elements={elements}
-                  onElementClick={handleElementClick}
-                  editMode={editMode}
-                  showOutlines={showOutlines}
-                  selectedDevice={selectedDevice}
-                />
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="elements" className="mt-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { type: 'text', icon: Type, label: 'Text Block' },
-                { type: 'heading', icon: Type, label: 'Heading' },
-                { type: 'button', icon: Layout, label: 'Button' },
-                { type: 'image', icon: Image, label: 'Image' }
-              ].map(({ type, icon: Icon, label }) => (
-                <Card key={type} className="hover:shadow-md transition-shadow cursor-pointer">
-                  <CardContent className="p-4 text-center">
-                    <Icon className="h-8 w-8 mx-auto mb-2 text-primary" />
-                    <p className="text-sm font-medium">{label}</p>
-                    <Button 
-                      size="sm" 
-                      className="mt-2"
-                      onClick={() => addCustomElement(type as any, `New ${type}`)}
-                    >
-                      <Plus className="h-3 w-3 mr-1" />
-                      Add
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="settings" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Global Settings</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Site Title</label>
-                    <Input 
-                      defaultValue="Wonderlands Pools" 
-                      onChange={(e) => updateElement({
-                        id: 'site-title',
-                        type: 'heading',
-                        content: e.target.value,
-                        position: { x: 0, y: 0 },
-                        editable: true,
-                        selector: 'h1'
-                      })}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Site Description</label>
-                    <Textarea 
-                      defaultValue="Transform your backyard into a paradise" 
-                      onChange={(e) => updateElement({
-                        id: 'site-subtitle',
-                        type: 'text',
-                        content: e.target.value,
-                        position: { x: 0, y: 0 },
-                        editable: true,
-                        selector: 'header p'
-                      })}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Primary Color</label>
-                    <Input type="color" defaultValue="#3b82f6" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="publish" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Publish Changes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                    <div>
-                      <h3 className="font-semibold">Pending Changes</h3>
-                      <p className="text-sm text-muted-foreground">
-                        You have {pendingChanges} pending changes ready to publish
-                      </p>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                        <div>
+                          <h3 className="font-semibold">Pending Changes</h3>
+                          <p className="text-sm text-muted-foreground">
+                            You have {pendingChanges} pending changes ready to publish
+                          </p>
+                        </div>
+                        <Badge>{pendingChanges}</Badge>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button onClick={publishChanges} className="flex-1" disabled={pendingChanges === 0}>
+                          <Globe className="mr-2 h-4 w-4" />
+                          Publish to Live Site
+                        </Button>
+                        <Button onClick={saveAsDraft} variant="outline" className="flex-1">
+                          <Save className="mr-2 h-4 w-4" />
+                          Save as Draft
+                        </Button>
+                      </div>
                     </div>
-                    <Badge>{pendingChanges}</Badge>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button onClick={publishChanges} className="flex-1" disabled={pendingChanges === 0}>
-                      <Globe className="mr-2 h-4 w-4" />
-                      Publish to Live Site
-                    </Button>
-                    <Button onClick={saveAsDraft} variant="outline" className="flex-1">
-                      <Save className="mr-2 h-4 w-4" />
-                      Save as Draft
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
 
-        {/* Edit Element Dialog */}
-        <Dialog open={editDialog} onOpenChange={setEditDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Element</DialogTitle>
-            </DialogHeader>
-            {selectedElement && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Content</label>
-                  <Textarea
-                    value={selectedElement.content}
-                    onChange={(e) => setSelectedElement({
-                      ...selectedElement,
-                      content: e.target.value
-                    })}
-                  />
-                </div>
-                {selectedElement.id.startsWith('custom-') && (
-                  <div className="grid grid-cols-2 gap-4">
+            {/* Edit Element Dialog */}
+            <Dialog open={editDialog} onOpenChange={setEditDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Element</DialogTitle>
+                </DialogHeader>
+                {selectedElement && (
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">X Position</label>
-                      <Input
-                        type="number"
-                        value={selectedElement.position.x}
+                      <label className="block text-sm font-medium mb-2">Content</label>
+                      <Textarea
+                        value={selectedElement.content}
                         onChange={(e) => setSelectedElement({
                           ...selectedElement,
-                          position: { ...selectedElement.position, x: parseInt(e.target.value) || 0 }
+                          content: e.target.value
                         })}
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Y Position</label>
-                      <Input
-                        type="number"
-                        value={selectedElement.position.y}
-                        onChange={(e) => setSelectedElement({
-                          ...selectedElement,
-                          position: { ...selectedElement.position, y: parseInt(e.target.value) || 0 }
-                        })}
-                      />
+                    {selectedElement.id.startsWith('custom-') && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">X Position</label>
+                          <Input
+                            type="number"
+                            value={selectedElement.position.x}
+                            onChange={(e) => setSelectedElement({
+                              ...selectedElement,
+                              position: { ...selectedElement.position, x: parseInt(e.target.value) || 0 }
+                            })}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Y Position</label>
+                          <Input
+                            type="number"
+                            value={selectedElement.position.y}
+                            onChange={(e) => setSelectedElement({
+                              ...selectedElement,
+                              position: { ...selectedElement.position, y: parseInt(e.target.value) || 0 }
+                            })}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={() => {
+                          updateElement(selectedElement);
+                          setEditDialog(false);
+                        }}
+                      >
+                        Update & Apply
+                      </Button>
+                      <Button variant="outline" onClick={() => setEditDialog(false)}>
+                        Cancel
+                      </Button>
                     </div>
                   </div>
                 )}
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={() => {
-                      updateElement(selectedElement);
-                      setEditDialog(false);
-                    }}
-                  >
-                    Update & Apply
-                  </Button>
-                  <Button variant="outline" onClick={() => setEditDialog(false)}>
-                    Cancel
-                  </Button>
-                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {/* Right Sidebar - Product Categories */}
+          <div className="w-80 bg-white border rounded-lg p-4 flex flex-col">
+            <h3 className="text-lg font-semibold mb-4">Product Categories</h3>
+            
+            <div className="space-y-2 flex-1">
+              {[
+                { id: 'pools', name: 'Swimming Pools', description: 'Custom pool designs' },
+                { id: 'spas', name: 'Spas & Hot Tubs', description: 'Relaxation solutions' },
+                { id: 'pavers', name: 'Pavers', description: '$15/sq ft (incl. installation)' },
+                { id: 'copings', name: 'Copings', description: '$15/sq ft (incl. installation)' },
+                { id: 'tiles', name: 'Pool Tiles', description: 'Decorative finishes' },
+                { id: 'covers', name: 'Pool Covers', description: 'Safety & maintenance' },
+                { id: 'lighting', name: 'LED Lighting', description: 'Ambiance & safety' },
+                { id: 'heating', name: 'Pool Heating', description: 'Extend swimming season' },
+              ].map((category) => (
+                <Button
+                  key={category.id}
+                  variant={selectedCategory === category.id ? 'default' : 'outline'}
+                  className="w-full text-left justify-start h-auto p-3"
+                  onClick={() => handleCategorySelect(category.id)}
+                >
+                  <div>
+                    <div className="font-medium">{category.name}</div>
+                    <div className="text-sm text-muted-foreground">{category.description}</div>
+                  </div>
+                </Button>
+              ))}
+            </div>
+
+            {selectedCategory && (
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                <div className="text-sm font-medium">Selected: {
+                  selectedCategory === 'pools' ? 'Swimming Pools' :
+                  selectedCategory === 'spas' ? 'Spas & Hot Tubs' :
+                  selectedCategory === 'pavers' ? 'Pavers' :
+                  selectedCategory === 'copings' ? 'Copings' :
+                  selectedCategory === 'tiles' ? 'Pool Tiles' :
+                  selectedCategory === 'covers' ? 'Pool Covers' :
+                  selectedCategory === 'lighting' ? 'LED Lighting' :
+                  selectedCategory === 'heating' ? 'Pool Heating' : selectedCategory
+                }</div>
+                {calculatedCost > 0 && (selectedCategory === 'pavers' || selectedCategory === 'copings') && (
+                  <div className="mt-2 text-lg font-bold text-green-600">
+                    Total Cost: ${calculatedCost.toLocaleString()}
+                  </div>
+                )}
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Surface Area Calculator Dialog */}
+        <Dialog open={showSurfaceAreaDialog} onOpenChange={setShowSurfaceAreaDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Calculate Surface Area Cost</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Surface Area (sq ft)</label>
+                <Input
+                  type="number"
+                  placeholder="Enter surface area in square feet"
+                  value={surfaceArea}
+                  onChange={(e) => setSurfaceArea(e.target.value)}
+                />
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Price: $15 per sq ft (includes installation)
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={calculatePaverCost} className="flex-1">
+                  Calculate Cost
+                </Button>
+                <Button variant="outline" onClick={() => setShowSurfaceAreaDialog(false)}>
+                  Cancel
+                </Button>
+              </div>
+              {calculatedCost > 0 && (
+                <div className="p-3 bg-green-50 rounded-lg">
+                  <div className="text-lg font-bold text-green-800">
+                    Total Cost: ${calculatedCost.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-green-600">
+                    {surfaceArea} sq ft × $15 = ${calculatedCost.toLocaleString()}
+                  </div>
+                </div>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
       </DialogContent>
