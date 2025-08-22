@@ -36,6 +36,7 @@ import RealTimeContentEditor from '@/components/RealTimeContentEditor';
 import LathamPoolsData from '@/components/LathamPoolsData';
 import UnifiedAdminProductManager from '@/components/UnifiedAdminProductManager';
 import AdminUserManagement from '@/components/AdminUserManagement';
+import PaverManagementComponent from '@/components/PaverManagementComponent';
 import { DragDropEditor } from '@/components/DragDropEditor';
 
 const AdminDashboard = () => {
@@ -172,8 +173,7 @@ const AdminDashboard = () => {
             <TabsList className="grid w-full grid-cols-2 sm:flex sm:flex-wrap gap-1">
               <TabsTrigger value="unified-products" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <Database className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Unified Products</span>
-                <span className="sm:hidden">Products</span>
+                <span className="hidden sm:inline">Products</span>
               </TabsTrigger>
               <TabsTrigger value="orders" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -185,18 +185,19 @@ const AdminDashboard = () => {
               </TabsTrigger>
                <TabsTrigger value="api-manager" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                 <span className="hidden sm:inline">API Manager</span>
-                 <span className="sm:hidden">API</span>
+                 <span className="hidden sm:inline">API</span>
                </TabsTrigger>
                <TabsTrigger value="pool-specs" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                   <Package className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Pool Specs</span>
-                  <span className="sm:hidden">Specs</span>
+                  <span className="hidden sm:inline">Specs</span>
                 </TabsTrigger>
               <TabsTrigger value="delivery-logistics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Delivery & Logistics</span>
-                <span className="sm:hidden">Delivery</span>
+                <span className="hidden sm:inline">Delivery</span>
+              </TabsTrigger>
+              <TabsTrigger value="pavers" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <Package className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Pavers</span>
               </TabsTrigger>
               <TabsTrigger value="content-editor" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -415,6 +416,24 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <LathamPoolsData />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Pavers Tab */}
+          <TabsContent value="pavers" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5 text-primary" />
+                  Paver & Coping Management
+                </CardTitle>
+                <CardDescription>
+                  Manage different paver types, colors, and pricing options
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PaverManagementComponent />
               </CardContent>
             </Card>
           </TabsContent>

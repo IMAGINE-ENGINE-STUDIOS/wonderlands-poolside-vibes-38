@@ -715,6 +715,39 @@ const ContentEditor = () => {
             </CardContent>
           </Card>
 
+          {/* Paver & Coping Editor */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                Paver & Coping Editor
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                  Paver Surface Area (sq ft)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Enter surface area for pavers"
+                  className="mb-2"
+                />
+              </div>
+              
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                  Coping Surface Area (sq ft)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Enter surface area for coping"
+                  className="mb-2"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Product Marketplace */}
           <Card className="flex-1">
             <CardHeader className="pb-3">
@@ -762,7 +795,7 @@ const ContentEditor = () => {
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium text-xs truncate">{product.name}</h4>
                           <p className="text-xs text-green-600 font-semibold">
-                            ${product.price.toLocaleString()}
+                            {product.price.toLocaleString()}
                           </p>
                           <p className="text-xs text-muted-foreground capitalize">
                             {product.category}

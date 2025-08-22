@@ -107,34 +107,7 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
   const totalAmount = price * quantity;
   const monthlyPayment = calculateMonthlyPayment(totalAmount);
 
-  // If showFinancingOptions is true, show integrated financing section
-  if (showFinancingOptions) {
-    return (
-      <div className="flex items-center gap-3 bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/10 rounded-xl p-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <Calculator className="h-4 w-4 text-primary" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold">Finance from ${monthlyPayment.toFixed(0)}/mo</div>
-            <div className="text-xs text-muted-foreground">60 months • Lyon Financial</div>
-          </div>
-        </div>
-        
-        <Button
-          onClick={handleFinancing}
-          disabled={isFinancingLoading || isLoading}
-          size="sm"
-          className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white border-0"
-        >
-          <DollarSign className="h-3 w-3 mr-1" />
-          {isFinancingLoading ? 'Opening...' : 'Apply Now'}
-        </Button>
-      </div>
-    );
-  }
-
-  // If showFinancingOptions is false, only show the payment button
+  // Only show the payment button
   return (
     <Button
       onClick={handleCheckout}
@@ -144,7 +117,7 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
       className={`${className} ${isLoading ? 'opacity-50' : ''}`}
     >
       <CreditCard className="h-4 w-4 mr-2" />
-      {isLoading ? 'Processing...' : `Buy Now - $${totalAmount.toLocaleString()}`}
+      {isLoading ? 'Processing...' : `Buy Now - ${totalAmount.toLocaleString()}`}
     </Button>
   );
 };
