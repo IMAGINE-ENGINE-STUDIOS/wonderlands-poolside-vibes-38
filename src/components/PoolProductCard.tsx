@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { useShoppingCart } from "./ShoppingCart";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { spas } from "./PoolCatalog";
 import { tanningLedges } from "@/data/poolData";
+import { supabase } from "@/integrations/supabase/client";
 
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
@@ -153,13 +154,13 @@ const tileOptions = [
   }))
 ];
 
-// Paver options
-const paverOptions = [
+// Paver options - now fetch from database
+const [paverOptions, setPaverOptions] = useState([
   { name: 'Standard Concrete', color: '#D3D3D3', price: 0, image: azureBlueFinish, description: 'Basic concrete pavers around pool perimeter' },
   { name: 'Natural Stone', color: '#8B7355', price: 2500, image: shaleGrayFinish, description: 'Premium natural stone pavers' },
   { name: 'Travertine', color: '#F5DEB3', price: 3200, image: athensPearlFinish, description: 'Elegant travertine paving stones' },
   { name: 'Brick Pavers', color: '#B22222', price: 2800, image: coastalBronzeFinish, description: 'Classic brick paver design' }
-];
+]);
 
 // Coping paver options
 const copingPaverOptions = [
@@ -199,6 +200,34 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
   const [showFinancing, setShowFinancing] = useState(false);
   
   const { addToCart } = useShoppingCart();
+
+  // Fetch pavers from database
+  useEffect(() => {
+    const fetchPavers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('pavers')
+          .select('*')
+          .eq('is_active', true);
+
+        if (!error && data) {
+          const dbPavers = data.map((paver: any) => ({
+            name: paver.name,
+            color: '#8B7355',
+            price: paver.base_price * 15,
+            image: paver.image_url || azureBlueFinish,
+            description: paver.description || `Premium ${paver.name} pavers`,
+            collection: paver.collection
+          }));
+          setPaverOptions(prev => [...prev, ...dbPavers]);
+        }
+      } catch (error) {
+        console.error('Error fetching pavers:', error);
+      }
+    };
+
+    fetchPavers();
+  }, []);
 
   const handleImageClick = () => {
     setShowDetails(!showDetails);
