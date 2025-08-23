@@ -112,18 +112,33 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
   const totalAmount = price * quantity;
   const monthlyPayment = calculateMonthlyPayment(totalAmount);
 
-  // Only show the Apply with Lyon Financial button
+  // Show both Stripe checkout and Lyon Financial options
   return (
-    <Button
-      onClick={handleFinancing}
-      disabled={isFinancingLoading}
-      variant={variant}
-      size={size}
-      className={`${className} ${isFinancingLoading ? 'opacity-50' : ''}`}
-    >
-      <Calculator className="h-4 w-4 mr-2" />
-      {isFinancingLoading ? 'Processing...' : `Apply with Lyon Financial`}
-    </Button>
+    <div className="flex flex-col gap-2 w-full">
+      <Button
+        onClick={handleCheckout}
+        disabled={isLoading}
+        variant={variant}
+        size={size}
+        className={`${className} ${isLoading ? 'opacity-50' : ''}`}
+      >
+        <CreditCard className="h-4 w-4 mr-2" />
+        {isLoading ? 'Processing...' : `Buy Now - $${totalAmount.toLocaleString()}`}
+      </Button>
+      
+      {showFinancingOptions && (
+        <Button
+          onClick={handleFinancing}
+          disabled={isFinancingLoading}
+          variant="outline"
+          size={size}
+          className={`${className} ${isFinancingLoading ? 'opacity-50' : ''}`}
+        >
+          <Calculator className="h-4 w-4 mr-2" />
+          {isFinancingLoading ? 'Processing...' : `Finance from $${Math.round(monthlyPayment)}/mo`}
+        </Button>
+      )}
+    </div>
   );
 };
 
