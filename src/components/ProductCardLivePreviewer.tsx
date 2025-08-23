@@ -155,10 +155,17 @@ export const ProductCardLivePreviewer = ({ product, isOpen, onClose, onSave }: P
 
       if (error) throw error;
 
-      onSave({
+      // Convert updateData to pool format before saving
+      const poolFormatData = {
         ...updateData,
-        warranty_years: String(updateData.warranty_years || '')
-      });
+        warranty_years: String(updateData.warranty_years || ''),
+        carbon_fiber: updateData.carbon_fiber || false,
+        finishes: updateData.finishes || [],
+        liners: updateData.liners || [],
+        covers: updateData.covers || []
+      };
+
+      onSave(poolFormatData);
       setIsEditing(false);
       toast({
         title: "Success",
