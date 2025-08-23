@@ -134,13 +134,13 @@ const linerOptions = [
   }))
 ];
 
-// Cover options - using real products from database (placeholder until API integration)
+// Cover options - using real automatic covers from AutomaticCoversSection
 const coverOptions = [
   { name: 'NO COVER', color: '#808080', price: 0, image: shaleGrayFinish, category: 'cover', description: 'No pool cover needed' },
-  { name: 'Eclipse Automatic Cover', color: '#2F4F4F', price: 16000, image: nightSkyFinish, category: 'cover', description: 'Premium automatic pool cover with solar heating' },
-  { name: 'CS3000 Safety Cover', color: '#2F4F4F', price: 24000, image: shaleGrayFinish, category: 'cover', description: 'Heavy-duty safety cover with anchoring system' },
-  { name: 'Infinity 4000 Smart Cover', color: '#2F4F4F', price: 32000, image: coastalBronzeFinish, category: 'cover', description: 'Smart automated cover with app control' },
-  { name: 'Atom Loop-Loc Cover', color: '#2F4F4F', price: 19000, image: aquamarineFinish, category: 'cover', description: 'Mesh safety cover for all seasons' }
+  { name: 'Eclipse Automatic Cover', color: '#2F4F4F', price: 16000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png', category: 'cover', description: 'High-grade PVC with dual track system and emergency manual override' },
+  { name: 'CS3000 Safety Cover', color: '#2F4F4F', price: 24000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png', category: 'cover', description: 'Multi-layer vinyl with smart automation and weather sensors' },
+  { name: 'Infinity 4000 Smart Cover', color: '#2F4F4F', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png', category: 'cover', description: 'Premium composite with AI-powered automation and solar integration' },
+  { name: 'Atom Loop-Loc Cover', color: '#2F4F4F', price: 19000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png', category: 'cover', description: 'Insulated fabric with compact design and temperature sensors' }
 ];
 
 // Convert pool tiles to tile options format
@@ -155,31 +155,18 @@ const tileOptions = [
   }))
 ];
 
-// Convert paver data to options format with consistent $15/sq ft pricing
+// Convert paver data to options format - Fixed Appian Collection
 const paverOptions = [
   { name: 'No Pavers', color: '#808080', price: 0, image: azureBlueFinish, description: 'No additional pavers', collection: 'none' },
-  ...paverTypes.map(paver => ({
-    name: paver.name,
-    color: paver.colors[0]?.hex || '#D3D3D3',
-    price: 0, // Base price is 0, actual cost calculated by surface area × $15/sq ft
-    image: paver.image || azureBlueFinish,
-    description: paver.description,
-    collection: paver.category
-  }))
+  { name: 'Appian Collection - Rectangle 12x24', color: '#D2B48C', price: 0, image: azureBlueFinish, description: 'Classic rectangular pavers from Appian Collection', collection: 'appian' },
+  { name: 'Appian Collection - Square 12x12', color: '#CD853F', price: 0, image: oceanBlueFinish, description: 'Square format pavers from Appian Collection', collection: 'appian' },
+  { name: 'Appian Collection - Herringbone Pattern', color: '#DEB887', price: 0, image: sapphireBlueFinish, description: 'Elegant herringbone pattern from Appian Collection', collection: 'appian' },
+  { name: 'Appian Collection - Tumbled Finish', color: '#F5DEB3', price: 0, image: nightSkyFinish, description: 'Tumbled texture finish from Appian Collection', collection: 'appian' }
 ];
 
+// Remove coping pavers entirely - no longer needed per user request
 // Convert coping data to options format with consistent $15/sq ft pricing  
-const copingPaverOptions = [
-  { name: 'No Coping', color: '#808080', price: 0, image: azureBlueFinish, description: 'No additional coping', collection: 'none' },
-  ...copingTypes.map(coping => ({
-    name: coping.name,
-    color: coping.colors[0]?.hex || '#A9A9A9',
-    price: 0, // Base price is 0, actual cost calculated by surface area × $15/sq ft
-    image: coping.image || azureBlueFinish,
-    description: coping.description,
-    collection: coping.category
-  }))
-];
+// const copingPaverOptions = [];
 
 const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false }: PoolProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
@@ -284,13 +271,14 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
       total += parseFloat(paverSurfaceArea) * 15;
     }
 
-    const copingPaverOption = copingPaverOptions.find(option => option.name === extras.copingPaverOption);
-    if (copingPaverOption) total += copingPaverOption.price;
+    // Remove coping calculations since coping options were removed
+    // const copingPaverOption = copingPaverOptions.find(option => option.name === extras.copingPaverOption);
+    // if (copingPaverOption) total += copingPaverOption.price;
     
-    // Add calculated coping surface area cost
-    if (copingSurfaceArea && !isNaN(parseFloat(copingSurfaceArea))) {
-      total += parseFloat(copingSurfaceArea) * 15;
-    }
+    // Remove calculated coping surface area cost
+    // if (copingSurfaceArea && !isNaN(parseFloat(copingSurfaceArea))) {
+    //   total += parseFloat(copingSurfaceArea) * 15;
+    // }
     
     // Add spa price if selected
     if (extras.spa) {
@@ -350,10 +338,11 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
       cartExtras.push({ name: paverOption.name, price: paverOption.price });
     }
 
-    const copingPaverOption = copingPaverOptions.find(option => option.name === extras.copingPaverOption);
-    if (copingPaverOption && copingPaverOption.price > 0) {
-      cartExtras.push({ name: copingPaverOption.name, price: copingPaverOption.price });
-    }
+    // Remove coping paver options from cart since they were removed
+    // const copingPaverOption = copingPaverOptions.find(option => option.name === extras.copingPaverOption);
+    // if (copingPaverOption && copingPaverOption.price > 0) {
+    //   cartExtras.push({ name: copingPaverOption.name, price: copingPaverOption.price });
+    // }
 
     if (extras.spa) {
       const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
@@ -693,65 +682,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
               </Carousel>
             </div>
 
-            {/* Coping Pavers Options */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Coping Pavers & Surface Area Calculator</h4>
-              <div className="mb-3">
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                  Coping Surface Area (sq ft)
-                </label>
-                <Input
-                  type="number"
-                  placeholder="Enter surface area for coping"
-                  value={copingSurfaceArea}
-                  onChange={(e) => setCopingSurfaceArea(e.target.value)}
-                  className="mb-2"
-                />
-                 {copingSurfaceArea && !isNaN(parseFloat(copingSurfaceArea)) && (
-                   <div className="text-xs text-green-600 font-medium">
-                     Calculated Cost: ${(parseFloat(copingSurfaceArea) * 15).toLocaleString()} ({copingSurfaceArea} sq ft × $15/sq ft)
-                   </div>
-                 )}
-              </div>
-              <Carousel className="w-full">
-                <CarouselContent className="-ml-1">
-                  {copingPaverOptions.map((coping) => (
-                    <CarouselItem key={coping.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
-                      <div 
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                          extras.copingPaverOption === coping.name ? 'border-primary bg-primary/10' : 'border-border'
-                        }`}
-                        onClick={() => setExtras(prev => ({ ...prev, copingPaverOption: coping.name }))}
-                      >
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <img 
-                            src={coping.image} 
-                            alt={coping.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              const parent = target.parentElement;
-                              if (parent) {
-                                parent.style.backgroundColor = coping.color;
-                                target.style.display = 'none';
-                              }
-                            }}
-                          />
-                        </div>
-                        <div className="flex-1 flex flex-col justify-between min-h-0">
-                          <p className="text-xs font-medium text-center line-clamp-2">{coping.name}</p>
-                          {coping.price > 0 && (
-                            <p className="text-xs text-primary font-semibold text-center mt-1">+${coping.price.toLocaleString()}</p>
-                          )}
-                        </div>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
-              </Carousel>
-            </div>
+            {/* Coping Pavers Options - REMOVED AS REQUESTED */}
+            {/* User requested removal of coping options */}
 
             {/* Cover Options */}
             <div className="space-y-3">
