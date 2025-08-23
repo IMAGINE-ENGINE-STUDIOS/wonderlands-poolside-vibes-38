@@ -18,12 +18,16 @@ const PaversSection = () => {
   const [selectedColor, setSelectedColor] = useState<any>(null);
   const [surfaceArea, setSurfaceArea] = useState('');
   const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [selectedCollection, setSelectedCollection] = useState<'appian' | 'catalina'>('appian');
   const { addToCart } = useShoppingCart();
 
-  // Get all Appian Collection pavers from the data
+  // Get collections from the data
   const appianPavers = paverTypes.filter(paver => 
-    paver.id.toLowerCase().includes('appian') || 
-    paver.name.toLowerCase().includes('appian')
+    paver.id.toLowerCase().includes('appian')
+  );
+  
+  const catalinaPavers = paverTypes.filter(paver => 
+    paver.id.toLowerCase().includes('catalina')
   );
 
   const handleOpenOptions = () => {
@@ -46,9 +50,11 @@ const PaversSection = () => {
     }
 
     const totalPrice = calculateTotalPrice();
+    const collectionName = selectedCollection === 'appian' ? 'Appian Collection' : 'Catalina Grana Collection';
+    
     addToCart({
-      id: `appian_pavers_${Date.now()}`,
-      name: `Appian Collection - ${selectedPaverType.name} (${selectedColor.name})`,
+      id: `${selectedCollection}_pavers_${Date.now()}`,
+      name: `${collectionName} - ${selectedPaverType.name} (${selectedColor.name})`,
       price: totalPrice,
       category: 'paver',
       image: selectedPaverType.image,
@@ -58,7 +64,7 @@ const PaversSection = () => {
       ]
     });
 
-    toast.success('Added Appian pavers to cart!');
+    toast.success(`Added ${collectionName} pavers to cart!`);
     setShowOptionsModal(false);
   };
 
@@ -76,12 +82,13 @@ const PaversSection = () => {
               Premium Pool Pavers
             </h2>
             <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
-              Transform your pool area with our premium Appian Collection pavers, featuring multiple styles, colors, and finishes.
+              Transform your pool area with our premium paver collections, featuring multiple styles, colors, and finishes.
             </p>
           </div>
 
-          {/* Single Appian Product Card */}
-          <div className="max-w-2xl mx-auto">
+          {/* Both Collections Grid */}
+          <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            {/* First Card - Appian Collection */}
             <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
               
               {/* Product Image */}
@@ -201,7 +208,12 @@ const PaversSection = () => {
                 {/* Action Buttons */}
                 <div className="space-y-3">
                   <Button 
-                    onClick={handleOpenOptions}
+                    onClick={() => {
+                      setSelectedCollection('appian');
+                      setSelectedPaverType(appianPavers[0]);
+                      setSelectedColor(appianPavers[0]?.colors[0]);
+                      setShowOptionsModal(true);
+                    }}
                     variant="gradient"
                     className="w-full hover:scale-105 transition-all duration-300"
                     size="lg"
@@ -219,7 +231,172 @@ const PaversSection = () => {
                       Get Quote
                     </Button>
                     <Button 
-                      onClick={handleOpenOptions}
+                      onClick={() => {
+                        setSelectedCollection('appian');
+                        setSelectedPaverType(appianPavers[0]);
+                        setSelectedColor(appianPavers[0]?.colors[0]);
+                        setShowOptionsModal(true);
+                      }}
+                      variant="outline"
+                      size="sm"
+                    >
+                      View All Options
+                    </Button>
+                  </div>
+                </div>
+
+              </CardContent>
+            </Card>
+
+            {/* Second Card - Catalina Grana Collection */}
+            <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
+              
+              {/* Product Image */}
+              <div className="relative w-full h-64 bg-gradient-to-br from-teal/10 to-coral/10 overflow-hidden">
+                <img 
+                  src={catalinaPavers[0]?.image || '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png'} 
+                  alt="Catalina Grana Collection Pavers"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                
+                {/* Category Badge */}
+                <div className="absolute top-4 left-4">
+                  <Badge className="bg-gradient-to-r from-teal to-coral text-white font-medium px-3 py-1">
+                    Grana Collection
+                  </Badge>
+                </div>
+
+                {/* Rating Stars */}
+                <div className="absolute top-4 right-4 flex items-center gap-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} size={14} fill="gold" className="text-yellow-500" />
+                  ))}
+                </div>
+              </div>
+
+              <CardHeader className="pb-4">
+                <CardTitle className="text-2xl font-bold text-foreground group-hover:text-teal transition-colors">
+                  Catalina Grana Collection
+                </CardTitle>
+                <p className="text-muted-foreground">
+                  Contemporary Grana collection with refined textures and sophisticated color palette. Ideal for modern pool environments.
+                </p>
+              </CardHeader>
+
+              <CardContent className="space-y-6">
+                
+                {/* Pricing Information */}
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-coral" />
+                  <span className="text-lg font-semibold text-foreground">
+                    Starting at $31/sq ft
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    (Price varies by style and color)
+                  </span>
+                </div>
+
+                <Separator />
+
+                {/* Available Styles Preview */}
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-foreground">Available Styles ({catalinaPavers.length} options)</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {catalinaPavers.slice(0, 4).map((paver) => (
+                      <div key={paver.id} className="text-center">
+                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden">
+                          <img 
+                            src={paver.image} 
+                            alt={paver.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <p className="text-xs font-medium">{paver.name.replace('Catalina Grana ', '')}</p>
+                        <p className="text-xs text-muted-foreground">${paver.basePrice}/sq ft</p>
+                      </div>
+                    ))}
+                  </div>
+                  {catalinaPavers.length > 4 && (
+                    <p className="text-sm text-teal text-center font-medium">
+                      +{catalinaPavers.length - 4} more styles available
+                    </p>
+                  )}
+                </div>
+
+                <Separator />
+
+                {/* Key Features */}
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-foreground">Key Features</h4>
+                  <ul className="space-y-1 text-sm text-muted-foreground">
+                    <li>• Contemporary Grana texture patterns</li>
+                    <li>• Superior slip resistance</li>
+                    <li>• Weather-resistant finish</li>
+                    <li>• Low maintenance surface</li>
+                    <li>• Expert installation service</li>
+                  </ul>
+                </div>
+
+                <Separator />
+
+                {/* Surface Area Calculator */}
+                <div className="space-y-3 p-4 bg-muted/30 rounded-lg">
+                  <h4 className="font-semibold text-foreground flex items-center gap-2">
+                    <Calculator className="h-4 w-4" />
+                    Quick Price Calculator
+                  </h4>
+                  <div className="space-y-2">
+                    <Input
+                      type="number"
+                      placeholder="Enter surface area (sq ft)"
+                      value={surfaceArea}
+                      onChange={(e) => setSurfaceArea(e.target.value)}
+                    />
+                    {surfaceArea && !isNaN(parseFloat(surfaceArea)) && (
+                      <div className="text-sm">
+                        <div className="text-green-600 font-medium">
+                          Estimated Range: ${(parseFloat(surfaceArea) * 31).toLocaleString()} - ${(parseFloat(surfaceArea) * 38).toLocaleString()}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Based on {surfaceArea} sq ft (price varies by style and color selection)
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="space-y-3">
+                  <Button 
+                    onClick={() => {
+                      setSelectedCollection('catalina');
+                      setSelectedPaverType(catalinaPavers[0]);
+                      setSelectedColor(catalinaPavers[0]?.colors[0]);
+                      setShowOptionsModal(true);
+                    }}
+                    variant="gradient"
+                    className="w-full hover:scale-105 transition-all duration-300"
+                    size="lg"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Customize & Configure
+                  </Button>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button 
+                      onClick={handleRequestQuote}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Get Quote
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        setSelectedCollection('catalina');
+                        setSelectedPaverType(catalinaPavers[0]);
+                        setSelectedColor(catalinaPavers[0]?.colors[0]);
+                        setShowOptionsModal(true);
+                      }}
                       variant="outline"
                       size="sm"
                     >
@@ -238,7 +415,9 @@ const PaversSection = () => {
       <Dialog open={showOptionsModal} onOpenChange={setShowOptionsModal}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Configure Your Appian Collection Pavers</DialogTitle>
+            <DialogTitle className="text-2xl">
+              Configure Your {selectedCollection === 'appian' ? 'Appian Collection' : 'Catalina Grana Collection'} Pavers
+            </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-6">
@@ -247,7 +426,7 @@ const PaversSection = () => {
             <div className="space-y-3">
               <h3 className="text-lg font-semibold">1. Select Paver Style</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {appianPavers.map((paver) => (
+                {(selectedCollection === 'appian' ? appianPavers : catalinaPavers).map((paver) => (
                   <div
                     key={paver.id}
                     className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
@@ -265,7 +444,9 @@ const PaversSection = () => {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <p className="text-sm font-medium text-center">{paver.name.replace('Appian ', '')}</p>
+                    <p className="text-sm font-medium text-center">
+                      {paver.name.replace(selectedCollection === 'appian' ? 'Appian ' : 'Catalina Grana ', '')}
+                    </p>
                     <p className="text-xs text-muted-foreground text-center">${paver.basePrice}/sq ft base</p>
                   </div>
                 ))}
@@ -384,7 +565,7 @@ const PaversSection = () => {
         isOpen={showQuoteModal}
         onClose={() => setShowQuoteModal(false)}
         customProduct={{
-          name: 'Appian Collection Pavers',
+          name: `${selectedCollection === 'appian' ? 'Appian Collection' : 'Catalina Grana Collection'} Pavers`,
           price: calculateTotalPrice() || 0,
           type: 'paver'
         }}

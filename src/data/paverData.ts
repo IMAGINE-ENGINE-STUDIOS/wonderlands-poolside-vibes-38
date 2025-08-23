@@ -191,6 +191,86 @@ export const paverTypes: PaverType[] = [
       { name: 'Antique', hex: '#CD853F', priceModifier: 1.1 },
       { name: 'Charcoal', hex: '#36454F', priceModifier: 1.15 }
     ]
+  },
+  
+  // Catalina Grana Collection
+  {
+    id: 'catalina-amaretto',
+    name: 'Catalina Grana Amaretto',
+    description: 'Warm Amaretto tones from the Catalina Grana Collection',
+    basePrice: 32,
+    category: 'paver',
+    image: '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png',
+    colors: [
+      { name: 'Amaretto', hex: '#C4A484', priceModifier: 1.0 },
+      { name: 'Caramel', hex: '#D2B48C', priceModifier: 1.05 },
+      { name: 'Hazelnut', hex: '#B8956B', priceModifier: 1.1 }
+    ]
+  },
+  {
+    id: 'catalina-napoli',
+    name: 'Catalina Grana Napoli',
+    description: 'Mediterranean Napoli style from the Catalina Grana Collection',
+    basePrice: 34,
+    category: 'paver',
+    image: '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.png',
+    colors: [
+      { name: 'Napoli Stone', hex: '#A69B8E', priceModifier: 1.0 },
+      { name: 'Tuscan Clay', hex: '#C4A484', priceModifier: 1.05 },
+      { name: 'Roman Blend', hex: '#B8A897', priceModifier: 1.1 }
+    ]
+  },
+  {
+    id: 'catalina-rio',
+    name: 'Catalina Grana Rio',
+    description: 'Warm Rio tones from the Catalina Grana Collection',
+    basePrice: 31,
+    category: 'paver',
+    image: '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.png',
+    colors: [
+      { name: 'Rio Sand', hex: '#D2B48C', priceModifier: 1.0 },
+      { name: 'Beach Tan', hex: '#DEB887', priceModifier: 1.05 },
+      { name: 'Golden Sand', hex: '#CD853F', priceModifier: 1.1 }
+    ]
+  },
+  {
+    id: 'catalina-scandina-gray',
+    name: 'Catalina Grana Scandina Gray',
+    description: 'Modern Scandina Gray from the Catalina Grana Collection',
+    basePrice: 35,
+    category: 'paver',
+    image: '/lovable-uploads/638972ac-6a43-41e7-ae3c-bce58ab9417b.png',
+    colors: [
+      { name: 'Scandina Gray', hex: '#8B7D6B', priceModifier: 1.0 },
+      { name: 'Nordic Stone', hex: '#9C8A7A', priceModifier: 1.05 },
+      { name: 'Arctic Blend', hex: '#A69B8E', priceModifier: 1.1 }
+    ]
+  },
+  {
+    id: 'catalina-slate',
+    name: 'Catalina Grana Slate',
+    description: 'Contemporary Slate finish from the Catalina Grana Collection',
+    basePrice: 36,
+    category: 'paver',
+    image: '/lovable-uploads/d85c2bf0-0a66-4aa0-9f64-5e76b511b428.png',
+    colors: [
+      { name: 'Slate Gray', hex: '#708090', priceModifier: 1.0 },
+      { name: 'Storm Slate', hex: '#696969', priceModifier: 1.05 },
+      { name: 'Charcoal Slate', hex: '#36454F', priceModifier: 1.1 }
+    ]
+  },
+  {
+    id: 'catalina-titanium',
+    name: 'Catalina Grana Titanium',
+    description: 'Premium Titanium finish from the Catalina Grana Collection',
+    basePrice: 38,
+    category: 'paver',
+    image: '/lovable-uploads/6aefa246-2c01-43a1-8a58-e195ec3355dc.png',
+    colors: [
+      { name: 'Titanium', hex: '#5F6A6B', priceModifier: 1.0 },
+      { name: 'Platinum Gray', hex: '#71797E', priceModifier: 1.05 },
+      { name: 'Steel Blue', hex: '#6C7B7F', priceModifier: 1.1 }
+    ]
   }
 ];
 
