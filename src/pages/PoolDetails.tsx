@@ -1671,8 +1671,22 @@ const PoolDetails = () => {
                         <span className="text-xs text-muted-foreground">Est. Monthly:</span>
                         <span className="font-semibold text-primary">${(calculateTotalPrice() / 60).toFixed(0)}/mo</span>
                       </div>
-                      <Button size="sm" className="w-full mt-2" variant="outline">
-                        Apply for Financing
+                      <Button 
+                        size="sm" 
+                        className="w-full mt-2" 
+                        variant="outline"
+                        onClick={() => {
+                          const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + 
+                            `amount=${calculateTotalPrice()}&` +
+                            `product=${encodeURIComponent(pool.model || 'Pool Installation')}&` +
+                            `description=${encodeURIComponent(`Complete pool configuration`)}&` +
+                            `monthly_payment=${Math.round(calculateTotalPrice() * 0.008)}&` +
+                            `loan_term=60&` +
+                            `project_type=Pool%20Installation`;
+                          window.open(lyonFinancialUrl, '_blank');
+                        }}
+                      >
+                        Lyon Financial
                       </Button>
                     </div>
                   </div>

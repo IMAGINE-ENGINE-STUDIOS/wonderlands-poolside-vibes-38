@@ -15,6 +15,11 @@ import {
   Plus
 } from "lucide-react";
 
+// Import real website options data
+import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
+import { poolLiners, poolTiles } from '@/data/poolData';
+import { paverTypes } from '@/data/paverData';
+
 interface PoolOption {
   id: string;
   name: string;
@@ -24,116 +29,116 @@ interface PoolOption {
   image?: string;
 }
 
+// Build pool options from actual website data
 const poolOptions: PoolOption[] = [
-  // Crystite Crystal Fiberglass Finishes (from Latham)
+  // Real Pool Finishes
+  ...poolFinishesData.map(finish => ({
+    id: `finish-${finish.name.toLowerCase().replace(/\s+/g, '-')}`,
+    name: finish.name,
+    description: finish.description || `Premium ${finish.collection} finish`,
+    price: finish.price,
+    category: 'waterline' as const
+  })),
+  
+  // Real Pool Liners
+  ...poolLiners.map(liner => ({
+    id: `liner-${liner.name.toLowerCase().replace(/\s+/g, '-')}`,
+    name: liner.name,
+    description: liner.description || `${liner.type} liner for enhanced durability`,
+    price: liner.price,
+    category: 'waterline' as const
+  })),
+  
+  // Real Pool Tiles
+  ...poolTiles.map(tile => ({
+    id: `tile-${tile.name.toLowerCase().replace(/\s+/g, '-')}`,
+    name: tile.name,
+    description: tile.description || 'Premium waterline tile',
+    price: tile.price,
+    category: 'decorative' as const
+  })),
+  
+  // Real Pavers (surface area based pricing)
+  ...paverTypes.map(paver => ({
+    id: `paver-${paver.name.toLowerCase().replace(/\s+/g, '-')}`,
+    name: paver.name,
+    description: paver.description || 'Premium paver option at $15/sq ft',
+    price: 0, // Base price, actual calculated by surface area
+    category: 'decorative' as const
+  })),
+  
+  // Real Pool Heating Options
   { 
-    id: 'fg-sapphire-blue-g3', 
-    name: 'Sapphire Blue Crystite Crystal', 
-    description: 'Vibrant fiberglass gel coat with dazzling shimmer. Resists fading from UV rays.',
-    price: 3500, 
-    category: 'waterline' 
+    id: 'heat-pump-eco', 
+    name: 'Heat Pump - Eco Series', 
+    description: 'Energy-efficient heat pump, ideal for mild climates',
+    price: 4500, 
+    category: 'heating' 
   },
   { 
-    id: 'fg-ocean-blue-g3', 
-    name: 'Ocean Blue Crystite Crystal', 
-    description: 'Deep ocean blue with crystal shimmer finish. Premium gel coat technology.',
-    price: 3500, 
-    category: 'waterline' 
+    id: 'heat-pump-pro', 
+    name: 'Heat Pump - Pro Series', 
+    description: 'Professional grade heat pump with advanced controls',
+    price: 5500, 
+    category: 'heating' 
   },
   { 
-    id: 'fg-night-sky-g3', 
-    name: 'Night Sky Crystite Crystal', 
-    description: 'Dark sophisticated finish with embedded shimmer particles.',
-    price: 3500, 
-    category: 'waterline' 
+    id: 'heat-gas-standard', 
+    name: 'Gas Heater - Standard', 
+    description: 'Traditional gas heater for quick heating',
+    price: 3200, 
+    category: 'heating' 
   },
   { 
-    id: 'fg-shale-gray-g3', 
-    name: 'Shale Gray Crystite Crystal', 
-    description: 'Modern gray finish with subtle shimmer and superior durability.',
-    price: 3500, 
-    category: 'waterline' 
+    id: 'heat-gas-efficiency', 
+    name: 'Gas Heater - High Efficiency', 
+    description: 'High-efficiency gas heater with digital controls',
+    price: 4200, 
+    category: 'heating' 
   },
   { 
-    id: 'fg-coastal-bronze-g3', 
-    name: 'Coastal Bronze Crystite Crystal', 
-    description: 'Warm bronze tone with crystal technology for lasting beauty.',
-    price: 3500, 
-    category: 'waterline' 
-  },
-  { 
-    id: 'fg-pearl-white-g3', 
-    name: 'Pearl White Crystite Crystal', 
-    description: 'Classic white with pearl-like shimmer and premium finish.',
-    price: 3500, 
-    category: 'waterline' 
-  },
-  // Crystite Classic Finishes (from Latham)
-  { 
-    id: 'fg-sapphire-blue-g2', 
-    name: 'Sapphire Blue Crystite Classic', 
-    description: 'Traditional sapphire blue with proven durability.',
+    id: 'heat-solar-basic', 
+    name: 'Solar Heater - Basic', 
+    description: 'Eco-friendly solar heating system',
     price: 2800, 
-    category: 'waterline' 
+    category: 'heating' 
   },
   { 
-    id: 'fg-ocean-blue-g2', 
-    name: 'Ocean Blue Crystite Classic', 
-    description: 'Classic ocean blue finish with excellent fade resistance.',
-    price: 2800, 
-    category: 'waterline' 
-  },
-  // Italian Slate Series Tiles (from Latham)
-  { 
-    id: 'tile-milan', 
-    name: 'Milan Italian Slate', 
-    description: 'Porcelain waterline tile with sophisticated Italian slate pattern.',
-    price: 4200, 
-    category: 'decorative' 
-  },
-  { 
-    id: 'tile-naples', 
-    name: 'Naples Italian Slate', 
-    description: 'Elegant porcelain waterline tile with Naples-inspired design.',
-    price: 4200, 
-    category: 'decorative' 
-  },
-  { 
-    id: 'tile-firenze', 
-    name: 'Firenze Italian Slate', 
-    description: 'Luxurious Firenze-style porcelain waterline tile.',
-    price: 4200, 
-    category: 'decorative' 
-  },
-  // Abyss Series Tiles (from Latham)
-  { 
-    id: 'tile-alexandria', 
-    name: 'Alexandria Abyss Series', 
-    description: 'Deep blue porcelain tile with mysterious abyss aesthetic.',
+    id: 'heat-solar-premium', 
+    name: 'Solar Heater - Premium', 
+    description: 'Advanced solar system with backup heating',
     price: 3800, 
-    category: 'decorative' 
+    category: 'heating' 
+  },
+  
+  // Real Automatic Covers
+  { 
+    id: 'cover-eclipse', 
+    name: 'Eclipse Automatic Cover', 
+    description: 'High-grade PVC with dual track system and emergency manual override',
+    price: 16000, 
+    category: 'covers' 
   },
   { 
-    id: 'tile-port-royal', 
-    name: 'Port Royal Abyss Series', 
-    description: 'Maritime-inspired waterline tile with rich deep tones.',
-    price: 3800, 
-    category: 'decorative' 
-  },
-  // Night Life Series Glass Tiles (from Latham)
-  { 
-    id: 'tile-soul', 
-    name: 'Soul Night Life Glass', 
-    description: 'Vibrant glass tile with dynamic nightlife-inspired patterns.',
-    price: 5200, 
-    category: 'decorative' 
+    id: 'cover-cs3000', 
+    name: 'CS3000 Safety Cover', 
+    description: 'Multi-layer vinyl with smart automation and weather sensors',
+    price: 24000, 
+    category: 'covers' 
   },
   { 
-    id: 'tile-melody', 
-    name: 'Melody Night Life Glass', 
-    description: 'Musical-inspired glass waterline tile with flowing patterns.',
-    price: 5200, 
-    category: 'decorative' 
+    id: 'cover-infinity', 
+    name: 'Infinity 4000 Smart Cover', 
+    description: 'Premium composite with AI-powered automation and solar integration',
+    price: 32000, 
+    category: 'covers' 
+  },
+  { 
+    id: 'cover-atom', 
+    name: 'Atom Loop-Loc Cover', 
+    description: 'Insulated fabric with compact design and temperature sensors',
+    price: 19000, 
+    category: 'covers' 
   },
   
   // Jets & Water Features
@@ -141,93 +146,24 @@ const poolOptions: PoolOption[] = [
     id: 'jets-standard', 
     name: 'Standard Water Jets (4)', 
     description: 'Adjustable directional jets for relaxation',
-    price: 1500, 
+    price: 1800, 
     category: 'jets' 
   },
   { 
     id: 'jets-premium', 
     name: 'Premium Jet Package (8)', 
     description: 'Enhanced hydrotherapy with LED lighting',
-    price: 3200, 
+    price: 3600, 
     category: 'jets' 
-  },
-  { 
-    id: 'jets-deluxe', 
-    name: 'Deluxe Spa Jets (12)', 
-    description: 'Full-body hydrotherapy system with controls',
-    price: 5500, 
-    category: 'jets' 
-  },
-  
-  // Heating Systems
-  { 
-    id: 'heat-gas', 
-    name: 'Natural Gas Heater', 
-    description: 'Fast heating, 400K BTU capacity',
-    price: 4500, 
-    category: 'heating' 
-  },
-  { 
-    id: 'heat-electric', 
-    name: 'Electric Heat Pump', 
-    description: 'Energy-efficient heating solution',
-    price: 5200, 
-    category: 'heating' 
-  },
-  { 
-    id: 'heat-solar', 
-    name: 'Solar Heating System', 
-    description: 'Eco-friendly solar collectors',
-    price: 6800, 
-    category: 'heating' 
-  },
-  
-  // Automatic Covers
-  { 
-    id: 'cover-safety', 
-    name: 'Safety Auto Cover', 
-    description: 'Motorized safety cover with key switch',
-    price: 12500, 
-    category: 'covers' 
-  },
-  { 
-    id: 'cover-thermal', 
-    name: 'Thermal Auto Cover', 
-    description: 'Insulated cover for energy efficiency',
-    price: 15800, 
-    category: 'covers' 
-  },
-  
-  // Custom Decorations
-  { 
-    id: 'deco-lighting', 
-    name: 'LED Color Changing Lights', 
-    description: 'RGB lighting system with remote control',
-    price: 3500, 
-    category: 'decorative' 
-  },
-  { 
-    id: 'deco-fountain', 
-    name: 'Water Fountain Features', 
-    description: 'Decorative fountains with lighting',
-    price: 4200, 
-    category: 'decorative' 
-  },
-  { 
-    id: 'deco-tile', 
-    name: 'Custom Mosaic Tiles', 
-    description: 'Handcrafted mosaic designs',
-    price: 3800, 
-    category: 'decorative' 
   }
 ];
 
 const categoryInfo = {
   waterline: { 
     icon: Palette, 
-    name: 'Fiberglass Finishes', 
+    name: 'Finishes & Liners', 
     color: 'text-purple-500',
-    description: 'Premium Crystite gel coat finishes from Latham' 
+    description: 'Premium finishes and liner options' 
   },
   jets: { 
     icon: Waves, 
@@ -249,9 +185,9 @@ const categoryInfo = {
   },
   decorative: { 
     icon: Sparkles, 
-    name: 'Custom Decorations', 
+    name: 'Tiles & Pavers', 
     color: 'text-coral',
-    description: 'Personalize your pool with unique features' 
+    description: 'Premium tiles and paver options' 
   }
 };
 
@@ -296,7 +232,7 @@ const PoolCustomizationOptions = ({ onSelectionChange }: PoolCustomizationOption
           Customize Your Pool
         </h3>
         <p className="text-muted-foreground">
-          Add premium features and personalize your swimming experience
+          Add premium features available on our website
         </p>
       </div>
 
@@ -390,7 +326,7 @@ const PoolCustomizationOptions = ({ onSelectionChange }: PoolCustomizationOption
                 
                 <div className="flex items-center justify-between">
                   <span className="text-xl font-bold text-primary">
-                    +${option.price.toLocaleString()}
+                    {option.price === 0 ? '$15/sq ft' : `+$${option.price.toLocaleString()}`}
                   </span>
                   <Button
                     variant={isSelected ? "default" : "outline"}
