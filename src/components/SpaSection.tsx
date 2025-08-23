@@ -17,25 +17,29 @@ interface Spa {
   warrantyYears?: number | string;
 }
 
-interface SpaExtras {
-  finish: string;
-  liner: string;
-  tiles: string;
-  heater: boolean;
-  jets: boolean;
+// Update to match Pool interface
+interface Pool extends Spa {
+  galaPoints?: number;
+  galaCategory?: string;
+  heater?: boolean;
+  saltSystem?: boolean;
+  carbonFiber?: boolean;
+  finishes?: string[];
+  liners?: string[];
+  covers?: string[];
 }
 
 const SpaSection = () => {
-  const [selectedSpa, setSelectedSpa] = useState<Spa | null>(null);
+  const [selectedSpa, setSelectedSpa] = useState<Pool | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  const handleViewDetails = (spa: Spa) => {
+  const handleViewDetails = (spa: Pool) => {
     setSelectedSpa(spa);
     setShowDetailModal(true);
   };
 
-  const handleRequestQuote = (spa: Spa, extras?: SpaExtras) => {
+  const handleRequestQuote = (spa: Pool, extras?: any) => {
     setSelectedSpa(spa);
     setShowDetailModal(false); // Close detail modal if open
     setShowQuoteModal(true);
@@ -58,7 +62,10 @@ const SpaSection = () => {
             {spas.map((spa) => (
               <SpaProductCard
                 key={spa.model}
-                spa={spa}
+                spa={{
+                  ...spa,
+                  spilloverFeature: spa.spilloverFeature
+                }}
                 onViewDetails={handleViewDetails}
                 onRequestQuote={handleRequestQuote}
               />

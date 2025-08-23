@@ -1,75 +1,147 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Waves, DollarSign, Star, Clock, Award, Flame, Zap, Palette, ShoppingCart } from "lucide-react";
+import { Input } from "@/components/ui/input";
+
+import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu, Edit, ShoppingCart, Sun } from "lucide-react";
+import StripeCheckoutButton from "./StripeCheckoutButton";
+import ImageEditor from "./ImageEditor";
 import { useShoppingCart } from "./ShoppingCart";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { poolLiners, poolTiles } from "@/data/poolData";
-import { poolFinishes as poolFinishesData } from "@/components/PoolFinishesSection";
-import { paverTypes } from "@/data/paverData";
-import { Input } from "@/components/ui/input";
-import StripeCheckoutButton from "./StripeCheckoutButton";
+import { tanningLedges } from "@/data/poolData";
+import { paverTypes, copingTypes } from "@/data/paverData";
 
+import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
+import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
+import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
+import nightSkyFinish from '@/assets/finishes/night-sky-g3.jpg';
+import athensPearlFinish from '@/assets/finishes/athens-pearl-white-g3.jpg';
+import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
 import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
+import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
+import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 
-interface Spa {
+interface Pool {
   model: string;
   price: number;
-  category: string;
+  category: 'premium' | 'deluxe' | 'standard' | 'compact';
+  image?: string;
   dimensions?: string;
   depth?: string;
   features?: string[];
-  spilloverFeature?: boolean;
+  galaPoints?: number;
+  galaCategory?: string;
   installationTimeWeeks?: number;
   warrantyYears?: number | string;
-  image?: string;
+  heater?: boolean;
+  saltSystem?: boolean;
+  carbonFiber?: boolean;
+  finishes?: string[];
+  liners?: string[];
+  covers?: string[];
+  spilloverFeature?: boolean;
 }
 
 interface SpaProductCardProps {
-  spa: Spa;
-  onViewDetails: (spa: Spa) => void;
-  onRequestQuote: (spa: Spa, extras?: SpaExtras) => void;
+  spa: Pool;
+  onViewDetails: (spa: Pool) => void;
+  onRequestQuote: (spa: Pool, extras?: PoolExtras) => void;
+  isAdmin?: boolean;
 }
 
-interface SpaExtras {
-  finish: string;
-  liner: string;
-  tiles: string;
+interface PoolExtras {
+  liner: boolean;
   heater: boolean;
+  cover: boolean;
   jets: boolean;
-  bubblers: boolean;
+  jetQuantity: number;
+  finish: string;
+  linerOption: string;
+  coverOption: string;
+  tiles: boolean;
+  tileOption: string;
+  spa: boolean;
+  spaModel: string;
+  tanningLedge: boolean;
+  tanningLedgeModel: string;
+  heaterModel: string;
   paverOption: string;
-  paverSurfaceArea: string;
+  copingPaverOption: string;
 }
 
 const getCategoryColor = (category: string) => {
   switch (category) {
-    case 'premium': return 'bg-gradient-to-r from-amber-500 to-orange-500';
+    case 'premium': return 'bg-gradient-to-r from-coral to-orange';
     case 'deluxe': return 'bg-gradient-to-r from-primary to-teal';
     case 'standard': return 'bg-gradient-to-r from-secondary to-accent';
+    case 'compact': return 'bg-gradient-to-r from-teal to-primary';
     default: return 'bg-gradient-to-r from-primary to-teal';
   }
 };
 
 const getExtraPrice = (extra: string) => {
   switch (extra) {
-    case 'heater': return 3500;
-    case 'jets': return 2500;
-    case 'bubblers': return 2500;
+    case 'liner': return 0; // Base cost covered by liner option price
+    case 'heater': return 5000; // Pool Heater is exactly $5,000
+    case 'cover': return 3200;
+    case 'jets': return 1800;
+    case 'tiles': return 0; // Base cost covered by tile option price
     default: return 0;
   }
 };
 
-// Build finish options from shared data
+// Import pool finishes from PoolFinishesSection
+import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
+
+// Convert pool finishes data to finish options format
 const finishOptions = poolFinishesData.map(finish => ({
   name: finish.name,
+  color: '#4169E1', // fallback color
   image: finish.image,
   price: finish.price,
   collection: finish.collection,
+  category: finish.category,
+  description: finish.description
 }));
+
+// Import pool liners from PoolCatalog
+import { poolLiners, poolTiles } from '@/data/poolData';
+
+// Pool heater options for spas (spa-specific pricing)
+const spaHeaters = [
+  { name: 'Spa Heat Pump - Compact', price: 3500, image: azureBlueFinish, description: 'Compact heat pump designed for spas' },
+  { name: 'Spa Heat Pump - Premium', price: 4500, image: oceanBlueFinish, description: 'Premium spa heat pump with digital controls' },
+  { name: 'Spa Gas Heater', price: 2800, image: sapphireBlueFinish, description: 'Efficient gas heater for quick spa heating' },
+  { name: 'Solar Spa Heater', price: 2200, image: lagoonBlueFinish, description: 'Eco-friendly solar heating for spas' }
+];
+
+// Convert pool liners to liner options format
+const linerOptions = [
+  { name: 'Standard Blue', color: '#4169E1', price: 0, image: azureBlueFinish, type: 'Standard', description: undefined },
+  ...poolLiners.map(liner => ({
+    name: liner.name,
+    color: '#4169E1', // fallback color
+    price: liner.price / 2, // Spa pricing is half of pool pricing
+    image: liner.image,
+    type: liner.type,
+    description: liner.description
+  }))
+];
+
+// Convert pool tiles to tile options format (spa pricing)
+const tileOptions = [
+  { name: 'Standard Waterline', color: '#4682B4', price: 0, image: azureBlueFinish, description: undefined },
+  ...poolTiles.map(tile => ({
+    name: tile.name,
+    color: '#4682B4', // fallback color
+    price: tile.price / 2, // Spa pricing is half of pool pricing
+    image: tile.image,
+    description: tile.description
+  }))
+];
 
 // Convert paver data to options format with exact same pavers from PaversSection
 const paverOptions = [
@@ -84,18 +156,33 @@ const paverOptions = [
   }))
 ];
 
-const SpaProductCard = ({ spa, onViewDetails, onRequestQuote }: SpaProductCardProps) => {
+const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }: SpaProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
-const [extras, setExtras] = useState<SpaExtras>({
-  finish: finishOptions[0]?.name || '',
-  liner: '',
-  tiles: '',
-  heater: false,
-  jets: false,
-  bubblers: false,
-  paverOption: 'No Pavers',
-  paverSurfaceArea: '',
-});
+  const [showImageEditor, setShowImageEditor] = useState(false);
+  const [currentPoolImage, setCurrentPoolImage] = useState(spa.image);
+  const [isEditable, setIsEditable] = useState(isAdmin);
+  const [extras, setExtras] = useState<PoolExtras>({
+    liner: false,
+    heater: false,
+    cover: false,
+    jets: false,
+    jetQuantity: 1,
+    finish: 'Nantuke',
+    linerOption: 'Standard Blue',
+    coverOption: 'NO COVER',
+    tiles: false,
+    tileOption: 'Standard Waterline',
+    spa: false,
+    spaModel: 'Mystic',
+    tanningLedge: false,
+    tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
+    heaterModel: spaHeaters[0]?.name || 'Spa Heat Pump - Compact',
+    paverOption: 'No Pavers',
+    copingPaverOption: 'No Coping'
+  });
+  
+  const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
+  const [showFinancing, setShowFinancing] = useState(false);
   
   const { addToCart } = useShoppingCart();
 
@@ -103,72 +190,101 @@ const [extras, setExtras] = useState<SpaExtras>({
     setShowDetails(!showDetails);
   };
 
-  const toggleExtra = (extra: keyof SpaExtras) => {
-    setExtras(prev => ({
-      ...prev,
-      [extra]: typeof prev[extra] === 'boolean' ? !prev[extra] : prev[extra]
-    }));
+  const toggleExtra = (extra: string) => {
+    setExtras(prev => {
+      // Handle tile/liner mutual exclusivity
+      if (extra === 'tiles' && !prev.tiles) {
+        // Selecting tiles, disable liner and expand details
+        setShowDetails(true);
+        return { ...prev, tiles: true, liner: false };
+      } else if (extra === 'liner' && !prev.liner) {
+        // Selecting liner, disable tiles and expand details
+        setShowDetails(true);
+        return { ...prev, liner: true, tiles: false };
+      } else if (extra === 'tiles') {
+        // Deselecting tiles
+        return { ...prev, tiles: !prev.tiles };
+      } else if (extra === 'liner') {
+        // Deselecting liner
+        return { ...prev, liner: !prev.liner };
+      } else if (extra === 'heater') {
+        return { ...prev, heater: !prev.heater };
+      } else if (extra === 'jets') {
+        return { ...prev, jets: !prev.jets };
+      }
+      
+      return prev;
+    });
   };
 
-const setExtra = (extra: keyof SpaExtras, value: any) => {
-  setExtras(prev => {
-    if (extra === 'tiles') {
-      return { ...prev, tiles: value, liner: '' };
+  const calculateTotalPrice = () => {
+    let total = spa.price;
+    
+    // Add heater price if selected (dynamic price based on model)
+    if (extras.heater) {
+      const selectedHeater = spaHeaters.find(heater => heater.name === extras.heaterModel);
+      if (selectedHeater) total += selectedHeater.price;
     }
-    if (extra === 'liner') {
-      return { ...prev, liner: value, tiles: '' };
+    if (extras.jets) total += getExtraPrice('jets') * extras.jetQuantity;
+    
+    // Add option prices (liner OR tile, never both)
+    const linerOption = linerOptions.find(option => option.name === extras.linerOption);
+    if (linerOption && extras.liner) total += linerOption.price;
+    
+    const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+    if (tileOption && extras.tiles) total += tileOption.price;
+    
+    // Add calculated paver surface area cost
+    if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+      total += parseFloat(paverSurfaceArea) * 15;
     }
-    return { ...prev, [extra]: value };
-  });
-};
+    
+    return total;
+  };
 
-const calculateTotalPrice = () => {
-  let total = spa.price;
-  if (extras.heater) total += getExtraPrice('heater');
-  if (extras.jets) total += getExtraPrice('jets');
-  if (extras.bubblers) total += getExtraPrice('bubblers');
-  const selectedFinish = finishOptions.find(f => f.name === extras.finish);
-  if (selectedFinish?.price) total += selectedFinish.price;
-  if (extras.tiles) {
-    const t = poolTiles.find(t => t.name === extras.tiles);
-    if (t?.price) total += t.price / 2;
-  }
-  if (extras.liner) {
-    const l = poolLiners.find(l => l.name === extras.liner);
-    if (l?.price) total += l.price / 2;
-  }
-  // Add paver surface area cost at $15/sq ft
-  if (extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea))) {
-    total += parseFloat(extras.paverSurfaceArea) * 15;
-  }
-  return total;
-};
+  const hasExtras = Object.values(extras).some(value => value);
 
-const selectedFinishPrice = finishOptions.find(f => f.name === extras.finish)?.price || 0;
-const paverCost = extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea)) ? parseFloat(extras.paverSurfaceArea) * 15 : 0;
-const hasExtras = extras.heater || extras.jets || extras.bubblers || !!extras.tiles || !!extras.liner || selectedFinishPrice > 0 || paverCost > 0;
+  const handleImageSave = (imageBlob: Blob) => {
+    // Convert blob to data URL for display
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCurrentPoolImage(reader.result as string);
+    };
+    reader.readAsDataURL(imageBlob);
+  };
 
   const handleAddToCart = () => {
     const cartExtras = [];
     
-const linerPrice = extras.liner ? (poolLiners.find(l => l.name === extras.liner)?.price || 0) / 2 : 0;
-const tilePrice = extras.tiles ? (poolTiles.find(t => t.name === extras.tiles)?.price || 0) / 2 : 0;
-const finishPrice = finishOptions.find(f => f.name === extras.finish)?.price || 0;
+    if (extras.heater) {
+      const selectedHeater = spaHeaters.find(heater => heater.name === extras.heaterModel);
+      if (selectedHeater) {
+        cartExtras.push({ name: `${selectedHeater.name}`, price: selectedHeater.price });
+      }
+    }
+    if (extras.jets) cartExtras.push({ name: `Spa Jets (${extras.jetQuantity})`, price: getExtraPrice('jets') * extras.jetQuantity });
+    
+    const linerOption = linerOptions.find(option => option.name === extras.linerOption);
+    if (linerOption && extras.liner) {
+      cartExtras.push({ name: `${linerOption.name} Liner`, price: linerOption.price });
+    }
+    
+    const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+    if (tileOption && extras.tiles) {
+      cartExtras.push({ name: tileOption.name, price: tileOption.price });
+    }
 
-if (extras.finish) cartExtras.push({ name: `Finish: ${extras.finish}`, price: finishPrice });
-if (extras.liner) cartExtras.push({ name: `Liner: ${extras.liner}`, price: linerPrice });
-if (extras.tiles) cartExtras.push({ name: `Tiles: ${extras.tiles}`, price: tilePrice });
-if (extras.heater) cartExtras.push({ name: 'Spa Heater', price: getExtraPrice('heater') });
-if (extras.jets) cartExtras.push({ name: 'Premium Spa Jets', price: getExtraPrice('jets') });
-if (extras.bubblers) cartExtras.push({ name: 'Spa Bubblers', price: getExtraPrice('bubblers') });
-if (paverCost > 0) cartExtras.push({ name: `${extras.paverOption} (${extras.paverSurfaceArea} sq ft)`, price: paverCost });
+    // Add paver surface area cost
+    if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+      cartExtras.push({ name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`, price: parseFloat(paverSurfaceArea) * 15 });
+    }
 
     addToCart({
       id: `spa_${spa.model.replace(/\s+/g, '_')}_${Date.now()}`,
       name: `${spa.model} Spa`,
       price: spa.price,
       category: spa.category,
-      image: spa.image,
+      image: currentPoolImage,
       extras: cartExtras
     });
   };
@@ -180,9 +296,9 @@ if (paverCost > 0) cartExtras.push({ name: `${extras.paverOption} (${extras.pave
         className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image"
         onClick={handleImageClick}
       >
-        {spa.image ? (
+        {currentPoolImage ? (
           <img 
-            src={spa.image} 
+            src={currentPoolImage} 
             alt={spa.model}
             className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105"
           />
@@ -207,6 +323,21 @@ if (paverCost > 0) cartExtras.push({ name: `${extras.paverOption} (${extras.pave
             Click for Details
           </div>
         </div>
+        
+        {/* Image Edit Button - Only visible for admins */}
+        {isAdmin && isEditable && (
+          <Button
+            size="sm"
+            variant="secondary"
+            className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowImageEditor(true);
+            }}
+          >
+            <Edit className="h-3 w-3" />
+          </Button>
+        )}
       </div>
       
       <CardContent className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
@@ -216,9 +347,11 @@ if (paverCost > 0) cartExtras.push({ name: `${extras.paverOption} (${extras.pave
           <h3 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors">
             {spa.model}
           </h3>
-          <Badge variant="secondary" className="text-xs font-semibold">
-            Premium Spa Collection
-          </Badge>
+          {spa.galaCategory && (
+            <Badge variant="secondary" className="text-xs font-semibold">
+              Premium Spa Collection
+            </Badge>
+          )}
         </div>
         
         {/* Rating */}
@@ -272,6 +405,57 @@ if (paverCost > 0) cartExtras.push({ name: `${extras.paverOption} (${extras.pave
           </div>
         )}
         
+        {/* Feature Checkboxes */}
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <Checkbox 
+              checked={extras.jets} 
+              onCheckedChange={() => toggleExtra('jets')}
+              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            />
+            <span className="flex items-center gap-1">
+              <Zap size={14} className="text-primary" />
+              Jets
+            </span>
+          </label>
+          
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <Checkbox 
+              checked={extras.heater} 
+              onCheckedChange={() => toggleExtra('heater')}
+              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            />
+            <span className="flex items-center gap-1">
+              <Thermometer size={14} className="text-teal" />
+              Heater
+            </span>
+          </label>
+          
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <Checkbox 
+              checked={extras.tiles} 
+              onCheckedChange={() => toggleExtra('tiles')}
+              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            />
+            <span className="flex items-center gap-1">
+              <Cpu size={14} className="text-coral" />
+              Tiles
+            </span>
+          </label>
+          
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <Checkbox 
+              checked={extras.liner} 
+              onCheckedChange={() => toggleExtra('liner')}
+              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            />
+            <span className="flex items-center gap-1">
+              <Shield size={14} className="text-secondary" />
+              Liner
+            </span>
+          </label>
+        </div>
+        
         {/* Expanded Details */}
         {showDetails && (
           <div className="space-y-4 animate-fade-in-up">
@@ -280,7 +464,7 @@ if (paverCost > 0) cartExtras.push({ name: `${extras.paverOption} (${extras.pave
             {/* Finishes */}
             <div className="space-y-3">
               <h4 className="font-semibold text-foreground flex items-center gap-2">
-                <Palette size={16} />
+                <Droplets size={16} />
                 Spa Finishes
               </h4>
               <Carousel className="w-full">
@@ -291,7 +475,7 @@ if (paverCost > 0) cartExtras.push({ name: `${extras.paverOption} (${extras.pave
                         className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                           extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'
                         }`}
-                        onClick={() => setExtra('finish', finish.name)}
+                        onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
                       >
                         <div className="w-full h-16 rounded-md mb-2 overflow-hidden">
                           <img 
@@ -320,82 +504,123 @@ if (paverCost > 0) cartExtras.push({ name: `${extras.paverOption} (${extras.pave
             </div>
 
             {/* Tiles */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Spa Tiles</h4>
-              <Carousel className="w-full">
-                <CarouselContent className="-ml-1">
-                  {poolTiles.map((tile) => (
-                    <CarouselItem key={tile.name} className="pl-1 basis-1/2 sm:basis-1/3">
-                      <div 
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                          extras.tiles === tile.name ? 'border-teal bg-teal/10' : 'border-border'
-                        }`}
-                        onClick={() => setExtra('tiles', tile.name)}
-                      >
-                        <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
-                          {tile.image ? (
-                            <img 
-                              src={tile.image} 
-                              alt={tile.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-teal/20 to-primary/20 flex items-center justify-center">
-                              <div className="w-3 h-3 bg-teal rounded-full"></div>
-                            </div>
+            {extras.tiles && (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground">Spa Tiles</h4>
+                <Carousel className="w-full">
+                  <CarouselContent className="-ml-1">
+                    {tileOptions.map((tile) => (
+                      <CarouselItem key={tile.name} className="pl-1 basis-1/2 sm:basis-1/3">
+                        <div 
+                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                            extras.tileOption === tile.name ? 'border-teal bg-teal/10' : 'border-border'
+                          }`}
+                          onClick={() => setExtras(prev => ({ ...prev, tileOption: tile.name }))}
+                        >
+                          <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
+                            {tile.image ? (
+                              <img 
+                                src={tile.image} 
+                                alt={tile.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-teal/20 to-primary/20 flex items-center justify-center">
+                                <div className="w-3 h-3 bg-teal rounded-full"></div>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs font-medium text-center">{tile.name}</p>
+                          {tile.price > 0 && (
+                            <p className="text-xs text-teal font-semibold text-center">+${tile.price.toLocaleString()}</p>
                           )}
                         </div>
-                        <p className="text-xs font-medium text-center">{tile.name}</p>
-                        {tile.price > 0 && (
-<p className="text-xs text-teal font-semibold text-center">+${(tile.price / 2).toLocaleString()}</p>
-                        )}
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
-              </Carousel>
-            </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="left-0" />
+                  <CarouselNext className="right-0" />
+                </Carousel>
+              </div>
+            )}
 
             {/* Liners */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Spa Liners</h4>
-              <Carousel className="w-full">
-                <CarouselContent className="-ml-1">
-                  {poolLiners.map((liner) => (
-                    <CarouselItem key={liner.name} className="pl-1 basis-1/2 sm:basis-1/3">
-                      <div 
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                          extras.liner === liner.name ? 'border-secondary bg-secondary/10' : 'border-border'
-                        }`}
-                        onClick={() => setExtra('liner', liner.name)}
-                      >
-                        <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
-                          {liner.image ? (
-                            <img 
-                              src={liner.image} 
-                              alt={liner.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center">
-                              <div className="w-3 h-3 bg-secondary rounded-full"></div>
-                            </div>
+            {extras.liner && (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground">Spa Liners</h4>
+                <Carousel className="w-full">
+                  <CarouselContent className="-ml-1">
+                    {linerOptions.map((liner) => (
+                      <CarouselItem key={liner.name} className="pl-1 basis-1/2 sm:basis-1/3">
+                        <div 
+                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                            extras.linerOption === liner.name ? 'border-secondary bg-secondary/10' : 'border-border'
+                          }`}
+                          onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
+                        >
+                          <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
+                            {liner.image ? (
+                              <img 
+                                src={liner.image} 
+                                alt={liner.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center">
+                                <div className="w-3 h-3 bg-secondary rounded-full"></div>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs font-medium text-center">{liner.name}</p>
+                          {liner.price > 0 && (
+                            <p className="text-xs text-secondary font-semibold text-center">+${liner.price.toLocaleString()}</p>
                           )}
                         </div>
-                        <p className="text-xs font-medium text-center">{liner.name}</p>
-                        {liner.price > 0 && (
-                          <p className="text-xs text-secondary font-semibold text-center">+${(liner.price / 2).toLocaleString()}</p>
-                        )}
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
-              </Carousel>
-            </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="left-0" />
+                  <CarouselNext className="right-0" />
+                </Carousel>
+              </div>
+            )}
+
+            {/* Spa Heaters */}
+            {extras.heater && (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground flex items-center gap-2">
+                  <Thermometer size={16} />
+                  Spa Heaters
+                </h4>
+                <Carousel className="w-full">
+                  <CarouselContent className="-ml-1">
+                    {spaHeaters.map((heater) => (
+                      <CarouselItem key={heater.name} className="pl-1 basis-1/2 sm:basis-1/3">
+                        <div 
+                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                            extras.heaterModel === heater.name ? 'border-teal bg-teal/10' : 'border-border'
+                          }`}
+                          onClick={() => setExtras(prev => ({ ...prev, heaterModel: heater.name }))}
+                        >
+                          <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
+                            <img 
+                              src={heater.image} 
+                              alt={heater.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <p className="text-xs font-medium text-center">{heater.name}</p>
+                          <p className="text-xs text-teal font-semibold text-center">+${heater.price.toLocaleString()}</p>
+                          <p className="text-[10px] text-muted-foreground text-center mt-1">{heater.description}</p>
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="left-0" />
+                  <CarouselNext className="right-0" />
+                </Carousel>
+              </div>
+            )}
 
             {/* Pavers Options */}
             <div className="space-y-3">
@@ -407,52 +632,38 @@ if (paverCost > 0) cartExtras.push({ name: `${extras.paverOption} (${extras.pave
                 <Input
                   type="number"
                   placeholder="Enter surface area for pavers"
-                  value={extras.paverSurfaceArea}
-                  onChange={(e) => setExtra('paverSurfaceArea', e.target.value)}
+                  value={paverSurfaceArea}
+                  onChange={(e) => setPaverSurfaceArea(e.target.value)}
                   className="mb-2"
                 />
-                {extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea)) && (
+                {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
                   <div className="text-xs text-green-600 font-medium">
-                    Calculated Cost: ${(parseFloat(extras.paverSurfaceArea) * 15).toLocaleString()} ({extras.paverSurfaceArea} sq ft × $15/sq ft)
+                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()} ({paverSurfaceArea} sq ft × $15/sq ft)
                   </div>
                 )}
               </div>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
                   {paverOptions.map((paver) => (
-                    <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                    <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3">
                       <div 
                         className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                          extras.paverOption === paver.name ? 'border-primary bg-primary/10' : 'border-border'
+                          extras.paverOption === paver.name ? 'border-secondary bg-secondary/10' : 'border-border'
                         }`}
-                        onClick={() => setExtra('paverOption', paver.name)}
+                        onClick={() => setExtras(prev => ({ ...prev, paverOption: paver.name }))}
                       >
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                        <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
                           <img 
                             src={paver.image} 
                             alt={paver.name}
                             className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              const parent = target.parentElement;
-                              if (parent) {
-                                parent.style.backgroundColor = paver.color;
-                                target.style.display = 'none';
-                              }
-                            }}
                           />
                         </div>
-                        <div className="flex-1 flex flex-col justify-between min-h-0">
-                          <p className="text-xs font-medium text-center line-clamp-2">{paver.name}</p>
-                          <div className="mt-1 space-y-1">
-                            {paver.collection && paver.collection !== 'none' && (
-                              <p className="text-xs text-primary text-center font-semibold capitalize">{paver.collection}</p>
-                            )}
-                            {paver.description && paver.name !== 'No Pavers' && (
-                              <p className="text-xs text-muted-foreground text-center">$15/sq ft</p>
-                            )}
-                          </div>
-                        </div>
+                        <p className="text-xs font-medium text-center">{paver.name}</p>
+                        {paver.collection !== 'none' && (
+                          <p className="text-[10px] text-secondary font-semibold text-center capitalize">{paver.collection}</p>
+                        )}
+                        <p className="text-[10px] text-muted-foreground text-center mt-1">$15/sq ft</p>
                       </div>
                     </CarouselItem>
                   ))}
@@ -462,125 +673,107 @@ if (paverCost > 0) cartExtras.push({ name: `${extras.paverOption} (${extras.pave
               </Carousel>
             </div>
 
-            {/* Add-ons */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Premium Add-ons</h4>
-              <div className="space-y-3">
-                <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg hover:bg-muted/50 transition-colors border">
-                  <Checkbox 
-                    checked={extras.heater}
-                    onCheckedChange={() => toggleExtra('heater')}
-                  />
-                  <div className="flex items-center space-x-2 flex-1">
-                    <Flame size={20} className="text-red-500" />
-                    <span className="text-sm font-medium">Premium Spa Heater</span>
-                    <span className="text-sm text-muted-foreground ml-auto">(+${getExtraPrice('heater').toLocaleString()})</span>
-                  </div>
-                </label>
-                
-                <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg hover:bg-muted/50 transition-colors border">
-                  <Checkbox 
-                    checked={extras.jets}
-                    onCheckedChange={() => toggleExtra('jets')}
-                  />
-                  <div className="flex items-center space-x-2 flex-1">
-                    <Zap size={20} className="text-orange" />
-                    <span className="text-sm font-medium">Therapeutic Spa Jets</span>
-                    <span className="text-sm text-muted-foreground ml-auto">(+${getExtraPrice('jets').toLocaleString()})</span>
-                  </div>
-                </label>
-                
-                <label className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg hover:bg-muted/50 transition-colors border">
-                  <Checkbox 
-                    checked={extras.bubblers}
-                    onCheckedChange={() => toggleExtra('bubblers')}
-                  />
-                  <div className="flex items-center space-x-2 flex-1">
-                    <Waves size={20} className="text-teal" />
-                    <span className="text-sm font-medium">Relaxing Spa Bubblers</span>
-                    <span className="text-sm text-muted-foreground ml-auto">(+${getExtraPrice('bubblers').toLocaleString()})</span>
-                  </div>
-                </label>
+            {/* Jets Quantity */}
+            {extras.jets && (
+              <div className="space-y-2">
+                <h4 className="font-semibold text-foreground flex items-center gap-2">
+                  <Zap size={16} />
+                  Spa Jets Quantity
+                </h4>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))}
+                  >
+                    -
+                  </Button>
+                  <span className="font-semibold">{extras.jetQuantity}</span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))}
+                  >
+                    +
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    +${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()}
+                  </span>
+                </div>
               </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <div className="flex gap-2">
-                <Button 
-                  onClick={() => onViewDetails(spa)}
-                  variant="outline"
-                  className="flex-1"
-                  size="sm"
-                >
-                  Full Details
-                </Button>
-                <Button 
-                  onClick={() => onRequestQuote(spa, extras)}
-                  variant="outline"
-                  className="flex-1"
-                  size="sm"
-                >
-                  Get Quote
-                </Button>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleAddToCart}
-                  variant="outline"
-                  className="flex-1"
-                  size="sm"
-                >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Add to Cart
-                </Button>
-                <StripeCheckoutButton
-                  productId={`spa_${spa.model.replace(/\s+/g, '_')}`}
-                  productName={`${spa.model} Spa`}
-                  price={calculateTotalPrice()}
-                  variant="gradient"
-                  className="flex-1 hover:scale-105 transition-all duration-300"
-                  size="sm"
-                  showFinancingOptions={false}
-                />
-              </div>
-              
-              {/* Financing Option */}
-              <div className="mt-2">
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  size="sm"
-                  onClick={() => {
-                    const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + 
-                      `amount=${calculateTotalPrice()}&` +
-                      `product=${encodeURIComponent(`${spa.model} Spa`)}&` +
-                      `description=${encodeURIComponent(`Complete spa configuration including ${spa.model}`)}&` +
-                      `monthly_payment=${Math.round(calculateTotalPrice() * 0.008)}&` +
-                      `loan_term=60&` +
-                      `project_type=Pool%20Installation`;
-                    window.open(lyonFinancialUrl, '_blank');
-                  }}
-                >
-                  Apply with Lyon Financial
-                </Button>
-              </div>
-            </div>
+            )}
           </div>
         )}
         
-        {/* Default Action Button */}
-        {!showDetails && (
+        {/* Action Buttons */}
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => onViewDetails(spa)}
+              className="text-xs"
+            >
+              View Details
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => onRequestQuote(spa, extras)}
+              className="text-xs"
+            >
+              Get Quote
+            </Button>
+          </div>
+          
           <Button 
-            onClick={handleImageClick}
-            variant="gradient"
-            className="w-full hover:scale-105 transition-all duration-300"
+            onClick={handleAddToCart}
+            className="w-full bg-gradient-to-r from-primary to-teal hover:from-primary/90 hover:to-teal/90"
             size="sm"
           >
-            View Details
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            Add to Cart
           </Button>
-        )}
+          
+          <div className="grid grid-cols-2 gap-2">
+            <StripeCheckoutButton 
+              productId={`spa_${spa.model.replace(/\s+/g, '_')}`}
+              productName={`${spa.model} Spa`}
+              price={calculateTotalPrice()}
+              size="sm"
+              className="text-xs"
+            />
+            <Button 
+              variant="secondary" 
+              size="sm"
+              onClick={() => setShowFinancing(!showFinancing)}
+              className="text-xs"
+            >
+              Apply for Financing
+            </Button>
+          </div>
+          
+          {showFinancing && (
+            <div className="p-3 bg-muted rounded-lg text-xs space-y-2">
+              <p className="font-medium">Financing Options Available</p>
+              <p className="text-muted-foreground">Get pre-approved for financing with rates as low as 2.9% APR</p>
+              <Button size="sm" variant="link" className="p-0 h-auto text-xs">
+                Apply Now →
+              </Button>
+            </div>
+          )}
+        </div>
       </CardContent>
+      
+      {/* Image Editor Modal */}
+      {showImageEditor && (
+        <ImageEditor
+          isOpen={showImageEditor}
+          onClose={() => setShowImageEditor(false)}
+          onImageSave={handleImageSave}
+          currentImage={currentPoolImage}
+        />
+      )}
     </Card>
   );
 };

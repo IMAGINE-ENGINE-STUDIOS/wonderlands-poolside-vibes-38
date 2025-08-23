@@ -112,7 +112,7 @@ const AppianPaversSection = () => {
                     e.stopPropagation();
                     handleRequestQuote(paver);
                   }}
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-primary to-teal hover:from-primary/90 hover:to-teal/90"
                   size="sm"
                 >
                   <Calculator className="h-4 w-4 mr-2" />
@@ -182,8 +182,9 @@ const AppianPaversSection = () => {
                 <div className="flex gap-3">
                   <Button 
                     onClick={() => handleRequestQuote(selectedPaver)}
-                    className="flex-1"
+                    className="flex-1 bg-gradient-to-r from-primary to-teal hover:from-primary/90 hover:to-teal/90"
                   >
+                    <Calculator className="h-4 w-4 mr-2" />
                     Get Custom Quote
                   </Button>
                   <Button 
