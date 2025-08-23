@@ -1237,6 +1237,10 @@ export type Database = {
         }
         Returns: string
       }
+      mask_sensitive_data: {
+        Args: { data: string }
+        Returns: string
+      }
       promote_user_to_main_admin: {
         Args: { user_email: string }
         Returns: boolean
