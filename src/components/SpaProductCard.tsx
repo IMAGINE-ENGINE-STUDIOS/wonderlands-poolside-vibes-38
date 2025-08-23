@@ -547,15 +547,23 @@ if (paverCost > 0) cartExtras.push({ name: `${extras.paverOption} (${extras.pave
               
               {/* Financing Option */}
               <div className="mt-2">
-                <StripeCheckoutButton
-                  productId={`spa_${spa.model.replace(/\s+/g, '_')}`}
-                  productName={`${spa.model} Spa`}
-                  price={calculateTotalPrice()}
+                <Button
                   variant="outline"
                   className="w-full"
                   size="sm"
-                  showFinancingOptions={true}
-                />
+                  onClick={() => {
+                    const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + 
+                      `amount=${calculateTotalPrice()}&` +
+                      `product=${encodeURIComponent(`${spa.model} Spa`)}&` +
+                      `description=${encodeURIComponent(`Complete spa configuration including ${spa.model}`)}&` +
+                      `monthly_payment=${Math.round(calculateTotalPrice() * 0.008)}&` +
+                      `loan_term=60&` +
+                      `project_type=Pool%20Installation`;
+                    window.open(lyonFinancialUrl, '_blank');
+                  }}
+                >
+                  Apply with Lyon Financial
+                </Button>
               </div>
             </div>
           </div>

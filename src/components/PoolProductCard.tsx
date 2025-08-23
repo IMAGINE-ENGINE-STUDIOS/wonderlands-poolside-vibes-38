@@ -1004,15 +1004,23 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                       </div>
                     </div>
                     
-                    <StripeCheckoutButton
-                      productId={`pool_${pool.model.replace(/\s+/g, '_')}`}
-                      productName={pool.model}
-                      price={calculateTotalPrice()}
+                    <Button
                       variant="outline"
                       className="w-full"
                       size="sm"
-                      showFinancingOptions={true}
-                    />
+                      onClick={() => {
+                        const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + 
+                          `amount=${calculateTotalPrice()}&` +
+                          `product=${encodeURIComponent(pool.model)}&` +
+                          `description=${encodeURIComponent(`Complete pool configuration including ${pool.model}`)}&` +
+                          `monthly_payment=${Math.round(calculateTotalPrice() * 0.008)}&` +
+                          `loan_term=60&` +
+                          `project_type=Pool%20Installation`;
+                        window.open(lyonFinancialUrl, '_blank');
+                      }}
+                    >
+                      Apply with Lyon Financial
+                    </Button>
                     
                     <div className="text-xs text-muted-foreground text-center">
                       *Financing subject to credit approval. APR varies.
