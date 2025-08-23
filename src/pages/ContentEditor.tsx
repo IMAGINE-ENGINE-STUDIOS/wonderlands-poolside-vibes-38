@@ -43,6 +43,7 @@ import {
   Sun
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import FixedEditorStudio from "@/components/FixedEditorStudio";
 
 // Lazy-loaded components
 const Hero = lazy(() => import("@/components/Hero"));
@@ -316,6 +317,7 @@ const ContentEditor = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [showFixedEditor, setShowFixedEditor] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -601,6 +603,15 @@ const ContentEditor = () => {
                   <TooltipContent>Select Page to Edit</TooltipContent>
                 </Tooltip>
                 
+                <Button
+                  onClick={() => setShowFixedEditor(true)}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Editor Studio
+                </Button>
+                
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button onClick={publishChanges} disabled={pendingChanges === 0}>
@@ -673,31 +684,31 @@ const ContentEditor = () => {
                 </Select>
               </div>
 
-              {/* Settings */}
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-sm">Settings:</h3>
-                <Button
-                  size="sm"
-                  variant={showOutlines ? "default" : "outline"}
-                  onClick={() => setShowOutlines(!showOutlines)}
-                >
-                  <Layout className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant={isLivePreview ? "default" : "outline"}
-                  onClick={() => setIsLivePreview(!isLivePreview)}
-                >
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant={isPreviewMode ? "default" : "outline"}
-                  onClick={() => setIsPreviewMode(!isPreviewMode)}
-                >
-                  {isPreviewMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-              </div>
+                {/* Settings & Tools */}
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-sm">Tools:</h3>
+                  <Button
+                    size="sm"
+                    variant={showOutlines ? "default" : "outline"}
+                    onClick={() => setShowOutlines(!showOutlines)}
+                  >
+                    <Layout className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={isLivePreview ? "default" : "outline"}
+                    onClick={() => setIsLivePreview(!isLivePreview)}
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={isPreviewMode ? "default" : "outline"}
+                    onClick={() => setIsPreviewMode(!isPreviewMode)}
+                  >
+                    {isPreviewMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
 
               {/* Actions */}
               <div className="flex items-center gap-2">
@@ -890,6 +901,12 @@ const ContentEditor = () => {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Fixed Editor Studio */}
+        <FixedEditorStudio
+          isOpen={showFixedEditor}
+          onClose={() => setShowFixedEditor(false)}
+        />
       </div>
     </TooltipProvider>
   );
