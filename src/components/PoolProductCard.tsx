@@ -155,13 +155,17 @@ const tileOptions = [
   }))
 ];
 
-// Convert paver data to options format - Fixed Appian Collection
+// Convert paver data to options format with exact same pavers from PaversSection
 const paverOptions = [
   { name: 'No Pavers', color: '#808080', price: 0, image: azureBlueFinish, description: 'No additional pavers', collection: 'none' },
-  { name: 'Appian Collection - Rectangle 12x24', color: '#D2B48C', price: 0, image: azureBlueFinish, description: 'Classic rectangular pavers from Appian Collection', collection: 'appian' },
-  { name: 'Appian Collection - Square 12x12', color: '#CD853F', price: 0, image: oceanBlueFinish, description: 'Square format pavers from Appian Collection', collection: 'appian' },
-  { name: 'Appian Collection - Herringbone Pattern', color: '#DEB887', price: 0, image: sapphireBlueFinish, description: 'Elegant herringbone pattern from Appian Collection', collection: 'appian' },
-  { name: 'Appian Collection - Tumbled Finish', color: '#F5DEB3', price: 0, image: nightSkyFinish, description: 'Tumbled texture finish from Appian Collection', collection: 'appian' }
+  ...paverTypes.map(paver => ({
+    name: paver.name,
+    color: '#D3D3D3', // Default color for all pavers
+    price: 0, // Base price is 0, actual cost calculated by surface area × $15/sq ft
+    image: paver.image || azureBlueFinish,
+    description: paver.description,
+    collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina') ? 'catalina' : 'standard'
+  }))
 ];
 
 // Remove coping pavers entirely - no longer needed per user request

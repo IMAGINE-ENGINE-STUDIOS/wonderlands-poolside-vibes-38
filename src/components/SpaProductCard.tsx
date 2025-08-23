@@ -71,7 +71,7 @@ const finishOptions = poolFinishesData.map(finish => ({
   collection: finish.collection,
 }));
 
-// Convert paver data to options format with consistent $15/sq ft pricing
+// Convert paver data to options format with exact same pavers from PaversSection
 const paverOptions = [
   { name: 'No Pavers', color: '#808080', price: 0, image: azureBlueFinish, description: 'No additional pavers', collection: 'none' },
   ...paverTypes.map(paver => ({
@@ -80,7 +80,7 @@ const paverOptions = [
     price: 0, // Base price is 0, actual cost calculated by surface area × $15/sq ft
     image: paver.image || azureBlueFinish,
     description: paver.description,
-    collection: paver.category
+    collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina') ? 'catalina' : 'standard'
   }))
 ];
 
