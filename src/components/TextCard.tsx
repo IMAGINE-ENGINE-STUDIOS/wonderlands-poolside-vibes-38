@@ -210,7 +210,7 @@ const TextCard: React.FC<TextCardProps> = ({ isOpen, onClose }) => {
     border: selectedElement?.id === element.id ? '2px dashed hsl(var(--primary))' : 'none',
     padding: '8px',
     cursor: isEditMode ? 'move' : 'default',
-    userSelect: isEditMode ? 'none' : 'auto'
+    userSelect: isEditMode ? 'none' as const : 'auto' as const
   });
 
   if (!isOpen) return null;

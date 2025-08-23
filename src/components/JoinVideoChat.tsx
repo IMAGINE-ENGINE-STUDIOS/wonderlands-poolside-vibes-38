@@ -14,9 +14,9 @@ import {
   Monitor, 
   Settings, 
   Users, 
-  Record,
+  Circle,
   Square,
-  Broadcast,
+  Radio,
   Camera,
   Volume2,
   VolumeX,
@@ -615,7 +615,7 @@ const JoinVideoChat: React.FC<JoinVideoChatProps> = ({ isOpen, onClose }) => {
           {/* OBS Controls */}
           <div className="p-4 border-b">
             <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <Broadcast className="h-4 w-4" />
+              <Radio className="h-4 w-4" />
               OBS Studio Integration
             </h3>
             
@@ -632,7 +632,7 @@ const JoinVideoChat: React.FC<JoinVideoChatProps> = ({ isOpen, onClose }) => {
                     size="sm"
                     className="flex-1"
                   >
-                    {isRecording ? <Square className="h-4 w-4" /> : <Record className="h-4 w-4" />}
+                    {isRecording ? <Square className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
                     {isRecording ? 'Stop' : 'Record'}
                   </Button>
                   
@@ -642,7 +642,7 @@ const JoinVideoChat: React.FC<JoinVideoChatProps> = ({ isOpen, onClose }) => {
                     size="sm"
                     className="flex-1"
                   >
-                    <Broadcast className="h-4 w-4" />
+                    <Radio className="h-4 w-4" />
                     {isStreaming ? 'Stop' : 'Stream'}
                   </Button>
                 </div>
