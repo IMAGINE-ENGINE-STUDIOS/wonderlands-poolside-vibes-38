@@ -400,8 +400,8 @@ const EnhancedJobPostingForm = ({ onJobCreated }: EnhancedJobPostingFormProps) =
               </Card>
 
               <FormBuilder 
-                fields={customFields}
-                onChange={setCustomFields}
+                onSave={(fields) => setCustomFields(fields)}
+                initialFields={customFields}
               />
             </div>
           </TabsContent>

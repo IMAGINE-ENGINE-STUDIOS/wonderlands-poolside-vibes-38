@@ -348,8 +348,7 @@ const ProcurementSystem = () => {
         }}
         onSubmit={(proposalData) => {
           console.log('Quick proposal submitted:', proposalData);
-          // Here you would typically send to your backend
-          fetchJobs();
+          fetchJobs(); // Refresh jobs after proposal submission
         }}
       />
 

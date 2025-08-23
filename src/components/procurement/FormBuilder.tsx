@@ -2,272 +2,397 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { 
   Plus, 
   Trash2, 
   GripVertical, 
   Type, 
-  List, 
+  Hash, 
+  Calendar, 
+  FileText, 
   CheckSquare, 
-  AlignLeft,
-  Edit3,
-  Save,
-  X
+  Circle, 
+  Upload,
+  Eye,
+  Save
 } from 'lucide-react';
 
-interface CustomField {
+interface FormField {
   id: string;
-  type: 'text' | 'select' | 'checkbox' | 'textarea';
-  title: string;
-  options?: string[];
+  type: 'text' | 'number' | 'email' | 'date' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'file';
+  label: string;
+  placeholder?: string;
   required: boolean;
+  options?: string[];
+  description?: string;
 }
 
 interface FormBuilderProps {
-  fields: CustomField[];
-  onChange: (fields: CustomField[]) => void;
+  onSave: (fields: FormField[]) => void;
+  initialFields?: FormField[];
 }
 
-const FormBuilder = ({ fields, onChange }: FormBuilderProps) => {
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [newOption, setNewOption] = useState('');
+const FormBuilder = ({ onSave, initialFields = [] }: FormBuilderProps) => {
+  const [fields, setFields] = useState<FormField[]>(initialFields);
+  const [selectedField, setSelectedField] = useState<FormField | null>(null);
+  const [previewMode, setPreviewMode] = useState(false);
 
   const fieldTypes = [
-    { value: 'text', label: 'Text Input', icon: Type },
-    { value: 'textarea', label: 'Long Text', icon: AlignLeft },
-    { value: 'select', label: 'Multiple Choice', icon: List },
-    { value: 'checkbox', label: 'Checkbox', icon: CheckSquare }
+    { type: 'text', label: 'Text Input', icon: Type },
+    { type: 'number', label: 'Number Input', icon: Hash },
+    { type: 'email', label: 'Email Input', icon: Type },
+    { type: 'date', label: 'Date Picker', icon: Calendar },
+    { type: 'textarea', label: 'Long Text', icon: FileText },
+    { type: 'select', label: 'Dropdown', icon: CheckSquare },
+    { type: 'checkbox', label: 'Checkbox', icon: CheckSquare },
+    { type: 'radio', label: 'Radio Buttons', icon: Circle },
+    { type: 'file', label: 'File Upload', icon: Upload },
   ];
 
-  const addField = (type: string) => {
-    const newField: CustomField = {
-      id: Date.now().toString(),
-      type: type as CustomField['type'],
-      title: `New ${type} field`,
-      options: type === 'select' ? ['Option 1', 'Option 2'] : undefined,
-      required: false
+  const generateId = () => Math.random().toString(36).substr(2, 9);
+
+  const addField = (type: FormField['type']) => {
+    const newField: FormField = {
+      id: generateId(),
+      type,
+      label: `New ${type} field`,
+      required: false,
+      placeholder: type === 'textarea' ? 'Enter detailed information...' : `Enter ${type}...`,
+      options: ['select', 'radio', 'checkbox'].includes(type) ? ['Option 1', 'Option 2'] : undefined,
     };
-    onChange([...fields, newField]);
-    setEditingField(newField.id);
+    
+    setFields([...fields, newField]);
+    setSelectedField(newField);
   };
 
-  const updateField = (id: string, updates: Partial<CustomField>) => {
-    onChange(fields.map(field => 
+  const updateField = (id: string, updates: Partial<FormField>) => {
+    setFields(fields.map(field => 
       field.id === id ? { ...field, ...updates } : field
     ));
+    
+    if (selectedField?.id === id) {
+      setSelectedField({ ...selectedField, ...updates });
+    }
   };
 
-  const removeField = (id: string) => {
-    onChange(fields.filter(field => field.id !== id));
-    setEditingField(null);
+  const deleteField = (id: string) => {
+    setFields(fields.filter(field => field.id !== id));
+    if (selectedField?.id === id) {
+      setSelectedField(null);
+    }
   };
 
   const addOption = (fieldId: string) => {
-    if (!newOption.trim()) return;
-    
     const field = fields.find(f => f.id === fieldId);
     if (field && field.options) {
-      updateField(fieldId, {
-        options: [...field.options, newOption.trim()]
-      });
+      const newOptions = [...field.options, `Option ${field.options.length + 1}`];
+      updateField(fieldId, { options: newOptions });
     }
-    setNewOption('');
   };
 
-  const removeOption = (fieldId: string, optionIndex: number) => {
+  const updateOption = (fieldId: string, optionIndex: number, value: string) => {
     const field = fields.find(f => f.id === fieldId);
     if (field && field.options) {
+      const newOptions = [...field.options];
+      newOptions[optionIndex] = value;
+      updateField(fieldId, { options: newOptions });
+    }
+  };
+
+  const deleteOption = (fieldId: string, optionIndex: number) => {
+    const field = fields.find(f => f.id === fieldId);
+    if (field && field.options && field.options.length > 1) {
       const newOptions = field.options.filter((_, index) => index !== optionIndex);
       updateField(fieldId, { options: newOptions });
     }
   };
 
-  const moveField = (fromIndex: number, toIndex: number) => {
-    const newFields = [...fields];
-    const [movedField] = newFields.splice(fromIndex, 1);
-    newFields.splice(toIndex, 0, movedField);
-    onChange(newFields);
+  const renderFieldPreview = (field: FormField) => {
+    const fieldClass = "w-full p-2 border border-border rounded-lg";
+    
+    switch (field.type) {
+      case 'text':
+      case 'email':
+        return <Input type={field.type} placeholder={field.placeholder} className={fieldClass} />;
+      case 'number':
+        return <Input type="number" placeholder={field.placeholder} className={fieldClass} />;
+      case 'date':
+        return <Input type="date" className={fieldClass} />;
+      case 'textarea':
+        return <Textarea placeholder={field.placeholder} className={fieldClass} rows={3} />;
+      case 'select':
+        return (
+          <Select>
+            <SelectTrigger className={fieldClass}>
+              <SelectValue placeholder="Select an option..." />
+            </SelectTrigger>
+            <SelectContent>
+              {field.options?.map((option, index) => (
+                <SelectItem key={index} value={option}>{option}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+      case 'checkbox':
+        return (
+          <div className="space-y-2">
+            {field.options?.map((option, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <input type="checkbox" id={`${field.id}-${index}`} />
+                <label htmlFor={`${field.id}-${index}`}>{option}</label>
+              </div>
+            ))}
+          </div>
+        );
+      case 'radio':
+        return (
+          <div className="space-y-2">
+            {field.options?.map((option, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <input type="radio" name={field.id} id={`${field.id}-${index}`} />
+                <label htmlFor={`${field.id}-${index}`}>{option}</label>
+              </div>
+            ))}
+          </div>
+        );
+      case 'file':
+        return <Input type="file" className={fieldClass} />;
+      default:
+        return <Input placeholder={field.placeholder} className={fieldClass} />;
+    }
   };
 
   return (
-    <Card className="glass-card">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Edit3 className="h-5 w-5" />
-          Form Builder
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Add Field Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {fieldTypes.map((type) => {
-            const Icon = type.icon;
-            return (
-              <Button
-                key={type.value}
-                variant="outline"
-                className="glass-button h-auto p-3 flex flex-col items-center gap-2 hover:scale-105 transition-all duration-200"
-                onClick={() => addField(type.value)}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="text-xs">{type.label}</span>
-              </Button>
-            );
-          })}
+    <div className="h-full flex">
+      <Tabs value={previewMode ? 'preview' : 'builder'} className="flex-1">
+        <div className="flex items-center justify-between p-4 border-b">
+          <TabsList>
+            <TabsTrigger value="builder" onClick={() => setPreviewMode(false)}>
+              Builder
+            </TabsTrigger>
+            <TabsTrigger value="preview" onClick={() => setPreviewMode(true)}>
+              <Eye className="h-4 w-4 mr-2" />
+              Preview
+            </TabsTrigger>
+          </TabsList>
+          
+          <Button onClick={() => onSave(fields)} className="gap-2">
+            <Save className="h-4 w-4" />
+            Save Form
+          </Button>
         </div>
 
-        {/* Field List */}
-        <div className="space-y-4">
-          {fields.map((field, index) => (
-            <Card key={field.id} className="border-border/30 procurement-slide-up">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="cursor-grab hover:cursor-grabbing text-muted-foreground mt-2">
-                    <GripVertical className="h-4 w-4" />
-                  </div>
-                  
-                  <div className="flex-1 space-y-3">
-                    {/* Field Header */}
-                    <div className="flex items-center gap-3">
-                      <Badge variant="secondary" className="text-xs">
-                        {fieldTypes.find(t => t.value === field.type)?.label}
-                      </Badge>
-                      
-                      <div className="flex items-center gap-2">
-                        <Label className="text-xs">Required</Label>
-                        <Switch
-                          checked={field.required}
-                          onCheckedChange={(checked) => updateField(field.id, { required: checked })}
-                        />
-                      </div>
-                      
-                      <div className="flex gap-1 ml-auto">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setEditingField(editingField === field.id ? null : field.id)}
-                        >
-                          {editingField === field.id ? <X className="h-4 w-4" /> : <Edit3 className="h-4 w-4" />}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => removeField(field.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Field Title */}
-                    {editingField === field.id ? (
-                      <Input
-                        value={field.title}
-                        onChange={(e) => updateField(field.id, { title: e.target.value })}
-                        className="font-medium"
-                        placeholder="Field title"
-                      />
-                    ) : (
-                      <h4 className="font-medium text-foreground">{field.title}</h4>
-                    )}
-
-                    {/* Field-Specific Controls */}
-                    {field.type === 'select' && (
-                      <div className="space-y-3">
-                        <Label className="text-sm">Options</Label>
-                        <div className="space-y-2">
-                          {field.options?.map((option, optionIndex) => (
-                            <div key={optionIndex} className="flex items-center gap-2">
-                              <Input
-                                value={option}
-                                onChange={(e) => {
-                                  const newOptions = [...(field.options || [])];
-                                  newOptions[optionIndex] = e.target.value;
-                                  updateField(field.id, { options: newOptions });
-                                }}
-                                className="flex-1"
-                                disabled={editingField !== field.id}
-                              />
-                              {editingField === field.id && (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => removeOption(field.id, optionIndex)}
-                                  className="text-destructive hover:text-destructive"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                          ))}
-                          
-                          {editingField === field.id && (
-                            <div className="flex items-center gap-2">
-                              <Input
-                                value={newOption}
-                                onChange={(e) => setNewOption(e.target.value)}
-                                placeholder="Add new option"
-                                className="flex-1"
-                                onKeyPress={(e) => e.key === 'Enter' && addOption(field.id)}
-                              />
-                              <Button
-                                size="sm"
-                                onClick={() => addOption(field.id)}
-                                disabled={!newOption.trim()}
-                              >
-                                <Plus className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Field Preview */}
-                    <div className="bg-muted/30 rounded-lg p-3">
-                      <Label className="text-xs text-muted-foreground mb-2 block">Preview</Label>
-                      {field.type === 'text' && (
-                        <Input placeholder={field.title} disabled className="bg-background/50" />
-                      )}
-                      {field.type === 'textarea' && (
-                        <Textarea placeholder={field.title} disabled className="bg-background/50" />
-                      )}
-                      {field.type === 'select' && (
-                        <Select disabled>
-                          <SelectTrigger className="bg-background/50">
-                            <SelectValue placeholder={`Select ${field.title}`} />
-                          </SelectTrigger>
-                        </Select>
-                      )}
-                      {field.type === 'checkbox' && (
-                        <div className="flex items-center gap-2">
-                          <input type="checkbox" disabled className="rounded" />
-                          <Label className="text-sm">{field.title}</Label>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+        <div className="flex flex-1">
+          {!previewMode && (
+            <div className="w-64 border-r p-4 space-y-4 overflow-y-auto">
+              <div>
+                <h3 className="font-semibold mb-3">Field Types</h3>
+                <div className="space-y-2">
+                  {fieldTypes.map((fieldType) => {
+                    const Icon = fieldType.icon;
+                    return (
+                      <Button
+                        key={fieldType.type}
+                        variant="outline"
+                        className="w-full justify-start"
+                        onClick={() => addField(fieldType.type as FormField['type'])}
+                      >
+                        <Icon className="h-4 w-4 mr-2" />
+                        {fieldType.label}
+                      </Button>
+                    );
+                  })}
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-
-          {fields.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <Edit3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">No custom fields yet</p>
-              <p className="text-sm">Add custom fields to collect specific information from proposers</p>
+              </div>
             </div>
           )}
+
+          <div className="flex-1 flex">
+            <div className={previewMode ? "flex-1" : "flex-1 p-4"}>
+              {previewMode ? (
+                <TabsContent value="preview" className="flex-1 p-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Form Preview</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {fields.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No fields added yet. Switch to Builder to add fields.
+                        </div>
+                      ) : (
+                        fields.map((field) => (
+                          <div key={field.id} className="space-y-2">
+                            <Label className="flex items-center gap-2">
+                              {field.label}
+                              {field.required && <span className="text-red-500">*</span>}
+                            </Label>
+                            {field.description && (
+                              <p className="text-sm text-muted-foreground">{field.description}</p>
+                            )}
+                            {renderFieldPreview(field)}
+                          </div>
+                        ))
+                      )}
+                      {fields.length > 0 && (
+                        <Button className="w-full">Submit Form</Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              ) : (
+                <TabsContent value="builder" className="flex-1">
+                  <div className="h-full">
+                    <div className="p-4">
+                      <h3 className="font-semibold mb-4">Form Fields</h3>
+                      
+                      {fields.length === 0 ? (
+                        <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+                          <Plus className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                          <p className="text-muted-foreground">
+                            Click on a field type from the sidebar to add it to your form
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {fields.map((field, index) => (
+                            <div
+                              key={field.id}
+                              className={`border rounded-lg p-4 bg-background ${
+                                selectedField?.id === field.id ? 'border-primary' : 'border-border'
+                              }`}
+                              onClick={() => setSelectedField(field)}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="mt-1 text-muted-foreground hover:text-foreground cursor-grab">
+                                  <GripVertical className="h-4 w-4" />
+                                </div>
+                                
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium">{field.label}</span>
+                                      {field.required && <Badge variant="destructive">Required</Badge>}
+                                      <Badge variant="outline">{field.type}</Badge>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        deleteField(field.id);
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                  
+                                  <div className="text-sm text-muted-foreground mb-3">
+                                    {field.description || field.placeholder}
+                                  </div>
+                                  
+                                  <div className="opacity-75 pointer-events-none">
+                                    {renderFieldPreview(field)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
+              )}
+            </div>
+
+            {!previewMode && selectedField && (
+              <div className="w-80 border-l p-4 space-y-4 overflow-y-auto">
+                <h3 className="font-semibold">Field Properties</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label>Field Label</Label>
+                    <Input
+                      value={selectedField.label}
+                      onChange={(e) => updateField(selectedField.id, { label: e.target.value })}
+                      placeholder="Enter field label"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Placeholder Text</Label>
+                    <Input
+                      value={selectedField.placeholder || ''}
+                      onChange={(e) => updateField(selectedField.id, { placeholder: e.target.value })}
+                      placeholder="Enter placeholder text"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Description (Optional)</Label>
+                    <Textarea
+                      value={selectedField.description || ''}
+                      onChange={(e) => updateField(selectedField.id, { description: e.target.value })}
+                      placeholder="Add field description or instructions"
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      checked={selectedField.required}
+                      onCheckedChange={(checked) => updateField(selectedField.id, { required: checked })}
+                    />
+                    <Label>Required Field</Label>
+                  </div>
+
+                  {selectedField.options && (
+                    <div>
+                      <Label className="mb-2 block">Options</Label>
+                      <div className="space-y-2">
+                        {selectedField.options.map((option, index) => (
+                          <div key={index} className="flex gap-2">
+                            <Input
+                              value={option}
+                              onChange={(e) => updateOption(selectedField.id, index, e.target.value)}
+                              placeholder={`Option ${index + 1}`}
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteOption(selectedField.id, index)}
+                              disabled={selectedField.options!.length <= 1}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addOption(selectedField.id)}
+                          className="w-full"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Option
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </Tabs>
+    </div>
   );
 };
 

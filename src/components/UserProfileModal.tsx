@@ -3,28 +3,43 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Building2,
-  MapPin,
-  Phone,
-  Mail,
-  Calendar,
+  User, 
+  Building2, 
+  Mail, 
+  Phone, 
+  MessageSquare, 
+  Video, 
   Star,
-  Award,
-  Users,
-  DollarSign,
-  Camera,
+  MapPin,
+  Calendar,
   Edit,
   Save,
-  X
+  X,
+  ExternalLink,
+  Award,
+  Briefcase
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import MessagingSystem from '@/components/procurement/MessagingSystem';
+import JoinVideoChat from '@/components/JoinVideoChat';
+
+interface UserProfile {
+  id: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  company_name?: string;
+  company_logo_url?: string;
+  role: string;
+  is_active: boolean;
+}
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -35,444 +50,439 @@ interface UserProfileModalProps {
 
 const UserProfileModal = ({ isOpen, onClose, userId, isOwnProfile = false }: UserProfileModalProps) => {
   const { user, profile, updateProfile } = useAuth();
+  const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
+  const [loading, setLoading] = useState(false);
+  const [showMessaging, setShowMessaging] = useState(false);
+  const [showVideoChat, setShowVideoChat] = useState(false);
+  
+  const [editForm, setEditForm] = useState({
     first_name: '',
     last_name: '',
     company_name: '',
     company_logo_url: '',
-    email: '',
+    bio: '',
     phone: '',
-    address: '',
-    description: '',
     website: '',
-    founded_year: '',
-    employees: '',
-    specializations: [] as string[],
-    certifications: [] as string[]
+    location: ''
   });
-
-  // Mock profile data for demonstration
-  const mockProfile = {
-    id: userId || user?.id || '1',
-    first_name: 'John',
-    last_name: 'Smith',
-    company_name: 'Luxury Homes Development',
-    company_logo_url: '',
-    email: 'john@luxuryhomes.com',
-    phone: '(555) 123-4567',
-    address: 'Miami, FL',
-    description: 'Premier luxury home developer with over 15 years of experience in high-end residential projects. Specializing in custom pool installations, outdoor living spaces, and complete home renovations.',
-    website: 'www.luxuryhomes.com',
-    founded_year: '2008',
-    employees: '25-50',
-    rating: 4.8,
-    total_projects: 127,
-    total_spent: 2450000,
-    member_since: '2020-01-15',
-    verified: true,
-    specializations: ['Luxury Pools', 'Outdoor Kitchens', 'Landscaping', 'Home Renovation'],
-    certifications: ['Licensed General Contractor', 'Pool & Spa Certified', 'EPA Lead-Safe Certified'],
-    recent_projects: [
-      {
-        id: '1',
-        title: 'Infinity Pool Installation',
-        location: 'Coral Gables, FL',
-        budget: 85000,
-        completed_date: '2024-02-15',
-        image: '/lovable-uploads/3bdd9802-26f9-47ab-8498-e0e66344685c.png'
-      },
-      {
-        id: '2',
-        title: 'Outdoor Entertainment Area',
-        location: 'Pinecrest, FL',
-        budget: 65000,
-        completed_date: '2024-01-20',
-        image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
-      }
-    ],
-    reviews: [
-      {
-        id: '1',
-        author: 'Sarah Williams',
-        rating: 5,
-        comment: 'Exceptional work! John and his team transformed our backyard into a paradise. The attention to detail and quality craftsmanship exceeded our expectations.',
-        date: '2024-02-20',
-        project: 'Pool & Spa Installation'
-      },
-      {
-        id: '2',
-        author: 'Mike Rodriguez',
-        rating: 5,
-        comment: 'Professional, reliable, and delivered exactly what was promised. The outdoor kitchen is absolutely stunning!',
-        date: '2024-01-25',
-        project: 'Outdoor Kitchen'
-      }
-    ]
-  };
 
   useEffect(() => {
     if (isOpen) {
       if (isOwnProfile && profile) {
-        setFormData({
+        setProfileData(profile);
+        setEditForm({
           first_name: profile.first_name || '',
           last_name: profile.last_name || '',
           company_name: profile.company_name || '',
           company_logo_url: profile.company_logo_url || '',
-          email: profile.email || '',
-          phone: mockProfile.phone,
-          address: mockProfile.address,
-          description: mockProfile.description,
-          website: mockProfile.website,
-          founded_year: mockProfile.founded_year,
-          employees: mockProfile.employees,
-          specializations: mockProfile.specializations,
-          certifications: mockProfile.certifications
+          bio: '',
+          phone: '',
+          website: '',
+          location: ''
         });
-      } else {
-        setFormData({
-          first_name: mockProfile.first_name,
-          last_name: mockProfile.last_name,
-          company_name: mockProfile.company_name,
-          company_logo_url: mockProfile.company_logo_url,
-          email: mockProfile.email,
-          phone: mockProfile.phone,
-          address: mockProfile.address,
-          description: mockProfile.description,
-          website: mockProfile.website,
-          founded_year: mockProfile.founded_year,
-          employees: mockProfile.employees,
-          specializations: mockProfile.specializations,
-          certifications: mockProfile.certifications
-        });
+      } else if (userId) {
+        fetchUserProfile(userId);
       }
     }
-  }, [isOpen, isOwnProfile, profile]);
+  }, [isOpen, userId, isOwnProfile, profile]);
 
-  const handleSave = async () => {
-    if (isOwnProfile) {
-      try {
-        await updateProfile({
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          company_name: formData.company_name,
-          company_logo_url: formData.company_logo_url
-        });
-        toast.success('Profile updated successfully!');
-        setIsEditing(false);
-      } catch (error) {
-        toast.error('Failed to update profile');
-      }
+  const fetchUserProfile = async (id: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      setProfileData(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      toast.error('Failed to load profile');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getInitials = (firstName: string, lastName: string, companyName: string) => {
+  const handleSaveProfile = async () => {
+    if (!profileData || !isOwnProfile) return;
+
+    setLoading(true);
+    try {
+      await updateProfile({
+        first_name: editForm.first_name,
+        last_name: editForm.last_name,
+        company_name: editForm.company_name,
+        company_logo_url: editForm.company_logo_url
+      });
+
+      setIsEditing(false);
+      toast.success('Profile updated successfully');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getInitials = (firstName?: string, lastName?: string, companyName?: string) => {
+    if (firstName && lastName) {
+      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    }
     if (companyName) {
       return companyName.substring(0, 2).toUpperCase();
     }
-    return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase() || 'U';
+    return 'U';
   };
 
-  const currentProfile = isOwnProfile ? { ...mockProfile, ...profile } : mockProfile;
+  const getRoleDisplayName = (role: string) => {
+    const roleMap: { [key: string]: string } = {
+      'consumer': 'Consumer',
+      'supplier': 'Supplier',
+      'installer': 'Installer',
+      'main_admin': 'Administrator'
+    };
+    return roleMap[role] || role;
+  };
+
+  const getRoleBadgeColor = (role: string) => {
+    const colorMap: { [key: string]: string } = {
+      'consumer': 'bg-blue-100 text-blue-800',
+      'supplier': 'bg-green-100 text-green-800',
+      'installer': 'bg-purple-100 text-purple-800',
+      'main_admin': 'bg-red-100 text-red-800'
+    };
+    return colorMap[role] || 'bg-gray-100 text-gray-800';
+  };
+
+  if (!profileData) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-bold">
-              {isOwnProfile ? 'My Profile' : 'Business Profile'}
-            </DialogTitle>
-            {isOwnProfile && (
-              <div className="flex gap-2">
-                {isEditing ? (
-                  <>
-                    <Button onClick={handleSave} size="sm">
-                      <Save className="h-4 w-4 mr-1" />
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                {isOwnProfile ? 'My Profile' : 'User Profile'}
+              </span>
+              {isOwnProfile && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (isEditing) {
+                      handleSaveProfile();
+                    } else {
+                      setIsEditing(true);
+                    }
+                  }}
+                  disabled={loading}
+                >
+                  {isEditing ? (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
                       Save
-                    </Button>
-                    <Button onClick={() => setIsEditing(false)} variant="outline" size="sm">
-                      <X className="h-4 w-4 mr-1" />
-                      Cancel
-                    </Button>
-                  </>
-                ) : (
-                  <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Profile Header */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-6">
-                <div className="relative">
-                  <Avatar className="h-24 w-24 border-4 border-primary/20">
-                    <AvatarImage src={formData.company_logo_url} />
-                    <AvatarFallback className="text-xl bg-gradient-to-br from-primary to-teal text-white">
-                      {getInitials(formData.first_name, formData.last_name, formData.company_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  {isEditing && (
-                    <Button
-                      size="sm"
-                      className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 p-0"
-                    >
-                      <Camera className="h-4 w-4" />
-                    </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </>
                   )}
-                </div>
+                </Button>
+              )}
+            </DialogTitle>
+          </DialogHeader>
 
-                <div className="flex-1 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>First Name</Label>
-                      {isEditing ? (
-                        <Input
-                          value={formData.first_name}
-                          onChange={(e) => setFormData(prev => ({ ...prev, first_name: e.target.value }))}
-                        />
-                      ) : (
-                        <p className="font-medium">{formData.first_name}</p>
-                      )}
-                    </div>
-                    <div>
-                      <Label>Last Name</Label>
-                      {isEditing ? (
-                        <Input
-                          value={formData.last_name}
-                          onChange={(e) => setFormData(prev => ({ ...prev, last_name: e.target.value }))}
-                        />
-                      ) : (
-                        <p className="font-medium">{formData.last_name}</p>
-                      )}
-                    </div>
-                  </div>
+          <div className="overflow-y-auto max-h-[calc(90vh-100px)]">
+            <div className="space-y-6">
+              {/* Profile Header */}
+              <div className="flex items-start gap-6 p-6 bg-gradient-to-r from-primary/10 to-teal/10 rounded-lg">
+                <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
+                  <AvatarImage src={profileData.company_logo_url} />
+                  <AvatarFallback className="text-xl font-bold">
+                    {getInitials(
+                      profileData.first_name, 
+                      profileData.last_name, 
+                      profileData.company_name
+                    )}
+                  </AvatarFallback>
+                </Avatar>
 
+                <div className="flex-1 space-y-3">
                   <div>
-                    <Label>Company Name</Label>
                     {isEditing ? (
-                      <Input
-                        value={formData.company_name}
-                        onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
-                      />
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-lg">{formData.company_name}</p>
-                        {currentProfile.verified && (
-                          <Badge className="bg-blue-100 text-blue-800">
-                            <Award className="h-3 w-3 mr-1" />
-                            Verified
-                          </Badge>
-                        )}
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input
+                          placeholder="First Name"
+                          value={editForm.first_name}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, first_name: e.target.value }))}
+                        />
+                        <Input
+                          placeholder="Last Name"
+                          value={editForm.last_name}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, last_name: e.target.value }))}
+                        />
                       </div>
+                    ) : (
+                      <h3 className="text-2xl font-bold">
+                        {profileData.company_name || 
+                         `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() ||
+                         'Anonymous User'}
+                      </h3>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      {formData.address}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      Member since {new Date(currentProfile.member_since).getFullYear()}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      {currentProfile.rating} rating
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className={getRoleBadgeColor(profileData.role)}>
+                      {getRoleDisplayName(profileData.role)}
+                    </Badge>
+                    <Badge variant="outline">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      Joined {new Date().getFullYear()}
+                    </Badge>
                   </div>
-                </div>
 
-                <div className="text-right space-y-2">
-                  <div className="text-2xl font-bold text-primary">{currentProfile.total_projects}</div>
-                  <div className="text-sm text-muted-foreground">Projects Completed</div>
-                  <div className="text-lg font-semibold text-green-600">
-                    ${(currentProfile.total_spent / 1000000).toFixed(1)}M
-                  </div>
-                  <div className="text-sm text-muted-foreground">Total Value</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="projects">Projects</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews</TabsTrigger>
-              <TabsTrigger value="contact">Contact</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>About</CardTitle>
-                </CardHeader>
-                <CardContent>
                   {isEditing ? (
-                    <Textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                      rows={4}
+                    <Input
+                      placeholder="Company Name"
+                      value={editForm.company_name}
+                      onChange={(e) => setEditForm(prev => ({ ...prev, company_name: e.target.value }))}
                     />
-                  ) : (
-                    <p className="text-muted-foreground">{formData.description}</p>
+                  ) : profileData.company_name ? (
+                    <p className="flex items-center gap-2 text-muted-foreground">
+                      <Building2 className="h-4 w-4" />
+                      {profileData.company_name}
+                    </p>
+                  ) : null}
+
+                  <p className="flex items-center gap-2 text-muted-foreground">
+                    <Mail className="h-4 w-4" />
+                    {profileData.email}
+                  </p>
+
+                  {/* Contact Actions */}
+                  {!isOwnProfile && (
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        size="sm"
+                        onClick={() => setShowMessaging(true)}
+                        className="bg-primary hover:bg-primary/90"
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Message
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setShowVideoChat(true)}
+                      >
+                        <Video className="h-4 w-4 mr-2" />
+                        Video Call
+                      </Button>
+                    </div>
                   )}
-                </CardContent>
-              </Card>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Specializations</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {formData.specializations.map((spec, index) => (
-                        <Badge key={index} variant="secondary">
-                          {spec}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Certifications</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {formData.certifications.map((cert, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <Award className="h-4 w-4 text-primary" />
-                          <span className="text-sm">{cert}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                </div>
               </div>
-            </TabsContent>
 
-            <TabsContent value="projects">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {currentProfile.recent_projects.map((project) => (
-                  <Card key={project.id}>
-                    <div className="aspect-video relative overflow-hidden rounded-t-lg">
-                      <img 
-                        src={project.image} 
-                        alt={project.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <CardContent className="pt-4">
-                      <h4 className="font-semibold mb-2">{project.title}</h4>
-                      <div className="space-y-1 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {project.location}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <DollarSign className="h-3 w-3" />
-                          ${project.budget.toLocaleString()}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          Completed {new Date(project.completed_date).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
+              {/* Profile Tabs */}
+              <Tabs defaultValue="overview" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="projects">Projects</TabsTrigger>
+                  <TabsTrigger value="reviews">Reviews</TabsTrigger>
+                  <TabsTrigger value="contact">Contact</TabsTrigger>
+                </TabsList>
 
-            <TabsContent value="reviews">
-              <div className="space-y-4">
-                {currentProfile.reviews.map((review) => (
-                  <Card key={review.id}>
-                    <CardContent className="pt-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h4 className="font-semibold">{review.author}</h4>
-                          <p className="text-sm text-muted-foreground">{review.project}</p>
+                <TabsContent value="overview" className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Briefcase className="h-5 w-5" />
+                          Professional Info
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Role:</span>
+                          <span>{getRoleDisplayName(profileData.role)}</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          {Array.from({ length: review.rating }).map((_, i) => (
-                            <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          ))}
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Status:</span>
+                          <Badge variant={profileData.is_active ? "default" : "secondary"}>
+                            {profileData.is_active ? "Active" : "Inactive"}
+                          </Badge>
                         </div>
-                      </div>
-                      <p className="text-muted-foreground mb-2">{review.comment}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(review.date).toLocaleDateString()}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Member Since:</span>
+                          <span>{new Date().toLocaleDateString()}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-            <TabsContent value="contact">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <Mail className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">Email</p>
-                          <p className="text-muted-foreground">{formData.email}</p>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Award className="h-5 w-5" />
+                          Statistics
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Projects:</span>
+                          <span>12 completed</span>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Phone className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">Phone</p>
-                          <p className="text-muted-foreground">{formData.phone}</p>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Rating:</span>
+                          <div className="flex items-center gap-1">
+                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                            <span>4.8 (24 reviews)</span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Building2 className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">Website</p>
-                          <p className="text-muted-foreground">{formData.website}</p>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Response Time:</span>
+                          <span>&lt; 2 hours</span>
                         </div>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <Users className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">Company Size</p>
-                          <p className="text-muted-foreground">{formData.employees} employees</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Calendar className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">Founded</p>
-                          <p className="text-muted-foreground">{formData.founded_year}</p>
-                        </div>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </DialogContent>
-    </Dialog>
+                </TabsContent>
+
+                <TabsContent value="projects" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Recent Projects</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-8 text-muted-foreground">
+                        Project history will be available soon
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="reviews" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Reviews & Ratings</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-8 text-muted-foreground">
+                        Reviews system coming soon
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="contact" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Contact Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {isEditing ? (
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-sm font-medium">Bio</label>
+                            <Textarea
+                              placeholder="Tell us about yourself..."
+                              value={editForm.bio}
+                              onChange={(e) => setEditForm(prev => ({ ...prev, bio: e.target.value }))}
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-sm font-medium">Phone</label>
+                              <Input
+                                placeholder="Phone number"
+                                value={editForm.phone}
+                                onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium">Website</label>
+                              <Input
+                                placeholder="Website URL"
+                                value={editForm.website}
+                                onChange={(e) => setEditForm(prev => ({ ...prev, website: e.target.value }))}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium">Location</label>
+                            <Input
+                              placeholder="City, State"
+                              value={editForm.location}
+                              onChange={(e) => setEditForm(prev => ({ ...prev, location: e.target.value }))}
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                         <div className="space-y-3">
+                           <div className="flex items-center gap-2">
+                             <Mail className="h-4 w-4 text-muted-foreground" />
+                             <span>{profileData.email}</span>
+                           </div>
+                           
+                           {!isOwnProfile && (
+                             <div className="flex gap-2 pt-4">
+                               <Button
+                                 onClick={() => setShowMessaging(true)}
+                                 className="flex-1"
+                               >
+                                 <MessageSquare className="h-4 w-4 mr-2" />
+                                 Send Message
+                               </Button>
+                               <Button
+                                 variant="outline"
+                                 onClick={() => setShowVideoChat(true)}
+                                 className="flex-1"
+                               >
+                                 <Video className="h-4 w-4 mr-2" />
+                                 Video Call
+                               </Button>
+                             </div>
+                           )}
+                         </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Messaging System */}
+      <MessagingSystem
+        isOpen={showMessaging}
+        onClose={() => setShowMessaging(false)}
+        initialContactId={userId}
+      />
+
+      {/* Video Chat */}
+      <JoinVideoChat
+        isOpen={showVideoChat}
+        onClose={() => setShowVideoChat(false)}
+      />
+    </>
   );
 };
 

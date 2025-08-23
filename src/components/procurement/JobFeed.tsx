@@ -150,13 +150,14 @@ const JobFeed = ({ jobs, loading, onJobClick, onQuickProposal, onProfileClick }:
   return (
     <div className="space-y-6">
       {allJobs.map((job, index) => (
-        <JobPostCard
-          key={job.id}
-          job={job}
-          onJobClick={onJobClick}
-          onQuickProposal={onQuickProposal}
-          variant={index === 0 ? 'featured' : 'default'}
-        />
+            <JobPostCard
+              key={job.id}
+              job={job}
+              onJobClick={onJobClick}
+              onQuickProposal={onQuickProposal}
+              onProfileClick={onProfileClick}
+              variant={index === 0 ? 'featured' : 'default'}
+            />
       ))}
     </div>
   );
