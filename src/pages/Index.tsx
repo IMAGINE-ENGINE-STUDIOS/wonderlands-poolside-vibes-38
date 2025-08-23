@@ -20,6 +20,9 @@ const Index = () => {
   const [showCart, setShowCart] = useState(false);
   const { getCartCount } = useShoppingCart();
 
+  console.log("Index component rendering...");
+  console.log("Cart count:", getCartCount());
+
   return (
     <div className="relative min-h-screen">
       <Header />
