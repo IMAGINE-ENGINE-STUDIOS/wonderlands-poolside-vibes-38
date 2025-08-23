@@ -26,6 +26,7 @@ import JobDetailModal from '@/components/procurement/JobDetailModal';
 import QuickProposalModal from '@/components/procurement/QuickProposalModal';
 import MessagingSystem from '@/components/procurement/MessagingSystem';
 import UserProfileModal from '@/components/UserProfileModal';
+import JobSearchEnhanced from '@/components/procurement/JobSearchEnhanced';
 
 interface JobPosting {
   id: string;
@@ -60,6 +61,7 @@ const ProcurementSystem = () => {
   const [showMessaging, setShowMessaging] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const [searchFilters, setSearchFilters] = useState<any>({});
 
   const categories = [
     { value: 'all', label: 'All Categories' },
@@ -107,17 +109,48 @@ const ProcurementSystem = () => {
   }, [selectedCategory]);
 
   const filteredJobs = jobs.filter(job => {
-    const matchesSearch = searchTerm === '' || 
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.profiles?.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.profiles?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.profiles?.last_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    // Search term filtering
+    const matchesSearch = !searchFilters.searchTerm || 
+      job.title.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
+      job.description?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
+      job.location?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
+      job.profiles?.company_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
+      job.profiles?.first_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
+      job.profiles?.last_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase());
     
-    const matchesCategory = selectedCategory === 'all' || job.category === selectedCategory;
+    // Category filtering
+    const matchesCategory = !searchFilters.category || 
+      searchFilters.category === 'all' || 
+      job.category === searchFilters.category;
     
-    return matchesSearch && matchesCategory;
+    // Location filtering
+    const matchesLocation = !searchFilters.location || 
+      job.location?.toLowerCase().includes(searchFilters.location.toLowerCase());
+    
+    // Budget filtering
+    const matchesBudget = (!searchFilters.budgetMin || job.budget_min >= searchFilters.budgetMin) &&
+      (!searchFilters.budgetMax || job.budget_max <= searchFilters.budgetMax);
+    
+    // Deadline filtering
+    const matchesDeadline = !searchFilters.deadline || 
+      new Date(job.deadline) <= new Date(searchFilters.deadline);
+    
+    return matchesSearch && matchesCategory && matchesLocation && matchesBudget && matchesDeadline;
+  }).sort((a, b) => {
+    // Sorting logic
+    switch (searchFilters.sortBy) {
+      case 'oldest':
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case 'budget_high':
+        return (b.budget_max || 0) - (a.budget_max || 0);
+      case 'budget_low':
+        return (a.budget_min || 0) - (b.budget_min || 0);
+      case 'deadline':
+        return new Date(a.deadline || '9999-12-31').getTime() - new Date(b.deadline || '9999-12-31').getTime();
+      case 'newest':
+      default:
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
   });
 
   const handleJobCreated = () => {
@@ -245,41 +278,12 @@ const ProcurementSystem = () => {
             </div>
           </div>
 
-          {/* Enhanced Filters */}
-          <div className="flex flex-col gap-4 md:gap-6 mt-6 md:mt-8">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                placeholder="Search jobs, locations, descriptions, skills..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 pr-4 py-3 text-base md:text-lg glass-card border-border/30 focus:border-primary/50 transition-all duration-300 procurement-shimmer"
-              />
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1">
-                <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-                  <TabsList className="grid grid-cols-3 sm:grid-cols-6 glass-card p-1 gap-1 w-full">
-                    {categories.map((category) => (
-                      <TabsTrigger
-                        key={category.value}
-                        value={category.value}
-                        className="text-xs sm:text-sm font-medium px-2 sm:px-4 py-2 rounded-lg transition-all duration-300 hover:scale-105"
-                      >
-                        <span className="hidden sm:inline">{category.label}</span>
-                        <span className="sm:hidden">{category.label.split(' ')[0]}</span>
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </Tabs>
-              </div>
-              
-              <Button variant="outline" className="glass-button px-4 sm:px-6 whitespace-nowrap">
-                <Filter className="mr-2 h-4 w-4" />
-                Filters
-              </Button>
-            </div>
+          {/* Enhanced Search and Filters */}
+          <div className="mt-6 md:mt-8">
+            <JobSearchEnhanced
+              onFiltersChange={setSearchFilters}
+              totalJobs={filteredJobs.length}
+            />
           </div>
         </div>
       </div>
@@ -313,6 +317,10 @@ const ProcurementSystem = () => {
               setQuickProposalJob(job);
               setShowQuickProposal(true);
             }
+          }}
+          onProfileClick={(userId) => {
+            setSelectedProfileId(userId);
+            setShowProfile(true);
           }}
         />
       </div>

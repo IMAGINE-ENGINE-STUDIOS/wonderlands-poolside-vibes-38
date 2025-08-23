@@ -44,10 +44,11 @@ interface JobPostCardProps {
   job: JobPosting;
   onJobClick: (job: JobPosting) => void;
   onQuickProposal?: (jobId: string) => void;
+  onProfileClick?: (userId: string) => void;
   variant?: 'default' | 'featured' | 'compact';
 }
 
-const JobPostCard = ({ job, onJobClick, onQuickProposal, variant = 'default' }: JobPostCardProps) => {
+const JobPostCard = ({ job, onJobClick, onQuickProposal, onProfileClick, variant = 'default' }: JobPostCardProps) => {
   const getCategoryColor = (category: string) => {
     const colors = {
       pools: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
@@ -143,8 +144,7 @@ const JobPostCard = ({ job, onJobClick, onQuickProposal, variant = 'default' }: 
               className="h-12 w-12 border-2 border-primary/20 cursor-pointer hover:scale-105 transition-transform"
               onClick={(e) => {
                 e.stopPropagation();
-                // This would open the profile modal - we'll add this functionality
-                console.log('Open profile for:', job.business_id);
+                onProfileClick?.(job.business_id);
               }}
             >
               <AvatarFallback className="bg-gradient-to-br from-primary to-teal text-white font-semibold">

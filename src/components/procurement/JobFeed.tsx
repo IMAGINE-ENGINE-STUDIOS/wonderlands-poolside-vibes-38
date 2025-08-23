@@ -30,9 +30,10 @@ interface JobFeedProps {
   loading: boolean;
   onJobClick: (job: JobPosting) => void;
   onQuickProposal?: (jobId: string) => void;
+  onProfileClick?: (userId: string) => void;
 }
 
-const JobFeed = ({ jobs, loading, onJobClick, onQuickProposal }: JobFeedProps) => {
+const JobFeed = ({ jobs, loading, onJobClick, onQuickProposal, onProfileClick }: JobFeedProps) => {
   // Add sample mock data to showcase functionality
   const mockJobs = [
     {

@@ -83,6 +83,7 @@ const JoinVideoChat: React.FC<JoinVideoChatProps> = ({ isOpen, onClose }) => {
   // UI States
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [callQuality, setCallQuality] = useState<'HD' | 'Standard' | 'Low'>('HD');
   
   // Refs
   const localVideoRef = useRef<HTMLVideoElement>(null);
