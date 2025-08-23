@@ -2,9 +2,10 @@ import { useState, lazy, Suspense } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ShoppingCart, { useShoppingCart } from "@/components/ShoppingCart";
+import OrderManagement from "@/components/OrderManagement";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart as CartIcon } from "lucide-react";
+import { ShoppingCart as CartIcon, Package } from "lucide-react";
 
 // Lazy-loaded heavy sections for performance
 const Hero = lazy(() => import("@/components/Hero"));
@@ -18,6 +19,7 @@ const WonderlandsBrandShowcase = lazy(() => import("@/components/WonderlandsBran
 
 const Index = () => {
   const [showCart, setShowCart] = useState(false);
+  const [showOrders, setShowOrders] = useState(false);
   const { getCartCount } = useShoppingCart();
 
   console.log("Index component rendering...");
@@ -30,8 +32,21 @@ const Index = () => {
         <FloridaPoolElements />
       </Suspense>
       
-      {/* Shopping Cart Button */}
-      <div className="fixed top-20 right-4 z-50">
+      {/* Action Buttons */}
+      <div className="fixed top-20 right-4 z-50 flex flex-col gap-2">
+        {/* Orders Button */}
+        <Button
+          onClick={() => setShowOrders(true)}
+          variant="secondary"
+          size="icon"
+          className="shadow-lg"
+          title="View Orders"
+          aria-label="View orders"
+        >
+          <Package className="h-4 w-4" />
+        </Button>
+        
+        {/* Shopping Cart Button */}
         <Button
           onClick={() => setShowCart(true)}
           variant="secondary"
@@ -66,6 +81,12 @@ const Index = () => {
       <ShoppingCart 
         isOpen={showCart} 
         onClose={() => setShowCart(false)} 
+      />
+      
+      {/* Order Management Modal */}
+      <OrderManagement 
+        isOpen={showOrders} 
+        onClose={() => setShowOrders(false)} 
       />
     </div>
   );
