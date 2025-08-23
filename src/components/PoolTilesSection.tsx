@@ -119,13 +119,14 @@ const PoolTilesSection = ({ onTileSelect, selectedTile: selectedTileProp, allowS
                   <Button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleRequestQuote(tile);
+                      handleAddToCart(tile);
                     }}
-                    variant="gradient"
-                    className="w-full hover:scale-105 transition-all duration-300 bg-gradient-to-r from-coral to-orange"
+                    variant="default"
+                    className="w-full hover:scale-105 transition-all duration-300"
                     size="sm"
                   >
-                    Get Quote
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Add to Cart
                   </Button>
                 </CardContent>
               </Card>
@@ -176,21 +177,30 @@ const PoolTilesSection = ({ onTileSelect, selectedTile: selectedTileProp, allowS
                          Select Tile
                        </Button>
                      )}
-                     <Button 
-                       onClick={() => handleAddToCart(selectedTile)}
-                       variant="outline"
-                       className="flex-1"
-                     >
-                       <ShoppingCart className="h-4 w-4 mr-2" />
-                       Add to Cart
-                     </Button>
-                     <Button 
-                       onClick={() => handleRequestQuote(selectedTile)}
-                       variant="gradient"
-                       className="flex-1 bg-gradient-to-r from-coral to-orange"
-                     >
-                       Get Quote
-                     </Button>
+                <Button 
+                  onClick={() => handleAddToCart(selectedTile)}
+                  variant="default"
+                  className="flex-1"
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Add to Cart
+                </Button>
+                <Button 
+                  onClick={() => {
+                    const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + 
+                      `amount=${selectedTile.price}&` +
+                      `product=${encodeURIComponent(selectedTile.name)}&` +
+                      `description=${encodeURIComponent(`Premium pool tile: ${selectedTile.description}`)}&` +
+                      `monthly_payment=${Math.round(selectedTile.price * 0.008)}&` +
+                      `loan_term=60&` +
+                      `project_type=Pool%20Installation`;
+                    window.open(lyonFinancialUrl, '_blank');
+                  }}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Apply with Lyon Financial
+                </Button>
                    </div>
                 </div>
               </div>

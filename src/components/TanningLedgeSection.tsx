@@ -137,13 +137,14 @@ const TanningLedgeSection = () => {
                   <Button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleRequestQuote(ledge);
+                      handleAddToCart(ledge);
                     }}
-                    variant="gradient"
-                    className="w-full hover:scale-105 transition-all duration-300 bg-gradient-to-r from-coral to-orange"
+                    variant="default"
+                    className="w-full hover:scale-105 transition-all duration-300"
                     size="sm"
                   >
-                    Get Quote
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Add to Cart
                   </Button>
                 </CardContent>
               </Card>
@@ -207,18 +208,27 @@ const TanningLedgeSection = () => {
                   <div className="flex gap-3">
                     <Button 
                       onClick={() => handleAddToCart(selectedLedge)}
-                      variant="outline"
+                      variant="default"
                       className="flex-1"
                     >
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       Add to Cart
                     </Button>
                     <Button 
-                      onClick={() => handleRequestQuote(selectedLedge)}
-                      variant="gradient"
-                      className="flex-1 bg-gradient-to-r from-coral to-orange"
+                      onClick={() => {
+                        const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + 
+                          `amount=${selectedLedge.price}&` +
+                          `product=${encodeURIComponent(`${selectedLedge.name} Tanning Ledge`)}&` +
+                          `description=${encodeURIComponent(`Premium tanning ledge: ${selectedLedge.description}`)}&` +
+                          `monthly_payment=${Math.round(selectedLedge.price * 0.008)}&` +
+                          `loan_term=60&` +
+                          `project_type=Pool%20Installation`;
+                        window.open(lyonFinancialUrl, '_blank');
+                      }}
+                      variant="outline"
+                      className="flex-1"
                     >
-                      Get Quote
+                      Apply with Lyon Financial
                     </Button>
                   </div>
                 </div>

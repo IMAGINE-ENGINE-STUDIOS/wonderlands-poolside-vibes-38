@@ -234,21 +234,7 @@ const ShoppingCart = ({ isOpen, onClose }: ShoppingCartProps) => {
             <Button variant="outline" onClick={onClose} className="flex-1">
               Continue Shopping
             </Button>
-            <StripeCheckoutButton
-              productId={`cart_${Date.now()}`}
-              productName={`Pool Cart (${getTotalQuantity()} items)`}
-              price={calculateTotal()}
-              variant="default"
-              className="flex-1"
-              cartItems={cartItems}
-            />
-          </div>
-
-          {/* Lyon Financial Option for Cart */}
-          <div className="mt-3">
             <Button
-              variant="outline"
-              className="w-full"
               onClick={() => {
                 const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + 
                   `amount=${calculateTotal()}&` +
@@ -259,6 +245,8 @@ const ShoppingCart = ({ isOpen, onClose }: ShoppingCartProps) => {
                   `project_type=Pool%20Installation`;
                 window.open(lyonFinancialUrl, '_blank');
               }}
+              variant="default"
+              className="flex-1"
             >
               Apply with Lyon Financial
             </Button>

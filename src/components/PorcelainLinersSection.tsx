@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import { Sparkles, Gem } from "lucide-react";
+import { useShoppingCart } from "./ShoppingCart";
+import { Sparkles, Gem, ShoppingCart, DollarSign } from "lucide-react";
 
 interface PorcelainLiner {
   id: string;
@@ -22,7 +23,7 @@ const porcelainLiners: PorcelainLiner[] = [
   {
     id: "tikal",
     name: "Tikal",
-    price: 2400,
+    price: 3500,
     type: "Porcelain",
     pattern: "Marbled Blue",
     durability: "Premium",
@@ -33,7 +34,7 @@ const porcelainLiners: PorcelainLiner[] = [
   {
     id: "port-royal",
     name: "Port Royal",
-    price: 2600,
+    price: 3700,
     type: "Porcelain",
     pattern: "Deep Ocean Blue",
     durability: "Premium",
@@ -44,7 +45,7 @@ const porcelainLiners: PorcelainLiner[] = [
   {
     id: "alexandria",
     name: "Alexandria",
-    price: 2500,
+    price: 3600,
     type: "Porcelain",
     pattern: "Golden Marble",
     durability: "Premium",
@@ -55,7 +56,7 @@ const porcelainLiners: PorcelainLiner[] = [
   {
     id: "san-marino",
     name: "San Marino",
-    price: 2800,
+    price: 4200,
     type: "Italian Stone",
     pattern: "Dark Granite",
     durability: "Luxury",
@@ -66,7 +67,7 @@ const porcelainLiners: PorcelainLiner[] = [
   {
     id: "firenze",
     name: "Firenze",
-    price: 2900,
+    price: 4400,
     type: "Italian Stone",
     pattern: "Blue Grey Marble",
     durability: "Luxury",
@@ -77,7 +78,7 @@ const porcelainLiners: PorcelainLiner[] = [
   {
     id: "naples",
     name: "Naples",
-    price: 2700,
+    price: 4000,
     type: "Italian Stone",
     pattern: "Warm Beige Stone",
     durability: "Luxury",
@@ -88,7 +89,7 @@ const porcelainLiners: PorcelainLiner[] = [
   {
     id: "milan",
     name: "Milan",
-    price: 3000,
+    price: 4500,
     type: "Italian Stone",
     pattern: "Charcoal Stone",
     durability: "Luxury",
@@ -123,10 +124,22 @@ const getTypeIcon = (type: string) => {
 const PorcelainLinersSection = () => {
   const [selectedLiner, setSelectedLiner] = useState<PorcelainLiner | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const { addToCart } = useShoppingCart();
 
   const handleRequestQuote = (liner: PorcelainLiner) => {
     setSelectedLiner(liner);
     setShowQuoteModal(true);
+  };
+
+  const handleAddToCart = (liner: PorcelainLiner) => {
+    addToCart({
+      id: `liner_${liner.id}_${Date.now()}`,
+      name: `${liner.name} Premium Liner`,
+      price: liner.price,
+      category: 'liner',
+      image: liner.image,
+      extras: []
+    });
   };
 
   return (
@@ -196,12 +209,22 @@ const PorcelainLinersSection = () => {
                           </ul>
                         </div>
 
-                        <Button 
-                          onClick={() => handleRequestQuote(liner)}
-                          className="w-full bg-gradient-to-r from-primary to-coral hover:from-primary/90 hover:to-coral/90 text-white font-semibold"
-                        >
-                          Get Quote
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={() => handleAddToCart(liner)}
+                            variant="outline"
+                            className="flex-1"
+                          >
+                            <ShoppingCart className="h-4 w-4 mr-2" />
+                            Add to Cart
+                          </Button>
+                          <Button 
+                            onClick={() => handleRequestQuote(liner)}
+                            className="flex-1 bg-gradient-to-r from-primary to-coral hover:from-primary/90 hover:to-coral/90 text-white font-semibold"
+                          >
+                            Get Quote
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
