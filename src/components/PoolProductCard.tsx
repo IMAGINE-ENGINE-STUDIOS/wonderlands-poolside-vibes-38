@@ -1006,7 +1006,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                   className="flex-1"
                   size="sm"
                 >
-                  View Configuration
+                  Editor Studio
                 </Button>
                 <Button 
                   onClick={() => onRequestQuote(pool, extras)}
@@ -1111,7 +1111,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
               className="w-full"
               size="sm"
             >
-              View Configuration
+              Editor Studio
             </Button>
             <Button 
               onClick={handleImageClick}

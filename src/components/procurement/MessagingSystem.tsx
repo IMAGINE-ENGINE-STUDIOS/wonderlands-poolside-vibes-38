@@ -15,8 +15,11 @@ import {
   Search,
   MessageSquare,
   Clock,
-  CheckCheck
+  CheckCheck,
+  FileImage,
+  FileText
 } from 'lucide-react';
+import JoinVideoChat from '../JoinVideoChat';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -54,6 +57,7 @@ const MessagingSystem = ({ isOpen, onClose, initialContactId, jobId }: Messaging
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showVideoChat, setShowVideoChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Mock data for demonstration
@@ -203,8 +207,8 @@ const MessagingSystem = ({ isOpen, onClose, initialContactId, jobId }: Messaging
           <div className="w-80 border-r bg-muted/30">
             <DialogHeader className="p-4 border-b">
               <DialogTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
-                Messages
+                <Video className="h-5 w-5" />
+                Join - Video Chat & Messages
               </DialogTitle>
             </DialogHeader>
 
@@ -296,10 +300,21 @@ const MessagingSystem = ({ isOpen, onClose, initialContactId, jobId }: Messaging
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          // Audio call functionality - placeholder for future implementation
+                          toast.success('Starting audio call...');
+                        }}
+                      >
                         <Phone className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setShowVideoChat(true)}
+                      >
                         <Video className="h-4 w-4" />
                       </Button>
                       <Button variant="outline" size="sm">
@@ -356,8 +371,35 @@ const MessagingSystem = ({ isOpen, onClose, initialContactId, jobId }: Messaging
                 {/* Message Input */}
                 <div className="p-4 border-t bg-background">
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        // File attachment functionality - placeholder for future implementation
+                        toast.success('Attachment feature coming soon!');
+                      }}
+                    >
                       <Paperclip className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        // Image attachment functionality - placeholder for future implementation
+                        toast.success('Image upload coming soon!');
+                      }}
+                    >
+                      <FileImage className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        // Document attachment functionality - placeholder for future implementation
+                        toast.success('Document upload coming soon!');
+                      }}
+                    >
+                      <FileText className="h-4 w-4" />
                     </Button>
                     <Input
                       placeholder="Type your message..."
@@ -387,6 +429,12 @@ const MessagingSystem = ({ isOpen, onClose, initialContactId, jobId }: Messaging
             )}
           </div>
         </div>
+        
+        {/* Join Video Chat Component */}
+        <JoinVideoChat 
+          isOpen={showVideoChat}
+          onClose={() => setShowVideoChat(false)}
+        />
       </DialogContent>
     </Dialog>
   );
