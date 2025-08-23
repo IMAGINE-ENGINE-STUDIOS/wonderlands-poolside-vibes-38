@@ -1191,6 +1191,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      decrypt_sensitive_data: {
+        Args: { encrypted_data: string }
+        Returns: string
+      }
+      encrypt_sensitive_data: {
+        Args: { data: string }
+        Returns: string
+      }
       get_installer_profile_safe: {
         Args: { installer_uuid: string }
         Returns: Json
@@ -1204,6 +1212,10 @@ export type Database = {
         Returns: boolean
       }
       is_consumer: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_current_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
