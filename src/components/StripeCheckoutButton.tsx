@@ -13,6 +13,7 @@ interface StripeCheckoutButtonProps {
   size?: "default" | "sm" | "lg" | "icon";
   className?: string;
   showFinancingOptions?: boolean;
+  cartItems?: any[]; // Optional cart items for cart checkout
 }
 
 const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
@@ -23,7 +24,8 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
   variant = "default",
   size = "default",
   className = "",
-  showFinancingOptions = true
+  showFinancingOptions = true,
+  cartItems
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isFinancingLoading, setIsFinancingLoading] = useState(false);
@@ -36,7 +38,10 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
       const { data, error } = await supabase.functions.invoke('stripe-checkout', {
         body: {
           productId,
-          quantity
+          productName,
+          price,
+          quantity,
+          cartItems
         }
       });
 

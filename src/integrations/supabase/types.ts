@@ -687,6 +687,72 @@ export type Database = {
         }
         Relationships: []
       }
+      product_orders: {
+        Row: {
+          base_price: number
+          created_at: string
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          delivery_address: Json | null
+          extras_data: Json | null
+          id: string
+          order_notes: string | null
+          payment_status: string | null
+          product_category: string | null
+          product_identifier: string
+          product_name: string
+          product_type: string | null
+          quantity: number
+          stripe_session_id: string | null
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          base_price?: number
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          delivery_address?: Json | null
+          extras_data?: Json | null
+          id?: string
+          order_notes?: string | null
+          payment_status?: string | null
+          product_category?: string | null
+          product_identifier: string
+          product_name: string
+          product_type?: string | null
+          quantity?: number
+          stripe_session_id?: string | null
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          base_price?: number
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          delivery_address?: Json | null
+          extras_data?: Json | null
+          id?: string
+          order_notes?: string | null
+          payment_status?: string | null
+          product_category?: string | null
+          product_identifier?: string
+          product_name?: string
+          product_type?: string | null
+          quantity?: number
+          stripe_session_id?: string | null
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           benefits: string[] | null
@@ -908,6 +974,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_preferences: {
+        Row: {
+          cart_data: Json | null
+          created_at: string
+          delivery_preferences: Json | null
+          id: string
+          notification_preferences: Json | null
+          preferred_payment_method: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cart_data?: Json | null
+          created_at?: string
+          delivery_preferences?: Json | null
+          id?: string
+          notification_preferences?: Json | null
+          preferred_payment_method?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cart_data?: Json | null
+          created_at?: string
+          delivery_preferences?: Json | null
+          id?: string
+          notification_preferences?: Json | null
+          preferred_payment_method?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       user_quotations: {
         Row: {

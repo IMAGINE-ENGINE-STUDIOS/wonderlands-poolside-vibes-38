@@ -240,6 +240,7 @@ const ShoppingCart = ({ isOpen, onClose }: ShoppingCartProps) => {
               price={calculateTotal()}
               variant="default"
               className="flex-1"
+              cartItems={cartItems}
             />
           </div>
 
