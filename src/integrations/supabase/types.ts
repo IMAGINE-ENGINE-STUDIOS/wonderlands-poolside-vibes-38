@@ -933,6 +933,7 @@ export type Database = {
           total_quote_amount: number | null
           updated_at: string
           uploaded_image_url: string | null
+          user_id: string | null
           utility_lines: string | null
           yard_size: string | null
         }
@@ -959,6 +960,7 @@ export type Database = {
           total_quote_amount?: number | null
           updated_at?: string
           uploaded_image_url?: string | null
+          user_id?: string | null
           utility_lines?: string | null
           yard_size?: string | null
         }
@@ -985,6 +987,7 @@ export type Database = {
           total_quote_amount?: number | null
           updated_at?: string
           uploaded_image_url?: string | null
+          user_id?: string | null
           utility_lines?: string | null
           yard_size?: string | null
         }

@@ -9,9 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, Camera, FileText } from "lucide-react";
+import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, Camera, FileText, LogIn } from "lucide-react";
 import PoolCustomizationOptions from "./PoolCustomizationOptions";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 
 interface Pool {
@@ -56,6 +57,7 @@ interface SurveyData {
 }
 
 const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteToolProps) => {
+  const { user } = useAuth();
   const [surveyData, setSurveyData] = useState<SurveyData>({
     name: "",
     email: "",
@@ -76,6 +78,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
   const [selectedOptions, setSelectedOptions] = useState<PoolOption[]>([]);
   const [currentStep, setCurrentStep] = useState<'survey' | 'options' | 'quote'>('survey');
   const [isSaving, setIsSaving] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const { toast } = useToast();
   // Removed GALA-GOODS integration
 
@@ -152,12 +155,19 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
       return null;
     }
 
+    // Check if user is authenticated
+    if (!user) {
+      setShowAuthPrompt(true);
+      return null;
+    }
+
     setIsSaving(true);
     try {
       const quoteAmount = calculateQuote();
       const recommendations = getRecommendations();
       
       const quotationData = {
+        user_id: user.id,
         name: surveyData.name,
         email: surveyData.email,
         phone: surveyData.phone || null,
@@ -621,6 +631,51 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
                     onClick={() => setCurrentStep('options')}
                   >
                     Modify Options
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Authentication Prompt */}
+        {showAuthPrompt && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <Card className="w-full max-w-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <LogIn className="h-5 w-5 text-primary" />
+                  Sign In Required
+                </CardTitle>
+                <CardDescription>
+                  Please sign in to save your quotation securely
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Create an account or sign in to:
+                </p>
+                <ul className="text-sm space-y-1 text-muted-foreground">
+                  <li>• Save your quote for later reference</li>
+                  <li>• Track your project progress</li>
+                  <li>• Receive personalized recommendations</li>
+                </ul>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="gradient" 
+                    className="flex-1"
+                    onClick={() => {
+                      setShowAuthPrompt(false);
+                      window.location.href = '/auth';
+                    }}
+                  >
+                    Sign In / Register
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowAuthPrompt(false)}
+                  >
+                    Cancel
                   </Button>
                 </div>
               </CardContent>
