@@ -154,13 +154,13 @@ const tileOptions = [
   }))
 ];
 
-// Paver options - now fetch from database
-const [paverOptions, setPaverOptions] = useState([
+// Default paver options - will be enhanced with database data inside component
+const defaultPaverOptions = [
   { name: 'Standard Concrete', color: '#D3D3D3', price: 0, image: azureBlueFinish, description: 'Basic concrete pavers around pool perimeter' },
   { name: 'Natural Stone', color: '#8B7355', price: 2500, image: shaleGrayFinish, description: 'Premium natural stone pavers' },
   { name: 'Travertine', color: '#F5DEB3', price: 3200, image: athensPearlFinish, description: 'Elegant travertine paving stones' },
   { name: 'Brick Pavers', color: '#B22222', price: 2800, image: coastalBronzeFinish, description: 'Classic brick paver design' }
-]);
+];
 
 // Coping paver options
 const copingPaverOptions = [
@@ -175,6 +175,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [currentPoolImage, setCurrentPoolImage] = useState(pool.image);
   const [isEditable, setIsEditable] = useState(isAdmin);
+  const [paverOptions, setPaverOptions] = useState(defaultPaverOptions);
   const [extras, setExtras] = useState<PoolExtras>({
     liner: false,
     heater: false,
