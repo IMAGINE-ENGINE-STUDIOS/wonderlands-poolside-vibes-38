@@ -36,6 +36,9 @@ import RealTimeContentEditor from '@/components/RealTimeContentEditor';
 import LathamPoolsData from '@/components/LathamPoolsData';
 import StandardizedProductManager from '@/components/StandardizedProductManager';
 import AdminUserManagement from '@/components/AdminUserManagement';
+import AdminQuotesManager from '@/components/AdminQuotesManager';
+import AdminOrdersManager from '@/components/AdminOrdersManager';
+import AdminDashboardMetrics from '@/components/AdminDashboardMetrics';
 import { DragDropEditor } from '@/components/DragDropEditor';
 
 const AdminDashboard = () => {
@@ -69,32 +72,12 @@ const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [orderFilter, setOrderFilter] = useState('all');
-  const [editorActive, setEditorActive] = useState(false);
   
-
-  // Mock GALA points data (in real implementation, this would come from API)
-  const galaPointsData = {
-    totalPoints: 125000,
-    activeUsers: 450,
-    pointsDistributed: 95000,
-    pendingRewards: 30000
-  };
-
-  // Calculate metrics
+  // Calculate metrics from database (will be updated in real time)
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
   const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
   const completedOrders = orders.filter(order => order.status === 'completed').length;
   const pendingOrders = orders.filter(order => order.status === 'pending').length;
-
-  // Filter orders based on search and filter
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customerId.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = orderFilter === 'all' || order.status === orderFilter;
-    return matchesSearch && matchesFilter;
-  });
 
   const refreshData = async () => {
     // Mock refresh function
@@ -137,67 +120,19 @@ const AdminDashboard = () => {
 
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {/* Key Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-primary">${totalRevenue.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                Avg. order: ${averageOrderValue.toFixed(2)}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Quotes</CardTitle>
-              <Star className="h-4 w-4 text-amber-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-amber-600">24</div>
-              <p className="text-xs text-muted-foreground">
-                18 pending quotes
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-              <ShoppingCart className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{orders.length}</div>
-              <p className="text-xs text-muted-foreground">
-                {completedOrders} completed, {pendingOrders} pending
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Database Health</CardTitle>
-              <Database className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">100%</div>
-              <p className="text-xs text-muted-foreground">
-                All systems operational
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <AdminDashboardMetrics />
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="unified-products" className="space-y-4 sm:space-y-6">
           <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 sm:mb-6">
-            <TabsList className="grid w-full grid-cols-2 sm:flex sm:flex-wrap gap-1">
+            <TabsList className="grid w-full grid-cols-3 sm:flex sm:flex-wrap gap-1">
               <TabsTrigger value="unified-products" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <Database className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Products</span>
+              </TabsTrigger>
+              <TabsTrigger value="quotes" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <Star className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Quotes</span>
               </TabsTrigger>
               <TabsTrigger value="orders" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -265,93 +200,12 @@ const AdminDashboard = () => {
 
           {/* Orders Tab */}
           <TabsContent value="orders" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Orders</CardTitle>
-                <CardDescription>Track and manage orders</CardDescription>
-                
-                {/* Search and Filter */}
-                <div className="flex flex-col gap-2 sm:gap-4 pt-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search orders by ID or customer..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Select value={orderFilter} onValueChange={setOrderFilter}>
-                    <SelectTrigger className="w-full sm:w-[180px]">
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Orders</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="processing">Processing</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4 mr-1 sm:mr-2" />
-                      <span className="hidden sm:inline">Export</span>
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Order ID</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Products</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredOrders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-mono">{order.id.slice(0, 8)}...</TableCell>
-                        <TableCell>{order.customerId.slice(0, 8)}...</TableCell>
-                        <TableCell>{order.products.length} items</TableCell>
-                        <TableCell className="font-bold">${order.total.toLocaleString()}</TableCell>
-                        <TableCell>
-                          <Badge variant={
-                            order.status === 'completed' ? 'default' :
-                            order.status === 'processing' ? 'secondary' :
-                            order.status === 'pending' ? 'outline' : 'destructive'
-                          }>
-                            {order.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                {filteredOrders.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    {orders.length === 0 ? 'No orders found' : 'No orders match your search criteria'}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <AdminOrdersManager />
+          </TabsContent>
+
+          {/* Quotes Tab */}
+          <TabsContent value="quotes" className="space-y-6">
+            <AdminQuotesManager />
           </TabsContent>
 
           {/* Content Editor Tab */}
