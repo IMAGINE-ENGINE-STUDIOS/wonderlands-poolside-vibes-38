@@ -37,7 +37,7 @@ const Header = () => {
           />
           
           {/* Simplified Auth - Only when not logged in and not in content editor */}
-          {!isContentEditor && !user && (
+          {!isContentEditor && !user ? (
             <div className="flex items-center gap-2">
               <Link to="/auth">
                 <Button 
@@ -50,7 +50,7 @@ const Header = () => {
                 </Button>
               </Link>
             </div>
-          )}
+          ) : null}
         </div>
       </header>
 

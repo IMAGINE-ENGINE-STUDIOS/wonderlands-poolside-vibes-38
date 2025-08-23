@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ShoppingCart, { useShoppingCart } from "@/components/ShoppingCart";
@@ -27,6 +27,17 @@ const Index = () => {
 
   console.log("Index component rendering...");
   console.log("Cart count:", getCartCount());
+  
+  useEffect(() => {
+    const openCart = () => setShowCart(true);
+    const openOrders = () => setShowOrders(true);
+    window.addEventListener('open-cart', openCart as unknown as EventListener);
+    window.addEventListener('open-orders', openOrders as unknown as EventListener);
+    return () => {
+      window.removeEventListener('open-cart', openCart as unknown as EventListener);
+      window.removeEventListener('open-orders', openOrders as unknown as EventListener);
+    };
+  }, []);
 
   return (
     <div className="relative min-h-screen">
@@ -35,37 +46,6 @@ const Index = () => {
         <FloridaPoolElements />
       </Suspense>
       
-      {/* Action Buttons */}
-      <div className="fixed top-20 right-4 z-50 flex flex-col gap-2">
-        {/* Orders Button */}
-        <Button
-          onClick={() => setShowOrders(true)}
-          variant="secondary"
-          size="icon"
-          className="shadow-lg"
-          title="View Orders"
-          aria-label="View orders"
-        >
-          <Package className="h-4 w-4" />
-        </Button>
-        
-        {/* Shopping Cart Button */}
-        <Button
-          onClick={() => setShowCart(true)}
-          variant="secondary"
-          size="icon"
-          className="shadow-lg relative"
-          title="Shopping Cart"
-          aria-label="Open shopping cart"
-        >
-          <CartIcon className="h-4 w-4" />
-          {getCartCount() > 0 && (
-            <Badge className="absolute -top-2 -right-2 px-1 min-w-5 h-5 text-xs">
-              {getCartCount()}
-            </Badge>
-          )}
-        </Button>
-      </div>
       
       <div className="relative z-10">
         <Suspense fallback={<div className="p-8 text-center text-foreground/70" aria-busy="true">Loading content…</div>}>

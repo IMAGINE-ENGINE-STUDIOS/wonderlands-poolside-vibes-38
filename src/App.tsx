@@ -1,6 +1,7 @@
 
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import RightNavigation from "@/components/RightNavigation";
 
 import Index from "./pages/Index";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -15,17 +16,14 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => (
   <AuthProvider>
+    <RightNavigation />
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
       <Route 
         path="/procurement" 
-        element={
-          <ProtectedRoute>
-            <ProcurementSystem />
-          </ProtectedRoute>
-        } 
+        element={<ProcurementSystem />} 
       />
       <Route 
         path="/admin" 

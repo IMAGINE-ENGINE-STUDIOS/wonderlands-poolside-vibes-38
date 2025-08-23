@@ -14,7 +14,8 @@ import {
   Palette,
   Truck,
   Settings,
-  HelpCircle
+  HelpCircle,
+  ShoppingCart
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,6 +51,20 @@ const RightNavigation = () => {
       label: 'Home',
       icon: Home,
       action: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+      show: true
+    },
+    {
+      id: 'cart',
+      label: 'Cart',
+      icon: ShoppingCart,
+      action: () => window.dispatchEvent(new CustomEvent('open-cart')),
+      show: true
+    },
+    {
+      id: 'orders',
+      label: 'Orders',
+      icon: Truck,
+      action: () => window.dispatchEvent(new CustomEvent('open-orders')),
       show: true
     },
     {
@@ -138,8 +153,8 @@ const RightNavigation = () => {
                     </div>
                     {isExpanded && (
                       sectionsExpanded.catalog ? 
-                        <ChevronDown className="h-3 w-3" /> : 
-                        <ChevronRight className="h-3 w-3" />
+                        <ChevronDown className="h-3 w-3 ml-auto" /> : 
+                        <ChevronRight className="h-3 w-3 ml-auto" />
                     )}
                   </Button>
                   

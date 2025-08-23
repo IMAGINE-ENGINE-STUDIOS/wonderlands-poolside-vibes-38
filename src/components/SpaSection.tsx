@@ -1,6 +1,6 @@
 import { useState } from "react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import SpaProductCard from "./SpaProductCard";
+import PoolProductCard from "./PoolProductCard";
 import SpaDetailModal from "./SpaDetailModal";
 import { spas } from "./PoolCatalog";
 
@@ -60,11 +60,16 @@ const SpaSection = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {spas.map((spa) => (
-              <SpaProductCard
+              <PoolProductCard
                 key={spa.model}
-                spa={{
-                  ...spa,
-                  spilloverFeature: spa.spilloverFeature
+                pool={{
+                  model: spa.model,
+                  price: spa.price,
+                  category: spa.category as any,
+                  image: spa.image,
+                  dimensions: spa.dimensions,
+                  depth: spa.depth,
+                  features: spa.features
                 }}
                 onViewDetails={handleViewDetails}
                 onRequestQuote={handleRequestQuote}
