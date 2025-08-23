@@ -155,7 +155,10 @@ export const ProductCardLivePreviewer = ({ product, isOpen, onClose, onSave }: P
 
       if (error) throw error;
 
-      onSave(updateData);
+      onSave({
+        ...updateData,
+        warranty_years: String(updateData.warranty_years || '')
+      });
       setIsEditing(false);
       toast({
         title: "Success",
