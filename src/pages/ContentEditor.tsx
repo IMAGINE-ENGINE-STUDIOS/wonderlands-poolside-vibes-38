@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ShoppingCart, { useShoppingCart } from "@/components/ShoppingCart";
+import { DraggableElement } from "@/components/DraggableElement";
 import { ShoppingCart as CartIcon } from "lucide-react";
 import { 
   Edit3, 
@@ -82,6 +83,9 @@ interface Product {
 interface SitePreviewProps {
   elements: EditableElement[];
   onElementClick: (element: EditableElement) => void;
+  onElementUpdate: (element: EditableElement) => void;
+  onElementDelete: (id: string) => void;
+  onElementDuplicate: (element: EditableElement) => void;
   editMode: boolean;
   showOutlines: boolean;
   selectedDevice: string;
@@ -90,7 +94,18 @@ interface SitePreviewProps {
 }
 
 // Live Site Preview Component
-const SitePreview = ({ elements, onElementClick, editMode, showOutlines, selectedDevice, selectedScreen, isPreviewMode }: SitePreviewProps) => {
+const SitePreview = ({ 
+  elements, 
+  onElementClick, 
+  onElementUpdate,
+  onElementDelete,
+  onElementDuplicate,
+  editMode, 
+  showOutlines, 
+  selectedDevice, 
+  selectedScreen, 
+  isPreviewMode 
+}: SitePreviewProps) => {
   const [showCart, setShowCart] = useState(false);
   const { getCartCount } = useShoppingCart();
 
@@ -216,85 +231,23 @@ const SitePreview = ({ elements, onElementClick, editMode, showOutlines, selecte
 
         {/* Dynamic Elements Overlay */}
         {elements.filter(e => e.id.startsWith('custom-')).map((element) => (
-          <div
+          <DraggableElement
             key={element.id}
-            className={`absolute cursor-move ${element.styles || 'bg-white border border-gray-300 p-4 rounded shadow'} ${
-              editMode && showOutlines ? 'outline-dashed outline-2 outline-red-500' : ''
-            } ${editMode ? 'hover:shadow-lg transition-shadow' : ''} ${isPreviewMode ? 'pointer-events-none select-none' : ''}`}
-            style={{
-              left: element.position.x,
-              top: element.position.y,
-              width: element.size?.width,
-              height: element.size?.height,
-            }}
-            onClick={() => editMode && !isPreviewMode && onElementClick(element)}
-            draggable={editMode && !isPreviewMode}
-          >
-            {element.type === 'image' ? (
-              <img 
-                src={element.content} 
-                alt="Custom" 
-                className={`w-full h-full object-cover rounded ${isPreviewMode ? 'pointer-events-none' : ''}`}
-              />
-            ) : element.type === 'product' ? (
-              <div className={`border rounded-lg p-3 bg-white shadow-sm max-w-xs ${isPreviewMode ? 'pointer-events-none' : ''}`}>
-                {element.productData?.image_url && (
-                  <img 
-                    src={element.productData.image_url} 
-                    alt={element.content}
-                    className={`w-full h-32 object-cover rounded mb-2 ${isPreviewMode ? 'pointer-events-none' : ''}`}
-                  />
-                )}
-                <div className="flex items-center gap-2 mb-2">
-                  <Package className="h-4 w-4 text-blue-500" />
-                  <span className="font-medium text-sm">{element.content}</span>
-                </div>
-                {element.productData?.price && (
-                  <div className="text-sm text-green-600 font-semibold">
-                    ${element.productData.price.toLocaleString()}
-                  </div>
-                )}
-                <div className="text-xs text-gray-500 mt-1">
-                  {element.productData?.description || 'Product from marketplace'}
-                </div>
-              </div>
-            ) : (
-              <div className={isPreviewMode ? 'pointer-events-none select-none' : ''}>{element.content}</div>
-            )}
-          
-          {editMode && !isPreviewMode && (
-            <div className="absolute -top-8 right-0 flex gap-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onElementClick(element);
-                }}
-              >
-                <Move3D className="h-3 w-3" />
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                className="h-6 w-6 p-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Handle delete
-                }}
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </div>
-          )}
-        </div>
+            element={element}
+            editMode={editMode}
+            showOutlines={showOutlines}
+            isPreviewMode={isPreviewMode}
+            onElementClick={onElementClick}
+            onElementUpdate={onElementUpdate}
+            onElementDelete={onElementDelete}
+            onElementDuplicate={onElementDuplicate}
+          />
         ))}
 
         {editMode && !isPreviewMode && (
-          <div className="fixed inset-0 bg-blue-500/10 pointer-events-none z-40">
-            <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-              Edit Mode Active
+          <div className="fixed inset-0 bg-primary/5 pointer-events-none z-40">
+            <div className="absolute top-4 left-4 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
+              Edit Mode Active - Click elements to edit
             </div>
           </div>
         )}
@@ -454,16 +407,37 @@ const ContentEditor = () => {
     });
   };
 
+  const deleteElement = (elementId: string) => {
+    setElements(prev => prev.filter(e => e.id !== elementId));
+    showToast({
+      title: "Element Deleted",
+      description: "Element removed from the page",
+    });
+  };
+
+  const duplicateElement = (element: EditableElement) => {
+    const duplicated: EditableElement = {
+      ...element,
+      id: `custom-${Date.now()}`,
+      position: { x: element.position.x + 20, y: element.position.y + 20 }
+    };
+    setElements(prev => [...prev, duplicated]);
+    showToast({
+      title: "Element Duplicated",
+      description: "Element copied successfully",
+    });
+  };
+
   const addCustomElement = (type: EditableElement['type'], content: string) => {
     const newElement: EditableElement = {
       id: `custom-${Date.now()}`,
       type,
       content,
-      position: { x: 100, y: 100 },
+      position: { x: 100 + Math.random() * 100, y: 200 + Math.random() * 100 },
       size: type === 'image' ? { width: 200, height: 150 } : { width: 300, height: 100 },
-      styles: type === 'button' ? 'bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700' : 
-              type === 'heading' ? 'text-2xl font-bold text-gray-800' :
-              'bg-white border border-gray-300 p-4 rounded shadow',
+      styles: type === 'button' ? 'bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90' : 
+              type === 'heading' ? 'text-2xl font-bold text-foreground' :
+              'bg-card border border-border p-4 rounded shadow text-foreground',
       editable: true
     };
     
@@ -559,7 +533,7 @@ const ContentEditor = () => {
                       <SelectTrigger className="w-32">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-popover border border-border">
                         <SelectItem value="desktop">
                           <div className="flex items-center gap-2">
                             <Monitor className="h-4 w-4" />
@@ -591,7 +565,7 @@ const ContentEditor = () => {
                       <SelectTrigger className="w-40">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-popover border border-border max-h-64 overflow-y-auto">
                         {screens.map(screen => (
                           <SelectItem key={screen.value} value={screen.value}>
                             {screen.label}
@@ -633,97 +607,178 @@ const ContentEditor = () => {
               {/* Content Tools */}
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-sm">Tools:</h3>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => addCustomElement('text', 'New Text')}
-                >
-                  <Type className="h-4 w-4 mr-1" />
-                  Text
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => addCustomElement('heading', 'New Heading')}
-                >
-                  <Type className="h-4 w-4 mr-1" />
-                  Heading
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Image className="h-4 w-4 mr-1" />
-                  Image
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => addCustomElement('button', 'Click Me')}
-                >
-                  <MousePointer className="h-4 w-4 mr-1" />
-                  Button
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => addCustomElement('text', 'New Text Block')}
+                    >
+                      <Type className="h-4 w-4 mr-1" />
+                      Text
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Add text element (double-click to edit)</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => addCustomElement('heading', 'New Heading')}
+                    >
+                      <Type className="h-4 w-4 mr-1" />
+                      Heading
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Add heading element</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Image className="h-4 w-4 mr-1" />
+                      Image
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Upload and add image</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => addCustomElement('button', 'Click Me')}
+                    >
+                      <MousePointer className="h-4 w-4 mr-1" />
+                      Button
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Add interactive button</TooltipContent>
+                </Tooltip>
               </div>
 
               {/* Product Library */}
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-sm">Products:</h3>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(cat => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        {cat.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover border border-border">
+                        {categories.map(cat => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TooltipTrigger>
+                  <TooltipContent>Filter products by category</TooltipContent>
+                </Tooltip>
               </div>
 
                 {/* Settings & Tools */}
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-sm">Tools:</h3>
-                  <Button
-                    size="sm"
-                    variant={showOutlines ? "default" : "outline"}
-                    onClick={() => setShowOutlines(!showOutlines)}
-                  >
-                    <Layout className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={isLivePreview ? "default" : "outline"}
-                    onClick={() => setIsLivePreview(!isLivePreview)}
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={isPreviewMode ? "default" : "outline"}
-                    onClick={() => setIsPreviewMode(!isPreviewMode)}
-                  >
-                    {isPreviewMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
+                <h3 className="font-semibold text-sm">View:</h3>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant={showOutlines ? "default" : "outline"}
+                      onClick={() => setShowOutlines(!showOutlines)}
+                    >
+                      <Layout className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Toggle element outlines</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant={isLivePreview ? "default" : "outline"}
+                      onClick={() => setIsLivePreview(!isLivePreview)}
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Toggle live preview updates</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant={isPreviewMode ? "default" : "outline"}
+                      onClick={() => setIsPreviewMode(!isPreviewMode)}
+                    >
+                      {isPreviewMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{isPreviewMode ? 'Exit preview mode' : 'Enter preview mode'}</TooltipContent>
+                </Tooltip>
                 </div>
 
               {/* Actions */}
               <div className="flex items-center gap-2">
-                <Button size="sm" onClick={saveAsDraft}>
-                  <Save className="h-4 w-4 mr-1" />
-                  Save
-                </Button>
-                <Button size="sm" variant="outline">
-                  <Copy className="h-4 w-4 mr-1" />
-                  Copy
-                </Button>
-                <Button size="sm" variant="outline">
-                  <Database className="h-4 w-4 mr-1" />
-                  Backup
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="sm" onClick={saveAsDraft}>
+                      <Save className="h-4 w-4 mr-1" />
+                      Save
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Save current changes as draft</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        navigator.clipboard.writeText(JSON.stringify(elements));
+                        showToast({ title: "Copied", description: "Elements copied to clipboard" });
+                      }}
+                    >
+                      <Copy className="h-4 w-4 mr-1" />
+                      Copy
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Copy all elements to clipboard</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        const backup = {
+                          elements,
+                          timestamp: new Date().toISOString(),
+                          screen: selectedScreen
+                        };
+                        localStorage.setItem(`contentEditor_backup_${Date.now()}`, JSON.stringify(backup));
+                        showToast({ title: "Backup Created", description: "Page state backed up locally" });
+                      }}
+                    >
+                      <Database className="h-4 w-4 mr-1" />
+                      Backup
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Create local backup</TooltipContent>
+                </Tooltip>
               </div>
             </div>
             
@@ -752,6 +807,9 @@ const ContentEditor = () => {
             <SitePreview
               elements={elements}
               onElementClick={handleElementClick}
+              onElementUpdate={updateElement}
+              onElementDelete={deleteElement}
+              onElementDuplicate={duplicateElement}
               editMode={editMode}
               showOutlines={showOutlines}
               selectedDevice={selectedDevice}
@@ -851,7 +909,7 @@ const ContentEditor = () => {
                 
                 <div>
                   <label className="text-sm font-medium">Text Size</label>
-                  <Select 
+                    <Select 
                     value={selectedElement.styles?.includes('text-') ? 
                       selectedElement.styles.match(/text-(xs|sm|base|lg|xl|2xl|3xl|4xl)/)?.[0] || 'text-base' : 'text-base'
                     }
@@ -864,7 +922,7 @@ const ContentEditor = () => {
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-popover border border-border">
                       <SelectItem value="text-xs">Extra Small</SelectItem>
                       <SelectItem value="text-sm">Small</SelectItem>
                       <SelectItem value="text-base">Base</SelectItem>
