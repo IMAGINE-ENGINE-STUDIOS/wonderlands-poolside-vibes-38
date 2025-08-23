@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Search, Plus, Package, ArrowUpDown, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import PoolProductCard from './PoolProductCard';
-import EditableProductPreview from './EditableProductPreview';
+import ProductCardLivePreviewer from './ProductCardLivePreviewer';
 
 interface Product {
   id: string;
@@ -320,7 +320,7 @@ export const StandardizedProductManager = () => {
                 className="shadow-lg"
               >
                 <Eye className="h-4 w-4 mr-1" />
-                Edit
+                Live Preview
               </Button>
             </div>
           </div>
@@ -340,17 +340,16 @@ export const StandardizedProductManager = () => {
         </div>
       )}
       
-      {/* Product Preview Modal */}
-      {showPreview && selectedProduct && (
-        <EditableProductPreview
-          product={selectedProduct}
-          onUpdate={handlePreviewUpdate}
-          onClose={() => {
-            setShowPreview(false);
-            setSelectedProduct(null);
-          }}
-        />
-      )}
+      {/* Product Live Previewer Modal */}
+      <ProductCardLivePreviewer
+        product={selectedProduct}
+        isOpen={showPreview}
+        onClose={() => {
+          setShowPreview(false);
+          setSelectedProduct(null);
+        }}
+        onSave={handlePreviewUpdate}
+      />
     </div>
   );
 };
