@@ -5,9 +5,9 @@ export interface PaverType {
   name: string;
   description: string;
   basePrice: number;
-  colors: PaverColor[];
   image: string;
   category: 'paver' | 'coping';
+  colors?: PaverColor[]; // Only for coping types
 }
 
 export interface PaverColor {
@@ -25,12 +25,7 @@ export const paverTypes: PaverType[] = [
     description: 'Premium Appian Collection Adobe pavers with authentic earthen tones',
     basePrice: 28,
     category: 'paver',
-    image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
-    colors: [
-      { name: 'Adobe Clay', hex: '#B8956B', priceModifier: 1.0 },
-      { name: 'Desert Sand', hex: '#D2B48C', priceModifier: 1.05 },
-      { name: 'Terracotta', hex: '#C65D07', priceModifier: 1.1 }
-    ]
+    image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png'
   },
   {
     id: 'appian-amaretto',
@@ -38,12 +33,7 @@ export const paverTypes: PaverType[] = [
     description: 'Rich Amaretto tones from the Appian Collection',
     basePrice: 30,
     category: 'paver',
-    image: '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png',
-    colors: [
-      { name: 'Amaretto', hex: '#C4A484', priceModifier: 1.0 },
-      { name: 'Warm Beige', hex: '#D4B896', priceModifier: 1.05 },
-      { name: 'Golden Brown', hex: '#B8956B', priceModifier: 1.1 }
-    ]
+    image: '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png'
   },
   {
     id: 'appian-harvest-blend',
@@ -51,12 +41,7 @@ export const paverTypes: PaverType[] = [
     description: 'Multi-toned Harvest Blend from the Appian Collection',
     basePrice: 32,
     category: 'paver',
-    image: '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png',
-    colors: [
-      { name: 'Harvest Mix', hex: '#B8956B', priceModifier: 1.0 },
-      { name: 'Autumn Blend', hex: '#C4A484', priceModifier: 1.05 },
-      { name: 'Golden Harvest', hex: '#D2B48C', priceModifier: 1.1 }
-    ]
+    image: '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png'
   },
   {
     id: 'appian-knightsbridge',
@@ -64,12 +49,7 @@ export const paverTypes: PaverType[] = [
     description: 'Elegant Knightsbridge style from the Appian Collection',
     basePrice: 35,
     category: 'paver',
-    image: '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png',
-    colors: [
-      { name: 'Knightsbridge Gray', hex: '#8B7765', priceModifier: 1.0 },
-      { name: 'English Stone', hex: '#9C8A7A', priceModifier: 1.05 },
-      { name: 'London Fog', hex: '#A69B8E', priceModifier: 1.1 }
-    ]
+    image: '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png'
   },
   {
     id: 'appian-napoli',
@@ -77,12 +57,7 @@ export const paverTypes: PaverType[] = [
     description: 'Mediterranean Napoli style from the Appian Collection',
     basePrice: 33,
     category: 'paver',
-    image: '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.png',
-    colors: [
-      { name: 'Napoli Stone', hex: '#A69B8E', priceModifier: 1.0 },
-      { name: 'Mediterranean', hex: '#B8A897', priceModifier: 1.05 },
-      { name: 'Tuscan Blend', hex: '#C4B5A6', priceModifier: 1.1 }
-    ]
+    image: '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.png'
   },
   {
     id: 'appian-rio',
@@ -90,12 +65,7 @@ export const paverTypes: PaverType[] = [
     description: 'Warm Rio tones from the Appian Collection',
     basePrice: 29,
     category: 'paver',
-    image: '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.png',
-    colors: [
-      { name: 'Rio Sand', hex: '#D2B48C', priceModifier: 1.0 },
-      { name: 'Copacabana', hex: '#DEB887', priceModifier: 1.05 },
-      { name: 'Brazilian Tan', hex: '#CD853F', priceModifier: 1.1 }
-    ]
+    image: '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.png'
   },
   {
     id: 'appian-slate',
@@ -103,12 +73,7 @@ export const paverTypes: PaverType[] = [
     description: 'Modern Slate finish from the Appian Collection',
     basePrice: 34,
     category: 'paver',
-    image: '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.png',
-    colors: [
-      { name: 'Slate Gray', hex: '#708090', priceModifier: 1.0 },
-      { name: 'Charcoal Slate', hex: '#36454F', priceModifier: 1.05 },
-      { name: 'Storm Gray', hex: '#696969', priceModifier: 1.1 }
-    ]
+    image: '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.png'
   },
   {
     id: 'appian-titanium',
@@ -116,12 +81,7 @@ export const paverTypes: PaverType[] = [
     description: 'Contemporary Titanium finish from the Appian Collection',
     basePrice: 36,
     category: 'paver',
-    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
-    colors: [
-      { name: 'Titanium', hex: '#5F6A6B', priceModifier: 1.0 },
-      { name: 'Platinum', hex: '#71797E', priceModifier: 1.05 },
-      { name: 'Steel Gray', hex: '#6C7B7F', priceModifier: 1.1 }
-    ]
+    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
   },
   {
     id: 'appian-charco',
@@ -129,68 +89,7 @@ export const paverTypes: PaverType[] = [
     description: 'Deep Charco tones from the Appian Collection',
     basePrice: 31,
     category: 'paver',
-    image: '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.png',
-    colors: [
-      { name: 'Charco', hex: '#36454F', priceModifier: 1.0 },
-      { name: 'Dark Slate', hex: '#2F4F4F', priceModifier: 1.05 },
-      { name: 'Midnight Gray', hex: '#2C3539', priceModifier: 1.1 }
-    ]
-  },
-  {
-    id: 'concrete',
-    name: 'Concrete Pavers',
-    description: 'Durable and versatile concrete pavers for pool decking',
-    basePrice: 15,
-    category: 'paver',
-    image: '/lovable-uploads/a1b42616-0c25-4010-96e3-3fbeba18aae8.png',
-    colors: [
-      { name: 'Light Gray', hex: '#D3D3D3', priceModifier: 1.0 },
-      { name: 'Charcoal', hex: '#36454F', priceModifier: 1.1 },
-      { name: 'Sandstone', hex: '#F4A460', priceModifier: 1.05 },
-      { name: 'Terracotta', hex: '#E2725B', priceModifier: 1.15 }
-    ]
-  },
-  {
-    id: 'travertine',
-    name: 'Travertine Pavers',
-    description: 'Premium natural travertine stone pavers',
-    basePrice: 25,
-    category: 'paver',
-    image: '/lovable-uploads/b1abd5c3-af2e-46fa-82be-5db27d20a388.png',
-    colors: [
-      { name: 'Ivory', hex: '#FDF5E6', priceModifier: 1.0 },
-      { name: 'Noce', hex: '#D2B48C', priceModifier: 1.1 },
-      { name: 'Gold', hex: '#DAA520', priceModifier: 1.2 },
-      { name: 'Silver', hex: '#C0C0C0', priceModifier: 1.15 }
-    ]
-  },
-  {
-    id: 'natural-stone',
-    name: 'Natural Stone Pavers',
-    description: 'High-end natural stone pavers for luxury pools',
-    basePrice: 35,
-    category: 'paver',
-    image: '/lovable-uploads/c1225a37-626d-49a2-9ec4-eb0da0f10060.png',
-    colors: [
-      { name: 'Bluestone', hex: '#4682B4', priceModifier: 1.0 },
-      { name: 'Limestone', hex: '#E5E4E2', priceModifier: 1.05 },
-      { name: 'Sandstone', hex: '#F4A460', priceModifier: 1.1 },
-      { name: 'Granite', hex: '#2F4F4F', priceModifier: 1.3 }
-    ]
-  },
-  {
-    id: 'brick',
-    name: 'Brick Pavers',
-    description: 'Classic clay brick pavers for traditional pool designs',
-    basePrice: 20,
-    category: 'paver',
-    image: '/lovable-uploads/d1c952c1-8786-444d-b405-903533bc20d1.png',
-    colors: [
-      { name: 'Red Clay', hex: '#B22222', priceModifier: 1.0 },
-      { name: 'Brown', hex: '#8B4513', priceModifier: 1.05 },
-      { name: 'Antique', hex: '#CD853F', priceModifier: 1.1 },
-      { name: 'Charcoal', hex: '#36454F', priceModifier: 1.15 }
-    ]
+    image: '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.png'
   },
   
   // Catalina Grana Collection
@@ -200,12 +99,7 @@ export const paverTypes: PaverType[] = [
     description: 'Warm Amaretto tones from the Catalina Grana Collection',
     basePrice: 32,
     category: 'paver',
-    image: '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png',
-    colors: [
-      { name: 'Amaretto', hex: '#C4A484', priceModifier: 1.0 },
-      { name: 'Caramel', hex: '#D2B48C', priceModifier: 1.05 },
-      { name: 'Hazelnut', hex: '#B8956B', priceModifier: 1.1 }
-    ]
+    image: '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png'
   },
   {
     id: 'catalina-napoli',
@@ -213,12 +107,7 @@ export const paverTypes: PaverType[] = [
     description: 'Mediterranean Napoli style from the Catalina Grana Collection',
     basePrice: 34,
     category: 'paver',
-    image: '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.png',
-    colors: [
-      { name: 'Napoli Stone', hex: '#A69B8E', priceModifier: 1.0 },
-      { name: 'Tuscan Clay', hex: '#C4A484', priceModifier: 1.05 },
-      { name: 'Roman Blend', hex: '#B8A897', priceModifier: 1.1 }
-    ]
+    image: '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.png'
   },
   {
     id: 'catalina-rio',
@@ -226,12 +115,7 @@ export const paverTypes: PaverType[] = [
     description: 'Warm Rio tones from the Catalina Grana Collection',
     basePrice: 31,
     category: 'paver',
-    image: '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.png',
-    colors: [
-      { name: 'Rio Sand', hex: '#D2B48C', priceModifier: 1.0 },
-      { name: 'Beach Tan', hex: '#DEB887', priceModifier: 1.05 },
-      { name: 'Golden Sand', hex: '#CD853F', priceModifier: 1.1 }
-    ]
+    image: '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.png'
   },
   {
     id: 'catalina-scandina-gray',
@@ -239,12 +123,7 @@ export const paverTypes: PaverType[] = [
     description: 'Modern Scandina Gray from the Catalina Grana Collection',
     basePrice: 35,
     category: 'paver',
-    image: '/lovable-uploads/638972ac-6a43-41e7-ae3c-bce58ab9417b.png',
-    colors: [
-      { name: 'Scandina Gray', hex: '#8B7D6B', priceModifier: 1.0 },
-      { name: 'Nordic Stone', hex: '#9C8A7A', priceModifier: 1.05 },
-      { name: 'Arctic Blend', hex: '#A69B8E', priceModifier: 1.1 }
-    ]
+    image: '/lovable-uploads/638972ac-6a43-41e7-ae3c-bce58ab9417b.png'
   },
   {
     id: 'catalina-slate',
@@ -252,12 +131,7 @@ export const paverTypes: PaverType[] = [
     description: 'Contemporary Slate finish from the Catalina Grana Collection',
     basePrice: 36,
     category: 'paver',
-    image: '/lovable-uploads/d85c2bf0-0a66-4aa0-9f64-5e76b511b428.png',
-    colors: [
-      { name: 'Slate Gray', hex: '#708090', priceModifier: 1.0 },
-      { name: 'Storm Slate', hex: '#696969', priceModifier: 1.05 },
-      { name: 'Charcoal Slate', hex: '#36454F', priceModifier: 1.1 }
-    ]
+    image: '/lovable-uploads/d85c2bf0-0a66-4aa0-9f64-5e76b511b428.png'
   },
   {
     id: 'catalina-titanium',
@@ -265,12 +139,7 @@ export const paverTypes: PaverType[] = [
     description: 'Premium Titanium finish from the Catalina Grana Collection',
     basePrice: 38,
     category: 'paver',
-    image: '/lovable-uploads/6aefa246-2c01-43a1-8a58-e195ec3355dc.png',
-    colors: [
-      { name: 'Titanium', hex: '#5F6A6B', priceModifier: 1.0 },
-      { name: 'Platinum Gray', hex: '#71797E', priceModifier: 1.05 },
-      { name: 'Steel Blue', hex: '#6C7B7F', priceModifier: 1.1 }
-    ]
+    image: '/lovable-uploads/6aefa246-2c01-43a1-8a58-e195ec3355dc.png'
   }
 ];
 
@@ -333,7 +202,12 @@ export const copingTypes: PaverType[] = [
   }
 ];
 
-// Helper function to calculate price
-export const calculatePaverPrice = (type: PaverType, color: PaverColor, surfaceArea: number): number => {
+// Helper function to calculate price for pavers (no colors)
+export const calculatePaverPrice = (type: PaverType, surfaceArea: number): number => {
+  return type.basePrice * surfaceArea;
+};
+
+// Helper function to calculate price for coping (with colors)
+export const calculateCopingPrice = (type: PaverType, color: PaverColor, surfaceArea: number): number => {
   return type.basePrice * color.priceModifier * surfaceArea;
 };

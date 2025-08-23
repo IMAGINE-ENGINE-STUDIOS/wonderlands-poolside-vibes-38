@@ -277,22 +277,24 @@ const ProductOptionsManager = ({ productType, productName, onOptionsChange }: Pr
             </Select>
           </div>
 
-          {/* Color Selection */}
-          <div>
-            <h4 className="font-semibold mb-2">Color</h4>
-            <div className="grid grid-cols-3 gap-2">
-              {paverColors.map((color) => (
-                <Button
-                  key={color}
-                  variant={selectedOptions.color === color ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => updateOptions('color', color)}
-                >
-                  {color}
-                </Button>
-              ))}
+          {/* Color Selection - Only for Coping */}
+          {productType === 'coping' && (
+            <div>
+              <h4 className="font-semibold mb-2">Color</h4>
+              <div className="grid grid-cols-3 gap-2">
+                {paverColors.map((color) => (
+                  <Button
+                    key={color}
+                    variant={selectedOptions.color === color ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => updateOptions('color', color)}
+                  >
+                    {color}
+                  </Button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Surface Area Calculator */}
           <div>

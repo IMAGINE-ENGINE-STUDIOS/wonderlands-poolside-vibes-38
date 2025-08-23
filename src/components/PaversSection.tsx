@@ -15,7 +15,6 @@ import SurveyQuoteTool from "./SurveyQuoteTool";
 const PaversSection = () => {
   const [showOptionsModal, setShowOptionsModal] = useState(false);
   const [selectedPaverType, setSelectedPaverType] = useState<any>(null);
-  const [selectedColor, setSelectedColor] = useState<any>(null);
   const [surfaceArea, setSurfaceArea] = useState('');
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState<'appian' | 'catalina'>('appian');
@@ -32,20 +31,19 @@ const PaversSection = () => {
 
   const handleOpenOptions = () => {
     setSelectedPaverType(appianPavers[0]); // Default to first Appian paver
-    setSelectedColor(appianPavers[0]?.colors[0]); // Default to first color
     setShowOptionsModal(true);
   };
 
   const calculateTotalPrice = () => {
-    if (!selectedPaverType || !selectedColor || !surfaceArea) return 0;
+    if (!selectedPaverType || !surfaceArea) return 0;
     const area = parseFloat(surfaceArea);
     if (isNaN(area)) return 0;
-    return selectedPaverType.basePrice * selectedColor.priceModifier * area;
+    return selectedPaverType.basePrice * area;
   };
 
   const handleAddToCart = () => {
-    if (!selectedPaverType || !selectedColor || !surfaceArea) {
-      toast.error('Please select all options before adding to cart');
+    if (!selectedPaverType || !surfaceArea) {
+      toast.error('Please select paver style and surface area');
       return;
     }
 
@@ -54,13 +52,12 @@ const PaversSection = () => {
     
     addToCart({
       id: `${selectedCollection}_pavers_${Date.now()}`,
-      name: `${collectionName} - ${selectedPaverType.name} (${selectedColor.name})`,
+      name: `${collectionName} - ${selectedPaverType.name}`,
       price: totalPrice,
       category: 'paver',
       image: selectedPaverType.image,
       extras: [
-        { name: `Surface Area: ${surfaceArea} sq ft`, price: 0 },
-        { name: `Color: ${selectedColor.name}`, price: 0 }
+        { name: `Surface Area: ${surfaceArea} sq ft`, price: 0 }
       ]
     });
 
@@ -211,7 +208,6 @@ const PaversSection = () => {
                     onClick={() => {
                       setSelectedCollection('appian');
                       setSelectedPaverType(appianPavers[0]);
-                      setSelectedColor(appianPavers[0]?.colors[0]);
                       setShowOptionsModal(true);
                     }}
                     variant="gradient"
@@ -234,7 +230,6 @@ const PaversSection = () => {
                       onClick={() => {
                         setSelectedCollection('appian');
                         setSelectedPaverType(appianPavers[0]);
-                        setSelectedColor(appianPavers[0]?.colors[0]);
                         setShowOptionsModal(true);
                       }}
                       variant="outline"
@@ -371,7 +366,6 @@ const PaversSection = () => {
                     onClick={() => {
                       setSelectedCollection('catalina');
                       setSelectedPaverType(catalinaPavers[0]);
-                      setSelectedColor(catalinaPavers[0]?.colors[0]);
                       setShowOptionsModal(true);
                     }}
                     variant="gradient"
@@ -394,7 +388,6 @@ const PaversSection = () => {
                       onClick={() => {
                         setSelectedCollection('catalina');
                         setSelectedPaverType(catalinaPavers[0]);
-                        setSelectedColor(catalinaPavers[0]?.colors[0]);
                         setShowOptionsModal(true);
                       }}
                       variant="outline"
@@ -434,7 +427,6 @@ const PaversSection = () => {
                     }`}
                     onClick={() => {
                       setSelectedPaverType(paver);
-                      setSelectedColor(paver.colors[0]);
                     }}
                   >
                     <div className="w-full h-20 rounded-md mb-2 overflow-hidden">
@@ -453,38 +445,9 @@ const PaversSection = () => {
               </div>
             </div>
 
-            {/* Color Selection */}
-            {selectedPaverType && (
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold">2. Select Color Option</h3>
-                <div className="grid grid-cols-3 gap-3">
-                  {selectedPaverType.colors.map((color: any) => (
-                    <div
-                      key={color.name}
-                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                        selectedColor?.name === color.name ? 'border-primary bg-primary/10' : 'border-border'
-                      }`}
-                      onClick={() => setSelectedColor(color)}
-                    >
-                      <div 
-                        className="w-full h-12 rounded-md mb-2"
-                        style={{ backgroundColor: color.hex }}
-                      />
-                      <p className="text-sm font-medium text-center">{color.name}</p>
-                      <p className="text-xs text-muted-foreground text-center">
-                        {color.priceModifier !== 1.0 && (
-                          <>+{((color.priceModifier - 1) * 100).toFixed(0)}%</>
-                        )}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Surface Area Input */}
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold">3. Enter Surface Area</h3>
+              <h3 className="text-lg font-semibold">2. Enter Surface Area</h3>
               <div className="space-y-2">
                 <Input
                   type="number"
@@ -514,15 +477,11 @@ const PaversSection = () => {
                 </div>
               </div>
               
-              {selectedPaverType && selectedColor && surfaceArea && (
+              {selectedPaverType && surfaceArea && (
                 <div className="space-y-1 text-sm text-muted-foreground">
                   <div className="flex justify-between">
                     <span>Style:</span>
                     <span>{selectedPaverType.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Color:</span>
-                    <span>{selectedColor.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Surface Area:</span>
@@ -530,7 +489,7 @@ const PaversSection = () => {
                   </div>
                   <div className="flex justify-between">
                     <span>Price per sq ft:</span>
-                    <span>${(selectedPaverType.basePrice * selectedColor.priceModifier).toFixed(2)}</span>
+                    <span>${selectedPaverType.basePrice.toFixed(2)}</span>
                   </div>
                 </div>
               )}
@@ -548,7 +507,7 @@ const PaversSection = () => {
               <Button 
                 className="flex-1"
                 onClick={handleAddToCart}
-                disabled={!selectedPaverType || !selectedColor || !surfaceArea}
+                disabled={!selectedPaverType || !surfaceArea}
               >
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Add to Cart - ${calculateTotalPrice().toLocaleString()}

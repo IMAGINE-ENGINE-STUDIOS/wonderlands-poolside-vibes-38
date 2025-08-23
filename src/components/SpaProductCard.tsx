@@ -76,7 +76,7 @@ const paverOptions = [
   { name: 'No Pavers', color: '#808080', price: 0, image: azureBlueFinish, description: 'No additional pavers', collection: 'none' },
   ...paverTypes.map(paver => ({
     name: paver.name,
-    color: paver.colors[0]?.hex || '#D3D3D3',
+    color: '#D3D3D3', // Default color for all pavers
     price: 0, // Base price is 0, actual cost calculated by surface area × $15/sq ft
     image: paver.image || azureBlueFinish,
     description: paver.description,

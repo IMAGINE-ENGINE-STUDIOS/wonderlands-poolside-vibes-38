@@ -56,6 +56,7 @@ const getAvailableOptionsLabel = (category: ProductCategory) => {
     case 'cover':
       return 'Color, motor & encasement options';
     case 'paver':
+      return 'Style & surface area options';
     case 'coping':
       return 'Shape, size & color options';
     case 'tile':
