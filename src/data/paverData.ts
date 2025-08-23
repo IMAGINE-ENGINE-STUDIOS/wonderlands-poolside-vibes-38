@@ -140,6 +140,32 @@ export const paverTypes: PaverType[] = [
     basePrice: 38,
     category: 'paver',
     image: '/lovable-uploads/6aefa246-2c01-43a1-8a58-e195ec3355dc.png'
+  },
+  
+  // Catalina Collection
+  {
+    id: 'catalina-napoli-standard',
+    name: 'Catalina Napoli',
+    description: 'Classic Napoli style from the Catalina Collection',
+    basePrice: 30,
+    category: 'paver',
+    image: '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.png'
+  },
+  {
+    id: 'catalina-slate-standard',
+    name: 'Catalina Slate',
+    description: 'Modern Slate finish from the Catalina Collection',
+    basePrice: 32,
+    category: 'paver',
+    image: '/lovable-uploads/3f98fbbb-b09a-4dbc-82f5-5d811564b9f4.png'
+  },
+  {
+    id: 'catalina-titanium-standard',
+    name: 'Catalina Titanium',
+    description: 'Contemporary Titanium finish from the Catalina Collection',
+    basePrice: 34,
+    category: 'paver',
+    image: '/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.png'
   }
 ];
 
