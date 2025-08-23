@@ -135,6 +135,7 @@ export const ProductCardLivePreviewer = ({ product, isOpen, onClose, onSave }: P
       const updateData = {
         ...editedProduct,
         image_url: imageUrl,
+        warranty_years: String(editedProduct.warranty_years || ''),
         updated_at: new Date().toISOString()
       };
 
