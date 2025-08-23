@@ -77,6 +77,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         
+        // Handle email verification
+        if (session?.user && !session.user.email_confirmed_at) {
+          console.log("User email not verified yet");
+        }
+        
         if (session?.user) {
           // Defer profile fetch to avoid potential deadlock
           setTimeout(() => {
@@ -100,6 +105,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setTimeout(() => {
           fetchProfile(session.user.id);
         }, 0);
+      } else {
+        setProfile(null);
       }
       
       setLoading(false);

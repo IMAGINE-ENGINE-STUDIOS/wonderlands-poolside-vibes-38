@@ -7,13 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import PasswordResetModal from '@/components/PasswordResetModal';
 
 const AuthPage = () => {
   const { signIn, signUp, user, loading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -177,6 +179,16 @@ const AuthPage = () => {
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? 'Signing In...' : 'Sign In'}
                 </Button>
+                <div className="text-center">
+                  <Button 
+                    type="button" 
+                    variant="link" 
+                    className="text-sm text-primary hover:underline"
+                    onClick={() => setShowPasswordReset(true)}
+                  >
+                    Forgot your password?
+                  </Button>
+                </div>
               </form>
             </TabsContent>
             
@@ -276,6 +288,12 @@ const AuthPage = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Password Reset Modal */}
+      <PasswordResetModal 
+        isOpen={showPasswordReset} 
+        onClose={() => setShowPasswordReset(false)} 
+      />
     </div>
   );
 };
