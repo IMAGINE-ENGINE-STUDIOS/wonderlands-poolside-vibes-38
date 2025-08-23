@@ -30,10 +30,12 @@ interface FileAttachment {
 
 interface CustomField {
   id: string;
-  type: 'text' | 'select' | 'checkbox' | 'textarea';
-  title: string;
-  options?: string[];
+  type: 'text' | 'number' | 'email' | 'date' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'file';
+  label: string;
+  placeholder?: string;
   required: boolean;
+  options?: string[];
+  description?: string;
 }
 
 interface EnhancedJobPostingFormProps {

@@ -28,10 +28,12 @@ interface LivePreviewProps {
   }>;
   customFields: Array<{
     id: string;
-    type: 'text' | 'select' | 'checkbox' | 'textarea';
-    title: string;
-    options?: string[];
+    type: 'text' | 'number' | 'email' | 'date' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'file';
+    label: string;
+    placeholder?: string;
     required: boolean;
+    options?: string[];
+    description?: string;
   }>;
 }
 
@@ -180,7 +182,7 @@ const LivePreview = ({ formData, requirements, attachments, customFields }: Live
                 {customFields.map((field) => (
                   <div key={field.id} className="border border-border/30 rounded-lg p-3 bg-muted/30">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium">{field.title || 'Custom Field'}</span>
+                      <span className="text-sm font-medium">{field.label || 'Custom Field'}</span>
                       {field.required && <span className="text-red-500 text-xs">*</span>}
                     </div>
                     <p className="text-xs text-muted-foreground">
