@@ -9,7 +9,11 @@ import { useShoppingCart } from "./ShoppingCart";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { poolLiners, poolTiles } from "@/data/poolData";
 import { poolFinishes as poolFinishesData } from "@/components/PoolFinishesSection";
+import { paverTypes } from "@/data/paverData";
+import { Input } from "@/components/ui/input";
 import StripeCheckoutButton from "./StripeCheckoutButton";
+
+import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 
 interface Spa {
   model: string;
@@ -37,6 +41,8 @@ interface SpaExtras {
   heater: boolean;
   jets: boolean;
   bubblers: boolean;
+  paverOption: string;
+  paverSurfaceArea: string;
 }
 
 const getCategoryColor = (category: string) => {
@@ -65,6 +71,19 @@ const finishOptions = poolFinishesData.map(finish => ({
   collection: finish.collection,
 }));
 
+// Convert paver data to options format with consistent $15/sq ft pricing
+const paverOptions = [
+  { name: 'No Pavers', color: '#808080', price: 0, image: azureBlueFinish, description: 'No additional pavers', collection: 'none' },
+  ...paverTypes.map(paver => ({
+    name: paver.name,
+    color: paver.colors[0]?.hex || '#D3D3D3',
+    price: 0, // Base price is 0, actual cost calculated by surface area × $15/sq ft
+    image: paver.image || azureBlueFinish,
+    description: paver.description,
+    collection: paver.category
+  }))
+];
+
 const SpaProductCard = ({ spa, onViewDetails, onRequestQuote }: SpaProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
 const [extras, setExtras] = useState<SpaExtras>({
@@ -74,6 +93,8 @@ const [extras, setExtras] = useState<SpaExtras>({
   heater: false,
   jets: false,
   bubblers: false,
+  paverOption: 'No Pavers',
+  paverSurfaceArea: '',
 });
   
   const { addToCart } = useShoppingCart();
@@ -116,11 +137,16 @@ const calculateTotalPrice = () => {
     const l = poolLiners.find(l => l.name === extras.liner);
     if (l?.price) total += l.price / 2;
   }
+  // Add paver surface area cost at $15/sq ft
+  if (extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea))) {
+    total += parseFloat(extras.paverSurfaceArea) * 15;
+  }
   return total;
 };
 
 const selectedFinishPrice = finishOptions.find(f => f.name === extras.finish)?.price || 0;
-const hasExtras = extras.heater || extras.jets || extras.bubblers || !!extras.tiles || !!extras.liner || selectedFinishPrice > 0;
+const paverCost = extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea)) ? parseFloat(extras.paverSurfaceArea) * 15 : 0;
+const hasExtras = extras.heater || extras.jets || extras.bubblers || !!extras.tiles || !!extras.liner || selectedFinishPrice > 0 || paverCost > 0;
 
   const handleAddToCart = () => {
     const cartExtras = [];
@@ -135,6 +161,7 @@ if (extras.tiles) cartExtras.push({ name: `Tiles: ${extras.tiles}`, price: tileP
 if (extras.heater) cartExtras.push({ name: 'Spa Heater', price: getExtraPrice('heater') });
 if (extras.jets) cartExtras.push({ name: 'Premium Spa Jets', price: getExtraPrice('jets') });
 if (extras.bubblers) cartExtras.push({ name: 'Spa Bubblers', price: getExtraPrice('bubblers') });
+if (paverCost > 0) cartExtras.push({ name: `${extras.paverOption} (${extras.paverSurfaceArea} sq ft)`, price: paverCost });
 
     addToCart({
       id: `spa_${spa.model.replace(/\s+/g, '_')}_${Date.now()}`,
@@ -361,6 +388,71 @@ if (extras.bubblers) cartExtras.push({ name: 'Spa Bubblers', price: getExtraPric
                         {liner.price > 0 && (
                           <p className="text-xs text-secondary font-semibold text-center">+${(liner.price / 2).toLocaleString()}</p>
                         )}
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0" />
+                <CarouselNext className="right-0" />
+              </Carousel>
+            </div>
+
+            {/* Pavers Options */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-foreground">Pavers & Surface Area Calculator</h4>
+              <div className="mb-3">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                  Paver Surface Area (sq ft)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Enter surface area for pavers"
+                  value={extras.paverSurfaceArea}
+                  onChange={(e) => setExtra('paverSurfaceArea', e.target.value)}
+                  className="mb-2"
+                />
+                {extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea)) && (
+                  <div className="text-xs text-green-600 font-medium">
+                    Calculated Cost: ${(parseFloat(extras.paverSurfaceArea) * 15).toLocaleString()} ({extras.paverSurfaceArea} sq ft × $15/sq ft)
+                  </div>
+                )}
+              </div>
+              <Carousel className="w-full">
+                <CarouselContent className="-ml-1">
+                  {paverOptions.map((paver) => (
+                    <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                      <div 
+                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                          extras.paverOption === paver.name ? 'border-primary bg-primary/10' : 'border-border'
+                        }`}
+                        onClick={() => setExtra('paverOption', paver.name)}
+                      >
+                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                          <img 
+                            src={paver.image} 
+                            alt={paver.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.style.backgroundColor = paver.color;
+                                target.style.display = 'none';
+                              }
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 flex flex-col justify-between min-h-0">
+                          <p className="text-xs font-medium text-center line-clamp-2">{paver.name}</p>
+                          <div className="mt-1 space-y-1">
+                            {paver.collection && paver.collection !== 'none' && (
+                              <p className="text-xs text-primary text-center font-semibold capitalize">{paver.collection}</p>
+                            )}
+                            {paver.description && paver.name !== 'No Pavers' && (
+                              <p className="text-xs text-muted-foreground text-center">$15/sq ft</p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </CarouselItem>
                   ))}

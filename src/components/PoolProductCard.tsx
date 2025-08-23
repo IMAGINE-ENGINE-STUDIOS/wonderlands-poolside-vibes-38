@@ -13,6 +13,7 @@ import { useShoppingCart } from "./ShoppingCart";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { spas } from "./PoolCatalog";
 import { tanningLedges } from "@/data/poolData";
+import { paverTypes, copingTypes } from "@/data/paverData";
 import { supabase } from "@/integrations/supabase/client";
 
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
@@ -154,20 +155,30 @@ const tileOptions = [
   }))
 ];
 
-// Default paver options - will be enhanced with database data inside component
-const defaultPaverOptions = [
-  { name: 'Standard Concrete', color: '#D3D3D3', price: 0, image: azureBlueFinish, description: 'Basic concrete pavers around pool perimeter' },
-  { name: 'Natural Stone', color: '#8B7355', price: 2500, image: shaleGrayFinish, description: 'Premium natural stone pavers' },
-  { name: 'Travertine', color: '#F5DEB3', price: 3200, image: athensPearlFinish, description: 'Elegant travertine paving stones' },
-  { name: 'Brick Pavers', color: '#B22222', price: 2800, image: coastalBronzeFinish, description: 'Classic brick paver design' }
+// Convert paver data to options format with consistent $15/sq ft pricing
+const paverOptions = [
+  { name: 'No Pavers', color: '#808080', price: 0, image: azureBlueFinish, description: 'No additional pavers', collection: 'none' },
+  ...paverTypes.map(paver => ({
+    name: paver.name,
+    color: paver.colors[0]?.hex || '#D3D3D3',
+    price: 0, // Base price is 0, actual cost calculated by surface area × $15/sq ft
+    image: paver.image || azureBlueFinish,
+    description: paver.description,
+    collection: paver.category
+  }))
 ];
 
-// Coping paver options
+// Convert coping data to options format with consistent $15/sq ft pricing  
 const copingPaverOptions = [
-  { name: 'Standard Pool Coping', color: '#A9A9A9', price: 0, image: azureBlueFinish, description: 'Basic pool edge coping' },
-  { name: 'Bullnose Coping', color: '#696969', price: 1500, image: nightSkyFinish, description: 'Rounded edge bullnose coping' },
-  { name: 'Natural Stone Coping', color: '#708090', price: 2200, image: shaleGrayFinish, description: 'Premium natural stone pool edge' },
-  { name: 'Cantilever Coping', color: '#2F4F4F', price: 1800, image: sapphireBlueFinish, description: 'Modern cantilever edge design' }
+  { name: 'No Coping', color: '#808080', price: 0, image: azureBlueFinish, description: 'No additional coping', collection: 'none' },
+  ...copingTypes.map(coping => ({
+    name: coping.name,
+    color: coping.colors[0]?.hex || '#A9A9A9',
+    price: 0, // Base price is 0, actual cost calculated by surface area × $15/sq ft
+    image: coping.image || azureBlueFinish,
+    description: coping.description,
+    collection: coping.category
+  }))
 ];
 
 const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false }: PoolProductCardProps) => {
@@ -175,7 +186,6 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [currentPoolImage, setCurrentPoolImage] = useState(pool.image);
   const [isEditable, setIsEditable] = useState(isAdmin);
-  const [paverOptions, setPaverOptions] = useState(defaultPaverOptions);
   const [extras, setExtras] = useState<PoolExtras>({
     liner: false,
     heater: false,
@@ -192,8 +202,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
     tanningLedge: false,
     tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
     heaterModel: poolHeaters[0]?.name || 'Heat Pump - Eco Series',
-    paverOption: 'Standard Concrete',
-    copingPaverOption: 'Standard Pool Coping'
+    paverOption: 'No Pavers',
+    copingPaverOption: 'No Coping'
   });
   
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
@@ -202,33 +212,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
   
   const { addToCart } = useShoppingCart();
 
-  // Fetch pavers from database
-  useEffect(() => {
-    const fetchPavers = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('pavers')
-          .select('*')
-          .eq('is_active', true);
-
-        if (!error && data) {
-          const dbPavers = data.map((paver: any) => ({
-            name: paver.name,
-            color: '#8B7355',
-            price: paver.base_price * 15,
-            image: paver.image_url || azureBlueFinish,
-            description: paver.description || `Premium ${paver.name} pavers`,
-            collection: paver.collection
-          }));
-          setPaverOptions(prev => [...prev, ...dbPavers]);
-        }
-      } catch (error) {
-        console.error('Error fetching pavers:', error);
-      }
-    };
-
-    fetchPavers();
-  }, []);
+  // No need to fetch from database - using static paver data with $15/sq ft pricing
 
   const handleImageClick = () => {
     setShowDetails(!showDetails);
