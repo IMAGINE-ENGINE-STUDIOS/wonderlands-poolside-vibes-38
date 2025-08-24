@@ -113,6 +113,105 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
     }
   };
 
+  const handlePrintQuote = () => {
+    const quotationElement = document.getElementById('quotation-content');
+    if (!quotationElement) return;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Pool Quotation - Wonderlands</title>
+          <style>
+            body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+            @media print {
+              body { margin: 0; padding: 0; }
+              @page { margin: 0.5in; }
+            }
+            .bg-gradient-to-r { background: linear-gradient(to right, #fb923c, #ec4899, #14b8a6); }
+            .bg-gradient-to-br { background: linear-gradient(to bottom right, #fed7aa, #ccfbf1); }
+            .text-white { color: white; }
+            .text-orange-600 { color: #ea580c; }
+            .text-teal-600 { color: #0d9488; }
+            .text-orange-100 { color: #ffedd5; }
+            .border-2 { border-width: 2px; }
+            .border-orange-400 { border-color: #fb923c; }
+            .rounded-lg { border-radius: 0.5rem; }
+            .p-6 { padding: 1.5rem; }
+            .p-4 { padding: 1rem; }
+            .p-3 { padding: 0.75rem; }
+            .mb-2 { margin-bottom: 0.5rem; }
+            .mb-3 { margin-bottom: 0.75rem; }
+            .mb-4 { margin-bottom: 1rem; }
+            .mb-6 { margin-bottom: 1.5rem; }
+            .mt-2 { margin-top: 0.5rem; }
+            .mt-6 { margin-top: 1.5rem; }
+            .gap-2 { gap: 0.5rem; }
+            .gap-3 { gap: 0.75rem; }
+            .gap-4 { gap: 1rem; }
+            .gap-6 { gap: 1.5rem; }
+            .flex { display: flex; }
+            .grid { display: grid; }
+            .items-center { align-items: center; }
+            .justify-between { justify-content: space-between; }
+            .justify-center { justify-content: center; }
+            .text-center { text-align: center; }
+            .text-right { text-align: right; }
+            .text-sm { font-size: 0.875rem; }
+            .text-xs { font-size: 0.75rem; }
+            .text-lg { font-size: 1.125rem; }
+            .text-xl { font-size: 1.25rem; }
+            .text-2xl { font-size: 1.5rem; }
+            .text-4xl { font-size: 2.25rem; }
+            .font-bold { font-weight: 700; }
+            .font-semibold { font-weight: 600; }
+            .font-medium { font-weight: 500; }
+            .space-y-1 > * + * { margin-top: 0.25rem; }
+            .space-y-2 > * + * { margin-top: 0.5rem; }
+            .space-y-4 > * + * { margin-top: 1rem; }
+            .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+            .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .w-full { width: 100%; }
+            .h-16 { height: 4rem; }
+            .h-48 { height: 12rem; }
+            .object-cover { object-fit: cover; }
+            .border { border-width: 1px; }
+            .border-orange-200 { border-color: #fed7aa; }
+            .border-teal-200 { border-color: #99f6e4; }
+            .border-t { border-top-width: 1px; }
+            .pt-2 { padding-top: 0.5rem; }
+            .overflow-hidden { overflow: hidden; }
+            .flex-shrink-0 { flex-shrink: 0; }
+            .w-2 { width: 0.5rem; }
+            .h-2 { height: 0.5rem; }
+            .h-4 { width: 1rem; height: 1rem; }
+            .mr-2 { margin-right: 0.5rem; }
+            .mt-1 { margin-top: 0.25rem; }
+            .mt-1_5 { margin-top: 0.375rem; }
+            .rounded-full { border-radius: 9999px; }
+            .items-start { align-items: flex-start; }
+            .flex-wrap { flex-wrap: wrap; }
+          </style>
+        </head>
+        <body>
+          ${quotationElement.innerHTML}
+        </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
+
   const calculateQuote = () => {
     if (!pool && !customProduct) return 0;
     
@@ -583,7 +682,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
         ) : (
           /* Professional Quotation Display */
           <div className="space-y-6">
-            <div className="bg-white dark:bg-gray-900 border-2 border-orange-400 rounded-lg overflow-hidden">
+            <div id="quotation-content" className="bg-white dark:bg-gray-900 border-2 border-orange-400 rounded-lg overflow-hidden">
               
               {/* Header with Logo */}
               <div className="bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400 p-6 text-white">
@@ -739,7 +838,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
                   <Button 
                     variant="default" 
                     className="bg-gradient-to-r from-orange-500 to-teal-500 hover:from-orange-600 hover:to-teal-600 text-white"
-                    onClick={() => window.print()}
+                    onClick={handlePrintQuote}
                   >
                     <Printer className="h-4 w-4 mr-2" />
                     Print Quote
