@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, Camera, FileText, LogIn } from "lucide-react";
+import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, Camera, FileText, LogIn, Phone, Mail, Download, Printer } from "lucide-react";
 import PoolCustomizationOptions from "./PoolCustomizationOptions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +21,7 @@ interface Pool {
   category: 'premium' | 'deluxe' | 'standard' | 'compact';
   dimensions?: string;
   depth?: string;
+  image?: string;
 }
 
 interface PoolOption {
@@ -39,6 +40,7 @@ interface SurveyQuoteToolProps {
     name: string;
     price: number;
     type: string;
+    image?: string;
   };
 }
 
@@ -579,62 +581,185 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
             </div>
           </div>
         ) : (
-          /* Quote Results */
+          /* Professional Quotation Display */
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-6 w-6 text-teal" />
-                  Custom Quote for {pool?.model || customProduct?.name}
-                </CardTitle>
-                <CardDescription>
-                  Based on your Florida property survey
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-3xl font-bold text-foreground">
-                  ${calculateQuote().toLocaleString()}
+            <div className="bg-white dark:bg-gray-900 border-2 border-orange-400 rounded-lg overflow-hidden">
+              
+              {/* Header with Logo */}
+              <div className="bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400 p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <img src="/lovable-uploads/e2ff3f3a-79d1-402e-b0c6-dcea2d4e720a.png" alt="Wonderlands Logo" className="h-16 w-16" />
+                    <div>
+                      <h1 className="text-2xl font-bold">POOL QUOTATION</h1>
+                      <p className="text-orange-100">Your Dream Pool Awaits</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm">Quote Date: {new Date().toLocaleDateString()}</p>
+                    <p className="text-sm">Valid for 30 days</p>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-muted-foreground">
-                    Complete installation including permits, excavation, and basic landscaping
-                  </p>
-                  {selectedOptions.length > 0 && (
-                    <div className="text-sm">
-                      <p className="font-medium">Selected Options:</p>
-                      <ul className="list-disc list-inside text-muted-foreground">
-                        {selectedOptions.map((option, index) => (
-                          <li key={index}>{option.name} (+${option.price.toLocaleString()})</li>
+              </div>
+
+              {/* Customer Information */}
+              <div className="p-6 bg-gradient-to-r from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="font-bold text-lg mb-3 text-orange-600">Customer Information</h3>
+                    <div className="space-y-2 text-sm">
+                      <p><span className="font-medium">Name:</span> {surveyData.name}</p>
+                      <p><span className="font-medium">Email:</span> {surveyData.email}</p>
+                      <p><span className="font-medium">Phone:</span> {surveyData.phone}</p>
+                      <p><span className="font-medium">Property Address:</span> {surveyData.address}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg mb-3 text-teal-600">Contact Information</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-orange-500" />
+                        <span>(407) 760-4873</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-teal-500" />
+                        <span>sales@wonderlandsworld.com</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Business Hours: Mon-Fri 8AM-6PM, Sat 9AM-4PM
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pool Details with Images */}
+              <div className="p-6">
+                <h3 className="font-bold text-xl mb-4 text-orange-600">Pool Specifications</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-br from-orange-100 to-teal-100 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg">
+                      <h4 className="font-semibold mb-2">Pool Model: {pool?.model || customProduct?.name}</h4>
+                      {pool?.dimensions && <p className="text-sm">Dimensions: {pool.dimensions}</p>}
+                      {pool?.depth && <p className="text-sm">Depth: {pool.depth}</p>}
+                      <div className="flex justify-between mt-2 pt-2 border-t border-orange-200 dark:border-gray-600">
+                        <span>Base Pool Price:</span>
+                        <span className="font-semibold">${(pool?.price || customProduct?.price || 0).toLocaleString()}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Pavers Calculation */}
+                    <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
+                      <h4 className="font-semibold mb-2">Pavers (3ft Perimeter)</h4>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Standard 3-foot paver perimeter around pool included
+                      </p>
+                      {pool?.dimensions && (
+                        <div className="text-xs">
+                          <p>Pool dimensions: {pool.dimensions}</p>
+                          <p>Paver area: {(() => {
+                            const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+                            const area = (dims[0] + 6) * (dims[1] + 6);
+                            return `${area} sq ft`;
+                          })()}</p>
+                        </div>
+                      )}
+                      <div className="flex justify-between mt-2 pt-2 border-t border-teal-200 dark:border-gray-600">
+                        <span>Paver Installation:</span>
+                        <span className="font-semibold">Included</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    {(pool?.image || customProduct?.image) && (
+                      <div className="mb-4">
+                        <img src={pool?.image || customProduct?.image} alt={pool?.model || customProduct?.name} className="w-full h-48 object-cover rounded-lg border border-orange-200" />
+                        <p className="text-xs text-center mt-1 text-muted-foreground">{pool?.model || customProduct?.name}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Selected Options with Images */}
+                {selectedOptions.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="font-bold text-lg mb-3 text-teal-600">Selected Features</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {selectedOptions.map((option, index) => (
+                        <div key={index} className="border border-orange-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
+                          <h5 className="font-semibold text-sm">{option.name}</h5>
+                          <p className="text-xs text-muted-foreground mb-2">{option.description}</p>
+                          <div className="flex justify-between text-sm">
+                            <span>Price:</span>
+                            <span className="font-semibold text-teal-600">+${option.price.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Property Analysis */}
+                <div className="mb-6">
+                  <h4 className="font-bold text-lg mb-3 text-orange-600">Property Analysis & Recommendations</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gradient-to-br from-orange-100 to-teal-100 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg">
+                      <h5 className="font-semibold mb-2">Property Details</h5>
+                      <div className="text-sm space-y-1">
+                        <p><span className="font-medium">Yard Size:</span> {surveyData.yardSize}</p>
+                        <p><span className="font-medium">Soil Type:</span> {surveyData.soilType}</p>
+                        <p><span className="font-medium">Access Width:</span> {surveyData.accessWidth}</p>
+                        <p><span className="font-medium">Timeline:</span> {surveyData.timeline}</p>
+                      </div>
+                    </div>
+                    <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
+                      <h5 className="font-semibold mb-2">Our Recommendations</h5>
+                      <ul className="text-sm space-y-1">
+                        {getRecommendations().map((rec, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <div className="w-2 h-2 bg-gradient-to-r from-orange-400 to-teal-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                            <span>{rec}</span>
+                          </li>
                         ))}
                       </ul>
                     </div>
-                  )}
-                </div>
-                
-                <div className="space-y-2">
-                  <h4 className="font-semibold">Recommendations for your property:</h4>
-                  {getRecommendations().map((rec, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-gradient-to-r from-primary to-teal rounded-full"></div>
-                      <span className="text-sm">{rec}</span>
-                    </div>
-                  ))}
+                  </div>
                 </div>
 
-                <div className="flex gap-3 pt-4">
-                  <Button variant="gradient" className="flex-1">
-                    Schedule Installation
+                {/* Total Investment */}
+                <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center">
+                  <h3 className="text-2xl font-bold mb-2">Total Investment</h3>
+                  <div className="text-4xl font-bold mb-2">${calculateQuote().toLocaleString()}</div>
+                  <p className="text-orange-100">Complete installation including permits, excavation, and 3ft paver perimeter</p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-3 mt-6 justify-center">
+                  <Button 
+                    variant="default" 
+                    className="bg-gradient-to-r from-orange-500 to-teal-500 hover:from-orange-600 hover:to-teal-600 text-white"
+                    onClick={() => window.print()}
+                  >
+                    <Printer className="h-4 w-4 mr-2" />
+                    Print Quote
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="flex-1"
+                    className="border-orange-500 text-orange-600 hover:bg-orange-50"
                     onClick={() => setCurrentStep('options')}
                   >
                     Modify Options
                   </Button>
+                  <Button 
+                    variant="default"
+                    className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white"
+                  >
+                    Schedule Installation
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         )}
 
