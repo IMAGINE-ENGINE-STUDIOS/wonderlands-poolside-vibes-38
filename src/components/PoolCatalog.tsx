@@ -384,6 +384,20 @@ const pools: Pool[] = [
     carbonFiber: true
   },
   { 
+    model: "Astoria 14", 
+    price: 81350, 
+    category: 'premium', 
+    image: astoriaImage,
+    dimensions: "14′ × 35′",
+    depth: "3′ 6″ – 6′ 6″",
+    installationTimeWeeks: 5,
+    warrantyYears: "30 Years",
+    features: ["Integrated Spa - 3ft Deep", "Rectangular Design", "Swimming Lane Compatible", "Spa Spillover Feature"],
+    heater: false,
+    saltSystem: true,
+    carbonFiber: true
+  },
+  { 
     model: "Corinthian 14", 
     price: 94500, 
     category: 'premium', 

@@ -117,36 +117,266 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
   };
 
   const handlePrintQuote = () => {
-    // Add print styles to hide everything except quotation content
-    const style = document.createElement('style');
-    style.innerHTML = `
-      @media print {
-        body * {
-          visibility: hidden;
-        }
-        #quotation-content, #quotation-content * {
-          visibility: visible;
-        }
-        #quotation-content {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 100%;
-        }
-        .print-hide {
-          display: none !important;
-        }
-      }
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(generatePrintableQuote());
+      printWindow.document.close();
+    }
+  };
+
+  const generatePrintableQuote = () => {
+    const currentDate = new Date().toLocaleDateString();
+    const quoteId = `WL-${Date.now().toString().slice(-8)}`;
+    const totalPrice = calculateQuote();
+    
+    // Get pool dimensions for paver calculation
+    const poolDimensions = pool?.dimensions?.split('×') || ['0', '0'];
+    const length = parseFloat(poolDimensions[0]) || 0;
+    const width = parseFloat(poolDimensions[1]) || 0;
+    const deckWidth = parseFloat(surveyData.deckWidth) || 3;
+    const paverArea = calculatePaverArea(length, width, deckWidth);
+    const paverCost = calculatePaverPrice(length, width, deckWidth);
+
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Pool Configuration Quote - ${quoteId}</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+          <style>
+            body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 40px; line-height: 1.6; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+            .quote-container { background: white; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); overflow: hidden; max-width: 1200px; margin: 0 auto; }
+            .header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 60px 40px; text-align: center; position: relative; }
+            .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png') center/cover; opacity: 0.1; }
+            .header-content { position: relative; z-index: 2; }
+            .logo { font-family: 'Poppins', sans-serif; font-size: 54px; font-weight: 900; margin-bottom: 20px; text-shadow: 3px 3px 6px rgba(0,0,0,0.3); letter-spacing: -2px; background: linear-gradient(45deg, #ffffff, #e0f7ff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+            .tagline { font-size: 18px; opacity: 0.95; margin-bottom: 30px; font-weight: 500; }
+            .header-title { font-family: 'Poppins', sans-serif; font-size: 48px; font-weight: 700; margin: 20px 0 15px 0; letter-spacing: -1px; }
+            .quote-info { display: flex; justify-content: center; gap: 40px; font-size: 16px; opacity: 0.9; }
+            .content { padding: 60px 50px; }
+            .pool-section { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 50px; margin: 0 -50px 50px -50px; border-radius: 0; text-align: center; }
+            .pool-section h2 { font-family: 'Poppins', sans-serif; margin: 0 0 30px 0; font-size: 48px; font-weight: 800; letter-spacing: -1px; }
+            .pool-image { width: 400px; height: 300px; object-fit: cover; border-radius: 20px; margin: 30px auto; border: 4px solid rgba(255,255,255,0.3); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+            .pool-specs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin-top: 40px; }
+            .spec-item { background: rgba(255,255,255,0.2); padding: 25px; border-radius: 15px; backdrop-filter: blur(15px); }
+            .spec-label { font-weight: 600; font-size: 14px; opacity: 0.9; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+            .spec-value { font-size: 22px; font-weight: 700; }
+            .property-section { margin: 50px 0; }
+            .property-title { font-family: 'Playfair Display', serif; font-size: 36px; color: #1e293b; margin-bottom: 30px; text-align: center; }
+            .property-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+            .property-card { background: linear-gradient(135deg, #f8fafc, #e2e8f0); padding: 30px; border-radius: 15px; }
+            .property-card h4 { color: #475569; margin: 0 0 15px 0; font-size: 18px; }
+            .property-item { display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #cbd5e1; }
+            .pricing-section { background: #f8fafc; padding: 50px; margin: 0 -50px; }
+            .pricing-title { font-family: 'Poppins', sans-serif; font-size: 42px; font-weight: 700; color: #1e293b; margin-bottom: 40px; text-align: center; letter-spacing: -1px; }
+            .pricing-breakdown { display: grid; gap: 25px; margin-bottom: 40px; }
+            .pricing-item { display: flex; justify-content: space-between; align-items: center; padding: 25px; background: white; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+            .pricing-item-main { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600; }
+            .item-name { font-weight: 600; font-size: 18px; }
+            .item-description { font-size: 14px; color: #64748b; margin-top: 4px; }
+            .item-price { font-weight: 700; font-size: 24px; color: #0f172a; }
+            .item-price-main { color: white; font-size: 28px; }
+            .paver-details { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; padding: 20px; border-radius: 12px; margin: 10px 0; }
+            .paver-formula { font-size: 14px; opacity: 0.9; margin-top: 8px; }
+            .total-section { margin-top: 60px; text-align: center; }
+            .total { font-family: 'Poppins', sans-serif; font-size: 72px; font-weight: 900; padding: 50px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border-radius: 25px; margin: 0 -30px; letter-spacing: -2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+            .total-subtitle { font-size: 20px; margin-top: 20px; opacity: 0.95; font-weight: 500; }
+            .footer { background: #1e293b; color: white; padding: 40px; text-align: center; margin: 0 -50px -50px -50px; }
+            .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+            .contact-info { text-align: left; }
+            .contact-info h4 { color: #4facfe; margin-bottom: 15px; font-size: 18px; }
+            .warranty-info { text-align: center; }
+            .warranty-badge { background: linear-gradient(45deg, #4facfe, #00f2fe); padding: 15px 25px; border-radius: 30px; display: inline-block; margin: 10px 0; font-weight: 600; }
+            @media print { 
+              body { background: white !important; padding: 20px !important; }
+              .quote-container { box-shadow: none !important; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="quote-container">
+            <div class="header">
+              <div class="header-content">
+                <div class="logo">🌊 WONDERLANDS</div>
+                <div class="tagline">Premium Pool & Spa Solutions</div>
+                <div class="header-title">Pool Configuration Quote</div>
+                <div class="quote-info">
+                  <div>Quote ID: ${quoteId}</div>
+                  <div>Date: ${currentDate}</div>
+                  <div>Customer: ${surveyData.name || 'Valued Customer'}</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="content">
+              ${pool ? `
+              <div class="pool-section">
+                <h2>${pool.model}</h2>
+                ${pool.image ? `<img src="${pool.image}" alt="${pool.model}" class="pool-image" />` : ''}
+                <div class="pool-specs">
+                  <div class="spec-item">
+                    <div class="spec-label">Dimensions</div>
+                    <div class="spec-value">${pool.dimensions || 'Custom'}</div>
+                  </div>
+                  <div class="spec-item">
+                    <div class="spec-label">Depth Range</div>
+                    <div class="spec-value">${pool.depth || '3′6″ – 6′6″'}</div>
+                  </div>
+                  <div class="spec-item">
+                    <div class="spec-label">Base Price</div>
+                    <div class="spec-value">$${pool.price.toLocaleString()}</div>
+                  </div>
+                  <div class="spec-item">
+                    <div class="spec-label">Category</div>
+                    <div class="spec-value">${pool.category.charAt(0).toUpperCase() + pool.category.slice(1)}</div>
+                  </div>
+                </div>
+              </div>
+              ` : ''}
+
+              <div class="property-section">
+                <h3 class="property-title">Property Information & Requirements</h3>
+                <div class="property-grid">
+                  <div class="property-card">
+                    <h4>Property Details</h4>
+                    <div class="property-item">
+                      <span>Customer Name:</span>
+                      <span>${surveyData.name}</span>
+                    </div>
+                    <div class="property-item">
+                      <span>Property Address:</span>
+                      <span>${surveyData.address}</span>
+                    </div>
+                    <div class="property-item">
+                      <span>Yard Size:</span>
+                      <span>${surveyData.yardSize}</span>
+                    </div>
+                    <div class="property-item">
+                      <span>Soil Type:</span>
+                      <span>${surveyData.soilType}</span>
+                    </div>
+                  </div>
+                  <div class="property-card">
+                    <h4>Installation Requirements</h4>
+                    <div class="property-item">
+                      <span>Access Width:</span>
+                      <span>${surveyData.accessWidth}</span>
+                    </div>
+                    <div class="property-item">
+                      <span>Utility Lines:</span>
+                      <span>${surveyData.utilityLines}</span>
+                    </div>
+                    <div class="property-item">
+                      <span>Desired Timeline:</span>
+                      <span>${surveyData.timeline}</span>
+                    </div>
+                    <div class="property-item">
+                      <span>Deck Width:</span>
+                      <span>${surveyData.deckWidth || 3} feet</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pricing-section">
+                <h3 class="pricing-title">Investment Breakdown</h3>
+                <div class="pricing-breakdown">
+                  ${pool ? `
+                  <div class="pricing-item pricing-item-main">
+                    <div>
+                      <div class="item-name">${pool.model} Pool</div>
+                      <div class="item-description" style="color: rgba(255,255,255,0.9);">Complete fiberglass pool installation with standard features</div>
+                    </div>
+                    <div class="item-price item-price-main">$${pool.price.toLocaleString()}</div>
+                  </div>
+                  ` : ''}
+                  
+                  <div class="pricing-item">
+                    <div>
+                      <div class="item-name">Excavation & Site Preparation</div>
+                      <div class="item-description">Professional excavation, backfill, and site preparation</div>
+                    </div>
+                    <div class="item-price">$8,500</div>
+                  </div>
+                  
+                  <div class="pricing-item">
+                    <div>
+                      <div class="item-name">Permits & Inspections</div>
+                      <div class="item-description">All required building permits and municipal inspections</div>
+                    </div>
+                    <div class="item-price">$2,200</div>
+                  </div>
+
+                  ${paverArea > 0 ? `
+                  <div class="pricing-item">
+                    <div>
+                      <div class="item-name">Paver Deck Installation</div>
+                      <div class="item-description">
+                        ${deckWidth}ft deck width around pool perimeter
+                        <div class="paver-details">
+                          <div>Chargeable Area: ${paverArea} sq ft</div>
+                          <div class="paver-formula">Formula: Pool + ${deckWidth}ft deck minus 3ft free band</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="item-price">$${paverCost.toLocaleString()}</div>
+                  </div>
+                  ` : ''}
+
+                  ${selectedOptions.map(option => `
+                  <div class="pricing-item">
+                    <div>
+                      <div class="item-name">${option.name}</div>
+                      <div class="item-description">${option.description}</div>
+                    </div>
+                    <div class="item-price">$${option.price.toLocaleString()}</div>
+                  </div>
+                  `).join('')}
+                </div>
+
+                <div class="total-section">
+                  <div class="total">
+                    $${totalPrice.toLocaleString()}
+                    <div class="total-subtitle">Complete Turn-Key Installation</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="footer">
+                <div class="footer-content">
+                  <div class="contact-info">
+                    <h4>Contact Information</h4>
+                    <p>📍 Florida Pool Installation Specialists</p>
+                    <p>📞 Phone: (555) 123-POOL</p>
+                    <p>✉️ Email: info@wonderlands.com</p>
+                    <p>🌐 Web: www.wonderlands.com</p>
+                  </div>
+                  <div class="warranty-info">
+                    <h4>What's Included</h4>
+                    <div class="warranty-badge">Lifetime Structural Warranty</div>
+                    <p>✓ Complete installation with all equipment</p>
+                    <p>✓ Professional excavation and backfill</p>
+                    <p>✓ All permits and inspections</p>
+                    <p>✓ Salt system and LED lighting</p>
+                    <p>✓ 1-year service warranty</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <script>
+            window.addEventListener('load', function() {
+              setTimeout(function() {
+                window.print();
+              }, 1000);
+            });
+          </script>
+        </body>
+      </html>
     `;
-    document.head.appendChild(style);
-    
-    // Print using the browser's native print
-    window.print();
-    
-    // Clean up the style after printing
-    setTimeout(() => {
-      document.head.removeChild(style);
-    }, 1000);
   };
 
   const calculateQuote = () => {
