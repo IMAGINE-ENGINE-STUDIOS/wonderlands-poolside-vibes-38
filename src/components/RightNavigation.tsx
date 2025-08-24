@@ -78,6 +78,7 @@ const RightNavigation = () => {
         { id: 'spa-section', label: 'Spas', icon: Waves },
         { id: 'finishes-section', label: 'Finishes', icon: Palette },
         { id: 'pavers-section', label: 'Pavers', icon: Package },
+        { id: 'covers-section', label: 'Covers', icon: Shield },
       ]
     },
     {
@@ -92,18 +93,11 @@ const RightNavigation = () => {
 
   const accountItems = [
     {
-      id: 'dashboard',
-      label: 'Dashboard',
-      icon: User,
-      link: '/dashboard',
-      show: !!user
-    },
-    {
       id: 'auth',
-      label: 'Sign In',
+      label: user ? 'Profile' : 'Sign In',
       icon: User,
       link: '/auth',
-      show: !user
+      show: true
     }
   ];
 
@@ -113,14 +107,14 @@ const RightNavigation = () => {
       label: 'Admin Panel',
       icon: Shield,
       link: '/admin',
-      show: true
+      show: profile?.role === 'main_admin'
     },
     {
       id: 'content-editor',
       label: 'Content Editor',
       icon: Settings,
       link: '/content-editor',
-      show: true
+      show: profile?.role === 'main_admin'
     }
   ];
 
@@ -248,41 +242,43 @@ const RightNavigation = () => {
               )}
             </div>
 
-            {/* Admin Section */}
-            <div className="border-t border-primary/20 p-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-between text-xs hover:bg-primary/10 mb-1"
-                onClick={() => toggleSection('admin')}
-              >
-                <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  <span>Admin</span>
-                </div>
-                {sectionsExpanded.admin ? 
-                  <ChevronDown className="h-3 w-3" /> : 
-                  <ChevronRight className="h-3 w-3" />
-                }
-              </Button>
-              
-              {sectionsExpanded.admin && (
-                <div className="ml-2 space-y-0.5 border-l border-primary/20 pl-2">
-                  {adminItems.filter(item => item.show).map((item) => (
-                    <Link key={item.id} to={item.link} className="block">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-start text-xs h-7 hover:bg-primary/10"
-                      >
-                        <item.icon className="h-3 w-3 mr-2" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Admin Section - Only show for admin users */}
+            {profile?.role === 'main_admin' && (
+              <div className="border-t border-primary/20 p-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-between text-xs hover:bg-primary/10 mb-1"
+                  onClick={() => toggleSection('admin')}
+                >
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    <span>Admin</span>
+                  </div>
+                  {sectionsExpanded.admin ? 
+                    <ChevronDown className="h-3 w-3" /> : 
+                    <ChevronRight className="h-3 w-3" />
+                  }
+                </Button>
+                
+                {sectionsExpanded.admin && (
+                  <div className="ml-2 space-y-0.5 border-l border-primary/20 pl-2">
+                    {adminItems.filter(item => item.show).map((item) => (
+                      <Link key={item.id} to={item.link} className="block">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start text-xs h-7 hover:bg-primary/10"
+                        >
+                          <item.icon className="h-3 w-3 mr-2" />
+                          {item.label}
+                        </Button>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Help Section */}
             <div className="border-t border-primary/20 p-2">
