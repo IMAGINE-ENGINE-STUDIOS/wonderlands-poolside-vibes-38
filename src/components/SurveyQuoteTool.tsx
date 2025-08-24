@@ -13,6 +13,7 @@ import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, 
 import PoolCustomizationOptions from "./PoolCustomizationOptions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
 
 
 interface Pool {
@@ -56,6 +57,7 @@ interface SurveyData {
   specialRequests: string;
   timeline: string;
   budget: string;
+  deckWidth: string;
 }
 
 const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteToolProps) => {
@@ -71,7 +73,8 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
     utilityLines: "",
     specialRequests: "",
     timeline: "",
-    budget: ""
+    budget: "",
+    deckWidth: "3"
   });
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
@@ -155,6 +158,13 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
     const optionsPrice = selectedOptions.reduce((total, option) => total + option.price, 0);
     basePrice += optionsPrice;
     
+    // Add paver costs if deck width > 3ft
+    if (pool?.dimensions && parseInt(surveyData.deckWidth || "3") > 3) {
+      const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+      const paverPrice = calculatePaverPrice(dims[0] || 0, dims[1] || 0, parseInt(surveyData.deckWidth || "3"));
+      basePrice += paverPrice;
+    }
+    
     // Florida-specific adjustments
     if (surveyData.soilType === "sand") basePrice *= 0.95; // Easier excavation
     if (surveyData.soilType === "clay") basePrice *= 1.1; // Harder excavation
@@ -214,6 +224,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
         special_requests: surveyData.specialRequests || null,
         timeline: surveyData.timeline || null,
         budget: surveyData.budget || null,
+        deck_width: surveyData.deckWidth || null,
         pool_model: pool?.model || customProduct?.name || null,
         pool_price: pool?.price || customProduct?.price || null,
         pool_category: pool?.category || customProduct?.type || null,
@@ -468,6 +479,23 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
                   </div>
 
                   <div>
+                    <Label htmlFor="deckWidth">Desired Deck Width (ft)</Label>
+                    <Select onValueChange={(value) => setSurveyData({...surveyData, deckWidth: value})}>
+                      <SelectTrigger className="focus:border-coral">
+                        <SelectValue placeholder="Select deck width" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="3">3 ft (Standard - Free)</SelectItem>
+                        <SelectItem value="4">4 ft</SelectItem>
+                        <SelectItem value="5">5 ft</SelectItem>
+                        <SelectItem value="6">6 ft</SelectItem>
+                        <SelectItem value="8">8 ft</SelectItem>
+                        <SelectItem value="10">10 ft</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
                     <Label htmlFor="accessWidth">Equipment Access</Label>
                     <Select onValueChange={(value) => setSurveyData({...surveyData, accessWidth: value})}>
                       <SelectTrigger className="focus:border-coral">
@@ -709,23 +737,42 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
                     
                     {/* Pavers Calculation */}
                     <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
-                      <h4 className="font-semibold mb-2">Pavers (3ft Perimeter)</h4>
+                      <h4 className="font-semibold mb-2">Paver Deck ({surveyData.deckWidth || 3}ft Width)</h4>
                       <p className="text-sm text-muted-foreground mb-2">
-                        Standard 3-foot paver perimeter around pool included
+                        {parseInt(surveyData.deckWidth || "3") === 3 
+                          ? "Standard 3-foot paver deck included in base price"
+                          : `${surveyData.deckWidth}-foot paver deck around pool`
+                        }
                       </p>
-                      {pool?.dimensions && (
-                        <div className="text-xs">
-                          <p>Pool dimensions: {pool.dimensions}</p>
-                          <p>Paver area: {(() => {
-                            const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
-                            const area = (dims[0] + 6) * (dims[1] + 6);
-                            return `${area} sq ft`;
-                          })()}</p>
-                        </div>
-                      )}
+                      {pool?.dimensions && (() => {
+                        const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+                        const poolLength = dims[0] || 0;
+                        const poolWidth = dims[1] || 0;
+                        const deckWidth = parseInt(surveyData.deckWidth || "3");
+                        const paverArea = calculatePaverArea(poolLength, poolWidth, deckWidth);
+                        const paverPrice = calculatePaverPrice(poolLength, poolWidth, deckWidth);
+                        
+                        return (
+                          <div className="text-xs space-y-1">
+                            <p>Pool dimensions: {pool.dimensions}</p>
+                            <p>Deck width: {deckWidth} ft</p>
+                            <p>Chargeable paver area: {paverArea} sq ft</p>
+                            {paverArea > 0 && <p>Paver cost: ${paverPrice.toLocaleString()}</p>}
+                          </div>
+                        );
+                      })()}
                       <div className="flex justify-between mt-2 pt-2 border-t border-teal-200 dark:border-gray-600">
                         <span>Paver Installation:</span>
-                        <span className="font-semibold">Included</span>
+                        <span className="font-semibold">
+                          {parseInt(surveyData.deckWidth || "3") === 3 ? "Included" : `+$${(() => {
+                            if (pool?.dimensions) {
+                              const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+                              const paverPrice = calculatePaverPrice(dims[0] || 0, dims[1] || 0, parseInt(surveyData.deckWidth || "3"));
+                              return paverPrice.toLocaleString();
+                            }
+                            return "0";
+                          })()}`}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -786,12 +833,11 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
                   </div>
                 </div>
 
-                {/* Total Investment */}
-                <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center">
-                  <h3 className="text-2xl font-bold mb-2">Total Investment</h3>
-                  <div className="text-4xl font-bold mb-2">${calculateQuote().toLocaleString()}</div>
-                  <p className="text-orange-100">Complete installation including permits, excavation, and 3ft paver perimeter</p>
-                </div>
+                 <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center">
+                   <h3 className="text-2xl font-bold mb-2">Total Investment</h3>
+                   <div className="text-4xl font-bold mb-2">${calculateQuote().toLocaleString()}</div>
+                   <p className="text-orange-100">Complete installation including permits, excavation, and {surveyData.deckWidth || 3}ft paver deck</p>
+                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-3 mt-6 justify-center print-hide">
