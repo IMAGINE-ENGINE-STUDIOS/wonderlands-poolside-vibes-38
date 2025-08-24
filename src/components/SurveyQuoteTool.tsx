@@ -357,6 +357,278 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
     setCurrentStep('quote');
   };
 
+  const handleOpenQuoteInNewWindow = async () => {
+    if (!surveyData.name || !surveyData.email || !surveyData.address || !surveyData.yardSize) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in your contact details, address and yard size.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(surveyData.email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Save the quotation to database
+    await saveQuotationToDatabase();
+    
+    // Generate quote in new window
+    const quoteAmount = calculateQuote();
+    const recommendations = getRecommendations();
+    
+    const quotationHTML = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Pool Quotation - Wonderlands</title>
+          <style>
+            body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: white; }
+            @media print {
+              body { margin: 0; padding: 0; }
+              @page { margin: 0.5in; }
+            }
+            .bg-gradient-to-r { background: linear-gradient(to right, #fb923c, #ec4899, #14b8a6); }
+            .bg-gradient-to-br { background: linear-gradient(to bottom right, #fed7aa, #ccfbf1); }
+            .text-white { color: white; }
+            .text-orange-600 { color: #ea580c; }
+            .text-teal-600 { color: #0d9488; }
+            .text-orange-100 { color: #ffedd5; }
+            .border-2 { border-width: 2px; }
+            .border-orange-400 { border-color: #fb923c; }
+            .rounded-lg { border-radius: 0.5rem; }
+            .p-6 { padding: 1.5rem; }
+            .p-4 { padding: 1rem; }
+            .p-3 { padding: 0.75rem; }
+            .mb-2 { margin-bottom: 0.5rem; }
+            .mb-3 { margin-bottom: 0.75rem; }
+            .mb-4 { margin-bottom: 1rem; }
+            .mb-6 { margin-bottom: 1.5rem; }
+            .mt-2 { margin-top: 0.5rem; }
+            .mt-6 { margin-top: 1.5rem; }
+            .gap-2 { gap: 0.5rem; }
+            .gap-3 { gap: 0.75rem; }
+            .gap-4 { gap: 1rem; }
+            .gap-6 { gap: 1.5rem; }
+            .flex { display: flex; }
+            .grid { display: grid; }
+            .items-center { align-items: center; }
+            .justify-between { justify-content: space-between; }
+            .justify-center { justify-content: center; }
+            .text-center { text-align: center; }
+            .text-right { text-align: right; }
+            .text-sm { font-size: 0.875rem; }
+            .text-xs { font-size: 0.75rem; }
+            .text-lg { font-size: 1.125rem; }
+            .text-xl { font-size: 1.25rem; }
+            .text-2xl { font-size: 1.5rem; }
+            .text-4xl { font-size: 2.25rem; }
+            .font-bold { font-weight: 700; }
+            .font-semibold { font-weight: 600; }
+            .font-medium { font-weight: 500; }
+            .space-y-1 > * + * { margin-top: 0.25rem; }
+            .space-y-2 > * + * { margin-top: 0.5rem; }
+            .space-y-4 > * + * { margin-top: 1rem; }
+            .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+            .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .w-full { width: 100%; }
+            .h-16 { height: 4rem; }
+            .h-48 { height: 12rem; }
+            .object-cover { object-fit: cover; }
+            .border { border-width: 1px; }
+            .border-orange-200 { border-color: #fed7aa; }
+            .border-teal-200 { border-color: #99f6e4; }
+            .border-t { border-top-width: 1px; }
+            .pt-2 { padding-top: 0.5rem; }
+            .overflow-hidden { overflow: hidden; }
+            .flex-shrink-0 { flex-shrink: 0; }
+            .w-2 { width: 0.5rem; }
+            .h-2 { height: 0.5rem; }
+            .h-4 { width: 1rem; height: 1rem; }
+            .mr-2 { margin-right: 0.5rem; }
+            .mt-1 { margin-top: 0.25rem; }
+            .mt-1_5 { margin-top: 0.375rem; }
+            .rounded-full { border-radius: 9999px; }
+            .items-start { align-items: flex-start; }
+            .flex-wrap { flex-wrap: wrap; }
+          </style>
+        </head>
+        <body>
+          <div class="border-2 border-orange-400 rounded-lg overflow-hidden">
+            
+            <!-- Header with Logo -->
+            <div class="bg-gradient-to-r p-6 text-white">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <img src="/lovable-uploads/e2ff3f3a-79d1-402e-b0c6-dcea2d4e720a.png" alt="Wonderlands Logo" class="h-16 w-16" />
+                  <div>
+                    <h1 class="text-2xl font-bold">POOL QUOTATION</h1>
+                    <p class="text-orange-100">Your Dream Pool Awaits</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm">Quote Date: ${new Date().toLocaleDateString()}</p>
+                  <p class="text-sm">Valid for 30 days</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Customer Information -->
+            <div class="p-6 bg-gradient-to-r">
+              <div class="grid grid-cols-2 gap-6">
+                <div>
+                  <h3 class="font-bold text-lg mb-3 text-orange-600">Customer Information</h3>
+                  <div class="space-y-2 text-sm">
+                    <p><span class="font-medium">Name:</span> ${surveyData.name}</p>
+                    <p><span class="font-medium">Email:</span> ${surveyData.email}</p>
+                    <p><span class="font-medium">Phone:</span> ${surveyData.phone}</p>
+                    <p><span class="font-medium">Property Address:</span> ${surveyData.address}</p>
+                  </div>
+                </div>
+                <div>
+                  <h3 class="font-bold text-lg mb-3 text-teal-600">Contact Information</h3>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex items-center gap-2">
+                      <span>📞</span>
+                      <span>(407) 760-4873</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span>✉️</span>
+                      <span>sales@wonderlandsworld.com</span>
+                    </div>
+                    <p class="text-xs mt-2">
+                      Business Hours: Mon-Fri 8AM-6PM, Sat 9AM-4PM
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pool Details with Images -->
+            <div class="p-6">
+              <h3 class="font-bold text-xl mb-4 text-orange-600">Pool Specifications</h3>
+              <div class="grid grid-cols-2 gap-6 mb-6">
+                <div class="space-y-4">
+                  <div class="bg-gradient-to-br p-4 rounded-lg border border-orange-200">
+                    <h4 class="font-semibold mb-2">Pool Model: ${pool?.model || customProduct?.name}</h4>
+                    ${pool?.dimensions ? `<p class="text-sm">Dimensions: ${pool.dimensions}</p>` : ''}
+                    ${pool?.depth ? `<p class="text-sm">Depth: ${pool.depth}</p>` : ''}
+                    <div class="flex justify-between mt-2 pt-2 border-t border-orange-200">
+                      <span>Base Pool Price:</span>
+                      <span class="font-semibold">$${(pool?.price || customProduct?.price || 0).toLocaleString()}</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Pavers Calculation -->
+                  <div class="bg-gradient-to-br p-4 rounded-lg border border-teal-200">
+                    <h4 class="font-semibold mb-2">Pavers (3ft Perimeter)</h4>
+                    <p class="text-sm mb-2">
+                      Standard 3-foot paver perimeter around pool included
+                    </p>
+                    ${pool?.dimensions ? `
+                      <div class="text-xs">
+                        <p>Pool dimensions: ${pool.dimensions}</p>
+                        <p>Paver area: ${(() => {
+                          const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+                          const area = (dims[0] + 6) * (dims[1] + 6);
+                          return `${area} sq ft`;
+                        })()}</p>
+                      </div>
+                    ` : ''}
+                    <div class="flex justify-between mt-2 pt-2 border-t border-teal-200">
+                      <span>Paver Installation:</span>
+                      <span class="font-semibold">Included</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  ${(pool?.image || customProduct?.image) ? `
+                    <div class="mb-4">
+                      <img src="${pool?.image || customProduct?.image}" alt="${pool?.model || customProduct?.name}" class="w-full h-48 object-cover rounded-lg border border-orange-200" />
+                      <p class="text-xs text-center mt-1">${pool?.model || customProduct?.name}</p>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+
+              <!-- Selected Options -->
+              ${selectedOptions.length > 0 ? `
+                <div class="mb-6">
+                  <h4 class="font-bold text-lg mb-3 text-teal-600">Selected Features</h4>
+                  <div class="grid grid-cols-3 gap-4">
+                    ${selectedOptions.map(option => `
+                      <div class="border border-orange-200 rounded-lg p-3 bg-gradient-to-br">
+                        <h5 class="font-semibold text-sm">${option.name}</h5>
+                        <p class="text-xs mb-2">${option.description}</p>
+                        <div class="flex justify-between text-sm">
+                          <span>Price:</span>
+                          <span class="font-semibold text-teal-600">+$${option.price.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : ''}
+
+              <!-- Total Quote -->
+              <div class="border-t-2 border-orange-400 pt-6">
+                <div class="bg-gradient-to-r p-6 rounded-lg text-white">
+                  <div class="flex justify-between items-center">
+                    <div>
+                      <h3 class="text-2xl font-bold">Total Investment</h3>
+                      <p class="text-orange-100">Complete pool installation with 3ft paver perimeter</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-4xl font-bold">$${quoteAmount.toLocaleString()}</p>
+                      <p class="text-sm text-orange-100">*Final price subject to site inspection</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recommendations -->
+              ${recommendations.length > 0 ? `
+                <div class="mt-6">
+                  <h4 class="font-bold text-lg mb-3 text-orange-600">Our Recommendations</h4>
+                  <div class="grid grid-cols-2 gap-3">
+                    ${recommendations.map(rec => `
+                      <div class="flex items-start gap-2 p-3 bg-gradient-to-br rounded-lg border border-orange-200">
+                        <span class="text-teal-500 flex-shrink-0 mt-1">✓</span>
+                        <span class="text-sm">${rec}</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    printWindow.document.write(quotationHTML);
+    printWindow.document.close();
+    printWindow.focus();
+  };
+
   if (!pool && !customProduct) return null;
 
   return (
@@ -635,7 +907,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
                 <span>Free consultation • No obligation • Expert guidance</span>
               </div>
               <Button 
-                onClick={handleSubmitSurvey}
+                onClick={handleOpenQuoteInNewWindow}
                 variant="gradient"
                 size="lg"
                 className="w-full hover:scale-105 transition-all duration-300"
