@@ -25,7 +25,7 @@ interface PoolProduct {
   id: string;
   model: string;
   price: number;
-  category: 'premium' | 'deluxe' | 'standard' | 'compact';
+  category: 'premium' | 'deluxe' | 'standard' | 'compact' | 'screen-enclosures';
   image?: string;
   dimensions?: string;
   depth?: string;
@@ -187,6 +187,7 @@ export const ProductCardManager = () => {
       case 'deluxe': return 'bg-gradient-to-r from-primary to-teal';
       case 'standard': return 'bg-gradient-to-r from-secondary to-accent';
       case 'compact': return 'bg-gradient-to-r from-teal to-primary';
+      case 'screen-enclosures': return 'bg-gradient-to-r from-orange to-coral';
       default: return 'bg-gradient-to-r from-primary to-teal';
     }
   };
@@ -354,7 +355,7 @@ const ProductEditor = ({ product, onSave, onCancel, isCreating }: ProductEditorP
             <Label htmlFor="category">Category</Label>
             <Select 
               value={editedProduct.category} 
-              onValueChange={(value: 'premium' | 'deluxe' | 'standard' | 'compact') => 
+              onValueChange={(value: 'premium' | 'deluxe' | 'standard' | 'compact' | 'screen-enclosures') => 
                 setEditedProduct(prev => ({ ...prev, category: value }))
               }
             >
@@ -366,6 +367,7 @@ const ProductEditor = ({ product, onSave, onCancel, isCreating }: ProductEditorP
                 <SelectItem value="deluxe">Deluxe</SelectItem>
                 <SelectItem value="standard">Standard</SelectItem>
                 <SelectItem value="compact">Compact</SelectItem>
+                <SelectItem value="screen-enclosures">Screen Enclosures</SelectItem>
               </SelectContent>
             </Select>
           </div>

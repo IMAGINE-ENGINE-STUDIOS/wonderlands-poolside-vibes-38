@@ -14,6 +14,7 @@ const SpaSection = lazy(() => import("@/components/SpaSection"));
 const PoolFinishesSection = lazy(() => import("@/components/PoolFinishesSection"));
 const PaversSection = lazy(() => import("@/components/PaversSection"));
 const AutomaticCoversSection = lazy(() => import("@/components/AutomaticCoversSection"));
+const ScreenEnclosuresSection = lazy(() => import("@/components/ScreenEnclosuresSection"));
 const FloridaPoolElements = lazy(() => import("@/components/FloridaPoolElements"));
 const WonderlandsBrandShowcase = lazy(() => import("@/components/WonderlandsBrandShowcase"));
 
@@ -52,6 +53,7 @@ const Index = () => {
           <SpaSection />
           <PoolFinishesSection />
           <PaversSection />
+          <ScreenEnclosuresSection />
           <AutomaticCoversSection />
           <Footer />
         </Suspense>

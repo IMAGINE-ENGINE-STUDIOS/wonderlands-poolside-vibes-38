@@ -71,6 +71,10 @@ interface PoolExtras {
   heaterModel: string;
   paverOption: string;
   copingPaverOption: string;
+  screenEnclosure: boolean;
+  screenEnclosureModel: string;
+  screenEnclosureSquareFeet: string;
+  screenEnclosureTwoStory: boolean;
   // Added for quotation breakdown
   extrasBreakdown?: { name: string; price: number }[];
   extrasTotal?: number;
@@ -98,6 +102,7 @@ const getExtraPrice = (extra: string) => {
 };
 
 // Import pool finishes from PoolFinishesSection
+import { screenEnclosures } from "@/data/screenEnclosureData";
 import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
 
 // Convert pool finishes data to finish options format
@@ -197,7 +202,11 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
     tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
     heaterModel: poolHeaters[0]?.name || 'Heat Pump - Eco Series',
     paverOption: 'No Pavers',
-    copingPaverOption: 'No Coping'
+    copingPaverOption: 'No Coping',
+    screenEnclosure: false,
+    screenEnclosureModel: screenEnclosures[0]?.name || 'Standard Pool Screen Enclosure',
+    screenEnclosureSquareFeet: '',
+    screenEnclosureTwoStory: false
   });
   
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
@@ -242,6 +251,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
         return { ...prev, tanningLedge: !prev.tanningLedge };
       } else if (extra === 'jets') {
         return { ...prev, jets: !prev.jets };
+      } else if (extra === 'screenEnclosure') {
+        return { ...prev, screenEnclosure: !prev.screenEnclosure };
       }
       
       return prev;
@@ -298,6 +309,18 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
       const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
       if (selectedLedge) total += selectedLedge.price;
     }
+
+    // Add screen enclosure price if selected
+    if (extras.screenEnclosure && extras.screenEnclosureSquareFeet) {
+      const selectedEnclosure = screenEnclosures.find((enclosure) => enclosure.name === extras.screenEnclosureModel);
+      if (selectedEnclosure) {
+        const sqft = parseFloat(extras.screenEnclosureSquareFeet);
+        if (!isNaN(sqft)) {
+          const pricePerSqft = extras.screenEnclosureTwoStory ? selectedEnclosure.premiumPrice : selectedEnclosure.basePrice;
+          total += sqft * pricePerSqft;
+        }
+      }
+    }
     
     return total;
   };
@@ -322,6 +345,20 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
     if (extras.tanningLedge) {
       const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
       if (selectedLedge) items.push({ name: `${selectedLedge.name} Tanning Ledge`, price: selectedLedge.price });
+    }
+    if (extras.screenEnclosure && extras.screenEnclosureSquareFeet) {
+      const selectedEnclosure = screenEnclosures.find((enclosure) => enclosure.name === extras.screenEnclosureModel);
+      if (selectedEnclosure) {
+        const sqft = parseFloat(extras.screenEnclosureSquareFeet);
+        if (!isNaN(sqft)) {
+          const pricePerSqft = extras.screenEnclosureTwoStory ? selectedEnclosure.premiumPrice : selectedEnclosure.basePrice;
+          const price = sqft * pricePerSqft;
+          items.push({ 
+            name: `${selectedEnclosure.name} (${sqft} sq ft${extras.screenEnclosureTwoStory ? ' - Two Story' : ''})`, 
+            price 
+          });
+        }
+      }
     }
     const total = items.reduce((sum, i) => sum + i.price, 0);
     return { items, total };
@@ -920,11 +957,76 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                               </div>
                              </button>
                            ))}
+                       </div>
+                     </div>
+                   )}
+
+                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                      <Checkbox 
+                        checked={extras.screenEnclosure}
+                        onCheckedChange={() => toggleExtra('screenEnclosure')}
+                      />
+                      <div className="flex items-center space-x-1">
+                        <Shield size={16} className="text-orange" />
+                         <span className="text-sm">Add Screen Enclosure (+${extras.screenEnclosure && extras.screenEnclosureSquareFeet ? (() => {
+                           const selectedEnclosure = screenEnclosures.find((enclosure) => enclosure.name === extras.screenEnclosureModel);
+                           if (selectedEnclosure) {
+                             const sqft = parseFloat(extras.screenEnclosureSquareFeet);
+                             if (!isNaN(sqft)) {
+                               const pricePerSqft = extras.screenEnclosureTwoStory ? selectedEnclosure.premiumPrice : selectedEnclosure.basePrice;
+                               return (sqft * pricePerSqft).toLocaleString();
+                             }
+                           }
+                           return '0';
+                         })() : '0'})</span>
                       </div>
-                    </div>
-                  )}
-               </div>
-             </div>
+                    </label>
+
+                   {extras.screenEnclosure && (
+                     <div className="ml-6 space-y-2">
+                       <label className="text-xs font-medium text-muted-foreground">Select Screen Enclosure Type:</label>
+                        <div className="grid grid-cols-1 gap-2">
+                          {screenEnclosures.map((enclosure: any) => (
+                             <button
+                               key={enclosure.name}
+                               onClick={() => setExtras(prev => ({ ...prev, screenEnclosureModel: enclosure.name }))}
+                               className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
+                                 extras.screenEnclosureModel === enclosure.name 
+                                   ? 'border-orange bg-orange/10 text-orange' 
+                                   : 'border-border hover:border-orange/50'
+                               }`}
+                             >
+                               <img src={enclosure.image} alt={enclosure.name} className="w-8 h-8 rounded object-cover" />
+                               <div className="flex-1 text-left">
+                                 <div>{enclosure.name}</div>
+                                 <div className="text-xs text-muted-foreground">${enclosure.basePrice}/sq ft (${enclosure.premiumPrice}/sq ft two-story)</div>
+                               </div>
+                              </button>
+                            ))}
+                       </div>
+                       <div className="space-y-2">
+                         <label className="text-xs font-medium text-muted-foreground">Square Footage:</label>
+                         <Input
+                           type="number"
+                           placeholder="Enter square footage"
+                           value={extras.screenEnclosureSquareFeet}
+                           onChange={(e) => setExtras(prev => ({ ...prev, screenEnclosureSquareFeet: e.target.value }))}
+                           className="text-xs"
+                         />
+                         <label className="flex items-center space-x-2 cursor-pointer">
+                           <input
+                             type="checkbox"
+                             checked={extras.screenEnclosureTwoStory}
+                             onChange={(e) => setExtras(prev => ({ ...prev, screenEnclosureTwoStory: e.target.checked }))}
+                             className="rounded"
+                           />
+                           <span className="text-xs">Two-story enclosure</span>
+                         </label>
+                       </div>
+                     </div>
+                   )}
+                </div>
+              </div>
 
             {/* Carbon Fiber Technology Section */}
             {pool.carbonFiber && (
