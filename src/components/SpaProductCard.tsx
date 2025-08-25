@@ -124,7 +124,7 @@ const linerOptions = [
   ...poolLiners.map(liner => ({
     name: liner.name,
     color: '#4169E1', // fallback color
-    price: liner.price / 2, // Spa pricing is half of pool pricing
+    price: liner.price, // Use full liner price for spas now that it's standardized at $4500
     image: liner.image,
     type: liner.type,
     description: liner.description
