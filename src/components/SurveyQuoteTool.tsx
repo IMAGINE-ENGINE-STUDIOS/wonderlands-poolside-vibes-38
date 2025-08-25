@@ -292,22 +292,6 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
                     <div class="item-price item-price-main">$${pool.price.toLocaleString()}</div>
                   </div>
                   ` : ''}
-                  
-                  <div class="pricing-item">
-                    <div>
-                      <div class="item-name">Excavation & Site Preparation</div>
-                      <div class="item-description">Professional excavation, backfill, and site preparation</div>
-                    </div>
-                    <div class="item-price">$8,500</div>
-                  </div>
-                  
-                  <div class="pricing-item">
-                    <div>
-                      <div class="item-name">Permits & Inspections</div>
-                      <div class="item-description">All required building permits and municipal inspections</div>
-                    </div>
-                    <div class="item-price">$2,200</div>
-                  </div>
 
                   ${paverArea > 0 ? `
                   <div class="pricing-item">
@@ -348,18 +332,18 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
                 <div class="footer-content">
                   <div class="contact-info">
                     <h4>Contact Information</h4>
-                    <p>📍 Florida Pool Installation Specialists</p>
-                    <p>📞 Phone: (555) 123-POOL</p>
-                    <p>✉️ Email: info@wonderlands.com</p>
-                    <p>🌐 Web: www.wonderlands.com</p>
+                    <p>📞 Phone: (407) 760-4873</p>
+                    <p>✉️ Email: sales@wonderlandsworld.com</p>
+                    <p>🌐 Web: wonderlandsworld.com</p>
+                    <p>🏢 WONDERLANDS WORLD EXPERIENCE LLC</p>
                   </div>
                   <div class="warranty-info">
                     <h4>What's Included</h4>
                     <div class="warranty-badge">Lifetime Structural Warranty</div>
-                    <p>✓ Complete installation with all equipment</p>
-                    <p>✓ Professional excavation and backfill</p>
-                    <p>✓ All permits and inspections</p>
-                    <p>✓ Salt system and LED lighting</p>
+                    <p>✓ Premium fiberglass pool shell</p>
+                    <p>✓ Standard pool equipment package</p>
+                    <p>✓ LED lighting system</p>
+                    <p>✓ Salt water system ready</p>
                     <p>✓ 1-year service warranty</p>
                   </div>
                 </div>
