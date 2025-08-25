@@ -811,6 +811,17 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                             } else if (item.name.includes('Jets')) {
                               // Jets image
                               itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                            } else if (item.name.includes('Screen Enclosure') || item.name.includes('Enclosure')) {
+                              // Screen enclosure images
+                              const enclosureImages = {
+                                'Traditional Screen Enclosure': '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
+                                'Premium Pool Enclosure': '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
+                                'Luxury Screen Room': '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
+                              };
+                              itemImage = enclosureImages[item.name] || '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png';
+                            } else if (item.name.includes('Paver') || item.name.includes('Coping')) {
+                              // Paver and coping images
+                              itemImage = '/lovable-uploads/65596856-c21b-46d4-abeb-e241bc3b39b0.png';
                             } else {
                               // Default image for other items
                               itemImage = '/lovable-uploads/azure-blue-g2.jpg';
