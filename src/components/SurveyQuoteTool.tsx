@@ -802,15 +802,15 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
                 {/* Items Included */}
                 <div className="mb-6">
                   <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg">
-                    <h4 className="font-bold text-lg mb-3 text-orange-600">ITEMS INCLUDED</h4>
-                    <ul className="text-sm space-y-2">
-                      {getIncludedItems().map((item, index) => (
-                        <li key={index} className="flex items-start gap-2">
-                          <div className="w-2 h-2 bg-gradient-to-r from-orange-400 to-teal-400 rounded-full mt-1.5 flex-shrink-0"></div>
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <h4 className="font-bold text-lg mb-3 text-orange-600">ALL POOLS INCLUDE</h4>
+                    <p className="text-sm">
+                      {getIncludedItems()
+                        .filter((item) => !item.startsWith("FREE"))
+                        .join(", ")}
+                    </p>
+                    <p className="text-xs mt-2 opacity-80">
+                      FREE Finish of choice (included in pool price - promotional offer)
+                    </p>
                   </div>
                 </div>
 
