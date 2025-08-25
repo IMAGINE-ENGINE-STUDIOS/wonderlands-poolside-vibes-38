@@ -178,25 +178,14 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
     return Math.round(basePrice);
   };
 
-  const getRecommendations = () => {
-    if (!pool && !customProduct) return [];
-    
-    const recommendations = [];
-    
-    if (surveyData.soilType === "sand") {
-      recommendations.push("Excellent drainage - perfect for Florida pools");
-    }
-    if (surveyData.yardSize === "large") {
-      recommendations.push("Consider adding a spa or water features");
-    }
-    if (surveyData.accessWidth === "wide") {
-      recommendations.push("Easy crane access - smoother installation");
-    }
-    
-    recommendations.push("LED lighting package recommended for Florida evenings");
-    recommendations.push("Salt water system popular in coastal Florida");
-    
-    return recommendations;
+  const getIncludedItems = () => {
+    return [
+      "LED lights",
+      "Water pump", 
+      "Waterfall",
+      "Salt system",
+      "FREE Finish of choice (included in pool price - promotional offer)"
+    ];
   };
 
   const saveQuotationToDatabase = async () => {
@@ -213,7 +202,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
     setIsSaving(true);
     try {
       const quoteAmount = calculateQuote();
-      const recommendations = getRecommendations();
+      const recommendations = getIncludedItems();
       
       const quotationData = {
         user_id: user.id,
@@ -824,12 +813,12 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
                       </div>
                     </div>
                     <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
-                      <h5 className="font-semibold mb-2">Our Recommendations</h5>
+                      <h5 className="font-semibold mb-2">ITEMS INCLUDED</h5>
                       <ul className="text-sm space-y-1">
-                        {getRecommendations().map((rec, index) => (
+                        {getIncludedItems().map((item, index) => (
                           <li key={index} className="flex items-start gap-2">
                             <div className="w-2 h-2 bg-gradient-to-r from-orange-400 to-teal-400 rounded-full mt-1.5 flex-shrink-0"></div>
-                            <span>{rec}</span>
+                            <span>{item}</span>
                           </li>
                         ))}
                       </ul>
