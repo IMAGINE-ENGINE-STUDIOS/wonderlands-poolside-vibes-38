@@ -10,6 +10,7 @@ import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Awa
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import ImageEditor from "./ImageEditor";
 import { useShoppingCart } from "./ShoppingCart";
+import ImageCard from "./ImageCard";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { spas } from "./PoolCatalog";
 import { tanningLedges } from "@/data/poolData";
@@ -445,10 +446,12 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
         onClick={handleImageClick}
       >
         {currentPoolImage ? (
-          <img 
+          <ImageCard 
             src={currentPoolImage} 
             alt={pool.model}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105"
+            className="w-full h-full"
+            objectFit="cover"
+            enableZoom={true}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
@@ -831,7 +834,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                                 : 'border-border hover:border-coral/50'
                             }`}
                           >
-                            <img src={heater.image} alt={heater.name} className="w-8 h-8 rounded object-cover" />
+                            <ImageCard src={heater.image} alt={heater.name} className="w-8 h-8 rounded" objectFit="cover" enableZoom={false} />
                             <div className="flex-1 text-left">
                               <div>{heater.name}</div>
                               <div className="text-xs text-muted-foreground">${heater.price.toLocaleString()}</div>
@@ -910,7 +913,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                               }`}
                             >
                               {spa.image && (
-                                <img src={spa.image} alt={spa.model} className="w-8 h-8 rounded object-cover" />
+                                <ImageCard src={spa.image} alt={spa.model} className="w-8 h-8 rounded" objectFit="cover" enableZoom={false} />
                               )}
                               <div className="flex-1 text-left">
                                 <div>{spa.model}</div>
@@ -950,7 +953,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                                   : 'border-border hover:border-coral/50'
                               }`}
                             >
-                              <img src={ledge.image} alt={ledge.name} className="w-8 h-8 rounded object-cover" />
+                              <ImageCard src={ledge.image} alt={ledge.name} className="w-8 h-8 rounded" objectFit="cover" enableZoom={false} />
                               <div className="flex-1 text-left">
                                 <div>{ledge.name}</div>
                                 <div className="text-xs text-muted-foreground">${ledge.price.toLocaleString()}</div>
@@ -996,7 +999,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                                    : 'border-border hover:border-orange/50'
                                }`}
                              >
-                               <img src={enclosure.image} alt={enclosure.name} className="w-8 h-8 rounded object-cover" />
+                               <ImageCard src={enclosure.image} alt={enclosure.name} className="w-8 h-8 rounded" objectFit="cover" enableZoom={false} />
                                <div className="flex-1 text-left">
                                  <div>{enclosure.name}</div>
                                  <div className="text-xs text-muted-foreground">${enclosure.basePrice}/sq ft (${enclosure.premiumPrice}/sq ft two-story)</div>

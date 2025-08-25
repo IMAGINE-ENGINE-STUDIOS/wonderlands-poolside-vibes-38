@@ -8,6 +8,7 @@ import { Calculator, Home, Shield, Star } from "lucide-react";
 import { screenEnclosures, ScreenEnclosure } from "@/data/screenEnclosureData";
 import { useShoppingCart } from "./ShoppingCart";
 import { useToast } from "@/hooks/use-toast";
+import ImageCard from "./ImageCard";
 
 const ScreenEnclosuresSection = () => {
   const [selectedEnclosure, setSelectedEnclosure] = useState<ScreenEnclosure | null>(null);
@@ -119,10 +120,12 @@ const ScreenEnclosuresSection = () => {
                       <div className="font-semibold">Single Story: ${enclosure.basePrice}/sq ft</div>
                       <div className="font-semibold">Two Story: ${enclosure.premiumPrice}/sq ft</div>
                     </div>
-                    <img 
+                    <ImageCard 
                       src={enclosure.image} 
                       alt={enclosure.name}
-                      className="w-20 h-16 object-cover rounded-lg"
+                      className="w-20 h-16 rounded-lg"
+                      objectFit="cover"
+                      enableZoom={false}
                     />
                   </div>
                   <div className="space-y-1">

@@ -14,6 +14,7 @@ import PoolCustomizationOptions from "./PoolCustomizationOptions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
+import ImageCard from "./ImageCard";
 
 
 interface Pool {
@@ -674,7 +675,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
               <div className="bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400 p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <img src="/lovable-uploads/e2ff3f3a-79d1-402e-b0c6-dcea2d4e720a.png" alt="Wonderlands Logo" className="h-16 w-16" />
+                    <ImageCard src="/lovable-uploads/e2ff3f3a-79d1-402e-b0c6-dcea2d4e720a.png" alt="Wonderlands Logo" className="h-16 w-16" enableZoom={false} />
                     <div>
                       <h1 className="text-2xl font-bold">POOL QUOTATION</h1>
                       <p className="text-orange-100">Your Dream Pool Awaits</p>
@@ -778,7 +779,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                   <div>
                     {(pool?.image || customProduct?.image) && (
                       <div className="mb-4">
-                        <img src={pool?.image || customProduct?.image} alt={pool?.model || customProduct?.name} className="w-full h-48 object-cover rounded-lg border border-orange-200" />
+                        <ImageCard src={pool?.image || customProduct?.image} alt={pool?.model || customProduct?.name} className="w-full h-48 rounded-lg border border-orange-200" objectFit="cover" enableZoom={true} />
                         <p className="text-xs text-center mt-1 text-muted-foreground">{pool?.model || customProduct?.name}</p>
                       </div>
                     )}
@@ -853,7 +854,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                             
                             return itemImage ? (
                               <div className="mb-3">
-                                <img src={itemImage} alt={item.name} className="w-full h-20 object-cover rounded-md border border-coral-200" />
+                                <ImageCard src={itemImage} alt={item.name} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
                               </div>
                             ) : null;
                           })()}

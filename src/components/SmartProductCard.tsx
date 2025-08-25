@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import ProductOptionsManager, { ProductCategory } from './ProductOptionsManager';
 import { Edit, ShoppingCart, DollarSign, Waves } from 'lucide-react';
 import { useShoppingCart } from './ShoppingCart';
+import ImageCard from './ImageCard';
 
 interface SmartProductCardProps {
   id: string;
@@ -114,10 +115,12 @@ const SmartProductCard = ({
         {/* Product Image */}
         <div className="relative w-full h-48 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image">
           {image ? (
-            <img 
+            <ImageCard 
               src={image} 
               alt={name}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105"
+              className="w-full h-full"
+              objectFit="cover"
+              enableZoom={true}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
