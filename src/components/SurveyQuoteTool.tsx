@@ -804,6 +804,76 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                   </div>
                 )}
 
+                {/* Product Card Selected Items */}
+                {extras?.extrasBreakdown && extras.extrasBreakdown.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="font-bold text-lg mb-3 text-coral-600">Added Features from Product Card</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {extras.extrasBreakdown.map((item: any, index: number) => (
+                        <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
+                          {/* Display item image based on type */}
+                          {(() => {
+                            let itemImage = null;
+                            if (item.name.includes('Heater') || item.name.includes('Heat Pump') || item.name.includes('Gas Heater') || item.name.includes('Solar Heater')) {
+                              // Import heater images from PoolProductCard
+                              const heaterImages = {
+                                'Heat Pump - Eco Series': '/lovable-uploads/lagoon-blue-g2.jpg',
+                                'Heat Pump - Pro Series': '/lovable-uploads/ocean-blue-g3.jpg',
+                                'Gas Heater - Standard': '/lovable-uploads/sapphire-blue-g3.jpg',
+                                'Gas Heater - High Efficiency': '/lovable-uploads/night-sky-g3.jpg',
+                                'Solar Heater - Basic': '/lovable-uploads/lagoon-blue-g2.jpg',
+                                'Solar Heater - Premium': '/lovable-uploads/coastal-bronze-g3.jpg'
+                              };
+                              itemImage = heaterImages[item.name] || '/lovable-uploads/azure-blue-g2.jpg';
+                            } else if (item.name.includes('Cover')) {
+                              // Cover images
+                              const coverImages = {
+                                'Eclipse Automatic Cover': '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png',
+                                'CS3000 Safety Cover': '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png',
+                                'Infinity 4000 Smart Cover': '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png',
+                                'Atom Loop-Loc Cover': '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png'
+                              };
+                              itemImage = coverImages[item.name] || '/lovable-uploads/shale-gray-g3.jpg';
+                            } else if (item.name.includes('Spa')) {
+                              // Spa images - default spa image
+                              itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                            } else if (item.name.includes('Tanning Ledge')) {
+                              // Tanning ledge images - default image
+                              itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                            } else if (item.name.includes('Liner')) {
+                              // Liner images - default liner image
+                              itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                            } else if (item.name.includes('Jets')) {
+                              // Jets image
+                              itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                            } else {
+                              // Default image for other items
+                              itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                            }
+                            
+                            return itemImage ? (
+                              <div className="mb-3">
+                                <img src={itemImage} alt={item.name} className="w-full h-20 object-cover rounded-md border border-coral-200" />
+                              </div>
+                            ) : null;
+                          })()}
+                          <h5 className="font-semibold text-sm">{item.name}</h5>
+                          <div className="flex justify-between text-sm mt-2">
+                            <span>Price:</span>
+                            <span className="font-semibold text-coral-600">+${item.price.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 p-3 bg-gradient-to-r from-coral-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">Total Added Features:</span>
+                        <span className="font-bold text-coral-600 text-lg">+${extras.extrasTotal.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Items Included */}
                 <div className="mb-6">
                   <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg">
