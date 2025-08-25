@@ -71,6 +71,9 @@ interface PoolExtras {
   heaterModel: string;
   paverOption: string;
   copingPaverOption: string;
+  // Added for quotation breakdown
+  extrasBreakdown?: { name: string; price: number }[];
+  extrasTotal?: number;
 }
 
 const getCategoryColor = (category: string) => {
@@ -297,6 +300,31 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
     }
     
     return total;
+  };
+
+  const buildExtrasBreakdown = () => {
+    const items: { name: string; price: number }[] = [];
+    if (extras.heater) {
+      const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
+      if (selectedHeater) items.push({ name: `${selectedHeater.name}`, price: selectedHeater.price });
+    }
+    if (extras.jets) items.push({ name: `Spa Jets (${extras.jetQuantity})`, price: getExtraPrice('jets') * extras.jetQuantity });
+    const linerOption = linerOptions.find(option => option.name === extras.linerOption);
+    if (linerOption && extras.liner) items.push({ name: `${linerOption.name} Liner`, price: linerOption.price });
+    const coverOption = coverOptions.find(option => option.name === extras.coverOption);
+    if (coverOption && extras.cover && coverOption.name !== 'NO COVER') items.push({ name: coverOption.name, price: coverOption.price });
+    const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+    if (tileOption && extras.tiles) items.push({ name: tileOption.name, price: tileOption.price });
+    if (extras.spa) {
+      const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
+      if (selectedSpa) items.push({ name: `${selectedSpa.model} Spa`, price: selectedSpa.price });
+    }
+    if (extras.tanningLedge) {
+      const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
+      if (selectedLedge) items.push({ name: `${selectedLedge.name} Tanning Ledge`, price: selectedLedge.price });
+    }
+    const total = items.reduce((sum, i) => sum + i.price, 0);
+    return { items, total };
   };
 
   const hasExtras = Object.values(extras).some(value => value);
@@ -945,7 +973,10 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                   Editor Studio
                 </Button>
                 <Button 
-                  onClick={() => onRequestQuote(pool, extras)}
+                  onClick={() => {
+                    const { items, total } = buildExtrasBreakdown();
+                    onRequestQuote(pool, { ...extras, extrasBreakdown: items, extrasTotal: total });
+                  }}
                   variant="outline"
                   className="flex-1"
                   size="sm"

@@ -612,6 +612,7 @@ const PoolCatalog = () => {
   const [showSpaModal, setShowSpaModal] = useState(false);
   const [selectedTile, setSelectedTile] = useState<any>(null);
   const [showTileModal, setShowTileModal] = useState(false);
+  const [selectedExtras, setSelectedExtras] = useState<any>(null);
   const { addToCart } = useShoppingCart();
   const { toast } = useToast();
 
@@ -622,6 +623,7 @@ const PoolCatalog = () => {
 
   const handleRequestQuote = (pool: Pool, extras?: any) => {
     setSelectedPool(pool);
+    setSelectedExtras(extras || null);
     setShowDetailModal(false);
     setShowQuoteModal(true);
   };
@@ -891,6 +893,7 @@ const PoolCatalog = () => {
           setShowQuoteModal(false);
           setShowSpaModal(false);
         }}
+        extras={selectedExtras}
       />
 
       <TileDetailModal

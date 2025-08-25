@@ -37,6 +37,7 @@ interface SurveyQuoteToolProps {
   pool: Pool | null;
   isOpen: boolean;
   onClose: () => void;
+  extras?: any;
   customProduct?: {
     name: string;
     price: number;
@@ -60,7 +61,7 @@ interface SurveyData {
   deckWidth: string;
 }
 
-const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteToolProps) => {
+const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: SurveyQuoteToolProps) => {
   const { user } = useAuth();
   const [surveyData, setSurveyData] = useState<SurveyData>({
     name: "",
@@ -161,10 +162,14 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
     // Add selected options
     const optionsPrice = selectedOptions.reduce((total, option) => total + option.price, 0);
     basePrice += optionsPrice;
+
+    // Add extras from product card if provided
+    const extrasTotal = (extras as any)?.extrasTotal ? Number((extras as any).extrasTotal) : 0;
+    basePrice += extrasTotal;
     
     // Add paver costs if deck width > 3ft
     if (pool?.dimensions && parseInt(surveyData.deckWidth || "3") > 3) {
-      const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+      const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/["']/g, '')));
       const paverPrice = calculatePaverPrice(dims[0] || 0, dims[1] || 0, parseInt(surveyData.deckWidth || "3"));
       basePrice += paverPrice;
     }
