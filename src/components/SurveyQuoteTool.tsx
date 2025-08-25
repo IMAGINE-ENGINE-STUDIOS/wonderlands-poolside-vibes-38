@@ -816,16 +816,8 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                           {(() => {
                             let itemImage = null;
                             if (item.name.includes('Heater') || item.name.includes('Heat Pump') || item.name.includes('Gas Heater') || item.name.includes('Solar Heater')) {
-                              // Import heater images from PoolProductCard
-                              const heaterImages = {
-                                'Heat Pump - Eco Series': '/lovable-uploads/lagoon-blue-g2.jpg',
-                                'Heat Pump - Pro Series': '/lovable-uploads/ocean-blue-g3.jpg',
-                                'Gas Heater - Standard': '/lovable-uploads/sapphire-blue-g3.jpg',
-                                'Gas Heater - High Efficiency': '/lovable-uploads/night-sky-g3.jpg',
-                                'Solar Heater - Basic': '/lovable-uploads/lagoon-blue-g2.jpg',
-                                'Solar Heater - Premium': '/lovable-uploads/coastal-bronze-g3.jpg'
-                              };
-                              itemImage = heaterImages[item.name] || '/lovable-uploads/azure-blue-g2.jpg';
+                              // Use the standard heater image for all heater products
+                              itemImage = '/lovable-uploads/2e5049fe-1be6-48d8-b4e6-a22e92ef3ef6.png';
                             } else if (item.name.includes('Cover')) {
                               // Cover images
                               const coverImages = {
@@ -852,11 +844,11 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                               itemImage = '/lovable-uploads/azure-blue-g2.jpg';
                             }
                             
-                            return itemImage ? (
-                              <div className="mb-3">
-                                <ImageCard src={itemImage} alt={item.name} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
-                              </div>
-                            ) : null;
+                             return itemImage ? (
+                               <div className="mb-3">
+                                 <ImageCard src={itemImage} alt={item.name} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
+                               </div>
+                             ) : null;
                           })()}
                           <h5 className="font-semibold text-sm">{item.name}</h5>
                           <div className="flex justify-between text-sm mt-2">
