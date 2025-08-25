@@ -708,11 +708,24 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                   onChange={(e) => setPaverSurfaceArea(e.target.value)}
                   className="mb-2"
                 />
-                {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
-                  <div className="text-xs text-green-600 font-medium">
-                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()} (${paverSurfaceArea} sq ft × $15/sq ft)
-                  </div>
-                )}
+                  {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (() => {
+                    const inputArea = parseFloat(paverSurfaceArea);
+                    const dims = pool.dimensions ? pool.dimensions.split('x').map(d => parseFloat(d.trim().replace(/["']/g, ''))) : [] as number[];
+                    const L = dims[0] || 0; const W = dims[1] || 0;
+                    const Lp = L > 0 ? L - 1 : 0; const Wp = W > 0 ? W - 1 : 0;
+                    const included = (L > 0 && W > 0) ? ((Lp + 6) * (Wp + 6) - (Lp * Wp)) : 0;
+                    const billable = Math.max(0, inputArea - included);
+                    const price = billable * 15;
+                    return (
+                      <div className="text-xs text-green-600 font-medium space-y-1">
+                        <div>Entered Area: {inputArea.toLocaleString()} sq ft</div>
+                        {included > 0 && <div>Minus included 3ft perimeter: {included.toLocaleString()} sq ft</div>}
+                        <div>Billable Area: {billable.toLocaleString()} sq ft</div>
+                        <div>Calculated Cost: ${price.toLocaleString()} ({billable.toLocaleString()} sq ft × $15/sq ft)</div>
+                      </div>
+                    );
+                  })()}
+
               </div>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
