@@ -799,30 +799,18 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
                   </div>
                 )}
 
-                {/* Property Analysis */}
+                {/* Items Included */}
                 <div className="mb-6">
-                  <h4 className="font-bold text-lg mb-3 text-orange-600">Property Analysis & Recommendations</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-gradient-to-br from-orange-100 to-teal-100 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg">
-                      <h5 className="font-semibold mb-2">Property Details</h5>
-                      <div className="text-sm space-y-1">
-                        <p><span className="font-medium">Yard Size:</span> {surveyData.yardSize}</p>
-                        <p><span className="font-medium">Soil Type:</span> {surveyData.soilType}</p>
-                        <p><span className="font-medium">Access Width:</span> {surveyData.accessWidth}</p>
-                        <p><span className="font-medium">Timeline:</span> {surveyData.timeline}</p>
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
-                      <h5 className="font-semibold mb-2">ITEMS INCLUDED</h5>
-                      <ul className="text-sm space-y-1">
-                        {getIncludedItems().map((item, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <div className="w-2 h-2 bg-gradient-to-r from-orange-400 to-teal-400 rounded-full mt-1.5 flex-shrink-0"></div>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                  <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg">
+                    <h4 className="font-bold text-lg mb-3 text-orange-600">ITEMS INCLUDED</h4>
+                    <ul className="text-sm space-y-2">
+                      {getIncludedItems().map((item, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <div className="w-2 h-2 bg-gradient-to-r from-orange-400 to-teal-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
 
