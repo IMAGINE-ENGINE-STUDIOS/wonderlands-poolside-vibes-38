@@ -8,6 +8,16 @@ import { spas } from "@/data/spaData";
 export { spas };
 
 const PoolCatalog = () => {
+  const handleViewDetails = (pool: any) => {
+    console.log('View details for:', pool);
+    // Handle view details - you can implement modal or navigation here
+  };
+
+  const handleRequestQuote = (pool: any) => {
+    console.log('Request quote for:', pool);
+    // Handle quote request - you can implement quote modal here
+  };
+
   return (
     <section className="py-12 bg-white" data-pool-catalog-section>
       <div className="container mx-auto text-center">
@@ -28,6 +38,8 @@ const PoolCatalog = () => {
                 depth: pool.depth,
                 features: pool.features
               }}
+              onViewDetails={handleViewDetails}
+              onRequestQuote={handleRequestQuote}
             />
           ))}
         </div>

@@ -4,9 +4,23 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Package, DollarSign, Star } from "lucide-react";
-import type { Product } from "./ProductCatalog";
 import { openQuotePreview } from "@/utils/quoteNavigation";
 import ImageCard from "./ImageCard";
+
+interface Product {
+  id: string;
+  name?: string;
+  model?: string;
+  price: number;
+  category: string;
+  image?: string;
+  dimensions?: string;
+  depth?: string;
+  features?: string[];
+  type?: string;
+  description?: string;
+  specifications?: string;
+}
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -43,7 +57,7 @@ const ProductDetailModal = ({ product, isOpen, onClose, onRequestQuote }: Produc
               ))}
             </div>
           </div>
-          <DialogTitle className="text-2xl font-bold">{product.name}</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">{product.name || product.model}</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -53,7 +67,7 @@ const ProductDetailModal = ({ product, isOpen, onClose, onRequestQuote }: Produc
               {product.image ? (
                 <ImageCard 
                   src={product.image} 
-                  alt={product.name}
+                  alt={product.name || product.model || 'Product'}
                   className="w-full h-full object-cover"
                   enableZoom={false}
                   objectFit="cover"
@@ -139,7 +153,7 @@ const ProductDetailModal = ({ product, isOpen, onClose, onRequestQuote }: Produc
                 size="lg"
                 className="w-full hover:scale-105 transition-all duration-300"
               >
-                Request Quote for {product.name}
+                Request Quote for {product.name || product.model}
               </Button>
             </div>
           </div>

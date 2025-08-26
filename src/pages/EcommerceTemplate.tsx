@@ -7,18 +7,29 @@ import FloridaPoolElements from "@/components/FloridaPoolElements";
 import Footer from "@/components/Footer";
 import SurveyQuoteTool from "@/components/SurveyQuoteTool";
 import DeliveryApiManager from "@/components/DeliveryApiManager";
-import type { Product } from "@/components/ProductCatalog";
 import type { Service } from "@/components/ServiceSection";
 
+// Define Product interface for EcommerceTemplate
+interface TemplateProduct {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+  dimensions: string;
+  specifications: string;
+  features: string[];
+  description: string;
+}
+
 // Sample data - replace with your own products
-const sampleProducts: Product[] = [
+const sampleProducts: TemplateProduct[] = [
   {
     id: "1",
     name: "Premium Collection Item",
     price: 2999,
     category: "premium",
     dimensions: "Large Size",
-    specifications: "High Quality",
+    specifications: "High Quality Materials",
     features: ["Feature 1", "Feature 2", "Feature 3"],
     description: "This is a premium product with exceptional quality and features."
   },
@@ -28,7 +39,7 @@ const sampleProducts: Product[] = [
     price: 1999,
     category: "standard",
     dimensions: "Medium Size",
-    specifications: "Good Quality",
+    specifications: "Good Quality Materials",
     features: ["Feature A", "Feature B", "Feature C"],
     description: "A reliable standard product that meets all your needs."
   },
@@ -38,7 +49,7 @@ const sampleProducts: Product[] = [
     price: 999,
     category: "compact",
     dimensions: "Small Size",
-    specifications: "Basic Quality",
+    specifications: "Basic Quality Materials",
     features: ["Essential Feature 1", "Essential Feature 2"],
     description: "Perfect entry-level product with essential features."
   }
@@ -70,7 +81,7 @@ const sampleServices: Service[] = [
 
 const EcommerceTemplate = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<Product | Service | null>(null);
+  const [selectedItem, setSelectedItem] = useState<TemplateProduct | Service | null>(null);
 
   const scrollToCatalog = () => {
     const catalogElement = document.getElementById('product-catalog');
@@ -79,7 +90,7 @@ const EcommerceTemplate = () => {
     }
   };
 
-  const handleQuoteRequest = (item: Product | Service) => {
+  const handleQuoteRequest = (item: TemplateProduct | Service) => {
     setSelectedItem(item);
     setShowQuoteModal(true);
   };

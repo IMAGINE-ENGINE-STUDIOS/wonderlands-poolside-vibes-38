@@ -8,7 +8,7 @@ import { poolModels, poolLiners, poolTiles, tanningLedges } from "@/data/poolDat
 import { spas } from "@/data/spaData";
 import ImageCard from "./ImageCard";
 
-export interface Product {
+interface ProductCatalogProduct {
   id: string;
   name?: string;
   model?: string;
@@ -20,15 +20,13 @@ export interface Product {
   features?: string[];
   type?: string;
   description?: string;
+  specifications?: string;
 }
-
-// Export Product type for other components
-export { type Product };
 
 interface ProductCatalogProps {
   title?: string;
   subtitle?: string;
-  products?: Product[];
+  products?: ProductCatalogProduct[];
   catalogId?: string;
   onRequestQuote?: (item: any) => void;
   DetailModalComponent?: React.ComponentType<any>;
@@ -42,7 +40,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
 }) => {
   const [selectedCategory, setSelectedCategory] = useState("pools");
 
-  const renderProductCard = (product: Product) => (
+  const renderProductCard = (product: ProductCatalogProduct) => (
     <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
       <CardHeader className="p-0">
         <div className="aspect-video relative">

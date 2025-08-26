@@ -66,7 +66,8 @@ const SpaSection = () => {
                   image: spa.image,
                   dimensions: (spa as any).dimensions,
                   depth: (spa as any).depth,
-                  features: spa.features
+                  features: spa.features,
+                  warrantyYears: typeof spa.warrantyYears === 'string' ? parseInt(spa.warrantyYears) : (spa.warrantyYears || 5)
                 }}
                 onViewDetails={handleViewDetails}
                 onRequestQuote={handleRequestQuote}
