@@ -3,12 +3,11 @@ import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DollarSign, ShoppingCart, Edit, ChevronLeft, ChevronRight } from "lucide-react";
-import ImageCard from "./ImageCard";
+import { DollarSign, ShoppingCart, Edit, ChevronLeft, ChevronRight, Clock, Shield } from "lucide-react";
 import { useShoppingCart } from "./ShoppingCart";
+import { openQuotePreview } from "@/utils/quoteNavigation";
 
 // Pool image mapping with fallback
 const poolImages: Record<string, string> = {
@@ -102,7 +101,7 @@ interface PoolProductCardProps {
 }
 
 const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQuote }: PoolProductCardProps) => {
-  const [showCustomizeModal, setShowCustomizeModal] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const [selectedTile, setSelectedTile] = useState(poolTiles[0]);
   const [selectedFinish, setSelectedFinish] = useState(poolFinishes[0]);
   const [selectedLiner, setSelectedLiner] = useState(premiumLiners[0]);
@@ -145,6 +144,29 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
     });
   };
 
+  const handleGetQuote = () => {
+    console.log('Generating quote for pool:', pool);
+    
+    const quoteData = {
+      type: 'pool' as const,
+      pool: {
+        ...pool,
+        selectedOptions: {
+          tile: selectedTile,
+          finish: selectedFinish,
+          liner: selectedLiner,
+          cover: selectedCover,
+          features: features.filter(f => f.checked),
+          paverArea: paverArea
+        },
+        totalPrice: calculateTotal()
+      }
+    };
+
+    console.log('Quote data being sent:', quoteData);
+    openQuotePreview(quoteData);
+  };
+
   const handleLyonFinance = () => {
     const total = calculateTotal();
     const financeUrl = `https://apply.lyonfinancial.net/apply?partner_id=wonderlands&amount=${total}&product=pool`;
@@ -152,122 +174,86 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
   };
 
   return (
-    <>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white">
-        <div className="relative">
-          <div className="aspect-video bg-gray-100">
-            <img
-              src={getPoolImage(pool.model)}
-              alt={pool.model}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                console.log(`Failed to load image for ${pool.model}:`, e);
-                e.currentTarget.src = "/lovable-uploads/jamaica.jpg";
-              }}
-            />
-          </div>
-          
-          <Badge className="absolute top-3 left-3 bg-gradient-to-r from-pink-400 to-orange-400 text-white font-medium capitalize">
-            {pool.category || 'Standard'}
-          </Badge>
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white">
+      <div className="relative">
+        <div className="aspect-video bg-gray-100">
+          <img
+            src={getPoolImage(pool.model)}
+            alt={pool.model}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              console.log(`Failed to load image for ${pool.model}:`, e);
+              e.currentTarget.src = "/lovable-uploads/jamaica.jpg";
+            }}
+          />
         </div>
         
-        <CardContent className="p-4 space-y-3">
-          <div>
-            <h3 className="text-xl font-bold text-gray-900">{pool.model}</h3>
-            <div className="flex items-center gap-2 mt-1">
-              <DollarSign className="h-4 w-4 text-teal-500" />
-              <span className="text-xl font-bold text-gray-900">
+        <Badge className="absolute top-3 left-3 bg-gradient-to-r from-pink-400 to-orange-400 text-white font-medium capitalize">
+          {pool.category || 'Standard'}
+        </Badge>
+      </div>
+      
+      <CardContent className="p-4 space-y-3">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900">{pool.model}</h3>
+          <div className="flex items-center gap-2 mt-1">
+            <DollarSign className="h-4 w-4 text-teal-500" />
+            <span className="text-xl font-bold text-gray-900">
+              ${calculateTotal().toLocaleString()}
+            </span>
+            {calculateTotal() > pool.price && (
+              <span className="text-sm text-gray-500 line-through ml-2">
                 ${pool.price.toLocaleString()}
               </span>
-              {pool.price > 50000 && (
-                <span className="text-sm text-gray-500 line-through ml-2">
-                  ${(pool.price + 5000).toLocaleString()}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-teal-600">
-              <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
-              <span>Salt system included in final price</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-blue-600">
-              <div className="w-2 h-2 bg-blue-500 rounded-full border-2 border-white shadow"></div>
-              <span>Carbon Fiber Technology</span>
-            </div>
-          </div>
-
-          {pool.dimensions && (
-            <div className="text-sm text-gray-600 space-y-1">
-              <div>Dimensions: {pool.dimensions}</div>
-              <div>Depth: {pool.depth}</div>
-              <div>Includes: 3 ft perimeter pavers around pool area</div>
-              <div>⏱ Installation: 4 weeks</div>
-              <div className="text-blue-500">🛡 Warranty: LIFETIME WARRANTY</div>
-            </div>
-          )}
-
-          <div className="flex gap-2 pt-2">
-            {isAdmin && (
-              <Button variant="outline" size="sm" className="flex-1">
-                <Edit className="h-4 w-4 mr-1" />
-                Editor Studio
-              </Button>
             )}
-            <Button 
-              onClick={() => setShowCustomizeModal(true)}
-              className="flex-1 bg-teal-500 hover:bg-teal-600 text-white"
-            >
-              View Details
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm text-teal-600">
+            <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+            <span>Salt system included in final price</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-blue-600">
+            <div className="w-2 h-2 bg-blue-500 rounded-full border-2 border-white shadow"></div>
+            <span>Carbon Fiber Technology</span>
+          </div>
+        </div>
+
+        {pool.dimensions && (
+          <div className="text-sm text-gray-600 space-y-1">
+            <div>Dimensions: {pool.dimensions}</div>
+            <div>Depth: {pool.depth}</div>
+            <div>Includes: 3 ft perimeter pavers around pool area</div>
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              <span>Installation: 4 weeks</span>
+            </div>
+            <div className="flex items-center gap-1 text-blue-500">
+              <Shield className="h-3 w-3" />
+              <span className="font-medium">Warranty: LIFETIME WARRANTY</span>
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-2 pt-2">
+          {isAdmin && (
+            <Button variant="outline" size="sm" className="flex-1">
+              <Edit className="h-4 w-4 mr-1" />
+              Editor Studio
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+          )}
+          <Button 
+            onClick={() => setShowDetails(!showDetails)}
+            className="flex-1 bg-teal-500 hover:bg-teal-600 text-white"
+          >
+            View Details
+          </Button>
+        </div>
 
-      {/* Customize Modal */}
-      <Dialog open={showCustomizeModal} onOpenChange={setShowCustomizeModal}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto p-0">
-          <div className="sticky top-0 bg-white z-10 p-4 border-b">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">{pool.model}</h2>
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-teal-500" />
-                  <span className="text-lg font-bold">
-                    ${calculateTotal().toLocaleString()}
-                  </span>
-                  {pool.price > 50000 && (
-                    <span className="text-sm text-gray-500 line-through">
-                      ${(pool.price + 5000).toLocaleString()}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-3 space-y-2">
-              <div className="flex items-center gap-2 text-sm text-teal-600">
-                <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
-                <span>Salt system included in final price</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-blue-600">
-                <div className="w-2 h-2 bg-blue-500 rounded-full border-2 border-white shadow"></div>
-                <span>Carbon Fiber Technology</span>
-              </div>
-            </div>
-
-            <div className="mt-3 text-sm text-gray-600 space-y-1">
-              <div>Dimensions: {pool.dimensions}</div>
-              <div>Depth: {pool.depth}</div>
-              <div>Includes: 3 ft perimeter pavers around pool area</div>
-              <div>⏱ Installation: 4 weeks</div>
-              <div className="text-blue-500">🛡 Warranty: LIFETIME WARRANTY</div>
-            </div>
-          </div>
-          
-          <div className="p-4 space-y-6">
+        {/* Expanded Details Section */}
+        {showDetails && (
+          <div className="space-y-6 pt-4 border-t animate-in slide-in-from-top-2 duration-300">
             {/* Pool Tiles Section */}
             <div>
               <h3 className="text-lg font-semibold mb-3">Pool Tiles</h3>
@@ -418,74 +404,77 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Bottom Action Buttons */}
-          <div className="sticky bottom-0 bg-white border-t p-4 space-y-3">
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1">
-                Editor Studio
-              </Button>
-              <Button variant="outline" className="flex-1">
-                Download Quote
-              </Button>
-            </div>
-            
-            <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                onClick={handleAddToCart}
-                className="flex items-center gap-2"
-              >
-                <ShoppingCart className="h-4 w-4" />
-                Cart
-              </Button>
-              <Button 
-                onClick={handleAddToCart}
-                className="flex-1 bg-teal-500 hover:bg-teal-600 text-white"
-              >
-                Buy Now - ${calculateTotal().toLocaleString()}
-              </Button>
-            </div>
-
-            {/* Finance Section */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold">Finance This Purchase</h4>
-                <button className="text-sm text-gray-500">Hide Options</button>
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1">
+                  Editor Studio
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={handleGetQuote}
+                >
+                  Download Quote
+                </Button>
               </div>
               
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <div className="text-center p-2 border rounded">
-                  <div className="font-semibold">12 Months</div>
-                  <div className="text-sm text-gray-600">
-                    ${Math.round(calculateTotal() / 12).toLocaleString()}/mo
-                  </div>
-                </div>
-                <div className="text-center p-2 border rounded">
-                  <div className="font-semibold">24 Months</div>
-                  <div className="text-sm text-gray-600">
-                    ${Math.round(calculateTotal() / 24).toLocaleString()}/mo
-                  </div>
-                </div>
+              <div className="flex gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={handleAddToCart}
+                  className="flex items-center gap-2"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  Cart
+                </Button>
+                <Button 
+                  onClick={handleAddToCart}
+                  className="flex-1 bg-teal-500 hover:bg-teal-600 text-white"
+                >
+                  Buy Now - ${calculateTotal().toLocaleString()}
+                </Button>
               </div>
 
-              <Button 
-                onClick={handleLyonFinance}
-                variant="outline" 
-                className="w-full"
-              >
-                Apply with Lyon Financial
-              </Button>
-              
-              <p className="text-xs text-gray-500 mt-1 text-center">
-                *Financing subject to credit approval. APR varies.
-              </p>
+              {/* Finance Section */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold">Finance This Purchase</h4>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div className="text-center p-2 border rounded">
+                    <div className="font-semibold">12 Months</div>
+                    <div className="text-sm text-gray-600">
+                      ${Math.round(calculateTotal() / 12).toLocaleString()}/mo
+                    </div>
+                  </div>
+                  <div className="text-center p-2 border rounded">
+                    <div className="font-semibold">24 Months</div>
+                    <div className="text-sm text-gray-600">
+                      ${Math.round(calculateTotal() / 24).toLocaleString()}/mo
+                    </div>
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={handleLyonFinance}
+                  variant="outline" 
+                  className="w-full"
+                >
+                  Apply with Lyon Financial
+                </Button>
+                
+                <p className="text-xs text-gray-500 mt-1 text-center">
+                  *Financing subject to credit approval. APR varies.
+                </p>
+              </div>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-    </>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
