@@ -13,7 +13,7 @@ const Header = () => {
   const location = useLocation();
   const { user } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
-  const { items } = useShoppingCart();
+  const { cartItems, getCartCount } = useShoppingCart();
   
   const navItems = [
     { name: "Home", path: "/" },
@@ -65,9 +65,9 @@ const Header = () => {
               <Link to="/quote-preview" className="relative">
                 <Button variant="ghost" size="sm" className="relative">
                   <CartIcon className="h-5 w-5" />
-                  {items.length > 0 && (
+                  {getCartCount() > 0 && (
                     <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
-                      {items.length}
+                      {getCartCount()}
                     </Badge>
                   )}
                 </Button>
