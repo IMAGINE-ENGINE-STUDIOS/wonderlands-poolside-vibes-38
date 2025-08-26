@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { optimizeImageUrl } from '@/utils/imageOptimization';
 
 interface ImageCardProps {
   src: string;
@@ -27,7 +28,7 @@ const ImageCard = React.forwardRef<HTMLDivElement, ImageCardProps>(({
   objectFit = 'cover',
   enableZoom = true,
   zoomScale = 2,
-  quality = 85,
+  quality = 90,
   placeholder = 'blur',
   loading = 'lazy',
   onLoad,
@@ -39,7 +40,7 @@ const ImageCard = React.forwardRef<HTMLDivElement, ImageCardProps>(({
   const [isError, setIsError] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [isZooming, setIsZooming] = useState(false);
-  const [optimizedSrc, setOptimizedSrc] = useState(src);
+  const [optimizedSrc, setOptimizedSrc] = useState(() => optimizeImageUrl(src, quality));
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -168,7 +169,7 @@ const ImageCard = React.forwardRef<HTMLDivElement, ImageCardProps>(({
         {/* Main image */}
         <img
           ref={imageRef}
-          src={src}
+          src={optimizedSrc}
           alt={alt}
           loading={loading}
           style={imageStyle}
