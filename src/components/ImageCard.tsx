@@ -12,11 +12,13 @@ export default function ImageCard({
   alt,
   className,
   enableZoom = false,
+  objectFit = "cover",
 }: {
   src?: string;
   alt?: string;
   className?: string;
   enableZoom?: boolean;
+  objectFit?: React.CSSProperties["objectFit"];
 }) {
   const [loadedSrc, setLoadedSrc] = useState<string | undefined>(src);
   const [error, setError] = useState(false);
@@ -41,7 +43,7 @@ export default function ImageCard({
       decoding="async"
       sizes="(max-width: 768px) 100vw, 50vw"
       onError={handleError}
-      style={{ objectFit: "cover", width: "100%", height: "100%", display: "block" }}
+      style={{ objectFit, width: "100%", height: "100%", display: "block" }}
     />
   );
 }
