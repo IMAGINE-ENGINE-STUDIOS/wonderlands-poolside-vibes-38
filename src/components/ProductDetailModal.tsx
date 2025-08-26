@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Package, DollarSign, Star } from "lucide-react";
 import type { Product } from "./ProductCatalog";
 import { openQuotePreview } from "@/utils/quoteNavigation";
+import ImageCard from "./ImageCard";
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -49,10 +51,12 @@ const ProductDetailModal = ({ product, isOpen, onClose, onRequestQuote }: Produc
           <div className="space-y-4">
             <div className="w-full h-80 bg-gradient-to-br from-primary/20 to-teal/20 rounded-lg overflow-hidden">
               {product.image ? (
-                <img 
+                <ImageCard 
                   src={product.image} 
                   alt={product.name}
                   className="w-full h-full object-cover"
+                  enableZoom={false}
+                  objectFit="cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">

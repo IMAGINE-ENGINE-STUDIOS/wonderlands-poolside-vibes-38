@@ -1,5 +1,7 @@
+
 /**
- * Image optimization utility for automatic compression to 90% quality
+ * Image optimization utility for automatic compression
+ * Default quality reduced to 70 for better performance.
  */
 
 export const optimizeImageUrl = (originalUrl: string, quality: number = 90): string => {
@@ -19,9 +21,16 @@ export const optimizeImageUrl = (originalUrl: string, quality: number = 90): str
   return originalUrl;
 };
 
+/**
+ * Creates an optimized data URL from an existing image.
+ * - Default quality now 70
+ * - Scales down to a max dimension for significant size reduction
+ * - Uses WEBP when supported, otherwise JPEG
+ */
 export const createOptimizedImage = async (
   originalImageUrl: string, 
-  quality: number = 90
+  quality: number = 70,
+  maxDimension: number = 1600
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -35,14 +44,30 @@ export const createOptimizedImage = async (
         reject(new Error('Could not get canvas context'));
         return;
       }
+
+      // Scale down while preserving aspect ratio
+      const largestSide = Math.max(img.width, img.height);
+      const scale = largestSide > maxDimension ? maxDimension / largestSide : 1;
+      const targetWidth = Math.max(1, Math.round(img.width * scale));
+      const targetHeight = Math.max(1, Math.round(img.height * scale));
       
-      canvas.width = img.width;
-      canvas.height = img.height;
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
       
-      ctx.drawImage(img, 0, 0);
-      
-      // Convert to optimized data URL with specified quality
-      const optimizedDataUrl = canvas.toDataURL('image/jpeg', quality / 100);
+      // Prefer WEBP if supported
+      let optimizedDataUrl: string;
+      try {
+        const test = canvas.toDataURL('image/webp', quality / 100);
+        if (test.startsWith('data:image/webp')) {
+          optimizedDataUrl = canvas.toDataURL('image/webp', quality / 100);
+        } else {
+          optimizedDataUrl = canvas.toDataURL('image/jpeg', quality / 100);
+        }
+      } catch {
+        optimizedDataUrl = canvas.toDataURL('image/jpeg', quality / 100);
+      }
+
       resolve(optimizedDataUrl);
     };
     
@@ -54,7 +79,7 @@ export const createOptimizedImage = async (
   });
 };
 
-export const preloadOptimizedImages = (imageUrls: string[], quality: number = 90): Promise<string[]> => {
+export const preloadOptimizedImages = (imageUrls: string[], quality: number = 70): Promise<string[]> => {
   const promises = imageUrls.map(url => createOptimizedImage(url, quality));
   return Promise.all(promises);
 };

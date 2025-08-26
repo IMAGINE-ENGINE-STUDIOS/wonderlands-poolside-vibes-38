@@ -1,5 +1,6 @@
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { optimizeImageUrl } from "@/utils/imageOptimization";
 
 const Placeholder = () => (
   <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground text-sm">
@@ -23,11 +24,37 @@ export default function ImageCard({
   const [loadedSrc, setLoadedSrc] = useState<string | undefined>(src);
   const [error, setError] = useState(false);
 
-  const handleError = () => {
-    if (!error) {
-      // Final fallback to placeholder
-      setError(true);
+  // Track whether we've already tried the original as a fallback
+  const triedOriginalRef = useRef(false);
+
+  // Compute preferred (optimized) URL for lovable-uploads
+  const preferredSrc = useMemo(() => {
+    if (!src) return undefined;
+    try {
+      return optimizeImageUrl(src);
+    } catch {
+      return src;
     }
+  }, [src]);
+
+  // When src changes, try the optimized version first (if different), otherwise the original
+  useEffect(() => {
+    setError(false);
+    triedOriginalRef.current = !preferredSrc || preferredSrc === src;
+    setLoadedSrc(preferredSrc || src);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src, preferredSrc]);
+
+  const handleError = () => {
+    // If the optimized failed and we haven't tried the original yet, try original
+    if (!triedOriginalRef.current && src) {
+      triedOriginalRef.current = true;
+      setLoadedSrc(src);
+      setError(false);
+      return;
+    }
+    // Final fallback to placeholder
+    setError(true);
   };
 
   if (!loadedSrc || error) {
