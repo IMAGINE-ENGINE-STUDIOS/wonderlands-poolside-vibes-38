@@ -8,12 +8,12 @@ export const optimizeImageUrl = (originalUrl: string, quality: number = 90): str
     return originalUrl;
   }
   
-  // Add optimization suffix to internal images
+  // For lovable-uploads, prefer the "-optimized" variant without quality suffix
   const parts = originalUrl.split('.');
   if (parts.length > 1) {
     const extension = parts.pop();
     const basePath = parts.join('.');
-    return `${basePath}-optimized-${quality}.${extension}`;
+    return `${basePath}-optimized.${extension}`;
   }
   
   return originalUrl;
