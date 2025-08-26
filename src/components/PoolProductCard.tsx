@@ -1,1232 +1,824 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import React, { useState, useEffect } from "react";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useNavigate } from "react-router-dom";
+import ImageCard from "@/components/ImageCard";
 
-import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu, Edit, ShoppingCart, Sun } from "lucide-react";
-import StripeCheckoutButton from "./StripeCheckoutButton";
-import ImageEditor from "./ImageEditor";
-import { useShoppingCart } from "./ShoppingCart";
-import ImageCard from "./ImageCard";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { spas } from "./PoolCatalog";
-import { tanningLedges } from "@/data/poolData";
-import { paverTypes, copingTypes } from "@/data/paverData";
-import { supabase } from "@/integrations/supabase/client";
-import { openQuotePreview } from "@/utils/quoteNavigation";
+const PoolSchema = z.object({
+  model: z.string().min(2, {
+    message: "Pool model must be at least 2 characters.",
+  }),
+  dimensions: z.string().min(2, {
+    message: "Pool dimensions must be at least 2 characters.",
+  }),
+  depth: z.string().min(2, {
+    message: "Pool depth must be at least 2 characters.",
+  }),
+  price: z.number().min(1, {
+    message: "Pool price must be at least 1.",
+  }),
+  image: z.string().url({
+    message: "Please enter a valid URL.",
+  }),
+});
 
-import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
-import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
-import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
-import nightSkyFinish from '@/assets/finishes/night-sky-g3.jpg';
-import athensPearlFinish from '@/assets/finishes/athens-pearl-white-g3.jpg';
-import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
-import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
-import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
-import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
+const FinishSchema = z.object({
+  name: z.string().min(2, {
+    message: "Finish name must be at least 2 characters.",
+  }),
+  description: z.string().min(2, {
+    message: "Finish description must be at least 2 characters.",
+  }),
+  image: z.string().url({
+    message: "Please enter a valid URL.",
+  }),
+});
+
+const TileSchema = z.object({
+  name: z.string().min(2, {
+    message: "Tile name must be at least 2 characters.",
+  }),
+  description: z.string().min(2, {
+    message: "Tile description must be at least 2 characters.",
+  }),
+  image: z.string().url({
+    message: "Please enter a valid URL.",
+  }),
+});
+
+const LinerSchema = z.object({
+  name: z.string().min(2, {
+    message: "Liner name must be at least 2 characters.",
+  }),
+  description: z.string().min(2, {
+    message: "Liner description must be at least 2 characters.",
+  }),
+  image: z.string().url({
+    message: "Please enter a valid URL.",
+  }),
+});
+
+const PaverSchema = z.object({
+  name: z.string().min(2, {
+    message: "Paver name must be at least 2 characters.",
+  }),
+  description: z.string().min(2, {
+    message: "Paver description must be at least 2 characters.",
+  }),
+  image: z.string().url({
+    message: "Please enter a valid URL.",
+  }),
+});
 
 interface Pool {
   model: string;
+  dimensions: string;
+  depth: string;
   price: number;
-  category: 'premium' | 'deluxe' | 'standard' | 'compact';
-  image?: string;
-  dimensions?: string;
-  depth?: string;
-  features?: string[];
-  galaPoints?: number;
-  galaCategory?: string;
-  installationTimeWeeks?: number;
-  warrantyYears?: number | string;
-  heater?: boolean;
-  saltSystem?: boolean;
-  carbonFiber?: boolean;
-  finishes?: string[];
-  liners?: string[];
-  covers?: string[];
+  image: string;
 }
 
-interface PoolProductCardProps {
-  pool: Pool;
-  onViewDetails: (pool: Pool) => void;
-  onRequestQuote: (pool: Pool, extras?: PoolExtras) => void;
-  isAdmin?: boolean;
+interface Finish {
+  name: string;
+  description: string;
+  image: string;
 }
 
-interface PoolExtras {
-  liner: boolean;
-  heater: boolean;
-  cover: boolean;
-  jets: boolean;
-  jetQuantity: number;
-  finish: string;
-  linerOption: string;
-  coverOption: string;
-  tiles: boolean;
-  tileOption: string;
-  spa: boolean;
-  spaModel: string;
-  tanningLedge: boolean;
-  tanningLedgeModel: string;
-  heaterModel: string;
-  paverOption: string;
-  copingPaverOption: string;
-  screenEnclosure: boolean;
-  screenEnclosureModel: string;
-  screenEnclosureSquareFeet: string;
-  screenEnclosureTwoStory: boolean;
-  // Added for quotation breakdown
-  extrasBreakdown?: { name: string; price: number }[];
-  extrasTotal?: number;
+interface Tile {
+  name: string;
+  description: string;
+  image: string;
 }
 
-const getCategoryColor = (category: string) => {
-  switch (category) {
-    case 'premium': return 'bg-gradient-to-r from-coral to-orange';
-    case 'deluxe': return 'bg-gradient-to-r from-primary to-teal';
-    case 'standard': return 'bg-gradient-to-r from-secondary to-accent';
-    case 'compact': return 'bg-gradient-to-r from-teal to-primary';
-    default: return 'bg-gradient-to-r from-primary to-teal';
-  }
-};
+interface Liner {
+  name: string;
+  description: string;
+  image: string;
+}
 
-const getExtraPrice = (extra: string) => {
-  switch (extra) {
-    case 'liner': return 0; // Base cost covered by liner option price
-    case 'heater': return 5000; // Pool Heater is exactly $5,000
-    case 'cover': return 3200;
-    case 'jets': return 1800;
-    case 'tiles': return 0; // Base cost covered by tile option price
-    default: return 0;
-  }
-};
+interface Paver {
+  name: string;
+  description: string;
+  image: string;
+}
 
-// Import pool finishes from PoolFinishesSection
-import { screenEnclosures } from "@/data/screenEnclosureData";
-import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
-
-// Convert pool finishes data to finish options format
-const finishOptions = poolFinishesData.map(finish => ({
-  name: finish.name,
-  color: '#4169E1', // fallback color
-  image: finish.image,
-  price: finish.price,
-  collection: finish.collection,
-  category: finish.category,
-  description: finish.description
-}));
-
-// Import pool liners from PoolCatalog
-import { poolLiners, poolTiles } from '@/data/poolData';
-
-// Pool heater options
-const poolHeaters = [
-  { name: 'Heat Pump - Eco Series', price: 4500, image: azureBlueFinish, description: 'Energy-efficient heat pump, ideal for mild climates' },
-  { name: 'Heat Pump - Pro Series', price: 5500, image: oceanBlueFinish, description: 'Professional grade heat pump with advanced controls' },
-  { name: 'Gas Heater - Standard', price: 3200, image: sapphireBlueFinish, description: 'Traditional gas heater for quick heating' },
-  { name: 'Gas Heater - High Efficiency', price: 4200, image: nightSkyFinish, description: 'High-efficiency gas heater with digital controls' },
-  { name: 'Solar Heater - Basic', price: 2800, image: lagoonBlueFinish, description: 'Eco-friendly solar heating system' },
-  { name: 'Solar Heater - Premium', price: 3800, image: coastalBronzeFinish, description: 'Advanced solar system with backup heating' }
-];
-
-// Convert pool liners to liner options format
-const linerOptions = [
-  { name: 'Standard Blue', color: '#4169E1', price: 0, image: azureBlueFinish, type: 'Standard', description: undefined },
-  ...poolLiners.map(liner => ({
-    name: liner.name,
-    color: '#4169E1', // fallback color
-    price: liner.price,
-    image: liner.image,
-    type: liner.type,
-    description: liner.description
-  }))
-];
-
-// Cover options - using real automatic covers from AutomaticCoversSection
-const coverOptions = [
-  { name: 'NO COVER', color: '#808080', price: 0, image: shaleGrayFinish, category: 'cover', description: 'No pool cover needed' },
-  { name: 'Eclipse Automatic Cover', color: '#2F4F4F', price: 16000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png', category: 'cover', description: 'High-grade PVC with dual track system and emergency manual override' },
-  { name: 'CS3000 Safety Cover', color: '#2F4F4F', price: 24000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png', category: 'cover', description: 'Multi-layer vinyl with smart automation and weather sensors' },
-  { name: 'Infinity 4000 Smart Cover', color: '#2F4F4F', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png', category: 'cover', description: 'Premium composite with AI-powered automation and solar integration' },
-  { name: 'Atom Loop-Loc Cover', color: '#2F4F4F', price: 19000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png', category: 'cover', description: 'Insulated fabric with compact design and temperature sensors' }
-];
-
-// Convert pool tiles to tile options format
-const tileOptions = [
-  { name: 'Standard Waterline', color: '#4682B4', price: 0, image: azureBlueFinish, description: undefined },
-  ...poolTiles.map(tile => ({
-    name: tile.name,
-    color: '#4682B4', // fallback color
-    price: tile.price,
-    image: tile.image,
-    description: tile.description
-  }))
-];
-
-// Convert paver data to options format with exact same pavers from PaversSection
-const paverOptions = [
-  { name: 'No Pavers', color: '#808080', price: 0, image: azureBlueFinish, description: 'No additional pavers', collection: 'none' },
-  ...paverTypes.map(paver => ({
-    name: paver.name,
-    color: '#D3D3D3', // Default color for all pavers
-    price: 0, // Base price is 0, actual cost calculated by surface area × $15/sq ft
-    image: paver.image || azureBlueFinish,
-    description: paver.description,
-    collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina') ? 'catalina' : 'standard'
-  }))
-];
-
-// Remove coping pavers entirely - no longer needed per user request
-// Convert coping data to options format with consistent $15/sq ft pricing  
-// const copingPaverOptions = [];
-
-const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false }: PoolProductCardProps) => {
-  const [showDetails, setShowDetails] = useState(false);
-  const [showImageEditor, setShowImageEditor] = useState(false);
-  const [currentPoolImage, setCurrentPoolImage] = useState(pool.image);
-  const [isEditable, setIsEditable] = useState(isAdmin);
-  const [extras, setExtras] = useState<PoolExtras>({
-    liner: false,
-    heater: false,
-    cover: false,
-    jets: false,
-    jetQuantity: 1,
-    finish: 'Nantuke',
-    linerOption: 'Standard Blue',
-    coverOption: 'NO COVER',
-    tiles: false,
-    tileOption: 'Standard Waterline',
-    spa: false,
-    spaModel: 'Mystic',
-    tanningLedge: false,
-    tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
-    heaterModel: poolHeaters[0]?.name || 'Heat Pump - Eco Series',
-    paverOption: 'No Pavers',
-    copingPaverOption: 'No Coping',
-    screenEnclosure: false,
-    screenEnclosureModel: screenEnclosures[0]?.name || 'Standard Pool Screen Enclosure',
-    screenEnclosureSquareFeet: '',
-    screenEnclosureTwoStory: false
+const PoolProductCard = () => {
+  const [pool, setPool] = useState<Pool>({
+    model: "The Laguna",
+    dimensions: "16 x 32",
+    depth: "3.5 - 7.5",
+    price: 65000,
+    image:
+      "https://wonderlands-poolside-vibes.lovable.app/lovable-uploads/f0ee9d81-bffb-4340-8f6e-c2090e67204e.png",
   });
-  
-  const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
-  const [copingSurfaceArea, setCopingSurfaceArea] = useState('');
-  const [showFinancing, setShowFinancing] = useState(false);
-  
-  const { addToCart } = useShoppingCart();
+  const [finishes, setFinishes] = useState<Finish[]>([
+    {
+      name: "Pebble Brilliance",
+      description:
+        "A stunning finish that combines natural pebbles with vibrant glass beads for a luxurious, shimmering effect.",
+      image:
+        "https://wonderlands-poolside-vibes.lovable.app/lovable-uploads/d707c6e1-8471-404f-9312-bd6773152617.png",
+    },
+    {
+      name: "Hydrazzo Classico",
+      description:
+        "A smooth, classic finish made from a blend of marble, white cement, and proprietary additives for exceptional durability and beauty.",
+      image:
+        "https://wonderlands-poolside-vibes.lovable.app/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png",
+    },
+    {
+      name: "QuartzScapes",
+      description:
+        "A premium blend of crushed quartz and polymer-modified cement, offering a wide range of colors and a naturally non-slip surface.",
+      image:
+        "https://wonderlands-poolside-vibes.lovable.app/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png",
+    },
+  ]);
+  const [selectedFinish, setSelectedFinish] = useState<Finish>(finishes[0]);
+  const [tiles, setTiles] = useState<Tile[]>([
+    {
+      name: "Porcelain Mosaic",
+      description:
+        "Durable and elegant, these tiles come in a variety of patterns and colors, perfect for adding a touch of sophistication to your pool.",
+      image:
+        "https://wonderlands-poolside-vibes.lovable.app/lovable-uploads/3ae37221-0f97-48df-addd-632c423868e2.png",
+    },
+    {
+      name: "Glass Tile Accents",
+      description:
+        "Add a touch of luxury with shimmering glass tiles, available in a range of colors and sizes to create stunning visual effects.",
+      image:
+        "https://wonderlands-poolside-vibes.lovable.app/lovable-uploads/221a9844-ee7c-4fe3-b421-a9fe99bccabf.png",
+    },
+    {
+      name: "Natural Stone Tiles",
+      description:
+        "Bring the beauty of nature to your pool with these unique stone tiles, offering a rustic and organic look.",
+      image:
+        "https://wonderlands-poolside-vibes.lovable.app/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png",
+    },
+  ]);
+  const [selectedTile, setSelectedTile] = useState<Tile>(tiles[0]);
+  const [liners, setLiners] = useState<Liner[]>([
+    {
+      name: "Heavy-Duty Vinyl Liner",
+      description:
+        "A durable and cost-effective option, these liners come in a variety of patterns and colors to suit any pool design.",
+      image:
+        "https://wonderlands-poolside-vibes.lovable.app/lovable-uploads/3929943c-2e46-426f-b155-3d79c96d7eb4.png",
+    },
+    {
+      name: "Reinforced PVC Liner",
+      description:
+        "Offering enhanced strength and resistance to chemicals and UV rays, these liners are a great choice for long-lasting performance.",
+      image:
+        "https://wonderlands-poolside-vibes.lovable.app/lovable-uploads/86678699-3f2c-4863-8a81-d8c63721e03c.png",
+    },
+    {
+      name: "Custom Patterned Liner",
+      description:
+        "Create a unique look with a custom-designed liner, featuring your choice of colors, patterns, and even logos.",
+      image:
+        "https://wonderlands-poolside-vibes.lovable.app/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.png",
+    },
+  ]);
+  const [selectedLiner, setSelectedLiner] = useState<Liner>(liners[0]);
+  const [pavers, setPavers] = useState<Paver[]>([
+    {
+      name: "Travertine Pavers",
+      description:
+        "Elegant and durable, travertine pavers offer a natural stone look that complements any pool design.",
+      image:
+        "https://wonderlands-poolside-vibes.lovable.app/lovable-uploads/c1225a37-626d-49a2-9ec4-eb0da0f10060.png",
+    },
+    {
+      name: "Concrete Pavers",
+      description:
+        "A versatile and cost-effective option, concrete pavers come in a variety of shapes, colors, and textures.",
+      image:
+        "https://wonderlands-poolside-vibes.lovable.app/lovable-uploads/de3068d3-0f04-4a3c-a2ed-f52141f36b3e.png",
+    },
+    {
+      name: "Brick Pavers",
+      description:
+        "Add a touch of classic charm with brick pavers, offering a timeless look and exceptional durability.",
+      image:
+        "https://wonderlands-poolside-vibes.lovable.app/lovable-uploads/f549e4e8-647d-4b21-8d48-441f83955c73.png",
+    },
+  ]);
+  const [selectedPaver, setSelectedPaver] = useState<Paver>(pavers[0]);
 
-  // No need to fetch from database - using static paver data with $15/sq ft pricing
+  const poolForm = useForm<z.infer<typeof PoolSchema>>({
+    resolver: zodResolver(PoolSchema),
+    defaultValues: pool,
+    mode: "onChange",
+  });
+  const finishForm = useForm<z.infer<typeof FinishSchema>>({
+    resolver: zodResolver(FinishSchema),
+    defaultValues: selectedFinish,
+    mode: "onChange",
+  });
+  const tileForm = useForm<z.infer<typeof TileSchema>>({
+    resolver: zodResolver(TileSchema),
+    defaultValues: selectedTile,
+    mode: "onChange",
+  });
+  const linerForm = useForm<z.infer<typeof LinerSchema>>({
+    resolver: zodResolver(LinerSchema),
+    defaultValues: selectedLiner,
+    mode: "onChange",
+  });
+  const paverForm = useForm<z.infer<typeof PaverSchema>>({
+    resolver: zodResolver(PaverSchema),
+    defaultValues: selectedPaver,
+    mode: "onChange",
+  });
 
-  const handleImageClick = () => {
-    setShowDetails(!showDetails);
-  };
+  useEffect(() => {
+    poolForm.reset(pool);
+  }, [pool]);
 
-  const toggleExtra = (extra: string) => {
-    setExtras(prev => {
-      // Handle tile/liner mutual exclusivity
-      if (extra === 'tiles' && !prev.tiles) {
-        // Selecting tiles, disable liner and expand details
-        setShowDetails(true);
-        return { ...prev, tiles: true, liner: false };
-      } else if (extra === 'liner' && !prev.liner) {
-        // Selecting liner, disable tiles and expand details
-        setShowDetails(true);
-        return { ...prev, liner: true, tiles: false };
-      } else if (extra === 'tiles') {
-        // Deselecting tiles
-        return { ...prev, tiles: !prev.tiles };
-      } else if (extra === 'liner') {
-        // Deselecting liner
-        return { ...prev, liner: !prev.liner };
-      } else if (extra === 'cover') {
-        const enabling = !prev.cover;
-        return enabling
-          ? { ...prev, cover: true, coverOption: coverOptions.find(o => o.name === prev.coverOption) ? prev.coverOption : 'Eclipse Automatic Cover' }
-          : { ...prev, cover: false };
-      } else if (extra === 'heater') {
-        return { ...prev, heater: !prev.heater };
-      } else if (extra === 'spa') {
-        return { ...prev, spa: !prev.spa };
-      } else if (extra === 'tanningLedge') {
-        return { ...prev, tanningLedge: !prev.tanningLedge };
-      } else if (extra === 'jets') {
-        return { ...prev, jets: !prev.jets };
-      } else if (extra === 'screenEnclosure') {
-        return { ...prev, screenEnclosure: !prev.screenEnclosure };
-      }
-      
-      return prev;
+  useEffect(() => {
+    finishForm.reset(selectedFinish);
+  }, [selectedFinish]);
+
+  useEffect(() => {
+    tileForm.reset(selectedTile);
+  }, [selectedTile]);
+
+  useEffect(() => {
+    linerForm.reset(selectedLiner);
+  }, [selectedLiner]);
+
+  useEffect(() => {
+    paverForm.reset(selectedPaver);
+  }, [selectedPaver]);
+
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handlePoolSubmit = (values: z.infer<typeof PoolSchema>) => {
+    setPool(values);
+    toast({
+      title: "Success!",
+      description: "Pool details have been updated.",
     });
   };
 
-  const calculateTotalPrice = () => {
-    let total = pool.price;
-    
-    // Add heater price if selected (dynamic price based on model)
-    if (extras.heater) {
-      const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
-      if (selectedHeater) total += selectedHeater.price;
-    }
-    if (extras.cover) total += getExtraPrice('cover');
-    if (extras.jets) total += getExtraPrice('jets') * extras.jetQuantity;
-    
-    // Add option prices (liner OR tile, never both)
-    const linerOption = linerOptions.find(option => option.name === extras.linerOption);
-    if (linerOption && extras.liner) total += linerOption.price;
-    
-    const tileOption = tileOptions.find(option => option.name === extras.tileOption);
-    if (tileOption && extras.tiles) total += tileOption.price;
-    
-    const coverOption = coverOptions.find(option => option.name === extras.coverOption);
-    if (coverOption && extras.cover && coverOption.name !== 'NO COVER') total += coverOption.price;
-
-    // Add paver prices (mandatory options)
-    const paverOption = paverOptions.find(option => option.name === extras.paverOption);
-    if (paverOption) total += paverOption.price;
-    
-    // Add calculated paver surface area cost
-    if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-      total += parseFloat(paverSurfaceArea) * 15;
-    }
-
-    // Remove coping calculations since coping options were removed
-    // const copingPaverOption = copingPaverOptions.find(option => option.name === extras.copingPaverOption);
-    // if (copingPaverOption) total += copingPaverOption.price;
-    
-    // Remove calculated coping surface area cost
-    // if (copingSurfaceArea && !isNaN(parseFloat(copingSurfaceArea))) {
-    //   total += parseFloat(copingSurfaceArea) * 15;
-    // }
-    
-    // Add spa price if selected
-    if (extras.spa) {
-      const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
-      if (selectedSpa) total += selectedSpa.price;
-    }
-
-    // Add tanning ledge price if selected
-    if (extras.tanningLedge) {
-      const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
-      if (selectedLedge) total += selectedLedge.price;
-    }
-
-    // Add screen enclosure price if selected
-    if (extras.screenEnclosure && extras.screenEnclosureSquareFeet) {
-      const selectedEnclosure = screenEnclosures.find((enclosure) => enclosure.name === extras.screenEnclosureModel);
-      if (selectedEnclosure) {
-        const sqft = parseFloat(extras.screenEnclosureSquareFeet);
-        if (!isNaN(sqft)) {
-          const pricePerSqft = extras.screenEnclosureTwoStory ? selectedEnclosure.premiumPrice : selectedEnclosure.basePrice;
-          total += sqft * pricePerSqft;
-        }
-      }
-    }
-    
-    return total;
-  };
-
-  const buildExtrasBreakdown = () => {
-    const items: { name: string; price: number }[] = [];
-    if (extras.heater) {
-      const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
-      if (selectedHeater) items.push({ name: `${selectedHeater.name}`, price: selectedHeater.price });
-    }
-    if (extras.jets) items.push({ name: `Spa Jets (${extras.jetQuantity})`, price: getExtraPrice('jets') * extras.jetQuantity });
-    const linerOption = linerOptions.find(option => option.name === extras.linerOption);
-    if (linerOption && extras.liner) items.push({ name: `${linerOption.name} Liner`, price: linerOption.price });
-    const coverOption = coverOptions.find(option => option.name === extras.coverOption);
-    if (coverOption && extras.cover && coverOption.name !== 'NO COVER') items.push({ name: coverOption.name, price: coverOption.price });
-    const tileOption = tileOptions.find(option => option.name === extras.tileOption);
-    if (tileOption && extras.tiles) items.push({ name: tileOption.name, price: tileOption.price });
-    if (extras.spa) {
-      const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
-      if (selectedSpa) items.push({ name: `${selectedSpa.model} Spa`, price: selectedSpa.price });
-    }
-    if (extras.tanningLedge) {
-      const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
-      if (selectedLedge) items.push({ name: `${selectedLedge.name} Tanning Ledge`, price: selectedLedge.price });
-    }
-    if (extras.screenEnclosure && extras.screenEnclosureSquareFeet) {
-      const selectedEnclosure = screenEnclosures.find((enclosure) => enclosure.name === extras.screenEnclosureModel);
-      if (selectedEnclosure) {
-        const sqft = parseFloat(extras.screenEnclosureSquareFeet);
-        if (!isNaN(sqft)) {
-          const pricePerSqft = extras.screenEnclosureTwoStory ? selectedEnclosure.premiumPrice : selectedEnclosure.basePrice;
-          const price = sqft * pricePerSqft;
-          items.push({ 
-            name: `${selectedEnclosure.name} (${sqft} sq ft${extras.screenEnclosureTwoStory ? ' - Two Story' : ''})`, 
-            price 
-          });
-        }
-      }
-    }
-    const total = items.reduce((sum, i) => sum + i.price, 0);
-    return { items, total };
-  };
-
-  const hasExtras = Object.values(extras).some(value => value);
-
-  const handleImageSave = (imageBlob: Blob) => {
-    // Convert blob to data URL for display
-    const reader = new FileReader();
-    reader.onload = () => {
-      setCurrentPoolImage(reader.result as string);
-    };
-    reader.readAsDataURL(imageBlob);
-  };
-
-  const handleAddToCart = () => {
-    const cartExtras = [];
-    
-    if (extras.heater) {
-      const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
-      if (selectedHeater) {
-        cartExtras.push({ name: `${selectedHeater.name}`, price: selectedHeater.price });
-      }
-    }
-    if (extras.jets) cartExtras.push({ name: `Spa Jets (${extras.jetQuantity})`, price: getExtraPrice('jets') * extras.jetQuantity });
-    
-    const linerOption = linerOptions.find(option => option.name === extras.linerOption);
-    if (linerOption && extras.liner) {
-      cartExtras.push({ name: `${linerOption.name} Liner`, price: linerOption.price });
-    }
-    
-    const coverOption = coverOptions.find(option => option.name === extras.coverOption);
-    if (coverOption && extras.cover && coverOption.name !== 'NO COVER') {
-      cartExtras.push({ name: coverOption.name, price: coverOption.price });
-    }
-    
-    const tileOption = tileOptions.find(option => option.name === extras.tileOption);
-    if (tileOption && extras.tiles) {
-      cartExtras.push({ name: tileOption.name, price: tileOption.price });
-    }
-
-    // Add paver options (always included)
-    const paverOption = paverOptions.find(option => option.name === extras.paverOption);
-    if (paverOption && paverOption.price > 0) {
-      cartExtras.push({ name: paverOption.name, price: paverOption.price });
-    }
-
-    // Remove coping paver options from cart since they were removed
-    // const copingPaverOption = copingPaverOptions.find(option => option.name === extras.copingPaverOption);
-    // if (copingPaverOption && copingPaverOption.price > 0) {
-    //   cartExtras.push({ name: copingPaverOption.name, price: copingPaverOption.price });
-    // }
-
-    if (extras.spa) {
-      const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
-      if (selectedSpa) {
-        cartExtras.push({ name: `${selectedSpa.model} Spa`, price: selectedSpa.price });
-      }
-    }
-
-    if (extras.tanningLedge) {
-      const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
-      if (selectedLedge) {
-        cartExtras.push({ name: `${selectedLedge.name} Tanning Ledge`, price: selectedLedge.price });
-      }
-    }
-
-    addToCart({
-      id: `pool_${pool.model.replace(/\s+/g, '_')}_${Date.now()}`,
-      name: pool.model,
-      price: pool.price,
-      category: pool.category,
-      image: currentPoolImage,
-      extras: cartExtras
+  const handleFinishSubmit = (values: z.infer<typeof FinishSchema>) => {
+    setSelectedFinish(values);
+    const newFinishes = finishes.map((finish) =>
+      finish.name === selectedFinish.name ? values : finish
+    );
+    setFinishes(newFinishes);
+    toast({
+      title: "Success!",
+      description: "Finish details have been updated.",
     });
+  };
+
+  const handleTileSubmit = (values: z.infer<typeof TileSchema>) => {
+    setSelectedTile(values);
+    const newTiles = tiles.map((tile) =>
+      tile.name === selectedTile.name ? values : tile
+    );
+    setTiles(newTiles);
+    toast({
+      title: "Success!",
+      description: "Tile details have been updated.",
+    });
+  };
+
+  const handleLinerSubmit = (values: z.infer<typeof LinerSchema>) => {
+    setSelectedLiner(values);
+    const newLiners = liners.map((liner) =>
+      liner.name === selectedLiner.name ? values : liner
+    );
+    setLiners(newLiners);
+    toast({
+      title: "Success!",
+      description: "Liner details have been updated.",
+    });
+  };
+
+  const handlePaverSubmit = (values: z.infer<typeof PaverSchema>) => {
+    setSelectedPaver(values);
+    const newPavers = pavers.map((paver) =>
+      paver.name === selectedPaver.name ? values : paver
+    );
+    setPavers(newPavers);
+    toast({
+      title: "Success!",
+      description: "Paver details have been updated.",
+    });
+  };
+
+  const handleCreateQuote = () => {
+    const id = Date.now();
+    sessionStorage.setItem(
+      `quote:${id}`,
+      JSON.stringify({
+        type: "pool",
+        pool: { ...pool, finish: selectedFinish, tile: selectedTile, liner: selectedLiner, paver: selectedPaver },
+      })
+    );
+    navigate(`/quote/${id}`);
   };
 
   return (
-    <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
-      {/* Edge-to-edge Pool Image at top */}
-      <div 
-        className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image"
-        onClick={handleImageClick}
-      >
-        {currentPoolImage ? (
-          <ImageCard 
-            src={currentPoolImage} 
-            alt={pool.model}
-            className="w-full h-full"
-            objectFit="cover"
-            enableZoom={true}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
-            <Waves size={48} className="text-primary/60" />
-          </div>
-        )}
-        
-        {/* Category Badge overlay */}
-        <div className="absolute top-4 left-4">
-          <Badge className={`${getCategoryColor(pool.category)} text-white capitalize font-medium px-3 py-1`}>
-            {pool.category}
-          </Badge>
-        </div>
-        
-        <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-          <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 text-white font-medium">
-            Click for Details
-          </div>
-        </div>
-        
-        {/* Image Edit Button - Only visible for admins */}
-        {isAdmin && isEditable && (
-          <Button
-            size="sm"
-            variant="secondary"
-            className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowImageEditor(true);
-            }}
-          >
-            <Edit className="h-3 w-3" />
-          </Button>
-        )}
-      </div>
-      
-      <CardContent className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
-        
-        {/* Pool Name & Collection */}
-        <div className="space-y-2">
-          <h3 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors">
-            {pool.model}
-          </h3>
-          {pool.galaCategory && (
-            <Badge variant="secondary" className="text-xs font-semibold">
-              {pool.galaCategory} Collection
-            </Badge>
-          )}
-        </div>
-        
-        {/* Price */}
-        <div className="flex items-center gap-2">
-          <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
-          <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
-            ${calculateTotalPrice().toLocaleString()}
-          </span>
-          {hasExtras && (
-            <span className="text-xs sm:text-sm text-muted-foreground line-through">
-              ${pool.price.toLocaleString()}
-            </span>
-          )}
-        </div>
-        
-        {/* Features & Tech */}
-        <div className="space-y-2">
-          {pool.saltSystem && (
-            <div className="flex items-center gap-2 text-sm">
-              <Droplets className="h-4 w-4 text-teal" />
-              <span className="font-medium">Salt system included in final price</span>
-            </div>
-          )}
-          {pool.carbonFiber && (
-            <div className="flex items-center gap-2 text-sm">
-              <Shield className="h-4 w-4 text-primary" />
-              <span className="font-medium">Carbon Fiber Technology</span>
-            </div>
-          )}
-        </div>
-        
-        {/* Basic Info */}
-        <div className="text-sm text-muted-foreground space-y-1">
-          {pool.dimensions && <p>Dimensions: {pool.dimensions}</p>}
-          {pool.depth && <p>Depth: {pool.depth}</p>}
-          <p>Includes: 3 ft perimeter pavers around pool area</p>
-          {pool.installationTimeWeeks && (
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              <span>Installation: {pool.installationTimeWeeks} weeks</span>
-            </div>
-          )}
-          {pool.warrantyYears && (
-            <div className="flex items-center gap-1">
-              <Award className="h-3 w-3" />
-              <span className="font-bold text-primary">
-                Warranty: {pool.warrantyYears === "Lifetime" || pool.warrantyYears === "Life" ? "LIFETIME WARRANTY" : `${pool.warrantyYears} years`}
-              </span>
-            </div>
-          )}
-        </div>
-        
-        {/* Expanded Details */}
-        {showDetails && (
-          <div className="space-y-4 animate-fade-in-up">
-            <Separator />
-            
-            {/* Pool Tile Options */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Pool Tiles</h4>
-              <Carousel className="w-full">
-                <CarouselContent className="-ml-1">
-                  {tileOptions.map((tile) => (
-                    <CarouselItem key={tile.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
-                      <div 
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                          extras.tileOption === tile.name ? 'border-primary bg-primary/10' : 'border-border'
-                        }`}
-                        onClick={() => setExtras(prev => ({ ...prev, tileOption: tile.name }))}
-                      >
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <img 
-                            src={tile.image} 
-                            alt={tile.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              const parent = target.parentElement;
-                              if (parent) {
-                                parent.style.backgroundColor = tile.color;
-                                target.style.display = 'none';
-                              }
-                            }}
-                          />
-                        </div>
-                        <div className="flex-1 flex flex-col justify-between min-h-0">
-                          <p className="text-xs font-medium text-center line-clamp-2">{tile.name}</p>
-                          {tile.price > 0 && (
-                            <p className="text-xs text-primary font-semibold text-center mt-1">+${tile.price.toLocaleString()}</p>
-                          )}
-                        </div>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
-              </Carousel>
-            </div>
+    <div className="container mx-auto py-10">
+      <h1 className="text-3xl font-bold mb-6">Pool Product Configurator</h1>
 
-            {/* Pool Finishing Options */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Pool Finishes</h4>
-              <Carousel className="w-full">
-                <CarouselContent className="-ml-1">
-                  {finishOptions.map((finish, idx) => (
-                    <CarouselItem key={`pool-${finish.name}-${idx}`} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
-                      <div 
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                          extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'
-                        }`}
-                        onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
-                      >
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <img 
-                            src={finish.image} 
-                            alt={finish.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              const parent = target.parentElement;
-                              if (parent) {
-                                parent.style.backgroundColor = finish.color;
-                                target.style.display = 'none';
-                              }
-                            }}
-                          />
-                        </div>
-                        <div className="flex-1 flex flex-col justify-between min-h-0">
-                          <p className="text-xs font-medium text-center line-clamp-2">{finish.name}</p>
-                          <div className="mt-1 space-y-1">
-                            <p className="text-xs text-primary text-center font-semibold">{finish.collection}</p>
-                            {finish.price && (
-                              <p className="text-xs text-foreground font-semibold text-center">+${finish.price.toLocaleString()}</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
-              </Carousel>
-            </div>
-
-            {/* Pool Liner Options */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Premium Pool Liners</h4>
-              <Carousel className="w-full">
-                <CarouselContent className="-ml-1">
-                  {linerOptions.map((liner) => (
-                    <CarouselItem key={liner.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
-                      <div 
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                          extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'
-                        }`}
-                        onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
-                      >
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <img 
-                            src={liner.image} 
-                            alt={liner.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              const parent = target.parentElement;
-                              if (parent) {
-                                parent.style.backgroundColor = liner.color;
-                                target.style.display = 'none';
-                              }
-                            }}
-                          />
-                        </div>
-                        <div className="flex-1 flex flex-col justify-between min-h-0">
-                          <p className="text-xs font-medium text-center line-clamp-2">{liner.name}</p>
-                          <div className="mt-1 space-y-1">
-                            {liner.type && liner.type !== 'Standard' && (
-                              <p className="text-xs text-primary text-center font-semibold">{liner.type}</p>
-                            )}
-                            {liner.price > 0 && (
-                              <p className="text-xs text-foreground font-semibold text-center">+${liner.price.toLocaleString()}</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
-              </Carousel>
-            </div>
-
-            {/* Pavers Options */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Pavers & Surface Area Calculator</h4>
-              <div className="mb-3">
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                  Paver Surface Area (sq ft)
-                </label>
-                <Input
-                  type="number"
-                  placeholder="Enter surface area for pavers"
-                  value={paverSurfaceArea}
-                  onChange={(e) => setPaverSurfaceArea(e.target.value)}
-                  className="mb-2"
-                />
-                  {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (() => {
-                    const inputArea = parseFloat(paverSurfaceArea);
-                    const dims = pool.dimensions ? pool.dimensions.split('x').map(d => parseFloat(d.trim().replace(/["']/g, ''))) : [] as number[];
-                    const L = dims[0] || 0; const W = dims[1] || 0;
-                    const Lp = L > 0 ? L - 1 : 0; const Wp = W > 0 ? W - 1 : 0;
-                    const included = (L > 0 && W > 0) ? ((Lp + 6) * (Wp + 6) - (Lp * Wp)) : 0;
-                    const billable = Math.max(0, inputArea - included);
-                    const price = billable * 15;
-                    return (
-                      <div className="text-xs text-green-600 font-medium space-y-1">
-                        <div>Entered Area: {inputArea.toLocaleString()} sq ft</div>
-                        {included > 0 && <div>Minus included 3ft perimeter: {included.toLocaleString()} sq ft</div>}
-                        <div>Billable Area: {billable.toLocaleString()} sq ft</div>
-                        <div>Calculated Cost: ${price.toLocaleString()} ({billable.toLocaleString()} sq ft × $15/sq ft)</div>
-                      </div>
-                    );
-                  })()}
-
-              </div>
-              <Carousel className="w-full">
-                <CarouselContent className="-ml-1">
-                  {paverOptions.map((paver) => (
-                    <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
-                      <div 
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                          extras.paverOption === paver.name ? 'border-primary bg-primary/10' : 'border-border'
-                        }`}
-                        onClick={() => setExtras(prev => ({ ...prev, paverOption: paver.name }))}
-                      >
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <img 
-                            src={paver.image} 
-                            alt={paver.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              const parent = target.parentElement;
-                              if (parent) {
-                                parent.style.backgroundColor = paver.color;
-                                target.style.display = 'none';
-                              }
-                            }}
-                          />
-                        </div>
-                        <div className="flex-1 flex flex-col justify-between min-h-0">
-                          <p className="text-xs font-medium text-center line-clamp-2">{paver.name}</p>
-                          {paver.price > 0 && (
-                            <p className="text-xs text-primary font-semibold text-center mt-1">+${paver.price.toLocaleString()}</p>
-                          )}
-                        </div>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
-              </Carousel>
-            </div>
-
-            {/* Coping Pavers Options - REMOVED AS REQUESTED */}
-            {/* User requested removal of coping options */}
-
-            {/* Cover Options */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Cover Options</h4>
-              <Carousel className="w-full">
-                <CarouselContent className="-ml-1">
-                  {coverOptions.map((cover) => (
-                    <CarouselItem key={cover.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
-                      <div 
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                          extras.coverOption === cover.name ? 'border-primary bg-primary/10' : 'border-border'
-                        }`}
-                        onClick={() => setExtras(prev => ({ ...prev, coverOption: cover.name }))}
-                      >
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <img 
-                            src={cover.image} 
-                            alt={cover.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              const parent = target.parentElement;
-                              if (parent) {
-                                parent.style.backgroundColor = cover.color;
-                                target.style.display = 'none';
-                              }
-                            }}
-                          />
-                        </div>
-                        <div className="flex-1 flex flex-col justify-between min-h-0">
-                          <p className="text-xs font-medium text-center line-clamp-2">{cover.name}</p>
-                          {cover.price > 0 && (
-                            <p className="text-xs text-primary font-semibold text-center mt-1">+${cover.price.toLocaleString()}</p>
-                          )}
-                        </div>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
-              </Carousel>
-            </div>
-
-            {/* Add-ons */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Additional Features</h4>
-              
-              <div className="grid grid-cols-1 gap-3">
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox 
-                    checked={extras.heater}
-                    onCheckedChange={() => toggleExtra('heater')}
-                    className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
+      <Tabs defaultValue="pool" className="w-[400px]">
+        <TabsList>
+          <TabsTrigger value="pool">Pool</TabsTrigger>
+          <TabsTrigger value="finish">Finish</TabsTrigger>
+          <TabsTrigger value="tile">Tile</TabsTrigger>
+          <TabsTrigger value="liner">Liner</TabsTrigger>
+          <TabsTrigger value="paver">Paver</TabsTrigger>
+        </TabsList>
+        <TabsContent value="pool">
+          <Card>
+            <CardHeader>
+              <CardTitle>Pool Details</CardTitle>
+              <CardDescription>
+                Configure the basic details of the pool.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...poolForm}>
+                <form
+                  onSubmit={poolForm.handleSubmit(handlePoolSubmit)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={poolForm.control}
+                    name="model"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Model</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Pool Model" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                  <div className="flex items-center space-x-1">
-                    <Thermometer size={16} className="text-coral" />
-                    <span className="text-sm">Add Pool Heater (+${extras.heater ? (() => {
-                      const selectedHeater = poolHeaters.find((heater) => heater.name === extras.heaterModel);
-                      return selectedHeater ? selectedHeater.price.toLocaleString() : '0';
-                    })() : '0'})</span>
-                  </div>
-                </label>
-
-                {extras.heater && (
-                  <div className="ml-6 space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">Select Heater Model:</label>
-                     <div className="grid grid-cols-1 gap-2">
-                       {poolHeaters.map((heater) => (
-                          <button
-                            key={heater.name}
-                            onClick={() => setExtras(prev => ({ ...prev, heaterModel: heater.name }))}
-                            className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
-                              extras.heaterModel === heater.name 
-                                ? 'border-coral bg-coral/10 text-coral' 
-                                : 'border-border hover:border-coral/50'
-                            }`}
-                          >
-                            <ImageCard src={heater.image} alt={heater.name} className="w-8 h-8 rounded" objectFit="cover" enableZoom={false} />
-                            <div className="flex-1 text-left">
-                              <div>{heater.name}</div>
-                              <div className="text-xs text-muted-foreground">${heater.price.toLocaleString()}</div>
-                              {heater.description && (
-                                <div className="text-xs text-muted-foreground">{heater.description}</div>
-                              )}
-                            </div>
-                           </button>
-                         ))}
-                    </div>
-                  </div>
-                )}
-                 
-                <div className="flex items-center justify-between p-2 border rounded-lg">
-                  <label className="flex items-center space-x-2 cursor-pointer flex-1">
-                    <Checkbox 
-                      checked={extras.jets}
-                      onCheckedChange={() => toggleExtra('jets')}
-                    />
-                    <div className="flex items-center space-x-1">
-                      <Zap size={16} className="text-orange" />
-                      <span className="text-sm">Spa Jets (+${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()})</span>
-                    </div>
-                  </label>
-                  {extras.jets && (
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))}
-                        className="h-8 w-8 p-0"
-                      >
-                        -
-                      </Button>
-                      <span className="text-sm font-medium w-8 text-center">{extras.jetQuantity}</span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))}
-                        className="h-8 w-8 p-0"
-                      >
-                        +
-                      </Button>
-                    </div>
-                  )}
+                  <FormField
+                    control={poolForm.control}
+                    name="dimensions"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Dimensions</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Pool Dimensions" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={poolForm.control}
+                    name="depth"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Depth</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Pool Depth" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={poolForm.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Price</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Pool Price"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={poolForm.control}
+                    name="image"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Image URL</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Image URL" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit">Update Pool</Button>
+                </form>
+              </Form>
+            </CardContent>
+            <CardFooter>
+              <div className="w-full rounded-xl overflow-hidden border bg-background">
+                <div className="aspect-video">
+                  <ImageCard
+                    src={pool.image}
+                    alt={pool.model}
+                    className="w-full h-full object-cover"
+                    enableZoom={true}
+                  />
                 </div>
-                
-                {/* Remove Cover from Additional Features - it's now in main options */}
-                 
-                  <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                     <Checkbox 
-                       checked={extras.spa}
-                       onCheckedChange={() => toggleExtra('spa')}
-                     />
-                     <div className="flex items-center space-x-1">
-                       <Waves size={16} className="text-primary" />
-                        <span className="text-sm">Add Spa (+${extras.spa ? (() => {
-                          const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
-                          return selectedSpa ? selectedSpa.price.toLocaleString() : '0';
-                        })() : '0'})</span>
-                     </div>
-                   </label>
-
-                  {extras.spa && (
-                    <div className="ml-6 space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground">Select Spa Model:</label>
-                       <div className="grid grid-cols-1 gap-2">
-                         {spas.map((spa: any) => (
-                            <button
-                              key={spa.model}
-                              onClick={() => setExtras(prev => ({ ...prev, spaModel: spa.model }))}
-                              className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
-                                extras.spaModel === spa.model 
-                                  ? 'border-primary bg-primary/10 text-primary' 
-                                  : 'border-border hover:border-primary/50'
-                              }`}
-                            >
-                              {spa.image && (
-                                <ImageCard src={spa.image} alt={spa.model} className="w-8 h-8 rounded" objectFit="cover" enableZoom={false} />
-                              )}
-                              <div className="flex-1 text-left">
-                                <div>{spa.model}</div>
-                                <div className="text-xs text-muted-foreground">${spa.price.toLocaleString()}</div>
-                              </div>
-                             </button>
-                           ))}
-                      </div>
-                    </div>
-                  )}
-
-                   <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                     <Checkbox 
-                       checked={extras.tanningLedge}
-                       onCheckedChange={() => toggleExtra('tanningLedge')}
-                     />
-                     <div className="flex items-center space-x-1">
-                       <Sun size={16} className="text-coral" />
-                        <span className="text-sm">Add Tanning Ledge (+${extras.tanningLedge ? (() => {
-                          const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
-                          return selectedLedge ? selectedLedge.price.toLocaleString() : '0';
-                        })() : '0'})</span>
-                     </div>
-                   </label>
-
-                  {extras.tanningLedge && (
-                    <div className="ml-6 space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground">Select Tanning Ledge Model:</label>
-                       <div className="grid grid-cols-1 gap-2">
-                         {tanningLedges.map((ledge: any) => (
-                            <button
-                              key={ledge.name}
-                              onClick={() => setExtras(prev => ({ ...prev, tanningLedgeModel: ledge.name }))}
-                              className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
-                                extras.tanningLedgeModel === ledge.name 
-                                  ? 'border-coral bg-coral/10 text-coral' 
-                                  : 'border-border hover:border-coral/50'
-                              }`}
-                            >
-                              <ImageCard src={ledge.image} alt={ledge.name} className="w-8 h-8 rounded" objectFit="cover" enableZoom={false} />
-                              <div className="flex-1 text-left">
-                                <div>{ledge.name}</div>
-                                <div className="text-xs text-muted-foreground">${ledge.price.toLocaleString()}</div>
-                              </div>
-                             </button>
-                           ))}
-                       </div>
-                     </div>
-                   )}
-
-                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                      <Checkbox 
-                        checked={extras.screenEnclosure}
-                        onCheckedChange={() => toggleExtra('screenEnclosure')}
-                      />
-                      <div className="flex items-center space-x-1">
-                        <Shield size={16} className="text-orange" />
-                         <span className="text-sm">Add Screen Enclosure (+${extras.screenEnclosure && extras.screenEnclosureSquareFeet ? (() => {
-                           const selectedEnclosure = screenEnclosures.find((enclosure) => enclosure.name === extras.screenEnclosureModel);
-                           if (selectedEnclosure) {
-                             const sqft = parseFloat(extras.screenEnclosureSquareFeet);
-                             if (!isNaN(sqft)) {
-                               const pricePerSqft = extras.screenEnclosureTwoStory ? selectedEnclosure.premiumPrice : selectedEnclosure.basePrice;
-                               return (sqft * pricePerSqft).toLocaleString();
-                             }
-                           }
-                           return '0';
-                         })() : '0'})</span>
-                      </div>
-                    </label>
-
-                   {extras.screenEnclosure && (
-                     <div className="ml-6 space-y-2">
-                       <label className="text-xs font-medium text-muted-foreground">Select Screen Enclosure Type:</label>
-                        <div className="grid grid-cols-1 gap-2">
-                          {screenEnclosures.map((enclosure: any) => (
-                             <button
-                               key={enclosure.name}
-                               onClick={() => setExtras(prev => ({ ...prev, screenEnclosureModel: enclosure.name }))}
-                               className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
-                                 extras.screenEnclosureModel === enclosure.name 
-                                   ? 'border-orange bg-orange/10 text-orange' 
-                                   : 'border-border hover:border-orange/50'
-                               }`}
-                             >
-                               <ImageCard src={enclosure.image} alt={enclosure.name} className="w-8 h-8 rounded" objectFit="cover" enableZoom={false} />
-                               <div className="flex-1 text-left">
-                                 <div>{enclosure.name}</div>
-                                 <div className="text-xs text-muted-foreground">${enclosure.basePrice}/sq ft (${enclosure.premiumPrice}/sq ft two-story)</div>
-                               </div>
-                              </button>
-                            ))}
-                       </div>
-                       <div className="space-y-2">
-                         <label className="text-xs font-medium text-muted-foreground">Square Footage:</label>
-                         <Input
-                           type="number"
-                           placeholder="Enter square footage"
-                           value={extras.screenEnclosureSquareFeet}
-                           onChange={(e) => setExtras(prev => ({ ...prev, screenEnclosureSquareFeet: e.target.value }))}
-                           className="text-xs"
-                         />
-                         <label className="flex items-center space-x-2 cursor-pointer">
-                           <input
-                             type="checkbox"
-                             checked={extras.screenEnclosureTwoStory}
-                             onChange={(e) => setExtras(prev => ({ ...prev, screenEnclosureTwoStory: e.target.checked }))}
-                             className="rounded"
-                           />
-                           <span className="text-xs">Two-story enclosure</span>
-                         </label>
-                       </div>
-                     </div>
-                   )}
+                <div className="text-center text-sm text-muted-foreground py-2">
+                  {pool.model}
                 </div>
               </div>
+            </CardFooter>
+          </Card>
+        </TabsContent>
 
-            {/* Carbon Fiber Technology Section */}
-            {pool.carbonFiber && (
-              <div className="space-y-3 p-4 bg-gradient-to-r from-primary/5 to-teal/5 rounded-lg border border-primary/20">
-                <h4 className="font-semibold text-foreground flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-primary" />
-                  Carbon Fiber Technology
-                </h4>
-                <p className="text-sm text-muted-foreground">
-                  Our advanced carbon fiber construction provides superior strength, durability, and 
-                  longevity. This cutting-edge technology ensures your pool maintains its structural 
-                  integrity for decades while offering unmatched resistance to cracking and fading.
-                </p>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• 300% stronger than traditional fiberglass</li>
-                  <li>• Superior thermal retention</li>
-                  <li>• UV-resistant surface coating</li>
-                  <li>• Lifetime structural warranty</li>
-                </ul>
-              </div>
-            )}
-            
-            {/* Action Buttons */}
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <Button 
-                  onClick={() => {
-                    const params = new URLSearchParams({
-                      model: pool.model,
-                      price: pool.price.toString(),
-                      category: pool.category,
-                      ...(pool.image && { image: pool.image }),
-                      ...(pool.dimensions && { dimensions: pool.dimensions }),
-                      ...(pool.depth && { depth: pool.depth }),
-                      ...(pool.installationTimeWeeks && { installationTimeWeeks: pool.installationTimeWeeks.toString() }),
-                      ...(pool.warrantyYears && { warrantyYears: pool.warrantyYears.toString() }),
-                      saltSystem: pool.saltSystem?.toString() || 'false',
-                      carbonFiber: pool.carbonFiber?.toString() || 'false'
-                    });
-                    window.open(`/pool/${pool.model.replace(/\s+/g, '-').toLowerCase()}?${params.toString()}`, '_blank');
-                  }}
-                  variant="outline"
-                  className="flex-1"
-                  size="sm"
+        <TabsContent value="finish">
+          <Card>
+            <CardHeader>
+              <CardTitle>Finish Details</CardTitle>
+              <CardDescription>
+                Configure the finish details of the pool.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...finishForm}>
+                <form
+                  onSubmit={finishForm.handleSubmit(handleFinishSubmit)}
+                  className="space-y-4"
                 >
-                  Editor Studio
-                </Button>
-                <Button 
-                  onClick={() => {
-                    const { items, total } = buildExtrasBreakdown();
-                    openQuotePreview({ type: 'pool', pool, extras: { ...extras, extrasBreakdown: items, extrasTotal: total } });
-                  }}
-                  variant="outline"
-                  className="flex-1"
-                  size="sm"
-                >
-                  Download Quote
-                </Button>
-              </div>
-              
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleAddToCart}
-                  variant="outline"
-                  className="flex-1"
-                  size="sm"
-                >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Cart
-                </Button>
-                <StripeCheckoutButton
-                  productId={`pool_${pool.model.replace(/\s+/g, '_')}`}
-                  productName={pool.model}
-                  price={calculateTotalPrice()}
-                  variant="gradient"
-                  className="flex-1 hover:scale-105 transition-all duration-300"
-                  size="sm"
-                  showFinancingOptions={false}
-                />
-              </div>
-            </div>
-            
-            {/* Bottom Dashboard - Integrated Financing */}
-            <div className="mt-4 p-4 bg-gradient-to-r from-teal/5 to-primary/5 rounded-lg border border-teal/20">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h5 className="font-semibold text-sm text-foreground">Finance This Purchase</h5>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowFinancing(!showFinancing)}
-                    className="text-xs"
-                  >
-                    {showFinancing ? 'Hide' : 'Show'} Options
-                  </Button>
+                  <FormField
+                    control={finishForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Finish Name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={finishForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Finish Description"
+                            className="resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={finishForm.control}
+                    name="image"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Image URL</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Image URL" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit">Update Finish</Button>
+                </form>
+              </Form>
+            </CardContent>
+            <CardFooter>
+              <div className="w-full rounded-xl overflow-hidden border bg-background">
+                <div className="aspect-video">
+                  <ImageCard
+                    src={selectedFinish.image}
+                    alt={selectedFinish.name}
+                    className="w-full h-full object-cover"
+                    enableZoom={false}
+                  />
                 </div>
-                
-                {showFinancing && (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div className="text-center p-2 bg-white/50 rounded">
-                        <div className="font-semibold">12 Months</div>
-                        <div className="text-teal-600">${(calculateTotalPrice() / 12).toLocaleString()}/mo</div>
-                      </div>
-                      <div className="text-center p-2 bg-white/50 rounded">
-                        <div className="font-semibold">24 Months</div>
-                        <div className="text-teal-600">${(calculateTotalPrice() / 24).toLocaleString()}/mo</div>
-                      </div>
-                    </div>
-                    
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      size="sm"
-                      onClick={() => {
-                        const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + 
-                          `amount=${calculateTotalPrice()}&` +
-                          `product=${encodeURIComponent(pool.model)}&` +
-                          `description=${encodeURIComponent(`Complete pool configuration including ${pool.model}`)}&` +
-                          `monthly_payment=${Math.round(calculateTotalPrice() * 0.008)}&` +
-                          `loan_term=60&` +
-                          `project_type=Pool%20Installation`;
-                        window.open(lyonFinancialUrl, '_blank');
-                      }}
-                    >
-                      Apply with Lyon Financial
-                    </Button>
-                    
-                    <div className="text-xs text-muted-foreground text-center">
-                      *Financing subject to credit approval. APR varies.
-                    </div>
-                  </div>
-                )}
+                <div className="text-center text-sm text-muted-foreground py-2">
+                  {selectedFinish.name}
+                </div>
               </div>
-            </div>
-            </div>
-        )}
-        
-        {/* Default Action Buttons */}
-        {!showDetails && (
-          <div className="space-y-2">
-            <Button 
-              onClick={() => {
-                const params = new URLSearchParams({
-                  model: pool.model,
-                  price: pool.price.toString(),
-                  category: pool.category,
-                  ...(pool.image && { image: pool.image }),
-                  ...(pool.dimensions && { dimensions: pool.dimensions }),
-                  ...(pool.depth && { depth: pool.depth }),
-                  ...(pool.installationTimeWeeks && { installationTimeWeeks: pool.installationTimeWeeks.toString() }),
-                  ...(pool.warrantyYears && { warrantyYears: pool.warrantyYears.toString() }),
-                  saltSystem: pool.saltSystem?.toString() || 'false',
-                  carbonFiber: pool.carbonFiber?.toString() || 'false'
-                });
-                window.open(`/pool/${pool.model.replace(/\s+/g, '-').toLowerCase()}?${params.toString()}`, '_blank');
-              }}
-              variant="outline"
-              className="w-full"
-              size="sm"
-            >
-              Editor Studio
-            </Button>
-            <Button 
-              onClick={handleImageClick}
-              variant="gradient"
-              className="w-full hover:scale-105 transition-all duration-300"
-              size="sm"
-            >
-              View Details
-            </Button>
-          </div>
-        )}
-      </CardContent>
-      
-      {/* Image Editor Modal */}
-      <ImageEditor
-        isOpen={showImageEditor}
-        onClose={() => setShowImageEditor(false)}
-        onImageSave={handleImageSave}
-        currentImage={currentPoolImage}
-      />
-    </Card>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="tile">
+          <Card>
+            <CardHeader>
+              <CardTitle>Tile Details</CardTitle>
+              <CardDescription>
+                Configure the tile details of the pool.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...tileForm}>
+                <form
+                  onSubmit={tileForm.handleSubmit(handleTileSubmit)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={tileForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Tile Name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={tileForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Tile Description"
+                            className="resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={tileForm.control}
+                    name="image"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Image URL</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Image URL" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit">Update Tile</Button>
+                </form>
+              </Form>
+            </CardContent>
+            <CardFooter>
+              <div className="w-full rounded-xl overflow-hidden border bg-background">
+                <div className="aspect-video">
+                  <ImageCard
+                    src={selectedTile.image}
+                    alt={selectedTile.name}
+                    className="w-full h-full object-cover"
+                    enableZoom={false}
+                  />
+                </div>
+                <div className="text-center text-sm text-muted-foreground py-2">
+                  {selectedTile.name}
+                </div>
+              </div>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="liner">
+          <Card>
+            <CardHeader>
+              <CardTitle>Liner Details</CardTitle>
+              <CardDescription>
+                Configure the liner details of the pool.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...linerForm}>
+                <form
+                  onSubmit={linerForm.handleSubmit(handleLinerSubmit)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={linerForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Liner Name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={linerForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Liner Description"
+                            className="resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={linerForm.control}
+                    name="image"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Image URL</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Image URL" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit">Update Liner</Button>
+                </form>
+              </Form>
+            </CardContent>
+            <CardFooter>
+              <div className="w-full rounded-xl overflow-hidden border bg-background">
+                <div className="aspect-video">
+                  <ImageCard
+                    src={selectedLiner.image}
+                    alt={selectedLiner.name}
+                    className="w-full h-full object-cover"
+                    enableZoom={false}
+                  />
+                </div>
+                <div className="text-center text-sm text-muted-foreground py-2">
+                  {selectedLiner.name}
+                </div>
+              </div>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="paver">
+          <Card>
+            <CardHeader>
+              <CardTitle>Paver Details</CardTitle>
+              <CardDescription>
+                Configure the paver details of the pool.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...paverForm}>
+                <form
+                  onSubmit={paverForm.handleSubmit(handlePaverSubmit)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={paverForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Paver Name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={paverForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Paver Description"
+                            className="resize-none"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={paverForm.control}
+                    name="image"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Image URL</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Image URL" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit">Update Paver</Button>
+                </form>
+              </Form>
+            </CardContent>
+            <CardFooter>
+              <div className="w-full rounded-xl overflow-hidden border bg-background">
+                <div className="aspect-video">
+                  <ImageCard
+                    src={selectedPaver.image}
+                    alt={selectedPaver.name}
+                    className="w-full h-full object-cover"
+                    enableZoom={false}
+                  />
+                </div>
+                <div className="text-center text-sm text-muted-foreground py-2">
+                  {selectedPaver.name}
+                </div>
+              </div>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      <Button onClick={handleCreateQuote} className="mt-6">
+        Create Quote
+      </Button>
+    </div>
   );
 };
 

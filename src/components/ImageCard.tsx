@@ -1,5 +1,6 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { optimizeImageUrl, createOptimizedImage } from "@/utils/imageOptimization";
 
 const Placeholder = () => (
   <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground text-sm">
@@ -18,15 +19,62 @@ export default function ImageCard({
   className?: string;
   enableZoom?: boolean;
 }) {
-  const [loadedSrc, setLoadedSrc] = useState<string | undefined>(src);
+  const [loadedSrc, setLoadedSrc] = useState<string | undefined>(undefined);
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleError = () => {
-    if (!error) {
-      // Final fallback to placeholder
+  useEffect(() => {
+    if (!src) {
       setError(true);
+      setLoading(false);
+      return;
     }
-  };
+
+    setLoading(true);
+    setError(false);
+
+    // First try optimized URL
+    const optimizedUrl = optimizeImageUrl(src, 75);
+    
+    // Test if optimized version exists
+    const testImage = new Image();
+    testImage.onload = () => {
+      setLoadedSrc(optimizedUrl);
+      setLoading(false);
+    };
+    
+    testImage.onerror = () => {
+      // If optimized version fails, try creating one on-the-fly
+      createOptimizedImage(src, 75)
+        .then((optimized) => {
+          setLoadedSrc(optimized);
+          setLoading(false);
+        })
+        .catch(() => {
+          // Final fallback to original
+          const fallbackImage = new Image();
+          fallbackImage.onload = () => {
+            setLoadedSrc(src);
+            setLoading(false);
+          };
+          fallbackImage.onerror = () => {
+            setError(true);
+            setLoading(false);
+          };
+          fallbackImage.src = src;
+        });
+    };
+    
+    testImage.src = optimizedUrl;
+  }, [src]);
+
+  if (loading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-muted animate-pulse">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (!loadedSrc || error) {
     return <Placeholder />;
@@ -40,8 +88,14 @@ export default function ImageCard({
       loading="lazy"
       decoding="async"
       sizes="(max-width: 768px) 100vw, 50vw"
-      onError={handleError}
-      style={{ objectFit: "cover", width: "100%", height: "100%", display: "block" }}
+      style={{ 
+        objectFit: "cover", 
+        width: "100%", 
+        height: "100%", 
+        display: "block",
+        // Add caching headers via style (browser will cache more aggressively)
+        willChange: "auto"
+      }}
     />
   );
 }
