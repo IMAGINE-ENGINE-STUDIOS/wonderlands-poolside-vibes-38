@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   Tabs,
@@ -297,26 +298,22 @@ const PoolProductCard: React.FC<PoolProductCardProps> = ({ pool: incomingPool, o
   });
   const finishForm = useForm<z.infer<typeof FinishSchema>>({
     resolver: zodResolver(FinishSchema),
-    defaultValues: // will be reset below
-      undefined as any,
+    defaultValues: undefined as any,
     mode: "onChange",
   });
   const tileForm = useForm<z.infer<typeof TileSchema>>({
     resolver: zodResolver(TileSchema),
-    defaultValues: // will be reset below
-      undefined as any,
+    defaultValues: undefined as any,
     mode: "onChange",
   });
   const linerForm = useForm<z.infer<typeof LinerSchema>>({
     resolver: zodResolver(LinerSchema),
-    defaultValues: // will be reset below
-      undefined as any,
+    defaultValues: undefined as any,
     mode: "onChange",
   });
   const paverForm = useForm<z.infer<typeof PaverSchema>>({
     resolver: zodResolver(PaverSchema),
-    defaultValues: // will be reset below
-      undefined as any,
+    defaultValues: undefined as any,
     mode: "onChange",
   });
 
@@ -343,7 +340,6 @@ const PoolProductCard: React.FC<PoolProductCardProps> = ({ pool: incomingPool, o
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Ensure fully-typed objects are passed to state setters
   const handlePoolSubmit = (values: z.infer<typeof PoolSchema>) => {
     const strictValues: Pool = {
       model: values.model,

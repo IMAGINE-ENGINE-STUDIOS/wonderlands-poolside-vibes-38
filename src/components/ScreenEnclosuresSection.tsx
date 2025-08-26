@@ -57,4 +57,3 @@ const ScreenEnclosuresSection: React.FC<ScreenEnclosuresSectionProps> = ({ enclo
 };
 
 export default ScreenEnclosuresSection;
-
