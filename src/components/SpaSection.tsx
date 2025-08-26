@@ -2,8 +2,7 @@ import { useState } from "react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import PoolProductCard from "./PoolProductCard";
 import SpaDetailModal from "./SpaDetailModal";
-import { spas } from "@/data/spaData";
-import type { Pool as PoolCard } from "./PoolProductCard";
+import { spas } from "./PoolCatalog";
 
 interface Spa {
   model: string;
@@ -15,59 +14,40 @@ interface Spa {
   features?: string[];
   spilloverFeature?: boolean;
   installationTimeWeeks?: number;
-  warrantyYears?: number | string; // align with data and SpaDetailModal
+  warrantyYears?: number | string;
 }
 
 // Update to match Pool interface
-// Note: We no longer use this local Pool type for handlers to avoid type conflicts with PoolProductCard.Pool
-// interface Pool extends Spa {
-//   finishes?: string[];
-//   liners?: string[];
-//   covers?: string[];
-// }
+interface Pool extends Spa {
+  galaPoints?: number;
+  galaCategory?: string;
+  heater?: boolean;
+  saltSystem?: boolean;
+  carbonFiber?: boolean;
+  finishes?: string[];
+  liners?: string[];
+  covers?: string[];
+}
 
 const SpaSection = () => {
-  // selectedSpa can be Spa, since PoolCard extends with additional fields and we only consume shared fields
-  const [selectedSpa, setSelectedSpa] = useState<Spa | null>(null);
+  const [selectedSpa, setSelectedSpa] = useState<Pool | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  // Map a PoolProductCard.Pool to our Spa shape
-  const mapPoolToSpa = (pool: PoolCard): Spa => ({
-    model: pool.model,
-    price: pool.price,
-    image: pool.image,
-    category: pool.category ?? 'premium',
-    dimensions: pool.dimensions,
-    depth: pool.depth,
-    features: pool.features,
-    warrantyYears: typeof pool.warrantyYears === 'string'
-      ? parseInt(pool.warrantyYears as string)
-      : pool.warrantyYears
-  });
-
-  // Handlers for PoolProductCard (must accept PoolProductCard.Pool)
-  const handleViewDetails = (pool: PoolCard) => {
-    setSelectedSpa(mapPoolToSpa(pool));
+  const handleViewDetails = (spa: Pool) => {
+    setSelectedSpa(spa);
     setShowDetailModal(true);
   };
 
-  const handleRequestQuoteFromCard = (pool: PoolCard) => {
-    setSelectedSpa(mapPoolToSpa(pool));
-    setShowDetailModal(false); // Close detail modal if open
-    setShowQuoteModal(true);
-  };
-
-  // Handler for SpaDetailModal (accepts Spa)
-  const handleRequestQuoteFromModal = (spa: Spa, extras?: any) => {
+  const handleRequestQuote = (spa: Pool, extras?: any) => {
     setSelectedSpa(spa);
-    setShowDetailModal(false);
+    setShowDetailModal(false); // Close detail modal if open
     setShowQuoteModal(true);
   };
 
   return (
     <>
-      <section id="spa-section" className="py-20 px-4 bg-gradient-to-br from-background to-primary/5">
+      <section className="py-20 px-4 bg-gradient-to-br from-background to-primary/5">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-teal to-blue-500">
@@ -83,18 +63,16 @@ const SpaSection = () => {
               <PoolProductCard
                 key={spa.model}
                 pool={{
-                  id: spa.id ?? spa.model.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
                   model: spa.model,
                   price: spa.price,
-                  category: (spa as any).category || 'premium',
+                  category: spa.category as any,
                   image: spa.image,
-                  dimensions: (spa as any).dimensions,
-                  depth: (spa as any).depth,
-                  features: spa.features,
-                  warrantyYears: typeof spa.warrantyYears === 'string' ? parseInt(spa.warrantyYears) : (spa.warrantyYears || 5)
+                  dimensions: spa.dimensions,
+                  depth: spa.depth,
+                  features: spa.features
                 }}
                 onViewDetails={handleViewDetails}
-                onRequestQuote={handleRequestQuoteFromCard}
+                onRequestQuote={handleRequestQuote}
               />
             ))}
           </div>
@@ -105,7 +83,7 @@ const SpaSection = () => {
         spa={selectedSpa}
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
-        onRequestQuote={(spa) => handleRequestQuoteFromModal(spa)}
+        onRequestQuote={(spa) => handleRequestQuote(spa)}
       />
 
       <SurveyQuoteTool 

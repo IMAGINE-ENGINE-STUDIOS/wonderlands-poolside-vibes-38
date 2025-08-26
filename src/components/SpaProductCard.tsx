@@ -13,7 +13,6 @@ import { useShoppingCart } from "./ShoppingCart";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { tanningLedges } from "@/data/poolData";
 import { paverTypes, copingTypes } from "@/data/paverData";
-import { openQuotePreview } from "@/utils/quoteNavigation";
 
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
@@ -125,7 +124,7 @@ const linerOptions = [
   ...poolLiners.map(liner => ({
     name: liner.name,
     color: '#4169E1', // fallback color
-    price: liner.price, // Use full liner price for spas now that it's standardized at $4500
+    price: liner.price / 2, // Spa pricing is half of pool pricing
     image: liner.image,
     type: liner.type,
     description: liner.description
@@ -720,7 +719,7 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => openQuotePreview({ type: 'spa', spa, extras })}
+              onClick={() => onRequestQuote(spa, extras)}
               className="text-xs"
             >
               Get Quote

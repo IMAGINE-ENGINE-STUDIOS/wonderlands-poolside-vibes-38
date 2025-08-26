@@ -205,46 +205,6 @@ const lathamPoolsDatabase: Record<string, PoolSpec> = {
       stepConfiguration: 'Beach Entry with Multiple Access Points'
     }
   },
-  'Astoria 14': {
-    model: 'Astoria 14',
-    series: 'Rectangular Series',
-    dimensions: {
-      length: "35' 0\"",
-      width: "14' 0\"",
-      shallowEnd: "3' 6\"",
-      deepEnd: "6' 6\"",
-      volume: "10,700 gallons"
-    },
-    features: [
-      'Rectangular Design',
-      'Integrated Spa - 3ft Deep',
-      'Swimming Lane Compatible',
-      'Spa Spillover Feature',
-      'Modern Aesthetics',
-      'Entry Steps'
-    ],
-    materials: {
-      shell: 'Premium Fiberglass Composite',
-      finish: ['Premium Gelcoat', 'Tile Ready', 'Pebble Compatible'],
-      coping: ['Bullnose Fiberglass', 'Natural Stone', 'Precast Concrete', 'Travertine']
-    },
-    equipment: {
-      filtration: 'High-Capacity Sand Filter',
-      heating: ['Variable Speed Heat Pump', 'High-Efficiency Gas Heater', 'Solar Ready'],
-      automation: ['Smart Pool Controls', 'LED Lighting Package', 'Spa Controls', 'Salt System Ready']
-    },
-    warranty: {
-      structure: '30 Years',
-      surface: '7 Years',
-      equipment: '3 Years'
-    },
-    specifications: {
-      waterCapacity: '10,700 gallons',
-      skimmerSize: 'Dual 9" Wide Mouth Skimmers',
-      drainSize: 'Triple 6" Main Drains',
-      stepConfiguration: 'Corner Entry Steps with Handrail and Spa Access'
-    }
-  },
   'Cape Cod': {
     model: 'Cape Cod',
     series: 'Traditional Series',

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,18 +23,21 @@ interface Product {
   dimensions?: string;
   depth?: string;
   features?: string[];
+  gala_points?: number;
+  gala_category?: string;
   installation_time_weeks?: number;
   warranty_years?: number | string;
+  heater?: boolean;
+  salt_system?: boolean;
+  carbon_fiber?: boolean;
+  finishes?: string[];
+  liners?: string[];
+  covers?: string[];
   stock_quantity?: number;
   brand?: string;
   sku?: string;
   is_active: boolean;
   source?: string;
-  warrantyYears?: number;
-  // Pool-specific properties
-  finishes?: string[];
-  liners?: string[];
-  covers?: string[];
 }
 
 export const StandardizedProductManager = () => {
@@ -90,8 +92,13 @@ export const StandardizedProductManager = () => {
         dimensions: pool.dimensions,
         depth: pool.depth,
         features: pool.features || [],
+        gala_points: pool.gala_points,
+        gala_category: pool.gala_category,
         installation_time_weeks: pool.installation_time_weeks,
-        warrantyYears: typeof pool.warranty_years === 'string' ? parseInt(pool.warranty_years) : (pool.warranty_years || 5),
+        warranty_years: pool.warranty_years,
+        heater: pool.heater,
+        salt_system: pool.salt_system,
+        carbon_fiber: pool.carbon_fiber,
         finishes: pool.finishes || [],
         liners: pool.liners || [],
         covers: pool.covers || [],
@@ -283,15 +290,20 @@ export const StandardizedProductManager = () => {
           <div key={product.id} className="relative group">
             <PoolProductCard
               pool={{
-                id: product.id,
                 model: product.name,
                 price: product.price,
-                category: (product.subcategory as any) || 'standard',
+                category: product.subcategory as any || 'standard',
                 image: product.image_url,
                 dimensions: product.dimensions,
                 depth: product.depth,
                 features: product.features,
-                warrantyYears: product.warrantyYears,
+                galaPoints: product.gala_points,
+                galaCategory: product.gala_category,
+                installationTimeWeeks: product.installation_time_weeks,
+                warrantyYears: product.warranty_years,
+                heater: product.heater,
+                saltSystem: product.salt_system,
+                carbonFiber: product.carbon_fiber,
                 finishes: product.finishes,
                 liners: product.liners,
                 covers: product.covers
@@ -329,17 +341,15 @@ export const StandardizedProductManager = () => {
       )}
       
       {/* Product Live Previewer Modal */}
-      {selectedProduct && (
-        <ProductCardLivePreviewer
-          product={selectedProduct}
-          isOpen={showPreview}
-          onClose={() => {
-            setShowPreview(false);
-            setSelectedProduct(null);
-          }}
-          onSave={handlePreviewUpdate}
-        />
-      )}
+      <ProductCardLivePreviewer
+        product={selectedProduct}
+        isOpen={showPreview}
+        onClose={() => {
+          setShowPreview(false);
+          setSelectedProduct(null);
+        }}
+        onSave={handlePreviewUpdate}
+      />
     </div>
   );
 };

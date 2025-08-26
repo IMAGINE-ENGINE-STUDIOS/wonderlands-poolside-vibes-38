@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { DollarSign, Ruler, Waves, Calendar, MapPin, FileText } from "lucide-react";
-import { openQuotePreview } from "@/utils/quoteNavigation";
 
 interface Pool {
   model: string;
@@ -181,7 +180,7 @@ const PoolDetailModal = ({ pool, isOpen, onClose, onRequestQuote }: PoolDetailMo
             {/* Action Buttons */}
             <div className="flex flex-col gap-3 pt-4">
               <Button 
-                onClick={() => openQuotePreview({ type: 'pool', pool })}
+                onClick={() => onRequestQuote(pool)}
                 variant="gradient"
                 size="lg"
                 className="w-full"

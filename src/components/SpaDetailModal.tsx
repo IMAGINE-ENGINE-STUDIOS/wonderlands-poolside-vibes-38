@@ -3,7 +3,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Waves, DollarSign, Star, Clock, Award, Flame, Zap, Palette, Ruler, Droplets } from "lucide-react";
-import { openQuotePreview } from "@/utils/quoteNavigation";
 
 interface Spa {
   model: string;
@@ -192,7 +191,7 @@ const SpaDetailModal = ({ spa, isOpen, onClose, onRequestQuote }: SpaDetailModal
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3">
           <Button 
-            onClick={() => openQuotePreview({ type: 'spa', spa })}
+            onClick={() => onRequestQuote(spa)}
             className="flex-1"
             size="lg"
           >

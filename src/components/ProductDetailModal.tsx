@@ -1,26 +1,9 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Package, DollarSign, Star } from "lucide-react";
-import { openQuotePreview } from "@/utils/quoteNavigation";
-import ImageCard from "./ImageCard";
-
-interface Product {
-  id: string;
-  name?: string;
-  model?: string;
-  price: number;
-  category: string;
-  image?: string;
-  dimensions?: string;
-  depth?: string;
-  features?: string[];
-  type?: string;
-  description?: string;
-  specifications?: string;
-}
+import type { Product } from "./ProductCatalog";
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -57,7 +40,7 @@ const ProductDetailModal = ({ product, isOpen, onClose, onRequestQuote }: Produc
               ))}
             </div>
           </div>
-          <DialogTitle className="text-2xl font-bold">{product.name || product.model}</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">{product.name}</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -65,12 +48,10 @@ const ProductDetailModal = ({ product, isOpen, onClose, onRequestQuote }: Produc
           <div className="space-y-4">
             <div className="w-full h-80 bg-gradient-to-br from-primary/20 to-teal/20 rounded-lg overflow-hidden">
               {product.image ? (
-                <ImageCard 
+                <img 
                   src={product.image} 
-                  alt={product.name || product.model || 'Product'}
+                  alt={product.name}
                   className="w-full h-full object-cover"
-                  enableZoom={false}
-                  objectFit="cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
@@ -148,12 +129,12 @@ const ProductDetailModal = ({ product, isOpen, onClose, onRequestQuote }: Produc
             {/* Action Button */}
             <div className="pt-6">
               <Button 
-                onClick={() => openQuotePreview({ type: 'product', product })}
+                onClick={() => onRequestQuote(product)}
                 variant="gradient"
                 size="lg"
                 className="w-full hover:scale-105 transition-all duration-300"
               >
-                Request Quote for {product.name || product.model}
+                Request Quote for {product.name}
               </Button>
             </div>
           </div>

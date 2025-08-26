@@ -1,14 +1,32 @@
 import { useState, useEffect, lazy, Suspense } from "react";
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ShoppingCart from "@/components/ShoppingCart";
+import ShoppingCart, { useShoppingCart } from "@/components/ShoppingCart";
 import OrderManagement from "@/components/OrderManagement";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ShoppingCart as CartIcon, Package } from "lucide-react";
 
-// Lazy-loaded sections for performance
+// Lazy-loaded heavy sections for performance
+const Hero = lazy(() => import("@/components/Hero"));
 const PoolCatalog = lazy(() => import("@/components/PoolCatalog"));
+const SpaSection = lazy(() => import("@/components/SpaSection"));
+const PoolFinishesSection = lazy(() => import("@/components/PoolFinishesSection"));
+const PorcelainLinersSection = lazy(() => import("@/components/PorcelainLinersSection"));
+const PoolTilesSection = lazy(() => import("@/components/PoolTilesSection"));
+const TanningLedgeSection = lazy(() => import("@/components/TanningLedgeSection"));
+const PaversSection = lazy(() => import("@/components/PaversSection"));
+const AutomaticCoversSection = lazy(() => import("@/components/AutomaticCoversSection"));
+const FloridaPoolElements = lazy(() => import("@/components/FloridaPoolElements"));
+const WonderlandsBrandShowcase = lazy(() => import("@/components/WonderlandsBrandShowcase"));
 
 const Index = () => {
   const [showCart, setShowCart] = useState(false);
   const [showOrders, setShowOrders] = useState(false);
+  const { getCartCount } = useShoppingCart();
+
+  console.log("Index component rendering...");
+  console.log("Cart count:", getCartCount());
   
   useEffect(() => {
     const openCart = () => setShowCart(true);
@@ -22,10 +40,25 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="relative min-h-screen pt-20">
+    <div className="relative min-h-screen">
+      <Header />
+      <Suspense fallback={<div className="sr-only" aria-busy="true">Loading visual elements…</div>}> 
+        <FloridaPoolElements />
+      </Suspense>
+      
+      
       <div className="relative z-10">
         <Suspense fallback={<div className="p-8 text-center text-foreground/70" aria-busy="true">Loading content…</div>}>
+          <Hero />
+          <WonderlandsBrandShowcase />
           <PoolCatalog />
+          <SpaSection />
+          <PoolFinishesSection />
+          <PorcelainLinersSection />
+          <PoolTilesSection />
+          <TanningLedgeSection />
+          <PaversSection />
+          <AutomaticCoversSection />
           <Footer />
         </Suspense>
       </div>

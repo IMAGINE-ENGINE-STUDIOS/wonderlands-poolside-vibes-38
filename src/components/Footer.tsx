@@ -38,11 +38,11 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <Phone className="w-4 h-4 text-primary" />
-                <span className="text-muted-foreground">(407) 760-4873</span>
+                <span className="text-muted-foreground">(555) 123-POOL</span>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <Mail className="w-4 h-4 text-teal" />
-                <span className="text-muted-foreground">sales@wonderlandsworld.com</span>
+                <span className="text-muted-foreground">info@wonderlandspools.com</span>
               </div>
               <div className="flex items-start gap-3 text-sm">
                 <MapPin className="w-4 h-4 text-coral mt-0.5" />
@@ -104,7 +104,7 @@ const Footer = () => {
         
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2024 WONDERLANDS WORLD EXPERIENCE LLC. All rights reserved.
+            © 2024 Wonderlands Pools. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm text-muted-foreground">
             <span className="hover:text-foreground cursor-pointer transition-colors">Privacy Policy</span>

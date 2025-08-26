@@ -228,39 +228,8 @@ export const copingTypes: PaverType[] = [
   }
 ];
 
-// Standardized paver area and price calculation formula
-// L = announced pool length (ft), W = announced pool width (ft)
-// d = total desired deck width (ft), f = 3 ft (free band), U = 15 $/ft²
-export const calculatePaverArea = (poolLength: number, poolWidth: number, deckWidth: number): number => {
-  const L = poolLength;
-  const W = poolWidth;
-  const d = deckWidth;
-  const f = 3; // Free band in feet
-  
-  // Step 1: Adjust pool size (1 ft shorter each way)
-  const Lprime = L - 1;
-  const Wprime = W - 1;
-  
-  // Step 2: Total paved footprint (pool + deck width d)
-  const A_outer = (Lprime + 2 * d) * (Wprime + 2 * d);
-  
-  // Step 3: Free paved footprint (pool + 3 ft band)
-  const A_free = (Lprime + 2 * f) * (Wprime + 2 * f);
-  
-  // Step 4: Chargeable paved area
-  const A_pavers = Math.max(0, A_outer - A_free);
-  
-  return A_pavers;
-};
-
-export const calculatePaverPrice = (poolLength: number, poolWidth: number, deckWidth: number): number => {
-  const U = 15; // Cost per ft² in dollars
-  const A_pavers = calculatePaverArea(poolLength, poolWidth, deckWidth);
-  return A_pavers * U;
-};
-
-// Legacy helper function for backwards compatibility with existing paver types
-export const calculatePaverPriceByType = (type: PaverType, surfaceArea: number): number => {
+// Helper function to calculate price for pavers (no colors)
+export const calculatePaverPrice = (type: PaverType, surfaceArea: number): number => {
   return type.basePrice * surfaceArea;
 };
 
