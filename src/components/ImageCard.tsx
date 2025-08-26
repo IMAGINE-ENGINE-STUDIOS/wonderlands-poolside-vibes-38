@@ -44,6 +44,11 @@ const ImageCard = React.forwardRef<HTMLDivElement, ImageCardProps>(({
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Recompute optimized URL when src/quality change
+  useEffect(() => {
+    setOptimizedSrc(optimizeImageUrl(src, quality));
+  }, [src, quality]);
+
   // Handle image load and optimize if needed
   const handleImageLoad = useCallback(() => {
     setIsLoaded(true);
@@ -52,10 +57,15 @@ const ImageCard = React.forwardRef<HTMLDivElement, ImageCardProps>(({
   }, [onLoad]);
 
   const handleImageError = useCallback(() => {
-    setIsError(true);
+    // Fallback: if optimized fails, try original URL once
     setIsLoaded(false);
+    setIsError(false);
+    setOptimizedSrc(prev => (prev !== src ? src : prev));
+    if (imageRef.current && optimizedSrc === src) {
+      setIsError(true);
+    }
     onError?.();
-  }, [onError]);
+  }, [onError, src, optimizedSrc]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!enableZoom || !containerRef.current) return;
@@ -137,6 +147,7 @@ const ImageCard = React.forwardRef<HTMLDivElement, ImageCardProps>(({
           src={optimizedSrc}
           alt={alt}
           loading={loading}
+          decoding="async"
           style={imageStyle}
           onLoad={handleImageLoad}
           onError={handleImageError}

@@ -118,7 +118,7 @@ const HorizontalNavigation = () => {
             
             {/* Logo with white background - 30% larger */}
             <Link to="/" className="flex items-center">
-              <div className="w-26 h-26 rounded-lg bg-white p-1 flex items-center justify-center border shadow-sm">
+              <div className="rounded-lg bg-white p-1 flex items-center justify-center border shadow-sm w-[96px] h-[96px] sm:w-[112px] sm:h-[112px] md:w-[144px] md:h-[144px]">
                 <img 
                   src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png"
                   alt="Wonderlands Professional Logo"
