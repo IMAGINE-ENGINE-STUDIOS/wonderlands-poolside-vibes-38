@@ -44,47 +44,12 @@ const ImageCard = React.forwardRef<HTMLDivElement, ImageCardProps>(({
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Optimize image on load with canvas compression
+  // Handle image load and optimize if needed
   const handleImageLoad = useCallback(() => {
-    if (imageRef.current && quality < 100) {
-      const img = imageRef.current;
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      if (ctx) {
-        // Set canvas size based on desired dimensions or original size
-        const maxWidth = width || 800;
-        const maxHeight = height || 600;
-        
-        let { naturalWidth, naturalHeight } = img;
-        
-        // Calculate optimal dimensions while maintaining aspect ratio
-        if (naturalWidth > maxWidth || naturalHeight > maxHeight) {
-          const ratio = Math.min(maxWidth / naturalWidth, maxHeight / naturalHeight);
-          naturalWidth *= ratio;
-          naturalHeight *= ratio;
-        }
-        
-        canvas.width = naturalWidth;
-        canvas.height = naturalHeight;
-        
-        // Draw and compress
-        ctx.drawImage(img, 0, 0, naturalWidth, naturalHeight);
-        
-        // Convert to optimized format
-        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality / 100);
-        
-        // Only use compressed version if it's smaller or same size
-        if (compressedDataUrl.length < src.length || src.startsWith('data:')) {
-          setOptimizedSrc(compressedDataUrl);
-        }
-      }
-    }
-    
     setIsLoaded(true);
     setIsError(false);
     onLoad?.();
-  }, [quality, width, height, src, onLoad]);
+  }, [onLoad]);
 
   const handleImageError = useCallback(() => {
     setIsError(true);

@@ -5,7 +5,6 @@ import OrderManagement from "@/components/OrderManagement";
 
 // Lazy-loaded sections for performance
 const PoolCatalog = lazy(() => import("@/components/PoolCatalog"));
-const PaversSection = lazy(() => import("@/components/PaversSection"));
 
 const Index = () => {
   const [showCart, setShowCart] = useState(false);
@@ -27,7 +26,6 @@ const Index = () => {
       <div className="relative z-10">
         <Suspense fallback={<div className="p-8 text-center text-foreground/70" aria-busy="true">Loading content…</div>}>
           <PoolCatalog />
-          <PaversSection />
           <Footer />
         </Suspense>
       </div>
