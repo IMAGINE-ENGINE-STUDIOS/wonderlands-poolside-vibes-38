@@ -1,8 +1,9 @@
+
 import { useState } from "react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import PoolProductCard from "./PoolProductCard";
 import SpaDetailModal from "./SpaDetailModal";
-import { spas } from "./PoolCatalog";
+import { spas } from "@/data/spaData";
 
 interface Spa {
   model: string;
@@ -14,16 +15,11 @@ interface Spa {
   features?: string[];
   spilloverFeature?: boolean;
   installationTimeWeeks?: number;
-  warrantyYears?: number | string;
+  warrantyYears?: number;
 }
 
 // Update to match Pool interface
 interface Pool extends Spa {
-  galaPoints?: number;
-  galaCategory?: string;
-  heater?: boolean;
-  saltSystem?: boolean;
-  carbonFiber?: boolean;
   finishes?: string[];
   liners?: string[];
   covers?: string[];

@@ -1,3 +1,4 @@
+
 // Pool models data with actual image paths
 export const poolModels = [
   // Premium Pools
@@ -16,7 +17,9 @@ export const poolModels = [
       "Premium Water Features",
       "Advanced Salt Water System",
       "Variable Speed Energy-Efficient Pump"
-    ]
+    ],
+    installationTimeWeeks: 8,
+    warrantyYears: "Lifetime Structural, 10 Year Equipment"
   },
   {
     id: "tuscan-1324",
@@ -33,7 +36,9 @@ export const poolModels = [
       "Cascading Water Features",
       "Premium LED Lighting Package",
       "Advanced Filtration System"
-    ]
+    ],
+    installationTimeWeeks: 10,
+    warrantyYears: "Lifetime Structural, 10 Year Equipment"
   },
   {
     id: "tuscan-1427",
@@ -50,7 +55,9 @@ export const poolModels = [
       "Multiple Water Features",
       "Full LED Lighting System",
       "Professional Grade Equipment"
-    ]
+    ],
+    installationTimeWeeks: 12,
+    warrantyYears: "Lifetime Structural, 10 Year Equipment"
   },
   {
     id: "corinthian",
@@ -67,7 +74,9 @@ export const poolModels = [
       "Premium Water Features",
       "Advanced Automation System",
       "Energy Efficient Equipment"
-    ]
+    ],
+    installationTimeWeeks: 10,
+    warrantyYears: "Lifetime Structural, 10 Year Equipment"
   },
 
   // Deluxe Pools
@@ -86,7 +95,9 @@ export const poolModels = [
       "Integrated Bench Seating",
       "Salt Water System",
       "Variable Speed Pump"
-    ]
+    ],
+    installationTimeWeeks: 6,
+    warrantyYears: "25 Year Structural, 5 Year Equipment"
   },
   {
     id: "bay-isle",
@@ -103,7 +114,9 @@ export const poolModels = [
       "Multi-Level Seating",
       "Premium Filtration",
       "LED Lighting Package"
-    ]
+    ],
+    installationTimeWeeks: 7,
+    warrantyYears: "25 Year Structural, 5 Year Equipment"
   },
   {
     id: "st-lucia",
@@ -120,7 +133,9 @@ export const poolModels = [
       "Tanning Ledge",
       "Energy Efficient System",
       "Premium Finish Options"
-    ]
+    ],
+    installationTimeWeeks: 6,
+    warrantyYears: "25 Year Structural, 5 Year Equipment"
   },
   {
     id: "jamaica",
@@ -137,7 +152,9 @@ export const poolModels = [
       "Integrated Seating",
       "Waterfall Feature",
       "Advanced Controls"
-    ]
+    ],
+    installationTimeWeeks: 7,
+    warrantyYears: "25 Year Structural, 5 Year Equipment"
   },
 
   // Standard Pools
@@ -156,7 +173,9 @@ export const poolModels = [
       "Efficient Filtration",
       "Quality Construction",
       "Warranty Included"
-    ]
+    ],
+    installationTimeWeeks: 4,
+    warrantyYears: "15 Year Structural, 3 Year Equipment"
   },
   {
     id: "genesis",
@@ -173,7 +192,9 @@ export const poolModels = [
       "Standard Equipment",
       "Durable Construction",
       "Professional Installation"
-    ]
+    ],
+    installationTimeWeeks: 4,
+    warrantyYears: "15 Year Structural, 3 Year Equipment"
   },
   {
     id: "cape-cod",
@@ -190,7 +211,9 @@ export const poolModels = [
       "Standard Pump System",
       "Quality Finish",
       "Full Warranty"
-    ]
+    ],
+    installationTimeWeeks: 3,
+    warrantyYears: "15 Year Structural, 3 Year Equipment"
   },
   {
     id: "astoria",
@@ -207,7 +230,9 @@ export const poolModels = [
       "Standard Features",
       "Reliable Equipment",
       "Professional Support"
-    ]
+    ],
+    installationTimeWeeks: 4,
+    warrantyYears: "15 Year Structural, 3 Year Equipment"
   },
 
   // Compact Pools
@@ -226,7 +251,9 @@ export const poolModels = [
       "Easy Maintenance",
       "Energy Efficient",
       "Quick Installation"
-    ]
+    ],
+    installationTimeWeeks: 2,
+    warrantyYears: "10 Year Structural, 2 Year Equipment"
   },
   {
     id: "enchantment-921",
@@ -243,7 +270,9 @@ export const poolModels = [
       "Low Maintenance",
       "Energy Efficient Pump",
       "Professional Installation"
-    ]
+    ],
+    installationTimeWeeks: 3,
+    warrantyYears: "10 Year Structural, 2 Year Equipment"
   },
   {
     id: "enchantment-924",
@@ -260,7 +289,9 @@ export const poolModels = [
       "Simple Maintenance",
       "Efficient Systems",
       "Full Support Package"
-    ]
+    ],
+    installationTimeWeeks: 3,
+    warrantyYears: "10 Year Structural, 2 Year Equipment"
   },
 
   // Specialty Pools
@@ -279,7 +310,9 @@ export const poolModels = [
       "Premium Equipment",
       "Advanced Filtration",
       "LED Lighting System"
-    ]
+    ],
+    installationTimeWeeks: 6,
+    warrantyYears: "25 Year Structural, 5 Year Equipment"
   },
   {
     id: "ariel-16",
@@ -296,7 +329,9 @@ export const poolModels = [
       "Spa Compatible",
       "Premium Finish Options",
       "Full Automation System"
-    ]
+    ],
+    installationTimeWeeks: 10,
+    warrantyYears: "Lifetime Structural, 10 Year Equipment"
   },
   {
     id: "coral-16",
@@ -313,7 +348,9 @@ export const poolModels = [
       "Tanning Ledge",
       "Premium Features",
       "Professional Grade Equipment"
-    ]
+    ],
+    installationTimeWeeks: 12,
+    warrantyYears: "Lifetime Structural, 10 Year Equipment"
   }
 ];
 

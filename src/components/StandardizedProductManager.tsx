@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,8 +24,6 @@ interface Product {
   dimensions?: string;
   depth?: string;
   features?: string[];
-  gala_points?: number;
-  gala_category?: string;
   installation_time_weeks?: number;
   warranty_years?: number | string;
   heater?: boolean;
@@ -92,8 +91,6 @@ export const StandardizedProductManager = () => {
         dimensions: pool.dimensions,
         depth: pool.depth,
         features: pool.features || [],
-        gala_points: pool.gala_points,
-        gala_category: pool.gala_category,
         installation_time_weeks: pool.installation_time_weeks,
         warranty_years: pool.warranty_years,
         heater: pool.heater,
@@ -298,11 +295,10 @@ export const StandardizedProductManager = () => {
                 dimensions: product.dimensions,
                 depth: product.depth,
                 features: product.features,
-                installationTimeWeeks: product.installation_time_weeks,
-                warrantyYears: product.warranty_years,
+                warranty_years: product.warranty_years,
                 heater: product.heater,
-                saltSystem: product.salt_system,
-                carbonFiber: product.carbon_fiber,
+                salt_system: product.salt_system,
+                carbon_fiber: product.carbon_fiber,
                 finishes: product.finishes,
                 liners: product.liners,
                 covers: product.covers

@@ -1,6 +1,11 @@
+
 import React from "react";
 import PoolProductCard from "./PoolProductCard";
 import { poolModels } from "@/data/poolData";
+import { spas } from "@/data/spaData";
+
+// Export spas for other components
+export { spas };
 
 const PoolCatalog = () => {
   return (
@@ -21,10 +26,7 @@ const PoolCatalog = () => {
                 image: pool.image,
                 dimensions: pool.dimensions,
                 depth: pool.depth,
-                features: pool.features,
-                heater: (pool as any).heater,
-                saltSystem: (pool as any).saltSystem,
-                carbonFiber: (pool as any).carbonFiber
+                features: pool.features
               }}
             />
           ))}
