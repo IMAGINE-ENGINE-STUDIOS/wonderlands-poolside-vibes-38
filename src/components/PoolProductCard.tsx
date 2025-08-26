@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -142,9 +143,12 @@ interface PoolProductCardProps {
   pool: Pool;
   onAddToCart?: (pool: Pool) => void;
   isAdmin?: boolean;
+  // Added to match usage in PoolCatalog, SpaSection, and StandardizedProductManager
+  onViewDetails?: (pool: any) => void;
+  onRequestQuote?: (pool: any) => void;
 }
 
-const PoolProductCard = ({ pool, onAddToCart, isAdmin }: PoolProductCardProps) => {
+const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQuote }: PoolProductCardProps) => {
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showFinanceModal, setShowFinanceModal] = useState(false);
@@ -479,3 +483,4 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin }: PoolProductCardProps) =
 };
 
 export default PoolProductCard;
+
