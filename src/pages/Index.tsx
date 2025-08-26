@@ -11,12 +11,8 @@ import { ShoppingCart as CartIcon, Package } from "lucide-react";
 const Hero = lazy(() => import("@/components/Hero"));
 const PoolCatalog = lazy(() => import("@/components/PoolCatalog"));
 const SpaSection = lazy(() => import("@/components/SpaSection"));
-const PoolFinishesSection = lazy(() => import("@/components/PoolFinishesSection"));
-const PaversSection = lazy(() => import("@/components/PaversSection"));
-const AutomaticCoversSection = lazy(() => import("@/components/AutomaticCoversSection"));
-const ScreenEnclosuresSection = lazy(() => import("@/components/ScreenEnclosuresSection"));
+const TanningLedgeSection = lazy(() => import("@/components/TanningLedgeSection"));
 const FloridaPoolElements = lazy(() => import("@/components/FloridaPoolElements"));
-const WonderlandsBrandShowcase = lazy(() => import("@/components/WonderlandsBrandShowcase"));
 
 const Index = () => {
   const [showCart, setShowCart] = useState(false);
@@ -48,13 +44,9 @@ const Index = () => {
       <div className="relative z-10">
         <Suspense fallback={<div className="p-8 text-center text-foreground/70" aria-busy="true">Loading content…</div>}>
           <Hero />
-          <WonderlandsBrandShowcase />
           <PoolCatalog />
           <SpaSection />
-          <PoolFinishesSection />
-          <PaversSection />
-          <ScreenEnclosuresSection />
-          <AutomaticCoversSection />
+          <TanningLedgeSection />
           <Footer />
         </Suspense>
       </div>

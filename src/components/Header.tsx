@@ -27,7 +27,7 @@ const Header = () => {
         <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* Company Logo - Left Corner, 20% Larger */}
           <img 
-            src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png"
+            src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2-optimized.png"
             alt="Wonderlands Professional Logo" 
             className={`${
               isContentEditor 
@@ -35,6 +35,27 @@ const Header = () => {
                 : 'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24'
             } transition-all duration-300`}
           />
+          
+          {/* Navigation Links */}
+          {!isContentEditor && (
+            <nav className="hidden md:flex items-center gap-4">
+              <Link to="/pool-finishes">
+                <Button variant="ghost" size="sm">Pool Finishes</Button>
+              </Link>
+              <Link to="/pavers">
+                <Button variant="ghost" size="sm">Pavers</Button>
+              </Link>
+              <Link to="/screen-enclosures">
+                <Button variant="ghost" size="sm">Screen Enclosures</Button>
+              </Link>
+              <Link to="/automatic-covers">
+                <Button variant="ghost" size="sm">Automatic Covers</Button>
+              </Link>
+              <Link to="/brand-showcase">
+                <Button variant="ghost" size="sm">Brand Showcase</Button>
+              </Link>
+            </nav>
+          )}
           
           {/* Simplified Auth - Only when not logged in and not in content editor */}
           {!isContentEditor && !user ? (

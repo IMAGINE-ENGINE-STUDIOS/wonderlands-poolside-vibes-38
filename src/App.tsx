@@ -13,6 +13,11 @@ import ProcurementSystem from "./pages/ProcurementSystem";
 import PoolDetails from "./pages/PoolDetails";
 import ContentEditor from "./pages/ContentEditor";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PoolFinishes from "./pages/PoolFinishes";
+import Pavers from "./pages/Pavers";
+import ScreenEnclosures from "./pages/ScreenEnclosures";
+import AutomaticCovers from "./pages/AutomaticCovers";
+import BrandShowcase from "./pages/BrandShowcase";
 
 const App = () => (
   <AuthProvider>
@@ -50,6 +55,11 @@ const App = () => (
         } 
       />
       <Route path="/pool/:poolId" element={<PoolDetails />} />
+      <Route path="/pool-finishes" element={<PoolFinishes />} />
+      <Route path="/pavers" element={<Pavers />} />
+      <Route path="/screen-enclosures" element={<ScreenEnclosures />} />
+      <Route path="/automatic-covers" element={<AutomaticCovers />} />
+      <Route path="/brand-showcase" element={<BrandShowcase />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </AuthProvider>
