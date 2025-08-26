@@ -751,12 +751,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                   <div>
                     {(pool?.image || customProduct?.image) && (
                       <div className="mb-4">
-                        <ImageCard
-                          src={pool.image}
-                          alt={pool.model}
-                          className="w-full h-full object-cover"
-                          enableZoom={true}
-                        />
+                        <ImageCard src={pool?.image || customProduct?.image} alt={pool?.model || customProduct?.name} className="w-full h-48 rounded-lg border border-orange-200" objectFit="cover" enableZoom={true} />
                         <p className="text-xs text-center mt-1 text-muted-foreground">{pool?.model || customProduct?.name}</p>
                       </div>
                     )}
@@ -834,12 +829,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                             
                              return itemImage ? (
                                <div className="mb-3">
-                                 <ImageCard
-                                   src={itemImage}
-                                   alt={item.name}
-                                   className="w-full h-full object-cover"
-                                   enableZoom={false}
-                                 />
+                                 <ImageCard src={itemImage} alt={item.name} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
                                </div>
                              ) : null;
                           })()}

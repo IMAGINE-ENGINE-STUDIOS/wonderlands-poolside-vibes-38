@@ -65,16 +65,11 @@ const HorizontalNavigation = () => {
   };
 
   const handleAdminAccess = () => {
-    if (profile?.role === 'main_admin') {
-      navigate('/admin');
-    } else {
-      setShowAdminLogin(true);
-    }
+    setShowAdminLogin(true);
   };
 
   const handleLoginSuccess = () => {
-    navigate('/admin');
-    setShowAdminLogin(false);
+    window.location.href = '/admin';
   };
 
   const openCart = () => {
@@ -202,16 +197,18 @@ const HorizontalNavigation = () => {
                   </Button>
                 </Link>
               ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleAdminAccess}
-                  className="flex items-center gap-2"
-                  title="Admin Dashboard"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span className="hidden lg:inline">Admin</span>
-                </Button>
+                profile?.role === 'main_admin' && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleAdminAccess}
+                    className="flex items-center gap-2"
+                    title="Admin"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span className="hidden lg:inline">Admin</span>
+                  </Button>
+                )
               )}
             </div>
           )}
