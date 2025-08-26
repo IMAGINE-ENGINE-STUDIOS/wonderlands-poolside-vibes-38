@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,18 +26,16 @@ interface Product {
   features?: string[];
   installation_time_weeks?: number;
   warranty_years?: number | string;
-  heater?: boolean;
-  salt_system?: boolean;
-  carbon_fiber?: boolean;
-  finishes?: string[];
-  liners?: string[];
-  covers?: string[];
   stock_quantity?: number;
   brand?: string;
   sku?: string;
   is_active: boolean;
   source?: string;
   warrantyYears?: number;
+  // Pool-specific properties
+  finishes?: string[];
+  liners?: string[];
+  covers?: string[];
 }
 
 export const StandardizedProductManager = () => {
@@ -93,9 +92,6 @@ export const StandardizedProductManager = () => {
         features: pool.features || [],
         installation_time_weeks: pool.installation_time_weeks,
         warrantyYears: typeof pool.warranty_years === 'string' ? parseInt(pool.warranty_years) : (pool.warranty_years || 5),
-        heater: pool.heater,
-        salt_system: pool.salt_system,
-        carbon_fiber: pool.carbon_fiber,
         finishes: pool.finishes || [],
         liners: pool.liners || [],
         covers: pool.covers || [],
@@ -296,9 +292,6 @@ export const StandardizedProductManager = () => {
                 depth: product.depth,
                 features: product.features,
                 warrantyYears: product.warrantyYears,
-                heater: product.heater,
-                salt_system: product.salt_system,
-                carbon_fiber: product.carbon_fiber,
                 finishes: product.finishes,
                 liners: product.liners,
                 covers: product.covers
@@ -336,15 +329,17 @@ export const StandardizedProductManager = () => {
       )}
       
       {/* Product Live Previewer Modal */}
-      <ProductCardLivePreviewer
-        product={selectedProduct}
-        isOpen={showPreview}
-        onClose={() => {
-          setShowPreview(false);
-          setSelectedProduct(null);
-        }}
-        onSave={handlePreviewUpdate}
-      />
+      {selectedProduct && (
+        <ProductCardLivePreviewer
+          product={selectedProduct}
+          isOpen={showPreview}
+          onClose={() => {
+            setShowPreview(false);
+            setSelectedProduct(null);
+          }}
+          onSave={handlePreviewUpdate}
+        />
+      )}
     </div>
   );
 };
