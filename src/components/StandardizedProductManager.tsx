@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +36,7 @@ interface Pool {
   galaPoints?: number;
   galaCategory?: string;
   installationTimeWeeks?: number;
-  warrantyYears?: number | string;
+  warrantyYears?: string;
   heater?: boolean;
   saltSystem?: boolean;
   carbonFiber?: boolean;
@@ -68,6 +69,8 @@ const poolSchema = z.object({
   covers: z.array(z.string()).optional(),
 });
 
+type PoolFormData = z.infer<typeof poolSchema>;
+
 const StandardizedProductManager = () => {
   const [editedPool, setEditedPool] = useState<Pool>({
     model: "",
@@ -89,20 +92,70 @@ const StandardizedProductManager = () => {
     covers: [],
   });
 
-  const poolForm = useForm<z.infer<typeof poolSchema>>({
+  const poolForm = useForm<PoolFormData>({
     resolver: zodResolver(poolSchema),
-    defaultValues: editedPool,
+    defaultValues: {
+      model: editedPool.model,
+      price: editedPool.price,
+      category: editedPool.category,
+      image: editedPool.image || "",
+      dimensions: editedPool.dimensions || "",
+      depth: editedPool.depth || "",
+      features: editedPool.features || [],
+      installationTimeWeeks: editedPool.installationTimeWeeks || 0,
+      warrantyYears: editedPool.warrantyYears || "",
+      heater: editedPool.heater || false,
+      saltSystem: editedPool.saltSystem || false,
+      carbonFiber: editedPool.carbonFiber || false,
+      finishes: editedPool.finishes || [],
+      liners: editedPool.liners || [],
+      covers: editedPool.covers || [],
+    },
     mode: "onChange",
   });
 
   useEffect(() => {
-    poolForm.reset(editedPool);
-  }, [editedPool]);
+    poolForm.reset({
+      model: editedPool.model,
+      price: editedPool.price,
+      category: editedPool.category,
+      image: editedPool.image || "",
+      dimensions: editedPool.dimensions || "",
+      depth: editedPool.depth || "",
+      features: editedPool.features || [],
+      installationTimeWeeks: editedPool.installationTimeWeeks || 0,
+      warrantyYears: editedPool.warrantyYears || "",
+      heater: editedPool.heater || false,
+      saltSystem: editedPool.saltSystem || false,
+      carbonFiber: editedPool.carbonFiber || false,
+      finishes: editedPool.finishes || [],
+      liners: editedPool.liners || [],
+      covers: editedPool.covers || [],
+    });
+  }, [editedPool, poolForm]);
 
   const { toast } = useToast();
 
-  const handlePoolSubmit = (values: z.infer<typeof poolSchema>) => {
-    setEditedPool(values);
+  const handlePoolSubmit = (values: PoolFormData) => {
+    const updatedPool: Pool = {
+      model: values.model,
+      price: values.price,
+      category: values.category,
+      image: values.image,
+      dimensions: values.dimensions,
+      depth: values.depth,
+      features: values.features,
+      installationTimeWeeks: values.installationTimeWeeks,
+      warrantyYears: values.warrantyYears,
+      heater: values.heater,
+      saltSystem: values.saltSystem,
+      carbonFiber: values.carbonFiber,
+      finishes: values.finishes,
+      liners: values.liners,
+      covers: values.covers,
+    };
+    
+    setEditedPool(updatedPool);
     toast({
       title: "Success!",
       description: "Pool details have been updated.",
@@ -144,6 +197,7 @@ const StandardizedProductManager = () => {
                       type="number"
                       placeholder="Pool Price"
                       {...field}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                     />
                   </FormControl>
                   <FormMessage />
