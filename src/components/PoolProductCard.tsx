@@ -119,7 +119,7 @@ export interface Pool {
   price: number;
   dimensions?: string;
   depth?: string;
-  category?: 'budget' | 'premium' | 'luxury';
+  category?: 'budget' | 'premium' | 'luxury' | 'deluxe' | 'standard' | 'compact';
   image?: string;
   features?: string[];
   description?: string;
@@ -129,6 +129,13 @@ export interface Pool {
   warranty?: string;
   installation?: string;
   maintenance?: string;
+  warrantyYears?: number | string;
+  finishes?: string[];
+  liners?: string[];
+  covers?: string[];
+  heater?: boolean;
+  salt_system?: boolean;
+  carbon_fiber?: boolean;
 }
 
 interface PoolProductCardProps {
@@ -461,8 +468,9 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin }: PoolProductCardProps) =
         </DialogContent>
       </Dialog>
 
+      {/* Cast to any to avoid cross-file Pool type mismatch */}
       <SurveyQuoteTool 
-        pool={pool}
+        pool={pool as any}
         isOpen={showQuoteModal}
         onClose={() => setShowQuoteModal(false)}
       />
