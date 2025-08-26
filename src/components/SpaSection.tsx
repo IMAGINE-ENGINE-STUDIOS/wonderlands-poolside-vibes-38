@@ -15,7 +15,7 @@ interface Spa {
   features?: string[];
   spilloverFeature?: boolean;
   installationTimeWeeks?: number;
-  warrantyYears?: number;
+  warrantyYears?: number | string; // align with data and SpaDetailModal
 }
 
 // Update to match Pool interface
@@ -26,7 +26,8 @@ interface Pool extends Spa {
 }
 
 const SpaSection = () => {
-  const [selectedSpa, setSelectedSpa] = useState<Pool | null>(null);
+  // selectedSpa can be Spa, since Pool extends Spa and we only consume shared fields
+  const [selectedSpa, setSelectedSpa] = useState<Spa | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
@@ -35,7 +36,8 @@ const SpaSection = () => {
     setShowDetailModal(true);
   };
 
-  const handleRequestQuote = (spa: Pool, extras?: any) => {
+  // Accept Spa here to match SpaDetailModal's onRequestQuote signature
+  const handleRequestQuote = (spa: Spa, extras?: any) => {
     setSelectedSpa(spa);
     setShowDetailModal(false); // Close detail modal if open
     setShowQuoteModal(true);

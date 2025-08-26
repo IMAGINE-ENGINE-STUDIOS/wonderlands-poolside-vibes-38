@@ -16,21 +16,31 @@ import { Input } from "@/components/ui/input";
 import { openQuotePreview } from "@/utils/quoteNavigation";
 import ImageCard from "./ImageCard";
 
+// Widened Pool type to accept fields passed by callers
 export interface Pool {
   id: string;
   model: string;
   price: number;
-  category: 'premium' | 'deluxe' | 'standard' | 'compact';
+  category: string; // was a tight union, widen to accept incoming values safely
   image?: string;
   dimensions?: string;
   depth?: string;
   features?: string[];
+  // Additional optional fields that other modules are already sending
+  warrantyYears?: number | string;
+  finishes?: string[];
+  liners?: string[];
+  covers?: string[];
+  heater?: boolean;
+  salt_system?: boolean;
+  carbon_fiber?: boolean;
 }
 
 interface PoolProductCardProps {
   pool: Pool;
   onViewDetails: (pool: Pool) => void;
   onRequestQuote: (pool: Pool, extras?: any) => void;
+  isAdmin?: boolean; // allow optional admin flag used by StandardizedProductManager
 }
 
 interface ExtraOptions {
@@ -88,7 +98,7 @@ const poolTiles = [
   { id: 'tile-3', name: 'Glass', price: 1500 },
 ];
 
-const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCardProps) => {
+const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin }: PoolProductCardProps) => {
   const [showExtras, setShowExtras] = useState(false);
   const [extras, setExtras] = useState<ExtraOptions>({
     finish: poolFinishes[0].name,
