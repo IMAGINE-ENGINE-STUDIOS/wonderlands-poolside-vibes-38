@@ -180,7 +180,7 @@ const PoolDetailModal = ({ pool, isOpen, onClose, onRequestQuote }: PoolDetailMo
             {/* Action Buttons */}
             <div className="flex flex-col gap-3 pt-4">
               <Button 
-                onClick={() => onRequestQuote(pool)}
+                onClick={() => openQuotePreview({ type: 'pool', pool })}
                 variant="gradient"
                 size="lg"
                 className="w-full"

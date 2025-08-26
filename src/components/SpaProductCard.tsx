@@ -13,6 +13,7 @@ import { useShoppingCart } from "./ShoppingCart";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { tanningLedges } from "@/data/poolData";
 import { paverTypes, copingTypes } from "@/data/paverData";
+import { openQuotePreview } from "@/utils/quoteNavigation";
 
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
@@ -719,7 +720,7 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => onRequestQuote(spa, extras)}
+              onClick={() => openQuotePreview({ type: 'spa', spa, extras })}
               className="text-xs"
             >
               Get Quote

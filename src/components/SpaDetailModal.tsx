@@ -191,7 +191,7 @@ const SpaDetailModal = ({ spa, isOpen, onClose, onRequestQuote }: SpaDetailModal
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3">
           <Button 
-            onClick={() => onRequestQuote(spa)}
+            onClick={() => openQuotePreview({ type: 'spa', spa })}
             className="flex-1"
             size="lg"
           >

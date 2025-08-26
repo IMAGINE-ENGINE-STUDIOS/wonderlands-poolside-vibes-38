@@ -26,24 +26,31 @@ const Header = () => {
       <header className="fixed top-0 left-0 right-0 z-50 p-2 sm:p-4">
         <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* Company Logo - Left Corner, 20% Larger */}
-          <img 
-            src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2-optimized.png"
-            alt="Wonderlands Professional Logo" 
-            className={`${
-              isContentEditor 
-                ? 'w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28' 
-                : 'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24'
-            } transition-all duration-300`}
-          />
+          <div className={`${
+            isContentEditor 
+              ? 'w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28' 
+              : 'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24'
+          } transition-all duration-300 rounded-md bg-background p-1 flex items-center justify-center`}>
+            <img 
+              src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png"
+              alt="Wonderlands Professional Logo"
+              className="w-full h-full object-contain"
+              loading="eager"
+              decoding="async"
+            />
+          </div>
           
           {/* Navigation Links */}
           {!isContentEditor && (
             <nav className="hidden md:flex items-center gap-4">
-              <Link to="/pool-finishes">
-                <Button variant="ghost" size="sm">Pool Finishes</Button>
+              <Link to="/pools">
+                <Button variant="ghost" size="sm">Pools</Button>
               </Link>
               <Link to="/pavers">
                 <Button variant="ghost" size="sm">Pavers</Button>
+              </Link>
+              <Link to="/pool-finishes">
+                <Button variant="ghost" size="sm">Pool Finishes</Button>
               </Link>
               <Link to="/screen-enclosures">
                 <Button variant="ghost" size="sm">Screen Enclosures</Button>

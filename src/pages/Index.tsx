@@ -8,11 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { ShoppingCart as CartIcon, Package } from "lucide-react";
 
 // Lazy-loaded heavy sections for performance
-const Hero = lazy(() => import("@/components/Hero"));
 const PoolCatalog = lazy(() => import("@/components/PoolCatalog"));
-const SpaSection = lazy(() => import("@/components/SpaSection"));
-const TanningLedgeSection = lazy(() => import("@/components/TanningLedgeSection"));
-const FloridaPoolElements = lazy(() => import("@/components/FloridaPoolElements"));
+const PaversSection = lazy(() => import("@/components/PaversSection"));
 
 const Index = () => {
   const [showCart, setShowCart] = useState(false);
@@ -36,17 +33,12 @@ const Index = () => {
   return (
     <div className="relative min-h-screen">
       <Header />
-      <Suspense fallback={<div className="sr-only" aria-busy="true">Loading visual elements…</div>}> 
-        <FloridaPoolElements />
-      </Suspense>
       
       
       <div className="relative z-10">
         <Suspense fallback={<div className="p-8 text-center text-foreground/70" aria-busy="true">Loading content…</div>}>
-          <Hero />
           <PoolCatalog />
-          <SpaSection />
-          <TanningLedgeSection />
+          <PaversSection />
           <Footer />
         </Suspense>
       </div>

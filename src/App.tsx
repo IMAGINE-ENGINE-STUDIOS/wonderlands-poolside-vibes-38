@@ -18,6 +18,8 @@ import Pavers from "./pages/Pavers";
 import ScreenEnclosures from "./pages/ScreenEnclosures";
 import AutomaticCovers from "./pages/AutomaticCovers";
 import BrandShowcase from "./pages/BrandShowcase";
+import Pools from "./pages/Pools";
+import QuotePreview from "./pages/QuotePreview";
 
 const App = () => (
   <AuthProvider>
@@ -60,6 +62,8 @@ const App = () => (
       <Route path="/screen-enclosures" element={<ScreenEnclosures />} />
       <Route path="/automatic-covers" element={<AutomaticCovers />} />
       <Route path="/brand-showcase" element={<BrandShowcase />} />
+      <Route path="/pools" element={<Pools />} />
+      <Route path="/quote/:id" element={<QuotePreview />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </AuthProvider>

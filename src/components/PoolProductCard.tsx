@@ -16,6 +16,7 @@ import { spas } from "./PoolCatalog";
 import { tanningLedges } from "@/data/poolData";
 import { paverTypes, copingTypes } from "@/data/paverData";
 import { supabase } from "@/integrations/supabase/client";
+import { openQuotePreview } from "@/utils/quoteNavigation";
 
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
@@ -1093,7 +1094,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                 <Button 
                   onClick={() => {
                     const { items, total } = buildExtrasBreakdown();
-                    onRequestQuote(pool, { ...extras, extrasBreakdown: items, extrasTotal: total });
+                    openQuotePreview({ type: 'pool', pool, extras: { ...extras, extrasBreakdown: items, extrasTotal: total } });
                   }}
                   variant="outline"
                   className="flex-1"

@@ -129,7 +129,7 @@ const ProductDetailModal = ({ product, isOpen, onClose, onRequestQuote }: Produc
             {/* Action Button */}
             <div className="pt-6">
               <Button 
-                onClick={() => onRequestQuote(product)}
+                onClick={() => openQuotePreview({ type: 'product', product })}
                 variant="gradient"
                 size="lg"
                 className="w-full hover:scale-105 transition-all duration-300"
