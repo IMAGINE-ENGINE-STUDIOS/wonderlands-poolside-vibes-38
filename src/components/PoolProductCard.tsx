@@ -158,15 +158,41 @@ interface Paver {
   image: string;
 }
 
-const PoolProductCard = () => {
-  const [pool, setPool] = useState<Pool>({
-    model: "The Laguna",
-    dimensions: "16 x 32",
-    depth: "3.5 - 7.5",
-    price: 65000,
-    image:
-      "https://wonderlands-poolside-vibes.lovable.app/lovable-uploads/f0ee9d81-bffb-4340-8f6e-c2090e67204e.png",
-  });
+interface ExternalPoolProps {
+  model: string;
+  price: number;
+  category: 'premium' | 'deluxe' | 'standard' | 'compact';
+  image?: string;
+  dimensions?: string;
+  depth?: string;
+  features?: string[];
+}
+
+interface PoolProductCardProps {
+  pool?: ExternalPoolProps;
+  onViewDetails?: (pool: ExternalPoolProps) => void;
+  onRequestQuote?: (pool: ExternalPoolProps, extras?: any) => void;
+  isAdmin?: boolean;
+}
+
+const PoolProductCard: React.FC<PoolProductCardProps> = ({ pool: incomingPool, onViewDetails, onRequestQuote, isAdmin }) => {
+  // Default starter values for internal configurator
+  const defaultPoolImage =
+    "https://wonderlands-poolside-vibes.lovable.app/lovable-uploads/f0ee9d81-bffb-4340-8f6e-c2090e67204e.png";
+  const defaultDimensions = "16 x 32";
+  const defaultDepth = "3.5 - 7.5";
+
+  // Use incoming pool if provided (from catalogs), otherwise fall back to defaults
+  const initialPool: Pool = {
+    model: incomingPool?.model || "The Laguna",
+    dimensions: incomingPool?.dimensions || defaultDimensions,
+    depth: incomingPool?.depth || defaultDepth,
+    price: incomingPool?.price ?? 65000,
+    image: incomingPool?.image || defaultPoolImage,
+  };
+
+  const [pool, setPool] = useState<Pool>(initialPool);
+
   const [finishes, setFinishes] = useState<Finish[]>([
     {
       name: "Pebble Brilliance",
@@ -271,22 +297,26 @@ const PoolProductCard = () => {
   });
   const finishForm = useForm<z.infer<typeof FinishSchema>>({
     resolver: zodResolver(FinishSchema),
-    defaultValues: selectedFinish,
+    defaultValues: // will be reset below
+      undefined as any,
     mode: "onChange",
   });
   const tileForm = useForm<z.infer<typeof TileSchema>>({
     resolver: zodResolver(TileSchema),
-    defaultValues: selectedTile,
+    defaultValues: // will be reset below
+      undefined as any,
     mode: "onChange",
   });
   const linerForm = useForm<z.infer<typeof LinerSchema>>({
     resolver: zodResolver(LinerSchema),
-    defaultValues: selectedLiner,
+    defaultValues: // will be reset below
+      undefined as any,
     mode: "onChange",
   });
   const paverForm = useForm<z.infer<typeof PaverSchema>>({
     resolver: zodResolver(PaverSchema),
-    defaultValues: selectedPaver,
+    defaultValues: // will be reset below
+      undefined as any,
     mode: "onChange",
   });
 
@@ -313,8 +343,16 @@ const PoolProductCard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Ensure fully-typed objects are passed to state setters
   const handlePoolSubmit = (values: z.infer<typeof PoolSchema>) => {
-    setPool(values);
+    const strictValues: Pool = {
+      model: values.model,
+      dimensions: values.dimensions,
+      depth: values.depth,
+      price: Number(values.price),
+      image: values.image,
+    };
+    setPool(strictValues);
     toast({
       title: "Success!",
       description: "Pool details have been updated.",
@@ -322,9 +360,14 @@ const PoolProductCard = () => {
   };
 
   const handleFinishSubmit = (values: z.infer<typeof FinishSchema>) => {
-    setSelectedFinish(values);
-    const newFinishes = finishes.map((finish) =>
-      finish.name === selectedFinish.name ? values : finish
+    const strict: Finish = {
+      name: values.name,
+      description: values.description,
+      image: values.image,
+    };
+    setSelectedFinish(strict);
+    const newFinishes: Finish[] = finishes.map((finish) =>
+      finish.name === selectedFinish.name ? strict : finish
     );
     setFinishes(newFinishes);
     toast({
@@ -334,9 +377,14 @@ const PoolProductCard = () => {
   };
 
   const handleTileSubmit = (values: z.infer<typeof TileSchema>) => {
-    setSelectedTile(values);
-    const newTiles = tiles.map((tile) =>
-      tile.name === selectedTile.name ? values : tile
+    const strict: Tile = {
+      name: values.name,
+      description: values.description,
+      image: values.image,
+    };
+    setSelectedTile(strict);
+    const newTiles: Tile[] = tiles.map((tile) =>
+      tile.name === selectedTile.name ? strict : tile
     );
     setTiles(newTiles);
     toast({
@@ -346,9 +394,14 @@ const PoolProductCard = () => {
   };
 
   const handleLinerSubmit = (values: z.infer<typeof LinerSchema>) => {
-    setSelectedLiner(values);
-    const newLiners = liners.map((liner) =>
-      liner.name === selectedLiner.name ? values : liner
+    const strict: Liner = {
+      name: values.name,
+      description: values.description,
+      image: values.image,
+    };
+    setSelectedLiner(strict);
+    const newLiners: Liner[] = liners.map((liner) =>
+      liner.name === selectedLiner.name ? strict : liner
     );
     setLiners(newLiners);
     toast({
@@ -358,9 +411,14 @@ const PoolProductCard = () => {
   };
 
   const handlePaverSubmit = (values: z.infer<typeof PaverSchema>) => {
-    setSelectedPaver(values);
-    const newPavers = pavers.map((paver) =>
-      paver.name === selectedPaver.name ? values : paver
+    const strict: Paver = {
+      name: values.name,
+      description: values.description,
+      image: values.image,
+    };
+    setSelectedPaver(strict);
+    const newPavers: Paver[] = pavers.map((paver) =>
+      paver.name === selectedPaver.name ? strict : paver
     );
     setPavers(newPavers);
     toast({
@@ -375,9 +433,35 @@ const PoolProductCard = () => {
       `quote:${id}`,
       JSON.stringify({
         type: "pool",
-        pool: { ...pool, finish: selectedFinish, tile: selectedTile, liner: selectedLiner, paver: selectedPaver },
+        pool: {
+          ...pool,
+          finish: selectedFinish,
+          tile: selectedTile,
+          liner: selectedLiner,
+          paver: selectedPaver,
+        },
       })
     );
+
+    // Also invoke external callback if provided (non-breaking)
+    if (onRequestQuote) {
+      const externalPool: ExternalPoolProps = {
+        model: pool.model,
+        price: pool.price,
+        category: (incomingPool?.category || "standard") as ExternalPoolProps["category"],
+        image: pool.image,
+        dimensions: pool.dimensions,
+        depth: pool.depth,
+        features: incomingPool?.features || [],
+      };
+      onRequestQuote(externalPool, {
+        finish: selectedFinish,
+        tile: selectedTile,
+        liner: selectedLiner,
+        paver: selectedPaver,
+      });
+    }
+
     navigate(`/quote/${id}`);
   };
 

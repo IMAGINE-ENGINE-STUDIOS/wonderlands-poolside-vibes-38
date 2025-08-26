@@ -1,5 +1,7 @@
+
 import React from "react";
 import ImageCard from "@/components/ImageCard";
+import { screenEnclosures as screenEnclosuresData } from "@/data/screenEnclosureData";
 
 interface ScreenEnclosure {
   model: string;
@@ -8,10 +10,20 @@ interface ScreenEnclosure {
 }
 
 interface ScreenEnclosuresSectionProps {
-  enclosures: ScreenEnclosure[];
+  enclosures?: ScreenEnclosure[];
 }
 
 const ScreenEnclosuresSection: React.FC<ScreenEnclosuresSectionProps> = ({ enclosures }) => {
+  // Fallback to default data if not provided via props (prevents required-prop build errors)
+  const items: ScreenEnclosure[] =
+    enclosures && enclosures.length > 0
+      ? enclosures
+      : screenEnclosuresData.map((e) => ({
+          model: e.name,
+          image: e.image,
+          description: e.description,
+        }));
+
   return (
     <section className="py-12 bg-background">
       <div className="container mx-auto px-4">
@@ -19,7 +31,7 @@ const ScreenEnclosuresSection: React.FC<ScreenEnclosuresSectionProps> = ({ enclo
           Screen Enclosures
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {enclosures.map((enclosure, index) => (
+          {items.map((enclosure, index) => (
             <div
               key={index}
               className="rounded-lg overflow-hidden shadow-md bg-card text-card-foreground"
@@ -45,3 +57,4 @@ const ScreenEnclosuresSection: React.FC<ScreenEnclosuresSectionProps> = ({ enclo
 };
 
 export default ScreenEnclosuresSection;
+
