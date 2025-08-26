@@ -18,8 +18,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { user } = useAuth();
-  const [showProfile, setShowProfile] = useState(false);
-  const { cartItems, getCartCount } = useShoppingCart();
+  const { getCartCount } = useShoppingCart();
   
   const navItems = [
     { name: "Home", path: "/" },
