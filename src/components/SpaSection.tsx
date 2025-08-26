@@ -63,12 +63,13 @@ const SpaSection = () => {
               <PoolProductCard
                 key={spa.model}
                 pool={{
+                  id: spa.id ?? spa.model.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
                   model: spa.model,
                   price: spa.price,
-                  category: spa.category as any,
+                  category: (spa as any).category || 'premium',
                   image: spa.image,
-                  dimensions: spa.dimensions,
-                  depth: spa.depth,
+                  dimensions: (spa as any).dimensions,
+                  depth: (spa as any).depth,
                   features: spa.features
                 }}
                 onViewDetails={handleViewDetails}

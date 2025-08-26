@@ -290,15 +290,14 @@ export const StandardizedProductManager = () => {
           <div key={product.id} className="relative group">
             <PoolProductCard
               pool={{
+                id: product.id,
                 model: product.name,
                 price: product.price,
-                category: product.subcategory as any || 'standard',
+                category: (product.subcategory as any) || 'standard',
                 image: product.image_url,
                 dimensions: product.dimensions,
                 depth: product.depth,
                 features: product.features,
-                galaPoints: product.gala_points,
-                galaCategory: product.gala_category,
                 installationTimeWeeks: product.installation_time_weeks,
                 warrantyYears: product.warranty_years,
                 heater: product.heater,

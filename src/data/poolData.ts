@@ -319,23 +319,101 @@ export const poolModels = [
 
 // Pool liners data
 export const poolLiners = [
-  { id: 'liner-1', name: 'Marble', price: 1800, image: '/lovable-uploads/797bcadb-19bc-4859-8319-ceb12ea23d10.png' },
-  { id: 'liner-2', name: 'Granite', price: 2200, image: '/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.png' },
-  { id: 'liner-3', name: 'Onyx', price: 2500, image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png' },
+  { 
+    id: 'liner-1', 
+    name: 'Marble', 
+    price: 1800, 
+    image: '/lovable-uploads/797bcadb-19bc-4859-8319-ceb12ea23d10.png',
+    type: 'Vinyl Liner',
+    description: 'Elegant marble-inspired vinyl liner with subtle veining for a premium look.'
+  },
+  { 
+    id: 'liner-2', 
+    name: 'Granite', 
+    price: 2200, 
+    image: '/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.png',
+    type: 'Vinyl Liner',
+    description: 'Durable granite pattern liner that hides wear and looks great in all lighting.'
+  },
+  { 
+    id: 'liner-3', 
+    name: 'Onyx', 
+    price: 2500, 
+    image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png',
+    type: 'Vinyl Liner',
+    description: 'Deep onyx tone liner for dramatic water color and modern aesthetics.'
+  },
 ];
 
 // Pool tiles data
 export const poolTiles = [
-  { id: 'tile-1', name: 'Ceramic', price: 800, image: '/lovable-uploads/7cfaa1c7-7fe8-472a-bf41-4d1973510a5a.png' },
-  { id: 'tile-2', name: 'Porcelain', price: 1200, image: '/lovable-uploads/65b3331a-e988-4fbb-a9b2-d73d1b94ae79.png' },
-  { id: 'tile-3', name: 'Glass', price: 1500, image: '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png' },
+  { 
+    id: 'tile-1', 
+    name: 'Ceramic', 
+    price: 800, 
+    image: '/lovable-uploads/7cfaa1c7-7fe8-472a-bf41-4d1973510a5a.png',
+    description: 'Classic ceramic waterline tile with a clean, timeless finish.'
+  },
+  { 
+    id: 'tile-2', 
+    name: 'Porcelain', 
+    price: 1200, 
+    image: '/lovable-uploads/65b3331a-e988-4fbb-a9b2-d73d1b94ae79.png',
+    description: 'Premium porcelain tile offering excellent durability and color consistency.'
+  },
+  { 
+    id: 'tile-3', 
+    name: 'Glass', 
+    price: 1500, 
+    image: '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png',
+    description: 'Vibrant glass mosaic tiles that add sparkle and depth to your pool.'
+  },
 ];
 
 // Tanning ledges data
 export const tanningLedges = [
-  { id: 'ledge-1', name: 'Standard', price: 4000, image: '/lovable-uploads/56fd62de-130b-4b90-98a0-596007f5dadb.png' },
-  { id: 'ledge-2', name: 'Premium', price: 6000, image: '/lovable-uploads/7dc956df-af5c-4c6b-b2af-6bc9d6fbf179.png' },
-  { id: 'ledge-3', name: 'Luxury', price: 8000, image: '/lovable-uploads/9e491420-80df-4bb3-9db1-3933d96846ac.png' },
+  { 
+    id: 'ledge-1', 
+    name: 'Standard', 
+    price: 4000, 
+    image: '/lovable-uploads/56fd62de-130b-4b90-98a0-596007f5dadb.png',
+    description: 'Entry-level tanning ledge ideal for compact pools and relaxed lounging.',
+    dimensions: "7' x 8'",
+    depth: "9\" water depth",
+    features: [
+      'Slip-resistant surface',
+      'Perfect for baja shelf loungers',
+      'Integrated entry step'
+    ]
+  },
+  { 
+    id: 'ledge-2', 
+    name: 'Premium', 
+    price: 6000, 
+    image: '/lovable-uploads/7dc956df-af5c-4c6b-b2af-6bc9d6fbf179.png',
+    description: 'Expanded ledge with more room for seating and play, designed for comfort.',
+    dimensions: "8' x 10'",
+    depth: "10\" water depth",
+    features: [
+      'Wider lounging area',
+      'Optional bubbler compatibility',
+      'Reinforced structure'
+    ]
+  },
+  { 
+    id: 'ledge-3', 
+    name: 'Luxury', 
+    price: 8000, 
+    image: '/lovable-uploads/9e491420-80df-4bb3-9db1-3933d96846ac.png',
+    description: 'Top-tier tanning ledge with maximum space and premium feel.',
+    dimensions: "9' x 12'",
+    depth: "10\"–12\" adjustable water depth",
+    features: [
+      'Space for two loungers + table',
+      'Bubbler and LED accent ready',
+      'Premium gelcoat finish'
+    ]
+  },
 ];
 
 export default poolModels;
