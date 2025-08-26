@@ -20,23 +20,8 @@ const ProtectedRoute = ({
   const { user, profile, loading } = useAuth();
   const location = useLocation();
 
-  // Check for admin session first
-  const adminSession = sessionStorage.getItem('adminSession');
-  let isAdminAuthenticated = false;
-  
-  if (adminSession) {
-    try {
-      const session = JSON.parse(adminSession);
-      const expiresAt = new Date(session.expiresAt);
-      isAdminAuthenticated = expiresAt > new Date() && session.adminData;
-    } catch (error) {
-      console.error('Invalid admin session:', error);
-      sessionStorage.removeItem('adminSession');
-    }
-  }
-
   // Show loading while checking auth status
-  if (loading && !isAdminAuthenticated) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -47,16 +32,7 @@ const ProtectedRoute = ({
     );
   }
 
-  // For admin routes, check admin session first
-  if (requiredRoles.includes('main_admin')) {
-    if (isAdminAuthenticated) {
-      return <>{children}</>;
-    }
-    // If no admin session, redirect to auth page
-    return <Navigate to="/auth" state={{ from: location }} replace />;
-  }
-
-  // Check if authentication is required for regular routes
+  // Check if authentication is required
   if (requireAuth && !user) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
@@ -82,8 +58,8 @@ const ProtectedRoute = ({
     );
   }
 
-  // Check role-based access for non-admin routes
-  if (requiredRoles.length > 0 && !requiredRoles.includes('main_admin') && (!profile || !requiredRoles.includes(profile.role))) {
+  // Check role-based access
+  if (requiredRoles.length > 0 && (!profile || !requiredRoles.includes(profile.role))) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center">

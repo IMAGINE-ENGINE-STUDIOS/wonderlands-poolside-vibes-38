@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -17,10 +18,10 @@ const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
 
-  // Redirect if already logged in
+  // Redirect if already logged in - go to admin dashboard
   useEffect(() => {
     if (!loading && user) {
-      navigate('/');
+      navigate('/admin');
     }
   }, [user, loading, navigate]);
 
@@ -57,6 +58,8 @@ const AuthPage = () => {
           title: "Success",
           description: "You have been signed in successfully!",
         });
+        // Redirect to admin dashboard
+        navigate('/admin');
       }
     } catch (error) {
       toast({

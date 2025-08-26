@@ -96,15 +96,16 @@ const RightNavigation = () => {
       label: 'Admin Dashboard',
       icon: Shield,
       link: '/admin',
-      show: true
+      show: !!user
     },
-    {
+    // Only show content editor link to main admins
+    ...(profile?.role === 'main_admin' ? [{
       id: 'content-editor',
       label: 'Content Editor',
       icon: Settings,
       link: '/content-editor',
       show: true
-    },
+    }] : []),
     {
       id: 'auth',
       label: user ? 'Account' : 'Sign In',
