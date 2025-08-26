@@ -5,9 +5,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DollarSign, ShoppingCart, Edit, ChevronLeft, ChevronRight, Clock, Shield, Loader2 } from "lucide-react";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem
+} from "@/components/ui/dropdown-menu";
+import { DollarSign, ShoppingCart, Edit, ChevronLeft, ChevronRight, Clock, Shield, Loader2, ChevronDown, Plus, Minus } from "lucide-react";
 import { useShoppingCart } from "./ShoppingCart";
 import { openQuotePreview } from "@/utils/quoteNavigation";
+import { spas } from "@/data/spaData";
+import { tanningLedges } from "@/data/poolData";
 
 // Pool image mapping with exact pool model names
 const poolImages: Record<string, string> = {
@@ -70,12 +78,12 @@ const coverOptions = [
   { name: "Infinity 4000", image: "/lovable-uploads/797bcadb-19bc-4859-8319-ceb12ea23d10.png", price: 32000 }
 ];
 
-// Additional Features
-const additionalFeatures = [
-  { name: "Add Pool Heater", price: 3800, checked: false },
-  { name: "Spa Jets", price: 1800, checked: false },
-  { name: "Add Spa", price: 18200, checked: false },
-  { name: "Add Tanning Ledge", price: 28600, checked: false }
+// Heater options
+const heaterOptions = [
+  { name: "No Heater", image: "/lovable-uploads/7cfaa1c7-7fe8-472a-bf41-4d1973510a5a.png", price: 0 },
+  { name: "Gas Heater 250K BTU", image: "/lovable-uploads/65b3331a-e988-4fbb-a9b2-d73d1b94ae79.png", price: 3800 },
+  { name: "Electric Heat Pump", image: "/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png", price: 4500 },
+  { name: "Solar Heater System", image: "/lovable-uploads/797bcadb-19bc-4859-8319-ceb12ea23d10.png", price: 6200 }
 ];
 
 export interface Pool {
@@ -117,9 +125,13 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
   const [selectedFinish, setSelectedFinish] = useState(poolFinishes[0]);
   const [selectedLiner, setSelectedLiner] = useState(premiumLiners[0]);
   const [selectedCover, setSelectedCover] = useState(coverOptions[0]);
-  const [features, setFeatures] = useState(additionalFeatures);
+  const [selectedHeater, setSelectedHeater] = useState(heaterOptions[0]);
+  const [selectedSpa, setSelectedSpa] = useState<any>(null);
+  const [selectedTanningLedge, setSelectedTanningLedge] = useState<any>(null);
+  const [spaJetsCount, setSpaJetsCount] = useState(0);
   const [paverArea, setPaverArea] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showFinanceDropdown, setShowFinanceDropdown] = useState(false);
   
   const { addToCart } = useShoppingCart();
 
@@ -144,7 +156,10 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
     const finishPrice = selectedFinish.price || 0;
     const linerPrice = selectedLiner.price || 0;
     const coverPrice = selectedCover.price || 0;
-    const featuresPrice = features.reduce((sum, feature) => sum + (feature.checked ? feature.price : 0), 0);
+    const heaterPrice = selectedHeater.price || 0;
+    const spaPrice = selectedSpa ? selectedSpa.price : 0;
+    const tanningLedgePrice = selectedTanningLedge ? selectedTanningLedge.price : 0;
+    const spaJetsPrice = spaJetsCount * 300; // $300 per spa jet
     
     // Add paver cost: surface area × $15/sq ft
     let paverCost = 0;
@@ -152,13 +167,7 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
       paverCost = parseFloat(paverArea) * 15;
     }
     
-    return pool.price + tilePrice + finishPrice + linerPrice + coverPrice + featuresPrice + paverCost;
-  };
-
-  const handleFeatureToggle = (index: number) => {
-    setFeatures(prev => prev.map((feature, i) => 
-      i === index ? { ...feature, checked: !feature.checked } : feature
-    ));
+    return pool.price + tilePrice + finishPrice + linerPrice + coverPrice + heaterPrice + spaPrice + tanningLedgePrice + spaJetsPrice + paverCost;
   };
 
   const handleAddToCart = async () => {
@@ -191,7 +200,10 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
             finish: selectedFinish,
             liner: selectedLiner,
             cover: selectedCover,
-            features: features.filter(f => f.checked),
+            heater: selectedHeater,
+            spa: selectedSpa,
+            tanningLedge: selectedTanningLedge,
+            spaJets: spaJetsCount,
             paverArea: paverArea,
             paverCost: paverArea && !isNaN(parseFloat(paverArea)) ? parseFloat(paverArea) * 15 : 0
           },
@@ -206,10 +218,10 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
     }
   };
 
-  const handleLyonFinance = () => {
-    const total = calculateTotal();
-    const financeUrl = `https://apply.lyonfinancial.net/apply?partner_id=wonderlands&amount=${total}&product=pool`;
-    window.open(financeUrl, '_blank');
+  const handleExpandEditor = () => {
+    // This would open the editor studio - placeholder for now
+    console.log('Opening Editor Studio for:', pool.model);
+    // Future implementation: open editor studio modal or navigate to editor
   };
 
   const handleViewDetails = () => {
@@ -217,6 +229,15 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
     if (onViewDetails) {
       onViewDetails(pool);
     }
+  };
+
+  const calculateMonthlyPayment = (totalAmount: number, months: number = 60) => {
+    // Simple calculation assuming 8% APR
+    const apr = 0.08;
+    const monthlyRate = apr / 12;
+    const payment = (totalAmount * monthlyRate * Math.pow(1 + monthlyRate, months)) / 
+                   (Math.pow(1 + monthlyRate, months) - 1);
+    return Math.round(payment);
   };
 
   return (
@@ -253,11 +274,15 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm text-teal-600">
             <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
-            <span>LED lights, Water pump, Waterfall, Salt system included</span>
+            <span><strong>Includes:</strong> LED lights, Water pump, Waterfall, Salt system</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-blue-600">
             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            <span>FREE Finish of choice (included in pool price - promotional offer)</span>
+            <span><strong>FREE Finish:</strong> Premium finish included (promotional offer)</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-green-600">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span><strong>Perimeter:</strong> 3 ft pavers around pool area included</span>
           </div>
         </div>
 
@@ -265,10 +290,9 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
           <div className="text-sm text-gray-600 space-y-1">
             <div><strong>Dimensions:</strong> {pool.dimensions}</div>
             <div><strong>Depth:</strong> {pool.depth}</div>
-            <div><strong>Includes:</strong> 3 ft perimeter pavers around pool area</div>
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              <span><strong>Installation:</strong> Complete installation including permits, excavation, and all selected features</span>
+              <span><strong>Installation:</strong> Complete installation with permits and excavation</span>
             </div>
             <div className="flex items-center gap-1 text-blue-500">
               <Shield className="h-3 w-3" />
@@ -279,9 +303,15 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
 
         <div className="flex gap-2 pt-2">
           {isAdmin && (
-            <Button variant="outline" size="sm" className="flex-1" disabled={isLoading}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1"
+              onClick={handleExpandEditor}
+              disabled={isLoading}
+            >
               <Edit className="h-4 w-4 mr-1" />
-              Editor Studio
+              Expand
             </Button>
           )}
           <Button 
@@ -396,19 +426,137 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
             {/* Additional Features Section */}
             <div>
               <h3 className="text-lg font-semibold mb-3">Additional Features</h3>
-              <div className="space-y-2">
-                {features.map((feature, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="space-y-3">
+                {/* Pool Heater Dropdown */}
+                <div className="p-3 border rounded-lg">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between">
+                        <span>Pool Heater: {selectedHeater.name}</span>
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-full bg-white border shadow-lg z-50">
+                      {heaterOptions.map((heater, index) => (
+                        <DropdownMenuItem 
+                          key={index}
+                          onClick={() => setSelectedHeater(heater)}
+                          className="flex items-center gap-3 p-3 hover:bg-gray-50"
+                        >
+                          <img src={heater.image} alt={heater.name} className="w-12 h-12 object-cover rounded" />
+                          <div className="flex-1">
+                            <div className="font-medium">{heater.name}</div>
+                            {heater.price > 0 && <div className="text-sm text-teal-500">+${heater.price.toLocaleString()}</div>}
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Spa Dropdown */}
+                <div className="p-3 border rounded-lg">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between">
+                        <span>Add Spa: {selectedSpa ? selectedSpa.model : "No Spa"}</span>
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-full bg-white border shadow-lg z-50">
+                      <DropdownMenuItem 
+                        onClick={() => setSelectedSpa(null)}
+                        className="flex items-center gap-3 p-3 hover:bg-gray-50"
+                      >
+                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                          <span className="text-xs">No Spa</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium">No Spa</div>
+                          <div className="text-sm text-gray-500">$0</div>
+                        </div>
+                      </DropdownMenuItem>
+                      {spas.map((spa, index) => (
+                        <DropdownMenuItem 
+                          key={index}
+                          onClick={() => setSelectedSpa(spa)}
+                          className="flex items-center gap-3 p-3 hover:bg-gray-50"
+                        >
+                          <img src={spa.image} alt={spa.model} className="w-12 h-12 object-cover rounded" />
+                          <div className="flex-1">
+                            <div className="font-medium">{spa.model}</div>
+                            <div className="text-sm text-teal-500">+${spa.price.toLocaleString()}</div>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Tanning Ledge Dropdown */}
+                <div className="p-3 border rounded-lg">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between">
+                        <span>Add Tanning Ledge: {selectedTanningLedge ? selectedTanningLedge.name : "No Tanning Ledge"}</span>
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-full bg-white border shadow-lg z-50">
+                      <DropdownMenuItem 
+                        onClick={() => setSelectedTanningLedge(null)}
+                        className="flex items-center gap-3 p-3 hover:bg-gray-50"
+                      >
+                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                          <span className="text-xs">None</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium">No Tanning Ledge</div>
+                          <div className="text-sm text-gray-500">$0</div>
+                        </div>
+                      </DropdownMenuItem>
+                      {tanningLedges.map((ledge, index) => (
+                        <DropdownMenuItem 
+                          key={index}
+                          onClick={() => setSelectedTanningLedge(ledge)}
+                          className="flex items-center gap-3 p-3 hover:bg-gray-50"
+                        >
+                          <img src={ledge.image} alt={ledge.name} className="w-12 h-12 object-cover rounded" />
+                          <div className="flex-1">
+                            <div className="font-medium">{ledge.name} Tanning Ledge</div>
+                            <div className="text-sm text-teal-500">+${ledge.price.toLocaleString()}</div>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Spa Jets Counter */}
+                <div className="p-3 border rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Spa Jets</span>
                     <div className="flex items-center gap-3">
-                      <Checkbox
-                        checked={feature.checked}
-                        onCheckedChange={() => handleFeatureToggle(index)}
-                      />
-                      <span className="text-sm">{feature.name}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSpaJetsCount(Math.max(0, spaJetsCount - 1))}
+                        disabled={spaJetsCount === 0}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="w-8 text-center">{spaJetsCount}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSpaJetsCount(spaJetsCount + 1)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm text-gray-600">×${300} = ${(spaJetsCount * 300).toLocaleString()}</span>
                     </div>
-                    <span className="text-sm text-gray-600">+${feature.price.toLocaleString()}</span>
                   </div>
-                ))}
+                </div>
               </div>
             </div>
 
@@ -437,21 +585,6 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
             {/* Action Buttons */}
             <div className="space-y-3">
               <div className="flex gap-3">
-                <Button variant="outline" className="flex-1" disabled={isLoading}>
-                  Editor Studio
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={handleGetQuote}
-                  disabled={isLoading}
-                >
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-                  Download Quote
-                </Button>
-              </div>
-              
-              <div className="flex gap-3">
                 <Button 
                   variant="outline" 
                   onClick={handleAddToCart}
@@ -459,51 +592,59 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
                   disabled={isLoading}
                 >
                   <ShoppingCart className="h-4 w-4" />
-                  Cart
+                  Add to Cart
                 </Button>
                 <Button 
-                  onClick={handleAddToCart}
+                  onClick={handleGetQuote}
                   className="flex-1 bg-teal-500 hover:bg-teal-600 text-white"
                   disabled={isLoading}
                 >
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-                  Buy Now - ${calculateTotal().toLocaleString()}
+                  Instant Quote - ${calculateTotal().toLocaleString()}
                 </Button>
               </div>
 
               {/* Finance Section */}
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold">Finance This Purchase</h4>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div className="text-center p-2 border rounded">
-                    <div className="font-semibold">12 Months</div>
-                    <div className="text-sm text-gray-600">
-                      ${Math.round(calculateTotal() / 12).toLocaleString()}/mo
-                    </div>
-                  </div>
-                  <div className="text-center p-2 border rounded">
-                    <div className="font-semibold">24 Months</div>
-                    <div className="text-sm text-gray-600">
-                      ${Math.round(calculateTotal() / 24).toLocaleString()}/mo
-                    </div>
-                  </div>
-                </div>
+                <DropdownMenu open={showFinanceDropdown} onOpenChange={setShowFinanceDropdown}>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                      <span>Finance This Purchase</span>
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-full bg-white border shadow-lg z-50 p-4">
+                    <div className="space-y-3">
+                      <h4 className="font-semibold">60-Month Financing Options</h4>
+                      
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="text-center p-3 border rounded">
+                          <div className="font-semibold">60 Months @ 8% APR</div>
+                          <div className="text-lg text-teal-600">
+                            ${calculateMonthlyPayment(calculateTotal(), 60).toLocaleString()}/month
+                          </div>
+                          <div className="text-xs text-gray-500">*Subject to credit approval</div>
+                        </div>
+                      </div>
 
-                <Button 
-                  onClick={handleLyonFinance}
-                  variant="outline" 
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  Apply with Lyon Financial
-                </Button>
-                
-                <p className="text-xs text-gray-500 mt-1 text-center">
-                  *Financing subject to credit approval. APR varies.
-                </p>
+                      <Button 
+                        onClick={() => {
+                          const total = calculateTotal();
+                          const financeUrl = `https://apply.lyonfinancial.net/apply?partner_id=wonderlands&amount=${total}&product=pool`;
+                          window.open(financeUrl, '_blank');
+                        }}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        disabled={isLoading}
+                      >
+                        Apply with Lyon Financial
+                      </Button>
+                      
+                      <p className="text-xs text-gray-500 text-center">
+                        *Financing subject to credit approval. APR varies based on creditworthiness.
+                      </p>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
