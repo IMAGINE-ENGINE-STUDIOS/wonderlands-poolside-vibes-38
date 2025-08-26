@@ -19,6 +19,7 @@ import {
   Database,
   Globe,
   Smartphone,
+  LogOut,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,7 +29,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import DeliveryApiManager from '@/components/DeliveryApiManager';
 import AdminContentEditor from '@/components/AdminContentEditor';
 import RealApiManager from '@/components/RealApiManager';
@@ -40,8 +41,32 @@ import AdminQuotesManager from '@/components/AdminQuotesManager';
 import AdminOrdersManager from '@/components/AdminOrdersManager';
 import AdminDashboardMetrics from '@/components/AdminDashboardMetrics';
 import { DragDropEditor } from '@/components/DragDropEditor';
+import AdminLogout from '@/components/AdminLogout';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
+  const [adminData, setAdminData] = useState(null);
+
+  // Get admin data from session
+  useEffect(() => {
+    const adminSession = sessionStorage.getItem('adminSession');
+    if (adminSession) {
+      try {
+        const session = JSON.parse(adminSession);
+        setAdminData(session.adminData);
+      } catch (error) {
+        console.error('Error parsing admin session:', error);
+        navigate('/auth');
+      }
+    } else {
+      navigate('/auth');
+    }
+  }, [navigate]);
+
+  const handleLogout = () => {
+    navigate('/');
+  };
+
   // Sample orders data
   const [orders, setOrders] = useState([
     {
@@ -101,13 +126,21 @@ const AdminDashboard = () => {
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                 Admin Dashboard
               </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">Manage products, orders, and content</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Manage products, orders, and content
+                {adminData && (
+                  <span className="ml-2 text-primary font-medium">
+                    Welcome, {adminData.role}
+                  </span>
+                )}
+              </p>
             </div>
             <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <Button variant="outline" onClick={refreshData} disabled={isLoading} size="sm" className="flex-1 sm:flex-none">
                 <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                 <span className="text-xs sm:text-sm">Refresh</span>
               </Button>
+              <AdminLogout adminData={adminData} onLogout={handleLogout} />
               <Link to="/" className="flex-1 sm:flex-none">
                 <Button variant="outline" size="sm" className="w-full">
                   <span className="text-xs sm:text-sm">Back to Site</span>
