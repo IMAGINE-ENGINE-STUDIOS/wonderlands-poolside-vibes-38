@@ -62,12 +62,12 @@ const poolFinishes = [
   { name: "Shale Gray", type: "Crystite Crystal", image: "/lovable-uploads/65b3331a-e988-4fbb-a9b2-d73d1b94ae79.png", price: 3500 }
 ];
 
-// Premium Liners with proper images
+// Premium Liners with updated pricing
 const premiumLiners = [
   { name: "Standard Blue", type: "", image: "/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png", price: 0 },
-  { name: "Paradise", type: "Glass", image: "/lovable-uploads/797bcadb-19bc-4859-8319-ceb12ea23d10.png", price: 4500 },
-  { name: "Water Lilies", type: "Glass", image: "/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.png", price: 4500 },
-  { name: "Sail Boat", type: "Glass", image: "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png", price: 4500 }
+  { name: "Paradise", type: "Glass", image: "/lovable-uploads/797bcadb-19bc-4859-8319-ceb12ea23d10.png", price: 3800 },
+  { name: "Water Lilies", type: "Glass", image: "/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.png", price: 3800 },
+  { name: "Sail Boat", type: "Glass", image: "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png", price: 3800 }
 ];
 
 // Cover Options with proper images
@@ -159,7 +159,7 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
     const heaterPrice = selectedHeater.price || 0;
     const spaPrice = selectedSpa ? selectedSpa.price : 0;
     const tanningLedgePrice = selectedTanningLedge ? selectedTanningLedge.price : 0;
-    const spaJetsPrice = spaJetsCount * 300; // $300 per spa jet
+    const spaJetsPrice = spaJetsCount * 1800; // Updated to $1800 per spa jet
     
     // Add paver cost: surface area × $15/sq ft
     let paverCost = 0;
@@ -327,27 +327,27 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
         {/* Expanded Details Section */}
         {showDetails && (
           <div className="space-y-6 pt-4 border-t animate-in slide-in-from-top-2 duration-300">
-            {/* Pool Tiles Section */}
+            {/* Pool Tiles Section - Fixed Carousel */}
             <div>
               <h3 className="text-lg font-semibold mb-3">Pool Tiles</h3>
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                <ChevronLeft className="h-5 w-5 text-gray-400 flex-shrink-0 mt-8" />
-                {poolTiles.map((tile, index) => (
-                  <div
-                    key={index}
-                    className={`flex-shrink-0 p-2 border-2 rounded-lg cursor-pointer ${
-                      selectedTile.name === tile.name ? 'border-teal-500' : 'border-gray-200'
-                    }`}
-                    onClick={() => setSelectedTile(tile)}
-                  >
-                    <img src={tile.image} alt={tile.name} className="w-16 h-16 object-cover rounded" />
-                    <div className="text-xs text-center mt-1 w-16">
-                      <div className="font-medium">{tile.name}</div>
-                      {tile.price > 0 && <div className="text-teal-500">+${tile.price.toLocaleString()}</div>}
+              <div className="relative">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300">
+                  {poolTiles.map((tile, index) => (
+                    <div
+                      key={index}
+                      className={`flex-shrink-0 p-2 border-2 rounded-lg cursor-pointer text-center ${
+                        selectedTile.name === tile.name ? 'border-teal-500' : 'border-gray-200'
+                      }`}
+                      onClick={() => setSelectedTile(tile)}
+                    >
+                      <img src={tile.image} alt={tile.name} className="w-16 h-16 object-cover rounded mx-auto" />
+                      <div className="text-xs mt-1 w-16">
+                        <div className="font-medium text-gray-800">{tile.name}</div>
+                        {tile.price > 0 && <div className="text-teal-500">+${tile.price.toLocaleString()}</div>}
+                      </div>
                     </div>
-                  </div>
-                ))}
-                <ChevronRight className="h-5 w-5 text-gray-400 flex-shrink-0 mt-8" />
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -365,7 +365,7 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
                   >
                     <img src={finish.image} alt={finish.name} className="w-full h-12 object-cover rounded mb-1" />
                     <div className="text-xs">
-                      <div className="font-medium">{finish.name}</div>
+                      <div className="font-medium text-gray-800">{finish.name}</div>
                       <div className="text-blue-500">{finish.type}</div>
                       <div className="text-teal-500">+${finish.price.toLocaleString()}</div>
                     </div>
@@ -374,52 +374,52 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
               </div>
             </div>
 
-            {/* Premium Pool Liners Section */}
+            {/* Premium Pool Liners Section - Fixed Carousel */}
             <div>
               <h3 className="text-lg font-semibold mb-3">Premium Pool Liners</h3>
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                <ChevronLeft className="h-5 w-5 text-gray-400 flex-shrink-0 mt-8" />
-                {premiumLiners.map((liner, index) => (
-                  <div
-                    key={index}
-                    className={`flex-shrink-0 p-2 border-2 rounded-lg cursor-pointer ${
-                      selectedLiner.name === liner.name ? 'border-teal-500' : 'border-gray-200'
-                    }`}
-                    onClick={() => setSelectedLiner(liner)}
-                  >
-                    <img src={liner.image} alt={liner.name} className="w-20 h-16 object-cover rounded" />
-                    <div className="text-xs text-center mt-1 w-20">
-                      <div className="font-medium">{liner.name}</div>
-                      {liner.type && <div className="text-blue-500">{liner.type}</div>}
-                      {liner.price > 0 && <div className="text-teal-500">+${liner.price.toLocaleString()}</div>}
+              <div className="relative">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300">
+                  {premiumLiners.map((liner, index) => (
+                    <div
+                      key={index}
+                      className={`flex-shrink-0 p-2 border-2 rounded-lg cursor-pointer text-center ${
+                        selectedLiner.name === liner.name ? 'border-teal-500' : 'border-gray-200'
+                      }`}
+                      onClick={() => setSelectedLiner(liner)}
+                    >
+                      <img src={liner.image} alt={liner.name} className="w-20 h-16 object-cover rounded mx-auto" />
+                      <div className="text-xs mt-1 w-20">
+                        <div className="font-medium text-gray-800">{liner.name}</div>
+                        {liner.type && <div className="text-blue-500">{liner.type}</div>}
+                        {liner.price > 0 && <div className="text-teal-500">+${liner.price.toLocaleString()}</div>}
+                      </div>
                     </div>
-                  </div>
-                ))}
-                <ChevronRight className="h-5 w-5 text-gray-400 flex-shrink-0 mt-8" />
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Cover Options Section */}
+            {/* Cover Options Section - Fixed Carousel */}
             <div>
               <h3 className="text-lg font-semibold mb-3">Cover Options</h3>
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                <ChevronLeft className="h-5 w-5 text-gray-400 flex-shrink-0 mt-8" />
-                {coverOptions.map((cover, index) => (
-                  <div
-                    key={index}
-                    className={`flex-shrink-0 p-2 border-2 rounded-lg cursor-pointer ${
-                      selectedCover.name === cover.name ? 'border-teal-500' : 'border-gray-200'
-                    }`}
-                    onClick={() => setSelectedCover(cover)}
-                  >
-                    <img src={cover.image} alt={cover.name} className="w-20 h-16 object-cover rounded" />
-                    <div className="text-xs text-center mt-1 w-20">
-                      <div className="font-medium">{cover.name}</div>
-                      {cover.price > 0 && <div className="text-teal-500">+${cover.price.toLocaleString()}</div>}
+              <div className="relative">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300">
+                  {coverOptions.map((cover, index) => (
+                    <div
+                      key={index}
+                      className={`flex-shrink-0 p-2 border-2 rounded-lg cursor-pointer text-center ${
+                        selectedCover.name === cover.name ? 'border-teal-500' : 'border-gray-200'
+                      }`}
+                      onClick={() => setSelectedCover(cover)}
+                    >
+                      <img src={cover.image} alt={cover.name} className="w-20 h-16 object-cover rounded mx-auto" />
+                      <div className="text-xs mt-1 w-20">
+                        <div className="font-medium text-gray-800">{cover.name}</div>
+                        {cover.price > 0 && <div className="text-teal-500">+${cover.price.toLocaleString()}</div>}
+                      </div>
                     </div>
-                  </div>
-                ))}
-                <ChevronRight className="h-5 w-5 text-gray-400 flex-shrink-0 mt-8" />
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -553,7 +553,7 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
-                      <span className="text-sm text-gray-600">×${300} = ${(spaJetsCount * 300).toLocaleString()}</span>
+                      <span className="text-sm text-gray-600">×${1800} = ${(spaJetsCount * 1800).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>

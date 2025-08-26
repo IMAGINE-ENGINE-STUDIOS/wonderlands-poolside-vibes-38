@@ -273,11 +273,12 @@ const QuotePreview = () => {
           <div className="bg-gradient-to-r from-orange-400 via-orange-500 to-teal-500 rounded-xl p-6 md:p-8 text-white mb-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center">
+                <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center">
                   <img 
                     src="/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.png" 
                     alt="Wonderlands" 
-                    className="w-12 h-12 object-contain"
+                    className="w-20 h-20 object-contain"
+                    style={{ width: '1in', height: '1in' }}
                   />
                 </div>
                 <div>

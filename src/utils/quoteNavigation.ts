@@ -20,7 +20,6 @@ export const openQuotePreview = (payload: QuotePayload) => {
     // Validate payload
     if (!payload || !payload.type) {
       console.error('Invalid payload - missing type');
-      alert('Invalid quote data. Please try again.');
       return;
     }
 
@@ -48,7 +47,6 @@ export const openQuotePreview = (payload: QuotePayload) => {
         console.log('Data stored successfully in localStorage as fallback');
       } catch (localError) {
         console.error('Failed to store in localStorage:', localError);
-        alert('Unable to save quote data. Please try again.');
         return;
       }
     }
@@ -57,7 +55,6 @@ export const openQuotePreview = (payload: QuotePayload) => {
     const stored = sessionStorage.getItem(`quote:${id}`) || localStorage.getItem(`quote:${id}`);
     if (!stored) {
       console.error('Failed to verify stored quote data');
-      alert('Failed to save quote data. Please try again.');
       return;
     }
     
@@ -66,23 +63,11 @@ export const openQuotePreview = (payload: QuotePayload) => {
     const url = `/quote/${id}`;
     console.log('Opening quote URL:', url);
     
-    // Try to open in new window/tab
-    const newWindow = window.open(url, '_blank', 'noopener,noreferrer,width=1200,height=800');
-    
-    if (!newWindow) {
-      console.error('Failed to open new window - popup blocked or failed');
-      // Fallback: navigate in current window
-      const confirmNavigation = confirm('Unable to open quote in new window. Open in current window instead?');
-      if (confirmNavigation) {
-        window.location.href = url;
-      }
-    } else {
-      console.log('Quote window opened successfully');
-    }
+    // Navigate in the same tab instead of opening new window
+    window.location.href = url;
     
   } catch (error) {
     console.error('Error in openQuotePreview:', error);
-    alert(`Failed to open quote preview: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
