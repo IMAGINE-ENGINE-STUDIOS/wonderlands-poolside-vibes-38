@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import PoolProductCard from "./PoolProductCard";
 import SpaDetailModal from "./SpaDetailModal";
 import { spas } from "@/data/spaData";
+import type { Pool as PoolCard } from "./PoolProductCard";
 
 interface Spa {
   model: string;
@@ -19,27 +19,49 @@ interface Spa {
 }
 
 // Update to match Pool interface
-interface Pool extends Spa {
-  finishes?: string[];
-  liners?: string[];
-  covers?: string[];
-}
+// Note: We no longer use this local Pool type for handlers to avoid type conflicts with PoolProductCard.Pool
+// interface Pool extends Spa {
+//   finishes?: string[];
+//   liners?: string[];
+//   covers?: string[];
+// }
 
 const SpaSection = () => {
-  // selectedSpa can be Spa, since Pool extends Spa and we only consume shared fields
+  // selectedSpa can be Spa, since PoolCard extends with additional fields and we only consume shared fields
   const [selectedSpa, setSelectedSpa] = useState<Spa | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  const handleViewDetails = (spa: Pool) => {
-    setSelectedSpa(spa);
+  // Map a PoolProductCard.Pool to our Spa shape
+  const mapPoolToSpa = (pool: PoolCard): Spa => ({
+    model: pool.model,
+    price: pool.price,
+    image: pool.image,
+    category: pool.category ?? 'premium',
+    dimensions: pool.dimensions,
+    depth: pool.depth,
+    features: pool.features,
+    warrantyYears: typeof pool.warrantyYears === 'string'
+      ? parseInt(pool.warrantyYears as string)
+      : pool.warrantyYears
+  });
+
+  // Handlers for PoolProductCard (must accept PoolProductCard.Pool)
+  const handleViewDetails = (pool: PoolCard) => {
+    setSelectedSpa(mapPoolToSpa(pool));
     setShowDetailModal(true);
   };
 
-  // Accept Spa here to match SpaDetailModal's onRequestQuote signature
-  const handleRequestQuote = (spa: Spa, extras?: any) => {
-    setSelectedSpa(spa);
+  const handleRequestQuoteFromCard = (pool: PoolCard) => {
+    setSelectedSpa(mapPoolToSpa(pool));
     setShowDetailModal(false); // Close detail modal if open
+    setShowQuoteModal(true);
+  };
+
+  // Handler for SpaDetailModal (accepts Spa)
+  const handleRequestQuoteFromModal = (spa: Spa, extras?: any) => {
+    setSelectedSpa(spa);
+    setShowDetailModal(false);
     setShowQuoteModal(true);
   };
 
@@ -72,7 +94,7 @@ const SpaSection = () => {
                   warrantyYears: typeof spa.warrantyYears === 'string' ? parseInt(spa.warrantyYears) : (spa.warrantyYears || 5)
                 }}
                 onViewDetails={handleViewDetails}
-                onRequestQuote={handleRequestQuote}
+                onRequestQuote={handleRequestQuoteFromCard}
               />
             ))}
           </div>
@@ -83,7 +105,7 @@ const SpaSection = () => {
         spa={selectedSpa}
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
-        onRequestQuote={(spa) => handleRequestQuote(spa)}
+        onRequestQuote={(spa) => handleRequestQuoteFromModal(spa)}
       />
 
       <SurveyQuoteTool 
