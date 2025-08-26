@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -327,34 +326,46 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
         {/* Expanded Details Section */}
         {showDetails && (
           <div className="space-y-6 pt-4 border-t animate-in slide-in-from-top-2 duration-300">
-            {/* Pool Tiles Section - Fixed Carousel */}
+            {/* Pool Tiles Section - Enhanced Carousel with arrows */}
             <div>
               <h3 className="text-lg font-semibold mb-3">Pool Tiles</h3>
-              <div className="relative">
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300">
+              <div className="relative group">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scroll-smooth" id="tiles-carousel">
                   {poolTiles.map((tile, index) => (
                     <div
                       key={index}
-                      className={`flex-shrink-0 p-2 border-2 rounded-lg cursor-pointer text-center ${
+                      className={`flex-shrink-0 p-2 border-2 rounded-lg cursor-pointer text-center min-w-[80px] ${
                         selectedTile.name === tile.name ? 'border-teal-500' : 'border-gray-200'
                       }`}
                       onClick={() => setSelectedTile(tile)}
                     >
                       <img src={tile.image} alt={tile.name} className="w-16 h-16 object-cover rounded mx-auto" />
                       <div className="text-xs mt-1 w-16">
-                        <div className="font-medium text-gray-800">{tile.name}</div>
+                        <div className="font-medium text-gray-800 truncate">{tile.name}</div>
                         {tile.price > 0 && <div className="text-teal-500">+${tile.price.toLocaleString()}</div>}
                       </div>
                     </div>
                   ))}
                 </div>
+                <button 
+                  className="absolute left-0 top-1/2 -translate-y-1/2 bg-white shadow-lg rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  onClick={() => document.getElementById('tiles-carousel')?.scrollBy({ left: -100, behavior: 'smooth' })}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button 
+                  className="absolute right-0 top-1/2 -translate-y-1/2 bg-white shadow-lg rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  onClick={() => document.getElementById('tiles-carousel')?.scrollBy({ left: 100, behavior: 'smooth' })}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
             </div>
 
             {/* Pool Finishes Section */}
             <div>
               <h3 className="text-lg font-semibold mb-3">Pool Finishes</h3>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {poolFinishes.map((finish, index) => (
                   <div
                     key={index}
@@ -365,8 +376,8 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
                   >
                     <img src={finish.image} alt={finish.name} className="w-full h-12 object-cover rounded mb-1" />
                     <div className="text-xs">
-                      <div className="font-medium text-gray-800">{finish.name}</div>
-                      <div className="text-blue-500">{finish.type}</div>
+                      <div className="font-medium text-gray-800 truncate">{finish.name}</div>
+                      <div className="text-blue-500 text-[10px]">{finish.type}</div>
                       <div className="text-teal-500">+${finish.price.toLocaleString()}</div>
                     </div>
                   </div>
@@ -374,52 +385,76 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
               </div>
             </div>
 
-            {/* Premium Pool Liners Section - Fixed Carousel */}
+            {/* Premium Pool Liners Section - Enhanced Carousel with arrows */}
             <div>
               <h3 className="text-lg font-semibold mb-3">Premium Pool Liners</h3>
-              <div className="relative">
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300">
+              <div className="relative group">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scroll-smooth" id="liners-carousel">
                   {premiumLiners.map((liner, index) => (
                     <div
                       key={index}
-                      className={`flex-shrink-0 p-2 border-2 rounded-lg cursor-pointer text-center ${
+                      className={`flex-shrink-0 p-2 border-2 rounded-lg cursor-pointer text-center min-w-[90px] ${
                         selectedLiner.name === liner.name ? 'border-teal-500' : 'border-gray-200'
                       }`}
                       onClick={() => setSelectedLiner(liner)}
                     >
                       <img src={liner.image} alt={liner.name} className="w-20 h-16 object-cover rounded mx-auto" />
                       <div className="text-xs mt-1 w-20">
-                        <div className="font-medium text-gray-800">{liner.name}</div>
-                        {liner.type && <div className="text-blue-500">{liner.type}</div>}
+                        <div className="font-medium text-gray-800 truncate">{liner.name}</div>
+                        {liner.type && <div className="text-blue-500 text-[10px]">{liner.type}</div>}
                         {liner.price > 0 && <div className="text-teal-500">+${liner.price.toLocaleString()}</div>}
                       </div>
                     </div>
                   ))}
                 </div>
+                <button 
+                  className="absolute left-0 top-1/2 -translate-y-1/2 bg-white shadow-lg rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  onClick={() => document.getElementById('liners-carousel')?.scrollBy({ left: -100, behavior: 'smooth' })}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button 
+                  className="absolute right-0 top-1/2 -translate-y-1/2 bg-white shadow-lg rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  onClick={() => document.getElementById('liners-carousel')?.scrollBy({ left: 100, behavior: 'smooth' })}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
             </div>
 
-            {/* Cover Options Section - Fixed Carousel */}
+            {/* Cover Options Section - Enhanced Carousel with arrows */}
             <div>
               <h3 className="text-lg font-semibold mb-3">Cover Options</h3>
-              <div className="relative">
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300">
+              <div className="relative group">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scroll-smooth" id="covers-carousel">
                   {coverOptions.map((cover, index) => (
                     <div
                       key={index}
-                      className={`flex-shrink-0 p-2 border-2 rounded-lg cursor-pointer text-center ${
+                      className={`flex-shrink-0 p-2 border-2 rounded-lg cursor-pointer text-center min-w-[90px] ${
                         selectedCover.name === cover.name ? 'border-teal-500' : 'border-gray-200'
                       }`}
                       onClick={() => setSelectedCover(cover)}
                     >
                       <img src={cover.image} alt={cover.name} className="w-20 h-16 object-cover rounded mx-auto" />
                       <div className="text-xs mt-1 w-20">
-                        <div className="font-medium text-gray-800">{cover.name}</div>
+                        <div className="font-medium text-gray-800 truncate">{cover.name}</div>
                         {cover.price > 0 && <div className="text-teal-500">+${cover.price.toLocaleString()}</div>}
                       </div>
                     </div>
                   ))}
                 </div>
+                <button 
+                  className="absolute left-0 top-1/2 -translate-y-1/2 bg-white shadow-lg rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  onClick={() => document.getElementById('covers-carousel')?.scrollBy({ left: -100, behavior: 'smooth' })}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button 
+                  className="absolute right-0 top-1/2 -translate-y-1/2 bg-white shadow-lg rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  onClick={() => document.getElementById('covers-carousel')?.scrollBy({ left: 100, behavior: 'smooth' })}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
             </div>
 
@@ -427,7 +462,7 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
             <div>
               <h3 className="text-lg font-semibold mb-3">Additional Features</h3>
               <div className="space-y-3">
-                {/* Pool Heater Dropdown */}
+                {/* Pool Heater Dropdown with carousel */}
                 <div className="p-3 border rounded-lg">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -436,25 +471,47 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
                         <ChevronDown className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-full bg-white border shadow-lg z-50">
-                      {heaterOptions.map((heater, index) => (
-                        <DropdownMenuItem 
-                          key={index}
-                          onClick={() => setSelectedHeater(heater)}
-                          className="flex items-center gap-3 p-3 hover:bg-gray-50"
+                    <DropdownMenuContent className="w-full bg-white border shadow-lg z-50 p-2">
+                      <div className="relative group">
+                        <div className="flex gap-2 overflow-x-auto pb-2 max-w-[400px]" id="heaters-carousel">
+                          {heaterOptions.map((heater, index) => (
+                            <div
+                              key={index}
+                              onClick={() => setSelectedHeater(heater)}
+                              className="flex-shrink-0 p-2 border rounded cursor-pointer hover:bg-gray-50 min-w-[120px] text-center"
+                            >
+                              <img src={heater.image} alt={heater.name} className="w-16 h-12 object-cover rounded mx-auto mb-1" />
+                              <div className="text-xs">
+                                <div className="font-medium truncate">{heater.name}</div>
+                                {heater.price > 0 && <div className="text-teal-500">+${heater.price.toLocaleString()}</div>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <button 
+                          className="absolute left-0 top-1/2 -translate-y-1/2 bg-white shadow-lg rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            document.getElementById('heaters-carousel')?.scrollBy({ left: -120, behavior: 'smooth' });
+                          }}
                         >
-                          <img src={heater.image} alt={heater.name} className="w-12 h-12 object-cover rounded" />
-                          <div className="flex-1">
-                            <div className="font-medium">{heater.name}</div>
-                            {heater.price > 0 && <div className="text-sm text-teal-500">+${heater.price.toLocaleString()}</div>}
-                          </div>
-                        </DropdownMenuItem>
-                      ))}
+                          <ChevronLeft className="h-3 w-3" />
+                        </button>
+                        <button 
+                          className="absolute right-0 top-1/2 -translate-y-1/2 bg-white shadow-lg rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            document.getElementById('heaters-carousel')?.scrollBy({ left: 120, behavior: 'smooth' });
+                          }}
+                        >
+                          <ChevronRight className="h-3 w-3" />
+                        </button>
+                      </div>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
 
-                {/* Spa Dropdown */}
+                {/* Spa Dropdown with carousel - using original spa names */}
                 <div className="p-3 border rounded-lg">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -463,37 +520,59 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
                         <ChevronDown className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-full bg-white border shadow-lg z-50">
-                      <DropdownMenuItem 
-                        onClick={() => setSelectedSpa(null)}
-                        className="flex items-center gap-3 p-3 hover:bg-gray-50"
-                      >
-                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                          <span className="text-xs">No Spa</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium">No Spa</div>
-                          <div className="text-sm text-gray-500">$0</div>
-                        </div>
-                      </DropdownMenuItem>
-                      {spas.map((spa, index) => (
-                        <DropdownMenuItem 
-                          key={index}
-                          onClick={() => setSelectedSpa(spa)}
-                          className="flex items-center gap-3 p-3 hover:bg-gray-50"
-                        >
-                          <img src={spa.image} alt={spa.model} className="w-12 h-12 object-cover rounded" />
-                          <div className="flex-1">
-                            <div className="font-medium">{spa.model}</div>
-                            <div className="text-sm text-teal-500">+${spa.price.toLocaleString()}</div>
+                    <DropdownMenuContent className="w-full bg-white border shadow-lg z-50 p-2">
+                      <div className="relative group">
+                        <div className="flex gap-2 overflow-x-auto pb-2 max-w-[400px]" id="spas-carousel">
+                          <div
+                            onClick={() => setSelectedSpa(null)}
+                            className="flex-shrink-0 p-2 border rounded cursor-pointer hover:bg-gray-50 min-w-[120px] text-center"
+                          >
+                            <div className="w-16 h-12 bg-gray-200 rounded flex items-center justify-center mx-auto mb-1">
+                              <span className="text-xs">No Spa</span>
+                            </div>
+                            <div className="text-xs">
+                              <div className="font-medium">No Spa</div>
+                              <div className="text-gray-500">$0</div>
+                            </div>
                           </div>
-                        </DropdownMenuItem>
-                      ))}
+                          {spas.map((spa, index) => (
+                            <div
+                              key={index}
+                              onClick={() => setSelectedSpa(spa)}
+                              className="flex-shrink-0 p-2 border rounded cursor-pointer hover:bg-gray-50 min-w-[120px] text-center"
+                            >
+                              <img src={spa.image} alt={spa.model} className="w-16 h-12 object-cover rounded mx-auto mb-1" />
+                              <div className="text-xs">
+                                <div className="font-medium truncate">{spa.model}</div>
+                                <div className="text-teal-500">+${spa.price.toLocaleString()}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <button 
+                          className="absolute left-0 top-1/2 -translate-y-1/2 bg-white shadow-lg rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            document.getElementById('spas-carousel')?.scrollBy({ left: -120, behavior: 'smooth' });
+                          }}
+                        >
+                          <ChevronLeft className="h-3 w-3" />
+                        </button>
+                        <button 
+                          className="absolute right-0 top-1/2 -translate-y-1/2 bg-white shadow-lg rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            document.getElementById('spas-carousel')?.scrollBy({ left: 120, behavior: 'smooth' });
+                          }}
+                        >
+                          <ChevronRight className="h-3 w-3" />
+                        </button>
+                      </div>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
 
-                {/* Tanning Ledge Dropdown */}
+                {/* Tanning Ledge Dropdown with carousel */}
                 <div className="p-3 border rounded-lg">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -502,32 +581,54 @@ const PoolProductCard = ({ pool, onAddToCart, isAdmin, onViewDetails, onRequestQ
                         <ChevronDown className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-full bg-white border shadow-lg z-50">
-                      <DropdownMenuItem 
-                        onClick={() => setSelectedTanningLedge(null)}
-                        className="flex items-center gap-3 p-3 hover:bg-gray-50"
-                      >
-                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
-                          <span className="text-xs">None</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium">No Tanning Ledge</div>
-                          <div className="text-sm text-gray-500">$0</div>
-                        </div>
-                      </DropdownMenuItem>
-                      {tanningLedges.map((ledge, index) => (
-                        <DropdownMenuItem 
-                          key={index}
-                          onClick={() => setSelectedTanningLedge(ledge)}
-                          className="flex items-center gap-3 p-3 hover:bg-gray-50"
-                        >
-                          <img src={ledge.image} alt={ledge.name} className="w-12 h-12 object-cover rounded" />
-                          <div className="flex-1">
-                            <div className="font-medium">{ledge.name} Tanning Ledge</div>
-                            <div className="text-sm text-teal-500">+${ledge.price.toLocaleString()}</div>
+                    <DropdownMenuContent className="w-full bg-white border shadow-lg z-50 p-2">
+                      <div className="relative group">
+                        <div className="flex gap-2 overflow-x-auto pb-2 max-w-[400px]" id="ledges-carousel">
+                          <div
+                            onClick={() => setSelectedTanningLedge(null)}
+                            className="flex-shrink-0 p-2 border rounded cursor-pointer hover:bg-gray-50 min-w-[120px] text-center"
+                          >
+                            <div className="w-16 h-12 bg-gray-200 rounded flex items-center justify-center mx-auto mb-1">
+                              <span className="text-xs">None</span>
+                            </div>
+                            <div className="text-xs">
+                              <div className="font-medium">No Tanning Ledge</div>
+                              <div className="text-gray-500">$0</div>
+                            </div>
                           </div>
-                        </DropdownMenuItem>
-                      ))}
+                          {tanningLedges.map((ledge, index) => (
+                            <div
+                              key={index}
+                              onClick={() => setSelectedTanningLedge(ledge)}
+                              className="flex-shrink-0 p-2 border rounded cursor-pointer hover:bg-gray-50 min-w-[120px] text-center"
+                            >
+                              <img src={ledge.image} alt={ledge.name} className="w-16 h-12 object-cover rounded mx-auto mb-1" />
+                              <div className="text-xs">
+                                <div className="font-medium truncate">{ledge.name}</div>
+                                <div className="text-teal-500">+${ledge.price.toLocaleString()}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <button 
+                          className="absolute left-0 top-1/2 -translate-y-1/2 bg-white shadow-lg rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            document.getElementById('ledges-carousel')?.scrollBy({ left: -120, behavior: 'smooth' });
+                          }}
+                        >
+                          <ChevronLeft className="h-3 w-3" />
+                        </button>
+                        <button 
+                          className="absolute right-0 top-1/2 -translate-y-1/2 bg-white shadow-lg rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            document.getElementById('ledges-carousel')?.scrollBy({ left: 120, behavior: 'smooth' });
+                          }}
+                        >
+                          <ChevronRight className="h-3 w-3" />
+                        </button>
+                      </div>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

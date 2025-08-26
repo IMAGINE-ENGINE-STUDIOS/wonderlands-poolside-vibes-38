@@ -1,91 +1,130 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Shield, User, LogOut, Briefcase } from "lucide-react";
+
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, User, ShoppingCart as CartIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import AdminLogin from "./AdminLogin";
+import UserProfileModal from "./UserProfileModal";
+import { Badge } from "@/components/ui/badge";
+import { useShoppingCart } from "./ShoppingCart";
 
 const Header = () => {
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const { user, profile, signOut } = useAuth();
   const location = useLocation();
-  const isContentEditor = location.pathname === '/content-editor';
+  const { user } = useAuth();
+  const [showProfile, setShowProfile] = useState(false);
+  const { items } = useShoppingCart();
+  
+  const navItems = [
+    { name: "Home", path: "/" },
+    { name: "Pools", path: "/pools" },
+    { name: "Spas", path: "/spas" },
+    { name: "Tanning Ledges", path: "/tanning-ledges" },
+    { name: "Pavers", path: "/pavers" },
+    { name: "Screen Enclosures", path: "/screen-enclosures" },
+    { name: "Automatic Covers", path: "/automatic-covers" },
+    { name: "Pool Finishes", path: "/pool-finishes" }
+  ];
 
-  const handleAdminAccess = () => {
-    setShowAdminLogin(true);
-  };
-
-  const handleLoginSuccess = (adminSession: any) => {
-    // Session is already stored securely in AdminLogin component
-    // Just redirect to dashboard
-    window.location.href = '/admin';
-  };
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 p-2 sm:p-4">
-        <div className="flex items-center justify-between gap-2 sm:gap-4">
-          {/* Company Logo - Left Corner, 20% Larger */}
-          <div className={`${
-            isContentEditor 
-              ? 'w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28' 
-              : 'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24'
-          } transition-all duration-300 rounded-md bg-background p-1 flex items-center justify-center`}>
-            <img 
-              src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png"
-              alt="Wonderlands Professional Logo"
-              className="w-full h-full object-contain"
-              loading="eager"
-              decoding="async"
-            />
-          </div>
-          
-          {/* Navigation Links */}
-          {!isContentEditor && (
-            <nav className="hidden md:flex items-center gap-4">
-              <Link to="/pools">
-                <Button variant="ghost" size="sm">Pools</Button>
-              </Link>
-              <Link to="/pavers">
-                <Button variant="ghost" size="sm">Pavers</Button>
-              </Link>
-              <Link to="/pool-finishes">
-                <Button variant="ghost" size="sm">Pool Finishes</Button>
-              </Link>
-              <Link to="/screen-enclosures">
-                <Button variant="ghost" size="sm">Screen Enclosures</Button>
-              </Link>
-              <Link to="/automatic-covers">
-                <Button variant="ghost" size="sm">Automatic Covers</Button>
-              </Link>
-              <Link to="/brand-showcase">
-                <Button variant="ghost" size="sm">Brand Showcase</Button>
-              </Link>
-            </nav>
-          )}
-          
-          {/* Simplified Auth - Only when not logged in and not in content editor */}
-          {!isContentEditor && !user ? (
-            <div className="flex items-center gap-2">
-              <Link to="/auth">
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  className="transition-all duration-300 hover:scale-105"
-                  title="Sign in to your account"
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-2">
+              <img 
+                src="/lovable-uploads/86d04882-f51e-4b4b-9c89-34031c370138.png"
+                alt="Wonderlands"
+                className="h-10 w-auto"
+              />
+            </Link>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center space-x-8">
+              {navItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className={`text-sm font-medium transition-colors hover:text-primary ${
+                    isActive(item.path) 
+                      ? "text-primary border-b-2 border-primary pb-1" 
+                      : "text-gray-600"
+                  }`}
                 >
-                  Sign In
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
+
+            {/* Right side buttons */}
+            <div className="flex items-center space-x-4">
+              {/* Shopping Cart */}
+              <Link to="/quote-preview" className="relative">
+                <Button variant="ghost" size="sm" className="relative">
+                  <CartIcon className="h-5 w-5" />
+                  {items.length > 0 && (
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                      {items.length}
+                    </Badge>
+                  )}
                 </Button>
               </Link>
+
+              {/* User Profile */}
+              {user ? (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowProfile(true)}
+                  className="flex items-center space-x-2"
+                >
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">{user.email?.split('@')[0]}</span>
+                </Button>
+              ) : (
+                <Link to="/auth">
+                  <Button variant="outline" size="sm">
+                    Sign In
+                  </Button>
+                </Link>
+              )}
+
+              {/* Mobile menu trigger */}
+              <Sheet>
+                <SheetTrigger asChild className="lg:hidden">
+                  <Button variant="ghost" size="sm">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-80">
+                  <div className="flex flex-col space-y-4 mt-8">
+                    {navItems.map((item) => (
+                      <Link
+                        key={item.name}
+                        to={item.path}
+                        className={`text-sm font-medium py-2 px-3 rounded-md transition-colors ${
+                          isActive(item.path)
+                            ? "bg-primary text-primary-foreground"
+                            : "text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
-          ) : null}
+          </div>
         </div>
       </header>
 
-      <AdminLogin 
-        isOpen={showAdminLogin}
-        onClose={() => setShowAdminLogin(false)}
-        onLoginSuccess={handleLoginSuccess}
+      <UserProfileModal
+        isOpen={showProfile}
+        onClose={() => setShowProfile(false)}
       />
     </>
   );
