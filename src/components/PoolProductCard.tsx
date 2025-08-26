@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,9 +31,10 @@ interface PoolProductCardProps {
   pool: Pool;
   onViewDetails: (pool: Pool) => void;
   onRequestQuote: (pool: Pool) => void;
+  isAdmin?: boolean;
 }
 
-const PoolProductCard = ({ pool, onViewDetails, onRequestQuote }: PoolProductCardProps) => {
+const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin }: PoolProductCardProps) => {
   const [selectedFinish, setSelectedFinish] = useState('');
   const [selectedLiner, setSelectedLiner] = useState('');
   const [selectedCover, setSelectedCover] = useState('');
