@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -24,7 +25,6 @@ const RightNavigation = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [sectionsExpanded, setSectionsExpanded] = useState({
     catalog: false,
-    account: false,
     admin: false
   });
   
@@ -90,27 +90,10 @@ const RightNavigation = () => {
     }
   ];
 
-  const accountItems = [
-    {
-      id: 'dashboard',
-      label: 'Dashboard',
-      icon: User,
-      link: '/dashboard',
-      show: !!user
-    },
-    {
-      id: 'auth',
-      label: 'Sign In',
-      icon: User,
-      link: '/auth',
-      show: !user
-    }
-  ];
-
   const adminItems = [
     {
       id: 'admin',
-      label: 'Admin Panel',
+      label: 'Admin Dashboard',
       icon: Shield,
       link: '/admin',
       show: true
@@ -120,6 +103,13 @@ const RightNavigation = () => {
       label: 'Content Editor',
       icon: Settings,
       link: '/content-editor',
+      show: true
+    },
+    {
+      id: 'auth',
+      label: user ? 'Account' : 'Sign In',
+      icon: User,
+      link: user ? '/admin' : '/auth',
       show: true
     }
   ];
@@ -210,45 +200,9 @@ const RightNavigation = () => {
           ))}
         </div>
 
-        {/* Account Section */}
+        {/* Admin Section */}
         {isExpanded && (
           <>
-            <div className="border-t border-primary/20 p-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-between text-xs hover:bg-primary/10 mb-1"
-                onClick={() => toggleSection('account')}
-              >
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span>Account</span>
-                </div>
-                {sectionsExpanded.account ? 
-                  <ChevronDown className="h-3 w-3" /> : 
-                  <ChevronRight className="h-3 w-3" />
-                }
-              </Button>
-              
-              {sectionsExpanded.account && (
-                <div className="ml-2 space-y-0.5 border-l border-primary/20 pl-2">
-                  {accountItems.filter(item => item.show).map((item) => (
-                    <Link key={item.id} to={item.link} className="block">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-start text-xs h-7 hover:bg-primary/10"
-                      >
-                        <item.icon className="h-3 w-3 mr-2" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Admin Section */}
             <div className="border-t border-primary/20 p-2">
               <Button
                 variant="ghost"

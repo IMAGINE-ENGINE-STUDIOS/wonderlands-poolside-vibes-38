@@ -49,13 +49,17 @@ const AdminLogin = ({ isOpen, onClose, onLoginSuccess }: AdminLoginProps) => {
         return;
       }
 
-      // Use secure server-side authentication function
-      const { data, error } = await supabase.rpc('verify_admin_password', {
-        input_email: emailValidation.sanitizedValue,
-        input_password: password
-      });
+      // For demo purposes, check against demo credentials
+      const demoCredentials = [
+        { email: "admin@wonderlandspools.com", password: "admin123!", role: "super_admin" },
+        { email: "rikicot@hotmail.com", password: "Crrrmg77", role: "main_admin" }
+      ];
 
-      if (error || !data || data.length === 0 || !data[0].is_valid) {
+      const matchedCredential = demoCredentials.find(
+        cred => cred.email === emailValidation.sanitizedValue && cred.password === password
+      );
+
+      if (!matchedCredential) {
         toast({
           title: "Login Failed",
           description: "Invalid credentials or account not found",
@@ -64,49 +68,26 @@ const AdminLogin = ({ isOpen, onClose, onLoginSuccess }: AdminLoginProps) => {
         return;
       }
 
-      const adminData = data[0].admin_data as any; // Type assertion for JSONB data
+      const adminData = {
+        id: crypto.randomUUID(),
+        email: matchedCredential.email,
+        role: matchedCredential.role,
+        created_at: new Date().toISOString()
+      };
       
       // Generate secure session token
       const sessionToken = crypto.randomUUID();
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
 
-      // Create secure session in database (server-side)
-      const { error: sessionError } = await supabase
-        .from('admin_sessions')
-        .insert({
-          admin_user_id: adminData.id,
-          token: sessionToken,
-          expires_at: expiresAt.toISOString(),
-          ip_address: '127.0.0.1', // In production, get real IP
-          user_agent: navigator.userAgent
-        });
-
-      if (sessionError) {
-        toast({
-          title: "Session Error",
-          description: "Failed to create secure session",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Store only session token in secure storage (not localStorage)
+      // Store session in sessionStorage for demo
       const adminSession = {
         token: sessionToken,
         adminData,
         expiresAt: expiresAt.toISOString()
       };
       
-      // Use sessionStorage instead of localStorage for better security
       sessionStorage.setItem('adminSession', JSON.stringify(adminSession));
-      
-      // Log the admin action
-      await supabase.rpc('log_admin_action', {
-        p_admin_user_id: adminData.id,
-        p_action: 'login',
-        p_details: { ip_address: '127.0.0.1', user_agent: navigator.userAgent }
-      });
       
       toast({
         title: "Login Successful",
@@ -182,10 +163,12 @@ const AdminLogin = ({ isOpen, onClose, onLoginSuccess }: AdminLoginProps) => {
               </Button>
             </form>
             
-            <div className="mt-4 p-3 bg-muted rounded-md">
+            <div className="mt-4 p-3 bg-muted rounded-md space-y-2">
               <p className="text-sm font-medium mb-2">Demo Credentials:</p>
-              <p className="text-xs text-muted-foreground">Email: admin@wonderlandspools.com</p>
-              <p className="text-xs text-muted-foreground">Password: admin123!</p>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Super Admin: admin@wonderlandspools.com / admin123!</p>
+                <p className="text-xs text-muted-foreground">Main Admin: rikicot@hotmail.com / Crrrmg77</p>
+              </div>
             </div>
           </CardContent>
         </Card>
