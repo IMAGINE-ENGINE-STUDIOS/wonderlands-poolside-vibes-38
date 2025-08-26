@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Waves, DollarSign, Star, Clock, Award, Flame, Zap, Palette, Ruler, Droplets } from "lucide-react";
+import { openQuotePreview } from "@/utils/quoteNavigation";
 
 interface Spa {
   model: string;

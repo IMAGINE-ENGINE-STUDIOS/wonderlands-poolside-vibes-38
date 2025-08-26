@@ -1,7 +1,7 @@
 
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import RightNavigation from "@/components/RightNavigation";
+import HorizontalNavigation from "@/components/HorizontalNavigation";
 
 import Index from "./pages/Index";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -23,7 +23,7 @@ import QuotePreview from "./pages/QuotePreview";
 
 const App = () => (
   <AuthProvider>
-    <RightNavigation />
+    <HorizontalNavigation />
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<AuthPage />} />

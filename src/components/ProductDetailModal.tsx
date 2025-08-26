@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Package, DollarSign, Star } from "lucide-react";
 import type { Product } from "./ProductCatalog";
+import { openQuotePreview } from "@/utils/quoteNavigation";
 
 interface ProductDetailModalProps {
   product: Product | null;

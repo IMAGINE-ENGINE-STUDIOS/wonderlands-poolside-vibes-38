@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { DollarSign, Ruler, Waves, Calendar, MapPin, FileText } from "lucide-react";
+import { openQuotePreview } from "@/utils/quoteNavigation";
 
 interface Pool {
   model: string;

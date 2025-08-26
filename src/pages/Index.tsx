@@ -1,23 +1,15 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ShoppingCart, { useShoppingCart } from "@/components/ShoppingCart";
+import ShoppingCart from "@/components/ShoppingCart";
 import OrderManagement from "@/components/OrderManagement";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ShoppingCart as CartIcon, Package } from "lucide-react";
 
-// Lazy-loaded heavy sections for performance
+// Lazy-loaded sections for performance
 const PoolCatalog = lazy(() => import("@/components/PoolCatalog"));
 const PaversSection = lazy(() => import("@/components/PaversSection"));
 
 const Index = () => {
   const [showCart, setShowCart] = useState(false);
   const [showOrders, setShowOrders] = useState(false);
-  const { getCartCount } = useShoppingCart();
-
-  console.log("Index component rendering...");
-  console.log("Cart count:", getCartCount());
   
   useEffect(() => {
     const openCart = () => setShowCart(true);
@@ -31,10 +23,7 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="relative min-h-screen">
-      <Header />
-      
-      
+    <div className="relative min-h-screen pt-20">
       <div className="relative z-10">
         <Suspense fallback={<div className="p-8 text-center text-foreground/70" aria-busy="true">Loading content…</div>}>
           <PoolCatalog />
