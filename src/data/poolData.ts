@@ -1,4 +1,3 @@
-
 // Pool models data with actual image paths
 export const poolModels = [
   // Premium Pools
@@ -7,7 +6,7 @@ export const poolModels = [
     model: "Tuscan 11'2\" x 20'",
     price: 89500,
     category: 'premium' as const,
-    image: "/src/assets/pools/tuscan-1120.jpg",
+    image: "/lovable-uploads/d5e74c29-95f6-4a9a-9395-a98fe4efdadd.png",
     dimensions: "11'2\" x 20' x 3'6\" - 6'6\"",
     depth: "3'6\" shallow, 6'6\" deep end",
     features: [
@@ -24,7 +23,7 @@ export const poolModels = [
     model: "Tuscan 13'2\" x 24'",
     price: 95000,
     category: 'premium' as const,
-    image: "/src/assets/pools/tuscan-1324.jpg",
+    image: "/lovable-uploads/d1c952c1-8786-444d-b405-903533bc20d1.png",
     dimensions: "13'2\" x 24' x 3'6\" - 6'6\"",
     depth: "3'6\" shallow, 6'6\" deep end",
     features: [
@@ -41,7 +40,7 @@ export const poolModels = [
     model: "Tuscan 14'2\" x 27'",
     price: 105000,
     category: 'premium' as const,
-    image: "/src/assets/pools/tuscan-1427.jpg",
+    image: "/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png",
     dimensions: "14'2\" x 27' x 3'6\" - 6'6\"",
     depth: "3'6\" shallow, 6'6\" deep end",
     features: [
@@ -58,7 +57,7 @@ export const poolModels = [
     model: "Corinthian",
     price: 98000,
     category: 'premium' as const,
-    image: "/src/assets/pools/geometric-luxury.jpg",
+    image: "/lovable-uploads/8228c334-6fd7-4b29-afae-98628493480d.png",
     dimensions: "16' x 32' x 3'6\" - 8'",
     depth: "3'6\" shallow, 8' deep end",
     features: [
@@ -77,7 +76,7 @@ export const poolModels = [
     model: "Laguna Bay",
     price: 78000,
     category: 'deluxe' as const,
-    image: "/src/assets/pools/fiji.jpg",
+    image: "/lovable-uploads/6b7b34a3-03f7-4179-b34a-3458dc881efd.png",
     dimensions: "14' x 28' x 3'6\" - 6'6\"",
     depth: "3'6\" shallow, 6'6\" deep end",
     features: [
@@ -94,7 +93,7 @@ export const poolModels = [
     model: "Bay Isle",
     price: 82000,
     category: 'deluxe' as const,
-    image: "/src/assets/pools/bermuda.jpg",
+    image: "/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png",
     dimensions: "15' x 30' x 3'6\" - 7'",
     depth: "3'6\" shallow, 7' deep end",
     features: [
@@ -111,7 +110,7 @@ export const poolModels = [
     model: "St. Lucia",
     price: 75000,
     category: 'deluxe' as const,
-    image: "/src/assets/pools/st-lucia.jpg",
+    image: "/lovable-uploads/c4b386e8-679d-4ea3-be08-9b8fb9e8d50e.png",
     dimensions: "13' x 26' x 3'6\" - 6'",
     depth: "3'6\" shallow, 6' deep end",
     features: [
@@ -128,7 +127,7 @@ export const poolModels = [
     model: "Jamaica",
     price: 79000,
     category: 'deluxe' as const,
-    image: "/src/assets/pools/jamaica.jpg",
+    image: "/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png",
     dimensions: "14' x 28' x 3'6\" - 6'6\"",
     depth: "3'6\" shallow, 6'6\" deep end",
     features: [
@@ -147,7 +146,7 @@ export const poolModels = [
     model: "Valencia",
     price: 65000,
     category: 'standard' as const,
-    image: "/src/assets/pools/valencia.jpg",
+    image: "/lovable-uploads/d707c6e1-8471-404f-9312-bd6773152617.png",
     dimensions: "12' x 24' x 3'6\" - 6'",
     depth: "3'6\" shallow, 6' deep end",
     features: [
@@ -164,7 +163,7 @@ export const poolModels = [
     model: "Genesis",
     price: 68000,
     category: 'standard' as const,
-    image: "/src/assets/pools/genesis.jpg",
+    image: "/lovable-uploads/3ae37221-0f97-48df-addd-632c423868e2.png",
     dimensions: "13' x 26' x 3'6\" - 6'6\"",
     depth: "3'6\" shallow, 6'6\" deep end",
     features: [
@@ -181,7 +180,7 @@ export const poolModels = [
     model: "Cape Cod",
     price: 62000,
     category: 'standard' as const,
-    image: "/src/assets/pools/cape-cod.jpg",
+    image: "/lovable-uploads/311a7002-2a40-4c59-a143-9f0236ece5d4.png",
     dimensions: "11' x 22' x 3'6\" - 5'6\"",
     depth: "3'6\" shallow, 5'6\" deep end",
     features: [
@@ -198,7 +197,7 @@ export const poolModels = [
     model: "Astoria",
     price: 69500,
     category: 'standard' as const,
-    image: "/src/assets/pools/astoria-12.jpg",
+    image: "/lovable-uploads/31da0c59-77d4-4fa1-838b-cb525acd404b.png",
     dimensions: "12' x 25' x 3'6\" - 6'",
     depth: "3'6\" shallow, 6' deep end",
     features: [
@@ -217,7 +216,7 @@ export const poolModels = [
     model: "Enchantment 9'1\" x 17'",
     price: 52000,
     category: 'compact' as const,
-    image: "/src/assets/pools/enchantment-917.jpg",
+    image: "/lovable-uploads/57670513-84aa-4ae5-86ee-6a95737004b5.png",
     dimensions: "9'1\" x 17' x 3'6\" - 5'6\"",
     depth: "3'6\" shallow, 5'6\" deep end",
     features: [
@@ -234,7 +233,7 @@ export const poolModels = [
     model: "Enchantment 9'2\" x 21'",
     price: 55000,
     category: 'compact' as const,
-    image: "/src/assets/pools/enchantment-921.jpg",
+    image: "/lovable-uploads/15032ed4-f745-4152-ae9b-c26fdb52f68c.png",
     dimensions: "9'2\" x 21' x 3'6\" - 5'6\"",
     depth: "3'6\" shallow, 5'6\" deep end",
     features: [
@@ -251,7 +250,7 @@ export const poolModels = [
     model: "Enchantment 9'2\" x 24'",
     price: 58000,
     category: 'compact' as const,
-    image: "/src/assets/pools/enchantment-924.jpg",
+    image: "/lovable-uploads/58cf10b7-a125-4e4f-be0b-6a0deb095bac.png",
     dimensions: "9'2\" x 24' x 3'6\" - 6'",
     depth: "3'6\" shallow, 6' deep end",
     features: [
@@ -270,7 +269,7 @@ export const poolModels = [
     model: "Apollo 14'",
     price: 72000,
     category: 'deluxe' as const,
-    image: "/src/assets/pools/apollo-14.jpg",
+    image: "/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png",
     dimensions: "14' x 28' x 3'6\" - 6'6\"",
     depth: "3'6\" shallow, 6'6\" deep end",
     features: [
@@ -287,7 +286,7 @@ export const poolModels = [
     model: "Ariel 16'",
     price: 85000,
     category: 'premium' as const,
-    image: "/src/assets/pools/ariel-16.jpg",
+    image: "/lovable-uploads/2af253b1-b9be-487f-a998-476d396772c4.png",
     dimensions: "16' x 32' x 3'6\" - 7'",
     depth: "3'6\" shallow, 7' deep end",
     features: [
@@ -304,7 +303,7 @@ export const poolModels = [
     model: "Coral 16'",
     price: 88000,
     category: 'premium' as const,
-    image: "/src/assets/pools/coral-16.jpg",
+    image: "/lovable-uploads/96f46291-85e7-4b48-9465-623400a8e835.png",
     dimensions: "16' x 34' x 3'6\" - 7'6\"",
     depth: "3'6\" shallow, 7'6\" deep end",
     features: [
@@ -316,6 +315,27 @@ export const poolModels = [
       "Professional Grade Equipment"
     ]
   }
+];
+
+// Pool liners data
+export const poolLiners = [
+  { id: 'liner-1', name: 'Marble', price: 1800, image: '/lovable-uploads/797bcadb-19bc-4859-8319-ceb12ea23d10.png' },
+  { id: 'liner-2', name: 'Granite', price: 2200, image: '/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.png' },
+  { id: 'liner-3', name: 'Onyx', price: 2500, image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png' },
+];
+
+// Pool tiles data
+export const poolTiles = [
+  { id: 'tile-1', name: 'Ceramic', price: 800, image: '/lovable-uploads/7cfaa1c7-7fe8-472a-bf41-4d1973510a5a.png' },
+  { id: 'tile-2', name: 'Porcelain', price: 1200, image: '/lovable-uploads/65b3331a-e988-4fbb-a9b2-d73d1b94ae79.png' },
+  { id: 'tile-3', name: 'Glass', price: 1500, image: '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png' },
+];
+
+// Tanning ledges data
+export const tanningLedges = [
+  { id: 'ledge-1', name: 'Standard', price: 4000, image: '/lovable-uploads/56fd62de-130b-4b90-98a0-596007f5dadb.png' },
+  { id: 'ledge-2', name: 'Premium', price: 6000, image: '/lovable-uploads/7dc956df-af5c-4c6b-b2af-6bc9d6fbf179.png' },
+  { id: 'ledge-3', name: 'Luxury', price: 8000, image: '/lovable-uploads/9e491420-80df-4bb3-9db1-3933d96846ac.png' },
 ];
 
 export default poolModels;
