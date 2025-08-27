@@ -348,6 +348,12 @@ const PoolProductCard = ({
   const calculateTotalPrice = () => {
     let total = pool.price;
 
+    // Add finish price if not default
+    const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
+    if (selectedFinish && selectedFinish.price) {
+      total += selectedFinish.price;
+    }
+
     // Add heater price if selected (dynamic price based on model)
     if (extras.heater) {
       const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
@@ -381,15 +387,6 @@ const PoolProductCard = ({
       total += parseFloat(paverSurfaceArea) * 15;
     }
 
-    // Remove coping calculations since coping options were removed
-    // const copingPaverOption = copingPaverOptions.find(option => option.name === extras.copingPaverOption);
-    // if (copingPaverOption) total += copingPaverOption.price;
-
-    // Remove calculated coping surface area cost
-    // if (copingSurfaceArea && !isNaN(parseFloat(copingSurfaceArea))) {
-    //   total += parseFloat(copingSurfaceArea) * 15;
-    // }
-
     // Add spa price if selected
     if (extras.spa) {
       const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
@@ -403,7 +400,7 @@ const PoolProductCard = ({
     }
 
     // Add screen enclosure price if selected
-    if (extras.screenEnclosure && extras.screenEnclosureArea > 0) {
+    if (extras.screenEnclosureArea > 0) {
       let pricePerSqFt = 15; // standard
       if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
       if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
@@ -708,8 +705,8 @@ const PoolProductCard = ({
               </Carousel>
             </div>
 
-            {/* Screen Enclosure Options - Only show when selected */}
-            {extras.screenEnclosure && <div className="space-y-3">
+            {/* Screen Enclosure Options */}
+            <div className="space-y-3">
               <h4 className="font-semibold text-foreground">Screen Enclosure & Surface Area Calculator</h4>
               <div className="mb-3">
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">
@@ -761,7 +758,7 @@ const PoolProductCard = ({
                   </div>
                 ))}
               </div>
-            </div>}
+            </div>
 
             {/* Cover Options */}
             <div className="space-y-3">
@@ -942,20 +939,8 @@ const PoolProductCard = ({
                                 <div className="flex-1 flex flex-col justify-between min-h-0">
                                   <p className="text-xs font-medium text-center line-clamp-2">{tile.name}</p>
                                   {tile.price > 0 && <p className="text-xs text-primary font-semibold text-center mt-1">+${tile.price.toLocaleString()}</p>}
-                   <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                     <Checkbox checked={extras.screenEnclosure} onCheckedChange={() => toggleExtra('screenEnclosure')} />
-                     <div className="flex items-center space-x-1">
-                       <Shield size={16} className="text-teal" />
-                        <span className="text-sm">Add Screen Enclosure (+${extras.screenEnclosure && extras.screenEnclosureArea > 0 ? (() => {
-                    let pricePerSqFt = 15;
-                    if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
-                    if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
-                    return (extras.screenEnclosureArea * pricePerSqFt).toLocaleString();
-                  })() : '0'})</span>
-                     </div>
-                   </label>
-               </div>
-             </div>
+                                </div>
+                              </div>
                             </CarouselItem>)}
                         </CarouselContent>
                         <CarouselPrevious className="left-0" />
