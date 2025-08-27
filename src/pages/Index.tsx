@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import PoolCatalog from "@/components/PoolCatalog";
-import SpaSection from "@/components/SpaSection";
+import SpaCatalog from "@/components/SpaCatalog";
 import PoolFinishesSection from "@/components/PoolFinishesSection";
 import LinersSection from "@/components/LinersSection";
 import AutomaticCoversSection from "@/components/AutomaticCoversSection";
@@ -31,7 +31,7 @@ const Index = () => {
       <div id="pools" />
       <PoolCatalog />
       <div id="spas" />
-      <SpaSection />
+      <SpaCatalog />
       <div id="finishes" />
       <PoolFinishesSection />
       <div id="liners" />
