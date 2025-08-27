@@ -15,8 +15,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
 import ImageCard from "./ImageCard";
-
-
 interface Pool {
   model: string;
   price: number;
@@ -25,7 +23,6 @@ interface Pool {
   depth?: string;
   image?: string;
 }
-
 interface PoolOption {
   id: string;
   name: string;
@@ -33,7 +30,6 @@ interface PoolOption {
   price: number;
   category: 'waterline' | 'jets' | 'heating' | 'covers' | 'decorative' | 'screen-enclosure';
 }
-
 interface SurveyQuoteToolProps {
   pool: Pool | null;
   isOpen: boolean;
@@ -46,7 +42,6 @@ interface SurveyQuoteToolProps {
     image?: string;
   };
 }
-
 interface SurveyData {
   name: string;
   email: string;
@@ -61,9 +56,16 @@ interface SurveyData {
   budget: string;
   deckWidth: string;
 }
-
-const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: SurveyQuoteToolProps) => {
-  const { user } = useAuth();
+const SurveyQuoteTool = ({
+  pool,
+  isOpen,
+  onClose,
+  customProduct,
+  extras
+}: SurveyQuoteToolProps) => {
+  const {
+    user
+  } = useAuth();
   const [surveyData, setSurveyData] = useState<SurveyData>({
     name: "",
     email: "",
@@ -86,42 +88,39 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
   const [currentStep, setCurrentStep] = useState<'survey' | 'options' | 'quote'>('survey');
   const [isSaving, setIsSaving] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   // Removed GALA-GOODS integration
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     setUploadedImage(file);
     setIsProcessing(true);
-
     try {
       const imageElement = await loadImage(file);
       const processedBlob = await removeBackground(imageElement);
       const processedUrl = URL.createObjectURL(processedBlob);
       setProcessedImage(processedUrl);
-      
       toast({
         title: "Success!",
-        description: "Background removed successfully from your yard photo.",
+        description: "Background removed successfully from your yard photo."
       });
     } catch (error) {
       console.error("Background removal failed:", error);
       toast({
         title: "Processing Note",
         description: "Background removal had issues, but we'll use your original image for the survey.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsProcessing(false);
     }
   };
-
   const handlePrintQuote = () => {
     const quoteElement = document.querySelector('[data-quote-content]');
     if (!quoteElement) return;
-    
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(`
@@ -153,13 +152,10 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
       printWindow.document.close();
     }
   };
-
-
   const calculateQuote = () => {
     if (!pool && !customProduct) return 0;
-    
     let basePrice = pool?.price || customProduct?.price || 0;
-    
+
     // Add selected options
     const optionsPrice = selectedOptions.reduce((total, option) => total + option.price, 0);
     basePrice += optionsPrice;
@@ -167,33 +163,25 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
     // Add extras from product card if provided
     const extrasTotal = (extras as any)?.extrasTotal ? Number((extras as any).extrasTotal) : 0;
     basePrice += extrasTotal;
-    
+
     // Add paver costs if deck width > 3ft
     if (pool?.dimensions && parseInt(surveyData.deckWidth || "3") > 3) {
       const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/["']/g, '')));
       const paverPrice = calculatePaverPrice(dims[0] || 0, dims[1] || 0, parseInt(surveyData.deckWidth || "3"));
       basePrice += paverPrice;
     }
-    
+
     // Florida-specific adjustments
     if (surveyData.soilType === "sand") basePrice *= 0.95; // Easier excavation
     if (surveyData.soilType === "clay") basePrice *= 1.1; // Harder excavation
     if (surveyData.accessWidth === "narrow") basePrice *= 1.05; // Access difficulty
     if (surveyData.yardSize === "large") basePrice *= 1.02; // More landscaping
-    
+
     return Math.round(basePrice);
   };
-
   const getIncludedItems = () => {
-    return [
-      "LED lights",
-      "Water pump", 
-      "Waterfall",
-      "Salt system",
-      "FREE Finish of choice (included in pool price - promotional offer)"
-    ];
+    return ["LED lights", "Water pump", "Waterfall", "Salt system", "FREE Finish of choice (included in pool price - promotional offer)"];
   };
-
   const saveQuotationToDatabase = async () => {
     if (!surveyData.name || !surveyData.email || !surveyData.address) {
       return null;
@@ -204,12 +192,10 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
       setShowAuthPrompt(true);
       return null;
     }
-
     setIsSaving(true);
     try {
       const quoteAmount = calculateQuote();
       const recommendations = getIncludedItems();
-      
       const quotationData = {
         user_id: user.id,
         name: surveyData.name,
@@ -235,89 +221,80 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
         gala_user_id: null,
         status: 'pending'
       };
-
-      const { data, error } = await supabase
-        .from('user_quotations')
-        .insert(quotationData)
-        .select()
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from('user_quotations').insert(quotationData).select().single();
       if (error) {
         console.error('Error saving quotation:', error);
         toast({
           title: "Save Failed",
           description: "We couldn't save your quotation, but you can still continue with the process.",
-          variant: "destructive",
+          variant: "destructive"
         });
         return null;
       }
-
       toast({
         title: "Quotation Saved!",
-        description: "Your information has been securely saved to our database.",
+        description: "Your information has been securely saved to our database."
       });
-
       return data;
     } catch (error) {
       console.error('Error saving quotation:', error);
       toast({
         title: "Save Failed",
         description: "We couldn't save your quotation, but you can still continue with the process.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return null;
     } finally {
       setIsSaving(false);
     }
   };
-
   const handleSubmitSurvey = () => {
     if (!surveyData.name || !surveyData.email || !surveyData.address || !surveyData.yardSize) {
       toast({
         title: "Missing Information",
         description: "Please fill in your contact details, address and yard size.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-    
+
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(surveyData.email)) {
       toast({
         title: "Invalid Email",
         description: "Please enter a valid email address.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-    
     setCurrentStep('options');
   };
-
   const handleContinueToQuote = async () => {
     // Save the quotation to database before showing the quote
     await saveQuotationToDatabase();
     setCurrentStep('quote');
   };
-
   const handleGetQuote = async () => {
     if (!surveyData.name || !surveyData.email || !surveyData.address || !surveyData.yardSize) {
       toast({
         title: "Missing Information",
         description: "Please fill in your contact details, address and yard size.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-    
+
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(surveyData.email)) {
       toast({
         title: "Invalid Email",
         description: "Please enter a valid email address.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -326,11 +303,8 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
     await saveQuotationToDatabase();
     setCurrentStep('quote');
   };
-
   if (!pool && !customProduct) return null;
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+  return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
@@ -341,8 +315,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
           </DialogDescription>
         </DialogHeader>
 
-        {currentStep === 'survey' ? (
-          <div className="space-y-6">
+        {currentStep === 'survey' ? <div className="space-y-6">
             {/* Contact Information */}
             <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-teal/5">
               <CardHeader>
@@ -357,34 +330,24 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
-                    placeholder="John Smith"
-                    value={surveyData.name}
-                    onChange={(e) => setSurveyData({...surveyData, name: e.target.value})}
-                    className="focus:border-primary"
-                  />
+                  <Input id="name" placeholder="John Smith" value={surveyData.name} onChange={e => setSurveyData({
+                ...surveyData,
+                name: e.target.value
+              })} className="focus:border-primary" />
                 </div>
                 <div>
                   <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="john@example.com"
-                    value={surveyData.email}
-                    onChange={(e) => setSurveyData({...surveyData, email: e.target.value})}
-                    className="focus:border-primary"
-                  />
+                  <Input id="email" type="email" placeholder="john@example.com" value={surveyData.email} onChange={e => setSurveyData({
+                ...surveyData,
+                email: e.target.value
+              })} className="focus:border-primary" />
                 </div>
                 <div>
                   <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    placeholder="(555) 123-4567"
-                    value={surveyData.phone}
-                    onChange={(e) => setSurveyData({...surveyData, phone: e.target.value})}
-                    className="focus:border-primary"
-                  />
+                  <Input id="phone" placeholder="(555) 123-4567" value={surveyData.phone} onChange={e => setSurveyData({
+                ...surveyData,
+                phone: e.target.value
+              })} className="focus:border-primary" />
                 </div>
               </CardContent>
             </Card>
@@ -407,18 +370,18 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                       <MapPin size={16} className="text-coral" />
                       Property Address *
                     </Label>
-                    <Input
-                      id="address"
-                      placeholder="123 Main St, Miami, FL 33101"
-                      value={surveyData.address}
-                      onChange={(e) => setSurveyData({...surveyData, address: e.target.value})}
-                      className="focus:border-coral"
-                    />
+                    <Input id="address" placeholder="123 Main St, Miami, FL 33101" value={surveyData.address} onChange={e => setSurveyData({
+                  ...surveyData,
+                  address: e.target.value
+                })} className="focus:border-coral" />
                   </div>
 
                   <div>
                     <Label htmlFor="yardSize">Backyard Size *</Label>
-                    <Select onValueChange={(value) => setSurveyData({...surveyData, yardSize: value})}>
+                    <Select onValueChange={value => setSurveyData({
+                  ...surveyData,
+                  yardSize: value
+                })}>
                       <SelectTrigger className="focus:border-coral">
                         <SelectValue placeholder="Select yard size" />
                       </SelectTrigger>
@@ -432,7 +395,10 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
 
                   <div>
                     <Label htmlFor="timeline">Project Timeline</Label>
-                    <Select onValueChange={(value) => setSurveyData({...surveyData, timeline: value})}>
+                    <Select onValueChange={value => setSurveyData({
+                  ...surveyData,
+                  timeline: value
+                })}>
                       <SelectTrigger className="focus:border-coral">
                         <SelectValue placeholder="When do you want to start?" />
                       </SelectTrigger>
@@ -447,7 +413,10 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
 
                   <div>
                     <Label htmlFor="soilType">Soil Type (Florida specific)</Label>
-                    <Select onValueChange={(value) => setSurveyData({...surveyData, soilType: value})}>
+                    <Select onValueChange={value => setSurveyData({
+                  ...surveyData,
+                  soilType: value
+                })}>
                       <SelectTrigger className="focus:border-coral">
                         <SelectValue placeholder="Select soil type" />
                       </SelectTrigger>
@@ -464,7 +433,10 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="budget">Budget Range</Label>
-                    <Select onValueChange={(value) => setSurveyData({...surveyData, budget: value})}>
+                    <Select onValueChange={value => setSurveyData({
+                  ...surveyData,
+                  budget: value
+                })}>
                       <SelectTrigger className="focus:border-coral">
                         <SelectValue placeholder="Select budget range" />
                       </SelectTrigger>
@@ -477,57 +449,18 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                     </Select>
                   </div>
 
-                  <div>
-                    <Label htmlFor="deckWidth">Desired Deck Width (ft)</Label>
-                    <Select onValueChange={(value) => setSurveyData({...surveyData, deckWidth: value})}>
-                      <SelectTrigger className="focus:border-coral">
-                        <SelectValue placeholder="Select deck width" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="3">3 ft (Standard - Free)</SelectItem>
-                        <SelectItem value="4">4 ft</SelectItem>
-                        <SelectItem value="5">5 ft</SelectItem>
-                        <SelectItem value="6">6 ft</SelectItem>
-                        <SelectItem value="8">8 ft</SelectItem>
-                        <SelectItem value="10">10 ft</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  
 
-                  <div>
-                    <Label htmlFor="accessWidth">Equipment Access</Label>
-                    <Select onValueChange={(value) => setSurveyData({...surveyData, accessWidth: value})}>
-                      <SelectTrigger className="focus:border-coral">
-                        <SelectValue placeholder="Access width to backyard" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="wide">Wide (&gt;10 ft)</SelectItem>
-                        <SelectItem value="standard">Standard (8-10 ft)</SelectItem>
-                        <SelectItem value="narrow">Narrow (&lt;8 ft)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  
 
-                  <div>
-                    <Label htmlFor="utilityLines">Known Utility Lines</Label>
-                    <Input
-                      id="utilityLines"
-                      placeholder="e.g., Water, electric, septic"
-                      value={surveyData.utilityLines}
-                      onChange={(e) => setSurveyData({...surveyData, utilityLines: e.target.value})}
-                      className="focus:border-coral"
-                    />
-                  </div>
+                  
 
                   <div>
                     <Label htmlFor="specialRequests">Special Requests</Label>
-                    <Textarea
-                      id="specialRequests"
-                      placeholder="Spa, lighting, decking, landscaping..."
-                      value={surveyData.specialRequests}
-                      onChange={(e) => setSurveyData({...surveyData, specialRequests: e.target.value})}
-                      className="focus:border-coral"
-                    />
+                    <Textarea id="specialRequests" placeholder="Spa, lighting, decking, landscaping..." value={surveyData.specialRequests} onChange={e => setSurveyData({
+                  ...surveyData,
+                  specialRequests: e.target.value
+                })} className="focus:border-coral" />
                   </div>
                 </div>
               </CardContent>
@@ -552,12 +485,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                       Property Survey Documents
                     </Label>
                     <div className="border-2 border-dashed border-teal/30 rounded-lg p-4 text-center">
-                      <input
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                        className="hidden"
-                        id="survey-upload"
-                      />
+                      <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" className="hidden" id="survey-upload" />
                       <label htmlFor="survey-upload" className="cursor-pointer">
                         <FileText className="h-6 w-6 mx-auto text-teal mb-2" />
                         <p className="text-sm">Upload survey documents</p>
@@ -572,38 +500,19 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                       Backyard Photos
                     </Label>
                     <div className="border-2 border-dashed border-teal/30 rounded-lg p-4 text-center">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleImageUpload}
-                        className="hidden"
-                        id="photo-upload"
-                      />
+                      <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" id="photo-upload" />
                       <label htmlFor="photo-upload" className="cursor-pointer">
-                        {isProcessing ? (
-                          <div className="flex items-center justify-center gap-2">
+                        {isProcessing ? <div className="flex items-center justify-center gap-2">
                             <Loader2 className="h-6 w-6 animate-spin text-teal" />
                             <span className="text-sm">Processing...</span>
-                          </div>
-                        ) : uploadedImage ? (
-                          <div className="space-y-2">
+                          </div> : uploadedImage ? <div className="space-y-2">
                             <p className="text-sm text-green-600">✓ Photos uploaded</p>
-                            {processedImage && (
-                              <img 
-                                src={processedImage} 
-                                alt="Processed" 
-                                className="max-w-20 max-h-20 rounded border mx-auto"
-                              />
-                            )}
-                          </div>
-                        ) : (
-                          <div className="space-y-1">
+                            {processedImage && <img src={processedImage} alt="Processed" className="max-w-20 max-h-20 rounded border mx-auto" />}
+                          </div> : <div className="space-y-1">
                             <Upload className="h-6 w-6 mx-auto text-teal" />
                             <p className="text-sm">Upload backyard photos</p>
                             <p className="text-xs text-muted-foreground">Multiple images supported</p>
-                          </div>
-                        )}
+                          </div>}
                       </label>
                     </div>
                   </div>
@@ -621,54 +530,30 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                 <div className="w-2 h-2 bg-primary rounded-full"></div>
                 <span>Free consultation • No obligation • Expert guidance</span>
               </div>
-              <Button 
-                onClick={handleGetQuote}
-                variant="gradient"
-                size="lg"
-                className="w-full hover:scale-105 transition-all duration-300"
-              >
+              <Button onClick={handleGetQuote} variant="gradient" size="lg" className="w-full hover:scale-105 transition-all duration-300">
                 Get My Personalized Quote
               </Button>
               <p className="text-xs text-muted-foreground">
                 * By submitting, you agree to receive follow-up communications about your pool project
               </p>
             </div>
-          </div>
-        ) : currentStep === 'options' ? (
-          /* Pool Customization Options */
-          <div className="space-y-6">
-            <PoolCustomizationOptions onSelectionChange={(options) => setSelectedOptions(options)} />
+          </div> : currentStep === 'options' ? (/* Pool Customization Options */
+      <div className="space-y-6">
+            <PoolCustomizationOptions onSelectionChange={options => setSelectedOptions(options)} />
             
             <div className="flex gap-3">
-              <Button 
-                onClick={() => setCurrentStep('survey')}
-                variant="outline"
-                size="lg"
-                className="flex-1"
-              >
+              <Button onClick={() => setCurrentStep('survey')} variant="outline" size="lg" className="flex-1">
                 Back to Survey
               </Button>
-              <Button 
-                onClick={handleContinueToQuote}
-                variant="gradient"
-                size="lg"
-                className="flex-1"
-                disabled={isSaving}
-              >
-                {isSaving ? (
-                  <>
+              <Button onClick={handleContinueToQuote} variant="gradient" size="lg" className="flex-1" disabled={isSaving}>
+                {isSaving ? <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     Saving Quote...
-                  </>
-                ) : (
-                  'Generate Quote'
-                )}
+                  </> : 'Generate Quote'}
               </Button>
             </div>
-          </div>
-        ) : (
-          /* Professional Quotation Display */
-          <div className="space-y-6" data-quote-content>
+          </div>) : (/* Professional Quotation Display */
+      <div className="space-y-6" data-quote-content>
             <div className="bg-white dark:bg-gray-900 border-2 border-orange-400 rounded-lg overflow-hidden">
               
               {/* Header with Logo */}
@@ -738,125 +623,107 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                     <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
                       <h4 className="font-semibold mb-2">Paver Deck ({surveyData.deckWidth || 3}ft Width)</h4>
                       <p className="text-sm text-muted-foreground mb-2">
-                        {parseInt(surveyData.deckWidth || "3") === 3 
-                          ? "Standard 3-foot paver deck included in base price"
-                          : `${surveyData.deckWidth}-foot paver deck around pool`
-                        }
+                        {parseInt(surveyData.deckWidth || "3") === 3 ? "Standard 3-foot paver deck included in base price" : `${surveyData.deckWidth}-foot paver deck around pool`}
                       </p>
                       {pool?.dimensions && (() => {
-                        const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
-                        const poolLength = dims[0] || 0;
-                        const poolWidth = dims[1] || 0;
-                        const deckWidth = parseInt(surveyData.deckWidth || "3");
-                        const paverArea = calculatePaverArea(poolLength, poolWidth, deckWidth);
-                        const paverPrice = calculatePaverPrice(poolLength, poolWidth, deckWidth);
-                        
-                        return (
-                          <div className="text-xs space-y-1">
+                    const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+                    const poolLength = dims[0] || 0;
+                    const poolWidth = dims[1] || 0;
+                    const deckWidth = parseInt(surveyData.deckWidth || "3");
+                    const paverArea = calculatePaverArea(poolLength, poolWidth, deckWidth);
+                    const paverPrice = calculatePaverPrice(poolLength, poolWidth, deckWidth);
+                    return <div className="text-xs space-y-1">
                             <p>Pool dimensions: {pool.dimensions}</p>
                             <p>Deck width: {deckWidth} ft</p>
                             <p>Chargeable paver area: {paverArea} sq ft</p>
                             {paverArea > 0 && <p>Paver cost: ${paverPrice.toLocaleString()}</p>}
-                          </div>
-                        );
-                      })()}
+                          </div>;
+                  })()}
                       <div className="flex justify-between mt-2 pt-2 border-t border-teal-200 dark:border-gray-600">
                         <span>Paver Installation:</span>
                         <span className="font-semibold">
                           {parseInt(surveyData.deckWidth || "3") === 3 ? "Included" : `+$${(() => {
-                            if (pool?.dimensions) {
-                              const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
-                              const paverPrice = calculatePaverPrice(dims[0] || 0, dims[1] || 0, parseInt(surveyData.deckWidth || "3"));
-                              return paverPrice.toLocaleString();
-                            }
-                            return "0";
-                          })()}`}
+                        if (pool?.dimensions) {
+                          const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+                          const paverPrice = calculatePaverPrice(dims[0] || 0, dims[1] || 0, parseInt(surveyData.deckWidth || "3"));
+                          return paverPrice.toLocaleString();
+                        }
+                        return "0";
+                      })()}`}
                         </span>
                       </div>
                     </div>
                   </div>
                   
                   <div>
-                    {(pool?.image || customProduct?.image) && (
-                      <div className="mb-4">
+                    {(pool?.image || customProduct?.image) && <div className="mb-4">
                         <ImageCard src={pool?.image || customProduct?.image} alt={pool?.model || customProduct?.name} className="w-full h-48 rounded-lg border border-orange-200" objectFit="cover" enableZoom={true} />
                         <p className="text-xs text-center mt-1 text-muted-foreground">{pool?.model || customProduct?.name}</p>
-                      </div>
-                    )}
+                      </div>}
                   </div>
                 </div>
 
                 {/* Selected Options with Images */}
-                {selectedOptions.length > 0 && (
-                  <div className="mb-6">
+                {selectedOptions.length > 0 && <div className="mb-6">
                     <h4 className="font-bold text-lg mb-3 text-teal-600">Selected Features</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {selectedOptions.map((option, index) => (
-                        <div key={index} className="border border-orange-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
+                      {selectedOptions.map((option, index) => <div key={index} className="border border-orange-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
                           <h5 className="font-semibold text-sm">{option.name}</h5>
                           <p className="text-xs text-muted-foreground mb-2">{option.description}</p>
                           <div className="flex justify-between text-sm">
                             <span>Price:</span>
                             <span className="font-semibold text-teal-600">+${option.price.toLocaleString()}</span>
                           </div>
-                        </div>
-                      ))}
+                        </div>)}
                     </div>
-                  </div>
-                )}
+                  </div>}
 
                 {/* Product Card Selected Items */}
-                {extras?.extrasBreakdown && extras.extrasBreakdown.length > 0 && (
-                  <div className="mb-6">
+                {extras?.extrasBreakdown && extras.extrasBreakdown.length > 0 && <div className="mb-6">
                     <h4 className="font-bold text-lg mb-3 text-coral-600">Added Features from Product Card</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {extras.extrasBreakdown.map((item: any, index: number) => (
-                        <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
+                      {extras.extrasBreakdown.map((item: any, index: number) => <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
                           {/* Display item image based on type */}
                           {(() => {
-                            let itemImage = null;
-                            if (item.name.includes('Heater') || item.name.includes('Heat Pump') || item.name.includes('Gas Heater') || item.name.includes('Solar Heater')) {
-                              // Use the standard heater image for all heater products
-                              itemImage = '/lovable-uploads/2e5049fe-1be6-48d8-b4e6-a22e92ef3ef6.png';
-                            } else if (item.name.includes('Cover')) {
-                              // Cover images
-                              const coverImages = {
-                                'Eclipse Automatic Cover': '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png',
-                                'CS3000 Safety Cover': '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png',
-                                'Infinity 4000 Smart Cover': '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png',
-                                'Atom Loop-Loc Cover': '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png'
-                              };
-                              itemImage = coverImages[item.name] || '/lovable-uploads/shale-gray-g3.jpg';
-                            } else if (item.name.includes('Spa')) {
-                              // Spa images - default spa image
-                              itemImage = '/lovable-uploads/azure-blue-g2.jpg';
-                            } else if (item.name.includes('Tanning Ledge')) {
-                              // Tanning ledge images - default image
-                              itemImage = '/lovable-uploads/azure-blue-g2.jpg';
-                            } else if (item.name.includes('Liner')) {
-                              // Liner images - default liner image
-                              itemImage = '/lovable-uploads/azure-blue-g2.jpg';
-                            } else if (item.name.includes('Jets')) {
-                              // Jets image
-                              itemImage = '/lovable-uploads/azure-blue-g2.jpg';
-                            } else {
-                              // Default image for other items
-                              itemImage = '/lovable-uploads/azure-blue-g2.jpg';
-                            }
-                            
-                             return itemImage ? (
-                               <div className="mb-3">
+                    let itemImage = null;
+                    if (item.name.includes('Heater') || item.name.includes('Heat Pump') || item.name.includes('Gas Heater') || item.name.includes('Solar Heater')) {
+                      // Use the standard heater image for all heater products
+                      itemImage = '/lovable-uploads/2e5049fe-1be6-48d8-b4e6-a22e92ef3ef6.png';
+                    } else if (item.name.includes('Cover')) {
+                      // Cover images
+                      const coverImages = {
+                        'Eclipse Automatic Cover': '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png',
+                        'CS3000 Safety Cover': '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png',
+                        'Infinity 4000 Smart Cover': '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png',
+                        'Atom Loop-Loc Cover': '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png'
+                      };
+                      itemImage = coverImages[item.name] || '/lovable-uploads/shale-gray-g3.jpg';
+                    } else if (item.name.includes('Spa')) {
+                      // Spa images - default spa image
+                      itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                    } else if (item.name.includes('Tanning Ledge')) {
+                      // Tanning ledge images - default image
+                      itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                    } else if (item.name.includes('Liner')) {
+                      // Liner images - default liner image
+                      itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                    } else if (item.name.includes('Jets')) {
+                      // Jets image
+                      itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                    } else {
+                      // Default image for other items
+                      itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                    }
+                    return itemImage ? <div className="mb-3">
                                  <ImageCard src={itemImage} alt={item.name} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
-                               </div>
-                             ) : null;
-                          })()}
+                               </div> : null;
+                  })()}
                           <h5 className="font-semibold text-sm">{item.name}</h5>
                           <div className="flex justify-between text-sm mt-2">
                             <span>Price:</span>
                             <span className="font-semibold text-coral-600">+${item.price.toLocaleString()}</span>
                           </div>
-                        </div>
-                      ))}
+                        </div>)}
                     </div>
                     <div className="mt-4 p-3 bg-gradient-to-r from-coral-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 rounded-lg">
                       <div className="flex justify-between items-center">
@@ -864,17 +731,14 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                         <span className="font-bold text-coral-600 text-lg">+${extras.extrasTotal.toLocaleString()}</span>
                       </div>
                     </div>
-                  </div>
-                )}
+                  </div>}
 
                 {/* Items Included */}
                 <div className="mb-6">
                   <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg">
                     <h4 className="font-bold text-lg mb-3 text-orange-600">ALL POOLS INCLUDE</h4>
                     <p className="text-sm">
-                      {getIncludedItems()
-                        .filter((item) => !item.startsWith("FREE"))
-                        .join(", ")}
+                      {getIncludedItems().filter(item => !item.startsWith("FREE")).join(", ")}
                     </p>
                     <p className="text-xs mt-2 opacity-80">
                       FREE Finish of choice (included in pool price - promotional offer)
@@ -890,36 +754,23 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
 
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-3 mt-6 justify-center print-hide">
-                  <Button 
-                    variant="default" 
-                    className="bg-gradient-to-r from-orange-500 to-teal-500 hover:from-orange-600 hover:to-teal-600 text-white"
-                    onClick={handlePrintQuote}
-                  >
+                  <Button variant="default" className="bg-gradient-to-r from-orange-500 to-teal-500 hover:from-orange-600 hover:to-teal-600 text-white" onClick={handlePrintQuote}>
                     <Printer className="h-4 w-4 mr-2" />
                     Print Quote
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    className="border-orange-500 text-orange-600 hover:bg-orange-50"
-                    onClick={() => setCurrentStep('options')}
-                  >
+                  <Button variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-50" onClick={() => setCurrentStep('options')}>
                     Modify Options
                   </Button>
-                  <Button 
-                    variant="default"
-                    className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white"
-                  >
+                  <Button variant="default" className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white">
                     Schedule Installation
                   </Button>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          </div>)}
 
         {/* Authentication Prompt */}
-        {showAuthPrompt && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        {showAuthPrompt && <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -940,30 +791,20 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: Surve
                   <li>• Receive personalized recommendations</li>
                 </ul>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="gradient" 
-                    className="flex-1"
-                    onClick={() => {
-                      setShowAuthPrompt(false);
-                      window.location.href = '/auth';
-                    }}
-                  >
+                  <Button variant="gradient" className="flex-1" onClick={() => {
+                setShowAuthPrompt(false);
+                window.location.href = '/auth';
+              }}>
                     Sign In / Register
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowAuthPrompt(false)}
-                  >
+                  <Button variant="outline" onClick={() => setShowAuthPrompt(false)}>
                     Cancel
                   </Button>
                 </div>
               </CardContent>
             </Card>
-          </div>
-        )}
+          </div>}
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
-
 export default SurveyQuoteTool;
