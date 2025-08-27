@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -255,52 +256,6 @@ const ShoppingCart = ({ isOpen, onClose }: ShoppingCartProps) => {
       </DialogContent>
     </Dialog>
   );
-};
-
-// Hook for managing cart state globally
-export const useShoppingCart = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const savedCart = localStorage.getItem('poolShoppingCart');
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
-    }
-  }, []);
-
-  const addToCart = (item: Omit<CartItem, 'quantity'>) => {
-    const existingItem = cartItems.find(cartItem => cartItem.id === item.id);
-    
-    if (existingItem) {
-      const updatedItems = cartItems.map(cartItem =>
-        cartItem.id === item.id
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
-      );
-      setCartItems(updatedItems);
-      localStorage.setItem('poolShoppingCart', JSON.stringify(updatedItems));
-    } else {
-      const newItems = [...cartItems, { ...item, quantity: 1 }];
-      setCartItems(newItems);
-      localStorage.setItem('poolShoppingCart', JSON.stringify(newItems));
-    }
-
-    toast({
-      title: "Added to Cart",
-      description: `${item.name} has been added to your cart`
-    });
-  };
-
-  const getCartCount = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
-  };
-
-  return {
-    cartItems,
-    addToCart,
-    getCartCount
-  };
 };
 
 export default ShoppingCart;
