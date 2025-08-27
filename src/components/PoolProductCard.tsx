@@ -978,6 +978,14 @@ const PoolProductCard = ({
               </div>
             </div>
             
+            {/* Final Price Display */}
+            <div className="mt-4 p-3 bg-gradient-to-r from-primary/10 to-teal/10 rounded-lg border border-primary/30">
+              <div className="text-center">
+                <h5 className="text-sm font-medium text-muted-foreground">Total Configuration Price</h5>
+                <div className="text-2xl font-bold text-foreground">${calculateTotalPrice().toLocaleString()}</div>
+              </div>
+            </div>
+
             {/* Bottom Dashboard - Integrated Financing */}
             <div className="mt-4 p-4 bg-gradient-to-r from-teal/5 to-primary/5 rounded-lg border border-teal/20">
               <div className="space-y-3">
@@ -991,12 +999,12 @@ const PoolProductCard = ({
                 {showFinancing && <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3 text-xs">
                       <div className="text-center p-2 bg-white/50 rounded">
-                        <div className="font-semibold">12 Months</div>
-                        <div className="text-teal-600">${(calculateTotalPrice() / 12).toLocaleString()}/mo</div>
+                        <div className="font-semibold">3 Years</div>
+                        <div className="text-teal-600">${(calculateTotalPrice() / 36).toLocaleString()}/mo</div>
                       </div>
                       <div className="text-center p-2 bg-white/50 rounded">
-                        <div className="font-semibold">24 Months</div>
-                        <div className="text-teal-600">${(calculateTotalPrice() / 24).toLocaleString()}/mo</div>
+                        <div className="font-semibold">6 Years</div>
+                        <div className="text-teal-600">${(calculateTotalPrice() / 72).toLocaleString()}/mo</div>
                       </div>
                     </div>
                     
