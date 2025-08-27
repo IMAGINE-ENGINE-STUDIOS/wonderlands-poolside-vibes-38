@@ -738,22 +738,26 @@ const PoolProductCard = ({
                 )}
               </div>
               <div className="grid grid-cols-3 gap-2">
-                {['standard', 'deluxe', 'premium'].map(quality => (
+                {[
+                  { key: 'standard', name: 'Wonder Cage' },
+                  { key: 'deluxe', name: 'Deluxe' },
+                  { key: 'premium', name: '2 stories' }
+                ].map(quality => (
                   <div 
-                    key={quality}
+                    key={quality.key}
                     className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md text-center ${
-                      extras.screenEnclosureQuality === quality 
+                      extras.screenEnclosureQuality === quality.key 
                         ? 'border-primary bg-primary/10' 
                         : 'border-border'
                     }`} 
                     onClick={() => setExtras(prev => ({
                       ...prev,
-                      screenEnclosureQuality: quality as 'standard' | 'deluxe' | 'premium'
+                      screenEnclosureQuality: quality.key as 'standard' | 'deluxe' | 'premium'
                     }))}
                   >
-                    <p className="text-sm font-medium capitalize">{quality}</p>
+                    <p className="text-sm font-medium">{quality.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      ${quality === 'standard' ? '15' : quality === 'deluxe' ? '22' : '28'}/sq ft
+                      ${quality.key === 'standard' ? '15' : quality.key === 'deluxe' ? '22' : '28'}/sq ft
                     </p>
                   </div>
                 ))}
