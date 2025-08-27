@@ -69,6 +69,8 @@ interface PoolExtras {
   screenEnclosure: boolean;
   screenEnclosureArea: number;
   screenEnclosureQuality: 'standard' | 'deluxe' | 'premium';
+  extrasBreakdown?: Array<{ name: string; price: number }>;
+  extrasTotal?: number;
 }
 const getCategoryColor = (category: string) => {
   switch (category) {
@@ -1003,7 +1005,116 @@ const PoolProductCard = ({
               });
               window.open(`/pool/${pool.model.replace(/\s+/g, '-').toLowerCase()}?${params.toString()}`, '_blank');
             }} variant="outline" className="flex-1" size="sm">Design Studio</Button>
-                <Button onClick={() => onRequestQuote(pool, extras)} variant="outline" className="flex-1" size="sm">Instant Quote</Button>
+            <Button onClick={() => {
+              // Create detailed extras breakdown for quote tool
+              const extrasBreakdown = [];
+              
+              // Add finish if not default
+              const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
+              if (selectedFinish && selectedFinish.price > 0) {
+                extrasBreakdown.push({
+                  name: `${selectedFinish.name} Finish`,
+                  price: selectedFinish.price
+                });
+              }
+              
+              // Add heater if selected
+              if (extras.heater) {
+                const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
+                if (selectedHeater) {
+                  extrasBreakdown.push({
+                    name: selectedHeater.name,
+                    price: selectedHeater.price
+                  });
+                }
+              }
+              
+              // Add cover if selected
+              const coverOption = coverOptions.find(option => option.name === extras.coverOption);
+              if (coverOption && extras.cover && coverOption.name !== 'NO COVER') {
+                extrasBreakdown.push({
+                  name: coverOption.name,
+                  price: coverOption.price
+                });
+              }
+              
+              // Add jets if selected
+              if (extras.jets) {
+                extrasBreakdown.push({
+                  name: `Spa Jets (${extras.jetQuantity})`,
+                  price: getExtraPrice('jets') * extras.jetQuantity
+                });
+              }
+              
+              // Add tiles if selected
+              const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+              if (tileOption && extras.tiles) {
+                extrasBreakdown.push({
+                  name: tileOption.name,
+                  price: tileOption.price
+                });
+              }
+              
+              // Add liner if selected (with free logic when both tiles and liner)
+              const linerOption = linerOptions.find(option => option.name === extras.linerOption);
+              if (linerOption && extras.liner) {
+                const linerPrice = (extras.tiles && extras.liner) ? 0 : linerOption.price;
+                extrasBreakdown.push({
+                  name: `${linerOption.name} Liner${(extras.tiles && extras.liner) ? ' (FREE with tiles)' : ''}`,
+                  price: linerPrice
+                });
+              }
+              
+              // Add paver surface area cost
+              if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+                extrasBreakdown.push({
+                  name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
+                  price: parseFloat(paverSurfaceArea) * 15
+                });
+              }
+              
+              // Add spa if selected
+              if (extras.spa) {
+                const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
+                if (selectedSpa) {
+                  extrasBreakdown.push({
+                    name: `${selectedSpa.model} Spa`,
+                    price: selectedSpa.price
+                  });
+                }
+              }
+              
+              // Add tanning ledge if selected
+              if (extras.tanningLedge) {
+                const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
+                if (selectedLedge) {
+                  extrasBreakdown.push({
+                    name: `${selectedLedge.name} Tanning Ledge`,
+                    price: selectedLedge.price
+                  });
+                }
+              }
+              
+              // Add screen enclosure if selected
+              if (extras.screenEnclosure && extras.screenEnclosureArea > 0) {
+                let pricePerSqFt = 15;
+                if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+                if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
+                extrasBreakdown.push({
+                  name: `Screen Enclosure - ${extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : '2 stories'} (${extras.screenEnclosureArea} sq ft)`,
+                  price: enclosurePrice
+                });
+              }
+              
+              const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
+              
+              onRequestQuote(pool, {
+                ...extras,
+                extrasBreakdown,
+                extrasTotal
+              });
+            }} variant="outline" className="flex-1" size="sm">Instant Quote</Button>
               </div>
               
               <div className="flex gap-2">

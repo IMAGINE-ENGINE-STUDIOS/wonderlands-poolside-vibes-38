@@ -70,6 +70,8 @@ interface PoolExtras {
   heaterModel: string;
   paverOption: string;
   copingPaverOption: string;
+  extrasBreakdown?: Array<{ name: string; price: number }>;
+  extrasTotal?: number;
 }
 
 const getCategoryColor = (category: string) => {
@@ -718,7 +720,63 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => onRequestQuote(spa, extras)}
+              onClick={() => {
+                // Create detailed extras breakdown for quote tool
+                const extrasBreakdown = [];
+                
+                // Add heater if selected
+                if (extras.heater) {
+                  const selectedHeater = spaHeaters.find(heater => heater.name === extras.heaterModel);
+                  if (selectedHeater) {
+                    extrasBreakdown.push({
+                      name: selectedHeater.name,
+                      price: selectedHeater.price
+                    });
+                  }
+                }
+                
+                // Add jets if selected
+                if (extras.jets) {
+                  extrasBreakdown.push({
+                    name: `Spa Jets (${extras.jetQuantity})`,
+                    price: getExtraPrice('jets') * extras.jetQuantity
+                  });
+                }
+                
+                // Add tiles if selected
+                const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+                if (tileOption && extras.tiles) {
+                  extrasBreakdown.push({
+                    name: tileOption.name,
+                    price: tileOption.price
+                  });
+                }
+                
+                // Add liner if selected (mutually exclusive with tiles)
+                const linerOption = linerOptions.find(option => option.name === extras.linerOption);
+                if (linerOption && extras.liner) {
+                  extrasBreakdown.push({
+                    name: `${linerOption.name} Liner`,
+                    price: linerOption.price
+                  });
+                }
+                
+                // Add paver surface area cost
+                if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+                  extrasBreakdown.push({
+                    name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
+                    price: parseFloat(paverSurfaceArea) * 15
+                  });
+                }
+                
+                const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
+                
+                onRequestQuote(spa, {
+                  ...extras,
+                  extrasBreakdown,
+                  extrasTotal
+                });
+              }}
               className="text-xs"
             >
               Get Quote
