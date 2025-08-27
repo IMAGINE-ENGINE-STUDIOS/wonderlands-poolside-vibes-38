@@ -9,10 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, Camera, FileText, LogIn } from "lucide-react";
+import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, Camera, FileText, LogIn, Phone, Mail, Download, Printer } from "lucide-react";
 import PoolCustomizationOptions from "./PoolCustomizationOptions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
+import ImageCard from "./ImageCard";
 
 
 interface Pool {
@@ -21,6 +23,7 @@ interface Pool {
   category: 'premium' | 'deluxe' | 'standard' | 'compact';
   dimensions?: string;
   depth?: string;
+  image?: string;
 }
 
 interface PoolOption {
@@ -35,10 +38,12 @@ interface SurveyQuoteToolProps {
   pool: Pool | null;
   isOpen: boolean;
   onClose: () => void;
+  extras?: any;
   customProduct?: {
     name: string;
     price: number;
     type: string;
+    image?: string;
   };
 }
 
@@ -54,9 +59,10 @@ interface SurveyData {
   specialRequests: string;
   timeline: string;
   budget: string;
+  deckWidth: string;
 }
 
-const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteToolProps) => {
+const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct, extras }: SurveyQuoteToolProps) => {
   const { user } = useAuth();
   const [surveyData, setSurveyData] = useState<SurveyData>({
     name: "",
@@ -69,7 +75,8 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
     utilityLines: "",
     specialRequests: "",
     timeline: "",
-    budget: ""
+    budget: "",
+    deckWidth: "3"
   });
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
@@ -80,6 +87,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
   const [isSaving, setIsSaving] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const { toast } = useToast();
+  // Removed GALA-GOODS integration
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -110,6 +118,43 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
     }
   };
 
+  const handlePrintQuote = () => {
+    const quoteElement = document.querySelector('[data-quote-content]');
+    if (!quoteElement) return;
+    
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Pool Configuration Quote</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <style>
+              @media print {
+                .print-hide { display: none !important; }
+                body { margin: 0; padding: 20px; }
+                * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+              }
+            </style>
+          </head>
+          <body>
+            ${quoteElement.outerHTML}
+            <script>
+              window.addEventListener('load', function() {
+                setTimeout(function() {
+                  window.print();
+                }, 500);
+              });
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
+
+
   const calculateQuote = () => {
     if (!pool && !customProduct) return 0;
     
@@ -118,6 +163,17 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
     // Add selected options
     const optionsPrice = selectedOptions.reduce((total, option) => total + option.price, 0);
     basePrice += optionsPrice;
+
+    // Add extras from product card if provided
+    const extrasTotal = (extras as any)?.extrasTotal ? Number((extras as any).extrasTotal) : 0;
+    basePrice += extrasTotal;
+    
+    // Add paver costs if deck width > 3ft
+    if (pool?.dimensions && parseInt(surveyData.deckWidth || "3") > 3) {
+      const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/["']/g, '')));
+      const paverPrice = calculatePaverPrice(dims[0] || 0, dims[1] || 0, parseInt(surveyData.deckWidth || "3"));
+      basePrice += paverPrice;
+    }
     
     // Florida-specific adjustments
     if (surveyData.soilType === "sand") basePrice *= 0.95; // Easier excavation
@@ -128,25 +184,14 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
     return Math.round(basePrice);
   };
 
-  const getRecommendations = () => {
-    if (!pool && !customProduct) return [];
-    
-    const recommendations = [];
-    
-    if (surveyData.soilType === "sand") {
-      recommendations.push("Excellent drainage - perfect for Florida pools");
-    }
-    if (surveyData.yardSize === "large") {
-      recommendations.push("Consider adding a spa or water features");
-    }
-    if (surveyData.accessWidth === "wide") {
-      recommendations.push("Easy crane access - smoother installation");
-    }
-    
-    recommendations.push("LED lighting package recommended for Florida evenings");
-    recommendations.push("Salt water system popular in coastal Florida");
-    
-    return recommendations;
+  const getIncludedItems = () => {
+    return [
+      "LED lights",
+      "Water pump", 
+      "Waterfall",
+      "Salt system",
+      "FREE Finish of choice (included in pool price - promotional offer)"
+    ];
   };
 
   const saveQuotationToDatabase = async () => {
@@ -163,7 +208,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
     setIsSaving(true);
     try {
       const quoteAmount = calculateQuote();
-      const recommendations = getRecommendations();
+      const recommendations = getIncludedItems();
       
       const quotationData = {
         user_id: user.id,
@@ -178,6 +223,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
         special_requests: surveyData.specialRequests || null,
         timeline: surveyData.timeline || null,
         budget: surveyData.budget || null,
+        deck_width: surveyData.deckWidth || null,
         pool_model: pool?.model || customProduct?.name || null,
         pool_price: pool?.price || customProduct?.price || null,
         pool_category: pool?.category || customProduct?.type || null,
@@ -251,6 +297,32 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
 
   const handleContinueToQuote = async () => {
     // Save the quotation to database before showing the quote
+    await saveQuotationToDatabase();
+    setCurrentStep('quote');
+  };
+
+  const handleGetQuote = async () => {
+    if (!surveyData.name || !surveyData.email || !surveyData.address || !surveyData.yardSize) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in your contact details, address and yard size.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(surveyData.email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Save the quotation to database and proceed to quote
     await saveQuotationToDatabase();
     setCurrentStep('quote');
   };
@@ -406,6 +478,23 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
                   </div>
 
                   <div>
+                    <Label htmlFor="deckWidth">Desired Deck Width (ft)</Label>
+                    <Select onValueChange={(value) => setSurveyData({...surveyData, deckWidth: value})}>
+                      <SelectTrigger className="focus:border-coral">
+                        <SelectValue placeholder="Select deck width" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="3">3 ft (Standard - Free)</SelectItem>
+                        <SelectItem value="4">4 ft</SelectItem>
+                        <SelectItem value="5">5 ft</SelectItem>
+                        <SelectItem value="6">6 ft</SelectItem>
+                        <SelectItem value="8">8 ft</SelectItem>
+                        <SelectItem value="10">10 ft</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
                     <Label htmlFor="accessWidth">Equipment Access</Label>
                     <Select onValueChange={(value) => setSurveyData({...surveyData, accessWidth: value})}>
                       <SelectTrigger className="focus:border-coral">
@@ -533,7 +622,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
                 <span>Free consultation • No obligation • Expert guidance</span>
               </div>
               <Button 
-                onClick={handleSubmitSurvey}
+                onClick={handleGetQuote}
                 variant="gradient"
                 size="lg"
                 className="w-full hover:scale-105 transition-all duration-300"
@@ -548,7 +637,7 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
         ) : currentStep === 'options' ? (
           /* Pool Customization Options */
           <div className="space-y-6">
-            <PoolCustomizationOptions onSelectionChange={setSelectedOptions} />
+            <PoolCustomizationOptions onSelectionChange={(options) => setSelectedOptions(options)} />
             
             <div className="flex gap-3">
               <Button 
@@ -578,62 +667,253 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
             </div>
           </div>
         ) : (
-          /* Quote Results */
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-6 w-6 text-teal" />
-                  Custom Quote for {pool?.model || customProduct?.name}
-                </CardTitle>
-                <CardDescription>
-                  Based on your Florida property survey
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-3xl font-bold text-foreground">
-                  ${calculateQuote().toLocaleString()}
-                </div>
-                <div className="space-y-2">
-                  <p className="text-muted-foreground">
-                    Complete installation including permits, excavation, and basic landscaping
-                  </p>
-                  {selectedOptions.length > 0 && (
-                    <div className="text-sm">
-                      <p className="font-medium">Selected Options:</p>
-                      <ul className="list-disc list-inside text-muted-foreground">
-                        {selectedOptions.map((option, index) => (
-                          <li key={index}>{option.name} (+${option.price.toLocaleString()})</li>
-                        ))}
-                      </ul>
+          /* Professional Quotation Display */
+          <div className="space-y-6" data-quote-content>
+            <div className="bg-white dark:bg-gray-900 border-2 border-orange-400 rounded-lg overflow-hidden">
+              
+              {/* Header with Logo */}
+              <div className="bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400 p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <ImageCard src="/lovable-uploads/e2ff3f3a-79d1-402e-b0c6-dcea2d4e720a.png" alt="Wonderlands Logo" className="h-16 w-16" enableZoom={false} />
+                    <div>
+                      <h1 className="text-2xl font-bold">POOL QUOTATION</h1>
+                      <p className="text-orange-100">Your Dream Pool Awaits</p>
                     </div>
-                  )}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm">Quote Date: {new Date().toLocaleDateString()}</p>
+                    <p className="text-sm">Valid for 30 days</p>
+                  </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <h4 className="font-semibold">Recommendations for your property:</h4>
-                  {getRecommendations().map((rec, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-gradient-to-r from-primary to-teal rounded-full"></div>
-                      <span className="text-sm">{rec}</span>
+              </div>
+
+              {/* Customer Information */}
+              <div className="p-6 bg-gradient-to-r from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="font-bold text-lg mb-3 text-orange-600">Customer Information</h3>
+                    <div className="space-y-2 text-sm">
+                      <p><span className="font-medium">Name:</span> {surveyData.name}</p>
+                      <p><span className="font-medium">Email:</span> {surveyData.email}</p>
+                      <p><span className="font-medium">Phone:</span> {surveyData.phone}</p>
+                      <p><span className="font-medium">Property Address:</span> {surveyData.address}</p>
                     </div>
-                  ))}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg mb-3 text-teal-600">Contact Information</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-orange-500" />
+                        <span>(407) 760-4873</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-teal-500" />
+                        <span>sales@wonderlandsworld.com</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Business Hours: Mon-Fri 8AM-6PM, Sat 9AM-4PM
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pool Details with Images */}
+              <div className="p-6">
+                <h3 className="font-bold text-xl mb-4 text-orange-600">Pool Specifications</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-br from-orange-100 to-teal-100 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg">
+                      <h4 className="font-semibold mb-2">Pool Model: {pool?.model || customProduct?.name}</h4>
+                      {pool?.dimensions && <p className="text-sm">Dimensions: {pool.dimensions}</p>}
+                      {pool?.depth && <p className="text-sm">Depth: {pool.depth}</p>}
+                      <div className="flex justify-between mt-2 pt-2 border-t border-orange-200 dark:border-gray-600">
+                        <span>Base Pool Price:</span>
+                        <span className="font-semibold">${(pool?.price || customProduct?.price || 0).toLocaleString()}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Pavers Calculation */}
+                    <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
+                      <h4 className="font-semibold mb-2">Paver Deck ({surveyData.deckWidth || 3}ft Width)</h4>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {parseInt(surveyData.deckWidth || "3") === 3 
+                          ? "Standard 3-foot paver deck included in base price"
+                          : `${surveyData.deckWidth}-foot paver deck around pool`
+                        }
+                      </p>
+                      {pool?.dimensions && (() => {
+                        const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+                        const poolLength = dims[0] || 0;
+                        const poolWidth = dims[1] || 0;
+                        const deckWidth = parseInt(surveyData.deckWidth || "3");
+                        const paverArea = calculatePaverArea(poolLength, poolWidth, deckWidth);
+                        const paverPrice = calculatePaverPrice(poolLength, poolWidth, deckWidth);
+                        
+                        return (
+                          <div className="text-xs space-y-1">
+                            <p>Pool dimensions: {pool.dimensions}</p>
+                            <p>Deck width: {deckWidth} ft</p>
+                            <p>Chargeable paver area: {paverArea} sq ft</p>
+                            {paverArea > 0 && <p>Paver cost: ${paverPrice.toLocaleString()}</p>}
+                          </div>
+                        );
+                      })()}
+                      <div className="flex justify-between mt-2 pt-2 border-t border-teal-200 dark:border-gray-600">
+                        <span>Paver Installation:</span>
+                        <span className="font-semibold">
+                          {parseInt(surveyData.deckWidth || "3") === 3 ? "Included" : `+$${(() => {
+                            if (pool?.dimensions) {
+                              const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+                              const paverPrice = calculatePaverPrice(dims[0] || 0, dims[1] || 0, parseInt(surveyData.deckWidth || "3"));
+                              return paverPrice.toLocaleString();
+                            }
+                            return "0";
+                          })()}`}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    {(pool?.image || customProduct?.image) && (
+                      <div className="mb-4">
+                        <ImageCard src={pool?.image || customProduct?.image} alt={pool?.model || customProduct?.name} className="w-full h-48 rounded-lg border border-orange-200" objectFit="cover" enableZoom={true} />
+                        <p className="text-xs text-center mt-1 text-muted-foreground">{pool?.model || customProduct?.name}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex gap-3 pt-4">
-                  <Button variant="gradient" className="flex-1">
-                    Schedule Installation
+                {/* Selected Options with Images */}
+                {selectedOptions.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="font-bold text-lg mb-3 text-teal-600">Selected Features</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {selectedOptions.map((option, index) => (
+                        <div key={index} className="border border-orange-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
+                          <h5 className="font-semibold text-sm">{option.name}</h5>
+                          <p className="text-xs text-muted-foreground mb-2">{option.description}</p>
+                          <div className="flex justify-between text-sm">
+                            <span>Price:</span>
+                            <span className="font-semibold text-teal-600">+${option.price.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Product Card Selected Items */}
+                {extras?.extrasBreakdown && extras.extrasBreakdown.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="font-bold text-lg mb-3 text-coral-600">Added Features from Product Card</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {extras.extrasBreakdown.map((item: any, index: number) => (
+                        <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
+                          {/* Display item image based on type */}
+                          {(() => {
+                            let itemImage = null;
+                            if (item.name.includes('Heater') || item.name.includes('Heat Pump') || item.name.includes('Gas Heater') || item.name.includes('Solar Heater')) {
+                              // Use the standard heater image for all heater products
+                              itemImage = '/lovable-uploads/2e5049fe-1be6-48d8-b4e6-a22e92ef3ef6.png';
+                            } else if (item.name.includes('Cover')) {
+                              // Cover images
+                              const coverImages = {
+                                'Eclipse Automatic Cover': '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png',
+                                'CS3000 Safety Cover': '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png',
+                                'Infinity 4000 Smart Cover': '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png',
+                                'Atom Loop-Loc Cover': '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png'
+                              };
+                              itemImage = coverImages[item.name] || '/lovable-uploads/shale-gray-g3.jpg';
+                            } else if (item.name.includes('Spa')) {
+                              // Spa images - default spa image
+                              itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                            } else if (item.name.includes('Tanning Ledge')) {
+                              // Tanning ledge images - default image
+                              itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                            } else if (item.name.includes('Liner')) {
+                              // Liner images - default liner image
+                              itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                            } else if (item.name.includes('Jets')) {
+                              // Jets image
+                              itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                            } else {
+                              // Default image for other items
+                              itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                            }
+                            
+                             return itemImage ? (
+                               <div className="mb-3">
+                                 <ImageCard src={itemImage} alt={item.name} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
+                               </div>
+                             ) : null;
+                          })()}
+                          <h5 className="font-semibold text-sm">{item.name}</h5>
+                          <div className="flex justify-between text-sm mt-2">
+                            <span>Price:</span>
+                            <span className="font-semibold text-coral-600">+${item.price.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 p-3 bg-gradient-to-r from-coral-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">Total Added Features:</span>
+                        <span className="font-bold text-coral-600 text-lg">+${extras.extrasTotal.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Items Included */}
+                <div className="mb-6">
+                  <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg">
+                    <h4 className="font-bold text-lg mb-3 text-orange-600">ALL POOLS INCLUDE</h4>
+                    <p className="text-sm">
+                      {getIncludedItems()
+                        .filter((item) => !item.startsWith("FREE"))
+                        .join(", ")}
+                    </p>
+                    <p className="text-xs mt-2 opacity-80">
+                      FREE Finish of choice (included in pool price - promotional offer)
+                    </p>
+                  </div>
+                </div>
+
+                 <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center">
+                   <h3 className="text-2xl font-bold mb-2">Total Investment</h3>
+                   <div className="text-4xl font-bold mb-2">${calculateQuote().toLocaleString()}</div>
+                   <p className="text-orange-100">Complete installation including permits, excavation, and {surveyData.deckWidth || 3}ft paver deck</p>
+                 </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-3 mt-6 justify-center print-hide">
+                  <Button 
+                    variant="default" 
+                    className="bg-gradient-to-r from-orange-500 to-teal-500 hover:from-orange-600 hover:to-teal-600 text-white"
+                    onClick={handlePrintQuote}
+                  >
+                    <Printer className="h-4 w-4 mr-2" />
+                    Print Quote
                   </Button>
                   <Button 
                     variant="outline" 
-                    className="flex-1"
+                    className="border-orange-500 text-orange-600 hover:bg-orange-50"
                     onClick={() => setCurrentStep('options')}
                   >
                     Modify Options
                   </Button>
+                  <Button 
+                    variant="default"
+                    className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white"
+                  >
+                    Schedule Installation
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         )}
 

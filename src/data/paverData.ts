@@ -228,8 +228,35 @@ export const copingTypes: PaverType[] = [
   }
 ];
 
-// Helper function to calculate price for pavers (no colors)
-export const calculatePaverPrice = (type: PaverType, surfaceArea: number): number => {
+// Helper function to calculate paver area for a pool deck
+export const calculatePaverArea = (poolLength: number, poolWidth: number, deckWidth: number): number => {
+  if (deckWidth <= 3) return 0; // 3ft is standard and included
+  
+  const totalLength = poolLength + (2 * deckWidth);
+  const totalWidth = poolWidth + (2 * deckWidth);
+  const totalArea = totalLength * totalWidth;
+  const poolArea = poolLength * poolWidth;
+  const deckArea = totalArea - poolArea;
+  
+  // Subtract the standard 3ft deck area that's included
+  const standardDeckWidth = 3;
+  const standardTotalLength = poolLength + (2 * standardDeckWidth);
+  const standardTotalWidth = poolWidth + (2 * standardDeckWidth);
+  const standardTotalArea = standardTotalLength * standardTotalWidth;
+  const standardDeckArea = standardTotalArea - poolArea;
+  
+  return Math.max(0, deckArea - standardDeckArea);
+};
+
+// Helper function to calculate price for pavers based on pool dimensions and deck width
+export const calculatePaverPrice = (poolLength: number, poolWidth: number, deckWidth: number): number => {
+  const paverArea = calculatePaverArea(poolLength, poolWidth, deckWidth);
+  const pricePerSqFt = 15; // Standard paver price per square foot
+  return paverArea * pricePerSqFt;
+};
+
+// Original helper function for paver types
+export const calculatePaverTypePrice = (type: PaverType, surfaceArea: number): number => {
   return type.basePrice * surfaceArea;
 };
 
