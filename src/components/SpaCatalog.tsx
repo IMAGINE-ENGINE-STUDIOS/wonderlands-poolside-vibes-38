@@ -30,7 +30,7 @@ const spas: Spa[] = [
     model: "Mystic",
     price: 22000,
     category: 'premium',
-    image: "/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.png", // Changed to most expensive spa image
+    image: "/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.png",
     dimensions: "7' x 7' x 34\"",
     depth: "34\"",
     features: ["40 Therapeutic Jets", "LED Lighting System", "Digital Controls", "Insulated Shell"],
@@ -78,7 +78,7 @@ const spas: Spa[] = [
     model: "Oasis",
     price: 28000,
     category: 'premium',
-    image: "/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.png", // Changed to cheapest spa image
+    image: "/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.png",
     dimensions: "10' x 10' x 40\"",
     depth: "40\"",
     features: ["85 Therapeutic Jets", "Cascade Waterfall", "Advanced Filtration", "Mobile App Control"],
