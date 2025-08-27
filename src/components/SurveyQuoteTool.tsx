@@ -28,7 +28,7 @@ interface PoolOption {
   name: string;
   description: string;
   price: number;
-  category: 'waterline' | 'jets' | 'heating' | 'covers' | 'decorative' | 'screen-enclosure';
+  category: 'waterline' | 'jets' | 'heating' | 'covers' | 'decorative';
 }
 
 interface SurveyQuoteToolProps {
