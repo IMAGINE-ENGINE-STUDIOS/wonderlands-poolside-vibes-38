@@ -182,7 +182,6 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
   });
   
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
-  const [showFinancing, setShowFinancing] = useState(false);
   
   const { addToCart } = useShoppingCart();
 
@@ -735,33 +734,13 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
             Add to Cart
           </Button>
           
-          <div className="grid grid-cols-2 gap-2">
-            <StripeCheckoutButton 
-              productId={`spa_${spa.model.replace(/\s+/g, '_')}`}
-              productName={`${spa.model} Spa`}
-              price={calculateTotalPrice()}
-              size="sm"
-              className="text-xs"
-            />
-            <Button 
-              variant="secondary" 
-              size="sm"
-              onClick={() => setShowFinancing(!showFinancing)}
-              className="text-xs"
-            >
-              Apply for Financing
-            </Button>
-          </div>
-          
-          {showFinancing && (
-            <div className="p-3 bg-muted rounded-lg text-xs space-y-2">
-              <p className="font-medium">Financing Options Available</p>
-              <p className="text-muted-foreground">Get pre-approved for financing with rates as low as 2.9% APR</p>
-              <Button size="sm" variant="link" className="p-0 h-auto text-xs">
-                Apply Now →
-              </Button>
-            </div>
-          )}
+          <StripeCheckoutButton 
+            productId={`spa_${spa.model.replace(/\s+/g, '_')}`}
+            productName={`${spa.model} Spa`}
+            price={calculateTotalPrice()}
+            size="sm"
+            className="w-full text-xs"
+          />
         </div>
       </CardContent>
       

@@ -30,7 +30,7 @@ const spas: Spa[] = [
     model: "Mystic",
     price: 22000,
     category: 'premium',
-    image: "/lovable-uploads/09999795-2565-4094-8391-0511c1590998.png",
+    image: "/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.png",
     dimensions: "7' x 7' x 34\"",
     depth: "34\"",
     features: ["40 Therapeutic Jets", "LED Lighting System", "Digital Controls", "Insulated Shell"],
@@ -46,7 +46,7 @@ const spas: Spa[] = [
     model: "Serenity",
     price: 24000,
     category: 'deluxe',
-    image: "/lovable-uploads/41959951-1a93-4941-a5f9-53095e959961.png",
+    image: "/lovable-uploads/e3bbb69b-9699-4d9e-aca9-8c98b50f2c78.png",
     dimensions: "8' x 8' x 36\"",
     depth: "36\"",
     features: ["55 Hydrotherapy Jets", "Aromatherapy System", "Bluetooth Audio", "Energy Efficient"],
@@ -62,7 +62,7 @@ const spas: Spa[] = [
     model: "Tranquil",
     price: 26000,
     category: 'standard',
-    image: "/lovable-uploads/69999199-7999-4929-8999-9999c9c9c999.png",
+    image: "/lovable-uploads/7edc4a89-7438-4f88-81f4-8beea8152f07.png",
     dimensions: "9' x 9' x 38\"",
     depth: "38\"",
     features: ["70 Precision Jets", "Smart Controls", "UV Sanitization", "Premium Insulation"],
@@ -78,7 +78,7 @@ const spas: Spa[] = [
     model: "Oasis",
     price: 28000,
     category: 'premium',
-    image: "/lovable-uploads/99999999-9999-4999-8999-99c9c9999999.png",
+    image: "/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.png",
     dimensions: "10' x 10' x 40\"",
     depth: "40\"",
     features: ["85 Therapeutic Jets", "Cascade Waterfall", "Advanced Filtration", "Mobile App Control"],
@@ -104,7 +104,6 @@ const SpaCatalog = () => {
 
   const handleRequestQuote = (spa: Spa, extras?: any) => {
     setSelectedSpa(spa);
-    setShowDetailModal(false);
     setShowQuoteModal(true);
   };
 
