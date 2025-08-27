@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useSpring, animated } from '@react-spring/web';
 
@@ -32,7 +33,7 @@ const AnimatedLandscape = () => {
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url(/lovable-uploads/f0ee9d81-bffb-4340-8f6e-c2090e67204e.png)'
+          backgroundImage: 'url(/lovable-uploads/0c70745d-4bf3-4394-8fb2-da6024bf72b9.png)'
         }}
       />
       

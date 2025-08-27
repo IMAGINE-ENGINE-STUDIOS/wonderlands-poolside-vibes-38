@@ -26,6 +26,8 @@ import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 
+import ScreenEnclosureAddon from "./ScreenEnclosureAddon";
+
 interface Pool {
   model: string;
   price: number;
@@ -71,6 +73,9 @@ interface PoolExtras {
   heaterModel: string;
   paverOption: string;
   copingPaverOption: string;
+  screenEnclosure: boolean;
+  screenEnclosureArea: number;
+  screenEnclosureQuality: 'standard' | 'deluxe' | 'premium';
 }
 
 const getCategoryColor = (category: string) => {
@@ -194,7 +199,10 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
     tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
     heaterModel: poolHeaters[0]?.name || 'Heat Pump - Eco Series',
     paverOption: 'No Pavers',
-    copingPaverOption: 'No Coping'
+    copingPaverOption: 'No Coping',
+    screenEnclosure: false,
+    screenEnclosureArea: 0,
+    screenEnclosureQuality: 'standard'
   });
   
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
@@ -239,6 +247,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
         return { ...prev, tanningLedge: !prev.tanningLedge };
       } else if (extra === 'jets') {
         return { ...prev, jets: !prev.jets };
+      } else if (extra === 'screenEnclosure') {
+        return { ...prev, screenEnclosure: !prev.screenEnclosure };
       }
       
       return prev;
@@ -294,6 +304,14 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
     if (extras.tanningLedge) {
       const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
       if (selectedLedge) total += selectedLedge.price;
+    }
+
+    // Add screen enclosure price if selected
+    if (extras.screenEnclosure && extras.screenEnclosureArea > 0) {
+      let pricePerSqFt = 15; // standard
+      if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+      if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+      total += extras.screenEnclosureArea * pricePerSqFt;
     }
     
     return total;
@@ -360,6 +378,18 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
       if (selectedLedge) {
         cartExtras.push({ name: `${selectedLedge.name} Tanning Ledge`, price: selectedLedge.price });
       }
+    }
+
+    // Add screen enclosure to cart if selected
+    if (extras.screenEnclosure && extras.screenEnclosureArea > 0) {
+      let pricePerSqFt = 15;
+      if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+      if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+      const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
+      cartExtras.push({ 
+        name: `Screen Enclosure - ${extras.screenEnclosureQuality} (${extras.screenEnclosureArea} sq ft)`, 
+        price: enclosurePrice 
+      });
     }
 
     addToCart({
@@ -686,8 +716,24 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
               </Carousel>
             </div>
 
-            {/* Coping Pavers Options - REMOVED AS REQUESTED */}
-            {/* User requested removal of coping options */}
+            {/* Screen Enclosure Options */}
+            <div className="space-y-3">
+              <ScreenEnclosureAddon
+                isSelected={extras.screenEnclosure}
+                onToggle={(selected) => setExtras(prev => ({ ...prev, screenEnclosure: selected }))}
+                area={extras.screenEnclosureArea}
+                onAreaChange={(area) => setExtras(prev => ({ ...prev, screenEnclosureArea: area }))}
+                quality={extras.screenEnclosureQuality}
+                onQualityChange={(quality) => setExtras(prev => ({ ...prev, screenEnclosureQuality: quality }))}
+                calculatePrice={() => {
+                  if (!extras.screenEnclosure || extras.screenEnclosureArea <= 0) return 0;
+                  let pricePerSqFt = 15;
+                  if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+                  if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                  return extras.screenEnclosureArea * pricePerSqFt;
+                }}
+              />
+            </div>
 
             {/* Cover Options */}
             <div className="space-y-3">
