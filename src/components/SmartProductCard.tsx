@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import ProductOptionsManager, { ProductCategory } from './ProductOptionsManager';
-import { Edit, ShoppingCart, DollarSign, Waves } from 'lucide-react';
+import { Edit, ShoppingCart, DollarSign, Waves, Eye } from 'lucide-react';
 import { useShoppingCart } from './ShoppingCart';
 
 interface SmartProductCardProps {
@@ -33,6 +34,7 @@ const getCategoryColor = (category: ProductCategory) => {
     case 'paver': return 'bg-gradient-to-r from-amber-500 to-orange-500';
     case 'coping': return 'bg-gradient-to-r from-stone-500 to-neutral-500';
     case 'tile': return 'bg-gradient-to-r from-rose-500 to-pink-500';
+    case 'screen-enclosure': return 'bg-gradient-to-r from-green-500 to-emerald-500';
     default: return 'bg-gradient-to-r from-primary to-teal';
   }
 };
@@ -40,6 +42,7 @@ const getCategoryColor = (category: ProductCategory) => {
 const getCategoryLabel = (category: ProductCategory) => {
   switch (category) {
     case 'tanning-ledge': return 'Tanning Ledge';
+    case 'screen-enclosure': return 'Screen Enclosure';
     default: return category.charAt(0).toUpperCase() + category.slice(1);
   }
 };
@@ -61,6 +64,8 @@ const getAvailableOptionsLabel = (category: ProductCategory) => {
       return 'Shape, size & color options';
     case 'tile':
       return 'Material & pattern options';
+    case 'screen-enclosure':
+      return 'Height, type & surface area options';
     default:
       return 'Options available';
   }
@@ -94,18 +99,28 @@ const SmartProductCard = ({
       calculatedPrice += parseFloat(options.surfaceArea) * 15;
     }
     
+    if (options.totalPrice && category === 'screen-enclosure') {
+      calculatedPrice = options.totalPrice;
+    }
+    
     setTotalPrice(calculatedPrice);
   };
 
   const handleAddToCart = () => {
-    addToCart({
+    const cartItem = {
       id: `${category}_${id}_${Date.now()}`,
       name: name,
       price: totalPrice,
       category: category,
-      image: image,
-      extras: selectedOptions ? [{ name: 'Custom Options', price: totalPrice - price }] : []
-    });
+      image: selectedOptions.image || image,
+      extras: selectedOptions ? [{ 
+        name: 'Custom Options', 
+        price: totalPrice - price,
+        details: selectedOptions 
+      }] : []
+    };
+    
+    addToCart(cartItem);
   };
 
   return (
@@ -197,9 +212,11 @@ const SmartProductCard = ({
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-primary" />
               <span className="text-xl font-bold text-foreground">
-                ${totalPrice.toLocaleString()}
+                {category === 'screen-enclosure' || category === 'paver' 
+                  ? `$${price}/sq ft` 
+                  : `$${totalPrice.toLocaleString()}`}
               </span>
-              {totalPrice !== price && (
+              {totalPrice !== price && category !== 'screen-enclosure' && category !== 'paver' && (
                 <span className="text-sm text-muted-foreground line-through">
                   ${price.toLocaleString()}
                 </span>
@@ -220,7 +237,8 @@ const SmartProductCard = ({
               className="flex-1"
               size="sm"
             >
-              Editor Studio
+              <Eye className="h-4 w-4 mr-1" />
+              Visualizer
             </Button>
             <Button 
               onClick={handleAddToCart}
@@ -285,10 +303,10 @@ const SmartProductCard = ({
               </Button>
               <Button 
                 className="flex-1"
-              onClick={() => {
-                handleAddToCart();
-                setShowOptions(false);
-              }}
+                onClick={() => {
+                  handleAddToCart();
+                  setShowOptions(false);
+                }}
               >
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Add to Cart with Options

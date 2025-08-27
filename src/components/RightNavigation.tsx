@@ -1,258 +1,121 @@
 
-import { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { 
-  Home, 
-  Package, 
-  Briefcase, 
-  Shield, 
-  User, 
   Waves, 
-  ChevronRight, 
-  ChevronDown,
-  Palette,
-  Truck,
+  Palette, 
+  Shield, 
+  Sparkles, 
+  Sun,
   Settings,
-  HelpCircle,
-  ShoppingCart
+  Grid3X3,
+  Eye,
+  HomeIcon
 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 const RightNavigation = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [sectionsExpanded, setSectionsExpanded] = useState({
-    catalog: false,
-    admin: false
-  });
-  
-  const { user, profile } = useAuth();
-  const location = useLocation();
-
-  const toggleSection = (section: keyof typeof sectionsExpanded) => {
-    setSectionsExpanded(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
+  const { profile } = useAuth();
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      element.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
     }
   };
 
-  const navItems = [
-    {
-      id: 'home',
-      label: 'Home',
-      icon: Home,
-      action: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
-      show: true
-    },
-    {
-      id: 'cart',
-      label: 'Cart',
-      icon: ShoppingCart,
-      action: () => window.dispatchEvent(new CustomEvent('open-cart')),
-      show: true
-    },
-    {
-      id: 'orders',
-      label: 'Orders',
-      icon: Truck,
-      action: () => window.dispatchEvent(new CustomEvent('open-orders')),
-      show: true
-    },
-    {
-      id: 'catalog-section',
-      label: 'Catalog',
-      icon: Package,
-      expandable: true,
-      show: location.pathname === '/',
-      items: [
-        { id: 'pool-catalog', label: 'Pools', icon: Waves },
-        { id: 'spa-section', label: 'Spas', icon: Waves },
-        { id: 'finishes-section', label: 'Finishes', icon: Palette },
-        { id: 'pavers-section', label: 'Pavers', icon: Package },
-      ]
-    },
-    {
-      id: 'procurement',
-      label: 'Jobs',
-      icon: Briefcase,
-      link: '/procurement',
-      show: true,
-      badge: 'New'
-    }
+  const navigationItems = [
+    { id: 'pools', label: 'Pools', icon: Waves },
+    { id: 'spas', label: 'Spas', icon: Sparkles },
+    { id: 'finishes', label: 'Finishes', icon: Palette },
+    { id: 'covers', label: 'Covers', icon: Shield },
+    { id: 'screen-enclosures', label: 'Screens', icon: Grid3X3 },
+    { id: 'pavers', label: 'Pavers', icon: Sun },
+    { id: 'tiles', label: 'Tiles', icon: Settings }
   ];
 
-  const adminItems = [
-    {
-      id: 'admin',
-      label: 'Admin Dashboard',
-      icon: Shield,
-      link: '/admin',
-      show: !!user
-    },
-    // Only show content editor link to main admins
-    ...(profile?.role === 'main_admin' ? [{
-      id: 'content-editor',
-      label: 'Content Editor',
+  const adminItems = profile?.role === 'main_admin' ? [
+    { 
+      href: '/admin', 
+      label: 'Admin', 
       icon: Settings,
-      link: '/content-editor',
-      show: true
-    }] : []),
-    {
-      id: 'auth',
-      label: user ? 'Account' : 'Sign In',
-      icon: User,
-      link: user ? '/admin' : '/auth',
-      show: true
+      external: true 
+    },
+    { 
+      href: '/content-editor', 
+      label: 'Content Editor', 
+      icon: Eye,
+      external: true 
     }
-  ];
+  ] : profile?.role === 'supplier' ? [
+    { 
+      href: '/admin', 
+      label: 'Dashboard', 
+      icon: Settings,
+      external: true 
+    }
+  ] : profile?.role === 'installer' ? [
+    { 
+      href: '/admin', 
+      label: 'Dashboard', 
+      icon: Settings,
+      external: true 
+    }
+  ] : [];
 
   return (
-    <div 
-      className={`fixed right-4 top-1/2 -translate-y-1/2 z-40 transition-all duration-300 ${
-        isExpanded ? 'w-64' : 'w-12'
-      }`}
-      onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => setIsExpanded(false)}
-    >
-      <Card className="bg-background/95 backdrop-blur-sm border-primary/20 shadow-lg overflow-hidden">
-        {/* Main Navigation */}
-        <div className="p-2 space-y-1">
-          {navItems.filter(item => item.show).map((item) => (
-            <div key={item.id}>
-              {item.expandable ? (
-                <div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-between text-xs hover:bg-primary/10"
-                    onClick={() => toggleSection('catalog')}
-                  >
-                    <div className="flex items-center gap-2">
-                      <item.icon className="h-4 w-4" />
-                      <span className={`transition-opacity ${isExpanded ? 'opacity-100' : 'opacity-0'}`}>
-                        {item.label}
-                      </span>
-                    </div>
-                    {isExpanded && (
-                      sectionsExpanded.catalog ? 
-                        <ChevronDown className="h-3 w-3 ml-auto" /> : 
-                        <ChevronRight className="h-3 w-3 ml-auto" />
-                    )}
-                  </Button>
-                  
-                  {sectionsExpanded.catalog && isExpanded && item.items && (
-                    <div className="ml-2 mt-1 space-y-0.5 border-l border-primary/20 pl-2">
-                      {item.items.map((subItem) => (
-                        <Button
-                          key={subItem.id}
-                          variant="ghost"
-                          size="sm"
-                          className="w-full justify-start text-xs h-7 hover:bg-primary/10"
-                          onClick={() => scrollToSection(subItem.id)}
-                        >
-                          <subItem.icon className="h-3 w-3 mr-2" />
-                          {subItem.label}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : item.link ? (
-                <Link to={item.link} className="block">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start text-xs hover:bg-primary/10"
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span className={`ml-2 transition-opacity ${isExpanded ? 'opacity-100' : 'opacity-0'}`}>
-                      {item.label}
-                    </span>
-                    {item.badge && isExpanded && (
-                      <Badge variant="secondary" className="ml-auto text-xs">
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </Button>
-                </Link>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full justify-start text-xs hover:bg-primary/10"
-                  onClick={item.action}
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span className={`ml-2 transition-opacity ${isExpanded ? 'opacity-100' : 'opacity-0'}`}>
-                    {item.label}
-                  </span>
-                </Button>
-              )}
-            </div>
-          ))}
+    <div className="fixed right-6 top-1/2 transform -translate-y-1/2 z-40 hidden lg:block">
+      <div className="bg-background/95 backdrop-blur-sm border border-border rounded-lg p-2 shadow-lg">
+        <div className="flex flex-col gap-2">
+          {/* Home button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-12 h-12 p-0 hover:bg-primary/10 hover:text-primary transition-colors"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            title="Home"
+          >
+            <HomeIcon className="h-5 w-5" />
+          </Button>
+          
+          {/* Section navigation */}
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Button
+                key={item.id}
+                variant="ghost"
+                size="sm"
+                className="w-12 h-12 p-0 hover:bg-primary/10 hover:text-primary transition-colors"
+                onClick={() => scrollToSection(item.id)}
+                title={item.label}
+              >
+                <Icon className="h-5 w-5" />
+              </Button>
+            );
+          })}
+          
+          {/* Admin items */}
+          {adminItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Button
+                key={item.href}
+                variant="ghost"
+                size="sm"
+                className="w-12 h-12 p-0 hover:bg-primary/10 hover:text-primary transition-colors"
+                onClick={() => window.location.href = item.href}
+                title={item.label}
+              >
+                <Icon className="h-5 w-5" />
+              </Button>
+            );
+          })}
         </div>
-
-        {/* Admin Section */}
-        {isExpanded && (
-          <>
-            <div className="border-t border-primary/20 p-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-between text-xs hover:bg-primary/10 mb-1"
-                onClick={() => toggleSection('admin')}
-              >
-                <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  <span>Admin</span>
-                </div>
-                {sectionsExpanded.admin ? 
-                  <ChevronDown className="h-3 w-3" /> : 
-                  <ChevronRight className="h-3 w-3" />
-                }
-              </Button>
-              
-              {sectionsExpanded.admin && (
-                <div className="ml-2 space-y-0.5 border-l border-primary/20 pl-2">
-                  {adminItems.filter(item => item.show).map((item) => (
-                    <Link key={item.id} to={item.link} className="block">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-start text-xs h-7 hover:bg-primary/10"
-                      >
-                        <item.icon className="h-3 w-3 mr-2" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Help Section */}
-            <div className="border-t border-primary/20 p-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-xs hover:bg-primary/10"
-              >
-                <HelpCircle className="h-4 w-4" />
-                <span className="ml-2">Help</span>
-              </Button>
-            </div>
-          </>
-        )}
-      </Card>
+      </div>
     </div>
   );
 };

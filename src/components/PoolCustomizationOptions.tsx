@@ -12,7 +12,8 @@ import {
   Palette, 
   Sparkles,
   Settings,
-  Plus
+  Plus,
+  Grid3X3
 } from "lucide-react";
 
 // Import real website options data
@@ -25,7 +26,7 @@ interface PoolOption {
   name: string;
   description: string;
   price: number;
-  category: 'waterline' | 'jets' | 'heating' | 'covers' | 'decorative';
+  category: 'waterline' | 'jets' | 'heating' | 'covers' | 'decorative' | 'screen-enclosure';
   image?: string;
 }
 
@@ -155,7 +156,41 @@ const poolOptions: PoolOption[] = [
     description: 'Enhanced hydrotherapy with LED lighting',
     price: 3600, 
     category: 'jets' 
-  }
+  },
+
+  // Screen Enclosure Options
+  { 
+    id: 'screen-standard-1-story', 
+    name: 'Standard Screen Enclosure - 1 Story', 
+    description: 'Premium aluminum frame with standard screen mesh - $15/sq ft',
+    price: 0, // Base price, calculated by area
+    category: 'screen-enclosure',
+    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
+  },
+  { 
+    id: 'screen-standard-2-story', 
+    name: 'Standard Screen Enclosure - 2 Story', 
+    description: 'Reinforced aluminum frame for two-story applications - $22/sq ft',
+    price: 0, // Base price, calculated by area
+    category: 'screen-enclosure',
+    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
+  },
+  { 
+    id: 'screen-premium-1-story', 
+    name: 'Premium Screen Enclosure - 1 Story', 
+    description: 'High-end aluminum frame with superior screen mesh - $20/sq ft',
+    price: 0, // Base price, calculated by area
+    category: 'screen-enclosure',
+    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
+  },
+  { 
+    id: 'screen-premium-2-story', 
+    name: 'Premium Screen Enclosure - 2 Story', 
+    description: 'Premium two-story screen enclosure with enhanced features - $28/sq ft',
+    price: 0, // Base price, calculated by area
+    category: 'screen-enclosure',
+    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
+  },
 ];
 
 const categoryInfo = {
@@ -188,6 +223,12 @@ const categoryInfo = {
     name: 'Tiles & Pavers', 
     color: 'text-coral',
     description: 'Premium tiles and paver options' 
+  },
+  'screen-enclosure': { 
+    icon: Grid3X3, 
+    name: 'Screen Enclosures', 
+    color: 'text-emerald-500',
+    description: 'Premium screen enclosure options' 
   }
 };
 
@@ -326,7 +367,15 @@ const PoolCustomizationOptions = ({ onSelectionChange }: PoolCustomizationOption
                 
                 <div className="flex items-center justify-between">
                   <span className="text-xl font-bold text-primary">
-                    {option.price === 0 ? '$15/sq ft' : `+$${option.price.toLocaleString()}`}
+                    {option.price === 0 
+                      ? (option.category === 'screen-enclosure' 
+                          ? option.description.includes('$15') ? '$15/sq ft'
+                            : option.description.includes('$20') ? '$20/sq ft'
+                            : option.description.includes('$22') ? '$22/sq ft'
+                            : '$28/sq ft'
+                          : '$15/sq ft')
+                      : `+$${option.price.toLocaleString()}`
+                    }
                   </span>
                   <Button
                     variant={isSelected ? "default" : "outline"}
