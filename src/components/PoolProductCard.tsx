@@ -297,31 +297,12 @@ const PoolProductCard = ({
   };
   const toggleExtra = (extra: string) => {
     setExtras(prev => {
-      // Handle tile/liner mutual exclusivity
-      if (extra === 'tiles' && !prev.tiles) {
-        // Selecting tiles, disable liner and expand details
-        setShowDetails(true);
-        return {
-          ...prev,
-          tiles: true,
-          liner: false
-        };
-      } else if (extra === 'liner' && !prev.liner) {
-        // Selecting liner, disable tiles and expand details
-        setShowDetails(true);
-        return {
-          ...prev,
-          liner: true,
-          tiles: false
-        };
-      } else if (extra === 'tiles') {
-        // Deselecting tiles
+      if (extra === 'tiles') {
         return {
           ...prev,
           tiles: !prev.tiles
         };
       } else if (extra === 'liner') {
-        // Deselecting liner
         return {
           ...prev,
           liner: !prev.liner
@@ -376,11 +357,19 @@ const PoolProductCard = ({
     if (extras.cover) total += getExtraPrice('cover');
     if (extras.jets) total += getExtraPrice('jets') * extras.jetQuantity;
 
-    // Add option prices (liner OR tile, never both)
+    // Add option prices - special pricing when both tiles and liner are selected
     const linerOption = linerOptions.find(option => option.name === extras.linerOption);
-    if (linerOption && extras.liner) total += linerOption.price;
     const tileOption = tileOptions.find(option => option.name === extras.tileOption);
-    if (tileOption && extras.tiles) total += tileOption.price;
+    
+    if (extras.tiles && extras.liner) {
+      // When both tiles and liner are selected, liner is free
+      if (tileOption) total += tileOption.price;
+      // Liner is free, so no cost added
+    } else {
+      // When only one is selected, add its price
+      if (linerOption && extras.liner) total += linerOption.price;
+      if (tileOption && extras.tiles) total += tileOption.price;
+    }
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
     if (coverOption && extras.cover && coverOption.name !== 'NO COVER') total += coverOption.price;
 
