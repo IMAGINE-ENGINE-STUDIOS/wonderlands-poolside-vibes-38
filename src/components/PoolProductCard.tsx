@@ -362,18 +362,20 @@ const PoolProductCard = ({
     if (extras.cover) total += getExtraPrice('cover');
     if (extras.jets) total += getExtraPrice('jets') * extras.jetQuantity;
 
-    // Add option prices - special pricing when both tiles and liner are selected
+    // Add option prices - liner is always added except when both tiles and liner are selected
     const linerOption = linerOptions.find(option => option.name === extras.linerOption);
     const tileOption = tileOptions.find(option => option.name === extras.tileOption);
     
-    if (extras.tiles && extras.liner) {
-      // When both tiles and liner are selected, liner is free
-      if (tileOption) total += tileOption.price;
-      // Liner is free, so no cost added
-    } else {
-      // When only one is selected, add its price
-      if (linerOption && extras.liner) total += linerOption.price;
-      if (tileOption && extras.tiles) total += tileOption.price;
+    // Always add tile price when tiles are selected
+    if (tileOption && extras.tiles) total += tileOption.price;
+    
+    // Add liner price when liner is selected, BUT make it free only when both tiles and liner are selected
+    if (linerOption && extras.liner) {
+      if (!(extras.tiles && extras.liner)) {
+        // Liner is NOT free - add its price
+        total += linerOption.price;
+      }
+      // If both tiles and liner are selected, liner is free (no price added)
     }
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
     if (coverOption && extras.cover && coverOption.name !== 'NO COVER') total += coverOption.price;
