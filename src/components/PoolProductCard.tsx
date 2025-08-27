@@ -23,7 +23,6 @@ import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
 import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
-import ScreenEnclosureAddon from "./ScreenEnclosureAddon";
 interface Pool {
   model: string;
   price: number;
@@ -709,25 +708,60 @@ const PoolProductCard = ({
               </Carousel>
             </div>
 
-            {/* Screen Enclosure Options */}
-            <div className="space-y-3">
-              <ScreenEnclosureAddon isSelected={extras.screenEnclosure} onToggle={selected => setExtras(prev => ({
-            ...prev,
-            screenEnclosure: selected
-          }))} area={extras.screenEnclosureArea} onAreaChange={area => setExtras(prev => ({
-            ...prev,
-            screenEnclosureArea: area
-          }))} quality={extras.screenEnclosureQuality} onQualityChange={quality => setExtras(prev => ({
-            ...prev,
-            screenEnclosureQuality: quality
-          }))} calculatePrice={() => {
-            if (!extras.screenEnclosure || extras.screenEnclosureArea <= 0) return 0;
-            let pricePerSqFt = 15;
-            if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
-            if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
-            return extras.screenEnclosureArea * pricePerSqFt;
-          }} />
-            </div>
+            {/* Screen Enclosure Options - Only show when selected */}
+            {extras.screenEnclosure && <div className="space-y-3">
+              <h4 className="font-semibold text-foreground">Screen Enclosure & Surface Area Calculator</h4>
+              <div className="mb-3">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                  Screen Enclosure Area (sq ft)
+                </label>
+                <Input 
+                  type="number" 
+                  placeholder="Enter surface area for screen enclosure" 
+                  value={extras.screenEnclosureArea || ''} 
+                  onChange={e => setExtras(prev => ({
+                    ...prev,
+                    screenEnclosureArea: parseFloat(e.target.value) || 0
+                  }))} 
+                  className="mb-2" 
+                />
+                {extras.screenEnclosureArea > 0 && (
+                  <div className="text-xs text-green-600 font-medium">
+                    Calculated Cost: ${(() => {
+                      let pricePerSqFt = 15;
+                      if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+                      if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                      return (extras.screenEnclosureArea * pricePerSqFt).toLocaleString();
+                    })()} (${extras.screenEnclosureArea} sq ft × ${(() => {
+                      if (extras.screenEnclosureQuality === 'deluxe') return '$22';
+                      if (extras.screenEnclosureQuality === 'premium') return '$28';
+                      return '$15';
+                    })()}/sq ft)
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {['standard', 'deluxe', 'premium'].map(quality => (
+                  <div 
+                    key={quality}
+                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md text-center ${
+                      extras.screenEnclosureQuality === quality 
+                        ? 'border-primary bg-primary/10' 
+                        : 'border-border'
+                    }`} 
+                    onClick={() => setExtras(prev => ({
+                      ...prev,
+                      screenEnclosureQuality: quality as 'standard' | 'deluxe' | 'premium'
+                    }))}
+                  >
+                    <p className="text-sm font-medium capitalize">{quality}</p>
+                    <p className="text-xs text-muted-foreground">
+                      ${quality === 'standard' ? '15' : quality === 'deluxe' ? '22' : '28'}/sq ft
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>}
 
             {/* Cover Options */}
             <div className="space-y-3">
@@ -908,8 +942,20 @@ const PoolProductCard = ({
                                 <div className="flex-1 flex flex-col justify-between min-h-0">
                                   <p className="text-xs font-medium text-center line-clamp-2">{tile.name}</p>
                                   {tile.price > 0 && <p className="text-xs text-primary font-semibold text-center mt-1">+${tile.price.toLocaleString()}</p>}
-                                </div>
-                              </div>
+                   <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                     <Checkbox checked={extras.screenEnclosure} onCheckedChange={() => toggleExtra('screenEnclosure')} />
+                     <div className="flex items-center space-x-1">
+                       <Shield size={16} className="text-teal" />
+                        <span className="text-sm">Add Screen Enclosure (+${extras.screenEnclosure && extras.screenEnclosureArea > 0 ? (() => {
+                    let pricePerSqFt = 15;
+                    if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+                    if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                    return (extras.screenEnclosureArea * pricePerSqFt).toLocaleString();
+                  })() : '0'})</span>
+                     </div>
+                   </label>
+               </div>
+             </div>
                             </CarouselItem>)}
                         </CarouselContent>
                         <CarouselPrevious className="left-0" />
@@ -970,7 +1016,7 @@ const PoolProductCard = ({
               </div>
               
               <div className="flex gap-2">
-                <Button onClick={handleAddToCart} variant="outline" size="sm" className="flex-1 mx-[315px]">
+                <Button onClick={handleAddToCart} variant="outline" size="sm" className="flex-1">
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   Cart
                 </Button>
