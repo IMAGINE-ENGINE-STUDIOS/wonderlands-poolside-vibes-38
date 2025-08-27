@@ -4,13 +4,11 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import PoolCatalog from "@/components/PoolCatalog";
 import SpaSection from "@/components/SpaSection";
-import TanningLedgeSection from "@/components/TanningLedgeSection";
 import PoolFinishesSection from "@/components/PoolFinishesSection";
 import LinersSection from "@/components/LinersSection";
 import AutomaticCoversSection from "@/components/AutomaticCoversSection";
 import ScreenEnclosureSection from "@/components/ScreenEnclosureSection";
 import PaversSection from "@/components/PaversSection";
-import PoolTilesSection from "@/components/PoolTilesSection";
 import Footer from "@/components/Footer";
 import { ShoppingCartProvider } from "@/components/ShoppingCartProvider";
 
@@ -36,8 +34,6 @@ const Index = () => {
         <PoolCatalog />
         <div id="spas" />
         <SpaSection />
-        <div id="tanning-ledges" />
-        <TanningLedgeSection />
         <div id="finishes" />
         <PoolFinishesSection />
         <div id="liners" />
@@ -48,8 +44,6 @@ const Index = () => {
         <ScreenEnclosureSection />
         <div id="pavers" />
         <PaversSection />
-        <div id="tiles" />
-        <PoolTilesSection />
         <Footer />
       </div>
     </ShoppingCartProvider>
@@ -57,4 +51,3 @@ const Index = () => {
 };
 
 export default Index;
-

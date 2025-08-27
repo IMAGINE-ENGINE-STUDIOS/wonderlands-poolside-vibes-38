@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,7 +62,7 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
     addToCart({
       id: `liner_${liner.name.replace(/\s+/g, '_')}_${Date.now()}`,
       name: liner.name,
-      price: liner.price,
+      price: 4500,
       category: 'liner',
       image: liner.image,
       extras: []
@@ -124,7 +123,7 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-5 w-5 text-teal" />
                     <span className="text-2xl font-bold text-foreground">
-                      ${liner.price.toLocaleString()}
+                      $4,500
                     </span>
                   </div>
                   
@@ -139,13 +138,14 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
                   <Button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleRequestQuote(liner);
+                      handleAddToCart(liner);
                     }}
-                    variant="gradient"
+                    variant="default"
                     className="w-full hover:scale-105 transition-all duration-300"
                     size="sm"
                   >
-                    Get Quote
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Add to Cart
                   </Button>
                 </CardContent>
               </Card>
@@ -179,7 +179,7 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-5 w-5 text-teal" />
                     <span className="text-2xl font-bold text-foreground">
-                      ${selectedLiner.price.toLocaleString()}
+                      $4,500
                     </span>
                   </div>
                   

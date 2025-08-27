@@ -1,290 +1,323 @@
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Grid3X3, Calculator, Shield, Home } from 'lucide-react';
-import { useShoppingCart } from './ShoppingCartProvider';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Grid3X3, DollarSign, ShoppingCart, Calculator, Home, Zap, Star } from "lucide-react";
+import SurveyQuoteTool from "./SurveyQuoteTool";
+import { useShoppingCart } from "./ShoppingCart";
+
+interface ScreenEnclosureOption {
+  name: string;
+  type: 'standard' | 'deluxe' | 'premium';
+  pricePerSqFt: number;
+  image: string;
+  description: string;
+  features: string[];
+}
+
+const screenEnclosureOptions: ScreenEnclosureOption[] = [
+  {
+    name: "Standard Screen Enclosure",
+    type: "standard",
+    pricePerSqFt: 15,
+    image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
+    description: "Basic aluminum frame screen enclosure with standard mesh screening",
+    features: ["Aluminum Frame", "Standard Screen Mesh", "Basic Hardware", "5-Year Warranty"]
+  },
+  {
+    name: "Deluxe Screen Enclosure", 
+    type: "deluxe",
+    pricePerSqFt: 22,
+    image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
+    description: "Enhanced aluminum frame with premium mesh and improved durability",
+    features: ["Premium Aluminum Frame", "Enhanced Screen Mesh", "Upgraded Hardware", "Pet Screen Option", "10-Year Warranty"]
+  },
+  {
+    name: "Premium Screen Enclosure",
+    type: "premium", 
+    pricePerSqFt: 28,
+    image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
+    description: "Top-tier aluminum construction with impact-resistant screening and premium finishes",
+    features: ["Heavy-Duty Aluminum Frame", "Impact-Resistant Screen", "Premium Hardware", "Custom Color Options", "Lifetime Warranty"]
+  }
+];
 
 const ScreenEnclosureSection = () => {
-  const { addToCart, setIsCartOpen } = useShoppingCart();
-  const [surfaceArea, setSurfaceArea] = useState<string>('');
-  const [enclosureHeight, setEnclosureHeight] = useState<string>('1-story');
-  const [enclosureType, setEnclosureType] = useState<string>('standard');
+  const [selectedEnclosure, setSelectedEnclosure] = useState<ScreenEnclosureOption | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [squareFootage, setSquareFootage] = useState<number>(0);
+  const { addToCart } = useShoppingCart();
 
-  const calculatePrice = () => {
-    const area = parseFloat(surfaceArea) || 0;
-    let pricePerSqFt = 15; // base price
-
-    // Calculate price based on type and height
-    if (enclosureType === 'premium') {
-      pricePerSqFt = enclosureHeight === '2-story' ? 28 : 22;
-    } else if (enclosureType === 'deluxe') {
-      pricePerSqFt = enclosureHeight === '2-story' ? 25 : 18;
-    } else {
-      pricePerSqFt = enclosureHeight === '2-story' ? 22 : 15;
-    }
-
-    return area * pricePerSqFt;
+  const handleEnclosureClick = (enclosure: ScreenEnclosureOption) => {
+    setSelectedEnclosure(enclosure);
+    setShowDetailModal(true);
   };
 
-  const getFeatures = () => {
-    const features = [];
-    
-    if (enclosureType === 'premium') {
-      features.push('Premium Aluminum Frame', 'Superior Screen Mesh', 'Enhanced Hardware', 'Weather Resistant Coating');
-    } else if (enclosureType === 'deluxe') {
-      features.push('Deluxe Aluminum Frame', 'High-Quality Screen Mesh', 'Standard Hardware', 'Weather Treatment');
-    } else {
-      features.push('Standard Aluminum Frame', 'Basic Screen Mesh', 'Standard Hardware');
-    }
-    
-    features.push(`${enclosureHeight === '2-story' ? 'Two' : 'Single'} Story Height`);
-    
-    return features;
+  const handleRequestQuote = (enclosure: ScreenEnclosureOption) => {
+    setSelectedEnclosure(enclosure);
+    setShowDetailModal(false);
+    setShowQuoteModal(true);
   };
 
-  const handleAddToCart = () => {
-    const totalPrice = calculatePrice();
-    const area = parseFloat(surfaceArea) || 0;
+  const handleAddToCart = (enclosure: ScreenEnclosureOption, sqFt: number) => {
+    if (sqFt <= 0) return;
     
-    if (area <= 0) {
-      alert('Please enter a valid surface area');
-      return;
-    }
-
-    const item = {
-      id: `screen-enclosure-${enclosureType}-${enclosureHeight}-${area}`,
-      name: `${enclosureType.charAt(0).toUpperCase() + enclosureType.slice(1)} Screen Enclosure (${area} sq ft)`,
+    const totalPrice = sqFt * enclosure.pricePerSqFt;
+    addToCart({
+      id: `screen_enclosure_${enclosure.type}_${Date.now()}`,
+      name: `${enclosure.name} (${sqFt} sq ft)`,
       price: totalPrice,
-      image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
       category: 'screen-enclosure',
-      extras: [{
-        name: `${enclosureHeight === '2-story' ? 'Two' : 'Single'} Story Configuration`,
-        price: 0
-      }]
-    };
+      image: enclosure.image,
+      extras: []
+    });
+  };
 
-    addToCart(item);
-    setIsCartOpen(true);
+  const calculatePrice = (enclosure: ScreenEnclosureOption, sqFt: number) => {
+    return sqFt * enclosure.pricePerSqFt;
   };
 
   return (
-    <section id="screen-enclosures" className="py-20 px-4 bg-gradient-to-br from-background via-muted/20 to-background">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-            Screen Enclosures
-          </h2>
-          <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
-            Protect your pool area from insects and debris while enjoying the Florida breeze
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          {/* Configuration Panel */}
-          <Card className="border-primary/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calculator className="h-5 w-5 text-primary" />
-                Configure Your Screen Enclosure
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="surface-area">Surface Area (sq ft) *</Label>
-                  <Input
-                    id="surface-area"
-                    type="number"
-                    placeholder="Enter square footage"
-                    value={surfaceArea}
-                    onChange={(e) => setSurfaceArea(e.target.value)}
-                    min="0"
-                    step="1"
-                  />
+    <>
+      <section id="screen-enclosures" className="py-20 px-4 bg-gradient-to-br from-muted/30 to-background">
+        <div className="max-w-7xl mx-auto">
+          {/* Information Section - Moved to top */}
+          <div className="bg-gradient-to-r from-primary/10 to-teal/10 rounded-2xl p-8 mb-16">
+            <div className="max-w-4xl mx-auto text-center">
+              <h3 className="text-2xl font-bold text-foreground mb-4">
+                Complete Pool Protection & Comfort
+              </h3>
+              <div className="grid md:grid-cols-3 gap-6 text-left">
+                <div className="flex items-start gap-3">
+                  <Home className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-2">Year-Round Enjoyment</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Extend your swimming season with protection from rain, wind, and debris while maintaining an open-air feel.
+                    </p>
+                  </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="enclosure-height">Height Configuration</Label>
-                  <Select value={enclosureHeight} onValueChange={setEnclosureHeight}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select height" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1-story">Single Story</SelectItem>
-                      <SelectItem value="2-story">Two Story</SelectItem>
-                    </SelectContent>
-                  </Select>
+                
+                <div className="flex items-start gap-3">
+                  <Zap className="h-6 w-6 text-teal mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-2">Energy Efficient</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Reduce heating costs and chemical usage while keeping your pool cleaner with less maintenance required.
+                    </p>
+                  </div>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="enclosure-type">Screen Quality</Label>
-                <Select value={enclosureType} onValueChange={setEnclosureType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select screen type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="standard">Standard Screen Enclosure</SelectItem>
-                    <SelectItem value="deluxe">Deluxe Screen Enclosure</SelectItem>
-                    <SelectItem value="premium">Premium Screen Enclosure</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {parseFloat(surfaceArea) > 0 && (
-                <Card className="bg-muted/50 border-teal/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h4 className="font-semibold">Price Calculation</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {surfaceArea} sq ft × ${(calculatePrice() / parseFloat(surfaceArea)).toFixed(0)}/sq ft
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-2xl font-bold text-primary">
-                          ${calculatePrice().toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2 mb-4">
-                      <h5 className="font-medium text-sm">Features Included:</h5>
-                      <div className="flex flex-wrap gap-1">
-                        {getFeatures().map((feature, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {feature}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    <Button 
-                      onClick={handleAddToCart}
-                      className="w-full"
-                      variant="gradient"
-                    >
-                      Add to Cart
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Visual Display */}
-          <div className="space-y-6">
-            <Card className="overflow-hidden">
-              <div className="aspect-video bg-gradient-to-br from-primary/10 to-teal/10 relative">
-                <img
-                  src="/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png"
-                  alt="Screen Enclosure"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end">
-                  <div className="p-6 text-white">
-                    <h3 className="text-2xl font-bold mb-2">Premium Screen Enclosure</h3>
-                    <p className="text-sm opacity-90">Protect your investment while maintaining the outdoor experience</p>
+                
+                <div className="flex items-start gap-3">
+                  <Star className="h-6 w-6 text-coral mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-2">Premium Materials</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Engineered aluminum frames with impact-resistant screening designed to withstand Florida weather conditions.
+                    </p>
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
+          </div>
 
-            {/* Benefits */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-teal" />
-                  Why Choose Screen Enclosures?
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
-                    <div>
-                      <h4 className="font-medium">Insect Protection</h4>
-                      <p className="text-sm text-muted-foreground">Keep mosquitoes and other pests away from your pool area</p>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
+              Screen Enclosures
+            </h2>
+            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
+              Transform your pool area into a comfortable, protected oasis with our premium screen enclosure systems.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {screenEnclosureOptions.map((enclosure, index) => (
+              <Card 
+                key={enclosure.name} 
+                className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer"
+                onClick={() => handleEnclosureClick(enclosure)}
+              >
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <Badge className={`${
+                      enclosure.type === 'premium' ? 'bg-gradient-to-r from-coral to-orange' :
+                      enclosure.type === 'deluxe' ? 'bg-gradient-to-r from-primary to-teal' :
+                      'bg-gradient-to-r from-secondary to-accent'
+                    } text-white capitalize font-medium px-3 py-1`}>
+                      {enclosure.type}
+                    </Badge>
+                    <div className="flex items-center gap-1 text-amber-500">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} size={12} fill="currentColor" />
+                      ))}
                     </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-teal rounded-full mt-2"></div>
-                    <div>
-                      <h4 className="font-medium">Debris Shield</h4>
-                      <p className="text-sm text-muted-foreground">Reduce leaves, twigs, and other debris in your pool</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-coral rounded-full mt-2"></div>
-                    <div>
-                      <h4 className="font-medium">UV Protection</h4>
-                      <p className="text-sm text-muted-foreground">Filter harmful UV rays while maintaining visibility</p>
-                    </div>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+                  </div>
+                  
+                  <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                    {enclosure.name}
+                  </CardTitle>
+                </CardHeader>
+                
+                <CardContent className="space-y-4">
+                  {/* Enclosure Preview */}
+                  <div className="w-full h-48 rounded-lg overflow-hidden border-2 border-muted">
+                    <img 
+                      src={enclosure.image} 
+                      alt={enclosure.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                  </div>
+                  
+                  {/* Price */}
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5 text-teal" />
+                    <span className="text-2xl font-bold text-foreground">
+                      ${enclosure.pricePerSqFt}/sq ft
+                    </span>
+                  </div>
+                  
+                  {/* Description */}
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {enclosure.description}
+                  </p>
+                  
+                  <Separator />
+                  
+                  {/* Features */}
+                  <div className="space-y-1">
+                    {enclosure.features.slice(0, 2).map((feature, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Action Button */}
+                  <Button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEnclosureClick(enclosure);
+                    }}
+                    variant="default"
+                    className="w-full hover:scale-105 transition-all duration-300"
+                    size="sm"
+                  >
+                    <Calculator className="h-4 w-4 mr-2" />
+                    Calculate Price
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
+      </section>
+      
+      {/* Detail Modal */}
+      <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
+        <DialogContent className="max-w-2xl">
+          {selectedEnclosure && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl">{selectedEnclosure.name}</DialogTitle>
+              </DialogHeader>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <img 
+                    src={selectedEnclosure.image} 
+                    alt={selectedEnclosure.name}
+                    className="w-full h-64 object-cover rounded-lg mb-4"
+                  />
+                  
+                  <div className="space-y-2">
+                    <h4 className="font-semibold">Features:</h4>
+                    {selectedEnclosure.features.map((feature, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-sm">
+                        <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <Badge className={`${
+                    selectedEnclosure.type === 'premium' ? 'bg-gradient-to-r from-coral to-orange' :
+                    selectedEnclosure.type === 'deluxe' ? 'bg-gradient-to-r from-primary to-teal' :
+                    'bg-gradient-to-r from-secondary to-accent'
+                  } text-white`}>
+                    {selectedEnclosure.type}
+                  </Badge>
+                  
+                  <p className="text-foreground/80">{selectedEnclosure.description}</p>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Square Footage</label>
+                      <Input
+                        type="number"
+                        min={0}
+                        step={1}
+                        value={squareFootage || ''}
+                        onChange={(e) => setSquareFootage(parseFloat(e.target.value) || 0)}
+                        placeholder="Enter area in sq ft"
+                      />
+                    </div>
+                    
+                    <div className="bg-muted/50 p-4 rounded-lg">
+                      <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
+                        <span>Rate: ${selectedEnclosure.pricePerSqFt}/sq ft</span>
+                        <span>Area: {squareFootage} sq ft</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5 text-teal" />
+                        <span className="text-2xl font-bold text-foreground">
+                          ${calculatePrice(selectedEnclosure, squareFootage).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={() => handleAddToCart(selectedEnclosure, squareFootage)}
+                      disabled={!squareFootage || squareFootage <= 0}
+                      variant="default"
+                      className="flex-1"
+                    >
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      Add to Cart
+                    </Button>
+                    <Button 
+                      onClick={() => handleRequestQuote(selectedEnclosure)}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Get Quote
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
-        {/* Pricing Tiers */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="text-center border-muted">
-            <CardHeader>
-              <Grid3X3 className="h-8 w-8 mx-auto text-muted-foreground" />
-              <CardTitle>Standard</CardTitle>
-              <p className="text-sm text-muted-foreground">Basic protection</p>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold mb-2">$15-$22<span className="text-sm">/sq ft</span></div>
-              <ul className="text-sm space-y-1 text-left">
-                <li>• Standard aluminum frame</li>
-                <li>• Basic screen mesh</li>
-                <li>• Standard hardware</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center border-primary/20 bg-primary/5">
-            <CardHeader>
-              <Home className="h-8 w-8 mx-auto text-primary" />
-              <CardTitle>Deluxe</CardTitle>
-              <p className="text-sm text-muted-foreground">Enhanced quality</p>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold mb-2 text-primary">$18-$25<span className="text-sm">/sq ft</span></div>
-              <ul className="text-sm space-y-1 text-left">
-                <li>• Deluxe aluminum frame</li>
-                <li>• High-quality screen mesh</li>
-                <li>• Weather treatment</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center border-teal/20 bg-teal/5">
-            <CardHeader>
-              <Shield className="h-8 w-8 mx-auto text-teal" />
-              <CardTitle>Premium</CardTitle>
-              <p className="text-sm text-muted-foreground">Maximum durability</p>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold mb-2 text-teal">$22-$28<span className="text-sm">/sq ft</span></div>
-              <ul className="text-sm space-y-1 text-left">
-                <li>• Premium aluminum frame</li>
-                <li>• Superior screen mesh</li>
-                <li>• Enhanced hardware</li>
-                <li>• Weather resistant coating</li>
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </section>
+      <SurveyQuoteTool 
+        pool={null}
+        isOpen={showQuoteModal}
+        onClose={() => setShowQuoteModal(false)}
+        customProduct={selectedEnclosure ? {
+          name: selectedEnclosure.name,
+          price: selectedEnclosure.pricePerSqFt,
+          type: 'screen-enclosure'
+        } : undefined}
+      />
+    </>
   );
 };
 
