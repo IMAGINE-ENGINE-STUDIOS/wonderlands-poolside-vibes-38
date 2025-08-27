@@ -1,136 +1,287 @@
 
-import React from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Shield, Home, Zap, Eye } from 'lucide-react';
-
-const screenEnclosureOptions = [
-  {
-    id: 'standard-1-story',
-    name: 'Standard Screen Enclosure - 1 Story',
-    description: 'Premium aluminum frame with high-quality screen mesh for single-story applications',
-    pricePerSqFt: 15,
-    features: ['Aluminum Frame', 'Standard Screen Mesh', 'Single Story Height', 'Basic Hardware'],
-    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
-  },
-  {
-    id: 'standard-2-story',
-    name: 'Standard Screen Enclosure - 2 Story',
-    description: 'Premium aluminum frame with reinforced structure for two-story applications',
-    pricePerSqFt: 22,
-    features: ['Reinforced Aluminum Frame', 'Standard Screen Mesh', 'Two Story Height', 'Heavy-Duty Hardware'],
-    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
-  },
-  {
-    id: 'premium-1-story',
-    name: 'Premium Screen Enclosure - 1 Story',
-    description: 'High-end aluminum frame with superior screen mesh and enhanced features',
-    pricePerSqFt: 20,
-    features: ['Premium Aluminum Frame', 'Superior Screen Mesh', 'Single Story Height', 'Enhanced Hardware', 'Weather Resistant'],
-    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
-  },
-  {
-    id: 'premium-2-story',
-    name: 'Premium Screen Enclosure - 2 Story',
-    description: 'High-end aluminum frame with superior screen mesh for two-story applications',
-    pricePerSqFt: 28,
-    features: ['Premium Aluminum Frame', 'Superior Screen Mesh', 'Two Story Height', 'Enhanced Hardware', 'Weather Resistant', 'Reinforced Structure'],
-    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
-  }
-];
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Grid3X3, Calculator, Shield, Home } from 'lucide-react';
+import { useShoppingCart } from './ShoppingCartProvider';
 
 const ScreenEnclosureSection = () => {
+  const { addToCart, setIsCartOpen } = useShoppingCart();
+  const [surfaceArea, setSurfaceArea] = useState<string>('');
+  const [enclosureHeight, setEnclosureHeight] = useState<string>('1-story');
+  const [enclosureType, setEnclosureType] = useState<string>('standard');
+
+  const calculatePrice = () => {
+    const area = parseFloat(surfaceArea) || 0;
+    let pricePerSqFt = 15; // base price
+
+    // Calculate price based on type and height
+    if (enclosureType === 'premium') {
+      pricePerSqFt = enclosureHeight === '2-story' ? 28 : 22;
+    } else if (enclosureType === 'deluxe') {
+      pricePerSqFt = enclosureHeight === '2-story' ? 25 : 18;
+    } else {
+      pricePerSqFt = enclosureHeight === '2-story' ? 22 : 15;
+    }
+
+    return area * pricePerSqFt;
+  };
+
+  const getFeatures = () => {
+    const features = [];
+    
+    if (enclosureType === 'premium') {
+      features.push('Premium Aluminum Frame', 'Superior Screen Mesh', 'Enhanced Hardware', 'Weather Resistant Coating');
+    } else if (enclosureType === 'deluxe') {
+      features.push('Deluxe Aluminum Frame', 'High-Quality Screen Mesh', 'Standard Hardware', 'Weather Treatment');
+    } else {
+      features.push('Standard Aluminum Frame', 'Basic Screen Mesh', 'Standard Hardware');
+    }
+    
+    features.push(`${enclosureHeight === '2-story' ? 'Two' : 'Single'} Story Height`);
+    
+    return features;
+  };
+
+  const handleAddToCart = () => {
+    const totalPrice = calculatePrice();
+    const area = parseFloat(surfaceArea) || 0;
+    
+    if (area <= 0) {
+      alert('Please enter a valid surface area');
+      return;
+    }
+
+    const item = {
+      id: `screen-enclosure-${enclosureType}-${enclosureHeight}-${area}`,
+      name: `${enclosureType.charAt(0).toUpperCase() + enclosureType.slice(1)} Screen Enclosure (${area} sq ft)`,
+      price: totalPrice,
+      image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
+      category: 'screen-enclosure',
+      extras: [{
+        name: `${enclosureHeight === '2-story' ? 'Two' : 'Single'} Story Configuration`,
+        price: 0
+      }]
+    };
+
+    addToCart(item);
+    setIsCartOpen(true);
+  };
+
   return (
-    <section id="screen-enclosures" className="py-16 bg-gradient-to-br from-background to-muted/20">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-teal">
+    <section id="screen-enclosures" className="py-20 px-4 bg-gradient-to-br from-background via-muted/20 to-background">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
             Screen Enclosures
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Transform your outdoor space with our premium screen enclosures. Available in single and two-story configurations with standard and premium options.
+          <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
+            Protect your pool area from insects and debris while enjoying the Florida breeze
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {screenEnclosureOptions.map((enclosure) => (
-            <Card key={enclosure.id} className="hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-primary/40 overflow-hidden group">
-              <div className="relative h-48 overflow-hidden">
-                <img 
-                  src={enclosure.image} 
-                  alt={enclosure.name}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute top-3 left-3">
-                  <Badge className="bg-gradient-to-r from-primary to-teal text-white">
-                    Screen Enclosure
-                  </Badge>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          {/* Configuration Panel */}
+          <Card className="border-primary/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calculator className="h-5 w-5 text-primary" />
+                Configure Your Screen Enclosure
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="surface-area">Surface Area (sq ft) *</Label>
+                  <Input
+                    id="surface-area"
+                    type="number"
+                    placeholder="Enter square footage"
+                    value={surfaceArea}
+                    onChange={(e) => setSurfaceArea(e.target.value)}
+                    min="0"
+                    step="1"
+                  />
                 </div>
-              </div>
-
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
-                  {enclosure.name}
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground line-clamp-3">
-                  {enclosure.description}
-                </p>
 
                 <div className="space-y-2">
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Features</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {enclosure.features.slice(0, 3).map((feature, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {feature}
-                      </Badge>
-                    ))}
-                    {enclosure.features.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{enclosure.features.length - 3} more
-                      </Badge>
-                    )}
+                  <Label htmlFor="enclosure-height">Height Configuration</Label>
+                  <Select value={enclosureHeight} onValueChange={setEnclosureHeight}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select height" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1-story">Single Story</SelectItem>
+                      <SelectItem value="2-story">Two Story</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="enclosure-type">Screen Quality</Label>
+                <Select value={enclosureType} onValueChange={setEnclosureType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select screen type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="standard">Standard Screen Enclosure</SelectItem>
+                    <SelectItem value="deluxe">Deluxe Screen Enclosure</SelectItem>
+                    <SelectItem value="premium">Premium Screen Enclosure</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {parseFloat(surfaceArea) > 0 && (
+                <Card className="bg-muted/50 border-teal/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h4 className="font-semibold">Price Calculation</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {surfaceArea} sq ft × ${(calculatePrice() / parseFloat(surfaceArea)).toFixed(0)}/sq ft
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-2xl font-bold text-primary">
+                          ${calculatePrice().toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2 mb-4">
+                      <h5 className="font-medium text-sm">Features Included:</h5>
+                      <div className="flex flex-wrap gap-1">
+                        {getFeatures().map((feature, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {feature}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    <Button 
+                      onClick={handleAddToCart}
+                      className="w-full"
+                      variant="gradient"
+                    >
+                      Add to Cart
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Visual Display */}
+          <div className="space-y-6">
+            <Card className="overflow-hidden">
+              <div className="aspect-video bg-gradient-to-br from-primary/10 to-teal/10 relative">
+                <img
+                  src="/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png"
+                  alt="Screen Enclosure"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end">
+                  <div className="p-6 text-white">
+                    <h3 className="text-2xl font-bold mb-2">Premium Screen Enclosure</h3>
+                    <p className="text-sm opacity-90">Protect your investment while maintaining the outdoor experience</p>
                   </div>
                 </div>
+              </div>
+            </Card>
 
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-primary" />
-                    <span className="text-xl font-bold text-primary">
-                      ${enclosure.pricePerSqFt}/sq ft
-                    </span>
-                  </div>
-                </div>
-
-                <Button className="w-full" variant="outline">
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Details
-                </Button>
+            {/* Benefits */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-teal" />
+                  Why Choose Screen Enclosures?
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                    <div>
+                      <h4 className="font-medium">Insect Protection</h4>
+                      <p className="text-sm text-muted-foreground">Keep mosquitoes and other pests away from your pool area</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-teal rounded-full mt-2"></div>
+                    <div>
+                      <h4 className="font-medium">Debris Shield</h4>
+                      <p className="text-sm text-muted-foreground">Reduce leaves, twigs, and other debris in your pool</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-coral rounded-full mt-2"></div>
+                    <div>
+                      <h4 className="font-medium">UV Protection</h4>
+                      <p className="text-sm text-muted-foreground">Filter harmful UV rays while maintaining visibility</p>
+                    </div>
+                  </li>
+                </ul>
               </CardContent>
             </Card>
-          ))}
+          </div>
         </div>
 
-        <div className="mt-12 text-center">
-          <div className="bg-muted/50 rounded-lg p-6 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold mb-4">Custom Screen Enclosure Solutions</h3>
-            <p className="text-muted-foreground mb-6">
-              Our screen enclosures are custom-built to fit your exact specifications. Pricing varies based on square footage, height requirements, and premium features selected.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <Home className="h-4 w-4 text-primary" />
-                <span>Single Story: $15-20/sq ft</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary" />
-                <span>Two Story: $22-28/sq ft</span>
-              </div>
-            </div>
-          </div>
+        {/* Pricing Tiers */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="text-center border-muted">
+            <CardHeader>
+              <Grid3X3 className="h-8 w-8 mx-auto text-muted-foreground" />
+              <CardTitle>Standard</CardTitle>
+              <p className="text-sm text-muted-foreground">Basic protection</p>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold mb-2">$15-$22<span className="text-sm">/sq ft</span></div>
+              <ul className="text-sm space-y-1 text-left">
+                <li>• Standard aluminum frame</li>
+                <li>• Basic screen mesh</li>
+                <li>• Standard hardware</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center border-primary/20 bg-primary/5">
+            <CardHeader>
+              <Home className="h-8 w-8 mx-auto text-primary" />
+              <CardTitle>Deluxe</CardTitle>
+              <p className="text-sm text-muted-foreground">Enhanced quality</p>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold mb-2 text-primary">$18-$25<span className="text-sm">/sq ft</span></div>
+              <ul className="text-sm space-y-1 text-left">
+                <li>• Deluxe aluminum frame</li>
+                <li>• High-quality screen mesh</li>
+                <li>• Weather treatment</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center border-teal/20 bg-teal/5">
+            <CardHeader>
+              <Shield className="h-8 w-8 mx-auto text-teal" />
+              <CardTitle>Premium</CardTitle>
+              <p className="text-sm text-muted-foreground">Maximum durability</p>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold mb-2 text-teal">$22-$28<span className="text-sm">/sq ft</span></div>
+              <ul className="text-sm space-y-1 text-left">
+                <li>• Premium aluminum frame</li>
+                <li>• Superior screen mesh</li>
+                <li>• Enhanced hardware</li>
+                <li>• Weather resistant coating</li>
+              </ul>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </section>

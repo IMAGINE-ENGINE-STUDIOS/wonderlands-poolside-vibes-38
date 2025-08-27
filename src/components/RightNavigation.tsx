@@ -30,7 +30,9 @@ const RightNavigation = () => {
   const navigationItems = [
     { id: 'pools', label: 'Pools', icon: Waves },
     { id: 'spas', label: 'Spas', icon: Sparkles },
+    { id: 'tanning-ledges', label: 'Tanning Ledges', icon: Sun },
     { id: 'finishes', label: 'Finishes', icon: Palette },
+    { id: 'liners', label: 'Liners', icon: Palette },
     { id: 'covers', label: 'Covers', icon: Shield },
     { id: 'screen-enclosures', label: 'Screens', icon: Grid3X3 },
     { id: 'pavers', label: 'Pavers', icon: Sun },

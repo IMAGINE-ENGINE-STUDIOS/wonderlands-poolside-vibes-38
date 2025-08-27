@@ -28,7 +28,7 @@ interface PoolOption {
   name: string;
   description: string;
   price: number;
-  category: 'waterline' | 'jets' | 'heating' | 'covers' | 'decorative';
+  category: 'waterline' | 'jets' | 'heating' | 'covers' | 'decorative' | 'screen-enclosure';
 }
 
 interface SurveyQuoteToolProps {
@@ -80,7 +80,6 @@ const SurveyQuoteTool = ({ pool, isOpen, onClose, customProduct }: SurveyQuoteTo
   const [isSaving, setIsSaving] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const { toast } = useToast();
-  // Removed GALA-GOODS integration
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

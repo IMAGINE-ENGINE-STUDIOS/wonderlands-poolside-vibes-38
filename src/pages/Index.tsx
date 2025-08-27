@@ -12,7 +12,7 @@ import ScreenEnclosureSection from "@/components/ScreenEnclosureSection";
 import PaversSection from "@/components/PaversSection";
 import PoolTilesSection from "@/components/PoolTilesSection";
 import Footer from "@/components/Footer";
-import { ShoppingCartProvider } from "@/components/ShoppingCart";
+import { ShoppingCartProvider } from "@/components/ShoppingCartProvider";
 
 const Index = () => {
   useEffect(() => {

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,7 +37,7 @@ const ShoppingCart = ({ isOpen, onClose }: ShoppingCartProps) => {
     if (savedCart) {
       setCartItems(JSON.parse(savedCart));
     }
-  }, []);
+  }, [isOpen]);
 
   // Save cart to localStorage whenever items change
   useEffect(() => {
@@ -234,73 +235,20 @@ const ShoppingCart = ({ isOpen, onClose }: ShoppingCartProps) => {
             <Button variant="outline" onClick={onClose} className="flex-1">
               Continue Shopping
             </Button>
-            <Button
-              onClick={() => {
-                const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + 
-                  `amount=${calculateTotal()}&` +
-                  `product=${encodeURIComponent(`Pool Cart with ${getTotalQuantity()} items`)}&` +
-                  `description=${encodeURIComponent(`Complete pool and accessories package`)}&` +
-                  `monthly_payment=${Math.round(calculateTotal() * 0.008)}&` +
-                  `loan_term=60&` +
-                  `project_type=Pool%20Installation`;
-                window.open(lyonFinancialUrl, '_blank');
-              }}
+            <StripeCheckoutButton
+              productId="cart_checkout"
+              productName={`Cart with ${getTotalQuantity()} items`}
+              price={calculateTotal()}
+              quantity={1}
               variant="default"
               className="flex-1"
-            >
-              Apply with Lyon Financial
-            </Button>
+              cartItems={cartItems}
+            />
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
-};
-
-// Hook for managing cart state globally
-export const useShoppingCart = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const savedCart = localStorage.getItem('poolShoppingCart');
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
-    }
-  }, []);
-
-  const addToCart = (item: Omit<CartItem, 'quantity'>) => {
-    const existingItem = cartItems.find(cartItem => cartItem.id === item.id);
-    
-    if (existingItem) {
-      const updatedItems = cartItems.map(cartItem =>
-        cartItem.id === item.id
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
-      );
-      setCartItems(updatedItems);
-      localStorage.setItem('poolShoppingCart', JSON.stringify(updatedItems));
-    } else {
-      const newItems = [...cartItems, { ...item, quantity: 1 }];
-      setCartItems(newItems);
-      localStorage.setItem('poolShoppingCart', JSON.stringify(newItems));
-    }
-
-    toast({
-      title: "Added to Cart",
-      description: `${item.name} has been added to your cart`
-    });
-  };
-
-  const getCartCount = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
-  };
-
-  return {
-    cartItems,
-    addToCart,
-    getCartCount
-  };
 };
 
 export default ShoppingCart;
