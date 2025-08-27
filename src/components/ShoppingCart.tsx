@@ -9,6 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 import { ShoppingCart as CartIcon, Trash2, Plus, Minus, CreditCard, Package } from 'lucide-react';
 import StripeCheckoutButton from './StripeCheckoutButton';
 
+// Re-export the hook and provider from ShoppingCartProvider
+export { useShoppingCart, ShoppingCartProvider } from './ShoppingCartProvider';
+
 export interface CartItem {
   id: string;
   name: string;
