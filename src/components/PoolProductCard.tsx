@@ -608,37 +608,6 @@ const PoolProductCard = ({
         {showDetails && <div className="space-y-4 animate-fade-in-up">
             <Separator />
             
-            {/* Pool Tile Options */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Pool Tiles</h4>
-              <Carousel className="w-full">
-                <CarouselContent className="-ml-1">
-                  {tileOptions.map(tile => <CarouselItem key={tile.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
-                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tileOption === tile.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
-                  ...prev,
-                  tileOption: tile.name
-                }))}>
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <img src={tile.image} alt={tile.name} className="w-full h-full object-cover" onError={e => {
-                      const target = e.target as HTMLImageElement;
-                      const parent = target.parentElement;
-                      if (parent) {
-                        parent.style.backgroundColor = tile.color;
-                        target.style.display = 'none';
-                      }
-                    }} />
-                        </div>
-                        <div className="flex-1 flex flex-col justify-between min-h-0">
-                          <p className="text-xs font-medium text-center line-clamp-2">{tile.name}</p>
-                          {tile.price > 0 && <p className="text-xs text-primary font-semibold text-center mt-1">+${tile.price.toLocaleString()}</p>}
-                        </div>
-                      </div>
-                    </CarouselItem>)}
-                </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
-              </Carousel>
-            </div>
 
             {/* Pool Finishing Options */}
             <div className="space-y-3">
@@ -901,7 +870,7 @@ const PoolProductCard = ({
                      </div>
                    </label>
 
-                  {extras.tanningLedge && <div className="ml-6 space-y-2">
+                   {extras.tanningLedge && <div className="ml-6 space-y-2">
                       <label className="text-xs font-medium text-muted-foreground">Select Tanning Ledge Model:</label>
                        <div className="grid grid-cols-1 gap-2">
                          {tanningLedges.map((ledge: any) => <button key={ledge.name} onClick={() => setExtras(prev => ({
@@ -915,6 +884,48 @@ const PoolProductCard = ({
                               </div>
                              </button>)}
                       </div>
+                    </div>}
+
+                   <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                     <Checkbox checked={extras.tiles} onCheckedChange={() => toggleExtra('tiles')} />
+                     <div className="flex items-center space-x-1">
+                       <Cpu size={16} className="text-primary" />
+                        <span className="text-sm">Add Pool Tiles (+${extras.tiles ? (() => {
+                    const selectedTile = tileOptions.find(tile => tile.name === extras.tileOption);
+                    return selectedTile && selectedTile.price > 0 ? selectedTile.price.toLocaleString() : '0';
+                  })() : '0'})</span>
+                     </div>
+                   </label>
+
+                  {extras.tiles && <div className="ml-6 space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground">Select Tile Option:</label>
+                      <Carousel className="w-full">
+                        <CarouselContent className="-ml-1">
+                          {tileOptions.map(tile => <CarouselItem key={tile.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                              <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tileOption === tile.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                          ...prev,
+                          tileOption: tile.name
+                        }))}>
+                                <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                  <img src={tile.image} alt={tile.name} className="w-full h-full object-cover" onError={e => {
+                              const target = e.target as HTMLImageElement;
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.style.backgroundColor = tile.color;
+                                target.style.display = 'none';
+                              }
+                            }} />
+                                </div>
+                                <div className="flex-1 flex flex-col justify-between min-h-0">
+                                  <p className="text-xs font-medium text-center line-clamp-2">{tile.name}</p>
+                                  {tile.price > 0 && <p className="text-xs text-primary font-semibold text-center mt-1">+${tile.price.toLocaleString()}</p>}
+                                </div>
+                              </div>
+                            </CarouselItem>)}
+                        </CarouselContent>
+                        <CarouselPrevious className="left-0" />
+                        <CarouselNext className="right-0" />
+                      </Carousel>
                     </div>}
                </div>
              </div>
