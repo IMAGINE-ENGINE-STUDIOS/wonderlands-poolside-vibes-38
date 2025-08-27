@@ -72,6 +72,10 @@ interface PoolExtras {
   spaModel: string;
   tanningLedge: boolean;
   tanningLedgeModel: string;
+  // New: screen enclosure as add-on
+  screenEnclosure?: boolean;
+  screenEnclosureArea?: number;
+  screenEnclosureQuality?: 'standard' | 'deluxe' | 'premium';
 }
 
 const getCategoryColor = (category: string) => {
@@ -100,7 +104,10 @@ const finishOptions = poolFinishesData.map(finish => ({
   name: finish.name,
   color: '#4169E1',
   image: finish.image,
-  price: finish.price,
+  // Force Crystite Crystals finishes to $4,500 in product card
+  price: (finish.collection && /crystite/i.test(finish.collection)) || (finish.category && /crystite/i.test(finish.category))
+    ? 4500
+    : finish.price,
   collection: finish.collection,
   category: finish.category,
   description: finish.description
@@ -108,11 +115,11 @@ const finishOptions = poolFinishesData.map(finish => ({
 
 // Convert pool liners to liner options format
 const linerOptions = [
-  { name: 'Standard Blue', color: '#4169E1', price: 0, image: azureBlueFinish, type: 'Standard', description: undefined },
+  { name: 'Standard Blue', color: '#4169E1', price: 4500, image: azureBlueFinish, type: 'Standard', description: undefined },
   ...poolLiners.map(liner => ({
     name: liner.name,
     color: '#4169E1',
-    price: liner.price,
+    price: 4500, // All liners are $4,500
     image: liner.image,
     type: liner.type,
     description: liner.description
@@ -164,7 +171,10 @@ const EditablePoolProductCard = ({
     spa: false,
     spaModel: 'Mystic',
     tanningLedge: false,
-    tanningLedgeModel: tanningLedges[0]?.name || 'Genesis'
+    tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
+    screenEnclosure: false,
+    screenEnclosureArea: 0,
+    screenEnclosureQuality: 'standard'
   });
 
   const { addToCart } = useShoppingCart();
@@ -248,10 +258,27 @@ const EditablePoolProductCard = ({
         return { ...prev, spa: !prev.spa };
       } else if (extra === 'tanningLedge') {
         return { ...prev, tanningLedge: !prev.tanningLedge };
+      } else if (extra === 'screenEnclosure') {
+        const enabling = !prev.screenEnclosure;
+        if (enabling) setShowDetails(true);
+        return { ...prev, screenEnclosure: enabling };
       }
       
       return prev;
     });
+  };
+
+  const getScreenEnclosureRate = (quality: 'standard' | 'deluxe' | 'premium') => {
+    if (quality === 'premium') return 28;
+    if (quality === 'deluxe') return 22;
+    return 15;
+  };
+
+  const calculateScreenEnclosurePrice = () => {
+    if (!extras.screenEnclosure) return 0;
+    const area = Number(extras.screenEnclosureArea) || 0;
+    const rate = getScreenEnclosureRate(extras.screenEnclosureQuality || 'standard');
+    return Math.max(0, area) * rate;
   };
 
   const calculateTotalPrice = () => {
@@ -279,6 +306,9 @@ const EditablePoolProductCard = ({
       const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
       if (selectedLedge) total += selectedLedge.price;
     }
+
+    // Screen enclosure add-on
+    total += calculateScreenEnclosurePrice();
     
     return total;
   };
@@ -286,7 +316,7 @@ const EditablePoolProductCard = ({
   const hasExtras = Object.values(extras).some(value => value);
 
   const handleAddToCart = () => {
-    const cartExtras = [];
+    const cartExtras: { name: string; price: number }[] = [];
     
     if (extras.heater) cartExtras.push({ name: 'Pool Heater', price: getExtraPrice('heater') });
     if (extras.jets) cartExtras.push({ name: 'Spa Jets', price: getExtraPrice('jets') });
@@ -318,6 +348,14 @@ const EditablePoolProductCard = ({
       if (selectedLedge) {
         cartExtras.push({ name: `${selectedLedge.name} Tanning Ledge`, price: selectedLedge.price });
       }
+    }
+
+    if (extras.screenEnclosure) {
+      const area = Number(extras.screenEnclosureArea) || 0;
+      const quality = extras.screenEnclosureQuality || 'standard';
+      const rate = getScreenEnclosureRate(quality);
+      const price = Math.max(0, area) * rate;
+      cartExtras.push({ name: `Screen Enclosure (${area} sq ft, ${quality})`, price });
     }
 
     addToCart({
@@ -639,6 +677,16 @@ const EditablePoolProductCard = ({
                   <Sun className="h-4 w-4 text-yellow-500" />
                   <span>Tanning Ledge</span>
                 </label>
+
+                {/* Screen Enclosure add-on */}
+                <label className="flex items-center space-x-2 text-sm cursor-pointer p-2 rounded border hover:bg-muted/30 col-span-2">
+                  <Checkbox 
+                    checked={!!extras.screenEnclosure} 
+                    onCheckedChange={() => toggleExtra('screenEnclosure')}
+                  />
+                  <Grid pattern="cols" />
+                  <span>Screen Enclosure</span>
+                </label>
               </div>
             </div>
 
@@ -845,6 +893,44 @@ const EditablePoolProductCard = ({
                     </Carousel>
                   </div>
                 )}
+
+                {/* Screen Enclosure Configuration */}
+                {extras.screenEnclosure && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-foreground">Screen Enclosure</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium">Surface Area (sq ft)</label>
+                        <Input
+                          type="number"
+                          min={0}
+                          step={1}
+                          value={extras.screenEnclosureArea ?? 0}
+                          onChange={(e) => setExtras(prev => ({ ...prev, screenEnclosureArea: parseFloat(e.target.value) || 0 }))}
+                          placeholder="Enter sq ft"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium">Quality</label>
+                        <select
+                          className="w-full border rounded-md bg-background px-3 py-2 text-sm"
+                          value={extras.screenEnclosureQuality}
+                          onChange={(e) => setExtras(prev => ({ ...prev, screenEnclosureQuality: e.target.value as 'standard' | 'deluxe' | 'premium' }))}
+                        >
+                          <option value="standard">Standard ($15/sq ft)</option>
+                          <option value="deluxe">Deluxe ($22/sq ft)</option>
+                          <option value="premium">Premium ($28/sq ft)</option>
+                        </select>
+                      </div>
+                      <div className="flex items-end">
+                        <div className="w-full bg-muted/50 border rounded-md p-3">
+                          <div className="text-xs text-muted-foreground">Calculated Price</div>
+                          <div className="text-lg font-semibold text-primary">${calculateScreenEnclosurePrice().toLocaleString()}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -887,3 +973,22 @@ const EditablePoolProductCard = ({
 };
 
 export default EditablePoolProductCard;
+
+// Helper placeholder to render a small grid icon without importing new libs
+function Grid({ pattern }: { pattern?: 'cols' | 'rows' }) {
+  return (
+    <span 
+      aria-hidden 
+      className="inline-block h-4 w-4 rounded-sm border border-border relative overflow-hidden"
+    >
+      <span className="absolute inset-0 grid grid-cols-2">
+        <span className="border-r border-border"></span>
+        <span></span>
+      </span>
+      <span className="absolute inset-0 grid grid-rows-2">
+        <span className="border-b border-border"></span>
+        <span></span>
+      </span>
+    </span>
+  );
+}

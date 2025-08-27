@@ -31,14 +31,24 @@ const Index = () => {
       <div className="min-h-screen">
         <Header />
         <Hero />
+        {/* Anchors for RightNavigation */}
+        <div id="pools" />
         <PoolCatalog />
+        <div id="spas" />
         <SpaSection />
+        <div id="tanning-ledges" />
         <TanningLedgeSection />
+        <div id="finishes" />
         <PoolFinishesSection />
+        <div id="liners" />
         <LinersSection />
+        <div id="covers" />
         <AutomaticCoversSection />
+        <div id="screen-enclosures" />
         <ScreenEnclosureSection />
+        <div id="pavers" />
         <PaversSection />
+        <div id="tiles" />
         <PoolTilesSection />
         <Footer />
       </div>
@@ -47,3 +57,4 @@ const Index = () => {
 };
 
 export default Index;
+

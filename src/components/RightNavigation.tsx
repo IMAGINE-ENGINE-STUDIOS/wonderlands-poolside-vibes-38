@@ -77,7 +77,7 @@ const RightNavigation = () => {
             variant="ghost"
             size="sm"
             className="w-12 h-12 p-0 hover:bg-primary/10 hover:text-primary transition-colors"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            onClick={() => { window.location.href = '/'; }}
             title="Home"
           >
             <HomeIcon className="h-5 w-5" />
@@ -123,3 +123,4 @@ const RightNavigation = () => {
 };
 
 export default RightNavigation;
+
