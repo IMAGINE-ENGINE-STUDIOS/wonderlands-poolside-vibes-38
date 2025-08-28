@@ -1281,7 +1281,15 @@ const PoolProductCard = ({
       </CardContent>
       
       {/* Image Editor Modal */}
-      <ImageEditor isOpen={showImageEditor} onClose={() => setShowImageEditor(false)} onImageSave={handleImageSave} currentImage={currentPoolImage} />
+      {showImageEditor && (
+        <ImageEditor 
+          isOpen={showImageEditor} 
+          onClose={() => setShowImageEditor(false)} 
+          onImageSave={handleImageSave} 
+          currentImage={currentPoolImage} 
+        />
+      )}
     </Card>
+  );
 };
 export default PoolProductCard;
