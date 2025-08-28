@@ -166,11 +166,13 @@ const SurveyQuoteTool = ({
     const extrasTotal = (extras as any)?.extrasTotal ? Number((extras as any).extrasTotal) : 0;
     basePrice += extrasTotal;
 
-    // Add paver costs if deck width > 3ft
-    if (pool?.dimensions && parseInt(surveyData.deckWidth || "3") > 3) {
-      const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/["']/g, '')));
-      const paverPrice = calculatePaverPrice(dims[0] || 0, dims[1] || 0, parseInt(surveyData.deckWidth || "3"));
-      basePrice += paverPrice;
+    // Add paver costs if pavers are selected (not just free 3ft perimeter)
+    if (extras?.extrasBreakdown) {
+      const paverItem = extras.extrasBreakdown.find((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
+      if (paverItem) {
+        // Pavers are selected, so they're no longer free - add the cost
+        basePrice += paverItem.price;
+      }
     }
 
     // Florida-specific adjustments
@@ -562,7 +564,7 @@ const SurveyQuoteTool = ({
               <div className="bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400 p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <ImageCard src="/lovable-uploads/e2ff3f3a-79d1-402e-b0c6-dcea2d4e720a.png" alt="Wonderlands Logo" className="h-16 w-16" enableZoom={false} />
+                    <ImageCard src="/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.png" alt="Wonderlands Logo" className="h-16 w-16" enableZoom={false} />
                     <div>
                       <h1 className="text-2xl font-bold">POOL QUOTATION</h1>
                       <p className="text-orange-100">Your Dream Pool Awaits</p>
@@ -625,7 +627,10 @@ const SurveyQuoteTool = ({
                     <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
                       <h4 className="font-semibold mb-2">Paver Deck ({surveyData.deckWidth || 3}ft Width)</h4>
                       <p className="text-sm text-muted-foreground mb-2">
-                        {parseInt(surveyData.deckWidth || "3") === 3 ? "Standard 3-foot paver deck included in base price" : `${surveyData.deckWidth}-foot paver deck around pool`}
+                        {(() => {
+                          const hasPavers = extras?.extrasBreakdown?.some((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
+                          return hasPavers ? "Custom paver selection with chargeable area" : "Standard 3-foot paver deck included in base price";
+                        })()}
                       </p>
                       {pool?.dimensions && (() => {
                         const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
@@ -678,42 +683,16 @@ const SurveyQuoteTool = ({
                         }
                         return null;
                       })()}
-                      
-                      {pool?.dimensions && (() => {
-                    const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
-                    const poolLength = dims[0] || 0;
-                    const poolWidth = dims[1] || 0;
-                    const deckWidth = parseInt(surveyData.deckWidth || "3");
-                    const paverArea = calculatePaverArea(poolLength, poolWidth, deckWidth);
-                    const paverPrice = calculatePaverPrice(poolLength, poolWidth, deckWidth);
-                    return <div className="text-xs space-y-1">
-                            <p>Pool dimensions: {pool.dimensions}</p>
-                            <p>Deck width: {deckWidth} ft</p>
-                            <p>Chargeable paver area: {paverArea} sq ft</p>
-                            {paverArea > 0 && <p>Paver cost: ${paverPrice.toLocaleString()}</p>}
-                          </div>;
-                  })()}
-                      <div className="flex justify-between mt-2 pt-2 border-t border-teal-200 dark:border-gray-600">
-                        <span>Paver Installation:</span>
-                        <span className="font-semibold">
-                          {parseInt(surveyData.deckWidth || "3") === 3 ? "Included" : `+$${(() => {
-                        if (pool?.dimensions) {
-                          const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
-                          const paverPrice = calculatePaverPrice(dims[0] || 0, dims[1] || 0, parseInt(surveyData.deckWidth || "3"));
-                          return paverPrice.toLocaleString();
-                        }
-                        return "0";
-                      })()}`}
-                        </span>
-                      </div>
                     </div>
                   </div>
                   
                   <div>
-                    {(pool?.image || customProduct?.image) && <div className="mb-4">
+                    {(pool?.image || customProduct?.image) && (
+                      <div className="mb-4">
                         <ImageCard src={pool?.image || customProduct?.image} alt={pool?.model || customProduct?.name} className="w-full h-48 rounded-lg border border-orange-200" objectFit="cover" enableZoom={true} />
                         <p className="text-xs text-center mt-1 text-muted-foreground">{pool?.model || customProduct?.name}</p>
-                      </div>}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -810,6 +789,24 @@ const SurveyQuoteTool = ({
                     </p>
                   </div>
                 </div>
+
+                {/* Pool Construction Details */}
+                {extras?.concreteConstruction && (
+                  <div className="mb-6">
+                    <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-blue-200">
+                      <h4 className="font-bold text-lg mb-2 text-blue-600">Pool Construction</h4>
+                      <p className="text-sm mb-2">
+                        <span className="font-semibold">Premium Concrete Construction:</span> Your pool will be built using reinforced concrete construction, providing superior durability, longevity, and structural integrity. This premium method allows for complete customization and ensures your pool will withstand Florida's unique climate conditions for decades.
+                      </p>
+                      <ul className="text-xs text-muted-foreground space-y-1">
+                        <li>• Steel reinforcement with concrete shell</li>
+                        <li>• Superior strength and crack resistance</li>
+                        <li>• Fully customizable shape and design</li>
+                        <li>• 25+ year structural warranty</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
 
                 {/* Estimated Build Time */}
                 <div className="mb-6">
