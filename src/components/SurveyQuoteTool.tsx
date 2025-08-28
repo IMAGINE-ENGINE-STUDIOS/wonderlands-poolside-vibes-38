@@ -650,14 +650,25 @@ const SurveyQuoteTool = ({
                       {extras?.extrasBreakdown && (() => {
                         const paverItem = extras.extrasBreakdown.find((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
                         if (paverItem) {
-                          // Find the paver image from paverTypes
+                          // Find the paver image from paverTypes - extract correct paver name
                           const selectedPaverName = paverItem.name.split(' (')[0];
+                          
+                          // Map paver names to their actual images
+                          const paverImages = {
+                            'Premier Pavers': '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
+                            'Belgard Pavers': '/lovable-uploads/46d142d3-b106-406d-9867-9bf7b63fd469.png',
+                            'Tremron Pavers': '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png',
+                            'Cambridge Pavers': '/lovable-uploads/8033278d-a737-4b1d-84bf-fd0ac9126406.png'
+                          };
+                          
+                          const paverImage = paverImages[selectedPaverName] || paverImages['Premier Pavers'];
+                          
                           return (
                             <div className="mb-3 p-2 border border-teal-200 rounded-md">
                               <div className="flex items-center gap-3">
                                 <div className="w-16 h-16 rounded-md overflow-hidden border">
                                   <img 
-                                    src="/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png" 
+                                    src={paverImage} 
                                     alt={selectedPaverName}
                                     className="w-full h-full object-cover"
                                   />
@@ -750,7 +761,15 @@ const SurveyQuoteTool = ({
                     } else if (item.name.includes('Concrete Construction')) {
                       itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
                     } else if (item.name.includes('sq ft') && !item.name.includes('Screen Enclosure')) {
-                      itemImage = '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png';
+                      // Map paver names to their actual images
+                      const paverName = item.name.split(' (')[0];
+                      const paverImages = {
+                        'Premier Pavers': '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
+                        'Belgard Pavers': '/lovable-uploads/46d142d3-b106-406d-9867-9bf7b63fd469.png',
+                        'Tremron Pavers': '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png',
+                        'Cambridge Pavers': '/lovable-uploads/8033278d-a737-4b1d-84bf-fd0ac9126406.png'
+                      };
+                      itemImage = paverImages[paverName] || paverImages['Premier Pavers'];
                     } else {
                       itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
                     }
