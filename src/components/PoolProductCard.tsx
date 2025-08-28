@@ -177,9 +177,10 @@ const linerOptions = [{
   description: liner.description
 }))];
 
-// Cover options - using real automatic covers from AutomaticCoversSection
+// Cover options - using real automatic covers from AutomaticCoversSection with short surnames
 const coverOptions = [{
   name: 'NO COVER',
+  surname: 'None',
   color: '#808080',
   price: 0,
   image: shaleGrayFinish,
@@ -187,6 +188,7 @@ const coverOptions = [{
   description: 'No pool cover needed'
 }, {
   name: 'Eclipse Automatic Cover',
+  surname: 'Eclipse',
   color: '#2F4F4F',
   price: 16000,
   image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png',
@@ -194,6 +196,7 @@ const coverOptions = [{
   description: 'High-grade PVC with dual track system and emergency manual override'
 }, {
   name: 'CS3000 Safety Cover',
+  surname: 'CS3000',
   color: '#2F4F4F',
   price: 24000,
   image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png',
@@ -201,6 +204,7 @@ const coverOptions = [{
   description: 'Multi-layer vinyl with smart automation and weather sensors'
 }, {
   name: 'Infinity 4000 Smart Cover',
+  surname: 'Infinity',
   color: '#2F4F4F',
   price: 32000,
   image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png',
@@ -208,6 +212,7 @@ const coverOptions = [{
   description: 'Premium composite with AI-powered automation and solar integration'
 }, {
   name: 'Atom Loop-Loc Cover',
+  surname: 'Loop-Loc',
   color: '#2F4F4F',
   price: 19000,
   image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png',
@@ -788,36 +793,7 @@ const PoolProductCard = ({
             </div>
 
             {/* Cover Options */}
-            <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Cover Options</h4>
-              <Carousel className="w-full">
-                <CarouselContent className="-ml-1">
-                  {coverOptions.map(cover => <CarouselItem key={cover.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
-                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.coverOption === cover.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
-                  ...prev,
-                  coverOption: cover.name
-                }))}>
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <img src={cover.image} alt={cover.name} className="w-full h-full object-cover" onError={e => {
-                      const target = e.target as HTMLImageElement;
-                      const parent = target.parentElement;
-                      if (parent) {
-                        parent.style.backgroundColor = cover.color;
-                        target.style.display = 'none';
-                      }
-                    }} />
-                        </div>
-                        <div className="flex-1 flex flex-col justify-between min-h-0">
-                          <p className="text-xs font-medium text-center line-clamp-2">{cover.name}</p>
-                          {cover.price > 0 && <p className="text-xs text-primary font-semibold text-center mt-1">+${cover.price.toLocaleString()}</p>}
-                        </div>
-                      </div>
-                    </CarouselItem>)}
-                </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
-              </Carousel>
-            </div>
+            
 
             {/* Add-ons */}
             <div className="space-y-3">
@@ -880,15 +856,42 @@ const PoolProductCard = ({
                 {/* Remove Cover from Additional Features - it's now in main options */}
                  
                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                      <Checkbox checked={extras.concreteConstruction} onCheckedChange={() => toggleExtra('concreteConstruction')} className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" />
-                      <div className="flex items-center space-x-1">
-                        <Shield size={16} className="text-coral" />
-                         <span className="text-sm">Make it on Concrete (+${Math.round((pool.price * 0.2)).toLocaleString()})</span>
-                      </div>
-                    </label>
-                    {extras.concreteConstruction && (
-                      <p className="text-xs text-muted-foreground ml-6 mt-1">Premium concrete construction for enhanced durability and longevity.</p>
-                    )}
+                     <Checkbox checked={extras.cover} onCheckedChange={() => toggleExtra('cover')} className="data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
+                     <div className="flex items-center space-x-1">
+                       <Shield size={16} className="text-primary" />
+                       <span className="text-sm">Add Pool Cover (+${extras.cover ? (() => {
+                     const selectedCover = coverOptions.find(cover => cover.name === extras.coverOption);
+                     return selectedCover && selectedCover.name !== 'NO COVER' ? selectedCover.price.toLocaleString() : '0';
+                   })() : '0'})</span>
+                     </div>
+                   </label>
+
+                   {extras.cover && <div className="ml-6 space-y-2">
+                       <label className="text-xs font-medium text-muted-foreground">Select Cover Type:</label>
+                        <div className="grid grid-cols-1 gap-2">
+                          {coverOptions.map(cover => <button key={cover.name} onClick={() => setExtras(prev => ({
+                   ...prev,
+                   coverOption: cover.name
+                 }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.coverOption === cover.name ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'}`}>
+                               <img src={cover.image} alt={cover.name} className="w-8 h-8 rounded object-cover" />
+                               <div className="flex-1 text-left">
+                                 <div>{cover.surname}</div>
+                                 <div className="text-xs text-muted-foreground">{cover.price > 0 ? `$${cover.price.toLocaleString()}` : 'No Cost'}</div>
+                               </div>
+                              </button>)}
+                       </div>
+                     </div>}
+
+                   <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                     <Checkbox checked={extras.concreteConstruction} onCheckedChange={() => toggleExtra('concreteConstruction')} className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" />
+                     <div className="flex items-center space-x-1">
+                       <Shield size={16} className="text-coral" />
+                        <span className="text-sm">Make it on Concrete (+${Math.round((pool.price * 0.2)).toLocaleString()})</span>
+                     </div>
+                   </label>
+                   {extras.concreteConstruction && (
+                     <p className="text-xs text-muted-foreground ml-6 mt-1">Premium concrete construction for enhanced durability and longevity.</p>
+                   )}
 
                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                      <Checkbox checked={extras.spa} onCheckedChange={() => toggleExtra('spa')} />
