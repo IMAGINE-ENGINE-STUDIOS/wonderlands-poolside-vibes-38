@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
 import ImageCard from "./ImageCard";
+import poolHeaterImg from "@/assets/pool-heater.png";
+import spaJetsImg from "@/assets/spa-jets.png";
 interface Pool {
   model: string;
   price: number;
@@ -625,6 +627,25 @@ const SurveyQuoteTool = ({
                       <p className="text-sm text-muted-foreground mb-2">
                         {parseInt(surveyData.deckWidth || "3") === 3 ? "Standard 3-foot paver deck included in base price" : `${surveyData.deckWidth}-foot paver deck around pool`}
                       </p>
+                      {pool?.dimensions && (() => {
+                        const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+                        const poolLength = dims[0] || 0;
+                        const poolWidth = dims[1] || 0;
+                        const deckWidth = parseInt(surveyData.deckWidth || "3");
+                        const poolArea = poolLength * poolWidth;
+                        const totalArea = (poolLength + 2 * deckWidth) * (poolWidth + 2 * deckWidth);
+                        const freeArea = (poolLength + 6) * (poolWidth + 6) - poolArea; // 3ft perimeter free area
+                        const chargeableArea = totalArea - poolArea - freeArea;
+                        return (
+                          <div className="text-xs space-y-1 bg-teal-50 dark:bg-gray-700 p-2 rounded border mb-2">
+                            <p className="font-medium">Area Calculation:</p>
+                            <p>• Pool area: {poolArea} sq ft</p>
+                            <p>• Total deck area: {totalArea - poolArea} sq ft</p>
+                            <p>• Free 3ft perimeter: {freeArea} sq ft</p>
+                            <p>• Chargeable area: {Math.max(0, chargeableArea)} sq ft</p>
+                          </div>
+                        );
+                      })()}
                       
                       {/* Show selected paver image and details from extras */}
                       {extras?.extrasBreakdown && (() => {
@@ -728,7 +749,7 @@ const SurveyQuoteTool = ({
                     // Fallback to type-based image mapping
                     let itemImage = null;
                     if (item.name.includes('Heater') || item.name.includes('Heat Pump') || item.name.includes('Gas Heater') || item.name.includes('Solar Heater')) {
-                      itemImage = '/lovable-uploads/2e5049fe-1be6-48d8-b4e6-a22e92ef3ef6.png';
+                      itemImage = poolHeaterImg;
                     } else if (item.name.includes('Cover')) {
                       const coverImages = {
                         'Eclipse Automatic Cover': '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png',
@@ -744,7 +765,7 @@ const SurveyQuoteTool = ({
                     } else if (item.name.includes('Liner')) {
                       itemImage = '/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.png';
                     } else if (item.name.includes('Jets')) {
-                      itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
+                      itemImage = spaJetsImg;
                     } else if (item.name.includes('Finish')) {
                       itemImage = '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png';
                     } else if (item.name.includes('Tiles') || item.name.includes('Tile')) {
