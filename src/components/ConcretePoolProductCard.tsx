@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DollarSign, Waves, Calculator, ShoppingCart, Thermometer, Grid3X3, Zap, Droplets, Sun } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { spas } from "./PoolCatalog";
+import { spas, pools } from "./PoolCatalog";
 import { tanningLedges, poolLiners } from "@/data/poolData";
 import { paverTypes } from "@/data/paverData";
 import StripeCheckoutButton from "./StripeCheckoutButton";
@@ -38,7 +38,8 @@ interface ConcretePoolExtras {
 interface ConcretePoolConfig {
   length: number;
   width: number;
-  shape: 'rectangular' | 'free-form' | 'kidney';
+  shape: 'rectangular' | 'free-form' | 'kidney' | string;
+  selectedModel: string;
 }
 
 interface ConcretePoolProductCardProps {
@@ -59,7 +60,8 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
   const [config, setConfig] = useState<ConcretePoolConfig>({
     length: 16,
     width: 32,
-    shape: 'rectangular'
+    shape: 'rectangular',
+    selectedModel: 'custom'
   });
   
   const [extras, setExtras] = useState<ConcretePoolExtras>({
@@ -83,7 +85,46 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
 
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
 
+  // Function to extract dimensions from pool model and calculate area
+  const extractDimensionsFromModel = (model: any) => {
+    if (!model || !model.dimensions) return null;
+    
+    const dimensions = model.dimensions;
+    // Extract numbers from dimensions like "14′ × 30′" or "9′ 1″ × 17′ 5″"
+    const matches = dimensions.match(/(\d+)(?:′\s*(\d+)″?)?\s*×\s*(\d+)(?:′\s*(\d+)″?)?/);
+    
+    if (matches) {
+      const length1 = parseInt(matches[1]);
+      const inches1 = matches[2] ? parseInt(matches[2]) : 0;
+      const length2 = parseInt(matches[3]);
+      const inches2 = matches[4] ? parseInt(matches[4]) : 0;
+      
+      const totalLength1 = length1 + (inches1 / 12);
+      const totalLength2 = length2 + (inches2 / 12);
+      
+      return {
+        length: Math.max(totalLength1, totalLength2),
+        width: Math.min(totalLength1, totalLength2),
+        area: Math.round(totalLength1 * totalLength2)
+      };
+    }
+    
+    return null;
+  };
+
   const calculateArea = () => {
+    if (config.selectedModel !== 'custom') {
+      // Use selected pool model dimensions
+      const selectedPool = pools.find(pool => pool.model === config.selectedModel);
+      if (selectedPool) {
+        const modelDimensions = extractDimensionsFromModel(selectedPool);
+        if (modelDimensions) {
+          return modelDimensions.area;
+        }
+      }
+    }
+    
+    // Use custom dimensions
     const { length, width, shape } = config;
     let area = length * width;
     
@@ -235,16 +276,20 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
     
     const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
     
+    const selectedPool = config.selectedModel !== 'custom' && config.selectedModel !== 'rectangular' && config.selectedModel !== 'free-form' && config.selectedModel !== 'kidney' ? 
+      pools.find(pool => pool.model === config.selectedModel) : null;
+    
     const poolData = {
-      model: `Custom Concrete Pool - ${config.shape}`,
+      model: selectedPool ? `Concrete ${selectedPool.model}` : `Custom Concrete Pool - ${config.shape}`,
       price: calculateTotalPrice(),
       category: 'premium' as const,
-      dimensions: `${config.length}′ × ${config.width}′`,
+      dimensions: selectedPool ? selectedPool.dimensions : `${config.length}′ × ${config.width}′`,
       type: 'concrete',
       configuration: {
         ...config,
         area: calculateArea(),
-        poolPrice: calculatePoolPrice()
+        poolPrice: calculatePoolPrice(),
+        modelDetails: selectedPool || null
       },
       extras: {
         ...extras,
@@ -269,44 +314,73 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
       </CardHeader>
 
       <CardContent className="p-6 space-y-4">
-        {/* Basic Pool Configuration */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="length">Length (feet)</Label>
-            <Input
-              id="length"
-              type="number"
-              min="8"
-              max="50"
-              value={config.length}
-              onChange={(e) => setConfig({ ...config, length: Number(e.target.value) })}
-              className="focus:border-primary"
-            />
-          </div>
-          <div>
-            <Label htmlFor="width">Width (feet)</Label>
-            <Input
-              id="width"
-              type="number"
-              min="8"
-              max="50"
-              value={config.width}
-              onChange={(e) => setConfig({ ...config, width: Number(e.target.value) })}
-              className="focus:border-primary"
-            />
-          </div>
-        </div>
-
+        {/* Pool Model Selection */}
         <div>
-          <Label>Pool Shape</Label>
-          <Select value={config.shape} onValueChange={(value: 'rectangular' | 'free-form' | 'kidney') => setConfig({ ...config, shape: value })}>
+          <Label>Pool Model</Label>
+          <Select value={config.selectedModel} onValueChange={(value: string) => setConfig({ ...config, selectedModel: value, shape: value === 'custom' ? 'rectangular' : value })}>
             <SelectTrigger className="focus:border-primary">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="rectangular">Rectangular</SelectItem>
-              <SelectItem value="free-form">Free Form</SelectItem>
-              <SelectItem value="kidney">Kidney Shape</SelectItem>
+            <SelectContent className="max-h-[300px]">
+              <SelectItem value="custom">Custom Dimensions</SelectItem>
+              <SelectItem value="rectangular">Custom Rectangular</SelectItem>
+              <SelectItem value="free-form">Custom Free Form</SelectItem>
+              <SelectItem value="kidney">Custom Kidney Shape</SelectItem>
+              {pools.map((pool) => (
+                <SelectItem key={pool.model} value={pool.model}>
+                  {pool.model} ({pool.dimensions})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Custom Dimensions (only show if custom is selected) */}
+        {(config.selectedModel === 'custom' || config.selectedModel === 'rectangular' || config.selectedModel === 'free-form' || config.selectedModel === 'kidney') && (
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="length">Length (feet)</Label>
+              <Input
+                id="length"
+                type="number"
+                min="8"
+                max="50"
+                value={config.length}
+                onChange={(e) => setConfig({ ...config, length: Number(e.target.value) })}
+                className="focus:border-primary"
+              />
+            </div>
+            <div>
+              <Label htmlFor="width">Width (feet)</Label>
+              <Input
+                id="width"
+                type="number"
+                min="8"
+                max="50"
+                value={config.width}
+                onChange={(e) => setConfig({ ...config, width: Number(e.target.value) })}
+                className="focus:border-primary"
+              />
+            </div>
+          </div>
+        )}
+
+        <div>
+          <Label>Pool Model</Label>
+          <Select value={config.selectedModel} onValueChange={(value: string) => setConfig({ ...config, selectedModel: value, shape: value === 'custom' ? 'rectangular' : value })}>
+            <SelectTrigger className="focus:border-primary">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="max-h-[300px]">
+              <SelectItem value="custom">Custom Dimensions</SelectItem>
+              <SelectItem value="rectangular">Custom Rectangular</SelectItem>
+              <SelectItem value="free-form">Custom Free Form</SelectItem>
+              <SelectItem value="kidney">Custom Kidney Shape</SelectItem>
+              {pools.map((pool) => (
+                <SelectItem key={pool.model} value={pool.model}>
+                  {pool.model} ({pool.dimensions})
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -318,7 +392,11 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
             <span className="font-semibold text-primary">Pool Area: {calculateArea()} sq ft</span>
           </div>
           <div className="text-sm text-muted-foreground">
-            {config.length}′ × {config.width}′ {config.shape} @ ${CONCRETE_PRICE_PER_SQF}/sq ft
+            {config.selectedModel !== 'custom' && config.selectedModel !== 'rectangular' && config.selectedModel !== 'free-form' && config.selectedModel !== 'kidney' ? (
+              <>Model: {config.selectedModel} @ ${CONCRETE_PRICE_PER_SQF}/sq ft</>
+            ) : (
+              <>{config.length}′ × {config.width}′ {config.shape} @ ${CONCRETE_PRICE_PER_SQF}/sq ft</>
+            )}
           </div>
         </div>
 

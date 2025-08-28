@@ -80,7 +80,7 @@ export const poolFinishes = [
   "Courtstone Gray", "Courtstone Blue"
 ];
 
-const pools: Pool[] = [
+export const pools: Pool[] = [
   // Enchantment Series
   { 
     model: "Enchantment 9.17", 
