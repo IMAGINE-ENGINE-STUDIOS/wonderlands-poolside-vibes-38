@@ -158,8 +158,25 @@ const SurveyQuoteTool = ({
     if (!pool && !customProduct) return 0;
     let basePrice = pool?.price || customProduct?.price || 0;
 
-    // Add selected options
-    const optionsPrice = selectedOptions.reduce((total, option) => total + option.price, 0);
+    // Add selected options (including screen enclosures with area-based pricing)
+    const optionsPrice = selectedOptions.reduce((total, option) => {
+      if (option.category === 'screen-enclosure') {
+        // Calculate screen enclosure price based on area
+        const poolArea = getPoolArea();
+        const enclosureArea = poolArea + 500; // Add 500 sq ft for enclosure area around pool
+        
+        if (option.id.includes('standard-1-story')) {
+          return total + (enclosureArea * 15);
+        } else if (option.id.includes('standard-2-story')) {
+          return total + (enclosureArea * 22);
+        } else if (option.id.includes('premium-1-story')) {
+          return total + (enclosureArea * 20);
+        } else if (option.id.includes('premium-2-story')) {
+          return total + (enclosureArea * 28);
+        }
+      }
+      return total + option.price;
+    }, 0);
     basePrice += optionsPrice;
 
     // Add extras from product card if provided
@@ -168,7 +185,6 @@ const SurveyQuoteTool = ({
 
     // Paver costs are included via extrasTotal only (prevent double counting)
 
-
     // Florida-specific adjustments
     if (surveyData.soilType === "sand") basePrice *= 0.95; // Easier excavation
     if (surveyData.soilType === "clay") basePrice *= 1.1; // Harder excavation
@@ -176,6 +192,15 @@ const SurveyQuoteTool = ({
     if (surveyData.yardSize === "large") basePrice *= 1.02; // More landscaping
 
     return Math.round(basePrice);
+  };
+
+  const getPoolArea = () => {
+    if (!pool?.dimensions) return 600; // Default pool area
+    
+    const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+    const poolLength = dims[0] || 30;
+    const poolWidth = dims[1] || 20;
+    return poolLength * poolWidth;
   };
   const getIncludedItems = () => {
     return ["LED lights", "Water pump", "Waterfall", "Salt system", "FREE Finish of choice (included in pool price - promotional offer)"];
@@ -727,14 +752,51 @@ const SurveyQuoteTool = ({
                 {selectedOptions.length > 0 && <div className="mb-6">
                     <h4 className="font-bold text-lg mb-3 text-teal-600">Selected Features</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {selectedOptions.map((option, index) => <div key={index} className="border border-orange-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
-                          <h5 className="font-semibold text-sm">{option.name}</h5>
-                          <p className="text-xs text-muted-foreground mb-2">{option.description}</p>
-                          <div className="flex justify-between text-sm">
-                            <span>Price:</span>
-                            <span className="font-semibold text-teal-600">+${option.price.toLocaleString()}</span>
+                      {selectedOptions.map((option, index) => {
+                        let displayPrice = option.price;
+                        
+                        // Calculate area-based pricing for screen enclosures
+                        if (option.category === 'screen-enclosure') {
+                          const poolArea = getPoolArea();
+                          const enclosureArea = poolArea + 500; // Add 500 sq ft for enclosure area around pool
+                          
+                          if (option.id.includes('standard-1-story')) {
+                            displayPrice = enclosureArea * 15;
+                          } else if (option.id.includes('standard-2-story')) {
+                            displayPrice = enclosureArea * 22;
+                          } else if (option.id.includes('premium-1-story')) {
+                            displayPrice = enclosureArea * 20;
+                          } else if (option.id.includes('premium-2-story')) {
+                            displayPrice = enclosureArea * 28;
+                          }
+                        }
+                        
+                        return (
+                          <div key={index} className="border border-orange-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
+                            {/* Add image for screen enclosures */}
+                            {option.category === 'screen-enclosure' && (
+                              <div className="mb-3">
+                                <img 
+                                  src="/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" 
+                                  alt={option.name}
+                                  className="w-full h-20 rounded-md border border-orange-200 object-cover"
+                                />
+                              </div>
+                            )}
+                            <h5 className="font-semibold text-sm">{option.name}</h5>
+                            <p className="text-xs text-muted-foreground mb-2">{option.description}</p>
+                            {option.category === 'screen-enclosure' && (
+                              <p className="text-xs text-blue-600 mb-2">
+                                Calculated area: {getPoolArea() + 500} sq ft
+                              </p>
+                            )}
+                            <div className="flex justify-between text-sm">
+                              <span>Price:</span>
+                              <span className="font-semibold text-teal-600">+${displayPrice.toLocaleString()}</span>
+                            </div>
                           </div>
-                        </div>)}
+                        );
+                      })}
                     </div>
                   </div>}
 
