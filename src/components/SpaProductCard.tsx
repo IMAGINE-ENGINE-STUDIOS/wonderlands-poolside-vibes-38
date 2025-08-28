@@ -70,6 +70,7 @@ interface PoolExtras {
   heaterModel: string;
   paverOption: string;
   copingPaverOption: string;
+  concrete: boolean;
   extrasBreakdown?: Array<{ name: string; price: number }>;
   extrasTotal?: number;
 }
@@ -180,7 +181,8 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
     tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
     heaterModel: spaHeaters[0]?.name || 'Spa Heat Pump - Compact',
     paverOption: 'No Pavers',
-    copingPaverOption: 'No Coping'
+    copingPaverOption: 'No Coping',
+    concrete: false
   });
   
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
@@ -193,15 +195,21 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
 
   const toggleExtra = (extra: string) => {
     setExtras(prev => {
-      // Handle tile/liner mutual exclusivity
+      // Handle tile/liner mutual exclusivity for concrete spas
       if (extra === 'tiles' && !prev.tiles) {
-        // Selecting tiles, disable liner and expand details
+        // Selecting tiles
         setShowDetails(true);
-        return { ...prev, tiles: true, liner: false };
+        if (prev.concrete) {
+          return { ...prev, tiles: true, liner: false }; // Disable liner for concrete
+        }
+        return { ...prev, tiles: true };
       } else if (extra === 'liner' && !prev.liner) {
-        // Selecting liner, disable tiles and expand details
+        // Selecting liner
         setShowDetails(true);
-        return { ...prev, liner: true, tiles: false };
+        if (prev.concrete) {
+          return { ...prev, liner: true, tiles: false }; // Disable tiles for concrete
+        }
+        return { ...prev, liner: true };
       } else if (extra === 'tiles') {
         // Deselecting tiles
         return { ...prev, tiles: !prev.tiles };
@@ -212,6 +220,8 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
         return { ...prev, heater: !prev.heater };
       } else if (extra === 'jets') {
         return { ...prev, jets: !prev.jets };
+      } else if (extra === 'concrete') {
+        return { ...prev, concrete: !prev.concrete };
       }
       
       return prev;
@@ -219,7 +229,27 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
   };
 
   const calculateTotalPrice = () => {
-    let total = spa.price;
+    let total = 0;
+    
+    // Calculate base price - either original spa price OR concrete price
+    if (extras.concrete) {
+      // Extract length and width from dimensions string (e.g., "8' x 12'" -> 8 * 12 = 96 sqf)
+      if (spa.dimensions) {
+        const dimensionMatch = spa.dimensions.match(/(\d+)['']?\s*x\s*(\d+)['']?/i);
+        if (dimensionMatch) {
+          const length = parseFloat(dimensionMatch[1]);
+          const width = parseFloat(dimensionMatch[2]);
+          const sqf = length * width;
+          total = sqf * 155; // $155 per sqf for concrete
+        } else {
+          total = spa.price; // Fallback to original price if dimensions can't be parsed
+        }
+      } else {
+        total = spa.price; // Fallback to original price if no dimensions
+      }
+    } else {
+      total = spa.price; // Original spa price
+    }
     
     // Add heater price if selected (dynamic price based on model)
     if (extras.heater) {
@@ -228,12 +258,22 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
     }
     if (extras.jets) total += getExtraPrice('jets') * extras.jetQuantity;
     
-    // Add option prices (liner OR tile, never both)
-    const linerOption = linerOptions.find(option => option.name === extras.linerOption);
-    if (linerOption && extras.liner) total += linerOption.price;
-    
-    const tileOption = tileOptions.find(option => option.name === extras.tileOption);
-    if (tileOption && extras.tiles) total += tileOption.price;
+    // Add option prices - for concrete spas, tiles and liner are mutually exclusive
+    if (extras.concrete) {
+      // For concrete spas: tiles OR liner (mutually exclusive)
+      const linerOption = linerOptions.find(option => option.name === extras.linerOption);
+      const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+      
+      if (tileOption && extras.tiles) total += tileOption.price;
+      else if (linerOption && extras.liner) total += linerOption.price;
+    } else {
+      // For original spas: tiles OR liner (already mutually exclusive)
+      const linerOption = linerOptions.find(option => option.name === extras.linerOption);
+      if (linerOption && extras.liner) total += linerOption.price;
+      
+      const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+      if (tileOption && extras.tiles) total += tileOption.price;
+    }
     
     // Add calculated paver surface area cost
     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
@@ -280,10 +320,26 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
       cartExtras.push({ name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`, price: parseFloat(paverSurfaceArea) * 15 });
     }
 
+    // Add concrete option to cart if selected
+    if (extras.concrete) {
+      if (spa.dimensions) {
+        const dimensionMatch = spa.dimensions.match(/(\d+)['']?\s*x\s*(\d+)['']?/i);
+        if (dimensionMatch) {
+          const length = parseFloat(dimensionMatch[1]);
+          const width = parseFloat(dimensionMatch[2]);
+          const sqf = length * width;
+          cartExtras.push({
+            name: `CONCRETE SPA (${sqf} sq ft)`,
+            price: sqf * 155 - spa.price // Add difference from original price
+          });
+        }
+      }
+    }
+
     addToCart({
       id: `spa_${spa.model.replace(/\s+/g, '_')}_${Date.now()}`,
-      name: `${spa.model} Spa`,
-      price: spa.price,
+      name: extras.concrete ? `${spa.model} Spa (CONCRETE)` : `${spa.model} Spa`,
+      price: extras.concrete ? 0 : spa.price, // Base price is included in concrete calculation
       category: spa.category,
       image: currentPoolImage,
       extras: cartExtras
@@ -410,6 +466,29 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
         <div className="grid grid-cols-2 gap-2 text-sm">
           <label className="flex items-center space-x-2 cursor-pointer">
             <Checkbox 
+              checked={extras.concrete} 
+              onCheckedChange={() => toggleExtra('concrete')}
+              className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
+            />
+            <span className="flex items-center gap-1">
+              <Cpu size={14} className="text-coral" />
+              CONCRETE ({extras.concrete ? (() => {
+                if (spa.dimensions) {
+                  const dimensionMatch = spa.dimensions.match(/(\d+)['']?\s*x\s*(\d+)['']?/i);
+                  if (dimensionMatch) {
+                    const length = parseFloat(dimensionMatch[1]);
+                    const width = parseFloat(dimensionMatch[2]);
+                    const sqf = length * width;
+                    return `${sqf} sq ft × $155 = $${(sqf * 155).toLocaleString()}`;
+                  }
+                }
+                return '$155/sq ft';
+              })() : '$155/sq ft'})
+            </span>
+          </label>
+
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <Checkbox 
               checked={extras.jets} 
               onCheckedChange={() => toggleExtra('jets')}
               className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
@@ -440,7 +519,7 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
             />
             <span className="flex items-center gap-1">
               <Cpu size={14} className="text-coral" />
-              Tiles
+              Tiles {extras.concrete ? '(OR Liner)' : ''}
             </span>
           </label>
           
@@ -452,7 +531,7 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
             />
             <span className="flex items-center gap-1">
               <Shield size={14} className="text-secondary" />
-              Liner
+              Liner {extras.concrete ? '(OR Tiles)' : ''}
             </span>
           </label>
         </div>
@@ -768,6 +847,21 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
                     price: parseFloat(paverSurfaceArea) * 15
                   });
                 }
+                // Add concrete option to cart if selected
+                if (extras.concrete) {
+                  if (spa.dimensions) {
+                    const dimensionMatch = spa.dimensions.match(/(\d+)['']?\s*x\s*(\d+)['']?/i);
+                    if (dimensionMatch) {
+                      const length = parseFloat(dimensionMatch[1]);
+                      const width = parseFloat(dimensionMatch[2]);
+                      const sqf = length * width;
+                      extrasBreakdown.push({
+                        name: `CONCRETE SPA (${sqf} sq ft)`,
+                        price: sqf * 155 - spa.price // Add difference from original price
+                      });
+                    }
+                  }
+                }
                 
                 const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
                 
@@ -794,7 +888,7 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
           
           <StripeCheckoutButton 
             productId={`spa_${spa.model.replace(/\s+/g, '_')}`}
-            productName={`${spa.model} Spa`}
+            productName={extras.concrete ? `${spa.model} Spa (CONCRETE)` : `${spa.model} Spa`}
             price={calculateTotalPrice()}
             size="sm"
             className="w-full text-xs"
