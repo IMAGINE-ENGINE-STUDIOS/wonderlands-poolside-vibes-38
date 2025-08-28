@@ -186,7 +186,7 @@ const pools: Pool[] = [
   // Tuscan Series
   { 
     model: "Tuscan 11.20", 
-    price: 56600, 
+    price: 42450, 
     category: 'deluxe', 
     image: "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png",
     dimensions: "11′ 1″ × 20′ 3″",
@@ -200,7 +200,7 @@ const pools: Pool[] = [
   },
   { 
     model: "Tuscan 13.24", 
-    price: 69400, 
+    price: 52050, 
     category: 'deluxe', 
     image: "/lovable-uploads/2677d17d-ba82-407b-896c-b4b3e238b8d5.png",
     dimensions: "12′ 10″ × 23′ 7″",
@@ -214,7 +214,7 @@ const pools: Pool[] = [
   },
   { 
     model: "Tuscan 14.27", 
-    price: 80000, 
+    price: 60000, 
     category: 'deluxe', 
     image: "/lovable-uploads/de3068d3-0f04-4a3c-a2ed-f52141f36b3e.png",
     dimensions: "13′ 9″ × 26′ 10″",
@@ -228,7 +228,7 @@ const pools: Pool[] = [
   },
   { 
     model: "Tuscan 14.30", 
-    price: 88200, 
+    price: 66150, 
     category: 'deluxe', 
     image: "/lovable-uploads/d1c952c1-8786-444d-b405-903533bc20d1.png",
     dimensions: "13′ 9″ × 30′ 1″",
@@ -242,7 +242,7 @@ const pools: Pool[] = [
   },
   { 
     model: "Tuscan 14.40", 
-    price: 111000, 
+    price: 83250, 
     category: 'deluxe', 
     image: "/lovable-uploads/c1225a37-626d-49a2-9ec4-eb0da0f10060.png",
     dimensions: "13′ 9″ × 39′ 11″",
@@ -258,7 +258,7 @@ const pools: Pool[] = [
   // Premium Series
   { 
     model: "St. Lucia", 
-    price: 56800, 
+    price: 42600, 
     category: 'deluxe', 
     image: "/lovable-uploads/03b6750e-bed3-41df-abcb-6657d36cfa62.png",
     dimensions: "12′ × 24′",
@@ -272,7 +272,7 @@ const pools: Pool[] = [
   },
   { 
     model: "Delray", 
-    price: 59300, 
+    price: 44475, 
     category: 'deluxe', 
     image: "/lovable-uploads/f549e4e8-647d-4b21-8d48-441f83955c73.png",
     dimensions: "12′ × 25′",
@@ -286,7 +286,7 @@ const pools: Pool[] = [
   },
   { 
     model: "Java", 
-    price: 60000, 
+    price: 45000,
     category: 'deluxe', 
     image: "/lovable-uploads/bca99a48-ba6b-42d0-96d0-bf5ecfc2e4fd.png",
     dimensions: "12′ × 27′",
@@ -300,7 +300,7 @@ const pools: Pool[] = [
   },
   { 
     model: "Bermuda", 
-    price: 61500, 
+    price: 46125, 
     category: 'deluxe', 
     image: "/lovable-uploads/311a7002-2a40-4c59-a143-9f0236ece5d4.png",
     dimensions: "12′ × 26′",
@@ -314,7 +314,7 @@ const pools: Pool[] = [
   },
   { 
     model: "Key West", 
-    price: 64300, 
+    price: 48225, 
     category: 'deluxe', 
     image: "/lovable-uploads/4e43c832-af03-4cf4-9104-0117e5f3321c.png",
     dimensions: "12′ × 25′ 7″",
@@ -328,7 +328,7 @@ const pools: Pool[] = [
   },
   { 
     model: "Valencia", 
-    price: 65500, 
+    price: 49125, 
     category: 'deluxe', 
     image: "/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.png",
     dimensions: "14′ 6″ × 28′",
