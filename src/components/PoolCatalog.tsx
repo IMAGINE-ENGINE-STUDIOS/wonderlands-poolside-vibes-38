@@ -4,7 +4,6 @@ import SurveyQuoteTool from "./SurveyQuoteTool";
 import PoolProductCard from "./PoolProductCard";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import TileDetailModal from "./TileDetailModal";
-import ConcretePoolProductCard from "./ConcretePoolProductCard";
 import { useShoppingCart } from "./ShoppingCart";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -633,9 +632,6 @@ const PoolCatalog = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {/* Concrete Pool Card */}
-            <ConcretePoolProductCard onRequestQuote={handleRequestQuote} />
-            
             {pools
               .filter((pool) => pool.model !== 'Pleasant Cove')
               .map((pool) => (
