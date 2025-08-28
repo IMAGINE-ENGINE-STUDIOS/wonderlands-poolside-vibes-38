@@ -20,6 +20,7 @@ import {
   Globe,
   Smartphone,
   LogOut,
+  Gift,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ import AdminUserManagement from '@/components/AdminUserManagement';
 import AdminQuotesManager from '@/components/AdminQuotesManager';
 import AdminOrdersManager from '@/components/AdminOrdersManager';
 import AdminDashboardMetrics from '@/components/AdminDashboardMetrics';
+import AdminReferralsManager from '@/components/AdminReferralsManager';
 import { DragDropEditor } from '@/components/DragDropEditor';
 
 const AdminDashboard = () => {
@@ -172,6 +174,11 @@ const AdminDashboard = () => {
                 <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Users</span>
               </TabsTrigger>
+
+              <TabsTrigger value="referrals" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <Gift className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Referrals</span>
+              </TabsTrigger>
               
               <TabsTrigger value="api-manager" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <Users className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -249,6 +256,11 @@ const AdminDashboard = () => {
           {/* Quotes Tab */}
           <TabsContent value="quotes" className="space-y-6">
             <AdminQuotesManager />
+          </TabsContent>
+
+          {/* Referrals Tab */}
+          <TabsContent value="referrals" className="space-y-6">
+            <AdminReferralsManager />
           </TabsContent>
 
           {/* Content Editor Tab - Only for main admins */}

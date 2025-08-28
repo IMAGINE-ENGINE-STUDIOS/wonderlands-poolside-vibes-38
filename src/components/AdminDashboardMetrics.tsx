@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, Star, ShoppingCart, Database } from 'lucide-react';
+import { DollarSign, Star, ShoppingCart, Database, Gift } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface DashboardMetrics {
@@ -11,6 +11,9 @@ interface DashboardMetrics {
   pendingOrders: number;
   totalQuotes: number;
   pendingQuotes: number;
+  totalReferrals: number;
+  convertedReferrals: number;
+  totalCommissions: number;
 }
 
 const AdminDashboardMetrics = () => {
@@ -22,6 +25,9 @@ const AdminDashboardMetrics = () => {
     pendingOrders: 0,
     totalQuotes: 0,
     pendingQuotes: 0,
+    totalReferrals: 0,
+    convertedReferrals: 0,
+    totalCommissions: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -47,9 +53,19 @@ const AdminDashboardMetrics = () => {
         console.error('Error fetching quotes:', quotesError);
       }
 
+      // Fetch referrals data
+      const { data: referrals, error: referralsError } = await supabase
+        .from('referrals')
+        .select('status, estimated_commission');
+
+      if (referralsError) {
+        console.error('Error fetching referrals:', referralsError);
+      }
+
       // Calculate metrics
       const ordersData = orders || [];
       const quotesData = quotes || [];
+      const referralsData = referrals || [];
 
       const completedOrders = ordersData.filter(o => o.payment_status === 'completed');
       const totalRevenue = completedOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
@@ -62,6 +78,12 @@ const AdminDashboardMetrics = () => {
       const totalQuotes = quotesData.length;
       const pendingQuotes = quotesData.filter(q => q.status === 'pending').length;
 
+      const totalReferrals = referralsData.length;
+      const convertedReferrals = referralsData.filter(r => r.status === 'converted').length;
+      const totalCommissions = referralsData
+        .filter(r => r.status === 'converted')
+        .reduce((sum, r) => sum + (r.estimated_commission || 0), 0);
+
       setMetrics({
         totalRevenue,
         averageOrderValue,
@@ -70,6 +92,9 @@ const AdminDashboardMetrics = () => {
         pendingOrders,
         totalQuotes,
         pendingQuotes,
+        totalReferrals,
+        convertedReferrals,
+        totalCommissions,
       });
     } catch (error) {
       console.error('Error fetching dashboard metrics:', error);
@@ -89,8 +114,8 @@ const AdminDashboardMetrics = () => {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-        {Array.from({ length: 4 }).map((_, index) => (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {Array.from({ length: 5 }).map((_, index) => (
           <Card key={index} className="hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div>
@@ -107,7 +132,7 @@ const AdminDashboardMetrics = () => {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6 mb-6 sm:mb-8">
       <Card className="hover:shadow-lg transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -143,6 +168,19 @@ const AdminDashboardMetrics = () => {
           <div className="text-2xl font-bold text-blue-600">{metrics.totalOrders}</div>
           <p className="text-xs text-muted-foreground">
             {metrics.completedOrders} completed, {metrics.pendingOrders} pending
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Referrals</CardTitle>
+          <Gift className="h-4 w-4 text-coral" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-coral">{metrics.totalReferrals}</div>
+          <p className="text-xs text-muted-foreground">
+            {metrics.convertedReferrals} converted
           </p>
         </CardContent>
       </Card>
