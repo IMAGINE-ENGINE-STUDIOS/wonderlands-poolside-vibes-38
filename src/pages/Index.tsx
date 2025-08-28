@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
@@ -28,7 +27,7 @@ const Index = () => {
     <div className="min-h-screen">
       <Header />
       <Hero />
-{/* Anchors for RightNavigation */}
+      {/* Anchors for RightNavigation */}
       <div id="pools" />
       <PoolCatalog />
       <div id="spas" />
@@ -36,12 +35,14 @@ const Index = () => {
       <TanningLedgeSection />
       <div id="finishes" />
       <PoolFinishesSection />
-      <div id="covers" />
-      <AutomaticCoversSection />
+      <div id="liners" />
+      <LinersSection />
       <div id="screen-enclosures" />
       <ScreenEnclosureSection />
       <div id="pavers" />
       <PaversSection />
+      <div id="covers" />
+      <AutomaticCoversSection />
       <Footer />
     </div>
   );

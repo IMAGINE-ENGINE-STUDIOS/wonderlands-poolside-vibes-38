@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Droplets, Palette, Shield, Star, DollarSign, ShoppingCart } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { useShoppingCart } from "./ShoppingCart";
@@ -82,99 +83,81 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {poolLiners.map((liner, index) => (
-              <Card 
-                key={liner.name} 
-                className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer"
-                onClick={() => handleLinerClick(liner)}
-              >
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <Badge className={`${getTypeColor(liner.type)} text-white capitalize font-medium px-3 py-1`}>
-                      <span className="flex items-center gap-1">
-                        {getTypeIcon(liner.type)}
-                        {liner.type}
-                      </span>
-                    </Badge>
-                    <div className="flex items-center gap-1 text-amber-500">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} size={12} fill={i < 4 ? "currentColor" : "none"} />
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {liner.name}
-                  </CardTitle>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  {/* Liner Preview */}
-                  <div className="w-full h-64 rounded-lg overflow-hidden border-2 border-muted">
-                    <img 
-                      src={liner.image} 
-                      alt={liner.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-                  
-                  {/* Price */}
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-teal" />
-                    <span className="text-2xl font-bold text-foreground">
-                      $4,500
-                    </span>
-                  </div>
-                  
-                  {/* Description */}
-                  <div className="space-y-3">
-                    <p className="text-sm text-muted-foreground">
-                      {liner.description}
-                    </p>
-                    
-                    {/* Additional Details */}
-                    <div className="space-y-2">
-                      <h4 className="font-semibold text-primary">Features:</h4>
-                      <ul className="grid grid-cols-2 gap-1 text-xs">
-                        <li className="flex items-center gap-1">
-                          <div className="w-1 h-1 bg-primary rounded-full"></div>
-                          Premium Material
-                        </li>
-                        <li className="flex items-center gap-1">
-                          <div className="w-1 h-1 bg-primary rounded-full"></div>
-                          UV Resistant
-                        </li>
-                        <li className="flex items-center gap-1">
-                          <div className="w-1 h-1 bg-primary rounded-full"></div>
-                          Easy Installation
-                        </li>
-                        <li className="flex items-center gap-1">
-                          <div className="w-1 h-1 bg-primary rounded-full"></div>
-                          Long Lasting
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                  
-                  <Separator />
-                  
-                  {/* Action Button */}
-                  <Button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLinerClick(liner);
-                    }}
-                    variant="default"
-                    className="w-full hover:scale-105 transition-all duration-300"
-                    size="sm"
-                  >
-                    View Detail
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+            <div className="flex gap-4 overflow-x-auto pb-4">
+              <Carousel className="w-full">
+                <CarouselContent className="-ml-1">
+                  {poolLiners.map((liner, index) => (
+                    <CarouselItem key={liner.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
+                      <Card 
+                        className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer h-full"
+                        onClick={() => handleLinerClick(liner)}
+                      >
+                        <CardHeader className="pb-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <Badge className={`${getTypeColor(liner.type)} text-white capitalize font-medium px-3 py-1`}>
+                              <span className="flex items-center gap-1">
+                                {getTypeIcon(liner.type)}
+                                {liner.type}
+                              </span>
+                            </Badge>
+                            <div className="flex items-center gap-1 text-amber-500">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star key={i} size={12} fill={i < 4 ? "currentColor" : "none"} />
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                            {liner.name}
+                          </CardTitle>
+                        </CardHeader>
+                        
+                        <CardContent className="space-y-4">
+                          {/* Liner Preview */}
+                          <div className="w-full h-32 rounded-lg overflow-hidden border-2 border-muted">
+                            <img 
+                              src={liner.image} 
+                              alt={liner.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
+                          </div>
+                          
+                          {/* Price */}
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="h-5 w-5 text-teal" />
+                            <span className="text-xl font-bold text-foreground">
+                              $4,500
+                            </span>
+                          </div>
+                          
+                          {/* Description */}
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {liner.description}
+                          </p>
+                          
+                          <Separator />
+                          
+                          {/* Action Button */}
+                          <Button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleLinerClick(liner);
+                            }}
+                            variant="default"
+                            className="w-full hover:scale-105 transition-all duration-300"
+                            size="sm"
+                          >
+                            View Detail
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0" />
+                <CarouselNext className="right-0" />
+              </Carousel>
+            </div>
         </div>
       </section>
       

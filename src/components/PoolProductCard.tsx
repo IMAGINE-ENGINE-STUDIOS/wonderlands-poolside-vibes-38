@@ -1224,31 +1224,136 @@ const PoolProductCard = ({
         {/* Default Action Buttons */}
         {!showDetails && <div className="space-y-2">
             <Button onClick={() => {
-          const params = new URLSearchParams({
-            model: pool.model,
-            price: pool.price.toString(),
-            category: pool.category,
-            ...(pool.image && {
-              image: pool.image
-            }),
-            ...(pool.dimensions && {
-              dimensions: pool.dimensions
-            }),
-            ...(pool.depth && {
-              depth: pool.depth
-            }),
-            ...(pool.installationTimeWeeks && {
-              installationTimeWeeks: pool.installationTimeWeeks.toString()
-            }),
-            ...(pool.warrantyYears && {
-              warrantyYears: pool.warrantyYears.toString()
-            }),
-            saltSystem: pool.saltSystem?.toString() || 'false',
-            carbonFiber: pool.carbonFiber?.toString() || 'false'
-          });
-          window.open(`/pool/${pool.model.replace(/\s+/g, '-').toLowerCase()}?${params.toString()}`, '_blank');
-        }} variant="outline" className="w-full" size="sm">
-              Editor Studio
+              // Create extras breakdown for quote
+              const extrasBreakdown = [];
+              
+              // Add finish if not default
+              const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
+              if (selectedFinish && selectedFinish.price) {
+                extrasBreakdown.push({
+                  name: selectedFinish.name,
+                  price: selectedFinish.price,
+                  image: selectedFinish.image
+                });
+              }
+              
+              // Add heater if selected
+              if (extras.heater) {
+                const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
+                if (selectedHeater) {
+                  extrasBreakdown.push({
+                    name: selectedHeater.name,
+                    price: selectedHeater.price,
+                    image: selectedHeater.image
+                  });
+                }
+              }
+              
+              // Add jets if selected
+              if (extras.jets) {
+                extrasBreakdown.push({
+                  name: `Spa Jets (${extras.jetQuantity})`,
+                  price: getExtraPrice('jets') * extras.jetQuantity,
+                  image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+                });
+              }
+              
+              // Add liner if selected and not standard
+              const linerOption = linerOptions.find(option => option.name === extras.linerOption);
+              if (linerOption && extras.linerOption !== 'Standard Blue') {
+                extrasBreakdown.push({
+                  name: `${linerOption.name} Liner`,
+                  price: 4500,
+                  image: linerOption.image
+                });
+              }
+              
+              // Add cover if selected
+              const coverOption = coverOptions.find(option => option.name === extras.coverOption);
+              if (coverOption && extras.cover && coverOption.name !== 'NO COVER') {
+                extrasBreakdown.push({
+                  name: coverOption.name,
+                  price: coverOption.price,
+                  image: coverOption.image
+                });
+              }
+              
+              // Add tiles if selected
+              const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+              if (tileOption && extras.tiles) {
+                extrasBreakdown.push({
+                  name: tileOption.name,
+                  price: tileOption.price,
+                  image: tileOption.image
+                });
+              }
+              
+              // Add paver surface area cost
+              if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+                extrasBreakdown.push({
+                  name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
+                  price: parseFloat(paverSurfaceArea) * 15,
+                  image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
+                });
+              }
+              
+              // Add spa if selected
+              if (extras.spa) {
+                const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
+                if (selectedSpa) {
+                  extrasBreakdown.push({
+                    name: `${selectedSpa.model} Spa`,
+                    price: selectedSpa.price,
+                    image: selectedSpa.image
+                  });
+                }
+              }
+              
+              // Add tanning ledge if selected
+              if (extras.tanningLedge) {
+                const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
+                if (selectedLedge) {
+                  extrasBreakdown.push({
+                    name: `${selectedLedge.name} Tanning Ledge`,
+                    price: selectedLedge.price,
+                    image: selectedLedge.image
+                  });
+                }
+              }
+              
+              // Add screen enclosure if selected
+              if (extras.screenEnclosure && extras.screenEnclosureArea > 0) {
+                let pricePerSqFt = 15;
+                if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+                if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
+                extrasBreakdown.push({
+                  name: `Screen Enclosure - ${extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : '2 stories'} (${extras.screenEnclosureArea} sq ft)`,
+                  price: enclosurePrice,
+                  image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png'
+                });
+              }
+              
+              // Add concrete construction if selected
+              if (extras.concreteConstruction) {
+                const concreteMarkup = Math.round(pool.price * 0.2);
+                extrasBreakdown.push({
+                  name: 'Concrete Construction',
+                  price: concreteMarkup,
+                  image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+                });
+              }
+              
+              const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
+              
+              onRequestQuote(pool, {
+                ...extras,
+                extrasBreakdown,
+                extrasTotal,
+                deliveryTime: extras.concreteConstruction ? '8-12 weeks+' : '6 weeks'
+              });
+            }} variant="outline" className="w-full" size="sm">
+              Instant Quote
             </Button>
             <Button onClick={handleImageClick} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">
               View Details
