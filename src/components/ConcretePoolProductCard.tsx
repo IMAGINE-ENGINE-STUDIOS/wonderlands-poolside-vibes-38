@@ -113,7 +113,9 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
   };
 
   const calculateArea = () => {
-    if (config.selectedModel !== 'custom') {
+    const customShapeOptions = ['custom', 'rectangular', 'free-form', 'kidney'];
+    
+    if (!customShapeOptions.includes(config.selectedModel)) {
       // Use selected pool model dimensions
       const selectedPool = pools.find(pool => pool.model === config.selectedModel);
       if (selectedPool) {
@@ -277,7 +279,8 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
     
     const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
     
-    const selectedPool = config.selectedModel !== 'custom' && config.selectedModel !== 'rectangular' && config.selectedModel !== 'free-form' && config.selectedModel !== 'kidney' ? 
+    const customShapeOptions = ['custom', 'rectangular', 'free-form', 'kidney'];
+    const selectedPool = !customShapeOptions.includes(config.selectedModel) ? 
       pools.find(pool => pool.model === config.selectedModel) : null;
     
     const poolData = {
@@ -374,7 +377,7 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
             <span className="font-semibold text-primary">Pool Area: {calculateArea()} sq ft</span>
           </div>
           <div className="text-sm text-muted-foreground">
-            {config.selectedModel !== 'custom' && config.selectedModel !== 'rectangular' && config.selectedModel !== 'free-form' && config.selectedModel !== 'kidney' ? (
+            {!['custom', 'rectangular', 'free-form', 'kidney'].includes(config.selectedModel) ? (
               <>Model: {config.selectedModel} @ ${CONCRETE_PRICE_PER_SQF}/sq ft</>
             ) : (
               <>{config.length}′ × {config.width}′ {config.shape} @ ${CONCRETE_PRICE_PER_SQF}/sq ft</>
