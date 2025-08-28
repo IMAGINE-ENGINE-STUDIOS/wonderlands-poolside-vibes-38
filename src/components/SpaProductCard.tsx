@@ -218,8 +218,14 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
     });
   };
 
-  const calculateTotalPrice = () => {
+const calculateTotalPrice = () => {
     let total = spa.price;
+    
+    // Add finish price if selected and has additional cost
+    const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
+    if (selectedFinish && typeof selectedFinish.price === 'number' && selectedFinish.price > 0) {
+      total += selectedFinish.price;
+    }
     
     // Add heater price if selected (dynamic price based on model)
     if (extras.heater) {
@@ -722,7 +728,17 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
               size="sm" 
               onClick={() => {
                 // Create detailed extras breakdown for quote tool
-                const extrasBreakdown = [];
+const extrasBreakdown = [] as Array<{ name: string; price: number; image?: string }>; 
+                
+                // Add finish if it has an additional cost
+                const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
+                if (selectedFinish && typeof selectedFinish.price === 'number' && selectedFinish.price > 0) {
+                  extrasBreakdown.push({
+                    name: `${selectedFinish.name} Finish`,
+                    price: selectedFinish.price,
+                    image: selectedFinish.image
+                  });
+                }
                 
                 // Add heater if selected
                 if (extras.heater) {

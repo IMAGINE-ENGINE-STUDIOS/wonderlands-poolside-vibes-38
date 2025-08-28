@@ -20,15 +20,17 @@ interface TanningLedge {
 const TanningLedgeSection = () => {
   const [selectedLedge, setSelectedLedge] = useState<TanningLedge | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [selectedExtras, setSelectedExtras] = useState<any>(null);
 
   const handleViewDetails = (ledge: TanningLedge) => {
     setSelectedLedge(ledge);
   };
 
-  const handleRequestQuote = (ledge: TanningLedge, extras?: any) => {
-    setSelectedLedge(ledge);
-    setShowQuoteModal(true);
-  };
+const handleRequestQuote = (ledge: TanningLedge, extras?: any) => {
+  setSelectedLedge(ledge);
+  setSelectedExtras(extras || null);
+  setShowQuoteModal(true);
+};
 
   // Convert tanningLedges to include category for spa-like format
   const tanningLedgesWithCategory = tanningLedges.map(ledge => ({
@@ -64,7 +66,7 @@ const TanningLedgeSection = () => {
         </div>
       </section>
       
-      <SurveyQuoteTool 
+<SurveyQuoteTool 
         pool={null}
         isOpen={showQuoteModal}
         onClose={() => setShowQuoteModal(false)}
@@ -73,6 +75,7 @@ const TanningLedgeSection = () => {
           price: selectedLedge.price,
           type: 'tanning_ledge'
         } : undefined}
+        extras={selectedExtras}
       />
     </>
   );

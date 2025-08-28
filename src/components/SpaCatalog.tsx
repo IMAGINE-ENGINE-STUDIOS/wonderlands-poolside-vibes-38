@@ -96,16 +96,18 @@ const SpaCatalog = () => {
   const [selectedSpa, setSelectedSpa] = useState<Spa | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [selectedExtras, setSelectedExtras] = useState<any>(null);
 
   const handleViewDetails = (spa: Spa) => {
     setSelectedSpa(spa);
     setShowDetailModal(true);
   };
 
-  const handleRequestQuote = (spa: Spa, extras?: any) => {
-    setSelectedSpa(spa);
-    setShowQuoteModal(true);
-  };
+const handleRequestQuote = (spa: Spa, extras?: any) => {
+  setSelectedSpa(spa);
+  setSelectedExtras(extras || null);
+  setShowQuoteModal(true);
+};
 
   return (
     <>
@@ -143,7 +145,7 @@ const SpaCatalog = () => {
         />
       )}
 
-      {/* Quote Tool */}
+{/* Quote Tool */}
       <SurveyQuoteTool 
         pool={null}
         isOpen={showQuoteModal}
@@ -153,6 +155,7 @@ const SpaCatalog = () => {
           price: selectedSpa.price,
           type: 'spa'
         } : undefined}
+        extras={selectedExtras}
       />
     </>
   );
