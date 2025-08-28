@@ -314,8 +314,18 @@ const ScreenEnclosureSection = () => {
         onClose={() => setShowQuoteModal(false)}
         customProduct={selectedEnclosure ? {
           name: selectedEnclosure.name,
-          price: selectedEnclosure.pricePerSqFt,
+          price: 0, // price will be derived from extras (sq ft * rate)
           type: 'screen-enclosure'
+        } : undefined}
+        extras={selectedEnclosure && squareFootage > 0 ? {
+          extrasBreakdown: [
+            {
+              name: `Screen Enclosure - ${selectedEnclosure.type.charAt(0).toUpperCase() + selectedEnclosure.type.slice(1)} (${squareFootage} sq ft)`,
+              price: squareFootage * selectedEnclosure.pricePerSqFt,
+              image: selectedEnclosure.image
+            }
+          ],
+          extrasTotal: squareFootage * selectedEnclosure.pricePerSqFt
         } : undefined}
       />
     </>

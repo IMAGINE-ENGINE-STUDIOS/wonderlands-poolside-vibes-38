@@ -516,8 +516,8 @@ const PoolProductCard = ({
       }
     }
 
-    // Add screen enclosure to cart if selected
-    if (extras.screenEnclosure && extras.screenEnclosureArea > 0) {
+    // Add screen enclosure to cart if area provided
+    if (extras.screenEnclosureArea > 0) {
       let pricePerSqFt = 15;
       if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
       if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
@@ -1111,14 +1111,14 @@ const PoolProductCard = ({
                 }
               }
               
-              // Add screen enclosure if selected
-              if (extras.screenEnclosure && extras.screenEnclosureArea > 0) {
+              // Add screen enclosure if area provided
+              if (extras.screenEnclosureArea > 0) {
                 let pricePerSqFt = 15;
                 if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
                 if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
                 const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
                 extrasBreakdown.push({
-                  name: `Screen Enclosure - ${extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : '2 stories'} (${extras.screenEnclosureArea} sq ft)`,
+                  name: `Screen Enclosure - ${extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : 'Premium'} (${extras.screenEnclosureArea} sq ft)`,
                   price: enclosurePrice,
                   image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png'
                 });
@@ -1299,14 +1299,14 @@ const PoolProductCard = ({
                 }
               }
               
-              // Add screen enclosure if selected
-              if (extras.screenEnclosure && extras.screenEnclosureArea > 0) {
+              // Add screen enclosure if area provided
+              if (extras.screenEnclosureArea > 0) {
                 let pricePerSqFt = 15;
                 if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
                 if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
                 const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
                 extrasBreakdown.push({
-                  name: `Screen Enclosure - ${extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : '2 stories'} (${extras.screenEnclosureArea} sq ft)`,
+                  name: `Screen Enclosure - ${extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : 'Premium'} (${extras.screenEnclosureArea} sq ft)`,
                   price: enclosurePrice,
                   image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png'
                 });
