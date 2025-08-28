@@ -12,6 +12,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useShoppingCart } from "./ShoppingCart";
 
+// Helper function to get discounted price for deluxe pools
+const getPoolPrice = (pool: Pool) => {
+  if (pool.category === 'deluxe') {
+    return Math.round(pool.price * 0.75); // 25% discount
+  }
+  return pool.price;
+};
+
 // Import the same data sources as PoolProductCard
 import { spas } from "./PoolCatalog";
 import { tanningLedges } from "@/data/poolData";

@@ -4,6 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { DollarSign, Ruler, Waves, Calendar, MapPin, FileText } from "lucide-react";
 
+// Helper function to get discounted price for deluxe pools
+const getPoolPrice = (pool: Pool) => {
+  if (pool.category === 'deluxe') {
+    return Math.round(pool.price * 0.75); // 25% discount
+  }
+  return pool.price;
+};
+
 interface Pool {
   model: string;
   price: number;
@@ -115,8 +123,16 @@ const PoolDetailModal = ({ pool, isOpen, onClose, onRequestQuote }: PoolDetailMo
               <DollarSign className="h-6 w-6 text-teal" />
               <div>
                 <p className="text-3xl font-bold text-foreground">
-                  ${pool.price.toLocaleString()}
+                  ${getPoolPrice(pool).toLocaleString()}
                 </p>
+                {pool.category === 'deluxe' && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-sm text-muted-foreground line-through">
+                      ${pool.price.toLocaleString()}
+                    </span>
+                    <Badge className="bg-red-500 text-white text-xs">25% OFF</Badge>
+                  </div>
+                )}
                 <p className="text-sm text-muted-foreground">Complete installation in Florida</p>
               </div>
             </div>

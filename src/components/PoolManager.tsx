@@ -13,6 +13,14 @@ import { Plus, Edit, Trash2, Save, X, Upload, Waves } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+// Helper function to get discounted price for deluxe pools
+const getPoolPrice = (pool: Pool) => {
+  if (pool.category === 'deluxe') {
+    return Math.round(pool.price * 0.75); // 25% discount
+  }
+  return pool.price;
+};
+
 interface Pool {
   id?: string;
   model: string;
@@ -414,7 +422,7 @@ const PoolManager = () => {
             
             <CardContent className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold text-primary">${pool.price.toLocaleString()}</span>
+                <span className="text-2xl font-bold text-primary">${getPoolPrice(pool).toLocaleString()}</span>
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Waves className="w-4 h-4 mr-1" />
                   {pool.dimensions || 'N/A'}

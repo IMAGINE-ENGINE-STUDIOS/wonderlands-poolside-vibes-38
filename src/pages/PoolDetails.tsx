@@ -23,6 +23,15 @@ import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
 import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
+
+// Helper function to get discounted price for deluxe pools
+const getPoolPrice = (pool: Pool) => {
+  if (pool.category === 'deluxe') {
+    return Math.round(pool.price * 0.75); // 25% discount
+  }
+  return pool.price;
+};
+
 interface Pool {
   model: string;
   price: number;
@@ -747,7 +756,7 @@ const PoolDetails = () => {
                   </div>
                   <div class="spec-item">
                     <div class="spec-label">Base Investment</div>
-                    <div class="spec-value">$${pool.price.toLocaleString()}</div>
+                    <div class="spec-value">$${getPoolPrice(pool).toLocaleString()}</div>
                   </div>
                   ${pool.dimensions ? `
                     <div class="spec-item">
@@ -777,7 +786,7 @@ const PoolDetails = () => {
                       <div class="item-name">${pool.model} Pool</div>
                       <div class="item-category">Base Pool Package</div>
                     </div>
-                    <div class="item-price item-price-main">$${pool.price.toLocaleString()}</div>
+                    <div class="item-price item-price-main">$${getPoolPrice(pool).toLocaleString()}</div>
                   </div>
 
                   ${selectedItems.map(item => `
@@ -850,11 +859,11 @@ const PoolDetails = () => {
                   <div class="investment-breakdown">
                     <div class="breakdown-item">
                       <div class="breakdown-label">Pool Package</div>
-                      <div class="breakdown-value">$${pool.price.toLocaleString()}</div>
+                      <div class="breakdown-value">$${getPoolPrice(pool).toLocaleString()}</div>
                     </div>
                     <div class="breakdown-item">
                       <div class="breakdown-label">Premium Upgrades</div>
-                      <div class="breakdown-value">$${(totalPrice - pool.price).toLocaleString()}</div>
+                      <div class="breakdown-value">$${(totalPrice - getPoolPrice(pool)).toLocaleString()}</div>
                     </div>
                   </div>
                 </div>
@@ -1475,7 +1484,7 @@ const PoolDetails = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center text-xs sm:text-sm">
                         <span>Base Pool ({pool.model})</span>
-                        <span>${pool.price.toLocaleString()}</span>
+                        <span>${getPoolPrice(pool).toLocaleString()}</span>
                       </div>
                       
                       {getConfigurationItems().map((item, index) => (
@@ -1555,7 +1564,7 @@ const PoolDetails = () => {
                       </Badge>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg sm:text-2xl font-bold">${pool.price.toLocaleString()}</div>
+                      <div className="text-lg sm:text-2xl font-bold">${getPoolPrice(pool).toLocaleString()}</div>
                       <div className="text-xs sm:text-sm opacity-90">Base Price</div>
                     </div>
                   </div>

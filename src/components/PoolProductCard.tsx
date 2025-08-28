@@ -23,6 +23,15 @@ import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
 import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
+
+// Helper function to get discounted price for deluxe pools
+const getPoolPrice = (pool: Pool) => {
+  if (pool.category === 'deluxe') {
+    return Math.round(pool.price * 0.75); // 25% discount
+  }
+  return pool.price;
+};
+
 interface Pool {
   model: string;
   price: number;
@@ -361,7 +370,7 @@ const PoolProductCard = ({
     });
   };
   const calculateTotalPrice = () => {
-    let total = pool.price;
+    let total = getPoolPrice(pool);
 
     // Add 20% markup for concrete construction
     if (extras.concreteConstruction) {
@@ -475,7 +484,7 @@ const PoolProductCard = ({
 
     // Add concrete construction markup to cart if selected
     if (extras.concreteConstruction) {
-      const concreteMarkup = Math.round(pool.price * 0.2);
+      const concreteMarkup = Math.round(getPoolPrice(pool) * 0.2);
       cartExtras.push({
         name: 'Concrete Construction',
         price: concreteMarkup
@@ -578,14 +587,26 @@ const PoolProductCard = ({
         </div>
         
         {/* Price */}
-        <div className="flex items-center gap-2">
-          <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
-          <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
-            ${calculateTotalPrice().toLocaleString()}
-          </span>
-          {hasExtras && <span className="text-xs sm:text-sm text-muted-foreground line-through">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
+            <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
+              ${calculateTotalPrice().toLocaleString()}
+            </span>
+          </div>
+          {pool.category === 'deluxe' && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm text-muted-foreground line-through">
+                ${pool.price.toLocaleString()}
+              </span>
+              <Badge className="bg-red-500 text-white text-xs">25% OFF</Badge>
+            </div>
+          )}
+          {hasExtras && pool.category !== 'deluxe' && (
+            <span className="text-xs sm:text-sm text-muted-foreground line-through">
               ${pool.price.toLocaleString()}
-            </span>}
+            </span>
+          )}
         </div>
         
         {/* Features & Tech */}
@@ -886,7 +907,7 @@ const PoolProductCard = ({
                      <Checkbox checked={extras.concreteConstruction} onCheckedChange={() => toggleExtra('concreteConstruction')} className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" />
                      <div className="flex items-center space-x-1">
                        <Shield size={16} className="text-coral" />
-                        <span className="text-sm">Make it on Concrete (+${Math.round((pool.price * 0.2)).toLocaleString()})</span>
+                        <span className="text-sm">Make it on Concrete (+${Math.round((getPoolPrice(pool) * 0.2)).toLocaleString()})</span>
                      </div>
                    </label>
                    {extras.concreteConstruction && (
@@ -1126,7 +1147,7 @@ const PoolProductCard = ({
               
               // Add concrete construction if selected
               if (extras.concreteConstruction) {
-                const concreteMarkup = Math.round(pool.price * 0.2);
+                const concreteMarkup = Math.round(getPoolPrice(pool) * 0.2);
                 extrasBreakdown.push({
                   name: 'Concrete Construction',
                   price: concreteMarkup,
@@ -1314,7 +1335,7 @@ const PoolProductCard = ({
               
               // Add concrete construction if selected
               if (extras.concreteConstruction) {
-                const concreteMarkup = Math.round(pool.price * 0.2);
+                const concreteMarkup = Math.round(getPoolPrice(pool) * 0.2);
                 extrasBreakdown.push({
                   name: 'Concrete Construction',
                   price: concreteMarkup,

@@ -80,6 +80,14 @@ export const poolFinishes = [
   "Courtstone Gray", "Courtstone Blue"
 ];
 
+// Helper function to get discounted price for deluxe pools
+const getPoolPrice = (pool: Pool) => {
+  if (pool.category === 'deluxe') {
+    return Math.round(pool.price * 0.75); // 25% discount
+  }
+  return pool.price;
+};
+
 const pools: Pool[] = [
   // Enchantment Series
   { 
