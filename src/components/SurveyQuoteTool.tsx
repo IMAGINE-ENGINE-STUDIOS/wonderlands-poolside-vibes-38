@@ -653,8 +653,30 @@ const SurveyQuoteTool = ({
                           // Find the paver image from paverTypes - extract correct paver name
                           const selectedPaverName = paverItem.name.split(' (')[0];
                           
-                          // Map paver names to their actual images
+                          // Comprehensive paver image mapping based on paverData.ts
                           const paverImages = {
+                            // Appian Collection
+                            'Appian Adobe': '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
+                            'Appian Amaretto': '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png',
+                            'Appian Harvest Blend': '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png',
+                            'Appian Knightsbridge': '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png',
+                            'Appian Napoli': '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.png',
+                            'Appian Rio': '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.png',
+                            'Appian Slate': '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.png',
+                            'Appian Titanium': '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
+                            'Appian Charco': '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.png',
+                            // Catalina Grana Collection
+                            'Catalina Grana Amaretto': '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png',
+                            'Catalina Grana Napoli': '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.png',
+                            'Catalina Grana Rio': '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.png',
+                            'Catalina Grana Scandina Gray': '/lovable-uploads/638972ac-6a43-41e7-ae3c-bce58ab9417b.png',
+                            'Catalina Grana Slate': '/lovable-uploads/d85c2bf0-0a66-4aa0-9f64-5e76b511b428.png',
+                            'Catalina Grana Titanium': '/lovable-uploads/6aefa246-2c01-43a1-8a58-e195ec3355dc.png',
+                            // Catalina Collection
+                            'Catalina Napoli': '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.png',
+                            'Catalina Slate': '/lovable-uploads/3f98fbbb-b09a-4dbc-82f5-5d811564b9f4.png',
+                            'Catalina Titanium': '/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.png',
+                            // Fallback brands
                             'Premier Pavers': '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
                             'Belgard Pavers': '/lovable-uploads/46d142d3-b106-406d-9867-9bf7b63fd469.png',
                             'Tremron Pavers': '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png',
@@ -761,9 +783,31 @@ const SurveyQuoteTool = ({
                     } else if (item.name.includes('Concrete Construction')) {
                       itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
                     } else if (item.name.includes('sq ft') && !item.name.includes('Screen Enclosure')) {
-                      // Map paver names to their actual images
+                      // Map paver names to their actual images - comprehensive mapping
                       const paverName = item.name.split(' (')[0];
                       const paverImages = {
+                        // Appian Collection
+                        'Appian Adobe': '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
+                        'Appian Amaretto': '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png',
+                        'Appian Harvest Blend': '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png',
+                        'Appian Knightsbridge': '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png',
+                        'Appian Napoli': '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.png',
+                        'Appian Rio': '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.png',
+                        'Appian Slate': '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.png',
+                        'Appian Titanium': '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
+                        'Appian Charco': '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.png',
+                        // Catalina Grana Collection
+                        'Catalina Grana Amaretto': '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png',
+                        'Catalina Grana Napoli': '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.png',
+                        'Catalina Grana Rio': '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.png',
+                        'Catalina Grana Scandina Gray': '/lovable-uploads/638972ac-6a43-41e7-ae3c-bce58ab9417b.png',
+                        'Catalina Grana Slate': '/lovable-uploads/d85c2bf0-0a66-4aa0-9f64-5e76b511b428.png',
+                        'Catalina Grana Titanium': '/lovable-uploads/6aefa246-2c01-43a1-8a58-e195ec3355dc.png',
+                        // Catalina Collection
+                        'Catalina Napoli': '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.png',
+                        'Catalina Slate': '/lovable-uploads/3f98fbbb-b09a-4dbc-82f5-5d811564b9f4.png',
+                        'Catalina Titanium': '/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.png',
+                        // Fallback brands
                         'Premier Pavers': '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
                         'Belgard Pavers': '/lovable-uploads/46d142d3-b106-406d-9867-9bf7b63fd469.png',
                         'Tremron Pavers': '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png',
