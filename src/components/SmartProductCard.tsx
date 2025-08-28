@@ -85,35 +85,51 @@ const SmartProductCard = ({
   onEdit 
 }: SmartProductCardProps) => {
   const [showOptions, setShowOptions] = useState(false);
+  const [primaryOptions, setPrimaryOptions] = useState<any>({});
+  const [screenOptions, setScreenOptions] = useState<any | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<any>({});
   const [totalPrice, setTotalPrice] = useState(price);
   const { addToCart } = useShoppingCart();
 
-  const handleOptionsChange = (options: any) => {
-    setSelectedOptions(options);
-    // Calculate price changes based on options
-    let calculatedPrice = price;
-    
-    // Add option-specific pricing logic here
-    if (options.surfaceArea && (category === 'paver' || category === 'coping')) {
-      calculatedPrice += parseFloat(options.surfaceArea) * 15;
+  const recomputeTotal = (basePrice = price, primary = primaryOptions, screen = screenOptions) => {
+    let calculated = basePrice;
+
+    if (primary?.surfaceArea && (category === 'paver' || category === 'coping')) {
+      calculated += parseFloat(primary.surfaceArea) * 15;
     }
-    
-    if (options.totalPrice && category === 'screen-enclosure') {
-      calculatedPrice = options.totalPrice;
+
+    // Add screen enclosure as an add-on for non-screen products
+    if (screen?.totalPrice && category !== 'screen-enclosure') {
+      calculated += Number(screen.totalPrice);
     }
-    
-    setTotalPrice(calculatedPrice);
+
+    // For standalone screen-enclosure product, use its computed total
+    if (category === 'screen-enclosure' && primary?.totalPrice) {
+      calculated = Number(primary.totalPrice);
+    }
+
+    setTotalPrice(calculated);
   };
 
+  const handlePrimaryOptionsChange = (options: any) => {
+    setPrimaryOptions(options);
+    setSelectedOptions((prev: any) => ({ ...prev, primary: options }));
+    recomputeTotal(price, options, screenOptions);
+  };
+
+  const handleScreenOptionsChange = (options: any) => {
+    setScreenOptions(options);
+    setSelectedOptions((prev: any) => ({ ...prev, screenEnclosure: options }));
+    recomputeTotal(price, primaryOptions, options);
+  };
   const handleAddToCart = () => {
     const cartItem = {
       id: `${category}_${id}_${Date.now()}`,
-      name: name,
+      name,
       price: totalPrice,
-      category: category,
-      image: selectedOptions.image || image,
-      extras: selectedOptions ? [{ 
+      category,
+      image: (screenOptions?.image as string) || image,
+      extras: totalPrice !== price ? [{ 
         name: 'Custom Options', 
         price: totalPrice - price,
         details: selectedOptions 
@@ -122,7 +138,6 @@ const SmartProductCard = ({
     
     addToCart(cartItem);
   };
-
   return (
     <>
       <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-2 hover:border-primary/40 overflow-hidden">
@@ -267,11 +282,24 @@ const SmartProductCard = ({
             <ProductOptionsManager 
               productType={category}
               productName={name}
-              onOptionsChange={handleOptionsChange}
+              onOptionsChange={handlePrimaryOptionsChange}
             />
-            
+
+            {category !== 'screen-enclosure' && (
+              <>
+                <Separator />
+                <div className="space-y-2">
+                  <h4 className="font-semibold">Screen Enclosure (Add-on)</h4>
+                  <ProductOptionsManager
+                    productType="screen-enclosure"
+                    productName="Screen Enclosure"
+                    onOptionsChange={handleScreenOptionsChange}
+                  />
+                </div>
+              </>
+            )}
+
             <Separator />
-            
             {/* Price Summary */}
             <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
               <div>

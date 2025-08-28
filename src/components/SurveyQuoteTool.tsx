@@ -161,9 +161,8 @@ const SurveyQuoteTool = ({
     // Add selected options (including screen enclosures with area-based pricing)
     const optionsPrice = selectedOptions.reduce((total, option) => {
       if (option.category === 'screen-enclosure') {
-        // Calculate screen enclosure price based on area
-        const poolArea = getPoolArea();
-        const enclosureArea = poolArea + 500; // Add 500 sq ft for enclosure area around pool
+        // Calculate screen enclosure price based on enclosure footprint area
+        const enclosureArea = getEnclosureArea();
         
         if (option.id.includes('standard-1-story')) {
           return total + (enclosureArea * 15);
@@ -201,6 +200,17 @@ const SurveyQuoteTool = ({
     const poolLength = dims[0] || 30;
     const poolWidth = dims[1] || 20;
     return poolLength * poolWidth;
+  };
+
+  // Calculate enclosure footprint as the pool plus the selected deck width around it
+  const getEnclosureArea = () => {
+    if (!pool?.dimensions) return 1100; // sensible default
+    const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+    const poolLength = dims[0] || 30;
+    const poolWidth = dims[1] || 20;
+    const deckWidth = parseInt(surveyData.deckWidth || '3');
+    const totalArea = (poolLength + 2 * deckWidth) * (poolWidth + 2 * deckWidth);
+    return totalArea; // enclosure covers entire footprint
   };
   const getIncludedItems = () => {
     return ["LED lights", "Water pump", "Waterfall", "Salt system", "FREE Finish of choice (included in pool price - promotional offer)"];
@@ -757,8 +767,7 @@ const SurveyQuoteTool = ({
                         
                         // Calculate area-based pricing for screen enclosures
                         if (option.category === 'screen-enclosure') {
-                          const poolArea = getPoolArea();
-                          const enclosureArea = poolArea + 500; // Add 500 sq ft for enclosure area around pool
+                          const enclosureArea = getEnclosureArea();
                           
                           if (option.id.includes('standard-1-story')) {
                             displayPrice = enclosureArea * 15;
@@ -787,7 +796,7 @@ const SurveyQuoteTool = ({
                             <p className="text-xs text-muted-foreground mb-2">{option.description}</p>
                             {option.category === 'screen-enclosure' && (
                               <p className="text-xs text-blue-600 mb-2">
-                                Calculated area: {getPoolArea() + 500} sq ft
+                                Calculated area: {getEnclosureArea()} sq ft
                               </p>
                             )}
                             <div className="flex justify-between text-sm">
