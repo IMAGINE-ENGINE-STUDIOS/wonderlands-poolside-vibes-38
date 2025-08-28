@@ -70,6 +70,7 @@ interface PoolExtras {
   screenEnclosureArea: number;
   screenEnclosureQuality: 'standard' | 'deluxe' | 'premium';
   concreteConstruction: boolean;
+  deliveryTime?: string;
   extrasBreakdown?: Array<{ name: string; price: number }>;
   extrasTotal?: number;
 }
@@ -376,20 +377,16 @@ const PoolProductCard = ({
     if (extras.cover) total += getExtraPrice('cover');
     if (extras.jets) total += getExtraPrice('jets') * extras.jetQuantity;
 
-    // Add option prices - liner is always added except when both tiles and liner are selected
+    // Add option prices - liner is always $4500 when selected
     const linerOption = linerOptions.find(option => option.name === extras.linerOption);
     const tileOption = tileOptions.find(option => option.name === extras.tileOption);
     
     // Always add tile price when tiles are selected
     if (tileOption && extras.tiles) total += tileOption.price;
     
-    // Add liner price when liner is selected, BUT make it free only when both tiles and liner are selected
+    // Add liner price ($4500) when liner is selected
     if (linerOption && extras.liner) {
-      if (!(extras.tiles && extras.liner)) {
-        // Liner is NOT free - add its price
-        total += linerOption.price;
-      }
-      // If both tiles and liner are selected, liner is free (no price added)
+      total += 4500; // Fixed price for any liner
     }
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
     if (coverOption && extras.cover && coverOption.name !== 'NO COVER') total += coverOption.price;
@@ -885,9 +882,12 @@ const PoolProductCard = ({
                       <Checkbox checked={extras.concreteConstruction} onCheckedChange={() => toggleExtra('concreteConstruction')} className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" />
                       <div className="flex items-center space-x-1">
                         <Shield size={16} className="text-coral" />
-                         <span className="text-sm">Make it on Concrete (+20% = +${Math.round((pool.price * 0.2)).toLocaleString()})</span>
+                         <span className="text-sm">Make it on Concrete (+${Math.round((pool.price * 0.2)).toLocaleString()})</span>
                       </div>
                     </label>
+                    {extras.concreteConstruction && (
+                      <p className="text-xs text-muted-foreground ml-6 mt-1">Premium concrete construction for enhanced durability and longevity.</p>
+                    )}
 
                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                      <Checkbox checked={extras.spa} onCheckedChange={() => toggleExtra('spa')} />
@@ -1084,13 +1084,12 @@ const PoolProductCard = ({
                 });
               }
               
-              // Add liner if selected (with free logic when both tiles and liner)
+              // Add liner if selected (always $4500)
               const linerOption = linerOptions.find(option => option.name === extras.linerOption);
               if (linerOption && extras.liner) {
-                const linerPrice = (extras.tiles && extras.liner) ? 0 : linerOption.price;
                 extrasBreakdown.push({
-                  name: `${linerOption.name} Liner${(extras.tiles && extras.liner) ? ' (FREE with tiles)' : ''}`,
-                  price: linerPrice
+                  name: `${linerOption.name} Liner`,
+                  price: 4500 // Fixed price for any liner
                 });
               }
               
@@ -1150,7 +1149,8 @@ const PoolProductCard = ({
               onRequestQuote(pool, {
                 ...extras,
                 extrasBreakdown,
-                extrasTotal
+                extrasTotal,
+                deliveryTime: extras.concreteConstruction ? '8-12 weeks+' : '6 weeks' // Add delivery time based on concrete construction
               });
             }} variant="outline" className="flex-1" size="sm">Instant Quote</Button>
               </div>
