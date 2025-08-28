@@ -69,7 +69,6 @@ interface PoolExtras {
   screenEnclosure: boolean;
   screenEnclosureArea: number;
   screenEnclosureQuality: 'standard' | 'deluxe' | 'premium';
-  concrete: boolean;
   extrasBreakdown?: Array<{ name: string; price: number }>;
   extrasTotal?: number;
 }
@@ -283,8 +282,7 @@ const PoolProductCard = ({
     copingPaverOption: 'No Coping',
     screenEnclosure: false,
     screenEnclosureArea: 0,
-    screenEnclosureQuality: 'standard',
-    concrete: false
+    screenEnclosureQuality: 'standard'
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
   const [copingSurfaceArea, setCopingSurfaceArea] = useState('');
@@ -345,37 +343,12 @@ const PoolProductCard = ({
           ...prev,
           screenEnclosure: !prev.screenEnclosure
         };
-      } else if (extra === 'concrete') {
-        return {
-          ...prev,
-          concrete: !prev.concrete
-        };
       }
       return prev;
     });
   };
   const calculateTotalPrice = () => {
-    let total = 0;
-    
-    // Calculate base price - either original pool price OR concrete price
-    if (extras.concrete) {
-      // Extract length and width from dimensions string (e.g., "16' x 32'" -> 16 * 32 = 512 sqf)
-      if (pool.dimensions) {
-        const dimensionMatch = pool.dimensions.match(/(\d+)['']?\s*x\s*(\d+)['']?/i);
-        if (dimensionMatch) {
-          const length = parseFloat(dimensionMatch[1]);
-          const width = parseFloat(dimensionMatch[2]);
-          const sqf = length * width;
-          total = sqf * 155; // $155 per sqf for concrete
-        } else {
-          total = pool.price; // Fallback to original price if dimensions can't be parsed
-        }
-      } else {
-        total = pool.price; // Fallback to original price if no dimensions
-      }
-    } else {
-      total = pool.price; // Original pool price
-    }
+    let total = pool.price;
 
     // Add finish price if not default
     const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
@@ -391,23 +364,20 @@ const PoolProductCard = ({
     if (extras.cover) total += getExtraPrice('cover');
     if (extras.jets) total += getExtraPrice('jets') * extras.jetQuantity;
 
-    // Add option prices - for concrete pools, tiles and liner are mutually exclusive
+    // Add option prices - liner is always added except when both tiles and liner are selected
     const linerOption = linerOptions.find(option => option.name === extras.linerOption);
     const tileOption = tileOptions.find(option => option.name === extras.tileOption);
     
-    if (extras.concrete) {
-      // For concrete pools: tiles OR liner (mutually exclusive)
-      if (tileOption && extras.tiles) total += tileOption.price;
-      else if (linerOption && extras.liner) total += linerOption.price;
-    } else {
-      // For original pools: both tiles and liner can be selected (original logic)
-      if (tileOption && extras.tiles) total += tileOption.price;
-      
-      if (linerOption && extras.liner) {
-        if (!(extras.tiles && extras.liner)) {
-          total += linerOption.price;
-        }
+    // Always add tile price when tiles are selected
+    if (tileOption && extras.tiles) total += tileOption.price;
+    
+    // Add liner price when liner is selected, BUT make it free only when both tiles and liner are selected
+    if (linerOption && extras.liner) {
+      if (!(extras.tiles && extras.liner)) {
+        // Liner is NOT free - add its price
+        total += linerOption.price;
       }
+      // If both tiles and liner are selected, liner is free (no price added)
     }
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
     if (coverOption && extras.cover && coverOption.name !== 'NO COVER') total += coverOption.price;
@@ -473,22 +443,6 @@ const PoolProductCard = ({
         price: linerOption.price
       });
     }
-    
-    // Add concrete option to cart if selected
-    if (extras.concrete) {
-      if (pool.dimensions) {
-        const dimensionMatch = pool.dimensions.match(/(\d+)['']?\s*x\s*(\d+)['']?/i);
-        if (dimensionMatch) {
-          const length = parseFloat(dimensionMatch[1]);
-          const width = parseFloat(dimensionMatch[2]);
-          const sqf = length * width;
-          cartExtras.push({
-            name: `CONCRETE POOL (${sqf} sq ft)`,
-            price: sqf * 155 - pool.price // Add difference from original price
-          });
-        }
-      }
-    }
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
     if (coverOption && extras.cover && coverOption.name !== 'NO COVER') {
       cartExtras.push({
@@ -551,8 +505,8 @@ const PoolProductCard = ({
     }
     addToCart({
       id: `pool_${pool.model.replace(/\s+/g, '_')}_${Date.now()}`,
-      name: extras.concrete ? `${pool.model} (CONCRETE POOL)` : pool.model,
-      price: extras.concrete ? 0 : pool.price, // Base price is included in concrete calculation
+      name: pool.model,
+      price: pool.price,
       category: pool.category,
       image: currentPoolImage,
       extras: cartExtras
@@ -610,32 +564,6 @@ const PoolProductCard = ({
             </span>}
         </div>
         
-        {/* Concrete Pool Option */}
-        <div className="grid grid-cols-1 gap-2 text-sm">
-          <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-            <Checkbox 
-              checked={extras.concrete} 
-              onCheckedChange={() => toggleExtra('concrete')}
-              className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
-            />
-            <span className="flex items-center gap-1">
-              <Cpu size={14} className="text-coral" />
-              CONCRETE POOL ({extras.concrete ? (() => {
-                if (pool.dimensions) {
-                  const dimensionMatch = pool.dimensions.match(/(\d+)['']?\s*x\s*(\d+)['']?/i);
-                  if (dimensionMatch) {
-                    const length = parseFloat(dimensionMatch[1]);
-                    const width = parseFloat(dimensionMatch[2]);
-                    const sqf = length * width;
-                    return `${sqf} sq ft × $155 = $${(sqf * 155).toLocaleString()}`;
-                  }
-                }
-                return '$155/sq ft';
-              })() : '$155/sq ft'})
-            </span>
-          </label>
-        </div>
-
         {/* Features & Tech */}
         <div className="space-y-2">
           {pool.saltSystem && <div className="flex items-center gap-2 text-sm">
@@ -705,10 +633,9 @@ const PoolProductCard = ({
               </Carousel>
             </div>
 
-            {/* Pool Liner Options - Only show if not concrete or concrete is selected */}
-            {(!extras.concrete || (extras.concrete && extras.liner && !extras.tiles)) && (
+            {/* Pool Liner Options */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Premium Pool Liners {extras.concrete ? '(Choose One)' : ''}</h4>
+              <h4 className="font-semibold text-foreground">Premium Pool Liners</h4>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
                   {linerOptions.map(liner => <CarouselItem key={liner.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
@@ -740,7 +667,6 @@ const PoolProductCard = ({
                 <CarouselNext className="right-0" />
               </Carousel>
             </div>
-            )}
 
             {/* Pavers Options */}
             <div className="space-y-3">
@@ -1025,11 +951,12 @@ const PoolProductCard = ({
                               </div>
                             </CarouselItem>)}
                         </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
-              </Carousel>
-            </div>
-            }
+                        <CarouselPrevious className="left-0" />
+                        <CarouselNext className="right-0" />
+                      </Carousel>
+                    </div>}
+               </div>
+             </div>
 
             {/* Carbon Fiber Technology Section */}
             {pool.carbonFiber && <div className="space-y-3 p-4 bg-gradient-to-r from-primary/5 to-teal/5 rounded-lg border border-primary/20">
@@ -1239,12 +1166,11 @@ const PoolProductCard = ({
                     <div className="text-xs text-muted-foreground text-center">
                       *Financing subject to credit approval. APR varies.
                     </div>
-                  </div>
+                  </div>}
               </div>
             </div>
-          </div>
-        }
-
+            </div>}
+        
         {/* Default Action Buttons */}
         {!showDetails && <div className="space-y-2">
             <Button onClick={() => {
@@ -1281,15 +1207,7 @@ const PoolProductCard = ({
       </CardContent>
       
       {/* Image Editor Modal */}
-      {showImageEditor && (
-        <ImageEditor 
-          isOpen={showImageEditor} 
-          onClose={() => setShowImageEditor(false)} 
-          onImageSave={handleImageSave} 
-          currentImage={currentPoolImage} 
-        />
-      )}
-    </Card>
-  );
+      <ImageEditor isOpen={showImageEditor} onClose={() => setShowImageEditor(false)} onImageSave={handleImageSave} currentImage={currentPoolImage} />
+    </Card>;
 };
 export default PoolProductCard;
