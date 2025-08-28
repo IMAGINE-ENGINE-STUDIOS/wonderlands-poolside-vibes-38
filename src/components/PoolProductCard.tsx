@@ -1044,7 +1044,8 @@ const PoolProductCard = ({
               if (selectedFinish && selectedFinish.price > 0) {
                 extrasBreakdown.push({
                   name: `${selectedFinish.name} Finish`,
-                  price: selectedFinish.price
+                  price: selectedFinish.price,
+                  image: selectedFinish.image
                 });
               }
               
@@ -1054,25 +1055,28 @@ const PoolProductCard = ({
                 if (selectedHeater) {
                   extrasBreakdown.push({
                     name: selectedHeater.name,
-                    price: selectedHeater.price
+                    price: selectedHeater.price,
+                    image: '/lovable-uploads/2e5049fe-1be6-48d8-b4e6-a22e92ef3ef6.png'
                   });
                 }
               }
               
-              // Add cover if selected
-              const coverOption = coverOptions.find(option => option.name === extras.coverOption);
-              if (coverOption && extras.cover && coverOption.name !== 'NO COVER') {
-                extrasBreakdown.push({
-                  name: coverOption.name,
-                  price: coverOption.price
-                });
-              }
+      // Add cover if selected
+      const coverOption = coverOptions.find(option => option.name === extras.coverOption);
+      if (coverOption && extras.cover && coverOption.name !== 'NO COVER') {
+        extrasBreakdown.push({
+          name: coverOption.name,
+          price: coverOption.price,
+          image: coverOption.image
+        });
+      }
               
               // Add jets if selected
               if (extras.jets) {
                 extrasBreakdown.push({
                   name: `Spa Jets (${extras.jetQuantity})`,
-                  price: getExtraPrice('jets') * extras.jetQuantity
+                  price: getExtraPrice('jets') * extras.jetQuantity,
+                  image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
                 });
               }
               
@@ -1081,7 +1085,8 @@ const PoolProductCard = ({
               if (tileOption && extras.tiles) {
                 extrasBreakdown.push({
                   name: tileOption.name,
-                  price: tileOption.price
+                  price: tileOption.price,
+                  image: tileOption.image
                 });
               }
               
@@ -1090,7 +1095,8 @@ const PoolProductCard = ({
               if (linerOption && extras.linerOption !== 'Standard Blue') {
                 extrasBreakdown.push({
                   name: `${linerOption.name} Liner`,
-                  price: 4500 // Fixed price for any premium liner
+                  price: 4500, // Fixed price for any premium liner
+                  image: linerOption.image
                 });
               }
               
@@ -1098,7 +1104,8 @@ const PoolProductCard = ({
               if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
                 extrasBreakdown.push({
                   name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
-                  price: parseFloat(paverSurfaceArea) * 15
+                  price: parseFloat(paverSurfaceArea) * 15,
+                  image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
                 });
               }
               
@@ -1108,7 +1115,8 @@ const PoolProductCard = ({
                 if (selectedSpa) {
                   extrasBreakdown.push({
                     name: `${selectedSpa.model} Spa`,
-                    price: selectedSpa.price
+                    price: selectedSpa.price,
+                    image: selectedSpa.image
                   });
                 }
               }
@@ -1119,7 +1127,8 @@ const PoolProductCard = ({
                 if (selectedLedge) {
                   extrasBreakdown.push({
                     name: `${selectedLedge.name} Tanning Ledge`,
-                    price: selectedLedge.price
+                    price: selectedLedge.price,
+                    image: selectedLedge.image
                   });
                 }
               }
@@ -1132,7 +1141,8 @@ const PoolProductCard = ({
                 const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
                 extrasBreakdown.push({
                   name: `Screen Enclosure - ${extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : '2 stories'} (${extras.screenEnclosureArea} sq ft)`,
-                  price: enclosurePrice
+                  price: enclosurePrice,
+                  image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png'
                 });
               }
               
@@ -1141,7 +1151,8 @@ const PoolProductCard = ({
                 const concreteMarkup = Math.round(pool.price * 0.2);
                 extrasBreakdown.push({
                   name: 'Concrete Construction',
-                  price: concreteMarkup
+                  price: concreteMarkup,
+                  image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
                 });
               }
               

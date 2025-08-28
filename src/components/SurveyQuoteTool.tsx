@@ -716,50 +716,46 @@ const SurveyQuoteTool = ({
                     <h4 className="font-bold text-lg mb-3 text-coral-600">Added Features from Product Card</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {extras.extrasBreakdown.map((item: any, index: number) => <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
-                          {/* Display item image based on type */}
+                          {/* Display item image - use actual image if available or fallback based on type */}
                           {(() => {
+                    // First check if item has its own image property
+                    if (item.image) {
+                      return <div className="mb-3">
+                                 <ImageCard src={item.image} alt={item.name} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
+                               </div>;
+                    }
+                    
+                    // Fallback to type-based image mapping
                     let itemImage = null;
                     if (item.name.includes('Heater') || item.name.includes('Heat Pump') || item.name.includes('Gas Heater') || item.name.includes('Solar Heater')) {
-                      // Use the standard heater image for all heater products
                       itemImage = '/lovable-uploads/2e5049fe-1be6-48d8-b4e6-a22e92ef3ef6.png';
                     } else if (item.name.includes('Cover')) {
-                      // Cover images
                       const coverImages = {
                         'Eclipse Automatic Cover': '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png',
                         'CS3000 Safety Cover': '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png',
                         'Infinity 4000 Smart Cover': '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png',
                         'Atom Loop-Loc Cover': '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png'
                       };
-                      itemImage = coverImages[item.name] || '/lovable-uploads/shale-gray-g3.jpg';
+                      itemImage = coverImages[item.name] || '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png';
                     } else if (item.name.includes('Spa')) {
-                      // Spa images - use specific spa image
                       itemImage = '/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.png';
                     } else if (item.name.includes('Tanning Ledge')) {
-                      // Tanning ledge images
-                      itemImage = '/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png';
+                      itemImage = '/lovable-uploads/2af253b1-b9be-487f-a998-476d396772c4.png';
                     } else if (item.name.includes('Liner')) {
-                      // Liner images - use actual liner images from poolData
-                      itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
+                      itemImage = '/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.png';
                     } else if (item.name.includes('Jets')) {
-                      // Jets image
                       itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
                     } else if (item.name.includes('Finish')) {
-                      // Pool finish images
-                      itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
+                      itemImage = '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png';
                     } else if (item.name.includes('Tiles') || item.name.includes('Tile')) {
-                      // Pool tile images
                       itemImage = '/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.png';
                     } else if (item.name.includes('Screen Enclosure')) {
-                      // Screen enclosure image
                       itemImage = '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png';
                     } else if (item.name.includes('Concrete Construction')) {
-                      // Concrete construction image
                       itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
                     } else if (item.name.includes('sq ft') && !item.name.includes('Screen Enclosure')) {
-                      // Paver items - use paver image
                       itemImage = '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png';
                     } else {
-                      // Default image for other items
                       itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
                     }
                     return itemImage ? <div className="mb-3">
