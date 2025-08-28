@@ -13,6 +13,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ProcurementSystem from "./pages/ProcurementSystem";
 import PoolDetails from "./pages/PoolDetails";
 import ContentEditor from "./pages/ContentEditor";
+import ReferralPortal from "./pages/ReferralPortal";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => (
@@ -27,6 +28,7 @@ const App = () => (
           path="/procurement" 
           element={<ProcurementSystem />} 
         />
+        <Route path="/referral" element={<ReferralPortal />} />
         <Route 
           path="/admin" 
           element={

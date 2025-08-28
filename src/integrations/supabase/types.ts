@@ -934,6 +934,69 @@ export type Database = {
           },
         ]
       }
+      referrals: {
+        Row: {
+          commission_rate: number | null
+          created_at: string
+          estimated_budget: number | null
+          estimated_commission: number | null
+          id: string
+          lead_company: string | null
+          lead_email: string
+          lead_name: string
+          lead_phone: string | null
+          lead_urgency: string | null
+          project_description: string | null
+          project_type: string
+          referrer_email: string
+          referrer_name: string
+          referrer_phone: string | null
+          referrer_user_id: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          commission_rate?: number | null
+          created_at?: string
+          estimated_budget?: number | null
+          estimated_commission?: number | null
+          id?: string
+          lead_company?: string | null
+          lead_email: string
+          lead_name: string
+          lead_phone?: string | null
+          lead_urgency?: string | null
+          project_description?: string | null
+          project_type: string
+          referrer_email: string
+          referrer_name: string
+          referrer_phone?: string | null
+          referrer_user_id?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          commission_rate?: number | null
+          created_at?: string
+          estimated_budget?: number | null
+          estimated_commission?: number | null
+          id?: string
+          lead_company?: string | null
+          lead_email?: string
+          lead_name?: string
+          lead_phone?: string | null
+          lead_urgency?: string | null
+          project_description?: string | null
+          project_type?: string
+          referrer_email?: string
+          referrer_name?: string
+          referrer_phone?: string | null
+          referrer_user_id?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       supplier_banking_config: {
         Row: {
           bank_account_details: Json | null
