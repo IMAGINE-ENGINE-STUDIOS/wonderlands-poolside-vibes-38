@@ -29,8 +29,8 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
     length: 16,
     width: 32,
     shape: 'rectangular',
-    spa: '',
-    tanningLedge: ''
+    spa: 'none',
+    tanningLedge: 'none'
   });
 
   const calculateArea = () => {
@@ -59,13 +59,13 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
   };
 
   const getSpaPrice = () => {
-    if (!config.spa) return 0;
+    if (!config.spa || config.spa === 'none') return 0;
     const selectedSpa = spas.find(spa => spa.model === config.spa);
     return selectedSpa ? selectedSpa.price : 0;
   };
 
   const getTanningLedgePrice = () => {
-    if (!config.tanningLedge) return 0;
+    if (!config.tanningLedge || config.tanningLedge === 'none') return 0;
     const selectedLedge = tanningLedges.find(ledge => ledge.name === config.tanningLedge);
     return selectedLedge ? selectedLedge.price : 0;
   };
@@ -91,11 +91,11 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
       extras: {
         extrasTotal: getSpaPrice() + getTanningLedgePrice(),
         extrasBreakdown: [
-          ...(config.spa ? [{
+          ...(config.spa && config.spa !== 'none' ? [{
             name: `${config.spa} Spa`,
             price: getSpaPrice()
           }] : []),
-          ...(config.tanningLedge ? [{
+          ...(config.tanningLedge && config.tanningLedge !== 'none' ? [{
             name: `${config.tanningLedge} Tanning Ledge`,
             price: getTanningLedgePrice()
           }] : [])
@@ -193,7 +193,7 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
                 <SelectValue placeholder="Select spa model" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No Spa</SelectItem>
+                <SelectItem value="none">No Spa</SelectItem>
                 {spas.map((spa) => (
                   <SelectItem key={spa.model} value={spa.model}>
                     {spa.model} - ${spa.price.toLocaleString()} ({spa.dimensions})
@@ -211,7 +211,7 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
                 <SelectValue placeholder="Select tanning ledge" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No Tanning Ledge</SelectItem>
+                <SelectItem value="none">No Tanning Ledge</SelectItem>
                 {tanningLedges.map((ledge) => (
                   <SelectItem key={ledge.name} value={ledge.name}>
                     {ledge.name} - ${ledge.price.toLocaleString()} ({ledge.dimensions})
@@ -232,13 +232,13 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
               <span>Concrete Pool ({calculateArea()} sq ft)</span>
               <span className="font-semibold">${calculatePoolPrice().toLocaleString()}</span>
             </div>
-            {config.spa && (
+            {config.spa && config.spa !== 'none' && (
               <div className="flex justify-between text-teal-600">
                 <span>{config.spa} Spa</span>
                 <span className="font-semibold">+${getSpaPrice().toLocaleString()}</span>
               </div>
             )}
-            {config.tanningLedge && (
+            {config.tanningLedge && config.tanningLedge !== 'none' && (
               <div className="flex justify-between text-coral-600">
                 <span>{config.tanningLedge} Tanning Ledge</span>
                 <span className="font-semibold">+${getTanningLedgePrice().toLocaleString()}</span>
