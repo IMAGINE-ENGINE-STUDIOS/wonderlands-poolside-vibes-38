@@ -46,7 +46,7 @@ interface ConcretePoolProductCardProps {
   onRequestQuote?: (poolData: any) => void;
 }
 
-const CONCRETE_PRICE_PER_SQF = 155;
+const CONCRETE_PRICE_PER_SQF = 158;
 
 const poolHeaters = [
   { name: 'Gas Heater 400K BTU', price: 5000, image: '/lovable-uploads/heater-gas.jpg', description: 'Fast heating for all weather' },
@@ -146,7 +146,8 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
   };
 
   const calculatePoolPrice = () => {
-    return calculateArea() * CONCRETE_PRICE_PER_SQF;
+    const basePrice = calculateArea() * CONCRETE_PRICE_PER_SQF;
+    return Math.max(basePrice, 42000); // Minimum cost of $42,000
   };
 
   const toggleExtra = (extra: string) => {
@@ -365,25 +366,6 @@ const ConcretePoolProductCard = ({ onRequestQuote }: ConcretePoolProductCardProp
           </div>
         )}
 
-        <div>
-          <Label>Pool Model</Label>
-          <Select value={config.selectedModel} onValueChange={(value: string) => setConfig({ ...config, selectedModel: value, shape: value === 'custom' ? 'rectangular' : value })}>
-            <SelectTrigger className="focus:border-primary">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="max-h-[300px]">
-              <SelectItem value="custom">Custom Dimensions</SelectItem>
-              <SelectItem value="rectangular">Custom Rectangular</SelectItem>
-              <SelectItem value="free-form">Custom Free Form</SelectItem>
-              <SelectItem value="kidney">Custom Kidney Shape</SelectItem>
-              {pools.map((pool) => (
-                <SelectItem key={pool.model} value={pool.model}>
-                  {pool.model} ({pool.dimensions})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
 
         {/* Pool Area Display */}
         <div className="bg-primary/5 p-4 rounded-lg">
