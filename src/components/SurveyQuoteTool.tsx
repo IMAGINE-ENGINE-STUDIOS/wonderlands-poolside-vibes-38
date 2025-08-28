@@ -15,8 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
 import ImageCard from "./ImageCard";
-import poolHeaterImg from "@/assets/pool-heater.png";
-import spaJetsImg from "@/assets/spa-jets.png";
+const poolHeaterImg = "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png";
+// Jets intentionally have no image in the quote
 interface Pool {
   model: string;
   price: number;
@@ -166,14 +166,8 @@ const SurveyQuoteTool = ({
     const extrasTotal = (extras as any)?.extrasTotal ? Number((extras as any).extrasTotal) : 0;
     basePrice += extrasTotal;
 
-    // Add paver costs if pavers are selected (not just free 3ft perimeter)
-    if (extras?.extrasBreakdown) {
-      const paverItem = extras.extrasBreakdown.find((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
-      if (paverItem) {
-        // Pavers are selected, so they're no longer free - add the cost
-        basePrice += paverItem.price;
-      }
-    }
+    // Paver costs are included via extrasTotal only (prevent double counting)
+
 
     // Florida-specific adjustments
     if (surveyData.soilType === "sand") basePrice *= 0.95; // Easier excavation
@@ -715,7 +709,9 @@ const SurveyQuoteTool = ({
                 {extras?.extrasBreakdown && extras.extrasBreakdown.length > 0 && <div className="mb-6">
                     <h4 className="font-bold text-lg mb-3 text-coral-600">Added Features from Product Card</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {extras.extrasBreakdown.map((item: any, index: number) => <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
+                      {extras.extrasBreakdown
+                        .filter((item: any) => !(item.name.includes('sq ft') && !item.name.includes('Screen Enclosure')))
+                        .map((item: any, index: number) => <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
                           {/* Display item image - use actual image if available or fallback based on type */}
                           {(() => {
                     // First check if item has its own image property
@@ -744,7 +740,7 @@ const SurveyQuoteTool = ({
                     } else if (item.name.includes('Liner')) {
                       itemImage = '/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.png';
                     } else if (item.name.includes('Jets')) {
-                      itemImage = spaJetsImg;
+                      itemImage = null;
                     } else if (item.name.includes('Finish')) {
                       itemImage = '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png';
                     } else if (item.name.includes('Tiles') || item.name.includes('Tile')) {
@@ -796,13 +792,12 @@ const SurveyQuoteTool = ({
                     <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-blue-200">
                       <h4 className="font-bold text-lg mb-2 text-blue-600">Pool Construction</h4>
                       <p className="text-sm mb-2">
-                        <span className="font-semibold">Premium Concrete Construction:</span> Your pool will be built using reinforced concrete construction, providing superior durability, longevity, and structural integrity. This premium method allows for complete customization and ensures your pool will withstand Florida's unique climate conditions for decades.
+                        Selected concrete construction: reinforced concrete with steel rebar and a high-quality interior finish. It offers full design flexibility for shapes, steps, benches, and features. Like all pools, it performs best with proper maintenance and balanced water chemistry.
                       </p>
                       <ul className="text-xs text-muted-foreground space-y-1">
-                        <li>• Steel reinforcement with concrete shell</li>
-                        <li>• Superior strength and crack resistance</li>
-                        <li>• Fully customizable shape and design</li>
-                        <li>• 25+ year structural warranty</li>
+                        <li>• Reinforced concrete shell with rebar</li>
+                        <li>• Customizable design, steps, benches, and features</li>
+                        <li>• Built to meet local codes and engineering specifications</li>
                       </ul>
                     </div>
                   </div>

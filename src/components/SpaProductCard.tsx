@@ -114,10 +114,10 @@ import { poolLiners, poolTiles } from '@/data/poolData';
 
 // Pool heater options for spas (spa-specific pricing)
 const spaHeaters = [
-  { name: 'Spa Heat Pump - Compact', price: 3500, image: azureBlueFinish, description: 'Compact heat pump designed for spas' },
-  { name: 'Spa Heat Pump - Premium', price: 4500, image: oceanBlueFinish, description: 'Premium spa heat pump with digital controls' },
-  { name: 'Spa Gas Heater', price: 2800, image: sapphireBlueFinish, description: 'Efficient gas heater for quick spa heating' },
-  { name: 'Solar Spa Heater', price: 2200, image: lagoonBlueFinish, description: 'Eco-friendly solar heating for spas' }
+  { name: 'Spa Heat Pump - Compact', price: 3500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: 'Compact heat pump designed for spas' },
+  { name: 'Spa Heat Pump - Premium', price: 4500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: 'Premium spa heat pump with digital controls' },
+  { name: 'Spa Gas Heater', price: 2800, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: 'Efficient gas heater for quick spa heating' },
+  { name: 'Solar Spa Heater', price: 2200, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: 'Eco-friendly solar heating for spas' }
 ];
 
 // Convert pool liners to liner options format

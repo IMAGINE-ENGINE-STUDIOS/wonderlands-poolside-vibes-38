@@ -130,32 +130,32 @@ import { poolLiners, poolTiles } from '@/data/poolData';
 const poolHeaters = [{
   name: 'Heat Pump - Eco Series',
   price: 4500,
-  image: azureBlueFinish,
+  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
   description: 'Energy-efficient heat pump, ideal for mild climates'
 }, {
   name: 'Heat Pump - Pro Series',
   price: 5500,
-  image: oceanBlueFinish,
+  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
   description: 'Professional grade heat pump with advanced controls'
 }, {
   name: 'Gas Heater - Standard',
   price: 3200,
-  image: sapphireBlueFinish,
+  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
   description: 'Traditional gas heater for quick heating'
 }, {
   name: 'Gas Heater - High Efficiency',
   price: 4200,
-  image: nightSkyFinish,
+  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
   description: 'High-efficiency gas heater with digital controls'
 }, {
   name: 'Solar Heater - Basic',
   price: 2800,
-  image: lagoonBlueFinish,
+  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
   description: 'Eco-friendly solar heating system'
 }, {
   name: 'Solar Heater - Premium',
   price: 3800,
-  image: coastalBronzeFinish,
+  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
   description: 'Advanced solar system with backup heating'
 }];
 
@@ -1034,7 +1034,7 @@ const PoolProductCard = ({
                   extrasBreakdown.push({
                     name: selectedHeater.name,
                     price: selectedHeater.price,
-                    image: '/lovable-uploads/2e5049fe-1be6-48d8-b4e6-a22e92ef3ef6.png'
+                    image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png"
                   });
                 }
               }
@@ -1222,7 +1222,7 @@ const PoolProductCard = ({
                   extrasBreakdown.push({
                     name: selectedHeater.name,
                     price: selectedHeater.price,
-                    image: selectedHeater.image
+                    image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png"
                   });
                 }
               }
