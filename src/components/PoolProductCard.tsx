@@ -383,10 +383,10 @@ const PoolProductCard = ({
     // Always add tile price when tiles are selected
     if (tileOption && extras.tiles) total += tileOption.price;
     
-    // Add liner price ($4500) when liner is selected
-    if (linerOption && extras.liner) {
-      total += 4500; // Fixed price for any liner
-    }
+                    // Add liner price ($4500) when liner is selected and not "Standard Blue"
+                    if (linerOption && extras.linerOption !== 'Standard Blue') {
+                      total += 4500; // Fixed price for any premium liner
+                    }
     
     // Add cover price only once
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
@@ -1085,12 +1085,12 @@ const PoolProductCard = ({
                 });
               }
               
-              // Add liner if selected (always $4500)
+              // Add liner if selected (always $4500 for premium liners)
               const linerOption = linerOptions.find(option => option.name === extras.linerOption);
-              if (linerOption && extras.liner) {
+              if (linerOption && extras.linerOption !== 'Standard Blue') {
                 extrasBreakdown.push({
                   name: `${linerOption.name} Liner`,
-                  price: 4500 // Fixed price for any liner
+                  price: 4500 // Fixed price for any premium liner
                 });
               }
               

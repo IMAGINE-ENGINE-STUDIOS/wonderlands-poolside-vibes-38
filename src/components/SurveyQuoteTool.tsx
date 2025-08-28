@@ -619,12 +619,45 @@ const SurveyQuoteTool = ({
                       </div>
                     </div>
                     
-                    {/* Pavers Calculation */}
+                    {/* Pavers Calculation with Image */}
                     <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
                       <h4 className="font-semibold mb-2">Paver Deck ({surveyData.deckWidth || 3}ft Width)</h4>
                       <p className="text-sm text-muted-foreground mb-2">
                         {parseInt(surveyData.deckWidth || "3") === 3 ? "Standard 3-foot paver deck included in base price" : `${surveyData.deckWidth}-foot paver deck around pool`}
                       </p>
+                      
+                      {/* Show selected paver image and details from extras */}
+                      {extras?.extrasBreakdown && (() => {
+                        const paverItem = extras.extrasBreakdown.find((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
+                        if (paverItem) {
+                          // Find the paver image from paverTypes
+                          const selectedPaverName = paverItem.name.split(' (')[0];
+                          return (
+                            <div className="mb-3 p-2 border border-teal-200 rounded-md">
+                              <div className="flex items-center gap-3">
+                                <div className="w-16 h-16 rounded-md overflow-hidden border">
+                                  <img 
+                                    src="/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png" 
+                                    alt={selectedPaverName}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium">{selectedPaverName}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {paverItem.name.match(/\((.*?)\)/)?.[1] || 'Custom area'}
+                                  </p>
+                                  <p className="text-xs text-teal-600 font-semibold">
+                                    ${paverItem.price.toLocaleString()}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
+                      
                       {pool?.dimensions && (() => {
                     const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
                     const poolLength = dims[0] || 0;
@@ -699,20 +732,35 @@ const SurveyQuoteTool = ({
                       };
                       itemImage = coverImages[item.name] || '/lovable-uploads/shale-gray-g3.jpg';
                     } else if (item.name.includes('Spa')) {
-                      // Spa images - default spa image
-                      itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                      // Spa images - use specific spa image
+                      itemImage = '/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.png';
                     } else if (item.name.includes('Tanning Ledge')) {
-                      // Tanning ledge images - default image
-                      itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                      // Tanning ledge images
+                      itemImage = '/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png';
                     } else if (item.name.includes('Liner')) {
-                      // Liner images - default liner image
-                      itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                      // Liner images - use actual liner images from poolData
+                      itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
                     } else if (item.name.includes('Jets')) {
                       // Jets image
-                      itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                      itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
+                    } else if (item.name.includes('Finish')) {
+                      // Pool finish images
+                      itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
+                    } else if (item.name.includes('Tiles') || item.name.includes('Tile')) {
+                      // Pool tile images
+                      itemImage = '/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.png';
+                    } else if (item.name.includes('Screen Enclosure')) {
+                      // Screen enclosure image
+                      itemImage = '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png';
+                    } else if (item.name.includes('Concrete Construction')) {
+                      // Concrete construction image
+                      itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
+                    } else if (item.name.includes('sq ft') && !item.name.includes('Screen Enclosure')) {
+                      // Paver items - use paver image
+                      itemImage = '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png';
                     } else {
                       // Default image for other items
-                      itemImage = '/lovable-uploads/azure-blue-g2.jpg';
+                      itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
                     }
                     return itemImage ? <div className="mb-3">
                                  <ImageCard src={itemImage} alt={item.name} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />

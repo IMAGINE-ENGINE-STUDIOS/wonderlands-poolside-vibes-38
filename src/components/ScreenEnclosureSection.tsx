@@ -86,45 +86,6 @@ const ScreenEnclosureSection = () => {
     <>
       <section id="screen-enclosures" className="py-20 px-4 bg-gradient-to-br from-muted/30 to-background">
         <div className="max-w-7xl mx-auto">
-          {/* Information Section - Moved to top */}
-          <div className="bg-gradient-to-r from-primary/10 to-teal/10 rounded-2xl p-8 mb-16">
-            <div className="max-w-4xl mx-auto text-center">
-              <h3 className="text-2xl font-bold text-foreground mb-4">
-                Complete Pool Protection & Comfort
-              </h3>
-              <div className="grid md:grid-cols-3 gap-6 text-left">
-                <div className="flex items-start gap-3">
-                  <Home className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-2">Year-Round Enjoyment</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Extend your swimming season with protection from rain, wind, and debris while maintaining an open-air feel.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <Zap className="h-6 w-6 text-teal mt-1 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-2">Energy Efficient</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Reduce heating costs and chemical usage while keeping your pool cleaner with less maintenance required.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <Star className="h-6 w-6 text-coral mt-1 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-2">Premium Materials</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Engineered aluminum frames with impact-resistant screening designed to withstand Florida weather conditions.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
@@ -214,6 +175,46 @@ const ScreenEnclosureSection = () => {
                 </CardContent>
               </Card>
             ))}
+          </div>
+          
+          {/* Information Section - Moved below products */}
+          <div className="bg-gradient-to-r from-primary/10 to-teal/10 rounded-2xl p-8 mt-16">
+            <div className="max-w-4xl mx-auto text-center">
+              <h3 className="text-2xl font-bold text-foreground mb-4">
+                Complete Pool Protection & Comfort
+              </h3>
+              <div className="grid md:grid-cols-3 gap-6 text-left">
+                <div className="flex items-start gap-3">
+                  <Home className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-2">Year-Round Enjoyment</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Extend your swimming season with protection from rain, wind, and debris while maintaining an open-air feel.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <Zap className="h-6 w-6 text-teal mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-2">Energy Efficient</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Reduce heating costs and chemical usage while keeping your pool cleaner with less maintenance required.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <Star className="h-6 w-6 text-coral mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-2">Premium Materials</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Engineered aluminum frames with impact-resistant screening designed to withstand Florida weather conditions.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

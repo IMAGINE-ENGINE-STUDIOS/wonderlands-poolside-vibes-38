@@ -28,7 +28,7 @@ const Index = () => {
     <div className="min-h-screen">
       <Header />
       <Hero />
-      {/* Anchors for RightNavigation */}
+{/* Anchors for RightNavigation */}
       <div id="pools" />
       <PoolCatalog />
       <div id="spas" />
@@ -36,8 +36,6 @@ const Index = () => {
       <TanningLedgeSection />
       <div id="finishes" />
       <PoolFinishesSection />
-      <div id="liners" />
-      <LinersSection />
       <div id="covers" />
       <AutomaticCoversSection />
       <div id="screen-enclosures" />
