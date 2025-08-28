@@ -599,6 +599,7 @@ const PoolCatalog = () => {
   const [showSpaModal, setShowSpaModal] = useState(false);
   const [selectedTile, setSelectedTile] = useState<any>(null);
   const [showTileModal, setShowTileModal] = useState(false);
+  const [selectedExtras, setSelectedExtras] = useState<any>(null);
   const { addToCart } = useShoppingCart();
   const { toast } = useToast();
 
@@ -609,6 +610,7 @@ const PoolCatalog = () => {
 
   const handleRequestQuote = (pool: Pool, extras?: any) => {
     setSelectedPool(pool);
+    setSelectedExtras(extras);
     setShowDetailModal(false);
     setShowQuoteModal(true);
   };
@@ -647,221 +649,6 @@ const PoolCatalog = () => {
         </div>
       </section>
 
-      {/* Pool Liners Section */}
-      <section id="pool-liners" className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden bg-gradient-to-b from-background/60 to-background/80">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-teal to-coral">
-              Premium Pool Liners
-            </h2>
-            <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">
-              Transform your pool with our stunning liner collection. From glass tiles to porcelain and Italian stone.
-            </p>
-            <div className="mt-4 inline-flex items-center px-4 py-2 bg-teal/10 rounded-full">
-              <Waves className="h-4 w-4 mr-2 text-teal" />
-              <span className="text-sm font-medium text-teal">Starting from $5,400</span>
-            </div>
-          </div>
-
-          <Carousel className="w-full max-w-sm sm:max-w-none mx-auto">
-            <CarouselContent className="-ml-2 md:-ml-4">
-              {(poolLiners || []).map((liner, index) => (
-                <CarouselItem key={liner.name} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
-                  <Card className="group hover:scale-105 transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 overflow-hidden h-full">
-                    <div className="aspect-square overflow-hidden">
-                      <img 
-                        src={liner.image} 
-                        alt={liner.name} 
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                    </div>
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge className="bg-gradient-to-r from-teal to-primary text-white border-0">
-                          {liner.type}
-                        </Badge>
-                        <div className="text-sm font-bold text-teal">
-                          +${liner.price.toLocaleString()}
-                        </div>
-                      </div>
-                      <CardTitle className="text-lg font-bold text-foreground">
-                        {liner.name}
-                      </CardTitle>
-                      <CardDescription className="text-xs text-foreground/70 line-clamp-3">
-                        {liner.description}
-                      </CardDescription>
-                    </CardHeader>
-                    
-                    <CardContent className="pt-0 pb-4">
-                      <Button
-                        variant="outline"
-                        className="w-full text-sm"
-                        onClick={() => {
-                          console.log(`Selected liner: ${liner.name}`);
-                        }}
-                      >
-                        <Waves className="h-3 w-3 mr-2" />
-                        Select Liner
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="left-2 lg:left-4" />
-            <CarouselNext className="right-2 lg:right-4" />
-          </Carousel>
-        </div>
-      </section>
-
-      {/* Pool Tiles Section */}
-      <section id="pool-tiles" className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden bg-gradient-to-b from-background to-background/80">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-teal via-coral to-primary">
-              Premium Pool Tiles
-            </h2>
-            <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">
-              Enhance your pool with our premium tile collection. Add luxury and style with decorative borders and patterns.
-            </p>
-            <div className="mt-4 inline-flex items-center px-4 py-2 bg-coral/10 rounded-full">
-              <Sparkles className="h-4 w-4 mr-2 text-coral" />
-              <span className="text-sm font-medium text-coral">Premium Upgrade: $15,000</span>
-            </div>
-          </div>
-
-          <Carousel className="w-full max-w-sm sm:max-w-none mx-auto">
-            <CarouselContent className="-ml-2 md:-ml-4">
-              {(poolTiles || []).map((tile, index) => (
-                <CarouselItem key={tile.name} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
-                  <Card className="group hover:scale-105 transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 overflow-hidden h-full">
-                    <div className="aspect-[4/3] overflow-hidden">
-                      <img 
-                        src={tile.image} 
-                        alt={tile.name} 
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                    </div>
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge className="bg-gradient-to-r from-coral to-primary text-white border-0">
-                          Premium
-                        </Badge>
-                        <div className="text-sm font-bold text-coral">
-                          +${tile.price.toLocaleString()}
-                        </div>
-                      </div>
-                      <CardTitle className="text-lg font-bold text-foreground">
-                        {tile.name}
-                      </CardTitle>
-                      <CardDescription className="text-xs text-foreground/70 line-clamp-2">
-                        {tile.description}
-                      </CardDescription>
-                    </CardHeader>
-                    
-                     <CardContent className="pt-0 pb-4">
-                       <Button
-                         variant="outline"
-                         className="w-full text-sm hover:bg-coral/10 hover:border-coral transition-all duration-200"
-                         onClick={() => {
-                           setSelectedTile(tile);
-                           setShowTileModal(true);
-                         }}
-                       >
-                         <Plus className="h-3 w-3 mr-2" />
-                         View & Add to Cart
-                       </Button>
-                     </CardContent>
-                  </Card>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="left-2 lg:left-4" />
-            <CarouselNext className="right-2 lg:right-4" />
-          </Carousel>
-        </div>
-      </section>
-
-      {/* Tanning Ledges Section */}
-      <section id="tanning-ledges" className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden bg-gradient-to-b from-background/80 to-background/60">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-              <Sun className="inline-block mr-4 h-8 w-8 md:h-12 md:w-12" />
-              Tanning Ledges
-            </h2>
-            <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">
-              Add the perfect relaxation spot to your pool with our premium tanning ledge options.
-            </p>
-            <div className="mt-4 inline-flex items-center px-4 py-2 bg-coral/10 rounded-full">
-              <Sun className="h-4 w-4 mr-2 text-coral" />
-              <span className="text-sm font-medium text-coral">Premium Upgrade: $15,000</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-            {(tanningLedges || []).map((ledge, index) => (
-              <Card key={ledge.name} className="group hover:scale-105 transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 overflow-hidden">
-                <div className="aspect-square overflow-hidden">
-                  <img 
-                    src={ledge.image} 
-                    alt={ledge.name} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                </div>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-gradient-to-r from-coral to-primary text-white border-0">
-                      Premium
-                    </Badge>
-                    <div className="text-sm font-bold text-coral">
-                      +${ledge.price.toLocaleString()}
-                    </div>
-                  </div>
-                  <CardTitle className="text-lg font-bold text-foreground">
-                    {ledge.name}
-                  </CardTitle>
-                  <CardDescription className="text-xs text-foreground/70">
-                    {ledge.dimensions} • {ledge.depth} deep
-                  </CardDescription>
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  <p className="text-xs text-foreground/70 mb-4 line-clamp-2">
-                    {ledge.description}
-                  </p>
-                  
-                  <div className="space-y-2 mb-4">
-                    {ledge.features?.slice(0, 2).map((feature, idx) => (
-                      <div key={idx} className="flex items-center text-xs text-foreground/80">
-                        <Sun className="h-3 w-3 mr-2 text-coral flex-shrink-0" />
-                        {feature}
-                      </div>
-                    ))}
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    className="w-full text-sm hover:bg-coral/10 hover:border-coral transition-all duration-200"
-                    onClick={() => {
-                      addToCart({
-                        id: `tanning-ledge-${ledge.name}-${Date.now()}`,
-                        name: ledge.name,
-                        price: ledge.price,
-                        category: 'Tanning Ledges',
-                        image: ledge.image,
-                      });
-                    }}
-                  >
-                    <Plus className="h-3 w-3 mr-2" />
-                    Add Tanning Ledge
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
 
 
       <PoolDetailModal 
@@ -878,6 +665,7 @@ const PoolCatalog = () => {
           setShowQuoteModal(false);
           setShowSpaModal(false);
         }}
+        extras={selectedExtras}
       />
 
       <TileDetailModal

@@ -374,7 +374,6 @@ const PoolProductCard = ({
       const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
       if (selectedHeater) total += selectedHeater.price;
     }
-    if (extras.cover) total += getExtraPrice('cover');
     if (extras.jets) total += getExtraPrice('jets') * extras.jetQuantity;
 
     // Add option prices - liner is always $4500 when selected
@@ -388,6 +387,8 @@ const PoolProductCard = ({
     if (linerOption && extras.liner) {
       total += 4500; // Fixed price for any liner
     }
+    
+    // Add cover price only once
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
     if (coverOption && extras.cover && coverOption.name !== 'NO COVER') total += coverOption.price;
 

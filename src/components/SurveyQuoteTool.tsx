@@ -746,6 +746,21 @@ const SurveyQuoteTool = ({
                   </div>
                 </div>
 
+                {/* Estimated Build Time */}
+                <div className="mb-6">
+                  <div className="bg-gradient-to-br from-blue-100 to-green-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
+                    <h4 className="font-bold text-lg mb-2 text-blue-600">Estimated Build Time</h4>
+                    <p className="text-sm">
+                      {extras?.deliveryTime || (extras?.concreteConstruction ? "8-12 weeks+" : "6 weeks")}
+                    </p>
+                    {extras?.concreteConstruction && (
+                      <p className="text-xs mt-1 text-muted-foreground">
+                        Extended timeline due to custom concrete construction
+                      </p>
+                    )}
+                  </div>
+                </div>
+
                  <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center">
                    <h3 className="text-2xl font-bold mb-2">Total Investment</h3>
                    <div className="text-4xl font-bold mb-2">${calculateQuote().toLocaleString()}</div>
