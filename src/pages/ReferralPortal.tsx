@@ -14,9 +14,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const referralSchema = z.object({
+  referrerType: z.enum(["individual", "sales_team"]),
   referrerName: z.string().min(2, "Name must be at least 2 characters"),
   referrerEmail: z.string().email("Please enter a valid email"),
   referrerPhone: z.string().optional(),
+  salesCompanyName: z.string().optional(),
+  salesCompanyWebsite: z.string().url().optional().or(z.literal("")),
+  salesCompanyPhone: z.string().optional(),
+  salesTeamPosition: z.string().optional(),
+  salesLicenseNumber: z.string().optional(),
   leadName: z.string().min(2, "Lead name must be at least 2 characters"),
   leadEmail: z.string().email("Please enter a valid email for the lead"),
   leadPhone: z.string().optional(),
@@ -25,6 +31,14 @@ const referralSchema = z.object({
   estimatedBudget: z.string().optional(),
   projectDescription: z.string().min(10, "Please provide a detailed description"),
   leadUrgency: z.string().default("medium"),
+}).refine((data) => {
+  if (data.referrerType === "sales_team") {
+    return data.salesCompanyName && data.salesCompanyName.length > 0;
+  }
+  return true;
+}, {
+  message: "Sales company name is required for sales team referrals",
+  path: ["salesCompanyName"],
 });
 
 type ReferralFormData = z.infer<typeof referralSchema>;
@@ -36,9 +50,15 @@ const ReferralPortal = () => {
   const form = useForm<ReferralFormData>({
     resolver: zodResolver(referralSchema),
     defaultValues: {
+      referrerType: "individual",
       referrerName: "",
       referrerEmail: "",
       referrerPhone: "",
+      salesCompanyName: "",
+      salesCompanyWebsite: "",
+      salesCompanyPhone: "",
+      salesTeamPosition: "",
+      salesLicenseNumber: "",
       leadName: "",
       leadEmail: "",
       leadPhone: "",
@@ -56,9 +76,15 @@ const ReferralPortal = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       const referralData = {
+        referrer_type: data.referrerType,
         referrer_name: data.referrerName,
         referrer_email: data.referrerEmail,
         referrer_phone: data.referrerPhone || null,
+        sales_company_name: data.salesCompanyName || null,
+        sales_company_website: data.salesCompanyWebsite || null,
+        sales_company_phone: data.salesCompanyPhone || null,
+        sales_team_position: data.salesTeamPosition || null,
+        sales_license_number: data.salesLicenseNumber || null,
         lead_name: data.leadName,
         lead_email: data.leadEmail,
         lead_phone: data.leadPhone || null,
@@ -68,6 +94,7 @@ const ReferralPortal = () => {
         project_description: data.projectDescription,
         lead_urgency: data.leadUrgency,
         referrer_user_id: user?.id || null,
+        commission_rate: data.referrerType === "sales_team" ? 5.00 : 3.00,
       };
 
       const { error } = await supabase.from("referrals").insert([referralData]);
@@ -107,7 +134,7 @@ const ReferralPortal = () => {
               REFERN TO EERN
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-              Refer quality leads to us and earn a guaranteed 5% commission on every successful project. 
+              Refer quality leads to us and earn up to 5% commission on every successful project. 
               Turn your network into income with our premium referral program.
             </p>
             
@@ -116,7 +143,7 @@ const ReferralPortal = () => {
               <Card className="glass-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <CardContent className="p-6 text-center">
                   <DollarSign className="h-12 w-12 text-primary mx-auto mb-3" />
-                  <h3 className="text-2xl font-bold text-primary">5%</h3>
+                  <h3 className="text-2xl font-bold text-primary">3-5%</h3>
                   <p className="text-sm text-muted-foreground">Commission Rate</p>
                 </CardContent>
               </Card>
@@ -157,6 +184,33 @@ const ReferralPortal = () => {
                         <Users className="h-5 w-5" />
                         Your Information
                       </h3>
+                      
+                      {/* Referrer Type Selection */}
+                      <FormField
+                        control={form.control}
+                        name="referrerType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-base font-medium">Referrer Type *</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="h-12 text-base max-w-md">
+                                  <SelectValue placeholder="Select referrer type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="individual">Individual (3% commission)</SelectItem>
+                                <SelectItem value="sales_team">Sales Team (5% commission)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>
+                              Sales teams require company verification for higher commission rates
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
                       <div className="grid md:grid-cols-2 gap-6">
                         <FormField
                           control={form.control}
@@ -210,6 +264,104 @@ const ReferralPortal = () => {
                           </FormItem>
                         )}
                       />
+
+                      {/* Sales Team Fields - Conditional */}
+                      {form.watch("referrerType") === "sales_team" && (
+                        <div className="space-y-6 p-6 bg-primary/5 rounded-lg border border-primary/10">
+                          <h4 className="text-lg font-semibold text-primary mb-4">Sales Company Information</h4>
+                          
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <FormField
+                              control={form.control}
+                              name="salesCompanyName"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-base font-medium">Company Name *</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      placeholder="Your sales company" 
+                                      className="h-12 text-base"
+                                      {...field} 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="salesCompanyPhone"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-base font-medium">Company Phone</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      placeholder="(555) 123-4567" 
+                                      className="h-12 text-base"
+                                      {...field} 
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <FormField
+                              control={form.control}
+                              name="salesCompanyWebsite"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-base font-medium">Company Website</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      placeholder="https://yourcompany.com" 
+                                      className="h-12 text-base"
+                                      {...field} 
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="salesTeamPosition"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-base font-medium">Your Position</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      placeholder="Sales Manager, Account Executive, etc." 
+                                      className="h-12 text-base"
+                                      {...field} 
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          <FormField
+                            control={form.control}
+                            name="salesLicenseNumber"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-base font-medium">Sales License Number</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="Professional license number (if applicable)" 
+                                    className="h-12 text-base max-w-md"
+                                    {...field} 
+                                  />
+                                </FormControl>
+                                <FormDescription>
+                                  Required for verification to receive 5% commission rate
+                                </FormDescription>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
                     </div>
 
                     {/* Lead Information */}
@@ -397,13 +549,13 @@ const ReferralPortal = () => {
                           <h4 className="text-lg font-semibold text-primary">Commission Calculation</h4>
                         </div>
                         <p className="text-muted-foreground mb-3">
-                          You'll earn 5% commission on the total project value if the lead converts to a sale.
+                          You'll earn {form.watch("referrerType") === "sales_team" ? "5%" : "3%"} commission on the total project value if the lead converts to a sale.
                         </p>
                         {form.watch("estimatedBudget") && (
                           <div className="bg-background/60 rounded-lg p-4">
                             <p className="text-sm text-muted-foreground">Estimated commission for this referral:</p>
                             <p className="text-2xl font-bold text-primary">
-                              ${((parseFloat(form.watch("estimatedBudget") || "0") * 0.05).toLocaleString())}
+                              ${((parseFloat(form.watch("estimatedBudget") || "0") * (form.watch("referrerType") === "sales_team" ? 0.05 : 0.03)).toLocaleString())}
                             </p>
                           </div>
                         )}
@@ -426,7 +578,7 @@ const ReferralPortal = () => {
                         ) : (
                           <>
                             <Gift className="mr-3 h-5 w-5" />
-                            Submit Referral & Earn 5%
+                            Submit Referral & Earn {form.watch("referrerType") === "sales_team" ? "5%" : "3%"}
                           </>
                         )}
                       </Button>
