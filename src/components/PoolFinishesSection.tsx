@@ -205,11 +205,11 @@ const PoolFinishesSection = () => {
           </TabsList>
 
           <TabsContent value={activeCategory}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="flex gap-4 overflow-x-auto pb-4">
               {filteredFinishes.map((finish, index) => (
                 <Card 
                   key={finish.id} 
-                  className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 bg-card/50 backdrop-blur-sm border border-border/50"
+                  className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 bg-card/50 backdrop-blur-sm border border-border/50 flex-shrink-0 w-72"
                   onClick={() => setSelectedFinish(finish)}
                 >
                   <div className="relative overflow-hidden rounded-t-lg">

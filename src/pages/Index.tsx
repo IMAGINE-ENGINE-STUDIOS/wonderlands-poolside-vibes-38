@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import PoolCatalog from "@/components/PoolCatalog";
 import SpaCatalog from "@/components/SpaCatalog";
+import TanningLedgeSection from "@/components/TanningLedgeSection";
 import PoolFinishesSection from "@/components/PoolFinishesSection";
 import LinersSection from "@/components/LinersSection";
 import AutomaticCoversSection from "@/components/AutomaticCoversSection";
@@ -32,6 +33,7 @@ const Index = () => {
       <PoolCatalog />
       <div id="spas" />
       <SpaCatalog />
+      <TanningLedgeSection />
       <div id="finishes" />
       <PoolFinishesSection />
       <div id="liners" />

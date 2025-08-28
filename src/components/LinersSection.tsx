@@ -111,7 +111,7 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
                 
                 <CardContent className="space-y-4">
                   {/* Liner Preview */}
-                  <div className="w-full h-32 rounded-lg overflow-hidden border-2 border-muted">
+                  <div className="w-full h-64 rounded-lg overflow-hidden border-2 border-muted">
                     <img 
                       src={liner.image} 
                       alt={liner.name}
@@ -128,9 +128,34 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
                   </div>
                   
                   {/* Description */}
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {liner.description}
-                  </p>
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      {liner.description}
+                    </p>
+                    
+                    {/* Additional Details */}
+                    <div className="space-y-2">
+                      <h4 className="font-semibold text-primary">Features:</h4>
+                      <ul className="grid grid-cols-2 gap-1 text-xs">
+                        <li className="flex items-center gap-1">
+                          <div className="w-1 h-1 bg-primary rounded-full"></div>
+                          Premium Material
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <div className="w-1 h-1 bg-primary rounded-full"></div>
+                          UV Resistant
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <div className="w-1 h-1 bg-primary rounded-full"></div>
+                          Easy Installation
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <div className="w-1 h-1 bg-primary rounded-full"></div>
+                          Long Lasting
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
                   
                   <Separator />
                   
@@ -138,14 +163,13 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
                   <Button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleAddToCart(liner);
+                      handleLinerClick(liner);
                     }}
                     variant="default"
                     className="w-full hover:scale-105 transition-all duration-300"
                     size="sm"
                   >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Add to Cart
+                    View Detail
                   </Button>
                 </CardContent>
               </Card>
@@ -196,14 +220,6 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
                         Select Liner
                       </Button>
                     )}
-                    <Button 
-                      onClick={() => handleAddToCart(selectedLiner)}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      Add to Cart
-                    </Button>
                     <Button 
                       onClick={() => handleRequestQuote(selectedLiner)}
                       variant="gradient"
