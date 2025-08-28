@@ -1,6 +1,7 @@
 import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -77,6 +78,13 @@ const Footer = () => {
                   </span>
                 </div>
               ))}
+              {/* Referral Program Link */}
+              <Link to="/referral" className="flex items-center gap-2 group">
+                <div className="w-1.5 h-1.5 bg-gradient-to-r from-coral to-orange rounded-full"></div>
+                <span className="text-sm text-coral hover:text-orange transition-colors font-medium">
+                  REFERN TO EERN - 5% Commission
+                </span>
+              </Link>
             </div>
           </div>
 
