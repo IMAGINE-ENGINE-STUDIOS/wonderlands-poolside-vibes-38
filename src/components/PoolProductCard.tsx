@@ -69,6 +69,7 @@ interface PoolExtras {
   screenEnclosure: boolean;
   screenEnclosureArea: number;
   screenEnclosureQuality: 'standard' | 'deluxe' | 'premium';
+  concreteConstruction: boolean;
   extrasBreakdown?: Array<{ name: string; price: number }>;
   extrasTotal?: number;
 }
@@ -282,7 +283,8 @@ const PoolProductCard = ({
     copingPaverOption: 'No Coping',
     screenEnclosure: false,
     screenEnclosureArea: 0,
-    screenEnclosureQuality: 'standard'
+    screenEnclosureQuality: 'standard',
+    concreteConstruction: false
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
   const [copingSurfaceArea, setCopingSurfaceArea] = useState('');
@@ -343,12 +345,22 @@ const PoolProductCard = ({
           ...prev,
           screenEnclosure: !prev.screenEnclosure
         };
+      } else if (extra === 'concreteConstruction') {
+        return {
+          ...prev,
+          concreteConstruction: !prev.concreteConstruction
+        };
       }
       return prev;
     });
   };
   const calculateTotalPrice = () => {
     let total = pool.price;
+
+    // Add 20% markup for concrete construction
+    if (extras.concreteConstruction) {
+      total = total * 1.2;
+    }
 
     // Add finish price if not default
     const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
@@ -455,6 +467,15 @@ const PoolProductCard = ({
       cartExtras.push({
         name: tileOption.name,
         price: tileOption.price
+      });
+    }
+
+    // Add concrete construction markup to cart if selected
+    if (extras.concreteConstruction) {
+      const concreteMarkup = Math.round(pool.price * 0.2);
+      cartExtras.push({
+        name: 'Concrete Construction',
+        price: concreteMarkup
       });
     }
 
@@ -860,7 +881,15 @@ const PoolProductCard = ({
                 
                 {/* Remove Cover from Additional Features - it's now in main options */}
                  
-                  <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                   <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                      <Checkbox checked={extras.concreteConstruction} onCheckedChange={() => toggleExtra('concreteConstruction')} className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" />
+                      <div className="flex items-center space-x-1">
+                        <Shield size={16} className="text-coral" />
+                         <span className="text-sm">Make it on Concrete (+20% = +${Math.round((pool.price * 0.2)).toLocaleString()})</span>
+                      </div>
+                    </label>
+
+                   <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                      <Checkbox checked={extras.spa} onCheckedChange={() => toggleExtra('spa')} />
                      <div className="flex items-center space-x-1">
                        <Waves size={16} className="text-primary" />
@@ -1104,6 +1133,15 @@ const PoolProductCard = ({
                 extrasBreakdown.push({
                   name: `Screen Enclosure - ${extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : '2 stories'} (${extras.screenEnclosureArea} sq ft)`,
                   price: enclosurePrice
+                });
+              }
+              
+              // Add concrete construction if selected
+              if (extras.concreteConstruction) {
+                const concreteMarkup = Math.round(pool.price * 0.2);
+                extrasBreakdown.push({
+                  name: 'Concrete Construction',
+                  price: concreteMarkup
                 });
               }
               
