@@ -80,7 +80,7 @@ export const poolFinishes = [
   "Courtstone Gray", "Courtstone Blue"
 ];
 
-export const pools: Pool[] = [
+const pools: Pool[] = [
   // Enchantment Series
   { 
     model: "Enchantment 9.17", 
@@ -892,5 +892,5 @@ const PoolCatalog = () => {
   );
 };
 
-export { spas };
+export { spas, pools };
 export default PoolCatalog;
