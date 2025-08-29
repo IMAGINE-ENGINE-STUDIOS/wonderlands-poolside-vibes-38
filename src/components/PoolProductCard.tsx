@@ -630,7 +630,7 @@ const PoolProductCard = ({
               <Clock className="h-3 w-3" />
               <span>Installation: {pool.installationTimeWeeks} weeks</span>
             </div>}
-          {pool.warrantyYears && <div className="flex items-center gap-1">
+           {pool.warrantyYears && !extras.concreteConstruction && <div className="flex items-center gap-1">
               <Award className="h-3 w-3" />
               <span className="font-bold text-primary">
                 Warranty: {pool.warrantyYears === "Lifetime" || pool.warrantyYears === "Life" ? "LIFETIME WARRANTY" : `${pool.warrantyYears} years`}
