@@ -26,8 +26,8 @@ import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 
 // Helper function to get discounted price for deluxe pools
 const getPoolPrice = (pool: Pool) => {
-  if (pool.category === 'deluxe') {
-    return Math.round(pool.price * 0.75); // 25% discount
+  if (pool.category === 'premium') {
+    return Math.round(pool.price * 0.70); // 30% discount
   }
   return pool.price;
 };
