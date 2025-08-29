@@ -135,12 +135,12 @@ const pools: Pool[] = [
 
   // Standard Series
   { 
-    model: "Astoria 12", 
+    model: "Astoria", 
     price: 48900, 
     category: 'standard', 
     image: astoriaImage,
-    dimensions: "12′ × 6′ 6″",
-    depth: "3′ – 5′ 6″",
+    dimensions: "14' x 35'",
+    depth: "3'-6\" to 6'6\"; Spa 3′",
     installationTimeWeeks: 4,
     warrantyYears: "20 Years Structure",
     features: ["Space-Efficient Design", "Integrated Seating", "Easy Entry Steps", "Compact Footprint"],
