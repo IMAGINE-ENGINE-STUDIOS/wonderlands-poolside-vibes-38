@@ -408,42 +408,71 @@ const PoolDetails = () => {
   }, [extras, cacheKey]);
   const calculateTotalPrice = () => {
     let total = pool.price;
+    
+    // Add concrete construction markup if selected
+    if (extras.concreteConstruction) {
+      total = total * 1.2;
+    }
+
+    // Add finish price if not default
+    const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
+    if (selectedFinish && selectedFinish.price) {
+      total += selectedFinish.price;
+    }
+
+    // Add heater price if selected (dynamic price based on model)
     if (extras.heater) {
       const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
       if (selectedHeater) total += selectedHeater.price;
     }
+    
+    // Add spa jets if selected
     if (extras.jets) total += getExtraPrice('jets') * extras.jetQuantity;
+    
+    // Add liner price ($4500) when liner is selected and not "Standard Blue"
     const linerOption = linerOptions.find(option => option.name === extras.linerOption);
-    if (linerOption && extras.liner) total += linerOption.price;
+    if (linerOption && extras.linerOption !== 'Standard Blue') {
+      total += 4500; // Fixed price for any premium liner
+    }
+    
+    // Add tile price when tiles are selected
     const tileOption = tileOptions.find(option => option.name === extras.tileOption);
     if (tileOption && extras.tiles) total += tileOption.price;
+    
+    // Add cover price only when cover is enabled
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
     if (coverOption && extras.cover) total += coverOption.price;
-    const paverOption = paverOptions.find(option => option.name === extras.paverOption);
-    // Calculate paver area with 3ft buffer on all sides around pool + user specified area
-    const poolDimensions = pool.dimensions?.split('x').map(d => parseInt(d.trim().replace(/['"]/g, ''))) || [16, 32];
-    const poolWidth = poolDimensions[0];
-    const poolLength = poolDimensions[1];
-    const paverAreaWithBuffer = (poolWidth + 6) * (poolLength + 6); // 3ft on each side = 6ft total
-    const totalPaverArea = paverAreaWithBuffer + paverArea;
-    if (paverOption) total += 15 * totalPaverArea; // $15 per sq ft * total area including installation
+    
+    // Add paver surface area cost
+    if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+      total += parseFloat(paverSurfaceArea) * 15; // $15 per sq ft
+    }
 
-    const copingPaverOption = copingPaverOptions.find(option => option.name === extras.copingPaverOption);
-    if (copingPaverOption) total += copingPaverOption.price * copingLength; // price per linear ft * length
-
+    // Add spa price if selected
     if (extras.spa) {
       const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
       if (selectedSpa) total += selectedSpa.price;
     }
+    
+    // Add tanning ledge price if selected
     if (extras.tanningLedge) {
       const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
       if (selectedLedge) total += selectedLedge.price;
+    }
+
+    // Add screen enclosure price if area is provided
+    if (extras.screenEnclosureArea > 0) {
+      let pricePerSqFt = 15; // standard
+      if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+      if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+      total += extras.screenEnclosureArea * pricePerSqFt;
     }
 
     // Add selected marketplace products
     selectedProducts.forEach(product => {
       total += product.price;
     });
+    
     return total;
   };
   const getCurrentImage = () => {
