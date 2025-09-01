@@ -28,7 +28,6 @@ import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 const getPoolPrice = (pool: Pool) => {
   return pool.price;
 };
-
 interface Pool {
   model: string;
   price: number;
@@ -77,7 +76,10 @@ interface PoolExtras {
   screenEnclosureQuality: 'standard' | 'deluxe' | 'premium';
   concreteConstruction: boolean;
   deliveryTime?: string;
-  extrasBreakdown?: Array<{ name: string; price: number }>;
+  extrasBreakdown?: Array<{
+    name: string;
+    price: number;
+  }>;
   extrasTotal?: number;
 }
 const getCategoryColor = (category: string) => {
@@ -390,15 +392,15 @@ const PoolProductCard = ({
     // Add option prices - liner is always $4500 when selected
     const linerOption = linerOptions.find(option => option.name === extras.linerOption);
     const tileOption = tileOptions.find(option => option.name === extras.tileOption);
-    
+
     // Always add tile price when tiles are selected
     if (tileOption && extras.tiles) total += tileOption.price;
-    
-                    // Add liner price ($4500) when liner is selected and not "Standard Blue"
-                    if (linerOption && extras.linerOption !== 'Standard Blue') {
-                      total += 4500; // Fixed price for any premium liner
-                    }
-    
+
+    // Add liner price ($4500) when liner is selected and not "Standard Blue"
+    if (linerOption && extras.linerOption !== 'Standard Blue') {
+      total += 4500; // Fixed price for any premium liner
+    }
+
     // Add cover price only once
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
     if (coverOption && extras.cover && coverOption.name !== 'NO COVER') total += coverOption.price;
@@ -591,19 +593,13 @@ const PoolProductCard = ({
               ${calculateTotalPrice().toLocaleString()}
             </span>
           </div>
-          {pool.category === 'deluxe' && (
-            <div className="flex items-center gap-2">
+          {pool.category === 'deluxe' && <div className="flex items-center gap-2">
               <span className="text-xs sm:text-sm text-muted-foreground line-through">
                 ${pool.price.toLocaleString()}
               </span>
-              <Badge className="bg-red-500 text-white text-xs">25% OFF</Badge>
-            </div>
-          )}
-          {hasExtras && pool.category !== 'deluxe' && (
-            <span className="text-xs sm:text-sm text-muted-foreground line-through">
-              ${pool.price.toLocaleString()}
-            </span>
-          )}
+              
+            </div>}
+          {hasExtras && pool.category !== 'deluxe'}
         </div>
         
         {/* Features & Tech */}
@@ -758,55 +754,42 @@ const PoolProductCard = ({
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">
                   Screen Enclosure Area (sq ft)
                 </label>
-                <Input 
-                  type="number" 
-                  placeholder="Enter surface area for screen enclosure" 
-                  value={extras.screenEnclosureArea || ''} 
-                  onChange={e => setExtras(prev => ({
-                    ...prev,
-                    screenEnclosureArea: parseFloat(e.target.value) || 0
-                  }))} 
-                  className="mb-2" 
-                />
-                {extras.screenEnclosureArea > 0 && (
-                  <div className="text-xs text-green-600 font-medium">
+                <Input type="number" placeholder="Enter surface area for screen enclosure" value={extras.screenEnclosureArea || ''} onChange={e => setExtras(prev => ({
+              ...prev,
+              screenEnclosureArea: parseFloat(e.target.value) || 0
+            }))} className="mb-2" />
+                {extras.screenEnclosureArea > 0 && <div className="text-xs text-green-600 font-medium">
                     Calculated Cost: ${(() => {
-                      let pricePerSqFt = 15;
-                      if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
-                      if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
-                      return (extras.screenEnclosureArea * pricePerSqFt).toLocaleString();
-                    })()} (${extras.screenEnclosureArea} sq ft × ${(() => {
-                      if (extras.screenEnclosureQuality === 'deluxe') return '$22';
-                      if (extras.screenEnclosureQuality === 'premium') return '$28';
-                      return '$15';
-                    })()}/sq ft)
-                  </div>
-                )}
+                let pricePerSqFt = 15;
+                if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+                if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                return (extras.screenEnclosureArea * pricePerSqFt).toLocaleString();
+              })()} (${extras.screenEnclosureArea} sq ft × ${(() => {
+                if (extras.screenEnclosureQuality === 'deluxe') return '$22';
+                if (extras.screenEnclosureQuality === 'premium') return '$28';
+                return '$15';
+              })()}/sq ft)
+                  </div>}
               </div>
               <div className="grid grid-cols-3 gap-2">
-                {[
-                  { key: 'standard', name: 'Wonder Cage' },
-                  { key: 'deluxe', name: 'Deluxe' },
-                  { key: 'premium', name: '2 stories' }
-                ].map(quality => (
-                  <div 
-                    key={quality.key}
-                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md text-center ${
-                      extras.screenEnclosureQuality === quality.key 
-                        ? 'border-primary bg-primary/10' 
-                        : 'border-border'
-                    }`} 
-                    onClick={() => setExtras(prev => ({
-                      ...prev,
-                      screenEnclosureQuality: quality.key as 'standard' | 'deluxe' | 'premium'
-                    }))}
-                  >
+                {[{
+              key: 'standard',
+              name: 'Wonder Cage'
+            }, {
+              key: 'deluxe',
+              name: 'Deluxe'
+            }, {
+              key: 'premium',
+              name: '2 stories'
+            }].map(quality => <div key={quality.key} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md text-center ${extras.screenEnclosureQuality === quality.key ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+              ...prev,
+              screenEnclosureQuality: quality.key as 'standard' | 'deluxe' | 'premium'
+            }))}>
                     <p className="text-sm font-medium">{quality.name}</p>
                     <p className="text-xs text-muted-foreground">
                       ${quality.key === 'standard' ? '15' : quality.key === 'deluxe' ? '22' : '28'}/sq ft
                     </p>
-                  </div>
-                ))}
+                  </div>)}
               </div>
             </div>
 
@@ -878,9 +861,9 @@ const PoolProductCard = ({
                      <div className="flex items-center space-x-1">
                        <Shield size={16} className="text-primary" />
                        <span className="text-sm">Add Pool Cover (+${extras.cover ? (() => {
-                     const selectedCover = coverOptions.find(cover => cover.name === extras.coverOption);
-                     return selectedCover && selectedCover.name !== 'NO COVER' ? selectedCover.price.toLocaleString() : '0';
-                   })() : '0'})</span>
+                    const selectedCover = coverOptions.find(cover => cover.name === extras.coverOption);
+                    return selectedCover && selectedCover.name !== 'NO COVER' ? selectedCover.price.toLocaleString() : '0';
+                  })() : '0'})</span>
                      </div>
                    </label>
 
@@ -888,9 +871,9 @@ const PoolProductCard = ({
                        <label className="text-xs font-medium text-muted-foreground">Select Cover Type:</label>
                         <div className="grid grid-cols-1 gap-2">
                           {coverOptions.map(cover => <button key={cover.name} onClick={() => setExtras(prev => ({
-                   ...prev,
-                   coverOption: cover.name
-                 }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.coverOption === cover.name ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'}`}>
+                  ...prev,
+                  coverOption: cover.name
+                }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.coverOption === cover.name ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'}`}>
                                <img src={cover.image} alt={cover.name} className="w-8 h-8 rounded object-cover" />
                                <div className="flex-1 text-left">
                                  <div>{cover.surname}</div>
@@ -904,12 +887,10 @@ const PoolProductCard = ({
                      <Checkbox checked={extras.concreteConstruction} onCheckedChange={() => toggleExtra('concreteConstruction')} className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" />
                      <div className="flex items-center space-x-1">
                        <Shield size={16} className="text-coral" />
-                        <span className="text-sm">Make it on Concrete (+${Math.round((getPoolPrice(pool) * 0.2)).toLocaleString()})</span>
+                        <span className="text-sm">Make it on Concrete (+${Math.round(getPoolPrice(pool) * 0.2).toLocaleString()})</span>
                      </div>
                    </label>
-                   {extras.concreteConstruction && (
-                     <p className="text-xs text-muted-foreground ml-6 mt-1">Premium concrete construction for enhanced durability and longevity.</p>
-                   )}
+                   {extras.concreteConstruction && <p className="text-xs text-muted-foreground ml-6 mt-1">Premium concrete construction for enhanced durability and longevity.</p>}
 
                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                      <Checkbox checked={extras.spa} onCheckedChange={() => toggleExtra('spa')} />
@@ -982,18 +963,18 @@ const PoolProductCard = ({
                         <CarouselContent className="-ml-1">
                           {tileOptions.map(tile => <CarouselItem key={tile.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
                               <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tileOption === tile.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
-                          ...prev,
-                          tileOption: tile.name
-                        }))}>
+                      ...prev,
+                      tileOption: tile.name
+                    }))}>
                                 <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
                                   <img src={tile.image} alt={tile.name} className="w-full h-full object-cover" onError={e => {
-                              const target = e.target as HTMLImageElement;
-                              const parent = target.parentElement;
-                              if (parent) {
-                                parent.style.backgroundColor = tile.color;
-                                target.style.display = 'none';
-                              }
-                            }} />
+                          const target = e.target as HTMLImageElement;
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.style.backgroundColor = tile.color;
+                            target.style.display = 'none';
+                          }
+                        }} />
                                 </div>
                                 <div className="flex-1 flex flex-col justify-between min-h-0">
                                   <p className="text-xs font-medium text-center line-clamp-2">{tile.name}</p>
@@ -1034,7 +1015,7 @@ const PoolProductCard = ({
             <Button onClick={() => {
               // Create detailed extras breakdown for quote tool
               const extrasBreakdown = [];
-              
+
               // Add finish if not default
               const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
               if (selectedFinish && selectedFinish.price > 0) {
@@ -1044,7 +1025,7 @@ const PoolProductCard = ({
                   image: selectedFinish.image
                 });
               }
-              
+
               // Add heater if selected
               if (extras.heater) {
                 const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
@@ -1056,17 +1037,17 @@ const PoolProductCard = ({
                   });
                 }
               }
-              
-      // Add cover if selected
-      const coverOption = coverOptions.find(option => option.name === extras.coverOption);
-      if (coverOption && extras.cover && coverOption.name !== 'NO COVER') {
-        extrasBreakdown.push({
-          name: coverOption.name,
-          price: coverOption.price,
-          image: coverOption.image
-        });
-      }
-              
+
+              // Add cover if selected
+              const coverOption = coverOptions.find(option => option.name === extras.coverOption);
+              if (coverOption && extras.cover && coverOption.name !== 'NO COVER') {
+                extrasBreakdown.push({
+                  name: coverOption.name,
+                  price: coverOption.price,
+                  image: coverOption.image
+                });
+              }
+
               // Add jets if selected
               if (extras.jets) {
                 extrasBreakdown.push({
@@ -1075,7 +1056,7 @@ const PoolProductCard = ({
                   image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
                 });
               }
-              
+
               // Add tiles if selected
               const tileOption = tileOptions.find(option => option.name === extras.tileOption);
               if (tileOption && extras.tiles) {
@@ -1085,17 +1066,18 @@ const PoolProductCard = ({
                   image: tileOption.image
                 });
               }
-              
+
               // Add liner if selected (always $4500 for premium liners)
               const linerOption = linerOptions.find(option => option.name === extras.linerOption);
               if (linerOption && extras.linerOption !== 'Standard Blue') {
                 extrasBreakdown.push({
                   name: `${linerOption.name} Liner`,
-                  price: 4500, // Fixed price for any premium liner
+                  price: 4500,
+                  // Fixed price for any premium liner
                   image: linerOption.image
                 });
               }
-              
+
               // Add paver surface area cost
               if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
                 extrasBreakdown.push({
@@ -1104,7 +1086,7 @@ const PoolProductCard = ({
                   image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
                 });
               }
-              
+
               // Add spa if selected
               if (extras.spa) {
                 const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
@@ -1116,7 +1098,7 @@ const PoolProductCard = ({
                   });
                 }
               }
-              
+
               // Add tanning ledge if selected
               if (extras.tanningLedge) {
                 const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
@@ -1128,7 +1110,7 @@ const PoolProductCard = ({
                   });
                 }
               }
-              
+
               // Add screen enclosure if area provided
               if (extras.screenEnclosureArea > 0) {
                 let pricePerSqFt = 15;
@@ -1141,7 +1123,7 @@ const PoolProductCard = ({
                   image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png'
                 });
               }
-              
+
               // Add concrete construction if selected
               if (extras.concreteConstruction) {
                 const concreteMarkup = Math.round(getPoolPrice(pool) * 0.2);
@@ -1151,9 +1133,7 @@ const PoolProductCard = ({
                   image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
                 });
               }
-              
               const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
-              
               onRequestQuote(pool, {
                 ...extras,
                 extrasBreakdown,
@@ -1220,135 +1200,133 @@ const PoolProductCard = ({
         {/* Default Action Buttons */}
         {!showDetails && <div className="space-y-2">
             <Button onClick={() => {
-              // Create extras breakdown for quote
-              const extrasBreakdown = [];
-              
-              // Add finish if not default
-              const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
-              if (selectedFinish && selectedFinish.price) {
-                extrasBreakdown.push({
-                  name: selectedFinish.name,
-                  price: selectedFinish.price,
-                  image: selectedFinish.image
-                });
-              }
-              
-              // Add heater if selected
-              if (extras.heater) {
-                const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
-                if (selectedHeater) {
-                  extrasBreakdown.push({
-                    name: selectedHeater.name,
-                    price: selectedHeater.price,
-                    image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png"
-                  });
-                }
-              }
-              
-              // Add jets if selected
-              if (extras.jets) {
-                extrasBreakdown.push({
-                  name: `Spa Jets (${extras.jetQuantity})`,
-                  price: getExtraPrice('jets') * extras.jetQuantity,
-                  image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
-                });
-              }
-              
-              // Add liner if selected and not standard
-              const linerOption = linerOptions.find(option => option.name === extras.linerOption);
-              if (linerOption && extras.linerOption !== 'Standard Blue') {
-                extrasBreakdown.push({
-                  name: `${linerOption.name} Liner`,
-                  price: 4500,
-                  image: linerOption.image
-                });
-              }
-              
-              // Add cover if selected
-              const coverOption = coverOptions.find(option => option.name === extras.coverOption);
-              if (coverOption && extras.cover && coverOption.name !== 'NO COVER') {
-                extrasBreakdown.push({
-                  name: coverOption.name,
-                  price: coverOption.price,
-                  image: coverOption.image
-                });
-              }
-              
-              // Add tiles if selected
-              const tileOption = tileOptions.find(option => option.name === extras.tileOption);
-              if (tileOption && extras.tiles) {
-                extrasBreakdown.push({
-                  name: tileOption.name,
-                  price: tileOption.price,
-                  image: tileOption.image
-                });
-              }
-              
-              // Add paver surface area cost
-              if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-                extrasBreakdown.push({
-                  name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
-                  price: parseFloat(paverSurfaceArea) * 15,
-                  image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
-                });
-              }
-              
-              // Add spa if selected
-              if (extras.spa) {
-                const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
-                if (selectedSpa) {
-                  extrasBreakdown.push({
-                    name: `${selectedSpa.model} Spa`,
-                    price: selectedSpa.price,
-                    image: selectedSpa.image
-                  });
-                }
-              }
-              
-              // Add tanning ledge if selected
-              if (extras.tanningLedge) {
-                const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
-                if (selectedLedge) {
-                  extrasBreakdown.push({
-                    name: `${selectedLedge.name} Tanning Ledge`,
-                    price: selectedLedge.price,
-                    image: selectedLedge.image
-                  });
-                }
-              }
-              
-              // Add screen enclosure if area provided
-              if (extras.screenEnclosureArea > 0) {
-                let pricePerSqFt = 15;
-                if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
-                if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
-                const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
-                extrasBreakdown.push({
-                  name: `Screen Enclosure - ${extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : 'Premium'} (${extras.screenEnclosureArea} sq ft)`,
-                  price: enclosurePrice,
-                  image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png'
-                });
-              }
-              
-              // Add concrete construction if selected
-              if (extras.concreteConstruction) {
-                const concreteMarkup = Math.round(getPoolPrice(pool) * 0.2);
-                extrasBreakdown.push({
-                  name: 'Concrete Construction',
-                  price: concreteMarkup,
-                  image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
-                });
-              }
-              
-              const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
-              
-              onRequestQuote(pool, {
-                ...extras,
-                extrasBreakdown,
-                extrasTotal,
-                deliveryTime: extras.concreteConstruction ? '8-12 weeks+' : '6 weeks'
+          // Create extras breakdown for quote
+          const extrasBreakdown = [];
+
+          // Add finish if not default
+          const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
+          if (selectedFinish && selectedFinish.price) {
+            extrasBreakdown.push({
+              name: selectedFinish.name,
+              price: selectedFinish.price,
+              image: selectedFinish.image
+            });
+          }
+
+          // Add heater if selected
+          if (extras.heater) {
+            const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
+            if (selectedHeater) {
+              extrasBreakdown.push({
+                name: selectedHeater.name,
+                price: selectedHeater.price,
+                image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png"
               });
-            }} variant="outline" className="w-full" size="sm">
+            }
+          }
+
+          // Add jets if selected
+          if (extras.jets) {
+            extrasBreakdown.push({
+              name: `Spa Jets (${extras.jetQuantity})`,
+              price: getExtraPrice('jets') * extras.jetQuantity,
+              image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+            });
+          }
+
+          // Add liner if selected and not standard
+          const linerOption = linerOptions.find(option => option.name === extras.linerOption);
+          if (linerOption && extras.linerOption !== 'Standard Blue') {
+            extrasBreakdown.push({
+              name: `${linerOption.name} Liner`,
+              price: 4500,
+              image: linerOption.image
+            });
+          }
+
+          // Add cover if selected
+          const coverOption = coverOptions.find(option => option.name === extras.coverOption);
+          if (coverOption && extras.cover && coverOption.name !== 'NO COVER') {
+            extrasBreakdown.push({
+              name: coverOption.name,
+              price: coverOption.price,
+              image: coverOption.image
+            });
+          }
+
+          // Add tiles if selected
+          const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+          if (tileOption && extras.tiles) {
+            extrasBreakdown.push({
+              name: tileOption.name,
+              price: tileOption.price,
+              image: tileOption.image
+            });
+          }
+
+          // Add paver surface area cost
+          if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+            extrasBreakdown.push({
+              name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
+              price: parseFloat(paverSurfaceArea) * 15,
+              image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
+            });
+          }
+
+          // Add spa if selected
+          if (extras.spa) {
+            const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
+            if (selectedSpa) {
+              extrasBreakdown.push({
+                name: `${selectedSpa.model} Spa`,
+                price: selectedSpa.price,
+                image: selectedSpa.image
+              });
+            }
+          }
+
+          // Add tanning ledge if selected
+          if (extras.tanningLedge) {
+            const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
+            if (selectedLedge) {
+              extrasBreakdown.push({
+                name: `${selectedLedge.name} Tanning Ledge`,
+                price: selectedLedge.price,
+                image: selectedLedge.image
+              });
+            }
+          }
+
+          // Add screen enclosure if area provided
+          if (extras.screenEnclosureArea > 0) {
+            let pricePerSqFt = 15;
+            if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+            if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+            const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
+            extrasBreakdown.push({
+              name: `Screen Enclosure - ${extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : 'Premium'} (${extras.screenEnclosureArea} sq ft)`,
+              price: enclosurePrice,
+              image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png'
+            });
+          }
+
+          // Add concrete construction if selected
+          if (extras.concreteConstruction) {
+            const concreteMarkup = Math.round(getPoolPrice(pool) * 0.2);
+            extrasBreakdown.push({
+              name: 'Concrete Construction',
+              price: concreteMarkup,
+              image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+            });
+          }
+          const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
+          onRequestQuote(pool, {
+            ...extras,
+            extrasBreakdown,
+            extrasTotal,
+            deliveryTime: extras.concreteConstruction ? '8-12 weeks+' : '6 weeks'
+          });
+        }} variant="outline" className="w-full" size="sm">
               Instant Quote
             </Button>
             <Button onClick={handleImageClick} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">
