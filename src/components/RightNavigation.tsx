@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Home, Waves, Sparkles, Palette, Droplets, Shield, Grid3X3, Mountain } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ShoppingCart, Home, Waves, Sparkles, Palette, Droplets, Shield, Grid3X3, Mountain, Settings } from "lucide-react";
 import { useShoppingCart } from "./ShoppingCart";
+import { useNavigate } from "react-router-dom";
 
 const RightNavigation = () => {
   const [activeSection, setActiveSection] = useState("hero");
   const { getCartCount, setIsCartOpen } = useShoppingCart();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -64,38 +67,61 @@ const RightNavigation = () => {
   ];
 
   return (
-    <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-50 flex flex-col gap-2">
-      {/* Shopping Cart Button */}
-      <Button
-        onClick={() => setIsCartOpen(true)}
-        className="relative rounded-full w-12 h-12 bg-primary hover:bg-primary/90 shadow-lg"
-      >
-        <ShoppingCart className="h-5 w-5" />
-        {getCartCount() > 0 && (
-          <Badge className="absolute -top-2 -right-2 bg-coral text-white min-w-5 h-5 flex items-center justify-center text-xs">
-            {getCartCount()}
-          </Badge>
-        )}
-      </Button>
+    <TooltipProvider>
+      <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-50 flex flex-col gap-2">
+        {/* Admin Dashboard Button */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={() => navigate('/admin')}
+              className="relative rounded-full w-11 h-11 bg-secondary hover:bg-secondary/90 shadow-lg"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Admin</TooltipContent>
+        </Tooltip>
 
-      {/* Navigation Items */}
-      {navItems.map((item) => {
-        const Icon = item.icon;
-        const isActive = activeSection === item.id;
-        
-        return (
-          <Button
-            key={item.id}
-            onClick={() => scrollToSection(item.id)}
-            variant={isActive ? "default" : "outline"}
-            className="rounded-full w-12 h-12 shadow-lg transition-all duration-300"
-            title={item.label}
-          >
-            <Icon className="h-5 w-5" />
-          </Button>
-        );
-      })}
-    </div>
+        {/* Shopping Cart Button */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={() => setIsCartOpen(true)}
+              className="relative rounded-full w-11 h-11 bg-primary hover:bg-primary/90 shadow-lg"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {getCartCount() > 0 && (
+                <Badge className="absolute -top-2 -right-2 bg-coral text-white min-w-5 h-5 flex items-center justify-center text-xs">
+                  {getCartCount()}
+                </Badge>
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Cart</TooltipContent>
+        </Tooltip>
+
+        {/* Navigation Items */}
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeSection === item.id;
+          
+          return (
+            <Tooltip key={item.id}>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={() => scrollToSection(item.id)}
+                  variant={isActive ? "default" : "outline"}
+                  className="rounded-full w-11 h-11 shadow-lg transition-all duration-300"
+                >
+                  <Icon className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{item.label}</TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </div>
+    </TooltipProvider>
   );
 };
 

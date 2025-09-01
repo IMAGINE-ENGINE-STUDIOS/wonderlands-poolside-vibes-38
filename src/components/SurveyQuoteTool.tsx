@@ -24,6 +24,7 @@ interface Pool {
   dimensions?: string;
   depth?: string;
   image?: string;
+  warrantyYears?: number | string;
 }
 interface PoolOption {
   id: string;
@@ -932,10 +933,35 @@ const SurveyQuoteTool = ({
                         <li>• Reinforced concrete shell with rebar</li>
                         <li>• Customizable design, steps, benches, and features</li>
                         <li>• Built to meet local codes and engineering specifications</li>
+                        <li>• <span className="font-semibold text-amber-600">6 Years Warranty</span> for concrete construction</li>
                       </ul>
                     </div>
                   </div>
                 )}
+
+                {/* Warranty Information */}
+                <div className="mb-6">
+                  <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200">
+                    <h4 className="font-bold text-lg mb-2 text-green-600">Warranty Coverage</h4>
+                    <div className="text-sm space-y-2">
+                      {extras?.concreteConstruction ? (
+                        <div>
+                          <p className="font-semibold">Concrete Pool Construction: <span className="text-amber-600">6 Years</span></p>
+                          <p className="text-xs text-muted-foreground">
+                            Comprehensive warranty covering structural integrity and workmanship for concrete construction
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="font-semibold">Pool Structure: <span className="text-green-600">{pool?.warrantyYears || "Lifetime"}</span></p>
+                          <p className="text-xs text-muted-foreground">
+                            {pool?.model === "Astoria" ? "Life Warranty - Special Offer" : "Standard structural warranty coverage"}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
                 {/* Estimated Build Time */}
                 <div className="mb-6">
