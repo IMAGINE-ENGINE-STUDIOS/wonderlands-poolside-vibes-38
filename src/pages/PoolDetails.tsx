@@ -17,6 +17,7 @@ import { paverTypes } from "@/data/paverData";
 import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import SurveyQuoteTool from "@/components/SurveyQuoteTool";
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
 import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
@@ -62,8 +63,10 @@ interface PoolExtras {
   tanningLedge: boolean;
   tanningLedgeModel: string;
   heaterModel: string;
+  pavers: boolean;
   paverOption: string;
   copingPaverOption: string;
+  screenEnclosure: boolean;
   screenEnclosureArea: number;
   screenEnclosureQuality: string;
   concreteConstruction: boolean;
@@ -288,6 +291,8 @@ const PoolDetails = () => {
   const [editorActive, setEditorActive] = useState(false);
   const [showFinancing, setShowFinancing] = useState(false);
   const [paverSurfaceArea, setPaverSurfaceArea] = useState<string>('');
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [selectedExtras, setSelectedExtras] = useState<any>(null);
 
   // Remove config item function
   const removeConfigItem = (item: any) => {
@@ -378,8 +383,10 @@ const PoolDetails = () => {
     tanningLedge: false,
     tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
     heaterModel: poolHeaters[0]?.name || 'Heat Pump - Eco Series',
+    pavers: false,
     paverOption: 'No Pavers',
     copingPaverOption: 'No Coping',
+    screenEnclosure: false,
     screenEnclosureArea: 0,
     screenEnclosureQuality: 'Standard',
     concreteConstruction: false
@@ -2155,12 +2162,123 @@ const PoolDetails = () => {
                 {/* Action Buttons */}
                 <div className="space-y-2">
                   <Button 
-                    onClick={handleGenerateQuote}
+                    onClick={() => {
+                      // Create detailed extras breakdown for quote tool
+                      const extrasBreakdown = [];
+
+                      // Add finish if not default
+                      if (extras.finish && extras.finish !== 'Athens Pearl White') {
+                        const finishOption = finishOptions.find(f => f.name === extras.finish);
+                        if (finishOption) {
+                          extrasBreakdown.push({
+                            name: `${finishOption.name} Finish`,
+                            price: finishOption.price,
+                            image: finishOption.image
+                          });
+                        }
+                      }
+
+                      // Add heater if selected
+                      if (extras.heater && extras.heaterModel) {
+                        const heaterOption = poolHeaters.find(h => h.name === extras.heaterModel);
+                        if (heaterOption) {
+                          extrasBreakdown.push({
+                            name: heaterOption.name,
+                            price: heaterOption.price,
+                            image: heaterOption.image
+                          });
+                        }
+                      }
+
+                      // Add cover if selected
+                      if (extras.cover && extras.coverOption) {
+                        const coverOption = coverOptions.find(c => c.name === extras.coverOption);
+                        if (coverOption) {
+                          extrasBreakdown.push({
+                            name: coverOption.name,
+                            price: coverOption.price,
+                            image: coverOption.image
+                          });
+                        }
+                      }
+
+                      // Add spa if selected
+                      if (extras.spa && extras.spaModel) {
+                        const spaOption = spas.find(s => s.model === extras.spaModel);
+                        if (spaOption) {
+                          extrasBreakdown.push({
+                            name: `${spaOption.model} Spa`,
+                            price: spaOption.price,
+                            image: spaOption.image
+                          });
+                        }
+                      }
+
+                      // Add tanning ledge if selected  
+                      if (extras.tanningLedge && extras.tanningLedgeModel) {
+                        const ledgeOption = tanningLedges.find(t => t.name === extras.tanningLedgeModel);
+                        if (ledgeOption) {
+                          extrasBreakdown.push({
+                            name: `${ledgeOption.name} Tanning Ledge`,
+                            price: ledgeOption.price,
+                            image: ledgeOption.image
+                          });
+                        }
+                      }
+
+                      // Add tiles if selected
+                      if (extras.tiles && extras.tileOption) {
+                        const tileOption = tileOptions.find(t => t.name === extras.tileOption);
+                        if (tileOption) {
+                          extrasBreakdown.push({
+                            name: tileOption.name,
+                            price: tileOption.price,
+                            image: tileOption.image
+                          });
+                        }
+                      }
+
+                      // Add pavers if selected
+                      if (extras.pavers && extras.paverOption && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+                        const paverOption = paverOptions.find(p => p.name === extras.paverOption);
+                        if (paverOption) {
+                          extrasBreakdown.push({
+                            name: `${paverOption.name} (${paverSurfaceArea} sq ft)`,
+                            price: parseFloat(paverSurfaceArea) * 15,
+                            image: paverOption.image
+                          });
+                        }
+                      }
+
+                      // Add screen enclosure if selected
+                      if (extras.screenEnclosure && extras.screenEnclosureArea && !isNaN(parseFloat(extras.screenEnclosureArea.toString()))) {
+                        let pricePerSqFt = 15;
+                        if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+                        if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                        const enclosurePrice = parseFloat(extras.screenEnclosureArea.toString()) * pricePerSqFt;
+                        extrasBreakdown.push({
+                          name: `Screen Enclosure - ${extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality} (${extras.screenEnclosureArea} sq ft)`,
+                          price: enclosurePrice,
+                          image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png'
+                        });
+                      }
+
+                      const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
+                      
+                      setSelectedExtras({
+                        ...extras,
+                        paverSurfaceArea: parseFloat(paverSurfaceArea || '0'),
+                        extrasBreakdown,
+                        extrasTotal,
+                        deliveryTime: '6 weeks'
+                      });
+                      setShowQuoteModal(true);
+                    }}
                     variant="outline" 
                     className="w-full" 
                     size="sm"
                   >
-                    Generate Quote & Download PDF
+                    Instant Quote
                   </Button>
                   
                   <div className="flex gap-2">
@@ -2234,6 +2352,13 @@ const PoolDetails = () => {
       </div>
       
       <DragDropEditor isActive={editorActive} onToggle={() => setEditorActive(!editorActive)} showEnableButton={false} />
+      
+      <SurveyQuoteTool 
+        pool={pool as any}
+        isOpen={showQuoteModal}
+        onClose={() => setShowQuoteModal(false)}
+        extras={selectedExtras}
+      />
     </div>
   );
 };
