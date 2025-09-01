@@ -1,15 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Shield, User, LogOut, Briefcase } from "lucide-react";
+import { Shield, User, LogOut, Briefcase, Moon, Sun } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminLogin from "./AdminLogin";
 
 const Header = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const { user, profile, signOut } = useAuth();
   const location = useLocation();
   const isContentEditor = location.pathname === '/content-editor';
+
+  // Dark mode toggle effect
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
   const handleAdminAccess = () => {
     setShowAdminLogin(true);
@@ -38,9 +48,21 @@ const Header = () => {
             } transition-all duration-300`}
           />
           
-          {/* Simplified Auth - Only when not logged in and not in content editor */}
-          {!isContentEditor && !user ? (
-            <div className="flex items-center gap-2">
+          {/* Header Controls */}
+          <div className="flex items-center gap-2">
+            {/* Dark Mode Toggle - Always visible */}
+            <Button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              variant="outline"
+              size="sm"
+              className="transition-all duration-300 hover:scale-105"
+              title="Toggle Dark Mode"
+            >
+              {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+            
+            {/* Simplified Auth - Only when not logged in and not in content editor */}
+            {!isContentEditor && !user && (
               <Link to="/auth">
                 <Button 
                   variant="default" 
@@ -51,8 +73,8 @@ const Header = () => {
                   Sign In
                 </Button>
               </Link>
-            </div>
-          ) : null}
+            )}
+          </div>
         </div>
       </header>
 

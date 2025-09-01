@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
@@ -599,7 +600,7 @@ const ContentEditor = () => {
 
         <div className="flex flex-1">
           {/* Top Controls Bar */}
-          <div className="fixed top-32 left-0 right-0 z-[80] bg-background/95 backdrop-blur-sm border-b p-4">
+          <div className="fixed top-20 left-0 right-0 z-[60] bg-background/95 backdrop-blur-sm border-b p-4 pointer-events-auto">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               {/* Content Tools */}
               <div className="flex items-center gap-2">
@@ -648,16 +649,33 @@ const ContentEditor = () => {
                 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => addCustomElement('button', 'Click Me')}
-                    >
-                      <MousePointer className="h-4 w-4 mr-1" />
-                      Button
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <MousePointer className="h-4 w-4 mr-1" />
+                          Button
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-popover border border-border">
+                        <DropdownMenuItem onClick={() => addCustomElement('button', 'Primary Button')}>
+                          Primary Button
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => addCustomElement('button', 'Secondary Button')}>
+                          Secondary Button
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => addCustomElement('button', 'Outline Button')}>
+                          Outline Button
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => addCustomElement('button', 'Ghost Button')}>
+                          Ghost Button
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => addCustomElement('button', 'Link Button')}>
+                          Link Button
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TooltipTrigger>
-                  <TooltipContent>Add interactive button</TooltipContent>
+                  <TooltipContent>Add interactive button with different styles</TooltipContent>
                 </Tooltip>
               </div>
 
@@ -800,7 +818,7 @@ const ContentEditor = () => {
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1 bg-white pt-32">
+          <div className="flex-1 bg-background pt-40">
             <SitePreview
               elements={elements}
               onElementClick={handleElementClick}

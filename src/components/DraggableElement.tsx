@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Move3D, Trash2, Copy, Edit3, Package } from "lucide-react";
@@ -56,7 +56,7 @@ export const DraggableElement = ({
     }
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || !editMode) return;
     
     const newPosition = {
@@ -68,17 +68,24 @@ export const DraggableElement = ({
       ...element,
       position: newPosition
     });
-  };
+  }, [isDragging, editMode, dragOffset, element, onElementUpdate]);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     setIsDragging(false);
-  };
+  }, []);
 
   // Add event listeners for drag
-  if (isDragging) {
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const handleDoubleClick = () => {
     if (!editMode || isPreviewMode || element.type === 'image') return;
