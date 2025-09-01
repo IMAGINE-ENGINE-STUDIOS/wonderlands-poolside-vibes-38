@@ -131,6 +131,22 @@ const AdvancedSearch = () => {
   };
 
   const handleProductSelect = (result: SearchResult) => {
+    // Navigate to main page first if not already there
+    if (window.location.pathname !== '/') {
+      navigate('/');
+      // Wait for navigation then scroll to section
+      setTimeout(() => {
+        scrollToSection(result);
+      }, 100);
+    } else {
+      scrollToSection(result);
+    }
+    
+    setShowResults(false);
+    setSearchQuery('');
+  };
+
+  const scrollToSection = (result: SearchResult) => {
     if (result.type === 'pool') {
       navigate(`/pool/${result.id}`);
     } else {
@@ -156,9 +172,6 @@ const AdvancedSearch = () => {
         }
       }
     }
-    
-    setShowResults(false);
-    setSearchQuery('');
   };
 
   useEffect(() => {
@@ -175,7 +188,7 @@ const AdvancedSearch = () => {
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
         <Input
           type="text"
-          placeholder="Discover Wonderlands - Your one-stop destination for pools, patios, and outdoor living. Find premium pools, spas, finishes, covers, and more for homeowners and dealers."
+          placeholder="Search pools, spas, finishes, covers & more..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-12 pr-4 py-3 text-lg bg-background/95 backdrop-blur border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 rounded-xl shadow-lg"

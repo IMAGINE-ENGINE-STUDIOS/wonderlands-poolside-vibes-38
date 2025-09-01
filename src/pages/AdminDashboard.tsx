@@ -21,6 +21,7 @@ import {
   Smartphone,
   LogOut,
   Gift,
+  Building2,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -50,6 +51,13 @@ const AdminDashboard = () => {
   const { user, profile, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth');
+    }
+  }, [user, navigate]);
 
   // Sample orders data
   const [orders, setOrders] = useState([
@@ -206,6 +214,11 @@ const AdminDashboard = () => {
                   <span className="sm:hidden">Content</span>
                 </TabsTrigger>
               )}
+              
+              <TabsTrigger value="procurement" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <Building2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Procurement</span>
+              </TabsTrigger>
               
               <TabsTrigger value="analytics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -436,6 +449,68 @@ const AdminDashboard = () => {
               </div>
             </TabsContent>
           )}
+
+          {/* Procurement Tab */}
+          <TabsContent value="procurement" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-primary" />
+                  Procurement System
+                </CardTitle>
+                <CardDescription>
+                  Manage procurement bids, job postings, and contractor relationships
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-center py-8">
+                  <Building2 className="h-16 w-16 text-primary mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Procurement System</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Access the full procurement system with enhanced bid creation and application tools.
+                  </p>
+                  <Button
+                    onClick={() => window.open('/procurement', '_blank')}
+                    className="w-full max-w-md mb-4"
+                  >
+                    <Building2 className="mr-2 h-4 w-4" />
+                    Open Procurement System (New Tab)
+                  </Button>
+                </div>
+                
+                {/* Quick Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+                  <Card className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Plus className="h-4 w-4 text-blue-500" />
+                      <span className="font-medium text-sm">Create Bids</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Post detailed job requirements and receive competitive bids from qualified contractors
+                    </p>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Search className="h-4 w-4 text-green-500" />
+                      <span className="font-medium text-sm">Browse Jobs</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Find and apply to procurement opportunities with advanced filtering and search
+                    </p>
+                  </Card>
+                  <Card className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="h-4 w-4 text-purple-500" />
+                      <span className="font-medium text-sm">Manage Relationships</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Build and maintain professional relationships with contractors and suppliers
+                    </p>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">

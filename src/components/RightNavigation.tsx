@@ -12,8 +12,9 @@ const RightNavigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Check if we're on the content editor page
+  // Check if we're on the content editor or admin dashboard page
   const isContentEditor = location.pathname === '/content-editor';
+  const isAdminDashboard = location.pathname === '/admin';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -72,10 +73,12 @@ const RightNavigation = () => {
 
   return (
     <TooltipProvider>
-      <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-[70] flex flex-col gap-2">
+      <div className={`fixed right-4 z-[70] flex flex-col gap-2 ${
+        isAdminDashboard ? 'top-4' : 'top-1/2 transform -translate-y-1/2'
+      }`}>
         {/* Conditional rendering based on current page */}
-        {isContentEditor ? (
-          /* Show only Home button on Content Editor page */
+        {(isContentEditor || isAdminDashboard) ? (
+          /* Show only Home button on Content Editor and Admin Dashboard pages */
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
