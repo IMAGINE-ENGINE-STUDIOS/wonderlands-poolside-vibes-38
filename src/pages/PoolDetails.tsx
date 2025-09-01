@@ -1868,39 +1868,7 @@ const PoolDetails = () => {
                       </div>
                     )}
 
-                    {/* Spa Jets */}
-                    <div className="flex items-center justify-between p-2 border rounded-lg">
-                      <label className="flex items-center space-x-2 cursor-pointer flex-1">
-                        <Checkbox checked={extras.jets} onCheckedChange={() => toggleExtra('jets')} />
-                        <div className="flex items-center space-x-1">
-                          <Zap size={16} className="text-orange" />
-                          <span className="text-sm">Spa Jets (+${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()})</span>
-                        </div>
-                      </label>
-                      {extras.jets && (
-                        <div className="flex items-center space-x-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))} 
-                            className="h-8 w-8 p-0"
-                          >
-                            -
-                          </Button>
-                          <span className="text-sm font-medium w-8 text-center">{extras.jetQuantity}</span>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))} 
-                            className="h-8 w-8 p-0"
-                          >
-                            +
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Pool Cover */}
+                    {/* Pool Covers */}
                     <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox 
                         checked={extras.cover} 
@@ -1939,25 +1907,12 @@ const PoolDetails = () => {
                       </div>
                     )}
 
-                    {/* Make it on Concrete */}
+                    {/* Spa */}
                     <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox 
-                        checked={extras.concreteConstruction} 
-                        onCheckedChange={() => toggleExtra('concreteConstruction')} 
-                        className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" 
+                        checked={extras.spa} 
+                        onCheckedChange={() => toggleExtra('spa')} 
                       />
-                      <div className="flex items-center space-x-1">
-                        <Shield size={16} className="text-coral" />
-                        <span className="text-sm">Make it on Concrete (+${Math.round(getPoolPrice(pool) * 0.2).toLocaleString()})</span>
-                      </div>
-                    </label>
-                    {extras.concreteConstruction && (
-                      <p className="text-xs text-muted-foreground ml-6 mt-1">Premium concrete construction for enhanced durability and longevity.</p>
-                    )}
-
-                    {/* Add Spa */}
-                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                      <Checkbox checked={extras.spa} onCheckedChange={() => toggleExtra('spa')} />
                       <div className="flex items-center space-x-1">
                         <Waves size={16} className="text-primary" />
                         <span className="text-sm">Add Spa (+${extras.spa ? (() => {
@@ -1967,9 +1922,35 @@ const PoolDetails = () => {
                       </div>
                     </label>
 
-                    {/* Add Tanning Ledge */}
+                    {extras.spa && (
+                      <div className="ml-6 space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground">Select Spa Model:</label>
+                        <div className="grid grid-cols-1 gap-2">
+                          {spas.map((spa: any) => (
+                            <button 
+                              key={spa.model} 
+                              onClick={() => setExtras(prev => ({ ...prev, spaModel: spa.model }))} 
+                              className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
+                                extras.spaModel === spa.model ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              {spa.image && <img src={spa.image} alt={spa.model} className="w-8 h-8 rounded object-cover" />}
+                              <div className="flex-1 text-left">
+                                <div>{spa.model}</div>
+                                <div className="text-xs text-muted-foreground">${spa.price.toLocaleString()}</div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tanning Ledge */}
                     <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                      <Checkbox checked={extras.tanningLedge} onCheckedChange={() => toggleExtra('tanningLedge')} />
+                      <Checkbox 
+                        checked={extras.tanningLedge} 
+                        onCheckedChange={() => toggleExtra('tanningLedge')} 
+                      />
                       <div className="flex items-center space-x-1">
                         <Sun size={16} className="text-coral" />
                         <span className="text-sm">Add Tanning Ledge (+${extras.tanningLedge ? (() => {
@@ -1979,9 +1960,35 @@ const PoolDetails = () => {
                       </div>
                     </label>
 
-                    {/* Add Pool Tiles */}
+                    {extras.tanningLedge && (
+                      <div className="ml-6 space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground">Select Tanning Ledge Model:</label>
+                        <div className="grid grid-cols-1 gap-2">
+                          {tanningLedges.map((ledge: any) => (
+                            <button 
+                              key={ledge.name} 
+                              onClick={() => setExtras(prev => ({ ...prev, tanningLedgeModel: ledge.name }))} 
+                              className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
+                                extras.tanningLedgeModel === ledge.name ? 'border-coral bg-coral/10 text-coral' : 'border-border hover:border-coral/50'
+                              }`}
+                            >
+                              <img src={ledge.image} alt={ledge.name} className="w-8 h-8 rounded object-cover" />
+                              <div className="flex-1 text-left">
+                                <div>{ledge.name}</div>
+                                <div className="text-xs text-muted-foreground">${ledge.price.toLocaleString()}</div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Pool Tiles */}
                     <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                      <Checkbox checked={extras.tiles} onCheckedChange={() => toggleExtra('tiles')} />
+                      <Checkbox 
+                        checked={extras.tiles} 
+                        onCheckedChange={() => toggleExtra('tiles')} 
+                      />
                       <div className="flex items-center space-x-1">
                         <Cpu size={16} className="text-primary" />
                         <span className="text-sm">Add Pool Tiles (+${extras.tiles ? (() => {
@@ -1990,6 +1997,81 @@ const PoolDetails = () => {
                         })() : '0'})</span>
                       </div>
                     </label>
+
+                    {extras.tiles && (
+                      <div className="ml-6 space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground">Select Tile Option:</label>
+                        <Carousel className="w-full">
+                          <CarouselContent className="-ml-1">
+                            {tileOptions.map(tile => (
+                              <CarouselItem key={tile.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                                <div 
+                                  className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                                    extras.tileOption === tile.name ? 'border-primary bg-primary/10' : 'border-border'
+                                  }`} 
+                                  onClick={() => setExtras(prev => ({ ...prev, tileOption: tile.name }))}
+                                >
+                                  <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                    <img 
+                                      src={tile.image} 
+                                      alt={tile.name} 
+                                      className="w-full h-full object-cover" 
+                                      onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        const parent = target.parentElement;
+                                        if (parent) {
+                                          parent.style.backgroundColor = tile.color || '#4682B4';
+                                          target.style.display = 'none';
+                                        }
+                                      }} 
+                                    />
+                                  </div>
+                                  <div className="flex-1 flex flex-col justify-between min-h-0">
+                                    <p className="text-xs font-medium text-center line-clamp-2">{tile.name}</p>
+                                    {tile.price > 0 && <p className="text-xs text-primary font-semibold text-center mt-1">+${tile.price.toLocaleString()}</p>}
+                                  </div>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious className="left-0" />
+                          <CarouselNext className="right-0" />
+                        </Carousel>
+                      </div>
+                    )}
+
+                    {/* Spa Jets */}
+                    <div className="flex items-center justify-between p-2 border rounded-lg">
+                      <label className="flex items-center space-x-2 cursor-pointer flex-1">
+                        <Checkbox checked={extras.jets} onCheckedChange={() => toggleExtra('jets')} />
+                        <div className="flex items-center space-x-1">
+                          <Zap size={16} className="text-orange" />
+                          <span className="text-sm">Spa Jets (+${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()})</span>
+                        </div>
+                      </label>
+                      {extras.jets && (
+                        <div className="flex items-center space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))} 
+                            className="h-8 w-8 p-0"
+                          >
+                            -
+                          </Button>
+                          <span className="text-sm font-medium w-8 text-center">{extras.jetQuantity}</span>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))} 
+                            className="h-8 w-8 p-0"
+                          >
+                            +
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
                   </div>
                 </div>
 
