@@ -933,7 +933,7 @@ const SurveyQuoteTool = ({
                         <li>• Reinforced concrete shell with rebar</li>
                         <li>• Customizable design, steps, benches, and features</li>
                         <li>• Built to meet local codes and engineering specifications</li>
-                        <li>• <span className="font-semibold text-amber-600">6 Years Warranty</span> for concrete construction</li>
+                        <li>• <span className="font-semibold text-amber-600">15 Years Structural Integrity, 5 Years Finishing Warranty</span> for concrete construction</li>
                       </ul>
                     </div>
                   </div>
@@ -946,9 +946,11 @@ const SurveyQuoteTool = ({
                     <div className="text-sm space-y-2">
                       {extras?.concreteConstruction ? (
                         <div>
-                          <p className="font-semibold">Concrete Pool Construction: <span className="text-amber-600">6 Years</span></p>
+                          <p className="font-semibold">Concrete Pool Construction:</p>
+                          <p className="text-sm"><span className="text-amber-600 font-semibold">15 Years Structural Integrity</span></p>
+                          <p className="text-sm"><span className="text-amber-600 font-semibold">5 Years Finishing</span></p>
                           <p className="text-xs text-muted-foreground">
-                            Comprehensive warranty covering structural integrity and workmanship for concrete construction
+                            Comprehensive warranty covering structural integrity and finishing for concrete construction
                           </p>
                         </div>
                       ) : (
