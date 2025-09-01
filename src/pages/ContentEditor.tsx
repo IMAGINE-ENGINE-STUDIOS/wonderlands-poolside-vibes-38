@@ -479,13 +479,10 @@ const ContentEditor = () => {
     <TooltipProvider>
       <div className="min-h-screen bg-background">
         {/* Simplified Top Dashboard */}
-        <div className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-40">
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-teal bg-clip-text text-transparent">
-                  Content Editor
-                </h1>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Globe className="h-4 w-4 mr-1" />
