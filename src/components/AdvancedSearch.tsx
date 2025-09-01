@@ -303,79 +303,59 @@ const AdvancedSearch = () => {
   }, [searchQuery]);
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto">
+    <div className="w-full">
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
         <Input
           type="text"
-          placeholder="Search by name, category, brand, material, color, features & more..."
+          placeholder="Search pools, spas, pavers, finishes..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-12 pr-4 py-3 text-lg bg-background/95 backdrop-blur border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 rounded-xl shadow-lg"
+          onFocus={() => setShowResults(true)}
+          className="pl-12 pr-4 py-4 text-lg w-full bg-white/90 backdrop-blur-sm border-none shadow-lg rounded-full text-foreground placeholder:text-muted-foreground"
         />
       </div>
 
       {showResults && (
-        <Card className="absolute top-full mt-2 w-full bg-background/95 backdrop-blur border-border/50 shadow-2xl rounded-xl overflow-hidden z-50">
+        <Card className="absolute top-full mt-2 w-full bg-white/95 backdrop-blur-sm border-none shadow-xl rounded-2xl overflow-hidden z-50">
           {isLoading ? (
-            <div className="p-6 text-center text-muted-foreground">
+            <div className="p-4 text-center text-muted-foreground">
               Searching...
             </div>
           ) : searchResults.length > 0 ? (
-            <div className="max-h-96 overflow-y-auto">
-              {searchResults.map((result) => (
+            <div className="max-h-80 overflow-y-auto">
+              {searchResults.slice(0, 6).map((result) => (
                 <div
                   key={`${result.category}-${result.id}`}
-                  className="p-4 hover:bg-accent/50 cursor-pointer border-b border-border/30 last:border-b-0 transition-colors"
+                  className="p-3 hover:bg-accent/50 cursor-pointer border-b border-border/20 last:border-b-0 transition-colors"
                   onClick={() => handleProductSelect(result)}
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     {result.image && (
                       <img 
                         src={result.image} 
                         alt={result.name}
-                        className="w-12 h-12 object-cover rounded-lg"
+                        className="w-10 h-10 object-cover rounded"
                       />
                     )}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-foreground">{result.name}</h3>
-                        <div className="flex items-center gap-1 flex-wrap">
-                          <Badge variant="secondary" className="text-xs">
-                            {result.category}
-                          </Badge>
-                          {result.subcategory && (
-                            <Badge variant="outline" className="text-xs">
-                              {result.subcategory}
-                            </Badge>
-                          )}
-                          {result.brand && (
-                            <Badge variant="outline" className="text-xs">
-                              {result.brand}
-                            </Badge>
-                          )}
-                        </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium text-sm truncate">{result.name}</h3>
+                        <Badge variant="secondary" className="text-xs">
+                          {result.category}
+                        </Badge>
                       </div>
-                      <div className="flex flex-col gap-1">
-                        {result.price > 0 && (
-                          <p className="text-sm font-medium text-foreground">
-                            ${result.price.toLocaleString()}
-                          </p>
-                        )}
-                        {result.description && (
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {result.description}
-                          </p>
-                        )}
-                      </div>
+                      <p className="text-sm text-primary font-medium">
+                        ${result.price?.toLocaleString() || 'Price on request'}
+                      </p>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="p-6 text-center text-muted-foreground">
-              No results found for "{searchQuery}"
+            <div className="p-4 text-center text-muted-foreground">
+              No results found
             </div>
           )}
         </Card>
