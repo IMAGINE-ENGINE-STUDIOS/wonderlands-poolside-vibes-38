@@ -201,7 +201,7 @@ const SitePreview = ({
         </Suspense>
       
         {!isPreviewMode && (
-          <div className="fixed top-20 right-4 z-50">
+          <div className={`fixed top-20 right-4 z-50 ${editMode ? 'pointer-events-none opacity-50' : ''}`}>
             <Button
               onClick={() => setShowCart(true)}
               variant="secondary"
@@ -599,7 +599,7 @@ const ContentEditor = () => {
 
         <div className="flex flex-1">
           {/* Top Controls Bar */}
-          <div className="fixed top-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b p-4">
+          <div className="fixed top-32 left-0 right-0 z-[80] bg-background/95 backdrop-blur-sm border-b p-4">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               {/* Content Tools */}
               <div className="flex items-center gap-2">

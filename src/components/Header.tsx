@@ -23,7 +23,9 @@ const Header = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 p-2 sm:p-4">
+      <header className={`fixed top-0 left-0 right-0 p-2 sm:p-4 ${
+        isContentEditor ? 'z-30 pointer-events-none' : 'z-50'
+      }`}>
         <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* Company Logo - Left Corner, 20% Larger */}
           <img 
