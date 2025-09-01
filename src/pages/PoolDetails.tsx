@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart as CartIcon, Search, ChevronDown, Settings, Armchair, Flame, ChefHat, Utensils, Home, Music, Package } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart, Search, ChevronDown, Settings, Armchair, Flame, ChefHat, Utensils, Home, Music, Package, Cpu } from "lucide-react";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import { DragDropEditor } from "@/components/DragDropEditor";
 import { useShoppingCart } from "@/components/ShoppingCart";
@@ -1538,82 +1540,505 @@ const PoolDetails = () => {
             </Card>
           </div>
 
-          {/* Right Panel - Pool Studio - Responsive */}
+          {/* Right Panel - Pool Studio - Complete Configuration */}
           <div className="xl:col-span-4">
             <Card>
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <h2 className="text-sm sm:text-lg font-semibold">Pool Studio</h2>
+              <CardContent className="p-3 sm:p-4 space-y-4">
+                {/* Header with Pool Browser */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-bold bg-gradient-to-r from-primary via-teal to-coral bg-clip-text text-transparent">
+                      Pool Configuration Studio
+                    </h2>
+                  </div>
+                  
+                  {/* Pool Browser */}
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                      Browse Other Pool Models
+                    </label>
+                    <select 
+                      value={pool.model} 
+                      onChange={(e) => {
+                        const selectedPool = pools.find(p => p.model === e.target.value);
+                        if (selectedPool) {
+                          window.location.href = `/pool/${selectedPool.model.toLowerCase().replace(/\s+/g, '-')}`;
+                        }
+                      }}
+                      className="w-full p-2 text-sm border rounded-md bg-background"
+                    >
+                      {pools.map(poolOption => (
+                        <option key={poolOption.model} value={poolOption.model}>
+                          {poolOption.model} - ${poolOption.price.toLocaleString()}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                {/* Category Selection Dropdown */}
-                <div className="mb-3 sm:mb-4">
-                  <select value={activePanel || ''} onChange={e => {
-                  const newPanel = e.target.value as ActivePanel || null;
-                  setActivePanel(newPanel);
-                  setSearchQuery('');
-                }} className="w-full p-2 text-xs sm:text-sm border rounded-md bg-background">
-                    <option value="">Select a Category</option>
-                    <option value="finishes">Pool Finishes</option>
-                    <option value="liners">Pool Liners</option>
-                    <option value="pavers">Pavers & Decking</option>
-                    <option value="coping">Coping Options</option>
-                    <option value="covers">Pool Covers</option>
-                    <option value="heaters">Heating Systems</option>
-                    <option value="spas">Spa Options</option>
-                    <option value="tanning">Tanning Ledges</option>
-                    <option value="tiles">Pool Tiles</option>
-                    <option value="jets">Pool Jets</option>
-                    <option value="furniture">Outdoor Furniture</option>
-                    <option value="fireplace">Fire Features</option>
-                  </select>
+                <Separator />
+
+                {/* Pool Finishing Options */}
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-foreground">Pool Finishes</h4>
+                  <Carousel className="w-full">
+                    <CarouselContent className="-ml-1">
+                      {finishOptions.map((finish, idx) => (
+                        <CarouselItem key={`pool-${finish.name}-${idx}`} className="pl-1 basis-1/2 sm:basis-1/3">
+                          <div 
+                            className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                              extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'
+                            }`} 
+                            onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
+                          >
+                            <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <img 
+                                src={finish.image} 
+                                alt={finish.name} 
+                                className="w-full h-full object-cover" 
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  const parent = target.parentElement;
+                                  if (parent) {
+                                    parent.style.backgroundColor = finish.color;
+                                    target.style.display = 'none';
+                                  }
+                                }}
+                              />
+                            </div>
+                            <div className="flex-1 flex flex-col justify-between min-h-0">
+                              <p className="text-xs font-medium text-center line-clamp-2">{finish.name}</p>
+                              <div className="mt-1 space-y-1">
+                                <p className="text-xs text-primary text-center font-semibold">{finish.collection}</p>
+                                {finish.price && <p className="text-xs text-foreground font-semibold text-center">+${finish.price.toLocaleString()}</p>}
+                              </div>
+                            </div>
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-0" />
+                    <CarouselNext className="right-0" />
+                  </Carousel>
                 </div>
 
-                {/* Content Area - Responsive */}
-                <div className="space-y-2 sm:space-y-3 max-h-80 sm:max-h-96 overflow-y-auto">
-                  {activePanel ? <div>
-                      <h4 className="text-xs sm:text-sm font-semibold mb-2">
-                        {activePanel === 'finishes' && 'Pool Finishes'}
-                        {activePanel === 'liners' && 'Pool Liners'}
-                        {activePanel === 'pavers' && 'Pavers & Decking'}
-                        {activePanel === 'coping' && 'Coping Options'}
-                        {activePanel === 'covers' && 'Pool Covers'}
-                        {activePanel === 'heaters' && 'Heating Systems'}
-                        {activePanel === 'spas' && 'Spa Options'}
-                        {activePanel === 'tanning' && 'Tanning Ledges'}
-                        {activePanel === 'tiles' && 'Pool Tiles'}
-                        {activePanel === 'jets' && 'Pool Jets'}
-                        {activePanel === 'furniture' && 'Outdoor Furniture'}
-                        {activePanel === 'fireplace' && 'Fire Features'}
-                      </h4>
-                      {renderCategoryContent()}
-                    </div> : <div className="text-center text-xs sm:text-sm text-muted-foreground py-8">
-                      Select a category to browse products
-                    </div>}
+                {/* Pool Liner Options */}
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-foreground">Premium Pool Liners</h4>
+                  <Carousel className="w-full">
+                    <CarouselContent className="-ml-1">
+                      {linerOptions.map(liner => (
+                        <CarouselItem key={liner.name} className="pl-1 basis-1/2 sm:basis-1/3">
+                          <div 
+                            className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                              extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'
+                            }`} 
+                            onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
+                          >
+                            <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <img 
+                                src={liner.image} 
+                                alt={liner.name} 
+                                className="w-full h-full object-cover" 
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  const parent = target.parentElement;
+                                  if (parent) {
+                                    parent.style.backgroundColor = liner.color;
+                                    target.style.display = 'none';
+                                  }
+                                }}
+                              />
+                            </div>
+                            <div className="flex-1 flex flex-col justify-between min-h-0">
+                              <p className="text-xs font-medium text-center line-clamp-2">{liner.name}</p>
+                              <div className="mt-1 space-y-1">
+                                {liner.type && liner.type !== 'Standard' && (
+                                  <p className="text-xs text-primary text-center font-semibold">{liner.type}</p>
+                                )}
+                                {liner.price > 0 && (
+                                  <p className="text-xs text-foreground font-semibold text-center">+${liner.price.toLocaleString()}</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-0" />
+                    <CarouselNext className="right-0" />
+                  </Carousel>
                 </div>
 
-                {/* Bottom Actions - Responsive */}
-                <div className="border-t mt-3 sm:mt-4 pt-3 sm:pt-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
+                {/* Pavers Options */}
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-foreground">Pavers & Surface Area Calculator</h4>
+                  <div className="mb-3">
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                      Paver Surface Area (sq ft)
+                    </label>
+                    <Input 
+                      type="number" 
+                      placeholder="Enter surface area for pavers" 
+                      value={paverSurfaceArea} 
+                      onChange={e => setPaverSurfaceArea(e.target.value)} 
+                      className="mb-2" 
+                    />
+                    {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
+                      <div className="text-xs text-green-600 font-medium">
+                        Calculated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()} (${paverSurfaceArea} sq ft × $15/sq ft)
+                      </div>
+                    )}
+                  </div>
+                  <Carousel className="w-full">
+                    <CarouselContent className="-ml-1">
+                      {paverOptions.map(paver => (
+                        <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3">
+                          <div 
+                            className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                              extras.paverOption === paver.name ? 'border-primary bg-primary/10' : 'border-border'
+                            }`} 
+                            onClick={() => setExtras(prev => ({ ...prev, paverOption: paver.name }))}
+                          >
+                            <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <img 
+                                src={paver.image} 
+                                alt={paver.name} 
+                                className="w-full h-full object-cover" 
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  const parent = target.parentElement;
+                                  if (parent) {
+                                    parent.style.backgroundColor = paver.color;
+                                    target.style.display = 'none';
+                                  }
+                                }}
+                              />
+                            </div>
+                            <div className="flex-1 flex flex-col justify-between min-h-0">
+                              <p className="text-xs font-medium text-center line-clamp-2">{paver.name}</p>
+                              {paver.price > 0 && (
+                                <p className="text-xs text-primary font-semibold text-center mt-1">+${paver.price.toLocaleString()}</p>
+                              )}
+                            </div>
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-0" />
+                    <CarouselNext className="right-0" />
+                  </Carousel>
+                </div>
+
+                {/* Screen Enclosure Options */}
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-foreground">Screen Enclosure & Surface Area Calculator</h4>
+                  <div className="mb-3">
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                      Screen Enclosure Area (sq ft)
+                    </label>
+                    <Input 
+                      type="number" 
+                      placeholder="Enter surface area for screen enclosure" 
+                      value={extras.screenEnclosureArea || ''} 
+                      onChange={e => setExtras(prev => ({ ...prev, screenEnclosureArea: parseFloat(e.target.value) || 0 }))} 
+                      className="mb-2" 
+                    />
+                    {extras.screenEnclosureArea > 0 && (
+                      <div className="text-xs text-green-600 font-medium">
+                        Calculated Cost: ${(() => {
+                          let pricePerSqFt = 15;
+                          if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+                          if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                          return (extras.screenEnclosureArea * pricePerSqFt).toLocaleString();
+                        })()} (${extras.screenEnclosureArea} sq ft × ${(() => {
+                          if (extras.screenEnclosureQuality === 'deluxe') return '$22';
+                          if (extras.screenEnclosureQuality === 'premium') return '$28';
+                          return '$15';
+                        })()}/sq ft)
+                      </div>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { key: 'standard', name: 'Wonder Cage' },
+                      { key: 'deluxe', name: 'Deluxe' },
+                      { key: 'premium', name: '2 stories' }
+                    ].map(quality => (
+                      <div 
+                        key={quality.key} 
+                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md text-center ${
+                          extras.screenEnclosureQuality === quality.key ? 'border-primary bg-primary/10' : 'border-border'
+                        }`} 
+                        onClick={() => setExtras(prev => ({ ...prev, screenEnclosureQuality: quality.key as 'standard' | 'deluxe' | 'premium' }))}
+                      >
+                        <p className="text-sm font-medium">{quality.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          ${quality.key === 'standard' ? '15' : quality.key === 'deluxe' ? '22' : '28'}/sq ft
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Additional Features */}
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-foreground">Additional Features</h4>
                   
-                  
-                  
-                  <Button variant="outline" size="sm" onClick={handleAddToCart} className="flex-1 text-xs sm:text-sm h-8 sm:h-9">
-                    <CartIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                    Cart
+                  <div className="grid grid-cols-1 gap-3">
+                    {/* Pool Heater */}
+                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                      <Checkbox 
+                        checked={extras.heater} 
+                        onCheckedChange={() => toggleExtra('heater')} 
+                        className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" 
+                      />
+                      <div className="flex items-center space-x-1">
+                        <Thermometer size={16} className="text-coral" />
+                        <span className="text-sm">Add Pool Heater (+${extras.heater ? (() => {
+                          const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
+                          return selectedHeater ? selectedHeater.price.toLocaleString() : '0';
+                        })() : '0'})</span>
+                      </div>
+                    </label>
+
+                    {extras.heater && (
+                      <div className="ml-6 space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground">Select Heater Model:</label>
+                        <div className="grid grid-cols-1 gap-2">
+                          {poolHeaters.map(heater => (
+                            <button 
+                              key={heater.name} 
+                              onClick={() => setExtras(prev => ({ ...prev, heaterModel: heater.name }))} 
+                              className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
+                                extras.heaterModel === heater.name ? 'border-coral bg-coral/10 text-coral' : 'border-border hover:border-coral/50'
+                              }`}
+                            >
+                              <img src={heater.image} alt={heater.name} className="w-8 h-8 rounded object-cover" />
+                              <div className="flex-1 text-left">
+                                <div>{heater.name}</div>
+                                <div className="text-xs text-muted-foreground">${heater.price.toLocaleString()}</div>
+                                {heater.description && <div className="text-xs text-muted-foreground">{heater.description}</div>}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Spa Jets */}
+                    <div className="flex items-center justify-between p-2 border rounded-lg">
+                      <label className="flex items-center space-x-2 cursor-pointer flex-1">
+                        <Checkbox checked={extras.jets} onCheckedChange={() => toggleExtra('jets')} />
+                        <div className="flex items-center space-x-1">
+                          <Zap size={16} className="text-orange" />
+                          <span className="text-sm">Spa Jets (+${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()})</span>
+                        </div>
+                      </label>
+                      {extras.jets && (
+                        <div className="flex items-center space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))} 
+                            className="h-8 w-8 p-0"
+                          >
+                            -
+                          </Button>
+                          <span className="text-sm font-medium w-8 text-center">{extras.jetQuantity}</span>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))} 
+                            className="h-8 w-8 p-0"
+                          >
+                            +
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Pool Cover */}
+                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                      <Checkbox 
+                        checked={extras.cover} 
+                        onCheckedChange={() => toggleExtra('cover')} 
+                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary" 
+                      />
+                      <div className="flex items-center space-x-1">
+                        <Shield size={16} className="text-primary" />
+                        <span className="text-sm">Add Pool Cover (+${extras.cover ? (() => {
+                          const selectedCover = coverOptions.find(cover => cover.name === extras.coverOption);
+                          return selectedCover && selectedCover.name !== 'NO COVER' ? selectedCover.price.toLocaleString() : '0';
+                        })() : '0'})</span>
+                      </div>
+                    </label>
+
+                    {extras.cover && (
+                      <div className="ml-6 space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground">Select Cover Type:</label>
+                        <div className="grid grid-cols-1 gap-2">
+                          {coverOptions.map(cover => (
+                            <button 
+                              key={cover.name} 
+                              onClick={() => setExtras(prev => ({ ...prev, coverOption: cover.name }))} 
+                              className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
+                                extras.coverOption === cover.name ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              <img src={cover.image} alt={cover.name} className="w-8 h-8 rounded object-cover" />
+                              <div className="flex-1 text-left">
+                                <div>{cover.surname}</div>
+                                <div className="text-xs text-muted-foreground">{cover.price > 0 ? `$${cover.price.toLocaleString()}` : 'No Cost'}</div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Make it on Concrete */}
+                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                      <Checkbox 
+                        checked={extras.concreteConstruction} 
+                        onCheckedChange={() => toggleExtra('concreteConstruction')} 
+                        className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" 
+                      />
+                      <div className="flex items-center space-x-1">
+                        <Shield size={16} className="text-coral" />
+                        <span className="text-sm">Make it on Concrete (+${Math.round(getPoolPrice(pool) * 0.2).toLocaleString()})</span>
+                      </div>
+                    </label>
+                    {extras.concreteConstruction && (
+                      <p className="text-xs text-muted-foreground ml-6 mt-1">Premium concrete construction for enhanced durability and longevity.</p>
+                    )}
+
+                    {/* Add Spa */}
+                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                      <Checkbox checked={extras.spa} onCheckedChange={() => toggleExtra('spa')} />
+                      <div className="flex items-center space-x-1">
+                        <Waves size={16} className="text-primary" />
+                        <span className="text-sm">Add Spa (+${extras.spa ? (() => {
+                          const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
+                          return selectedSpa ? selectedSpa.price.toLocaleString() : '0';
+                        })() : '0'})</span>
+                      </div>
+                    </label>
+
+                    {/* Add Tanning Ledge */}
+                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                      <Checkbox checked={extras.tanningLedge} onCheckedChange={() => toggleExtra('tanningLedge')} />
+                      <div className="flex items-center space-x-1">
+                        <Sun size={16} className="text-coral" />
+                        <span className="text-sm">Add Tanning Ledge (+${extras.tanningLedge ? (() => {
+                          const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
+                          return selectedLedge ? selectedLedge.price.toLocaleString() : '0';
+                        })() : '0'})</span>
+                      </div>
+                    </label>
+
+                    {/* Add Pool Tiles */}
+                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                      <Checkbox checked={extras.tiles} onCheckedChange={() => toggleExtra('tiles')} />
+                      <div className="flex items-center space-x-1">
+                        <Cpu size={16} className="text-primary" />
+                        <span className="text-sm">Add Pool Tiles (+${extras.tiles ? (() => {
+                          const selectedTile = tileOptions.find(tile => tile.name === extras.tileOption);
+                          return selectedTile && selectedTile.price > 0 ? selectedTile.price.toLocaleString() : '0';
+                        })() : '0'})</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Total Configuration Price */}
+                <div className="p-3 bg-gradient-to-r from-primary/10 to-teal/10 rounded-lg border border-primary/30">
+                  <div className="text-center">
+                    <h5 className="text-sm font-medium text-muted-foreground">Total Configuration Price</h5>
+                    <div className="text-2xl font-bold text-foreground">${calculateTotalPrice().toLocaleString()}</div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="space-y-2">
+                  <Button 
+                    onClick={handleGenerateQuote}
+                    variant="outline" 
+                    className="w-full" 
+                    size="sm"
+                  >
+                    Generate Quote & Download PDF
                   </Button>
-                 
-                  <StripeCheckoutButton productId={pool.model} productName={`${pool.model} Configuration`} price={calculateTotalPrice()} variant="default" className="flex-1 text-xs sm:text-sm h-8 sm:h-9" />
+                  
+                  <div className="flex gap-2">
+                    <Button onClick={handleAddToCart} variant="outline" size="sm" className="flex-1">
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      Cart
+                    </Button>
+                    <StripeCheckoutButton 
+                      productId={`pool_${pool.model.replace(/\s+/g, '_')}`} 
+                      productName={pool.model} 
+                      price={calculateTotalPrice()} 
+                      variant="gradient" 
+                      className="flex-1 hover:scale-105 transition-all duration-300" 
+                      size="sm" 
+                      showFinancingOptions={false} 
+                    />
+                  </div>
                 </div>
 
                 {/* Financing Section */}
-                <div className="border-t mt-3 pt-3">
-                  <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-3">
-                    <h5 className="font-semibold text-sm text-primary mb-2">Financing Available</h5>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground">Total Cost:</span>
-                        <span className="font-semibold">${calculateTotalPrice().toLocaleString()}</span>
+                <div className="mt-4 p-4 bg-gradient-to-r from-teal/5 to-primary/5 rounded-lg border border-teal/20">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h5 className="font-semibold text-sm text-foreground">Finance This Purchase</h5>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setShowFinancing(!showFinancing)} 
+                        className="text-xs"
+                      >
+                        {showFinancing ? 'Hide' : 'Show'} Options
+                      </Button>
+                    </div>
+                    
+                    {showFinancing && (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3 text-xs">
+                          <div className="text-center p-2 bg-white/50 rounded">
+                            <div className="font-semibold">3 Years</div>
+                            <div className="text-teal-600">${(calculateTotalPrice() / 36).toLocaleString()}/mo</div>
+                          </div>
+                          <div className="text-center p-2 bg-white/50 rounded">
+                            <div className="font-semibold">6 Years</div>
+                            <div className="text-teal-600">${(calculateTotalPrice() / 72).toLocaleString()}/mo</div>
+                          </div>
+                        </div>
+                        
+                        <Button 
+                          variant="outline" 
+                          className="w-full" 
+                          size="sm" 
+                          onClick={() => {
+                            const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?amount=${calculateTotalPrice()}&product=${encodeURIComponent(pool.model)}&description=${encodeURIComponent(`Complete pool configuration including ${pool.model}`)}&monthly_payment=${Math.round(calculateTotalPrice() * 0.008)}&loan_term=60&project_type=Pool%20Installation`;
+                            window.open(lyonFinancialUrl, '_blank');
+                          }}
+                        >
+                          Apply with Lyon Financial
+                        </Button>
+                        
+                        <div className="text-xs text-muted-foreground text-center">
+                          *Financing subject to credit approval. APR varies.
+                        </div>
                       </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-muted-foreground">Est. Monthly:</span>
                         <span className="font-semibold text-primary">${(calculateTotalPrice() / 60).toFixed(0)}/mo</span>
@@ -1624,7 +2049,8 @@ const PoolDetails = () => {
                     }}>
                         Lyon Financial
                       </Button>
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -1633,9 +2059,9 @@ const PoolDetails = () => {
         </div>
       </div>
       
-      
       <DragDropEditor isActive={editorActive} onToggle={() => setEditorActive(!editorActive)} showEnableButton={false} />
-      
-    </div>;
+    </div>
+  );
 };
+
 export default PoolDetails;
