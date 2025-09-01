@@ -317,16 +317,26 @@ const PoolDetails = () => {
     }));
     if (item.category === 'Pool Liner') setExtras(prev => ({
       ...prev,
-      linerOption: 'Classic Blue'
+      linerOption: 'Standard Blue'
     }));
-    if (item.category === 'Pavers') setExtras(prev => ({
-      ...prev,
-      paverOption: 'No Pavers'
-    }));
+    if (item.category === 'Pavers') {
+      setExtras(prev => ({
+        ...prev,
+        paverOption: 'No Pavers'
+      }));
+      setPaverSurfaceArea('');
+    }
     if (item.category === 'Coping') setExtras(prev => ({
       ...prev,
       copingPaverOption: 'No Coping'
     }));
+    if (item.category === 'Screen Enclosure') {
+      setExtras(prev => ({
+        ...prev,
+        screenEnclosureArea: 0,
+        screenEnclosureQuality: 'standard'
+      }));
+    }
     toast({
       title: "Item Removed",
       description: `${item.name} removed from configuration!`
@@ -429,22 +439,22 @@ const PoolDetails = () => {
     // Add spa jets if selected
     if (extras.jets) total += getExtraPrice('jets') * extras.jetQuantity;
     
-    // Add liner price ($4500) when liner is selected and not "Standard Blue"
+    // Add liner price when liner is selected and not "Standard Blue"
     const linerOption = linerOptions.find(option => option.name === extras.linerOption);
-    if (linerOption && extras.linerOption !== 'Standard Blue') {
-      total += 4500; // Fixed price for any premium liner
+    if (linerOption && extras.linerOption !== 'Standard Blue' && linerOption.price > 0) {
+      total += linerOption.price;
     }
     
     // Add tile price when tiles are selected
     const tileOption = tileOptions.find(option => option.name === extras.tileOption);
-    if (tileOption && extras.tiles) total += tileOption.price;
+    if (tileOption && extras.tiles && tileOption.price > 0) total += tileOption.price;
     
     // Add cover price only when cover is enabled
     const coverOption = coverOptions.find(option => option.name === extras.coverOption);
     if (coverOption && extras.cover) total += coverOption.price;
     
-    // Add paver surface area cost
-    if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+    // Add paver surface area cost (using paverSurfaceArea string state)
+    if (paverSurfaceArea && paverSurfaceArea.trim() !== '' && !isNaN(parseFloat(paverSurfaceArea))) {
       total += parseFloat(paverSurfaceArea) * 15; // $15 per sq ft
     }
 
@@ -460,8 +470,8 @@ const PoolDetails = () => {
       if (selectedLedge) total += selectedLedge.price;
     }
 
-    // Add screen enclosure price if area is provided
-    if (extras.screenEnclosureArea > 0) {
+    // Add screen enclosure price if area is provided and valid
+    if (extras.screenEnclosureArea && extras.screenEnclosureArea > 0) {
       let pricePerSqFt = 15; // standard
       if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
       if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
@@ -470,7 +480,7 @@ const PoolDetails = () => {
 
     // Add selected marketplace products
     selectedProducts.forEach(product => {
-      total += product.price;
+      total += product.price || 0;
     });
     
     return total;
@@ -517,6 +527,7 @@ const PoolDetails = () => {
       image?: string;
       category?: string;
     }[] = [];
+    
     // Heater
     if (extras.heater) {
       const selectedHeater = poolHeaters.find(h => h.name === extras.heaterModel);
@@ -527,6 +538,7 @@ const PoolDetails = () => {
         category: 'Pool Heater'
       });
     }
+    
     // Jets
     if (extras.jets) {
       items.push({
@@ -536,14 +548,18 @@ const PoolDetails = () => {
         category: 'Pool Jets'
       });
     }
+    
     // Liner
     const liner = linerOptions.find(l => l.name === extras.linerOption);
-    if (liner && extras.liner && liner.price > 0) items.push({
-      name: liner.name,
-      price: liner.price,
-      image: liner.image,
-      category: 'Pool Liner'
-    });
+    if (liner && extras.linerOption !== 'Standard Blue' && liner.price > 0) {
+      items.push({
+        name: liner.name,
+        price: liner.price,
+        image: liner.image,
+        category: 'Pool Liner'
+      });
+    }
+    
     // Tiles
     if (extras.tiles) {
       const tile = tileOptions.find(t => t.name === extras.tileOption);
@@ -554,6 +570,7 @@ const PoolDetails = () => {
         category: 'Pool Tiles'
       });
     }
+    
     // Cover
     if (extras.cover) {
       const cover = coverOptions.find(c => c.name === extras.coverOption);
@@ -564,21 +581,21 @@ const PoolDetails = () => {
         category: 'Pool Cover'
       });
     }
-    // Pavers
-    const paver = paverOptions.find(p => p.name === extras.paverOption);
-    if (paver) {
-      const poolDimensions = pool.dimensions?.split('x').map(d => parseInt(d.trim().replace(/['"]/g, ''))) || [16, 32];
-      const poolWidth = poolDimensions[0];
-      const poolLength = poolDimensions[1];
-      const paverAreaWithBuffer = (poolWidth + 6) * (poolLength + 6);
-      const totalPaverArea = paverAreaWithBuffer + paverArea;
-      items.push({
-        name: `${paver.name} (${totalPaverArea} sq ft incl. installation)`,
-        price: 15 * totalPaverArea,
-        image: paver.image,
-        category: 'Pavers'
-      });
+    
+    // Pavers (using paverSurfaceArea instead of paverArea)
+    if (paverSurfaceArea && paverSurfaceArea.trim() !== '' && !isNaN(parseFloat(paverSurfaceArea))) {
+      const paver = paverOptions.find(p => p.name === extras.paverOption);
+      const paverSqFt = parseFloat(paverSurfaceArea);
+      if (paver && paverSqFt > 0) {
+        items.push({
+          name: `${paver.name} (${paverSqFt} sq ft)`,
+          price: 15 * paverSqFt,
+          image: paver.image,
+          category: 'Pavers'
+        });
+      }
     }
+    
     // Coping
     const coping = copingPaverOptions.find(c => c.name === extras.copingPaverOption);
     if (coping && coping.price > 0) items.push({
@@ -587,6 +604,24 @@ const PoolDetails = () => {
       image: coping.image,
       category: 'Coping'
     });
+    
+    // Screen Enclosure
+    if (extras.screenEnclosureArea && extras.screenEnclosureArea > 0) {
+      let pricePerSqFt = 15; // standard
+      if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+      if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+      
+      const qualityName = extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : 
+                          extras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : '2 Stories';
+      
+      items.push({
+        name: `Screen Enclosure - ${qualityName} (${extras.screenEnclosureArea} sq ft)`,
+        price: extras.screenEnclosureArea * pricePerSqFt,
+        image: pool.image,
+        category: 'Screen Enclosure'
+      });
+    }
+    
     // Spa
     if (extras.spa) {
       const spa = spas.find((s: any) => s.model === extras.spaModel);
@@ -597,6 +632,7 @@ const PoolDetails = () => {
         category: 'Spa'
       });
     }
+    
     // Tanning Ledge
     if (extras.tanningLedge) {
       const ledge = tanningLedges.find((l: any) => l.name === extras.tanningLedgeModel);
@@ -607,15 +643,17 @@ const PoolDetails = () => {
         category: 'Tanning Ledge'
       });
     }
+    
     // Marketplace products
     selectedProducts.forEach(product => {
       items.push({
         name: product.name,
-        price: product.price,
+        price: product.price || 0,
         image: product.image_url,
         category: product.category
       });
     });
+    
     return items;
   };
   const handleAddToCart = () => {
@@ -1866,10 +1904,10 @@ const PoolDetails = () => {
                       />
                       <div className="flex items-center space-x-1">
                         <Thermometer size={16} className="text-coral" />
-                        <span className="text-sm">Add Pool Heater (+${extras.heater ? (() => {
+                       <span className="text-sm">Add Pool Heater (+{extras.heater ? (() => {
                           const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
-                          return selectedHeater ? selectedHeater.price.toLocaleString() : '0';
-                        })() : '0'})</span>
+                          return selectedHeater ? `$${selectedHeater.price.toLocaleString()}` : '$0';
+                        })() : '$0'})</span>
                       </div>
                     </label>
 
@@ -1906,10 +1944,10 @@ const PoolDetails = () => {
                       />
                       <div className="flex items-center space-x-1">
                         <Shield size={16} className="text-primary" />
-                        <span className="text-sm">Add Pool Cover (+${extras.cover ? (() => {
+                         <span className="text-sm">Add Pool Cover (+{extras.cover ? (() => {
                           const selectedCover = coverOptions.find(cover => cover.name === extras.coverOption);
-                          return selectedCover && selectedCover.name !== 'NO COVER' ? selectedCover.price.toLocaleString() : '0';
-                        })() : '0'})</span>
+                          return selectedCover && selectedCover.name !== 'NO COVER' ? `$${selectedCover.price.toLocaleString()}` : '$0';
+                        })() : '$0'})</span>
                       </div>
                     </label>
 
@@ -1944,10 +1982,10 @@ const PoolDetails = () => {
                       />
                       <div className="flex items-center space-x-1">
                         <Waves size={16} className="text-primary" />
-                        <span className="text-sm">Add Spa (+${extras.spa ? (() => {
+                         <span className="text-sm">Add Spa (+{extras.spa ? (() => {
                           const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
-                          return selectedSpa ? selectedSpa.price.toLocaleString() : '0';
-                        })() : '0'})</span>
+                          return selectedSpa ? `$${selectedSpa.price.toLocaleString()}` : '$0';
+                        })() : '$0'})</span>
                       </div>
                     </label>
 
@@ -1982,10 +2020,10 @@ const PoolDetails = () => {
                       />
                       <div className="flex items-center space-x-1">
                         <Sun size={16} className="text-coral" />
-                        <span className="text-sm">Add Tanning Ledge (+${extras.tanningLedge ? (() => {
+                         <span className="text-sm">Add Tanning Ledge (+{extras.tanningLedge ? (() => {
                           const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
-                          return selectedLedge ? selectedLedge.price.toLocaleString() : '0';
-                        })() : '0'})</span>
+                          return selectedLedge ? `$${selectedLedge.price.toLocaleString()}` : '$0';
+                        })() : '$0'})</span>
                       </div>
                     </label>
 
@@ -2020,10 +2058,10 @@ const PoolDetails = () => {
                       />
                       <div className="flex items-center space-x-1">
                         <Cpu size={16} className="text-primary" />
-                        <span className="text-sm">Add Pool Tiles (+${extras.tiles ? (() => {
+                         <span className="text-sm">Add Pool Tiles (+{extras.tiles ? (() => {
                           const selectedTile = tileOptions.find(tile => tile.name === extras.tileOption);
-                          return selectedTile && selectedTile.price > 0 ? selectedTile.price.toLocaleString() : '0';
-                        })() : '0'})</span>
+                          return selectedTile && selectedTile.price > 0 ? `$${selectedTile.price.toLocaleString()}` : '$0';
+                        })() : '$0'})</span>
                       </div>
                     </label>
 
@@ -2075,7 +2113,7 @@ const PoolDetails = () => {
                         <Checkbox checked={extras.jets} onCheckedChange={() => toggleExtra('jets')} />
                         <div className="flex items-center space-x-1">
                           <Zap size={16} className="text-orange" />
-                          <span className="text-sm">Spa Jets (+${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()})</span>
+                           <span className="text-sm">Spa Jets (+${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()})</span>
                         </div>
                       </label>
                       {extras.jets && (
