@@ -2111,6 +2111,20 @@ const PoolDetails = () => {
                       </div>
                     )}
 
+                    {/* Make it on Concrete */}
+                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                      <Checkbox 
+                        checked={extras.concreteConstruction} 
+                        onCheckedChange={() => toggleExtra('concreteConstruction')} 
+                        className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" 
+                      />
+                      <div className="flex items-center space-x-1">
+                        <Shield size={16} className="text-coral" />
+                        <span className="text-sm">Make it on Concrete (+${Math.round(pool.price * 0.2).toLocaleString()})</span>
+                      </div>
+                    </label>
+                    {extras.concreteConstruction && <p className="text-xs text-muted-foreground ml-6 mt-1">Premium concrete construction for enhanced durability and longevity.</p>}
+
                     {/* Pool Tiles */}
                     <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox 
