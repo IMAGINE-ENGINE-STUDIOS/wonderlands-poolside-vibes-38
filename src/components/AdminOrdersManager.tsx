@@ -15,12 +15,8 @@ interface Order {
   created_at: string;
   status: 'pending' | 'processing' | 'completed' | 'cancelled';
   total_amount: number;
-  user_id: string;
-  profiles: {
-    email: string;
-    first_name: string | null;
-    last_name: string | null;
-  } | null;
+  user_id: string | null;
+  customer_email: string | null;
 }
 
 interface AdminOrdersManagerProps {
@@ -35,14 +31,19 @@ const AdminOrdersManager = ({ isSimplified = false, currentUser }: AdminOrdersMa
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
+  const toUiStatus = (paymentStatus?: string): 'pending' | 'processing' | 'completed' | 'cancelled' => {
+    const status = (paymentStatus || '').toLowerCase();
+    if (status === 'paid' || status === 'succeeded' || status === 'completed') return 'completed';
+    if (status === 'failed' || status === 'canceled' || status === 'cancelled') return 'cancelled';
+    if (status === 'processing') return 'processing';
+    return 'pending';
+  };
+
   const loadOrders = async () => {
     try {
       let query = supabase
         .from('product_orders')
-        .select(`
-          *,
-          profiles:user_id(email, first_name, last_name)
-        `)
+        .select('id, created_at, total_amount, payment_status, user_id, customer_email')
         .order('created_at', { ascending: false });
 
       // If simplified view, only show orders for current user's products/services
@@ -61,7 +62,18 @@ const AdminOrdersManager = ({ isSimplified = false, currentUser }: AdminOrdersMa
       const { data, error } = await query;
 
       if (error) throw error;
-      setOrders(data || []);
+      
+      const mappedOrders: Order[] = (data || []).map(row => ({
+        id: row.id,
+        order_number: String(row.id).slice(0, 8).toUpperCase(),
+        created_at: row.created_at,
+        status: toUiStatus(row.payment_status),
+        total_amount: Number(row.total_amount || 0),
+        user_id: row.user_id,
+        customer_email: row.customer_email,
+      }));
+      
+      setOrders(mappedOrders);
     } catch (error) {
       console.error('Error loading orders:', error);
       toast({
@@ -90,7 +102,7 @@ const AdminOrdersManager = ({ isSimplified = false, currentUser }: AdminOrdersMa
     const statusMatch = statusFilter === 'all' || order.status === statusFilter;
     const searchMatch =
       order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (order.profiles?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+      (order.customer_email?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
     return statusMatch && searchMatch;
   });
 
@@ -170,12 +182,11 @@ const AdminOrdersManager = ({ isSimplified = false, currentUser }: AdminOrdersMa
               <TableRow key={order.id}>
                 <TableCell className="font-medium">{order.order_number}</TableCell>
                 <TableCell>{formatDate(order.created_at)}</TableCell>
-                <TableCell>{order.profiles?.email || 'N/A'}</TableCell>
+                <TableCell>{order.customer_email || 'N/A'}</TableCell>
                 <TableCell>${order.total_amount.toFixed(2)}</TableCell>
                 <TableCell>
                   <Badge variant={
-                    order.status === 'completed' ? 'success' :
-                    order.status === 'processing' ? 'secondary' :
+                    order.status === 'completed' ? 'secondary' :
                     order.status === 'cancelled' ? 'destructive' : 'default'
                   }>
                     {order.status}
