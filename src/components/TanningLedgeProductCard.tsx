@@ -20,7 +20,6 @@ import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
 import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
-
 interface TanningLedge {
   name: string;
   price: number;
@@ -33,14 +32,12 @@ interface TanningLedge {
   installationTimeWeeks?: number;
   warrantyYears?: number | string;
 }
-
 interface TanningLedgeProductCardProps {
   ledge: TanningLedge;
   onViewDetails: (ledge: TanningLedge) => void;
   onRequestQuote: (ledge: TanningLedge, extras?: TanningLedgeExtras) => void;
   isAdmin?: boolean;
 }
-
 interface TanningLedgeExtras {
   heater: boolean;
   jets: boolean;
@@ -48,34 +45,56 @@ interface TanningLedgeExtras {
   finish: string;
   heaterModel: string;
   paverOption: string;
-  extrasBreakdown?: Array<{ name: string; price: number }>;
+  extrasBreakdown?: Array<{
+    name: string;
+    price: number;
+  }>;
   extrasTotal?: number;
 }
-
 const getCategoryColor = (category: string) => {
   switch (category) {
-    case 'premium': return 'bg-gradient-to-r from-coral to-orange';
-    case 'deluxe': return 'bg-gradient-to-r from-primary to-teal';
-    case 'standard': return 'bg-gradient-to-r from-secondary to-accent';
-    case 'compact': return 'bg-gradient-to-r from-teal to-primary';
-    default: return 'bg-gradient-to-r from-coral to-orange';
+    case 'premium':
+      return 'bg-gradient-to-r from-coral to-orange';
+    case 'deluxe':
+      return 'bg-gradient-to-r from-primary to-teal';
+    case 'standard':
+      return 'bg-gradient-to-r from-secondary to-accent';
+    case 'compact':
+      return 'bg-gradient-to-r from-teal to-primary';
+    default:
+      return 'bg-gradient-to-r from-coral to-orange';
   }
 };
-
 const getExtraPrice = (extra: string) => {
   switch (extra) {
-    case 'heater': return 3000; // Tanning ledge heater pricing
-    case 'jets': return 1200; // Tanning ledge jets pricing
-    default: return 0;
+    case 'heater':
+      return 3000;
+    // Tanning ledge heater pricing
+    case 'jets':
+      return 1200;
+    // Tanning ledge jets pricing
+    default:
+      return 0;
   }
 };
 
 // Tanning ledge heater options
-const ledgeHeaters = [
-  { name: 'Compact Heat Pump', price: 2800, image: azureBlueFinish, description: 'Compact heat pump for tanning ledges' },
-  { name: 'Solar Heater', price: 2200, image: lagoonBlueFinish, description: 'Eco-friendly solar heating' },
-  { name: 'Electric Heater', price: 1800, image: sapphireBlueFinish, description: 'Electric heating element' }
-];
+const ledgeHeaters = [{
+  name: 'Compact Heat Pump',
+  price: 2800,
+  image: azureBlueFinish,
+  description: 'Compact heat pump for tanning ledges'
+}, {
+  name: 'Solar Heater',
+  price: 2200,
+  image: lagoonBlueFinish,
+  description: 'Eco-friendly solar heating'
+}, {
+  name: 'Electric Heater',
+  price: 1800,
+  image: sapphireBlueFinish,
+  description: 'Electric heating element'
+}];
 
 // Import pool finishes from PoolFinishesSection
 import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
@@ -85,26 +104,35 @@ const finishOptions = poolFinishesData.map(finish => ({
   name: finish.name,
   color: '#4169E1',
   image: finish.image,
-  price: finish.price / 2, // Tanning ledge pricing is half of pool pricing
+  price: finish.price / 2,
+  // Tanning ledge pricing is half of pool pricing
   collection: finish.collection,
   category: finish.category,
   description: finish.description
 }));
 
 // Convert paver data to options format
-const paverOptions = [
-  { name: 'No Pavers', color: '#808080', price: 0, image: azureBlueFinish, description: 'No additional pavers', collection: 'none' },
-  ...paverTypes.map(paver => ({
-    name: paver.name,
-    color: '#D3D3D3',
-    price: 0,
-    image: paver.image || azureBlueFinish,
-    description: paver.description,
-    collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina') ? 'catalina' : 'standard'
-  }))
-];
-
-const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin = false }: TanningLedgeProductCardProps) => {
+const paverOptions = [{
+  name: 'No Pavers',
+  color: '#808080',
+  price: 0,
+  image: azureBlueFinish,
+  description: 'No additional pavers',
+  collection: 'none'
+}, ...paverTypes.map(paver => ({
+  name: paver.name,
+  color: '#D3D3D3',
+  price: 0,
+  image: paver.image || azureBlueFinish,
+  description: paver.description,
+  collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina') ? 'catalina' : 'standard'
+}))];
+const TanningLedgeProductCard = ({
+  ledge,
+  onViewDetails,
+  onRequestQuote,
+  isAdmin = false
+}: TanningLedgeProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [currentLedgeImage, setCurrentLedgeImage] = useState(ledge.image);
@@ -117,53 +145,52 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
     heaterModel: ledgeHeaters[0]?.name || 'Compact Heat Pump',
     paverOption: 'No Pavers'
   });
-  
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
-  
-  const { addToCart } = useShoppingCart();
-
+  const {
+    addToCart
+  } = useShoppingCart();
   const handleImageClick = () => {
     setShowDetails(!showDetails);
   };
-
   const toggleExtra = (extra: string) => {
     setExtras(prev => {
       if (extra === 'heater') {
-        return { ...prev, heater: !prev.heater };
+        return {
+          ...prev,
+          heater: !prev.heater
+        };
       } else if (extra === 'jets') {
-        return { ...prev, jets: !prev.jets };
+        return {
+          ...prev,
+          jets: !prev.jets
+        };
       }
-      
       return prev;
     });
   };
-
   const calculateTotalPrice = () => {
     let total = ledge.price;
-    
+
     // Add finish price if not default
     const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
     if (selectedFinish && selectedFinish.price) {
       total += selectedFinish.price;
     }
-    
+
     // Add heater price if selected
     if (extras.heater) {
       const selectedHeater = ledgeHeaters.find(heater => heater.name === extras.heaterModel);
       if (selectedHeater) total += selectedHeater.price;
     }
     if (extras.jets) total += getExtraPrice('jets') * extras.jetQuantity;
-    
+
     // Add calculated paver surface area cost
     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
       total += parseFloat(paverSurfaceArea) * 15;
     }
-    
     return total;
   };
-
   const hasExtras = Object.values(extras).some(value => value);
-
   const handleImageSave = (imageBlob: Blob) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -171,23 +198,29 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
     };
     reader.readAsDataURL(imageBlob);
   };
-
   const handleAddToCart = () => {
     const cartExtras = [];
-    
     if (extras.heater) {
       const selectedHeater = ledgeHeaters.find(heater => heater.name === extras.heaterModel);
       if (selectedHeater) {
-        cartExtras.push({ name: `${selectedHeater.name}`, price: selectedHeater.price });
+        cartExtras.push({
+          name: `${selectedHeater.name}`,
+          price: selectedHeater.price
+        });
       }
     }
-    if (extras.jets) cartExtras.push({ name: `Tanning Ledge Jets (${extras.jetQuantity})`, price: getExtraPrice('jets') * extras.jetQuantity });
+    if (extras.jets) cartExtras.push({
+      name: `Tanning Ledge Jets (${extras.jetQuantity})`,
+      price: getExtraPrice('jets') * extras.jetQuantity
+    });
 
     // Add paver surface area cost
     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-      cartExtras.push({ name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`, price: parseFloat(paverSurfaceArea) * 15 });
+      cartExtras.push({
+        name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
+        price: parseFloat(paverSurfaceArea) * 15
+      });
     }
-
     addToCart({
       id: `tanning_ledge_${ledge.name.replace(/\s+/g, '_')}_${Date.now()}`,
       name: `${ledge.name} Tanning Ledge`,
@@ -197,25 +230,12 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
       extras: cartExtras
     });
   };
-
-  return (
-    <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-coral/40 overflow-hidden">
+  return <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-coral/40 overflow-hidden">
       {/* Edge-to-edge Tanning Ledge Image at top */}
-      <div 
-        className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-coral/10 to-orange/10 cursor-pointer overflow-hidden group/image"
-        onClick={handleImageClick}
-      >
-        {currentLedgeImage ? (
-          <img 
-            src={currentLedgeImage} 
-            alt={ledge.name}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-coral/20 to-orange/20">
+      <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-coral/10 to-orange/10 cursor-pointer overflow-hidden group/image" onClick={handleImageClick}>
+        {currentLedgeImage ? <img src={currentLedgeImage} alt={ledge.name} className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-coral/20 to-orange/20">
             <Sun size={48} className="text-coral/60" />
-          </div>
-        )}
+          </div>}
         
         {/* Category Badge overlay */}
         <div className="absolute top-4 left-4">
@@ -234,19 +254,12 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
         </div>
         
         {/* Image Edit Button - Only visible for admins */}
-        {isAdmin && isEditable && (
-          <Button
-            size="sm"
-            variant="secondary"
-            className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowImageEditor(true);
-            }}
-          >
+        {isAdmin && isEditable && <Button size="sm" variant="secondary" className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" onClick={e => {
+        e.stopPropagation();
+        setShowImageEditor(true);
+      }}>
             <Edit className="h-3 w-3" />
-          </Button>
-        )}
+          </Button>}
       </div>
       
       <CardContent className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
@@ -262,11 +275,7 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
         </div>
         
         {/* Rating */}
-        <div className="flex items-center gap-1 text-amber-500">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Star key={i} size={12} fill={i < 4 ? "currentColor" : "none"} />
-          ))}
-        </div>
+        
         
         {/* Price */}
         <div className="flex items-center gap-2">
@@ -274,23 +283,17 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
           <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
             ${calculateTotalPrice().toLocaleString()}
           </span>
-          {hasExtras && (
-            <span className="text-xs sm:text-sm text-muted-foreground line-through">
-              ${ledge.price.toLocaleString()}
-            </span>
-          )}
+          {hasExtras}
         </div>
         
         {/* Basic Info */}
         <div className="text-sm text-muted-foreground space-y-1">
           {ledge.dimensions && <p>Size: {ledge.dimensions}</p>}
           {ledge.depth && <p>Depth: {ledge.depth}</p>}
-          {ledge.installationTimeWeeks && (
-            <div className="flex items-center gap-1">
+          {ledge.installationTimeWeeks && <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
               <span>Installation: {ledge.installationTimeWeeks} weeks</span>
-            </div>
-          )}
+            </div>}
           <div className="flex items-center gap-1">
             <Award className="h-3 w-3" />
             <span className="font-bold text-coral">Warranty: LIFETIME WARRANTY</span>
@@ -298,28 +301,20 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
         </div>
 
         {/* Key Features */}
-        {ledge.features && ledge.features.length > 0 && (
-          <div className="space-y-2">
+        {ledge.features && ledge.features.length > 0 && <div className="space-y-2">
             <h4 className="font-semibold text-sm">Features:</h4>
             <ul className="space-y-1">
-              {ledge.features.slice(0, 2).map((feature, idx) => (
-                <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
+              {ledge.features.slice(0, 2).map((feature, idx) => <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
                   <div className="w-1.5 h-1.5 bg-coral rounded-full"></div>
                   {feature}
-                </li>
-              ))}
+                </li>)}
             </ul>
-          </div>
-        )}
+          </div>}
         
         {/* Feature Checkboxes */}
         <div className="grid grid-cols-2 gap-2 text-sm">
           <label className="flex items-center space-x-2 cursor-pointer">
-            <Checkbox 
-              checked={extras.jets} 
-              onCheckedChange={() => toggleExtra('jets')}
-              className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
-            />
+            <Checkbox checked={extras.jets} onCheckedChange={() => toggleExtra('jets')} className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" />
             <span className="flex items-center gap-1">
               <Zap size={14} className="text-coral" />
               Jets
@@ -327,11 +322,7 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
           </label>
           
           <label className="flex items-center space-x-2 cursor-pointer">
-            <Checkbox 
-              checked={extras.heater} 
-              onCheckedChange={() => toggleExtra('heater')}
-              className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
-            />
+            <Checkbox checked={extras.heater} onCheckedChange={() => toggleExtra('heater')} className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" />
             <span className="flex items-center gap-1">
               <Thermometer size={14} className="text-orange" />
               Heater
@@ -340,8 +331,7 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
         </div>
         
         {/* Expanded Details */}
-        {showDetails && (
-          <div className="space-y-4 animate-fade-in-up">
+        {showDetails && <div className="space-y-4 animate-fade-in-up">
             <Separator />
             
             {/* Finishes */}
@@ -349,11 +339,11 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
               <h4 className="font-semibold text-foreground">Finish Options</h4>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
-                  {finishOptions.map(finish => (
-                    <CarouselItem key={finish.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
-                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                        extras.finish === finish.name ? 'border-coral bg-coral/10' : 'border-border'
-                      }`} onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}>
+                  {finishOptions.map(finish => <CarouselItem key={finish.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? 'border-coral bg-coral/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                  ...prev,
+                  finish: finish.name
+                }))}>
                         <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
                           <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
                         </div>
@@ -362,8 +352,7 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
                           {finish.price > 0 && <p className="text-xs text-coral font-semibold text-center mt-1">+${finish.price.toLocaleString()}</p>}
                         </div>
                       </div>
-                    </CarouselItem>
-                  ))}
+                    </CarouselItem>)}
                 </CarouselContent>
                 <CarouselPrevious className="left-0" />
                 <CarouselNext className="right-0" />
@@ -377,26 +366,18 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">
                   Paver Surface Area (sq ft)
                 </label>
-                <Input 
-                  type="number" 
-                  placeholder="Enter surface area for pavers" 
-                  value={paverSurfaceArea} 
-                  onChange={(e) => setPaverSurfaceArea(e.target.value)} 
-                  className="mb-2" 
-                />
-                {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
-                  <div className="text-xs text-green-600 font-medium">
+                <Input type="number" placeholder="Enter surface area for pavers" value={paverSurfaceArea} onChange={e => setPaverSurfaceArea(e.target.value)} className="mb-2" />
+                {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && <div className="text-xs text-green-600 font-medium">
                     Calculated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()} ({paverSurfaceArea} sq ft × $15/sq ft)
-                  </div>
-                )}
+                  </div>}
               </div>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
-                  {paverOptions.map(paver => (
-                    <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
-                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                        extras.paverOption === paver.name ? 'border-coral bg-coral/10' : 'border-border'
-                      }`} onClick={() => setExtras(prev => ({ ...prev, paverOption: paver.name }))}>
+                  {paverOptions.map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.paverOption === paver.name ? 'border-coral bg-coral/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                  ...prev,
+                  paverOption: paver.name
+                }))}>
                         <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
                           <img src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
                         </div>
@@ -405,8 +386,7 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
                           {paver.price > 0 && <p className="text-xs text-coral font-semibold text-center mt-1">+${paver.price.toLocaleString()}</p>}
                         </div>
                       </div>
-                    </CarouselItem>
-                  ))}
+                    </CarouselItem>)}
                 </CarouselContent>
                 <CarouselPrevious className="left-0" />
                 <CarouselNext className="right-0" />
@@ -429,29 +409,22 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
                   </div>
                 </label>
 
-                {extras.heater && (
-                  <div className="ml-6 space-y-2">
+                {extras.heater && <div className="ml-6 space-y-2">
                     <label className="text-xs font-medium text-muted-foreground">Select Heater Model:</label>
                     <div className="grid grid-cols-1 gap-2">
-                      {ledgeHeaters.map(heater => (
-                        <button 
-                          key={heater.name} 
-                          onClick={() => setExtras(prev => ({ ...prev, heaterModel: heater.name }))} 
-                          className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
-                            extras.heaterModel === heater.name ? 'border-coral bg-coral/10 text-coral' : 'border-border hover:border-coral/50'
-                          }`}
-                        >
+                      {ledgeHeaters.map(heater => <button key={heater.name} onClick={() => setExtras(prev => ({
+                  ...prev,
+                  heaterModel: heater.name
+                }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.heaterModel === heater.name ? 'border-coral bg-coral/10 text-coral' : 'border-border hover:border-coral/50'}`}>
                           <img src={heater.image} alt={heater.name} className="w-8 h-8 rounded object-cover" />
                           <div className="flex-1 text-left">
                             <div>{heater.name}</div>
                             <div className="text-xs text-muted-foreground">${heater.price.toLocaleString()}</div>
                             {heater.description && <div className="text-xs text-muted-foreground">{heater.description}</div>}
                           </div>
-                        </button>
-                      ))}
+                        </button>)}
                     </div>
-                  </div>
-                )}
+                  </div>}
                 
                 <div className="flex items-center justify-between p-2 border rounded-lg">
                   <label className="flex items-center space-x-2 cursor-pointer flex-1">
@@ -461,17 +434,21 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
                       <span className="text-sm">Jets (+${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()})</span>
                     </div>
                   </label>
-                  {extras.jets && (
-                    <div className="flex items-center space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))} className="h-8 w-8 p-0">
+                  {extras.jets && <div className="flex items-center space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => setExtras(prev => ({
+                  ...prev,
+                  jetQuantity: Math.max(1, prev.jetQuantity - 1)
+                }))} className="h-8 w-8 p-0">
                         -
                       </Button>
                       <span className="text-sm font-medium w-8 text-center">{extras.jetQuantity}</span>
-                      <Button variant="outline" size="sm" onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))} className="h-8 w-8 p-0">
+                      <Button variant="outline" size="sm" onClick={() => setExtras(prev => ({
+                  ...prev,
+                  jetQuantity: prev.jetQuantity + 1
+                }))} className="h-8 w-8 p-0">
                         +
                       </Button>
-                    </div>
-                  )}
+                    </div>}
                 </div>
               </div>
             </div>
@@ -480,57 +457,55 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
             <div className="space-y-2">
               <div className="flex gap-2">
                 <Button onClick={() => {
-                  // Create extras breakdown for quote
-                  const extrasBreakdown = [];
-                  
-                  // Add finish if not default
-                  const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
-                  if (selectedFinish && selectedFinish.price) {
-                    extrasBreakdown.push({
-                      name: selectedFinish.name,
-                      price: selectedFinish.price,
-                      image: selectedFinish.image
-                    });
-                  }
-                  
-                  // Add heater if selected
-                  if (extras.heater) {
-                    const selectedHeater = ledgeHeaters.find(heater => heater.name === extras.heaterModel);
-                    if (selectedHeater) {
-                      extrasBreakdown.push({
-                        name: selectedHeater.name,
-                        price: selectedHeater.price,
-                        image: selectedHeater.image
-                      });
-                    }
-                  }
-                  
-                  // Add jets if selected
-                  if (extras.jets) {
-                    extrasBreakdown.push({
-                      name: `Tanning Ledge Jets (${extras.jetQuantity})`,
-                      price: getExtraPrice('jets') * extras.jetQuantity,
-                      image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
-                    });
-                  }
-                  
-                  // Add paver surface area cost
-                  if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-                    extrasBreakdown.push({
-                      name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
-                      price: parseFloat(paverSurfaceArea) * 15,
-                      image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
-                    });
-                  }
-                  
-                  const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
-                  
-                  onRequestQuote(ledge, {
-                    ...extras,
-                    extrasBreakdown,
-                    extrasTotal
+              // Create extras breakdown for quote
+              const extrasBreakdown = [];
+
+              // Add finish if not default
+              const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
+              if (selectedFinish && selectedFinish.price) {
+                extrasBreakdown.push({
+                  name: selectedFinish.name,
+                  price: selectedFinish.price,
+                  image: selectedFinish.image
+                });
+              }
+
+              // Add heater if selected
+              if (extras.heater) {
+                const selectedHeater = ledgeHeaters.find(heater => heater.name === extras.heaterModel);
+                if (selectedHeater) {
+                  extrasBreakdown.push({
+                    name: selectedHeater.name,
+                    price: selectedHeater.price,
+                    image: selectedHeater.image
                   });
-                }} variant="outline" className="flex-1" size="sm">Instant Quote</Button>
+                }
+              }
+
+              // Add jets if selected
+              if (extras.jets) {
+                extrasBreakdown.push({
+                  name: `Tanning Ledge Jets (${extras.jetQuantity})`,
+                  price: getExtraPrice('jets') * extras.jetQuantity,
+                  image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+                });
+              }
+
+              // Add paver surface area cost
+              if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+                extrasBreakdown.push({
+                  name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
+                  price: parseFloat(paverSurfaceArea) * 15,
+                  image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
+                });
+              }
+              const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
+              onRequestQuote(ledge, {
+                ...extras,
+                extrasBreakdown,
+                extrasTotal
+              });
+            }} variant="outline" className="flex-1" size="sm">Instant Quote</Button>
               </div>
               
               <div className="flex gap-2">
@@ -538,15 +513,7 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   Cart
                 </Button>
-                <StripeCheckoutButton 
-                  productId={`tanning_ledge_${ledge.name.replace(/\s+/g, '_')}`} 
-                  productName={ledge.name} 
-                  price={calculateTotalPrice()} 
-                  variant="gradient" 
-                  className="flex-1 hover:scale-105 transition-all duration-300" 
-                  size="sm" 
-                  showFinancingOptions={false} 
-                />
+                <StripeCheckoutButton productId={`tanning_ledge_${ledge.name.replace(/\s+/g, '_')}`} productName={ledge.name} price={calculateTotalPrice()} variant="gradient" className="flex-1 hover:scale-105 transition-all duration-300" size="sm" showFinancingOptions={false} />
               </div>
             </div>
             
@@ -578,15 +545,9 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
                   </div>
                   
                   <Button variant="outline" className="w-full" size="sm" onClick={() => {
-                    const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + 
-                      `amount=${calculateTotalPrice()}&` + 
-                      `product=${encodeURIComponent(ledge.name)}&` + 
-                      `description=${encodeURIComponent(`Complete tanning ledge configuration including ${ledge.name}`)}&` + 
-                      `monthly_payment=${Math.round(calculateTotalPrice() * 0.008)}&` + 
-                      `loan_term=48&` + 
-                      `project_type=Pool%20Installation`;
-                    window.open(lyonFinancialUrl, '_blank');
-                  }}>
+                const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + `amount=${calculateTotalPrice()}&` + `product=${encodeURIComponent(ledge.name)}&` + `description=${encodeURIComponent(`Complete tanning ledge configuration including ${ledge.name}`)}&` + `monthly_payment=${Math.round(calculateTotalPrice() * 0.008)}&` + `loan_term=48&` + `project_type=Pool%20Installation`;
+                window.open(lyonFinancialUrl, '_blank');
+              }}>
                     Apply with Lyon Financial
                   </Button>
                   
@@ -596,82 +557,70 @@ const TanningLedgeProductCard = ({ ledge, onViewDetails, onRequestQuote, isAdmin
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          </div>}
         
         {/* Default Action Buttons */}
-        {!showDetails && (
-          <div className="space-y-2">
+        {!showDetails && <div className="space-y-2">
             <Button onClick={() => {
-              // Create extras breakdown for quote
-              const extrasBreakdown = [];
-              
-              // Add finish if not default
-              const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
-              if (selectedFinish && selectedFinish.price) {
-                extrasBreakdown.push({
-                  name: selectedFinish.name,
-                  price: selectedFinish.price,
-                  image: selectedFinish.image
-                });
-              }
-              
-              // Add heater if selected
-              if (extras.heater) {
-                const selectedHeater = ledgeHeaters.find(heater => heater.name === extras.heaterModel);
-                if (selectedHeater) {
-                  extrasBreakdown.push({
-                    name: selectedHeater.name,
-                    price: selectedHeater.price,
-                    image: selectedHeater.image
-                  });
-                }
-              }
-              
-              // Add jets if selected
-              if (extras.jets) {
-                extrasBreakdown.push({
-                  name: `Tanning Ledge Jets (${extras.jetQuantity})`,
-                  price: getExtraPrice('jets') * extras.jetQuantity,
-                  image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
-                });
-              }
-              
-              // Add paver surface area cost
-              if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-                extrasBreakdown.push({
-                  name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
-                  price: parseFloat(paverSurfaceArea) * 15,
-                  image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
-                });
-              }
-              
-              const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
-              
-              onRequestQuote(ledge, {
-                ...extras,
-                extrasBreakdown,
-                extrasTotal
+          // Create extras breakdown for quote
+          const extrasBreakdown = [];
+
+          // Add finish if not default
+          const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
+          if (selectedFinish && selectedFinish.price) {
+            extrasBreakdown.push({
+              name: selectedFinish.name,
+              price: selectedFinish.price,
+              image: selectedFinish.image
+            });
+          }
+
+          // Add heater if selected
+          if (extras.heater) {
+            const selectedHeater = ledgeHeaters.find(heater => heater.name === extras.heaterModel);
+            if (selectedHeater) {
+              extrasBreakdown.push({
+                name: selectedHeater.name,
+                price: selectedHeater.price,
+                image: selectedHeater.image
               });
-            }} variant="outline" className="w-full" size="sm">
+            }
+          }
+
+          // Add jets if selected
+          if (extras.jets) {
+            extrasBreakdown.push({
+              name: `Tanning Ledge Jets (${extras.jetQuantity})`,
+              price: getExtraPrice('jets') * extras.jetQuantity,
+              image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+            });
+          }
+
+          // Add paver surface area cost
+          if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+            extrasBreakdown.push({
+              name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
+              price: parseFloat(paverSurfaceArea) * 15,
+              image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
+            });
+          }
+          const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
+          onRequestQuote(ledge, {
+            ...extras,
+            extrasBreakdown,
+            extrasTotal
+          });
+        }} variant="outline" className="w-full" size="sm">
               Instant Quote
             </Button>
             <Button onClick={handleImageClick} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">
               View Details
             </Button>
-          </div>
-        )}
+          </div>}
       </CardContent>
       
       {/* Image Editor Modal */}
-      <ImageEditor 
-        isOpen={showImageEditor} 
-        onClose={() => setShowImageEditor(false)} 
-        onImageSave={handleImageSave} 
-        currentImage={currentLedgeImage} 
-      />
-    </Card>
-  );
+      <ImageEditor isOpen={showImageEditor} onClose={() => setShowImageEditor(false)} onImageSave={handleImageSave} currentImage={currentLedgeImage} />
+    </Card>;
 };
-
 export default TanningLedgeProductCard;

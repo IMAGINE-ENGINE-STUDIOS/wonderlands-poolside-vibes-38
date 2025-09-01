@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-
 import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu, Edit, ShoppingCart, Sun } from "lucide-react";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import ImageEditor from "./ImageEditor";
@@ -13,7 +12,6 @@ import { useShoppingCart } from "./ShoppingCart";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { tanningLedges } from "@/data/poolData";
 import { paverTypes, copingTypes } from "@/data/paverData";
-
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
 import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
@@ -23,7 +21,6 @@ import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
 import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
-
 interface Pool {
   model: string;
   price: number;
@@ -44,14 +41,12 @@ interface Pool {
   covers?: string[];
   spilloverFeature?: boolean;
 }
-
 interface SpaProductCardProps {
   spa: Pool;
   onViewDetails: (spa: Pool) => void;
   onRequestQuote: (spa: Pool, extras?: PoolExtras) => void;
   isAdmin?: boolean;
 }
-
 interface PoolExtras {
   liner: boolean;
   heater: boolean;
@@ -70,28 +65,43 @@ interface PoolExtras {
   heaterModel: string;
   paverOption: string;
   copingPaverOption: string;
-  extrasBreakdown?: Array<{ name: string; price: number }>;
+  extrasBreakdown?: Array<{
+    name: string;
+    price: number;
+  }>;
   extrasTotal?: number;
 }
-
 const getCategoryColor = (category: string) => {
   switch (category) {
-    case 'premium': return 'bg-gradient-to-r from-coral to-orange';
-    case 'deluxe': return 'bg-gradient-to-r from-primary to-teal';
-    case 'standard': return 'bg-gradient-to-r from-secondary to-accent';
-    case 'compact': return 'bg-gradient-to-r from-teal to-primary';
-    default: return 'bg-gradient-to-r from-primary to-teal';
+    case 'premium':
+      return 'bg-gradient-to-r from-coral to-orange';
+    case 'deluxe':
+      return 'bg-gradient-to-r from-primary to-teal';
+    case 'standard':
+      return 'bg-gradient-to-r from-secondary to-accent';
+    case 'compact':
+      return 'bg-gradient-to-r from-teal to-primary';
+    default:
+      return 'bg-gradient-to-r from-primary to-teal';
   }
 };
-
 const getExtraPrice = (extra: string) => {
   switch (extra) {
-    case 'liner': return 0; // Base cost covered by liner option price
-    case 'heater': return 5000; // Pool Heater is exactly $5,000
-    case 'cover': return 3200;
-    case 'jets': return 1800;
-    case 'tiles': return 0; // Base cost covered by tile option price
-    default: return 0;
+    case 'liner':
+      return 0;
+    // Base cost covered by liner option price
+    case 'heater':
+      return 5000;
+    // Pool Heater is exactly $5,000
+    case 'cover':
+      return 3200;
+    case 'jets':
+      return 1800;
+    case 'tiles':
+      return 0;
+    // Base cost covered by tile option price
+    default:
+      return 0;
   }
 };
 
@@ -101,7 +111,8 @@ import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSecti
 // Convert pool finishes data to finish options format
 const finishOptions = poolFinishesData.map(finish => ({
   name: finish.name,
-  color: '#4169E1', // fallback color
+  color: '#4169E1',
+  // fallback color
   image: finish.image,
   price: finish.price,
   collection: finish.collection,
@@ -113,52 +124,88 @@ const finishOptions = poolFinishesData.map(finish => ({
 import { poolLiners, poolTiles } from '@/data/poolData';
 
 // Pool heater options for spas (spa-specific pricing)
-const spaHeaters = [
-  { name: 'Spa Heat Pump - Compact', price: 3500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: 'Compact heat pump designed for spas' },
-  { name: 'Spa Heat Pump - Premium', price: 4500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: 'Premium spa heat pump with digital controls' },
-  { name: 'Spa Gas Heater', price: 2800, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: 'Efficient gas heater for quick spa heating' },
-  { name: 'Solar Spa Heater', price: 2200, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: 'Eco-friendly solar heating for spas' }
-];
+const spaHeaters = [{
+  name: 'Spa Heat Pump - Compact',
+  price: 3500,
+  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+  description: 'Compact heat pump designed for spas'
+}, {
+  name: 'Spa Heat Pump - Premium',
+  price: 4500,
+  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+  description: 'Premium spa heat pump with digital controls'
+}, {
+  name: 'Spa Gas Heater',
+  price: 2800,
+  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+  description: 'Efficient gas heater for quick spa heating'
+}, {
+  name: 'Solar Spa Heater',
+  price: 2200,
+  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+  description: 'Eco-friendly solar heating for spas'
+}];
 
 // Convert pool liners to liner options format
-const linerOptions = [
-  { name: 'Standard Blue', color: '#4169E1', price: 0, image: azureBlueFinish, type: 'Standard', description: undefined },
-  ...poolLiners.map(liner => ({
-    name: liner.name,
-    color: '#4169E1', // fallback color
-    price: liner.price / 2, // Spa pricing is half of pool pricing
-    image: liner.image,
-    type: liner.type,
-    description: liner.description
-  }))
-];
+const linerOptions = [{
+  name: 'Standard Blue',
+  color: '#4169E1',
+  price: 0,
+  image: azureBlueFinish,
+  type: 'Standard',
+  description: undefined
+}, ...poolLiners.map(liner => ({
+  name: liner.name,
+  color: '#4169E1',
+  // fallback color
+  price: liner.price / 2,
+  // Spa pricing is half of pool pricing
+  image: liner.image,
+  type: liner.type,
+  description: liner.description
+}))];
 
 // Convert pool tiles to tile options format (spa pricing)
-const tileOptions = [
-  { name: 'Standard Waterline', color: '#4682B4', price: 0, image: azureBlueFinish, description: undefined },
-  ...poolTiles.map(tile => ({
-    name: tile.name,
-    color: '#4682B4', // fallback color
-    price: tile.price / 2, // Spa pricing is half of pool pricing
-    image: tile.image,
-    description: tile.description
-  }))
-];
+const tileOptions = [{
+  name: 'Standard Waterline',
+  color: '#4682B4',
+  price: 0,
+  image: azureBlueFinish,
+  description: undefined
+}, ...poolTiles.map(tile => ({
+  name: tile.name,
+  color: '#4682B4',
+  // fallback color
+  price: tile.price / 2,
+  // Spa pricing is half of pool pricing
+  image: tile.image,
+  description: tile.description
+}))];
 
 // Convert paver data to options format with exact same pavers from PaversSection
-const paverOptions = [
-  { name: 'No Pavers', color: '#808080', price: 0, image: azureBlueFinish, description: 'No additional pavers', collection: 'none' },
-  ...paverTypes.map(paver => ({
-    name: paver.name,
-    color: '#D3D3D3', // Default color for all pavers
-    price: 0, // Base price is 0, actual cost calculated by surface area × $15/sq ft
-    image: paver.image || azureBlueFinish,
-    description: paver.description,
-    collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina') ? 'catalina' : 'standard'
-  }))
-];
-
-const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }: SpaProductCardProps) => {
+const paverOptions = [{
+  name: 'No Pavers',
+  color: '#808080',
+  price: 0,
+  image: azureBlueFinish,
+  description: 'No additional pavers',
+  collection: 'none'
+}, ...paverTypes.map(paver => ({
+  name: paver.name,
+  color: '#D3D3D3',
+  // Default color for all pavers
+  price: 0,
+  // Base price is 0, actual cost calculated by surface area × $15/sq ft
+  image: paver.image || azureBlueFinish,
+  description: paver.description,
+  collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina') ? 'catalina' : 'standard'
+}))];
+const SpaProductCard = ({
+  spa,
+  onViewDetails,
+  onRequestQuote,
+  isAdmin = false
+}: SpaProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [currentPoolImage, setCurrentPoolImage] = useState(spa.image);
@@ -182,75 +229,87 @@ const SpaProductCard = ({ spa, onViewDetails, onRequestQuote, isAdmin = false }:
     paverOption: 'No Pavers',
     copingPaverOption: 'No Coping'
   });
-  
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
-  
-  const { addToCart } = useShoppingCart();
-
+  const {
+    addToCart
+  } = useShoppingCart();
   const handleImageClick = () => {
     setShowDetails(!showDetails);
   };
-
   const toggleExtra = (extra: string) => {
     setExtras(prev => {
       // Handle tile/liner mutual exclusivity
       if (extra === 'tiles' && !prev.tiles) {
         // Selecting tiles, disable liner and expand details
         setShowDetails(true);
-        return { ...prev, tiles: true, liner: false };
+        return {
+          ...prev,
+          tiles: true,
+          liner: false
+        };
       } else if (extra === 'liner' && !prev.liner) {
         // Selecting liner, disable tiles and expand details
         setShowDetails(true);
-        return { ...prev, liner: true, tiles: false };
+        return {
+          ...prev,
+          liner: true,
+          tiles: false
+        };
       } else if (extra === 'tiles') {
         // Deselecting tiles
-        return { ...prev, tiles: !prev.tiles };
+        return {
+          ...prev,
+          tiles: !prev.tiles
+        };
       } else if (extra === 'liner') {
         // Deselecting liner
-        return { ...prev, liner: !prev.liner };
+        return {
+          ...prev,
+          liner: !prev.liner
+        };
       } else if (extra === 'heater') {
-        return { ...prev, heater: !prev.heater };
+        return {
+          ...prev,
+          heater: !prev.heater
+        };
       } else if (extra === 'jets') {
-        return { ...prev, jets: !prev.jets };
+        return {
+          ...prev,
+          jets: !prev.jets
+        };
       }
-      
       return prev;
     });
   };
-
-const calculateTotalPrice = () => {
+  const calculateTotalPrice = () => {
     let total = spa.price;
-    
+
     // Add finish price if selected and has additional cost
     const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
     if (selectedFinish && typeof selectedFinish.price === 'number' && selectedFinish.price > 0) {
       total += selectedFinish.price;
     }
-    
+
     // Add heater price if selected (dynamic price based on model)
     if (extras.heater) {
       const selectedHeater = spaHeaters.find(heater => heater.name === extras.heaterModel);
       if (selectedHeater) total += selectedHeater.price;
     }
     if (extras.jets) total += getExtraPrice('jets') * extras.jetQuantity;
-    
+
     // Add option prices (liner OR tile, never both)
     const linerOption = linerOptions.find(option => option.name === extras.linerOption);
     if (linerOption && extras.liner) total += linerOption.price;
-    
     const tileOption = tileOptions.find(option => option.name === extras.tileOption);
     if (tileOption && extras.tiles) total += tileOption.price;
-    
+
     // Add calculated paver surface area cost
     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
       total += parseFloat(paverSurfaceArea) * 15;
     }
-    
     return total;
   };
-
   const hasExtras = Object.values(extras).some(value => value);
-
   const handleImageSave = (imageBlob: Blob) => {
     // Convert blob to data URL for display
     const reader = new FileReader();
@@ -259,33 +318,43 @@ const calculateTotalPrice = () => {
     };
     reader.readAsDataURL(imageBlob);
   };
-
   const handleAddToCart = () => {
     const cartExtras = [];
-    
     if (extras.heater) {
       const selectedHeater = spaHeaters.find(heater => heater.name === extras.heaterModel);
       if (selectedHeater) {
-        cartExtras.push({ name: `${selectedHeater.name}`, price: selectedHeater.price });
+        cartExtras.push({
+          name: `${selectedHeater.name}`,
+          price: selectedHeater.price
+        });
       }
     }
-    if (extras.jets) cartExtras.push({ name: `Spa Jets (${extras.jetQuantity})`, price: getExtraPrice('jets') * extras.jetQuantity });
-    
+    if (extras.jets) cartExtras.push({
+      name: `Spa Jets (${extras.jetQuantity})`,
+      price: getExtraPrice('jets') * extras.jetQuantity
+    });
     const linerOption = linerOptions.find(option => option.name === extras.linerOption);
     if (linerOption && extras.liner) {
-      cartExtras.push({ name: `${linerOption.name} Liner`, price: linerOption.price });
+      cartExtras.push({
+        name: `${linerOption.name} Liner`,
+        price: linerOption.price
+      });
     }
-    
     const tileOption = tileOptions.find(option => option.name === extras.tileOption);
     if (tileOption && extras.tiles) {
-      cartExtras.push({ name: tileOption.name, price: tileOption.price });
+      cartExtras.push({
+        name: tileOption.name,
+        price: tileOption.price
+      });
     }
 
     // Add paver surface area cost
     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-      cartExtras.push({ name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`, price: parseFloat(paverSurfaceArea) * 15 });
+      cartExtras.push({
+        name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
+        price: parseFloat(paverSurfaceArea) * 15
+      });
     }
-
     addToCart({
       id: `spa_${spa.model.replace(/\s+/g, '_')}_${Date.now()}`,
       name: `${spa.model} Spa`,
@@ -295,25 +364,12 @@ const calculateTotalPrice = () => {
       extras: cartExtras
     });
   };
-
-  return (
-    <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
+  return <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
       {/* Edge-to-edge Spa Image at top */}
-      <div 
-        className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image"
-        onClick={handleImageClick}
-      >
-        {currentPoolImage ? (
-          <img 
-            src={currentPoolImage} 
-            alt={spa.model}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
+      <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image" onClick={handleImageClick}>
+        {currentPoolImage ? <img src={currentPoolImage} alt={spa.model} className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
             <Waves size={48} className="text-primary/60" />
-          </div>
-        )}
+          </div>}
         
         {/* Category Badge overlay */}
         <div className="absolute top-4 left-4">
@@ -332,19 +388,12 @@ const calculateTotalPrice = () => {
         </div>
         
         {/* Image Edit Button - Only visible for admins */}
-        {isAdmin && isEditable && (
-          <Button
-            size="sm"
-            variant="secondary"
-            className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowImageEditor(true);
-            }}
-          >
+        {isAdmin && isEditable && <Button size="sm" variant="secondary" className="absolute top-2 right-2 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300" onClick={e => {
+        e.stopPropagation();
+        setShowImageEditor(true);
+      }}>
             <Edit className="h-3 w-3" />
-          </Button>
-        )}
+          </Button>}
       </div>
       
       <CardContent className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
@@ -354,19 +403,13 @@ const calculateTotalPrice = () => {
           <h3 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors">
             {spa.model}
           </h3>
-          {spa.galaCategory && (
-            <Badge variant="secondary" className="text-xs font-semibold">
+          {spa.galaCategory && <Badge variant="secondary" className="text-xs font-semibold">
               Premium Spa Collection
-            </Badge>
-          )}
+            </Badge>}
         </div>
         
         {/* Rating */}
-        <div className="flex items-center gap-1 text-amber-500">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Star key={i} size={12} fill={i < 4 ? "currentColor" : "none"} />
-          ))}
-        </div>
+        
         
         {/* Price */}
         <div className="flex items-center gap-2">
@@ -374,23 +417,17 @@ const calculateTotalPrice = () => {
           <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
             ${calculateTotalPrice().toLocaleString()}
           </span>
-          {hasExtras && (
-            <span className="text-xs sm:text-sm text-muted-foreground line-through">
-              ${spa.price.toLocaleString()}
-            </span>
-          )}
+          {hasExtras}
         </div>
         
         {/* Basic Info */}
         <div className="text-sm text-muted-foreground space-y-1">
           {spa.dimensions && <p>Size: {spa.dimensions}</p>}
           {spa.depth && <p>Depth: {spa.depth}</p>}
-          {spa.installationTimeWeeks && (
-            <div className="flex items-center gap-1">
+          {spa.installationTimeWeeks && <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
               <span>Installation: {spa.installationTimeWeeks} weeks</span>
-            </div>
-          )}
+            </div>}
           <div className="flex items-center gap-1">
             <Award className="h-3 w-3" />
             <span className="font-bold text-primary">Warranty: LIFETIME WARRANTY</span>
@@ -398,28 +435,17 @@ const calculateTotalPrice = () => {
         </div>
 
         {/* Key Features */}
-        {spa.features && spa.features.length > 0 && (
-          <div className="space-y-2">
+        {spa.features && spa.features.length > 0 && <div className="space-y-2">
             <h4 className="font-semibold text-sm">Features:</h4>
             <ul className="space-y-1">
-              {spa.features.slice(0, 2).map((feature, idx) => (
-                <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-                  {feature}
-                </li>
-              ))}
+              {spa.features.slice(0, 2).map((feature, idx) => {})}
             </ul>
-          </div>
-        )}
+          </div>}
         
         {/* Feature Checkboxes */}
         <div className="grid grid-cols-2 gap-2 text-sm">
           <label className="flex items-center space-x-2 cursor-pointer">
-            <Checkbox 
-              checked={extras.jets} 
-              onCheckedChange={() => toggleExtra('jets')}
-              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-            />
+            <Checkbox checked={extras.jets} onCheckedChange={() => toggleExtra('jets')} className="data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
             <span className="flex items-center gap-1">
               <Zap size={14} className="text-primary" />
               Jets
@@ -427,11 +453,7 @@ const calculateTotalPrice = () => {
           </label>
           
           <label className="flex items-center space-x-2 cursor-pointer">
-            <Checkbox 
-              checked={extras.heater} 
-              onCheckedChange={() => toggleExtra('heater')}
-              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-            />
+            <Checkbox checked={extras.heater} onCheckedChange={() => toggleExtra('heater')} className="data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
             <span className="flex items-center gap-1">
               <Thermometer size={14} className="text-teal" />
               Heater
@@ -439,11 +461,7 @@ const calculateTotalPrice = () => {
           </label>
           
           <label className="flex items-center space-x-2 cursor-pointer">
-            <Checkbox 
-              checked={extras.tiles} 
-              onCheckedChange={() => toggleExtra('tiles')}
-              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-            />
+            <Checkbox checked={extras.tiles} onCheckedChange={() => toggleExtra('tiles')} className="data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
             <span className="flex items-center gap-1">
               <Cpu size={14} className="text-coral" />
               Tiles
@@ -451,11 +469,7 @@ const calculateTotalPrice = () => {
           </label>
           
           <label className="flex items-center space-x-2 cursor-pointer">
-            <Checkbox 
-              checked={extras.liner} 
-              onCheckedChange={() => toggleExtra('liner')}
-              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-            />
+            <Checkbox checked={extras.liner} onCheckedChange={() => toggleExtra('liner')} className="data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
             <span className="flex items-center gap-1">
               <Shield size={14} className="text-secondary" />
               Liner
@@ -464,8 +478,7 @@ const calculateTotalPrice = () => {
         </div>
         
         {/* Expanded Details */}
-        {showDetails && (
-          <div className="space-y-4 animate-fade-in-up">
+        {showDetails && <div className="space-y-4 animate-fade-in-up">
             <Separator />
             
             {/* Finishes */}
@@ -476,34 +489,21 @@ const calculateTotalPrice = () => {
               </h4>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
-                  {finishOptions.map((finish, idx) => (
-                    <CarouselItem key={`spa-${finish.name}-${idx}`} className="pl-1 basis-1/2 sm:basis-1/3">
-                      <div 
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                          extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'
-                        }`}
-                        onClick={() => setExtras(prev => ({ ...prev, finish: finish.name }))}
-                      >
+                  {finishOptions.map((finish, idx) => <CarouselItem key={`spa-${finish.name}-${idx}`} className="pl-1 basis-1/2 sm:basis-1/3">
+                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                  ...prev,
+                  finish: finish.name
+                }))}>
                         <div className="w-full h-16 rounded-md mb-2 overflow-hidden">
-                          <img 
-                            src={finish.image} 
-                            alt={finish.name}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
+                          <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" loading="lazy" />
                         </div>
                         <p className="text-xs font-medium text-center">{finish.name}</p>
                         <div className="mt-1 space-y-0.5">
-                          {finish.collection && (
-                            <p className="text-[10px] text-primary text-center font-semibold">{finish.collection}</p>
-                          )}
-                          {typeof finish.price === 'number' && (
-                            <p className="text-[10px] text-foreground font-semibold text-center">+${finish.price.toLocaleString()}</p>
-                          )}
+                          {finish.collection && <p className="text-[10px] text-primary text-center font-semibold">{finish.collection}</p>}
+                          {typeof finish.price === 'number' && <p className="text-[10px] text-foreground font-semibold text-center">+${finish.price.toLocaleString()}</p>}
                         </div>
                       </div>
-                    </CarouselItem>
-                  ))}
+                    </CarouselItem>)}
                 </CarouselContent>
                 <CarouselPrevious className="left-0" />
                 <CarouselNext className="right-0" />
@@ -511,123 +511,81 @@ const calculateTotalPrice = () => {
             </div>
 
             {/* Tiles */}
-            {extras.tiles && (
-              <div className="space-y-3">
+            {extras.tiles && <div className="space-y-3">
                 <h4 className="font-semibold text-foreground">Spa Tiles</h4>
                 <Carousel className="w-full">
                   <CarouselContent className="-ml-1">
-                    {tileOptions.map((tile) => (
-                      <CarouselItem key={tile.name} className="pl-1 basis-1/2 sm:basis-1/3">
-                        <div 
-                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                            extras.tileOption === tile.name ? 'border-teal bg-teal/10' : 'border-border'
-                          }`}
-                          onClick={() => setExtras(prev => ({ ...prev, tileOption: tile.name }))}
-                        >
+                    {tileOptions.map(tile => <CarouselItem key={tile.name} className="pl-1 basis-1/2 sm:basis-1/3">
+                        <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tileOption === tile.name ? 'border-teal bg-teal/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                  ...prev,
+                  tileOption: tile.name
+                }))}>
                           <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
-                            {tile.image ? (
-                              <img 
-                                src={tile.image} 
-                                alt={tile.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-teal/20 to-primary/20 flex items-center justify-center">
+                            {tile.image ? <img src={tile.image} alt={tile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-teal/20 to-primary/20 flex items-center justify-center">
                                 <div className="w-3 h-3 bg-teal rounded-full"></div>
-                              </div>
-                            )}
+                              </div>}
                           </div>
                           <p className="text-xs font-medium text-center">{tile.name}</p>
-                          {tile.price > 0 && (
-                            <p className="text-xs text-teal font-semibold text-center">+${tile.price.toLocaleString()}</p>
-                          )}
+                          {tile.price > 0 && <p className="text-xs text-teal font-semibold text-center">+${tile.price.toLocaleString()}</p>}
                         </div>
-                      </CarouselItem>
-                    ))}
+                      </CarouselItem>)}
                   </CarouselContent>
                   <CarouselPrevious className="left-0" />
                   <CarouselNext className="right-0" />
                 </Carousel>
-              </div>
-            )}
+              </div>}
 
             {/* Liners */}
-            {extras.liner && (
-              <div className="space-y-3">
+            {extras.liner && <div className="space-y-3">
                 <h4 className="font-semibold text-foreground">Spa Liners</h4>
                 <Carousel className="w-full">
                   <CarouselContent className="-ml-1">
-                    {linerOptions.map((liner) => (
-                      <CarouselItem key={liner.name} className="pl-1 basis-1/2 sm:basis-1/3">
-                        <div 
-                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                            extras.linerOption === liner.name ? 'border-secondary bg-secondary/10' : 'border-border'
-                          }`}
-                          onClick={() => setExtras(prev => ({ ...prev, linerOption: liner.name }))}
-                        >
+                    {linerOptions.map(liner => <CarouselItem key={liner.name} className="pl-1 basis-1/2 sm:basis-1/3">
+                        <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.linerOption === liner.name ? 'border-secondary bg-secondary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                  ...prev,
+                  linerOption: liner.name
+                }))}>
                           <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
-                            {liner.image ? (
-                              <img 
-                                src={liner.image} 
-                                alt={liner.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center">
+                            {liner.image ? <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center">
                                 <div className="w-3 h-3 bg-secondary rounded-full"></div>
-                              </div>
-                            )}
+                              </div>}
                           </div>
                           <p className="text-xs font-medium text-center">{liner.name}</p>
-                          {liner.price > 0 && (
-                            <p className="text-xs text-secondary font-semibold text-center">+${liner.price.toLocaleString()}</p>
-                          )}
+                          {liner.price > 0 && <p className="text-xs text-secondary font-semibold text-center">+${liner.price.toLocaleString()}</p>}
                         </div>
-                      </CarouselItem>
-                    ))}
+                      </CarouselItem>)}
                   </CarouselContent>
                   <CarouselPrevious className="left-0" />
                   <CarouselNext className="right-0" />
                 </Carousel>
-              </div>
-            )}
+              </div>}
 
             {/* Spa Heaters */}
-            {extras.heater && (
-              <div className="space-y-3">
+            {extras.heater && <div className="space-y-3">
                 <h4 className="font-semibold text-foreground flex items-center gap-2">
                   <Thermometer size={16} />
                   Spa Heaters
                 </h4>
                 <Carousel className="w-full">
                   <CarouselContent className="-ml-1">
-                    {spaHeaters.map((heater) => (
-                      <CarouselItem key={heater.name} className="pl-1 basis-1/2 sm:basis-1/3">
-                        <div 
-                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                            extras.heaterModel === heater.name ? 'border-teal bg-teal/10' : 'border-border'
-                          }`}
-                          onClick={() => setExtras(prev => ({ ...prev, heaterModel: heater.name }))}
-                        >
+                    {spaHeaters.map(heater => <CarouselItem key={heater.name} className="pl-1 basis-1/2 sm:basis-1/3">
+                        <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.heaterModel === heater.name ? 'border-teal bg-teal/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                  ...prev,
+                  heaterModel: heater.name
+                }))}>
                           <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
-                            <img 
-                              src={heater.image} 
-                              alt={heater.name}
-                              className="w-full h-full object-cover"
-                            />
+                            <img src={heater.image} alt={heater.name} className="w-full h-full object-cover" />
                           </div>
                           <p className="text-xs font-medium text-center">{heater.name}</p>
                           <p className="text-xs text-teal font-semibold text-center">+${heater.price.toLocaleString()}</p>
                           <p className="text-[10px] text-muted-foreground text-center mt-1">{heater.description}</p>
                         </div>
-                      </CarouselItem>
-                    ))}
+                      </CarouselItem>)}
                   </CarouselContent>
                   <CarouselPrevious className="left-0" />
                   <CarouselNext className="right-0" />
                 </Carousel>
-              </div>
-            )}
+              </div>}
 
             {/* Pavers Options */}
             <div className="space-y-3">
@@ -636,44 +594,26 @@ const calculateTotalPrice = () => {
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">
                   Paver Surface Area (sq ft)
                 </label>
-                <Input
-                  type="number"
-                  placeholder="Enter surface area for pavers"
-                  value={paverSurfaceArea}
-                  onChange={(e) => setPaverSurfaceArea(e.target.value)}
-                  className="mb-2"
-                />
-                {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
-                  <div className="text-xs text-green-600 font-medium">
+                <Input type="number" placeholder="Enter surface area for pavers" value={paverSurfaceArea} onChange={e => setPaverSurfaceArea(e.target.value)} className="mb-2" />
+                {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && <div className="text-xs text-green-600 font-medium">
                     Calculated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()} ({paverSurfaceArea} sq ft × $15/sq ft)
-                  </div>
-                )}
+                  </div>}
               </div>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
-                  {paverOptions.map((paver) => (
-                    <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3">
-                      <div 
-                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                          extras.paverOption === paver.name ? 'border-secondary bg-secondary/10' : 'border-border'
-                        }`}
-                        onClick={() => setExtras(prev => ({ ...prev, paverOption: paver.name }))}
-                      >
+                  {paverOptions.map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3">
+                      <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.paverOption === paver.name ? 'border-secondary bg-secondary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+                  ...prev,
+                  paverOption: paver.name
+                }))}>
                         <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
-                          <img 
-                            src={paver.image} 
-                            alt={paver.name}
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
                         </div>
                         <p className="text-xs font-medium text-center">{paver.name}</p>
-                        {paver.collection !== 'none' && (
-                          <p className="text-[10px] text-secondary font-semibold text-center capitalize">{paver.collection}</p>
-                        )}
+                        {paver.collection !== 'none' && <p className="text-[10px] text-secondary font-semibold text-center capitalize">{paver.collection}</p>}
                         <p className="text-[10px] text-muted-foreground text-center mt-1">$15/sq ft</p>
                       </div>
-                    </CarouselItem>
-                  ))}
+                    </CarouselItem>)}
                 </CarouselContent>
                 <CarouselPrevious className="left-0" />
                 <CarouselNext className="right-0" />
@@ -681,154 +621,122 @@ const calculateTotalPrice = () => {
             </div>
 
             {/* Jets Quantity */}
-            {extras.jets && (
-              <div className="space-y-2">
+            {extras.jets && <div className="space-y-2">
                 <h4 className="font-semibold text-foreground flex items-center gap-2">
                   <Zap size={16} />
                   Spa Jets Quantity
                 </h4>
                 <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setExtras(prev => ({ ...prev, jetQuantity: Math.max(1, prev.jetQuantity - 1) }))}
-                  >
+                  <Button size="sm" variant="outline" onClick={() => setExtras(prev => ({
+              ...prev,
+              jetQuantity: Math.max(1, prev.jetQuantity - 1)
+            }))}>
                     -
                   </Button>
                   <span className="font-semibold">{extras.jetQuantity}</span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setExtras(prev => ({ ...prev, jetQuantity: prev.jetQuantity + 1 }))}
-                  >
+                  <Button size="sm" variant="outline" onClick={() => setExtras(prev => ({
+              ...prev,
+              jetQuantity: prev.jetQuantity + 1
+            }))}>
                     +
                   </Button>
                   <span className="text-sm text-muted-foreground">
                     +${(getExtraPrice('jets') * extras.jetQuantity).toLocaleString()}
                   </span>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              </div>}
+          </div>}
         
         {/* Action Buttons */}
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => onViewDetails(spa)}
-              className="text-xs"
-            >
+            <Button variant="outline" size="sm" onClick={() => onViewDetails(spa)} className="text-xs">
               View Details
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => {
-                // Create detailed extras breakdown for quote tool
-const extrasBreakdown = [] as Array<{ name: string; price: number; image?: string }>; 
-                
-                // Add finish if it has an additional cost
-                const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
-                if (selectedFinish && typeof selectedFinish.price === 'number' && selectedFinish.price > 0) {
-                  extrasBreakdown.push({
-                    name: `${selectedFinish.name} Finish`,
-                    price: selectedFinish.price,
-                    image: selectedFinish.image
-                  });
-                }
-                
-                // Add heater if selected
-                if (extras.heater) {
-                  const selectedHeater = spaHeaters.find(heater => heater.name === extras.heaterModel);
-                  if (selectedHeater) {
-                    extrasBreakdown.push({
-                      name: selectedHeater.name,
-                      price: selectedHeater.price
-                    });
-                  }
-                }
-                
-                // Add jets if selected
-                if (extras.jets) {
-                  extrasBreakdown.push({
-                    name: `Spa Jets (${extras.jetQuantity})`,
-                    price: getExtraPrice('jets') * extras.jetQuantity
-                  });
-                }
-                
-                // Add tiles if selected
-                const tileOption = tileOptions.find(option => option.name === extras.tileOption);
-                if (tileOption && extras.tiles) {
-                  extrasBreakdown.push({
-                    name: tileOption.name,
-                    price: tileOption.price
-                  });
-                }
-                
-                // Add liner if selected (mutually exclusive with tiles)
-                const linerOption = linerOptions.find(option => option.name === extras.linerOption);
-                if (linerOption && extras.liner) {
-                  extrasBreakdown.push({
-                    name: `${linerOption.name} Liner`,
-                    price: linerOption.price
-                  });
-                }
-                
-                // Add paver surface area cost
-                if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-                  extrasBreakdown.push({
-                    name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
-                    price: parseFloat(paverSurfaceArea) * 15
-                  });
-                }
-                
-                const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
-                
-                onRequestQuote(spa, {
-                  ...extras,
-                  extrasBreakdown,
-                  extrasTotal
+            <Button variant="outline" size="sm" onClick={() => {
+            // Create detailed extras breakdown for quote tool
+            const extrasBreakdown = [] as Array<{
+              name: string;
+              price: number;
+              image?: string;
+            }>;
+
+            // Add finish if it has an additional cost
+            const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
+            if (selectedFinish && typeof selectedFinish.price === 'number' && selectedFinish.price > 0) {
+              extrasBreakdown.push({
+                name: `${selectedFinish.name} Finish`,
+                price: selectedFinish.price,
+                image: selectedFinish.image
+              });
+            }
+
+            // Add heater if selected
+            if (extras.heater) {
+              const selectedHeater = spaHeaters.find(heater => heater.name === extras.heaterModel);
+              if (selectedHeater) {
+                extrasBreakdown.push({
+                  name: selectedHeater.name,
+                  price: selectedHeater.price
                 });
-              }}
-              className="text-xs"
-            >
+              }
+            }
+
+            // Add jets if selected
+            if (extras.jets) {
+              extrasBreakdown.push({
+                name: `Spa Jets (${extras.jetQuantity})`,
+                price: getExtraPrice('jets') * extras.jetQuantity
+              });
+            }
+
+            // Add tiles if selected
+            const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+            if (tileOption && extras.tiles) {
+              extrasBreakdown.push({
+                name: tileOption.name,
+                price: tileOption.price
+              });
+            }
+
+            // Add liner if selected (mutually exclusive with tiles)
+            const linerOption = linerOptions.find(option => option.name === extras.linerOption);
+            if (linerOption && extras.liner) {
+              extrasBreakdown.push({
+                name: `${linerOption.name} Liner`,
+                price: linerOption.price
+              });
+            }
+
+            // Add paver surface area cost
+            if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+              extrasBreakdown.push({
+                name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
+                price: parseFloat(paverSurfaceArea) * 15
+              });
+            }
+            const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
+            onRequestQuote(spa, {
+              ...extras,
+              extrasBreakdown,
+              extrasTotal
+            });
+          }} className="text-xs">
               Get Quote
             </Button>
           </div>
           
-          <Button 
-            onClick={handleAddToCart}
-            className="w-full bg-gradient-to-r from-primary to-teal hover:from-primary/90 hover:to-teal/90"
-            size="sm"
-          >
+          <Button onClick={handleAddToCart} className="w-full bg-gradient-to-r from-primary to-teal hover:from-primary/90 hover:to-teal/90" size="sm">
             <ShoppingCart className="h-4 w-4 mr-2" />
             Add to Cart
           </Button>
           
-          <StripeCheckoutButton 
-            productId={`spa_${spa.model.replace(/\s+/g, '_')}`}
-            productName={`${spa.model} Spa`}
-            price={calculateTotalPrice()}
-            size="sm"
-            className="w-full text-xs"
-          />
+          <StripeCheckoutButton productId={`spa_${spa.model.replace(/\s+/g, '_')}`} productName={`${spa.model} Spa`} price={calculateTotalPrice()} size="sm" className="w-full text-xs" />
         </div>
       </CardContent>
       
       {/* Image Editor Modal */}
-      {showImageEditor && (
-        <ImageEditor
-          isOpen={showImageEditor}
-          onClose={() => setShowImageEditor(false)}
-          onImageSave={handleImageSave}
-          currentImage={currentPoolImage}
-        />
-      )}
-    </Card>
-  );
+      {showImageEditor && <ImageEditor isOpen={showImageEditor} onClose={() => setShowImageEditor(false)} onImageSave={handleImageSave} currentImage={currentPoolImage} />}
+    </Card>;
 };
-
 export default SpaProductCard;

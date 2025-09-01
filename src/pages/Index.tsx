@@ -11,7 +11,6 @@ import AutomaticCoversSection from "@/components/AutomaticCoversSection";
 import ScreenEnclosureSection from "@/components/ScreenEnclosureSection";
 import PaversSection from "@/components/PaversSection";
 import Footer from "@/components/Footer";
-
 const Index = () => {
   useEffect(() => {
     // Handle navigation to sections from URL hash
@@ -19,13 +18,13 @@ const Index = () => {
     if (hash) {
       const element = document.querySelector(hash);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+        element.scrollIntoView({
+          behavior: 'smooth'
+        });
       }
     }
   }, []);
-
-  return (
-    <div className="min-h-screen">
+  return <div className="min-h-screen">
       <Header />
       <Hero />
       
@@ -36,9 +35,7 @@ const Index = () => {
             <h2 className="text-3xl font-bold bg-gradient-to-r from-primary via-teal to-coral bg-clip-text text-transparent mb-2">
               Wonderlands Pool Collection
             </h2>
-            <p className="text-muted-foreground text-lg">
-              Premium pools, spas & outdoor living for homeowners and dealers
-            </p>
+            <p className="text-muted-foreground text-lg">Premium Concrete and Carbon Fiber Glass Pools, Spas & Outdoor Living for Homeowners and Dealers</p>
           </div>
           <AdvancedSearch />
         </div>
@@ -60,8 +57,6 @@ const Index = () => {
       <div id="covers" />
       <AutomaticCoversSection />
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;

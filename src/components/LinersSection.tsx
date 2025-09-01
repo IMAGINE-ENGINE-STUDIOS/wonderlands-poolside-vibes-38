@@ -9,7 +9,6 @@ import { Droplets, Palette, Shield, Star, DollarSign, ShoppingCart } from "lucid
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { useShoppingCart } from "./ShoppingCart";
 import { poolLiners } from "@/data/poolData";
-
 interface Liner {
   name: string;
   price: number;
@@ -17,48 +16,55 @@ interface Liner {
   image?: string;
   description: string;
 }
-
 interface LinersSectionProps {
   onLinerSelect?: (liner: Liner) => void;
   selectedLiner?: string;
   allowSelection?: boolean;
 }
-
 const getTypeColor = (type: string) => {
   switch (type) {
-    case 'tile': return 'bg-gradient-to-r from-coral to-orange';
-    case 'fiberglass': return 'bg-gradient-to-r from-primary to-teal';
-    case 'vinyl': return 'bg-gradient-to-r from-secondary to-accent';
-    default: return 'bg-gradient-to-r from-primary to-teal';
+    case 'tile':
+      return 'bg-gradient-to-r from-coral to-orange';
+    case 'fiberglass':
+      return 'bg-gradient-to-r from-primary to-teal';
+    case 'vinyl':
+      return 'bg-gradient-to-r from-secondary to-accent';
+    default:
+      return 'bg-gradient-to-r from-primary to-teal';
   }
 };
-
 const getTypeIcon = (type: string) => {
   switch (type) {
-    case 'tile': return <Star size={16} />;
-    case 'fiberglass': return <Shield size={16} />;
-    case 'vinyl': return <Droplets size={16} />;
-    default: return <Palette size={16} />;
+    case 'tile':
+      return <Star size={16} />;
+    case 'fiberglass':
+      return <Shield size={16} />;
+    case 'vinyl':
+      return <Droplets size={16} />;
+    default:
+      return <Palette size={16} />;
   }
 };
-
-const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowSelection }: LinersSectionProps = {}) => {
+const LinersSection = ({
+  onLinerSelect,
+  selectedLiner: selectedLinerProp,
+  allowSelection
+}: LinersSectionProps = {}) => {
   const [selectedLiner, setSelectedLiner] = useState<Liner | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const { addToCart } = useShoppingCart();
-
+  const {
+    addToCart
+  } = useShoppingCart();
   const handleLinerClick = (liner: Liner) => {
     setSelectedLiner(liner);
     setShowDetailModal(true);
   };
-
   const handleRequestQuote = (liner: Liner) => {
     setSelectedLiner(liner);
     setShowDetailModal(false);
     setShowQuoteModal(true);
   };
-
   const handleAddToCart = (liner: Liner) => {
     addToCart({
       id: `liner_${liner.name.replace(/\s+/g, '_')}_${Date.now()}`,
@@ -69,9 +75,7 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
       extras: []
     });
   };
-
-  return (
-    <>
+  return <>
       <section id="liners" className="py-20 px-4 bg-gradient-to-br from-background to-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -86,12 +90,8 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
             <div className="flex gap-4 overflow-x-auto pb-4">
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
-                  {poolLiners.map((liner, index) => (
-                    <CarouselItem key={liner.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
-                      <Card 
-                        className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer h-full"
-                        onClick={() => handleLinerClick(liner)}
-                      >
+                  {poolLiners.map((liner, index) => <CarouselItem key={liner.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
+                      <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer h-full" onClick={() => handleLinerClick(liner)}>
                         <CardHeader className="pb-4">
                           <div className="flex items-center justify-between mb-3">
                             <Badge className={`${getTypeColor(liner.type)} text-white capitalize font-medium px-3 py-1`}>
@@ -100,11 +100,7 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
                                 {liner.type}
                               </span>
                             </Badge>
-                            <div className="flex items-center gap-1 text-amber-500">
-                              {Array.from({ length: 5 }).map((_, i) => (
-                                <Star key={i} size={12} fill={i < 4 ? "currentColor" : "none"} />
-                              ))}
-                            </div>
+                            
                           </div>
                           
                           <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
@@ -115,11 +111,7 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
                         <CardContent className="space-y-4">
                           {/* Liner Preview */}
                           <div className="w-full h-32 rounded-lg overflow-hidden border-2 border-muted">
-                            <img 
-                              src={liner.image} 
-                              alt={liner.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                            />
+                            <img src={liner.image} alt={liner.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                           </div>
                           
                           {/* Price */}
@@ -138,21 +130,15 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
                           <Separator />
                           
                           {/* Action Button */}
-                          <Button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleLinerClick(liner);
-                            }}
-                            variant="default"
-                            className="w-full hover:scale-105 transition-all duration-300"
-                            size="sm"
-                          >
+                          <Button onClick={e => {
+                      e.stopPropagation();
+                      handleLinerClick(liner);
+                    }} variant="default" className="w-full hover:scale-105 transition-all duration-300" size="sm">
                             View Detail
                           </Button>
                         </CardContent>
                       </Card>
-                    </CarouselItem>
-                  ))}
+                    </CarouselItem>)}
                 </CarouselContent>
                 <CarouselPrevious className="left-0" />
                 <CarouselNext className="right-0" />
@@ -164,18 +150,13 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
       {/* Liner Detail Modal */}
       <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
         <DialogContent className="max-w-2xl">
-          {selectedLiner && (
-            <>
+          {selectedLiner && <>
               <DialogHeader>
                 <DialogTitle className="text-2xl">{selectedLiner.name}</DialogTitle>
               </DialogHeader>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <img 
-                    src={selectedLiner.image} 
-                    alt={selectedLiner.name}
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
+                  <img src={selectedLiner.image} alt={selectedLiner.name} className="w-full h-64 object-cover rounded-lg" />
                 </div>
                 <div className="space-y-4">
                   <Badge className={`${getTypeColor(selectedLiner.type)} text-white`}>
@@ -191,45 +172,27 @@ const LinersSection = ({ onLinerSelect, selectedLiner: selectedLinerProp, allowS
                   </div>
                   
                   <div className="flex gap-3">
-                    {allowSelection && !selectedLinerProp && selectedLiner && (
-                      <Button 
-                        onClick={() => {
-                          onLinerSelect?.(selectedLiner!);
-                          setShowDetailModal(false);
-                        }}
-                        variant="default"
-                        className="flex-1"
-                      >
+                    {allowSelection && !selectedLinerProp && selectedLiner && <Button onClick={() => {
+                  onLinerSelect?.(selectedLiner!);
+                  setShowDetailModal(false);
+                }} variant="default" className="flex-1">
                         Select Liner
-                      </Button>
-                    )}
-                    <Button 
-                      onClick={() => handleRequestQuote(selectedLiner)}
-                      variant="gradient"
-                      className="flex-1"
-                    >
+                      </Button>}
+                    <Button onClick={() => handleRequestQuote(selectedLiner)} variant="gradient" className="flex-1">
                       Get Quote
                     </Button>
                   </div>
                 </div>
               </div>
-            </>
-          )}
+            </>}
         </DialogContent>
       </Dialog>
 
-      <SurveyQuoteTool 
-        pool={null}
-        isOpen={showQuoteModal}
-        onClose={() => setShowQuoteModal(false)}
-        customProduct={selectedLiner ? {
-          name: selectedLiner.name,
-          price: selectedLiner.price,
-          type: 'liner'
-        } : undefined}
-      />
-    </>
-  );
+      <SurveyQuoteTool pool={null} isOpen={showQuoteModal} onClose={() => setShowQuoteModal(false)} customProduct={selectedLiner ? {
+      name: selectedLiner.name,
+      price: selectedLiner.price,
+      type: 'liner'
+    } : undefined} />
+    </>;
 };
-
 export default LinersSection;

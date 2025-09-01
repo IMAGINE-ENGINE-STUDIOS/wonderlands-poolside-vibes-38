@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Zap, Leaf, Settings, DollarSign, Star, Droplets, Thermometer, Bolt } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-
-
 interface AutomaticCover {
   name: string;
   price: number;
@@ -19,78 +17,79 @@ interface AutomaticCover {
   installation: string;
   image: string;
 }
-
-const covers: AutomaticCover[] = [
-  {
-    name: "Eclipse",
-    price: 16000,
-    type: 'safety',
-    material: "High-grade PVC",
-    motorType: "DC Motor",
-    warranty: "10 years",
-    features: ["Dual track system", "Emergency manual override", "Auto-close sensors", "LED status indicators"],
-    benefits: ["Advanced safety features", "Quiet operation", "Weather resistant"],
-    installation: "2-3 days",
-    image: "/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png"
-  },
-  {
-    name: "CS3000",
-    price: 24000,
-    type: 'hybrid',
-    material: "Multi-layer vinyl",
-    motorType: "AC Motor",
-    warranty: "15 years",
-    features: ["Smart automation", "Variable speed control", "Weather sensors", "Remote monitoring"],
-    benefits: ["Commercial grade reliability", "Energy efficient", "Low maintenance"],
-    installation: "3-4 days",
-    image: "/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png"
-  },
-  {
-    name: "Infinity 4000",
-    price: 32000,
-    type: 'hybrid',
-    material: "Premium composite",
-    motorType: "Smart Motor",
-    warranty: "20 years",
-    features: ["AI-powered automation", "Solar integration", "App control", "Predictive maintenance"],
-    benefits: ["Ultimate performance", "Maximum energy savings", "Smart home integration"],
-    installation: "4-5 days",
-    image: "/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png"
-  },
-  {
-    name: "Atom",
-    price: 19000,
-    type: 'thermal',
-    material: "Insulated fabric",
-    motorType: "DC Motor",
-    warranty: "12 years",
-    features: ["Compact design", "Quick deployment", "Temperature sensors", "Timer controls"],
-    benefits: ["Space efficient", "Fast operation", "Thermal retention"],
-    installation: "2-3 days",
-    image: "/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png"
-  }
-];
-
+const covers: AutomaticCover[] = [{
+  name: "Eclipse",
+  price: 16000,
+  type: 'safety',
+  material: "High-grade PVC",
+  motorType: "DC Motor",
+  warranty: "10 years",
+  features: ["Dual track system", "Emergency manual override", "Auto-close sensors", "LED status indicators"],
+  benefits: ["Advanced safety features", "Quiet operation", "Weather resistant"],
+  installation: "2-3 days",
+  image: "/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png"
+}, {
+  name: "CS3000",
+  price: 24000,
+  type: 'hybrid',
+  material: "Multi-layer vinyl",
+  motorType: "AC Motor",
+  warranty: "15 years",
+  features: ["Smart automation", "Variable speed control", "Weather sensors", "Remote monitoring"],
+  benefits: ["Commercial grade reliability", "Energy efficient", "Low maintenance"],
+  installation: "3-4 days",
+  image: "/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png"
+}, {
+  name: "Infinity 4000",
+  price: 32000,
+  type: 'hybrid',
+  material: "Premium composite",
+  motorType: "Smart Motor",
+  warranty: "20 years",
+  features: ["AI-powered automation", "Solar integration", "App control", "Predictive maintenance"],
+  benefits: ["Ultimate performance", "Maximum energy savings", "Smart home integration"],
+  installation: "4-5 days",
+  image: "/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png"
+}, {
+  name: "Atom",
+  price: 19000,
+  type: 'thermal',
+  material: "Insulated fabric",
+  motorType: "DC Motor",
+  warranty: "12 years",
+  features: ["Compact design", "Quick deployment", "Temperature sensors", "Timer controls"],
+  benefits: ["Space efficient", "Fast operation", "Thermal retention"],
+  installation: "2-3 days",
+  image: "/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png"
+}];
 const getTypeColor = (type: string) => {
   switch (type) {
-    case 'solar': return 'bg-gradient-to-r from-orange to-amber-500';
-    case 'safety': return 'bg-gradient-to-r from-red-500 to-red-600';
-    case 'thermal': return 'bg-gradient-to-r from-primary to-teal';
-    case 'hybrid': return 'bg-gradient-to-r from-purple-500 to-purple-600';
-    default: return 'bg-gradient-to-r from-primary to-teal';
+    case 'solar':
+      return 'bg-gradient-to-r from-orange to-amber-500';
+    case 'safety':
+      return 'bg-gradient-to-r from-red-500 to-red-600';
+    case 'thermal':
+      return 'bg-gradient-to-r from-primary to-teal';
+    case 'hybrid':
+      return 'bg-gradient-to-r from-purple-500 to-purple-600';
+    default:
+      return 'bg-gradient-to-r from-primary to-teal';
   }
 };
-
 const getTypeIcon = (type: string) => {
   switch (type) {
-    case 'solar': return <Leaf size={16} />;
-    case 'safety': return <Shield size={16} />;
-    case 'thermal': return <Zap size={16} />;
-    case 'hybrid': return <Settings size={16} />;
-    default: return <Shield size={16} />;
+    case 'solar':
+      return <Leaf size={16} />;
+    case 'safety':
+      return <Shield size={16} />;
+    case 'thermal':
+      return <Zap size={16} />;
+    case 'hybrid':
+      return <Settings size={16} />;
+    default:
+      return <Shield size={16} />;
   }
 };
-
 const AutomaticCoversSection = () => {
   const [selectedCover, setSelectedCover] = useState<AutomaticCover | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -98,9 +97,7 @@ const AutomaticCoversSection = () => {
     setSelectedCover(cover);
     setShowQuoteModal(true);
   };
-
-  return (
-    <>
+  return <>
       <section className="py-20 px-4 bg-gradient-to-br from-muted/30 to-background">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -113,11 +110,7 @@ const AutomaticCoversSection = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {covers.map((cover, index) => (
-              <Card 
-                key={cover.name} 
-                className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden"
-              >
+            {covers.map((cover, index) => <Card key={cover.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden">
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between mb-3">
                     <Badge className={`${getTypeColor(cover.type)} text-white capitalize font-medium px-3 py-1`}>
@@ -126,11 +119,7 @@ const AutomaticCoversSection = () => {
                         {cover.type}
                       </span>
                     </Badge>
-                    <div className="flex items-center gap-1 text-amber-500">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} size={12} fill={i < 4 ? "currentColor" : "none"} />
-                      ))}
-                    </div>
+                    
                   </div>
                   
                   <CardTitle className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
@@ -141,11 +130,7 @@ const AutomaticCoversSection = () => {
                 <CardContent className="space-y-4">
                   {/* Cover Image */}
                   <div className="aspect-video overflow-hidden rounded-lg bg-muted/30">
-                    <img 
-                      src={cover.image} 
-                      alt={cover.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                    <img src={cover.image} alt={cover.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                   
                   {/* Price */}
@@ -183,12 +168,10 @@ const AutomaticCoversSection = () => {
                   <div className="space-y-2">
                     <h4 className="font-semibold text-sm">Key Features:</h4>
                     <ul className="space-y-1">
-                      {cover.features.map((feature, idx) => (
-                        <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
+                      {cover.features.map((feature, idx) => <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
                           <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                           {feature}
-                        </li>
-                      ))}
+                        </li>)}
                     </ul>
                   </div>
                   
@@ -198,27 +181,19 @@ const AutomaticCoversSection = () => {
                   <div className="space-y-2">
                     <h4 className="font-semibold text-sm">Benefits:</h4>
                     <ul className="space-y-1">
-                      {cover.benefits.map((benefit, idx) => (
-                        <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
+                      {cover.benefits.map((benefit, idx) => <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
                           <div className="w-1.5 h-1.5 bg-teal rounded-full"></div>
                           {benefit}
-                        </li>
-                      ))}
+                        </li>)}
                     </ul>
                   </div>
                   
                   {/* Action Button */}
-                  <Button 
-                    onClick={() => handleRequestQuote(cover)}
-                    variant="gradient"
-                    className="w-full hover:scale-105 transition-all duration-300"
-                    size="lg"
-                  >
+                  <Button onClick={() => handleRequestQuote(cover)} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="lg">
                     Get Quote & Installation
                   </Button>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
       </section>
@@ -297,11 +272,7 @@ const AutomaticCoversSection = () => {
                 <p className="text-foreground/80 mb-6">
                   An automatic pool cover is more than just protection – it's an investment that pays for itself through reduced operating costs, water savings, and extended equipment life.
                 </p>
-                <Button 
-                  variant="gradient" 
-                  size="lg"
-                  className="hover:scale-105 transition-transform duration-300"
-                >
+                <Button variant="gradient" size="lg" className="hover:scale-105 transition-transform duration-300">
                   Calculate Your Savings
                 </Button>
               </CardContent>
@@ -310,18 +281,11 @@ const AutomaticCoversSection = () => {
         </div>
       </section>
       
-      <SurveyQuoteTool 
-        pool={null}
-        isOpen={showQuoteModal}
-        onClose={() => setShowQuoteModal(false)}
-        customProduct={selectedCover ? {
-          name: selectedCover.name,
-          price: selectedCover.price,
-          type: 'automatic-cover'
-        } : undefined}
-      />
-    </>
-  );
+      <SurveyQuoteTool pool={null} isOpen={showQuoteModal} onClose={() => setShowQuoteModal(false)} customProduct={selectedCover ? {
+      name: selectedCover.name,
+      price: selectedCover.price,
+      type: 'automatic-cover'
+    } : undefined} />
+    </>;
 };
-
 export default AutomaticCoversSection;

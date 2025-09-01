@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +8,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Grid3X3, DollarSign, ShoppingCart, Calculator, Home, Zap, Star } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { useShoppingCart } from "./ShoppingCart";
-
 interface ScreenEnclosureOption {
   name: string;
   type: 'standard' | 'deluxe' | 'premium';
@@ -18,55 +16,47 @@ interface ScreenEnclosureOption {
   description: string;
   features: string[];
 }
-
-const screenEnclosureOptions: ScreenEnclosureOption[] = [
-  {
-    name: "Standard Screen Enclosure",
-    type: "standard",
-    pricePerSqFt: 15,
-    image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
-    description: "Basic aluminum frame screen enclosure with standard mesh screening",
-    features: ["Aluminum Frame", "Standard Screen Mesh", "Basic Hardware", "5-Year Warranty"]
-  },
-  {
-    name: "Deluxe Screen Enclosure", 
-    type: "deluxe",
-    pricePerSqFt: 22,
-    image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
-    description: "Enhanced aluminum frame with premium mesh and improved durability",
-    features: ["Premium Aluminum Frame", "Enhanced Screen Mesh", "Upgraded Hardware", "Pet Screen Option", "10-Year Warranty"]
-  },
-  {
-    name: "Premium Screen Enclosure",
-    type: "premium", 
-    pricePerSqFt: 28,
-    image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
-    description: "Top-tier aluminum construction with impact-resistant screening and premium finishes",
-    features: ["Heavy-Duty Aluminum Frame", "Impact-Resistant Screen", "Premium Hardware", "Custom Color Options", "Lifetime Warranty"]
-  }
-];
-
+const screenEnclosureOptions: ScreenEnclosureOption[] = [{
+  name: "Standard Screen Enclosure",
+  type: "standard",
+  pricePerSqFt: 15,
+  image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
+  description: "Basic aluminum frame screen enclosure with standard mesh screening",
+  features: ["Aluminum Frame", "Standard Screen Mesh", "Basic Hardware", "5-Year Warranty"]
+}, {
+  name: "Deluxe Screen Enclosure",
+  type: "deluxe",
+  pricePerSqFt: 22,
+  image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
+  description: "Enhanced aluminum frame with premium mesh and improved durability",
+  features: ["Premium Aluminum Frame", "Enhanced Screen Mesh", "Upgraded Hardware", "Pet Screen Option", "10-Year Warranty"]
+}, {
+  name: "Premium Screen Enclosure",
+  type: "premium",
+  pricePerSqFt: 28,
+  image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
+  description: "Top-tier aluminum construction with impact-resistant screening and premium finishes",
+  features: ["Heavy-Duty Aluminum Frame", "Impact-Resistant Screen", "Premium Hardware", "Custom Color Options", "Lifetime Warranty"]
+}];
 const ScreenEnclosureSection = () => {
   const [selectedEnclosure, setSelectedEnclosure] = useState<ScreenEnclosureOption | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [squareFootage, setSquareFootage] = useState<number>(0);
-  const { addToCart } = useShoppingCart();
-
+  const {
+    addToCart
+  } = useShoppingCart();
   const handleEnclosureClick = (enclosure: ScreenEnclosureOption) => {
     setSelectedEnclosure(enclosure);
     setShowDetailModal(true);
   };
-
   const handleRequestQuote = (enclosure: ScreenEnclosureOption) => {
     setSelectedEnclosure(enclosure);
     setShowDetailModal(false);
     setShowQuoteModal(true);
   };
-
   const handleAddToCart = (enclosure: ScreenEnclosureOption, sqFt: number) => {
     if (sqFt <= 0) return;
-    
     const totalPrice = sqFt * enclosure.pricePerSqFt;
     addToCart({
       id: `screen_enclosure_${enclosure.type}_${Date.now()}`,
@@ -77,13 +67,10 @@ const ScreenEnclosureSection = () => {
       extras: []
     });
   };
-
   const calculatePrice = (enclosure: ScreenEnclosureOption, sqFt: number) => {
     return sqFt * enclosure.pricePerSqFt;
   };
-
-  return (
-    <>
+  return <>
       <section id="screen-enclosures" className="py-20 px-4 bg-gradient-to-br from-muted/30 to-background">
         <div className="max-w-7xl mx-auto">
 
@@ -97,26 +84,13 @@ const ScreenEnclosureSection = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {screenEnclosureOptions.map((enclosure, index) => (
-              <Card 
-                key={enclosure.name} 
-                className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer"
-                onClick={() => handleEnclosureClick(enclosure)}
-              >
+            {screenEnclosureOptions.map((enclosure, index) => <Card key={enclosure.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer" onClick={() => handleEnclosureClick(enclosure)}>
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between mb-3">
-                    <Badge className={`${
-                      enclosure.type === 'premium' ? 'bg-gradient-to-r from-coral to-orange' :
-                      enclosure.type === 'deluxe' ? 'bg-gradient-to-r from-primary to-teal' :
-                      'bg-gradient-to-r from-secondary to-accent'
-                    } text-white capitalize font-medium px-3 py-1`}>
+                    <Badge className={`${enclosure.type === 'premium' ? 'bg-gradient-to-r from-coral to-orange' : enclosure.type === 'deluxe' ? 'bg-gradient-to-r from-primary to-teal' : 'bg-gradient-to-r from-secondary to-accent'} text-white capitalize font-medium px-3 py-1`}>
                       {enclosure.type}
                     </Badge>
-                    <div className="flex items-center gap-1 text-amber-500">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} size={12} fill="currentColor" />
-                      ))}
-                    </div>
+                    
                   </div>
                   
                   <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
@@ -127,11 +101,7 @@ const ScreenEnclosureSection = () => {
                 <CardContent className="space-y-4">
                   {/* Enclosure Preview */}
                   <div className="w-full h-48 rounded-lg overflow-hidden border-2 border-muted">
-                    <img 
-                      src={enclosure.image} 
-                      alt={enclosure.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
+                    <img src={enclosure.image} alt={enclosure.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                   </div>
                   
                   {/* Price */}
@@ -151,30 +121,22 @@ const ScreenEnclosureSection = () => {
                   
                   {/* Features */}
                   <div className="space-y-1">
-                    {enclosure.features.slice(0, 2).map((feature, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-xs text-muted-foreground">
+                    {enclosure.features.slice(0, 2).map((feature, idx) => <div key={idx} className="flex items-center gap-2 text-xs text-muted-foreground">
                         <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                         {feature}
-                      </div>
-                    ))}
+                      </div>)}
                   </div>
                   
                   {/* Action Button */}
-                  <Button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEnclosureClick(enclosure);
-                    }}
-                    variant="default"
-                    className="w-full hover:scale-105 transition-all duration-300"
-                    size="sm"
-                  >
+                  <Button onClick={e => {
+                e.stopPropagation();
+                handleEnclosureClick(enclosure);
+              }} variant="default" className="w-full hover:scale-105 transition-all duration-300" size="sm">
                     <Calculator className="h-4 w-4 mr-2" />
                     Calculate Price
                   </Button>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
           
           {/* Information Section - Moved below products */}
@@ -222,35 +184,24 @@ const ScreenEnclosureSection = () => {
       {/* Detail Modal */}
       <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
         <DialogContent className="max-w-2xl">
-          {selectedEnclosure && (
-            <>
+          {selectedEnclosure && <>
               <DialogHeader>
                 <DialogTitle className="text-2xl">{selectedEnclosure.name}</DialogTitle>
               </DialogHeader>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <img 
-                    src={selectedEnclosure.image} 
-                    alt={selectedEnclosure.name}
-                    className="w-full h-64 object-cover rounded-lg mb-4"
-                  />
+                  <img src={selectedEnclosure.image} alt={selectedEnclosure.name} className="w-full h-64 object-cover rounded-lg mb-4" />
                   
                   <div className="space-y-2">
                     <h4 className="font-semibold">Features:</h4>
-                    {selectedEnclosure.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm">
+                    {selectedEnclosure.features.map((feature, idx) => <div key={idx} className="flex items-center gap-2 text-sm">
                         <div className="w-2 h-2 bg-primary rounded-full"></div>
                         {feature}
-                      </div>
-                    ))}
+                      </div>)}
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <Badge className={`${
-                    selectedEnclosure.type === 'premium' ? 'bg-gradient-to-r from-coral to-orange' :
-                    selectedEnclosure.type === 'deluxe' ? 'bg-gradient-to-r from-primary to-teal' :
-                    'bg-gradient-to-r from-secondary to-accent'
-                  } text-white`}>
+                  <Badge className={`${selectedEnclosure.type === 'premium' ? 'bg-gradient-to-r from-coral to-orange' : selectedEnclosure.type === 'deluxe' ? 'bg-gradient-to-r from-primary to-teal' : 'bg-gradient-to-r from-secondary to-accent'} text-white`}>
                     {selectedEnclosure.type}
                   </Badge>
                   
@@ -259,14 +210,7 @@ const ScreenEnclosureSection = () => {
                   <div className="space-y-3">
                     <div>
                       <label className="text-sm font-medium mb-2 block">Square Footage</label>
-                      <Input
-                        type="number"
-                        min={0}
-                        step={1}
-                        value={squareFootage || ''}
-                        onChange={(e) => setSquareFootage(parseFloat(e.target.value) || 0)}
-                        placeholder="Enter area in sq ft"
-                      />
+                      <Input type="number" min={0} step={1} value={squareFootage || ''} onChange={e => setSquareFootage(parseFloat(e.target.value) || 0)} placeholder="Enter area in sq ft" />
                     </div>
                     
                     <div className="bg-muted/50 p-4 rounded-lg">
@@ -284,52 +228,33 @@ const ScreenEnclosureSection = () => {
                   </div>
                   
                   <div className="flex gap-3">
-                    <Button 
-                      onClick={() => handleAddToCart(selectedEnclosure, squareFootage)}
-                      disabled={!squareFootage || squareFootage <= 0}
-                      variant="default"
-                      className="flex-1"
-                    >
+                    <Button onClick={() => handleAddToCart(selectedEnclosure, squareFootage)} disabled={!squareFootage || squareFootage <= 0} variant="default" className="flex-1">
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       Add to Cart
                     </Button>
-                    <Button 
-                      onClick={() => handleRequestQuote(selectedEnclosure)}
-                      variant="outline"
-                      className="flex-1"
-                    >
+                    <Button onClick={() => handleRequestQuote(selectedEnclosure)} variant="outline" className="flex-1">
                       Get Quote
                     </Button>
                   </div>
                 </div>
               </div>
-            </>
-          )}
+            </>}
         </DialogContent>
       </Dialog>
 
-      <SurveyQuoteTool 
-        pool={null}
-        isOpen={showQuoteModal}
-        onClose={() => setShowQuoteModal(false)}
-        customProduct={selectedEnclosure ? {
-          name: selectedEnclosure.name,
-          price: 0, // price will be derived from extras (sq ft * rate)
-          type: 'screen-enclosure'
-        } : undefined}
-        extras={selectedEnclosure && squareFootage > 0 ? {
-          extrasBreakdown: [
-            {
-              name: `Screen Enclosure - ${selectedEnclosure.type.charAt(0).toUpperCase() + selectedEnclosure.type.slice(1)} (${squareFootage} sq ft)`,
-              price: squareFootage * selectedEnclosure.pricePerSqFt,
-              image: selectedEnclosure.image
-            }
-          ],
-          extrasTotal: squareFootage * selectedEnclosure.pricePerSqFt
-        } : undefined}
-      />
-    </>
-  );
+      <SurveyQuoteTool pool={null} isOpen={showQuoteModal} onClose={() => setShowQuoteModal(false)} customProduct={selectedEnclosure ? {
+      name: selectedEnclosure.name,
+      price: 0,
+      // price will be derived from extras (sq ft * rate)
+      type: 'screen-enclosure'
+    } : undefined} extras={selectedEnclosure && squareFootage > 0 ? {
+      extrasBreakdown: [{
+        name: `Screen Enclosure - ${selectedEnclosure.type.charAt(0).toUpperCase() + selectedEnclosure.type.slice(1)} (${squareFootage} sq ft)`,
+        price: squareFootage * selectedEnclosure.pricePerSqFt,
+        image: selectedEnclosure.image
+      }],
+      extrasTotal: squareFootage * selectedEnclosure.pricePerSqFt
+    } : undefined} />
+    </>;
 };
-
 export default ScreenEnclosureSection;
