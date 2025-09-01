@@ -1,20 +1,28 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ShoppingCart, Home, Waves, Sparkles, Palette, Droplets, Shield, Grid3X3, Mountain, Settings } from "lucide-react";
+import { ShoppingCart, Home, Waves, Sparkles, Palette, Droplets, Shield, Grid3X3, Mountain, Settings, User } from "lucide-react";
 import { useShoppingCart } from "./ShoppingCart";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const RightNavigation = () => {
   const [activeSection, setActiveSection] = useState("hero");
   const { getCartCount, setIsCartOpen } = useShoppingCart();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Check if we're on the content editor or admin dashboard page
+  // Check if we're on special pages
   const isContentEditor = location.pathname === '/content-editor';
   const isAdminDashboard = location.pathname === '/admin';
+  const isDashboard = location.pathname === '/dashboard';
+
+  // Check user roles
+  const isMainAdmin = profile?.role === 'main_admin' && user?.email === 'rikicot@hotmail.com';
+  const isSupplierOrContractor = profile?.role === 'supplier' || profile?.role === 'installer';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -74,11 +82,11 @@ const RightNavigation = () => {
   return (
     <TooltipProvider>
       <div className={`fixed right-4 z-[70] flex flex-col gap-2 ${
-        isAdminDashboard ? 'top-4' : 'top-1/2 transform -translate-y-1/2'
+        isAdminDashboard || isDashboard ? 'top-4' : 'top-1/2 transform -translate-y-1/2'
       }`}>
-        {/* Conditional rendering based on current page */}
-        {(isContentEditor || isAdminDashboard) ? (
-          /* Show only Home button on Content Editor and Admin Dashboard pages */
+        {/* Conditional rendering based on current page and user role */}
+        {(isContentEditor || isAdminDashboard || isDashboard) ? (
+          /* Show only Home button on special pages */
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -92,18 +100,34 @@ const RightNavigation = () => {
           </Tooltip>
         ) : (
           <>
-            {/* Admin Dashboard Button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={() => navigate('/admin')}
-                  className="relative rounded-full w-11 h-11 bg-secondary hover:bg-secondary/90 shadow-lg"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Admin</TooltipContent>
-            </Tooltip>
+            {/* Role-based Dashboard/Admin Buttons */}
+            {isMainAdmin && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => navigate('/admin')}
+                    className="relative rounded-full w-11 h-11 bg-red-600 hover:bg-red-700 shadow-lg"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Admin</TooltipContent>
+              </Tooltip>
+            )}
+
+            {isSupplierOrContractor && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => navigate('/dashboard')}
+                    className="relative rounded-full w-11 h-11 bg-blue-600 hover:bg-blue-700 shadow-lg"
+                  >
+                    <User className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Dashboard</TooltipContent>
+              </Tooltip>
+            )}
 
             {/* Shopping Cart Button */}
             <Tooltip>
