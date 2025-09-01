@@ -33,6 +33,19 @@ const Header = () => {
 
   return (
     <>
+      {/* Dark Mode Toggle - Top Left Corner */}
+      <div className="fixed top-4 left-24 sm:left-28 md:left-32 z-[100]">
+        <Button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          variant="outline"
+          size="sm"
+          className="transition-all duration-300 hover:scale-105 bg-background/80 backdrop-blur-sm"
+          title="Toggle Dark Mode"
+        >
+          {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </Button>
+      </div>
+
       <header className={`fixed top-0 left-0 right-0 p-2 sm:p-4 ${
         isContentEditor ? 'z-30 pointer-events-none' : 'z-50'
       }`}>
@@ -50,17 +63,6 @@ const Header = () => {
           
           {/* Header Controls */}
           <div className="flex items-center gap-2">
-            {/* Dark Mode Toggle - Always visible */}
-            <Button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              variant="outline"
-              size="sm"
-              className="transition-all duration-300 hover:scale-105"
-              title="Toggle Dark Mode"
-            >
-              {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-            
             {/* Simplified Auth - Only when not logged in and not in content editor */}
             {!isContentEditor && !user && (
               <Link to="/auth">
