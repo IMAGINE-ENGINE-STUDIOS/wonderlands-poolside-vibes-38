@@ -24,11 +24,8 @@ import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 
-// Helper function to get discounted price for deluxe pools
+// Helper function to get pool price (no discounts)
 const getPoolPrice = (pool: Pool) => {
-  if (pool.category === 'deluxe') {
-    return Math.round(pool.price * 0.75); // 25% discount
-  }
   return pool.price;
 };
 

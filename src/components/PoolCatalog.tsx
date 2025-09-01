@@ -80,11 +80,8 @@ export const poolFinishes = [
   "Courtstone Gray", "Courtstone Blue"
 ];
 
-// Helper function to get discounted price for premium pools
+// Helper function to get pool price (no discounts)
 const getPoolPrice = (pool: Pool) => {
-  if (pool.category === 'premium') {
-    return Math.round(pool.price * 0.70); // 30% discount
-  }
   return pool.price;
 };
 
