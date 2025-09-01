@@ -31,11 +31,10 @@ const AnimatedLandscape = () => {
     <div className="absolute inset-0 overflow-hidden">
       {/* Background Image - Cropped bottom 15% */}
       <div 
-        className="absolute inset-0 bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: 'url(/lovable-uploads/0c70745d-4bf3-4394-8fb2-da6024bf72b9.png)',
-          backgroundSize: '100% 117.65%',
-          backgroundPosition: 'center top'
+          backgroundPosition: 'center 15%'
         }}
       />
       
