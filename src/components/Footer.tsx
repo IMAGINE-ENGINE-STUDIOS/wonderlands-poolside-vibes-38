@@ -55,12 +55,19 @@ const Footer = () => {
           <div className="space-y-4">
             
             <div className="space-y-2">
-              {["Pool Installation", "Pool Renovation", "LED Lighting Systems", "Salt Water Systems", "Pool Equipment", "Maintenance & Repair"].map(service => {})}
+              {["Pool Installation", "Pool Renovation", "LED Lighting Systems", "Salt Water Systems", "Pool Equipment", "Maintenance & Repair"].map((service, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-gradient-to-r from-primary to-teal rounded-full"></div>
+                  <span className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    {service}
+                  </span>
+                </div>
+              ))}
               {/* Referral Program Link */}
               <Link to="/referral" className="flex items-center gap-2 group">
                 <div className="w-1.5 h-1.5 bg-gradient-to-r from-coral to-orange rounded-full"></div>
                 <span className="text-sm text-coral hover:text-orange transition-colors font-medium">
-                  REFERN TO EERN - 5% Commission
+                  REFER TO EARN - 5% Commission
                 </span>
               </Link>
             </div>
