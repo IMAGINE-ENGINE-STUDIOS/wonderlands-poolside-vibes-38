@@ -8,22 +8,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import PasswordResetModal from '@/components/PasswordResetModal';
 
 const AuthPage = () => {
   const { signIn, signUp, user, loading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
 
-  // Redirect if already logged in - go to admin dashboard
+  // Get the intended destination from location state, default to admin dashboard
+  const from = location.state?.from?.pathname || '/admin';
+
+  // Redirect if already logged in - go to intended destination
   useEffect(() => {
     if (!loading && user) {
-      navigate('/admin');
+      navigate(from, { replace: true });
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, from]);
 
   const [signInData, setSignInData] = useState({
     email: '',
@@ -58,8 +62,8 @@ const AuthPage = () => {
           title: "Success",
           description: "You have been signed in successfully!",
         });
-        // Redirect to admin dashboard
-        navigate('/admin');
+        // Redirect to intended destination after login
+        navigate(from, { replace: true });
       }
     } catch (error) {
       toast({
