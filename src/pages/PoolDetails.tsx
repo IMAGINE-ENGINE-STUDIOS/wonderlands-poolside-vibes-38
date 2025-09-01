@@ -287,6 +287,8 @@ const PoolDetails = () => {
   const [coverColor, setCoverColor] = useState<string>('');
   const [coverEngine, setCoverEngine] = useState<string>('');
   const [editorActive, setEditorActive] = useState(false);
+  const [showFinancing, setShowFinancing] = useState(false);
+  const [paverSurfaceArea, setPaverSurfaceArea] = useState<string>('');
 
   // Remove config item function
   const removeConfigItem = (item: any) => {
@@ -989,6 +991,28 @@ const PoolDetails = () => {
       description: "Your quote has been downloaded as a JSON file!"
     });
   };
+
+  const handleGenerateQuote = () => {
+    const quoteData = {
+      pool,
+      extras,
+      totalPrice: calculateTotalPrice(),
+      timestamp: new Date().toISOString(),
+      quoteId: `QUOTE-${Date.now()}`
+    };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(quoteData, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `pool-quote-${quoteData.quoteId}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+    toast({
+      title: "Quote Generated & Downloaded!",
+      description: "Your detailed pool configuration quote has been downloaded!"
+    });
+  };
+
   const toggleExtra = (extra: keyof PoolExtras, value?: any) => {
     setExtras(prev => ({
       ...prev,
@@ -2039,23 +2063,6 @@ const PoolDetails = () => {
               </CardContent>
             </Card>
           </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground">Est. Monthly:</span>
-                        <span className="font-semibold text-primary">${(calculateTotalPrice() / 60).toFixed(0)}/mo</span>
-                      </div>
-                      <Button size="sm" className="w-full mt-2" variant="outline" onClick={() => {
-                      const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + `amount=${calculateTotalPrice()}&` + `product=${encodeURIComponent(pool.model || 'Pool Installation')}&` + `description=${encodeURIComponent(`Complete pool configuration`)}&` + `monthly_payment=${Math.round(calculateTotalPrice() * 0.008)}&` + `loan_term=60&` + `project_type=Pool%20Installation`;
-                      window.open(lyonFinancialUrl, '_blank');
-                    }}>
-                        Lyon Financial
-                      </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
       
@@ -2063,5 +2070,7 @@ const PoolDetails = () => {
     </div>
   );
 };
+
+export default PoolDetails;
 
 export default PoolDetails;
