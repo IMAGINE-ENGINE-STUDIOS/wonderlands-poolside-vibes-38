@@ -12,7 +12,7 @@ interface SearchResult {
   category: string;
   price: number;
   image?: string;
-  type: 'pool' | 'product' | 'paver';
+  type: 'pool' | 'product' | 'paver' | 'service' | 'supplier';
   subcategory?: string;
   description?: string;
   brand?: string;
@@ -20,6 +20,8 @@ interface SearchResult {
   pattern?: string;
   features?: string[];
   matchedFields?: string[];
+  companyName?: string;
+  location?: string;
 }
 
 const AdvancedSearch = () => {
@@ -31,12 +33,29 @@ const AdvancedSearch = () => {
 
   // Static fallback data (kept for offline/backup scenarios)
 
-  // Helper function to create search keywords from query
+  // Helper function to create search keywords from query with expanded terms
   const createSearchKeywords = (query: string): string[] => {
-    return query.toLowerCase()
+    const keywords = query.toLowerCase()
       .split(/[\s,.-]+/)
       .filter(word => word.length > 2)
       .map(word => word.trim());
+    
+    // Add expanded keywords for common terms
+    const expandedKeywords = [...keywords];
+    keywords.forEach(keyword => {
+      // Pool-related expansions
+      if (keyword.includes('pool')) expandedKeywords.push('swimming', 'fiberglass', 'inground', 'above ground');
+      if (keyword.includes('spa')) expandedKeywords.push('hot tub', 'jacuzzi', 'therapy');
+      if (keyword.includes('paver')) expandedKeywords.push('stone', 'brick', 'concrete', 'hardscape');
+      if (keyword.includes('install')) expandedKeywords.push('contractor', 'service', 'installation', 'builder');
+      if (keyword.includes('clean')) expandedKeywords.push('maintenance', 'service', 'chemical', 'chlorine');
+      if (keyword.includes('repair')) expandedKeywords.push('fix', 'maintenance', 'service', 'restoration');
+      if (keyword.includes('heat')) expandedKeywords.push('heater', 'heating', 'warmer', 'temperature');
+      if (keyword.includes('cover')) expandedKeywords.push('safety', 'automatic', 'winter', 'solar');
+      if (keyword.includes('filter')) expandedKeywords.push('cleaning', 'system', 'pump', 'equipment');
+    });
+    
+    return [...new Set(expandedKeywords)];
   };
 
   // Helper function to check if any keywords match in a text field
@@ -207,6 +226,136 @@ const AdvancedSearch = () => {
         allResults.push(...paverResults);
       }
 
+      // Search service offerings (contractor services)
+      const { data: services, error: servicesError } = await supabase
+        .from('service_offerings')
+        .select('*')
+        .eq('is_active', true);
+
+      if (!servicesError && services) {
+        const serviceResults = services
+          .filter(service => {
+            const searchableFields = [
+              service.name,
+              service.description,
+              service.category,
+              'service',
+              'contractor',
+              'installation',
+              'maintenance',
+              'repair'
+            ];
+            
+            return keywords.some(keyword =>
+              searchableFields.some(field => 
+                field && field.toString().toLowerCase().includes(keyword)
+              )
+            );
+          })
+          .map(service => ({
+            id: service.id,
+            name: service.name,
+            category: service.category || 'Service',
+            price: Number(service.base_price || 0),
+            description: service.description,
+            type: 'service' as const,
+            matchedFields: []
+          }));
+
+        allResults.push(...serviceResults);
+      }
+
+      // Search supplier profiles
+      const { data: suppliers, error: suppliersError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'supplier')
+        .eq('is_active', true);
+
+      if (!suppliersError && suppliers) {
+        const supplierResults = suppliers
+          .filter(supplier => {
+            const searchableFields = [
+              supplier.company_name,
+              supplier.first_name,
+              supplier.last_name,
+              'supplier',
+              'vendor',
+              'manufacturer',
+              'distributor'
+            ];
+            
+            return keywords.some(keyword =>
+              searchableFields.some(field => 
+                field && field.toString().toLowerCase().includes(keyword)
+              )
+            );
+          })
+          .map(supplier => ({
+            id: supplier.id,
+            name: supplier.company_name || `${supplier.first_name || ''} ${supplier.last_name || ''}`.trim(),
+            category: 'Supplier',
+            price: 0,
+            description: `Supplier - ${supplier.company_name || 'Contact for products and services'}`,
+            companyName: supplier.company_name,
+            type: 'supplier' as const,
+            matchedFields: []
+          }));
+
+        allResults.push(...supplierResults);
+      }
+
+      // Search product search tags for enhanced keyword matching
+      const { data: searchTags, error: tagsError } = await supabase
+        .from('product_search_tags')
+        .select('*')
+        .eq('is_active', true);
+
+      if (!tagsError && searchTags) {
+        // Get unique product IDs from matching tags
+        const matchingTags = searchTags.filter(tag => {
+          return keywords.some(keyword => 
+            tag.tag.toLowerCase().includes(keyword)
+          );
+        });
+
+        const taggedProductIds = [...new Set(matchingTags.map(tag => tag.product_id))];
+        
+        if (taggedProductIds.length > 0) {
+          // Fetch products for the matching tags
+          const { data: taggedProducts, error: taggedProductsError } = await supabase
+            .from('products')
+            .select('*')
+            .in('id', taggedProductIds)
+            .eq('is_active', true);
+
+          if (!taggedProductsError && taggedProducts) {
+            const tagResults = taggedProducts.map(product => ({
+              id: product.id,
+              name: product.name,
+              category: product.category || 'Product',
+              subcategory: product.subcategory,
+              price: Number(product.price),
+              image: product.image_url,
+              description: product.description,
+              brand: product.brand,
+              type: 'product' as const,
+              matchedFields: matchingTags
+                .filter(tag => tag.product_id === product.id)
+                .map(tag => tag.tag)
+            }));
+
+            // Remove duplicates from products already found
+            const existingProductIds = new Set(allResults.filter(r => r.type === 'product').map(r => r.id));
+            const uniqueTagResults = tagResults.filter(result => 
+              !existingProductIds.has(result.id)
+            );
+
+            allResults.push(...uniqueTagResults);
+          }
+        }
+      }
+
       // Sort by relevance (prioritize name matches, then category matches)
       allResults.sort((a, b) => {
         const aNameMatch = keywords.some(keyword => a.name.toLowerCase().includes(keyword));
@@ -308,7 +457,7 @@ const AdvancedSearch = () => {
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
         <Input
           type="text"
-          placeholder="Search pools, spas, pavers, finishes..."
+          placeholder="Search pools, services, contractors, suppliers, products..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => setShowResults(true)}
@@ -345,8 +494,14 @@ const AdvancedSearch = () => {
                           {result.category}
                         </Badge>
                       </div>
+                      {result.companyName && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {result.companyName}
+                        </p>
+                      )}
                       <p className="text-sm text-primary font-medium">
-                        ${result.price?.toLocaleString() || 'Price on request'}
+                        {result.type === 'supplier' ? 'Contact for pricing' : 
+                         result.price > 0 ? `$${result.price?.toLocaleString()}` : 'Price on request'}
                       </p>
                     </div>
                   </div>
