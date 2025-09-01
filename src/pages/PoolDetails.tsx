@@ -31,7 +31,6 @@ const getPoolPrice = (pool: Pool) => {
   }
   return pool.price;
 };
-
 interface Pool {
   model: string;
   price: number;
@@ -286,20 +285,45 @@ const PoolDetails = () => {
   const [coverColor, setCoverColor] = useState<string>('');
   const [coverEngine, setCoverEngine] = useState<string>('');
   const [editorActive, setEditorActive] = useState(false);
-  
 
   // Remove config item function
   const removeConfigItem = (item: any) => {
-    if (item.category === 'Pool Cover') setExtras(prev => ({ ...prev, cover: false }));
-    if (item.category === 'Pool Heater') setExtras(prev => ({ ...prev, heater: false }));
-    if (item.category === 'Spa') setExtras(prev => ({ ...prev, spa: false }));
-    if (item.category === 'Tanning Ledge') setExtras(prev => ({ ...prev, tanningLedge: false }));
-    if (item.category === 'Pool Tiles') setExtras(prev => ({ ...prev, tiles: false }));
-    if (item.category === 'Pool Jets') setExtras(prev => ({ ...prev, jets: false }));
-    if (item.category === 'Pool Liner') setExtras(prev => ({ ...prev, linerOption: 'Classic Blue' }));
-    if (item.category === 'Pavers') setExtras(prev => ({ ...prev, paverOption: 'Classic Concrete' }));
-    if (item.category === 'Coping') setExtras(prev => ({ ...prev, copingPaverOption: 'Classic Pool Coping' }));
-    
+    if (item.category === 'Pool Cover') setExtras(prev => ({
+      ...prev,
+      cover: false
+    }));
+    if (item.category === 'Pool Heater') setExtras(prev => ({
+      ...prev,
+      heater: false
+    }));
+    if (item.category === 'Spa') setExtras(prev => ({
+      ...prev,
+      spa: false
+    }));
+    if (item.category === 'Tanning Ledge') setExtras(prev => ({
+      ...prev,
+      tanningLedge: false
+    }));
+    if (item.category === 'Pool Tiles') setExtras(prev => ({
+      ...prev,
+      tiles: false
+    }));
+    if (item.category === 'Pool Jets') setExtras(prev => ({
+      ...prev,
+      jets: false
+    }));
+    if (item.category === 'Pool Liner') setExtras(prev => ({
+      ...prev,
+      linerOption: 'Classic Blue'
+    }));
+    if (item.category === 'Pavers') setExtras(prev => ({
+      ...prev,
+      paverOption: 'Classic Concrete'
+    }));
+    if (item.category === 'Coping') setExtras(prev => ({
+      ...prev,
+      copingPaverOption: 'Classic Pool Coping'
+    }));
     toast({
       title: "Item Removed",
       description: `${item.name} removed from configuration!`
@@ -448,30 +472,59 @@ const PoolDetails = () => {
     }
     return pool.image;
   };
-
   const getConfigurationItems = () => {
-    const items: { name: string; price: number; image?: string; category?: string }[] = [];
+    const items: {
+      name: string;
+      price: number;
+      image?: string;
+      category?: string;
+    }[] = [];
     // Heater
     if (extras.heater) {
       const selectedHeater = poolHeaters.find(h => h.name === extras.heaterModel);
-      if (selectedHeater) items.push({ name: selectedHeater.name, price: selectedHeater.price, image: selectedHeater.image, category: 'Pool Heater' });
+      if (selectedHeater) items.push({
+        name: selectedHeater.name,
+        price: selectedHeater.price,
+        image: selectedHeater.image,
+        category: 'Pool Heater'
+      });
     }
     // Jets
     if (extras.jets) {
-      items.push({ name: `Spa Jets (${extras.jetQuantity}x)`, price: getExtraPrice('jets') * extras.jetQuantity, image: pool.image, category: 'Pool Jets' });
+      items.push({
+        name: `Spa Jets (${extras.jetQuantity}x)`,
+        price: getExtraPrice('jets') * extras.jetQuantity,
+        image: pool.image,
+        category: 'Pool Jets'
+      });
     }
     // Liner
     const liner = linerOptions.find(l => l.name === extras.linerOption);
-    if (liner && extras.liner && liner.price > 0) items.push({ name: liner.name, price: liner.price, image: liner.image, category: 'Pool Liner' });
+    if (liner && extras.liner && liner.price > 0) items.push({
+      name: liner.name,
+      price: liner.price,
+      image: liner.image,
+      category: 'Pool Liner'
+    });
     // Tiles
     if (extras.tiles) {
       const tile = tileOptions.find(t => t.name === extras.tileOption);
-      if (tile && tile.price > 0) items.push({ name: tile.name, price: tile.price, image: tile.image, category: 'Pool Tiles' });
+      if (tile && tile.price > 0) items.push({
+        name: tile.name,
+        price: tile.price,
+        image: tile.image,
+        category: 'Pool Tiles'
+      });
     }
     // Cover
     if (extras.cover) {
       const cover = coverOptions.find(c => c.name === extras.coverOption);
-      if (cover) items.push({ name: cover.name, price: cover.price, image: cover.image, category: 'Pool Cover' });
+      if (cover) items.push({
+        name: cover.name,
+        price: cover.price,
+        image: cover.image,
+        category: 'Pool Cover'
+      });
     }
     // Pavers
     const paver = paverOptions.find(p => p.name === extras.paverOption);
@@ -481,28 +534,52 @@ const PoolDetails = () => {
       const poolLength = poolDimensions[1];
       const paverAreaWithBuffer = (poolWidth + 6) * (poolLength + 6);
       const totalPaverArea = paverAreaWithBuffer + paverArea;
-      items.push({ name: `${paver.name} (${totalPaverArea} sq ft incl. installation)`, price: 15 * totalPaverArea, image: paver.image, category: 'Pavers' });
+      items.push({
+        name: `${paver.name} (${totalPaverArea} sq ft incl. installation)`,
+        price: 15 * totalPaverArea,
+        image: paver.image,
+        category: 'Pavers'
+      });
     }
     // Coping
     const coping = copingPaverOptions.find(c => c.name === extras.copingPaverOption);
-    if (coping && coping.price > 0) items.push({ name: `${coping.name} (${copingLength} linear ft)`, price: coping.price * copingLength, image: coping.image, category: 'Coping' });
+    if (coping && coping.price > 0) items.push({
+      name: `${coping.name} (${copingLength} linear ft)`,
+      price: coping.price * copingLength,
+      image: coping.image,
+      category: 'Coping'
+    });
     // Spa
     if (extras.spa) {
       const spa = spas.find((s: any) => s.model === extras.spaModel);
-      if (spa) items.push({ name: spa.model, price: spa.price, image: spa.image, category: 'Spa' });
+      if (spa) items.push({
+        name: spa.model,
+        price: spa.price,
+        image: spa.image,
+        category: 'Spa'
+      });
     }
     // Tanning Ledge
     if (extras.tanningLedge) {
       const ledge = tanningLedges.find((l: any) => l.name === extras.tanningLedgeModel);
-      if (ledge) items.push({ name: ledge.name, price: ledge.price, image: ledge.image, category: 'Tanning Ledge' });
+      if (ledge) items.push({
+        name: ledge.name,
+        price: ledge.price,
+        image: ledge.image,
+        category: 'Tanning Ledge'
+      });
     }
     // Marketplace products
     selectedProducts.forEach(product => {
-      items.push({ name: product.name, price: product.price, image: product.image_url, category: product.category });
+      items.push({
+        name: product.name,
+        price: product.price,
+        image: product.image_url,
+        category: product.category
+      });
     });
     return items;
   };
-
   const handleAddToCart = () => {
     const selectedExtras = [];
     if (extras.heater) {
@@ -1077,11 +1154,10 @@ const PoolDetails = () => {
   const renderCategoryContent = () => {
     switch (activePanel) {
       case 'finishes':
-        return finishOptions.map((finish, index) => (
-          <div key={`details-${finish.name}-${finish.collection || index}`} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
-            ...prev,
-            finish: finish.name
-          }))}>
+        return finishOptions.map((finish, index) => <div key={`details-${finish.name}-${finish.collection || index}`} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+          ...prev,
+          finish: finish.name
+        }))}>
             <div className="flex gap-2">
               <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                 <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" />
@@ -1092,14 +1168,12 @@ const PoolDetails = () => {
                 {finish.price && <p className="text-xs font-semibold">+${finish.price.toLocaleString()}</p>}
               </div>
             </div>
-          </div>
-        ));
+          </div>);
       case 'liners':
-        return linerOptions.map(liner => (
-          <div key={liner.name} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
-            ...prev,
-            linerOption: liner.name
-          }))}>
+        return linerOptions.map(liner => <div key={liner.name} className={`p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+          ...prev,
+          linerOption: liner.name
+        }))}>
             <div className="flex gap-2">
               <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                 <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" />
@@ -1110,8 +1184,7 @@ const PoolDetails = () => {
                 {liner.price > 0 && <p className="text-xs font-semibold">+${liner.price.toLocaleString()}</p>}
               </div>
             </div>
-          </div>
-        ));
+          </div>);
       case 'jets':
         return <div className="space-y-2">
             <div className="flex items-center justify-between p-2 border rounded-md">
@@ -1153,8 +1226,7 @@ const PoolDetails = () => {
         };
         const options = categoryMap[activePanel as keyof typeof categoryMap];
         if (options) {
-          return options.map((option: any) => (
-            <div key={option.name || option.model} className="p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50" onClick={() => handleOptionSelect(activePanel!, option)}>
+          return options.map((option: any) => <div key={option.name || option.model} className="p-2 border rounded-md cursor-pointer transition-all hover:bg-muted/50" onClick={() => handleOptionSelect(activePanel!, option)}>
               <div className="flex gap-2">
                 <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                   <img src={option.image} alt={option.name || option.model} className="w-full h-full object-cover" />
@@ -1165,47 +1237,26 @@ const PoolDetails = () => {
                   {option.description && <p className="text-xs text-muted-foreground truncate">{option.description}</p>}
                 </div>
               </div>
-            </div>
-          ));
+            </div>);
         }
 
         // Special handling for pavers with area/quantity input
         if (activePanel === 'pavers') {
-          return (
-            <div className="space-y-3">
+          return <div className="space-y-3">
               <div className="border rounded-md p-3 bg-muted/30">
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <div>
                     <label className="text-xs font-medium block mb-1">Area (sq ft):</label>
-                    <input 
-                      type="number" 
-                      value={paverArea} 
-                      onChange={(e) => setPaverArea(Number(e.target.value))} 
-                      className="w-full p-2 border rounded text-xs" 
-                      min="1" 
-                    />
+                    <input type="number" value={paverArea} onChange={e => setPaverArea(Number(e.target.value))} className="w-full p-2 border rounded text-xs" min="1" />
                   </div>
                   <div>
                     <label className="text-xs font-medium block mb-1">Quantity:</label>
-                    <input 
-                      type="number" 
-                      value={paverQuantity} 
-                      onChange={(e) => setPaverQuantity(Number(e.target.value))} 
-                      className="w-full p-2 border rounded text-xs" 
-                      min="1" 
-                    />
+                    <input type="number" value={paverQuantity} onChange={e => setPaverQuantity(Number(e.target.value))} className="w-full p-2 border rounded text-xs" min="1" />
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">Choose calculation method and adjust values above</p>
               </div>
-              {paverOptions.map(option => (
-                <div 
-                  key={option.name} 
-                  className={`p-3 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
-                    extras.paverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'
-                  }`}
-                  onClick={() => handleOptionSelect('pavers', option)}
-                >
+              {paverOptions.map(option => <div key={option.name} className={`p-3 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.paverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => handleOptionSelect('pavers', option)}>
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
                       <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
@@ -1213,59 +1264,37 @@ const PoolDetails = () => {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{option.name}</p>
                       <p className="text-xs font-semibold">$15/sq ft (incl. installation)</p>
-                      <p className="text-xs text-primary">Total: ${(15 * ((() => {
-                        const poolDimensions = pool.dimensions?.split('x').map(d => parseInt(d.trim().replace(/['"]/g, ''))) || [16, 32];
-                        const poolWidth = poolDimensions[0];
-                        const poolLength = poolDimensions[1];
-                        const paverAreaWithBuffer = (poolWidth + 6) * (poolLength + 6);
-                        return paverAreaWithBuffer + paverArea;
-                      })())).toLocaleString()}</p>
+                      <p className="text-xs text-primary">Total: ${(15 * (() => {
+                      const poolDimensions = pool.dimensions?.split('x').map(d => parseInt(d.trim().replace(/['"]/g, ''))) || [16, 32];
+                      const poolWidth = poolDimensions[0];
+                      const poolLength = poolDimensions[1];
+                      const paverAreaWithBuffer = (poolWidth + 6) * (poolLength + 6);
+                      return paverAreaWithBuffer + paverArea;
+                    })()).toLocaleString()}</p>
                       {option.description && <p className="text-xs text-muted-foreground mt-1">{option.description}</p>}
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          );
+                </div>)}
+            </div>;
         }
 
         // Special handling for coping with length/quantity input
         if (activePanel === 'coping') {
-          return (
-            <div className="space-y-3">
+          return <div className="space-y-3">
               <div className="border rounded-md p-3 bg-muted/30">
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <div>
                     <label className="text-xs font-medium block mb-1">Length (linear ft):</label>
-                    <input 
-                      type="number" 
-                      value={copingLength} 
-                      onChange={(e) => setCopingLength(Number(e.target.value))} 
-                      className="w-full p-2 border rounded text-xs" 
-                      min="1" 
-                    />
+                    <input type="number" value={copingLength} onChange={e => setCopingLength(Number(e.target.value))} className="w-full p-2 border rounded text-xs" min="1" />
                   </div>
                   <div>
                     <label className="text-xs font-medium block mb-1">Quantity:</label>
-                    <input 
-                      type="number" 
-                      value={copingQuantity} 
-                      onChange={(e) => setCopingQuantity(Number(e.target.value))} 
-                      className="w-full p-2 border rounded text-xs" 
-                      min="1" 
-                    />
+                    <input type="number" value={copingQuantity} onChange={e => setCopingQuantity(Number(e.target.value))} className="w-full p-2 border rounded text-xs" min="1" />
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">Choose calculation method and adjust values above</p>
               </div>
-              {copingPaverOptions.map(option => (
-                <div 
-                  key={option.name} 
-                  className={`p-3 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
-                    extras.copingPaverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'
-                  }`}
-                  onClick={() => handleOptionSelect('coping', option)}
-                >
+              {copingPaverOptions.map(option => <div key={option.name} className={`p-3 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.copingPaverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => handleOptionSelect('coping', option)}>
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
                       <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
@@ -1277,24 +1306,14 @@ const PoolDetails = () => {
                       {option.description && <p className="text-xs text-muted-foreground mt-1">{option.description}</p>}
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          );
+                </div>)}
+            </div>;
         }
 
         // Enhanced covers section with color and engine options
         if (activePanel === 'covers') {
-          return (
-            <div className="space-y-3">
-              {coverOptions.map(option => (
-                <div 
-                  key={option.name} 
-                  className={`p-3 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${
-                    extras.coverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'
-                  }`}
-                  onClick={() => handleOptionSelect('covers', option)}
-                >
+          return <div className="space-y-3">
+              {coverOptions.map(option => <div key={option.name} className={`p-3 border rounded-md cursor-pointer transition-all hover:bg-muted/50 ${extras.coverOption === option.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => handleOptionSelect('covers', option)}>
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
                       <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
@@ -1305,46 +1324,26 @@ const PoolDetails = () => {
                       {option.description && <p className="text-xs text-muted-foreground mt-1">{option.description}</p>}
                       
                       {/* Color Options */}
-                      {option.colors && extras.coverOption === option.name && (
-                        <div className="mt-2">
+                      {option.colors && extras.coverOption === option.name && <div className="mt-2">
                           <label className="text-xs font-medium block mb-1">Color:</label>
-                          <select 
-                            value={coverColor} 
-                            onChange={(e) => setCoverColor(e.target.value)}
-                            className="w-full p-1 border rounded text-xs"
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                          <select value={coverColor} onChange={e => setCoverColor(e.target.value)} className="w-full p-1 border rounded text-xs" onClick={e => e.stopPropagation()}>
                             <option value="">Select Color</option>
-                            {option.colors.map(color => (
-                              <option key={color} value={color}>{color}</option>
-                            ))}
+                            {option.colors.map(color => <option key={color} value={color}>{color}</option>)}
                           </select>
-                        </div>
-                      )}
+                        </div>}
                       
                       {/* Engine Options */}
-                      {option.engines && extras.coverOption === option.name && (
-                        <div className="mt-2">
+                      {option.engines && extras.coverOption === option.name && <div className="mt-2">
                           <label className="text-xs font-medium block mb-1">Engine:</label>
-                          <select 
-                            value={coverEngine} 
-                            onChange={(e) => setCoverEngine(e.target.value)}
-                            className="w-full p-1 border rounded text-xs"
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                          <select value={coverEngine} onChange={e => setCoverEngine(e.target.value)} className="w-full p-1 border rounded text-xs" onClick={e => e.stopPropagation()}>
                             <option value="">Select Engine</option>
-                            {option.engines.map(engine => (
-                              <option key={engine} value={engine}>{engine}</option>
-                            ))}
+                            {option.engines.map(engine => <option key={engine} value={engine}>{engine}</option>)}
                           </select>
-                        </div>
-                      )}
+                        </div>}
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          );
+                </div>)}
+            </div>;
         }
 
         // For marketplace product categories - now adds to configuration instead of cart
@@ -1447,38 +1446,26 @@ const PoolDetails = () => {
         break;
     }
   };
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Header - Responsive for all devices */}
       <div className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-2 sm:py-4">
           <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
-              size="sm"
-            >
+            <Button variant="ghost" onClick={() => navigate(-1)} className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm" size="sm">
               <X className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Back</span>
             </Button>
             
             {/* Price Dropdown - Higher z-index to appear above everything */}
             <div className="relative">
-              <Button
-                variant="outline"
-                onClick={() => setShowPriceDropdown(!showPriceDropdown)}
-                className="flex items-center gap-1 sm:gap-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs sm:text-sm px-2 sm:px-4"
-                size="sm"
-              >
+              <Button variant="outline" onClick={() => setShowPriceDropdown(!showPriceDropdown)} className="flex items-center gap-1 sm:gap-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs sm:text-sm px-2 sm:px-4" size="sm">
                 <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden xs:inline">${calculateTotalPrice().toLocaleString()}</span>
                 <span className="xs:hidden">${(calculateTotalPrice() / 1000).toFixed(0)}k</span>
                 <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
 
-              {showPriceDropdown && (
-                <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-popover border border-border rounded-lg shadow-lg z-[70] max-h-80 sm:max-h-96 overflow-y-auto">
+              {showPriceDropdown && <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-popover border border-border rounded-lg shadow-lg z-[70] max-h-80 sm:max-h-96 overflow-y-auto">
                   <div className="p-3 sm:p-4">
                     <h3 className="font-semibold mb-3 text-sm sm:text-base">Configuration Breakdown</h3>
                     <div className="space-y-2">
@@ -1487,22 +1474,15 @@ const PoolDetails = () => {
                         <span>${getPoolPrice(pool).toLocaleString()}</span>
                       </div>
                       
-                      {getConfigurationItems().map((item, index) => (
-                        <div key={index} className="flex justify-between items-center text-xs bg-muted/50 p-2 rounded">
+                      {getConfigurationItems().map((item, index) => <div key={index} className="flex justify-between items-center text-xs bg-muted/50 p-2 rounded">
                           <div className="flex items-center gap-2 flex-1 min-w-0">
                             <span className="truncate">{item.name}</span>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => removeConfigItem(item)}
-                              className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground shrink-0"
-                            >
+                            <Button size="sm" variant="ghost" onClick={() => removeConfigItem(item)} className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground shrink-0">
                               <X className="h-3 w-3" />
                             </Button>
                           </div>
                           <span className="shrink-0 ml-2">${item.price.toLocaleString()}</span>
-                        </div>
-                      ))}
+                        </div>)}
                       
                       <div className="border-t pt-2">
                         <div className="flex justify-between items-center font-semibold text-sm">
@@ -1512,8 +1492,7 @@ const PoolDetails = () => {
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                </div>}
             </div>
           </div>
         </div>
@@ -1527,31 +1506,17 @@ const PoolDetails = () => {
             <Card className="overflow-hidden">
               <CardContent className="p-0 relative">
                 {/* Selected Products Snapshots - Responsive */}
-                {getConfigurationItems().length > 0 && (
-                  <div className="absolute top-2 left-2 z-20 flex flex-wrap gap-1 max-w-[150px] sm:max-w-[200px]">
-                    {getConfigurationItems().slice(0, 4).map((item, index) => (
-                      <div key={index} className="w-6 h-6 sm:w-8 sm:h-8 rounded border bg-background/90 overflow-hidden">
-                        <img 
-                          src={item.image || pool.image} 
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))}
-                    {getConfigurationItems().length > 4 && (
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded border bg-background/90 flex items-center justify-center text-[10px] sm:text-xs">
+                {getConfigurationItems().length > 0 && <div className="absolute top-2 left-2 z-20 flex flex-wrap gap-1 max-w-[150px] sm:max-w-[200px]">
+                    {getConfigurationItems().slice(0, 4).map((item, index) => <div key={index} className="w-6 h-6 sm:w-8 sm:h-8 rounded border bg-background/90 overflow-hidden">
+                        <img src={item.image || pool.image} alt={item.name} className="w-full h-full object-cover" />
+                      </div>)}
+                    {getConfigurationItems().length > 4 && <div className="w-6 h-6 sm:w-8 sm:h-8 rounded border bg-background/90 flex items-center justify-center text-[10px] sm:text-xs">
                         +{getConfigurationItems().length - 4}
-                      </div>
-                    )}
-                  </div>
-                )}
+                      </div>}
+                  </div>}
                 
                 <div className="aspect-[4/3] overflow-hidden">
-                  <img
-                    src={getCurrentImage()}
-                    alt={pool.model}
-                    className="w-full h-full object-cover transition-all duration-500"
-                  />
+                  <img src={getCurrentImage()} alt={pool.model} className="w-full h-full object-cover transition-all duration-500" />
                 </div>
                 
                 {/* Pool Info Overlay - Responsive */}
@@ -1583,15 +1548,11 @@ const PoolDetails = () => {
 
                 {/* Category Selection Dropdown */}
                 <div className="mb-3 sm:mb-4">
-                  <select 
-                    value={activePanel || ''} 
-                    onChange={(e) => {
-                      const newPanel = e.target.value as ActivePanel || null;
-                      setActivePanel(newPanel);
-                      setSearchQuery('');
-                    }} 
-                    className="w-full p-2 text-xs sm:text-sm border rounded-md bg-background"
-                  >
+                  <select value={activePanel || ''} onChange={e => {
+                  const newPanel = e.target.value as ActivePanel || null;
+                  setActivePanel(newPanel);
+                  setSearchQuery('');
+                }} className="w-full p-2 text-xs sm:text-sm border rounded-md bg-background">
                     <option value="">Select a Category</option>
                     <option value="finishes">Pool Finishes</option>
                     <option value="liners">Pool Liners</option>
@@ -1610,8 +1571,7 @@ const PoolDetails = () => {
 
                 {/* Content Area - Responsive */}
                 <div className="space-y-2 sm:space-y-3 max-h-80 sm:max-h-96 overflow-y-auto">
-                  {activePanel ? (
-                    <div>
+                  {activePanel ? <div>
                       <h4 className="text-xs sm:text-sm font-semibold mb-2">
                         {activePanel === 'finishes' && 'Pool Finishes'}
                         {activePanel === 'liners' && 'Pool Liners'}
@@ -1627,50 +1587,28 @@ const PoolDetails = () => {
                         {activePanel === 'fireplace' && 'Fire Features'}
                       </h4>
                       {renderCategoryContent()}
-                    </div>
-                  ) : (
-                    <div className="text-center text-xs sm:text-sm text-muted-foreground py-8">
+                    </div> : <div className="text-center text-xs sm:text-sm text-muted-foreground py-8">
                       Select a category to browse products
-                    </div>
-                  )}
+                    </div>}
                 </div>
 
                 {/* Bottom Actions - Responsive */}
                 <div className="border-t mt-3 sm:mt-4 pt-3 sm:pt-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={generateQuote}
-                    className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
-                  >
-                    <Printer className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                    Quote
-                  </Button>
                   
                   
-                  <Button
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleAddToCart}
-                    className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
-                  >
+                  
+                  <Button variant="outline" size="sm" onClick={handleAddToCart} className="flex-1 text-xs sm:text-sm h-8 sm:h-9">
                     <CartIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                     Cart
                   </Button>
                  
-                  <StripeCheckoutButton 
-                    productId={pool.model} 
-                    productName={`${pool.model} Configuration`} 
-                    price={calculateTotalPrice()} 
-                    variant="default"
-                    className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
-                  />
+                  <StripeCheckoutButton productId={pool.model} productName={`${pool.model} Configuration`} price={calculateTotalPrice()} variant="default" className="flex-1 text-xs sm:text-sm h-8 sm:h-9" />
                 </div>
 
                 {/* Financing Section */}
                 <div className="border-t mt-3 pt-3">
                   <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-3">
-                    <h5 className="font-semibold text-sm text-primary mb-2">💰 Financing Available</h5>
+                    <h5 className="font-semibold text-sm text-primary mb-2">Financing Available</h5>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-muted-foreground">Total Cost:</span>
@@ -1680,21 +1618,10 @@ const PoolDetails = () => {
                         <span className="text-xs text-muted-foreground">Est. Monthly:</span>
                         <span className="font-semibold text-primary">${(calculateTotalPrice() / 60).toFixed(0)}/mo</span>
                       </div>
-                      <Button 
-                        size="sm" 
-                        className="w-full mt-2" 
-                        variant="outline"
-                        onClick={() => {
-                          const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + 
-                            `amount=${calculateTotalPrice()}&` +
-                            `product=${encodeURIComponent(pool.model || 'Pool Installation')}&` +
-                            `description=${encodeURIComponent(`Complete pool configuration`)}&` +
-                            `monthly_payment=${Math.round(calculateTotalPrice() * 0.008)}&` +
-                            `loan_term=60&` +
-                            `project_type=Pool%20Installation`;
-                          window.open(lyonFinancialUrl, '_blank');
-                        }}
-                      >
+                      <Button size="sm" className="w-full mt-2" variant="outline" onClick={() => {
+                      const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?` + `amount=${calculateTotalPrice()}&` + `product=${encodeURIComponent(pool.model || 'Pool Installation')}&` + `description=${encodeURIComponent(`Complete pool configuration`)}&` + `monthly_payment=${Math.round(calculateTotalPrice() * 0.008)}&` + `loan_term=60&` + `project_type=Pool%20Installation`;
+                      window.open(lyonFinancialUrl, '_blank');
+                    }}>
                         Lyon Financial
                       </Button>
                     </div>
@@ -1707,13 +1634,8 @@ const PoolDetails = () => {
       </div>
       
       
-      <DragDropEditor 
-        isActive={editorActive} 
-        onToggle={() => setEditorActive(!editorActive)}
-        showEnableButton={false}
-      />
+      <DragDropEditor isActive={editorActive} onToggle={() => setEditorActive(!editorActive)} showEnableButton={false} />
       
-    </div>
-  );
+    </div>;
 };
 export default PoolDetails;
