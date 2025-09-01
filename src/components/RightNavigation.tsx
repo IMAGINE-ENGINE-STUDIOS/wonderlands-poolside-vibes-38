@@ -68,7 +68,7 @@ const RightNavigation = () => {
 
   return (
     <TooltipProvider>
-      <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-50 flex flex-col gap-2">
+      <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-[70] flex flex-col gap-2">
         {/* Admin Dashboard Button */}
         <Tooltip>
           <TooltipTrigger asChild>
