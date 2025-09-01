@@ -482,7 +482,6 @@ const AdvancedSearch = () => {
             name: supplier.company_name || `${supplier.first_name || ''} ${supplier.last_name || ''}`.trim(),
             category: 'Supplier',
             price: 0,
-            description: `Supplier - ${supplier.company_name || 'Contact for products and services'}`,
             companyName: supplier.company_name,
             type: 'supplier' as const,
             matchedFields: []
@@ -491,242 +490,200 @@ const AdvancedSearch = () => {
         allResults.push(...supplierResults);
       }
 
-      // Search product search tags for enhanced keyword matching
-      const { data: searchTags, error: tagsError } = await supabase
-        .from('product_search_tags')
-        .select('*')
-        .eq('is_active', true);
+      // Remove duplicates and sort by relevance
+      const uniqueResults = allResults.filter((result, index, self) => 
+        index === self.findIndex(r => r.id === result.id && r.type === result.type)
+      );
 
-      if (!tagsError && searchTags) {
-        // Get unique product IDs from matching tags
-        const matchingTags = searchTags.filter(tag => {
-          return keywords.some(keyword => 
-            tag.tag.toLowerCase().includes(keyword)
-          );
-        });
-
-        const taggedProductIds = [...new Set(matchingTags.map(tag => tag.product_id))];
+      // Sort by type priority and name
+      const sortedResults = uniqueResults.sort((a, b) => {
+        const typePriority = {
+          'section': 1,
+          'pool': 2,
+          'finish': 3,
+          'liner': 4,
+          'tile': 5,
+          'cover': 6,
+          'enclosure': 7,
+          'paver': 8,
+          'tanning-ledge': 9,
+          'product': 10,
+          'service': 11,
+          'supplier': 12
+        };
         
-        if (taggedProductIds.length > 0) {
-          // Fetch products for the matching tags
-          const { data: taggedProducts, error: taggedProductsError } = await supabase
-            .from('products')
-            .select('*')
-            .in('id', taggedProductIds)
-            .eq('is_active', true);
-
-          if (!taggedProductsError && taggedProducts) {
-            const tagResults = taggedProducts.map(product => ({
-              id: product.id,
-              name: product.name,
-              category: product.category || 'Product',
-              subcategory: product.subcategory,
-              price: Number(product.price),
-              image: product.image_url,
-              description: product.description,
-              brand: product.brand,
-              type: 'product' as const,
-              matchedFields: matchingTags
-                .filter(tag => tag.product_id === product.id)
-                .map(tag => tag.tag)
-            }));
-
-            // Remove duplicates from products already found
-            const existingProductIds = new Set(allResults.filter(r => r.type === 'product').map(r => r.id));
-            const uniqueTagResults = tagResults.filter(result => 
-              !existingProductIds.has(result.id)
-            );
-
-            allResults.push(...uniqueTagResults);
-          }
+        const aPriority = typePriority[a.type] || 99;
+        const bPriority = typePriority[b.type] || 99;
+        
+        if (aPriority !== bPriority) {
+          return aPriority - bPriority;
         }
-      }
-
-      // Sort by relevance (prioritize name matches, then category matches)
-      allResults.sort((a, b) => {
-        const aNameMatch = keywords.some(keyword => a.name.toLowerCase().includes(keyword));
-        const bNameMatch = keywords.some(keyword => b.name.toLowerCase().includes(keyword));
-        
-        if (aNameMatch && !bNameMatch) return -1;
-        if (!aNameMatch && bNameMatch) return 1;
         
         return a.name.localeCompare(b.name);
       });
 
-      // Remove duplicates by id and type combination
-      const uniqueResults = allResults.reduce((acc, current) => {
-        const key = `${current.type}_${current.id}`;
-        if (!acc.has(key)) {
-          acc.set(key, current);
-        }
-        return acc;
-      }, new Map());
-
-      setSearchResults(Array.from(uniqueResults.values()).slice(0, 15)); // Show more results
+      setSearchResults(sortedResults.slice(0, 20)); // Limit to top 20 results
       setShowResults(true);
     } catch (error) {
       console.error('Search error:', error);
-      // Fallback to static search if database fails
-      setSearchResults([]);
-      setShowResults(true);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleProductSelect = (result: SearchResult) => {
-    // Navigate to main page first if not already there
-    if (window.location.pathname !== '/') {
-      navigate('/');
-      // Wait for navigation then scroll to section
-      setTimeout(() => {
-        scrollToSection(result);
-      }, 100);
-    } else {
-      scrollToSection(result);
-    }
+  const handleResultClick = (result: SearchResult) => {
+    console.log('Search result clicked:', result);
     
+    // Hide search results
     setShowResults(false);
     setSearchQuery('');
-  };
 
-  const scrollToSection = (result: SearchResult) => {
-    if (result.type === 'pool') {
-      // Navigate to pool details using model slug
-      const slug = result.name.toLowerCase().replace(/\s+/g, '-');
-      navigate(`/pool/${slug}`);
-    } else if (result.section) {
-      // Direct section navigation
-      window.location.hash = result.section;
-      const element = document.querySelector(result.section);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    } else {
-      // Fallback section mapping for enhanced coverage
-      const sectionMap: { [key: string]: string } = {
-        'pool': '#pools',
-        'spa': '#spas', 
-        'tanning': '#spas',
-        'ledge': '#spas',
-        'finish': '#finishes',
-        'plaster': '#finishes',
-        'aggregate': '#finishes',
-        'crystite': '#finishes',
-        'liner': '#liners',
-        'vinyl': '#liners',
-        'tile': '#tiles',
-        'mosaic': '#tiles',
-        'border': '#tiles',
-        'cover': '#covers',
-        'automatic': '#covers',
-        'safety': '#covers',
-        'solar': '#covers',
-        'screen': '#screen-enclosures',
-        'enclosure': '#screen-enclosures',
-        'cage': '#screen-enclosures',
-        'lanai': '#screen-enclosures',
-        'paver': '#pavers',
-        'coping': '#pavers',
-        'stone': '#pavers',
-        'deck': '#pavers'
-      };
-
-      const searchText = `${result.name} ${result.category} ${result.subcategory || ''} ${result.description || ''}`.toLowerCase();
-      
-      const section = Object.keys(sectionMap).find(key => 
-        searchText.includes(key)
-      );
-
-      if (section) {
-        window.location.hash = sectionMap[section];
-        const element = document.querySelector(sectionMap[section]);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Handle different result types
+    switch (result.type) {
+      case 'pool':
+        navigate(`/pool/${result.id}`);
+        break;
+        
+      case 'section':
+        if (result.section) {
+          const element = document.getElementById(result.section.replace('#', ''));
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
         }
-      } else {
-        // Default to pools section if no match found
-        window.location.hash = '#pools';
-        const element = document.querySelector('#pools');
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        break;
+        
+      case 'product':
+        console.log('Navigate to product:', result.id);
+        break;
+        
+      case 'supplier':
+        console.log('Show supplier profile:', result.id);
+        break;
+        
+      default:
+        if (result.section) {
+          const element = document.getElementById(result.section.replace('#', ''));
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
         }
-      }
+        break;
     }
   };
 
+  // Debounced search effect
   useEffect(() => {
-    const debounceTimer = setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       performSearch(searchQuery);
     }, 300);
 
-    return () => clearTimeout(debounceTimer);
+    return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
-  return (
-    <div className="w-full">
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-        <Input
-          type="text"
-          placeholder="Search pools, spas, finishes, tiles, pavers, covers, contractors, services..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onFocus={() => setShowResults(true)}
-          className="pl-12 pr-4 py-4 text-lg w-full bg-white/90 backdrop-blur-sm border-none shadow-lg rounded-full text-foreground placeholder:text-muted-foreground"
-        />
-      </div>
+  // Hide results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const searchContainer = document.getElementById('search-container');
+      if (searchContainer && !searchContainer.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
 
-      {showResults && (
-        <Card className="absolute top-full mt-2 w-full bg-white/95 backdrop-blur-sm border-none shadow-xl rounded-2xl overflow-hidden z-50">
-          {isLoading ? (
-            <div className="p-4 text-center text-muted-foreground">
-              Searching...
-            </div>
-          ) : searchResults.length > 0 ? (
-            <div className="max-h-96 overflow-y-auto">
-              {searchResults.slice(0, 12).map((result) => (
+    if (showResults) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showResults]);
+
+  return (
+    <div id="search-container" className="relative w-full">
+      <div className="relative max-w-2xl mx-auto">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+          <Input
+            type="text"
+            placeholder="Search pools, spas, finishes, covers, pavers, services, contractors..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-4 py-3 w-full text-lg bg-card/90 backdrop-blur-md border-2 border-border rounded-xl shadow-lg focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300 text-card-foreground placeholder:text-muted-foreground"
+          />
+        </div>
+
+        {/* Search Results Dropdown */}
+        {showResults && searchResults.length > 0 && (
+          <div className="absolute top-full left-0 right-0 mt-2 z-50">
+            <Card className="bg-card/95 backdrop-blur-md border-border shadow-lg max-h-96 overflow-y-auto">
+              <div className="p-4 border-b border-border">
+                <p className="text-sm text-muted-foreground">
+                  {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "{searchQuery}"
+                </p>
+              </div>
+              
+              {searchResults.map((result) => (
                 <div
-                  key={`${result.category}-${result.id}`}
-                  className="p-3 hover:bg-accent/50 cursor-pointer border-b border-border/20 last:border-b-0 transition-colors"
-                  onClick={() => handleProductSelect(result)}
+                  key={`${result.type}-${result.id}`}
+                  onClick={() => handleResultClick(result)}
+                  className="p-3 hover:bg-muted/50 cursor-pointer border-b border-border last:border-b-0 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start gap-3">
                     {result.image && (
                       <img 
                         src={result.image} 
                         alt={result.name}
-                        className="w-10 h-10 object-cover rounded"
+                        className="w-12 h-12 object-cover rounded-md flex-shrink-0"
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-sm truncate">{result.name}</h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-card-foreground truncate">{result.name}</h4>
                         <Badge variant="secondary" className="text-xs">
                           {result.category}
                         </Badge>
                       </div>
-                      {result.companyName && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          {result.companyName}
-                        </p>
+                      {result.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">{result.description}</p>
                       )}
-                      <p className="text-sm text-primary font-medium">
-                        {result.type === 'supplier' ? 'Contact for pricing' : 
-                         result.price > 0 ? `$${result.price?.toLocaleString()}` : 'Price on request'}
-                      </p>
+                      <div className="flex items-center justify-between mt-2">
+                        {result.price > 0 && (
+                          <span className="font-semibold text-primary">
+                            ${result.price.toLocaleString()}
+                          </span>
+                        )}
+                        {result.brand && (
+                          <span className="text-xs text-muted-foreground">{result.brand}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
-            </div>
-          ) : (
-            <div className="p-4 text-center text-muted-foreground">
-              No results found
-            </div>
-          )}
-        </Card>
-      )}
+            </Card>
+          </div>
+        )}
+
+        {/* Loading indicator */}
+        {isLoading && (
+          <div className="absolute top-full left-0 right-0 mt-2 z-50">
+            <Card className="bg-card/95 backdrop-blur-md border-border shadow-lg">
+              <div className="p-4 text-center">
+                <p className="text-sm text-muted-foreground">Searching...</p>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* No results */}
+        {showResults && searchResults.length === 0 && !isLoading && searchQuery.trim() && (
+          <div className="absolute top-full left-0 right-0 mt-2 z-50">
+            <Card className="bg-card/95 backdrop-blur-md border-border shadow-lg">
+              <div className="p-4 text-center">
+                <p className="text-sm text-muted-foreground">No results found for "{searchQuery}"</p>
+              </div>
+            </Card>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

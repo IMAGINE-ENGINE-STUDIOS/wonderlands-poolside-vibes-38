@@ -63,18 +63,53 @@ const Header = () => {
           
           {/* Header Controls */}
           <div className="flex items-center gap-2">
-            {/* Simplified Auth - Only when not logged in and not in content editor */}
-            {!isContentEditor && !user && (
-              <Link to="/auth">
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  className="transition-all duration-300 hover:scale-105"
-                  title="Sign in to your account"
-                >
-                  Sign In
-                </Button>
-              </Link>
+            {/* Authentication-based navigation */}
+            {!isContentEditor && (
+              <>
+                {!user ? (
+                  <Link to="/auth">
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      className="transition-all duration-300 hover:scale-105"
+                      title="Sign in to your account"
+                    >
+                      Sign In
+                    </Button>
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {/* User menu based on role */}
+                    {profile?.role === 'main_admin' && (
+                      <Link to="/admin">
+                        <Button variant="outline" size="sm" className="transition-all duration-300 hover:scale-105">
+                          <Shield className="w-4 h-4 mr-1" />
+                          Admin
+                        </Button>
+                      </Link>
+                    )}
+                    
+                    {(profile?.role === 'supplier' || profile?.role === 'installer') && (
+                      <Link to="/procurement">
+                        <Button variant="outline" size="sm" className="transition-all duration-300 hover:scale-105">
+                          <Briefcase className="w-4 h-4 mr-1" />
+                          Jobs
+                        </Button>
+                      </Link>
+                    )}
+                    
+                    <Button 
+                      onClick={signOut}
+                      variant="ghost" 
+                      size="sm" 
+                      className="transition-all duration-300 hover:scale-105"
+                      title="Sign out"
+                    >
+                      <LogOut className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
