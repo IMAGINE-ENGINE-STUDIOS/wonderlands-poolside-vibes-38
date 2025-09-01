@@ -148,7 +148,27 @@ const AdvancedSearch = () => {
 
   const scrollToSection = (result: SearchResult) => {
     if (result.type === 'pool') {
-      navigate(`/pool/${result.id}`);
+      // Find the full pool data from PoolCatalog
+      import('./PoolCatalog').then(({ pools }) => {
+        const selectedPool = pools.find(p => p.model.toLowerCase().replace(/\s+/g, '-') === result.id);
+        if (selectedPool) {
+          const params = new URLSearchParams({
+            model: selectedPool.model,
+            price: selectedPool.price.toString(),
+            category: selectedPool.category,
+            ...(selectedPool.image && { image: selectedPool.image }),
+            ...(selectedPool.dimensions && { dimensions: selectedPool.dimensions }),
+            ...(selectedPool.depth && { depth: selectedPool.depth }),
+            ...(selectedPool.installationTimeWeeks && { installationTimeWeeks: selectedPool.installationTimeWeeks.toString() }),
+            ...(selectedPool.warrantyYears && { warrantyYears: selectedPool.warrantyYears.toString() }),
+            ...(selectedPool.saltSystem !== undefined && { saltSystem: selectedPool.saltSystem.toString() }),
+            ...(selectedPool.carbonFiber !== undefined && { carbonFiber: selectedPool.carbonFiber.toString() })
+          });
+          navigate(`/pool/${result.id}?${params.toString()}`);
+        } else {
+          navigate(`/pool/${result.id}`);
+        }
+      });
     } else {
       // Scroll to the appropriate section based on category
       const sectionMap: { [key: string]: string } = {

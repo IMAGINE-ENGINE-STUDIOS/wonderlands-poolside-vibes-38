@@ -13,6 +13,7 @@ import { DragDropEditor } from "@/components/DragDropEditor";
 import { useShoppingCart } from "@/components/ShoppingCart";
 import { spas, pools } from "@/components/PoolCatalog";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
+import { paverTypes } from "@/data/paverData";
 import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -183,58 +184,53 @@ const tileOptions = [{
   description: tile.description
 }))];
 
-// Paver options
+// Paver options - using exact same collections as PaversSection
 const paverOptions = [{
-  name: 'Standard Concrete',
+  name: 'No Pavers',
+  color: '#808080',
+  price: 0,
+  image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
+  description: 'No additional pavers'
+}, ...paverTypes.map(paver => ({
+  name: paver.name,
   color: '#D3D3D3',
-  price: 0,
-  image: azureBlueFinish,
-  description: 'Basic concrete pavers around pool perimeter'
-}, {
-  name: 'Natural Stone',
-  color: '#8B7355',
-  price: 2500,
-  image: shaleGrayFinish,
-  description: 'Premium natural stone pavers'
-}, {
-  name: 'Travertine',
-  color: '#F5DEB3',
-  price: 3200,
-  image: athensPearlFinish,
-  description: 'Elegant travertine paving stones'
-}, {
-  name: 'Brick Pavers',
-  color: '#B22222',
-  price: 2800,
-  image: coastalBronzeFinish,
-  description: 'Classic brick paver design'
-}];
+  price: 0, // Base price is 0, actual cost calculated by surface area × $15/sq ft
+  image: paver.image,
+  description: paver.description,
+  collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina') ? 'catalina' : 'standard'
+}))];
 
-// Coping paver options
+// Coping paver options - simplified for now, can be expanded later  
 const copingPaverOptions = [{
-  name: 'Standard Pool Coping',
-  color: '#A9A9A9',
+  name: 'No Coping',
+  color: '#808080',
   price: 0,
-  image: azureBlueFinish,
-  description: 'Basic pool edge coping'
+  image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png',
+  description: 'No additional coping'
 }, {
   name: 'Bullnose Coping',
-  color: '#696969',
-  price: 1500,
-  image: nightSkyFinish,
-  description: 'Rounded edge bullnose coping'
-}, {
-  name: 'Natural Stone Coping',
-  color: '#708090',
-  price: 2200,
-  image: shaleGrayFinish,
-  description: 'Premium natural stone pool edge'
+  color: '#FFFFFF',
+  price: 18,
+  image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png',
+  description: 'Rounded edge bullnose coping for pool edges'
 }, {
   name: 'Cantilever Coping',
-  color: '#2F4F4F',
-  price: 1800,
-  image: sapphireBlueFinish,
-  description: 'Modern cantilever edge design'
+  color: '#A9A9A9', 
+  price: 22,
+  image: '/lovable-uploads/d6ea993e-6b84-4fd9-b0f5-0ae906e45b0b.png',
+  description: 'Modern cantilever edge design for contemporary pools'
+}, {
+  name: 'Natural Stone Coping',
+  color: '#4682B4',
+  price: 28,
+  image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png', 
+  description: 'Premium natural stone pool edge coping'
+}, {
+  name: 'Tile Coping',
+  color: '#4169E1',
+  price: 16,
+  image: '/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.png',
+  description: 'Ceramic or porcelain tile coping for pool edges'
 }];
 const getCategoryColor = (category: string) => {
   switch (category) {
@@ -325,11 +321,11 @@ const PoolDetails = () => {
     }));
     if (item.category === 'Pavers') setExtras(prev => ({
       ...prev,
-      paverOption: 'Classic Concrete'
+      paverOption: 'No Pavers'
     }));
     if (item.category === 'Coping') setExtras(prev => ({
       ...prev,
-      copingPaverOption: 'Classic Pool Coping'
+      copingPaverOption: 'No Coping'
     }));
     toast({
       title: "Item Removed",
@@ -337,11 +333,14 @@ const PoolDetails = () => {
     });
   };
 
-  // Parse pool data from URL params
-  const pool: Pool = {
+  // Parse pool data from URL params or find from pools array
+  const paramModel = searchParams.get('model');
+  const foundPool = paramModel ? pools.find(p => p.model === paramModel || p.model.toLowerCase().replace(/\s+/g, '-') === paramModel) : null;
+  
+  const pool: Pool = foundPool || {
     model: searchParams.get('model') || 'Pool Model',
     price: parseInt(searchParams.get('price') || '0'),
-    category: searchParams.get('category') as Pool['category'] || 'classic',
+    category: searchParams.get('category') as Pool['category'] || 'standard',
     image: searchParams.get('image') || undefined,
     dimensions: searchParams.get('dimensions') || undefined,
     depth: searchParams.get('depth') || undefined,
@@ -369,8 +368,8 @@ const PoolDetails = () => {
     tanningLedge: false,
     tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
     heaterModel: poolHeaters[0]?.name || 'Heat Pump - Eco Series',
-    paverOption: 'Classic Concrete',
-    copingPaverOption: 'Classic Pool Coping',
+    paverOption: 'No Pavers',
+    copingPaverOption: 'No Coping',
     screenEnclosureArea: 0,
     screenEnclosureQuality: 'Standard',
     concreteConstruction: false
@@ -1593,7 +1592,19 @@ const PoolDetails = () => {
                       onChange={(e) => {
                         const selectedPool = pools.find(p => p.model === e.target.value);
                         if (selectedPool) {
-                          window.location.href = `/pool/${selectedPool.model.toLowerCase().replace(/\s+/g, '-')}`;
+                          const params = new URLSearchParams({
+                            model: selectedPool.model,
+                            price: selectedPool.price.toString(),
+                            category: selectedPool.category,
+                            ...(selectedPool.image && { image: selectedPool.image }),
+                            ...(selectedPool.dimensions && { dimensions: selectedPool.dimensions }),
+                            ...(selectedPool.depth && { depth: selectedPool.depth }),
+                            ...(selectedPool.installationTimeWeeks && { installationTimeWeeks: selectedPool.installationTimeWeeks.toString() }),
+                            ...(selectedPool.warrantyYears && { warrantyYears: selectedPool.warrantyYears.toString() }),
+                            ...(selectedPool.saltSystem !== undefined && { saltSystem: selectedPool.saltSystem.toString() }),
+                            ...(selectedPool.carbonFiber !== undefined && { carbonFiber: selectedPool.carbonFiber.toString() })
+                          });
+                          window.location.href = `/pool/${selectedPool.model.toLowerCase().replace(/\s+/g, '-')}?${params.toString()}`;
                         }
                       }}
                       className="w-full p-2 text-sm border rounded-md bg-background"
