@@ -11,7 +11,7 @@ import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, A
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import { DragDropEditor } from "@/components/DragDropEditor";
 import { useShoppingCart } from "@/components/ShoppingCart";
-import { spas } from "@/components/PoolCatalog";
+import { spas, pools } from "@/components/PoolCatalog";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
 import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
 import { useToast } from "@/hooks/use-toast";
@@ -63,6 +63,9 @@ interface PoolExtras {
   heaterModel: string;
   paverOption: string;
   copingPaverOption: string;
+  screenEnclosureArea: number;
+  screenEnclosureQuality: string;
+  concreteConstruction: boolean;
 }
 
 // Pool heater options
@@ -367,7 +370,10 @@ const PoolDetails = () => {
     tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
     heaterModel: poolHeaters[0]?.name || 'Heat Pump - Eco Series',
     paverOption: 'Classic Concrete',
-    copingPaverOption: 'Classic Pool Coping'
+    copingPaverOption: 'Classic Pool Coping',
+    screenEnclosureArea: 0,
+    screenEnclosureQuality: 'Standard',
+    concreteConstruction: false
   });
 
   // Load cached selections and marketplace products on mount
@@ -1472,7 +1478,8 @@ const PoolDetails = () => {
         break;
     }
   };
-  return <div className="min-h-screen bg-background">
+  return (
+    <div className="min-h-screen bg-background">
       {/* Header - Responsive for all devices */}
       <div className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-2 sm:py-4">
@@ -1912,7 +1919,7 @@ const PoolDetails = () => {
                             >
                               <img src={cover.image} alt={cover.name} className="w-8 h-8 rounded object-cover" />
                               <div className="flex-1 text-left">
-                                <div>{cover.surname}</div>
+                                <div>{cover.name}</div>
                                 <div className="text-xs text-muted-foreground">{cover.price > 0 ? `$${cover.price.toLocaleString()}` : 'No Cost'}</div>
                               </div>
                             </button>
@@ -2070,7 +2077,5 @@ const PoolDetails = () => {
     </div>
   );
 };
-
-export default PoolDetails;
 
 export default PoolDetails;
