@@ -6,6 +6,7 @@ import SpaCatalog from "@/components/SpaCatalog";
 import TanningLedgeSection from "@/components/TanningLedgeSection";
 import PoolFinishesSection from "@/components/PoolFinishesSection";
 import LinersSection from "@/components/LinersSection";
+import PoolTilesSection from "@/components/PoolTilesSection";
 import AutomaticCoversSection from "@/components/AutomaticCoversSection";
 import ScreenEnclosureSection from "@/components/ScreenEnclosureSection";
 import PaversSection from "@/components/PaversSection";
@@ -36,6 +37,8 @@ const Index = () => {
       <PoolFinishesSection />
       <div id="liners" />
       <LinersSection />
+      <div id="tiles" />
+      <PoolTilesSection />
       <div id="screen-enclosures" />
       <ScreenEnclosureSection />
       <div id="pavers" />

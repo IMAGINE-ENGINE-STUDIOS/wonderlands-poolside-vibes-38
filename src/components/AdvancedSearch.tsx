@@ -1,10 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { poolLiners, poolTiles, tanningLedges } from '@/data/poolData';
+import { paverTypes, copingTypes } from '@/data/paverData';
+import { poolFinishes } from '@/components/PoolFinishesSection';
+import { automaticCovers } from '@/data/coversData';
+import { screenEnclosureOptions } from '@/data/enclosuresData';
 
 interface SearchResult {
   id: string;
@@ -12,7 +17,7 @@ interface SearchResult {
   category: string;
   price: number;
   image?: string;
-  type: 'pool' | 'product' | 'paver' | 'service' | 'supplier';
+  type: 'pool' | 'product' | 'paver' | 'service' | 'supplier' | 'finish' | 'liner' | 'tile' | 'cover' | 'enclosure' | 'tanning-ledge' | 'section';
   subcategory?: string;
   description?: string;
   brand?: string;
@@ -22,6 +27,8 @@ interface SearchResult {
   matchedFields?: string[];
   companyName?: string;
   location?: string;
+  section?: string;
+  collection?: string;
 }
 
 const AdvancedSearch = () => {
@@ -31,28 +38,186 @@ const AdvancedSearch = () => {
   const [showResults, setShowResults] = useState(false);
   const navigate = useNavigate();
 
-  // Static fallback data (kept for offline/backup scenarios)
+  // Static catalog data for comprehensive search
+  const staticCatalogData = useMemo(() => {
+    const catalogItems: SearchResult[] = [];
 
-  // Helper function to create search keywords from query with expanded terms
+    // Pool finishes
+    poolFinishes.forEach(finish => {
+      catalogItems.push({
+        id: finish.id,
+        name: finish.name,
+        category: 'Pool Finish',
+        subcategory: finish.collection,
+        price: finish.price,
+        image: finish.image,
+        description: finish.description,
+        features: finish.features,
+        type: 'finish',
+        collection: finish.collection,
+        section: '#finishes'
+      });
+    });
+
+    // Pool liners
+    poolLiners.forEach(liner => {
+      catalogItems.push({
+        id: liner.name.toLowerCase().replace(/\s+/g, '-'),
+        name: liner.name,
+        category: 'Pool Liner',
+        subcategory: liner.type,
+        price: liner.price,
+        image: liner.image,
+        description: liner.description,
+        type: 'liner',
+        section: '#liners'
+      });
+    });
+
+    // Pool tiles
+    poolTiles.forEach(tile => {
+      catalogItems.push({
+        id: tile.name.toLowerCase().replace(/\s+/g, '-'),
+        name: tile.name,
+        category: 'Pool Tile',
+        price: tile.price,
+        image: tile.image,
+        description: tile.description,
+        type: 'tile',
+        section: '#tiles'
+      });
+    });
+
+    // Tanning ledges
+    tanningLedges.forEach(ledge => {
+      catalogItems.push({
+        id: ledge.name.toLowerCase().replace(/\s+/g, '-'),
+        name: ledge.name,
+        category: 'Tanning Ledge',
+        price: ledge.price,
+        image: ledge.image,
+        description: ledge.description,
+        features: ledge.features,
+        type: 'tanning-ledge',
+        section: '#spas'
+      });
+    });
+
+    // Automatic covers
+    automaticCovers.forEach(cover => {
+      catalogItems.push({
+        id: cover.name.toLowerCase().replace(/\s+/g, '-'),
+        name: cover.name,
+        category: 'Automatic Cover',
+        subcategory: cover.type,
+        price: cover.price,
+        image: cover.image,
+        description: `${cover.material} cover with ${cover.motorType} - ${cover.warranty} warranty`,
+        features: [...cover.features, ...cover.benefits],
+        type: 'cover',
+        section: '#covers'
+      });
+    });
+
+    // Screen enclosures
+    screenEnclosureOptions.forEach(enclosure => {
+      catalogItems.push({
+        id: enclosure.name.toLowerCase().replace(/\s+/g, '-'),
+        name: enclosure.name,
+        category: 'Screen Enclosure',
+        subcategory: enclosure.type,
+        price: enclosure.pricePerSqFt * 400, // Estimated for 400 sq ft average
+        image: enclosure.image,
+        description: enclosure.description,
+        features: enclosure.features,
+        type: 'enclosure',
+        section: '#screen-enclosures'
+      });
+    });
+
+    // Pavers and coping
+    [...paverTypes, ...copingTypes].forEach(paver => {
+      catalogItems.push({
+        id: paver.id,
+        name: paver.name,
+        category: paver.category === 'paver' ? 'Paver' : 'Pool Coping',
+        price: paver.basePrice,
+        image: paver.image,
+        description: paver.description,
+        type: 'paver',
+        section: '#pavers'
+      });
+    });
+
+    // Section shortcuts for direct navigation
+    const sectionShortcuts = [
+      { name: 'Pools', section: '#pools', keywords: ['pool', 'swimming', 'fiberglass', 'inground'] },
+      { name: 'Spas', section: '#spas', keywords: ['spa', 'hot tub', 'jacuzzi', 'therapy'] },
+      { name: 'Pool Finishes', section: '#finishes', keywords: ['finish', 'plaster', 'aggregate', 'crystite'] },
+      { name: 'Pool Liners', section: '#liners', keywords: ['liner', 'vinyl', 'replacement'] },
+      { name: 'Pool Tiles', section: '#tiles', keywords: ['tile', 'mosaic', 'border', 'waterline'] },
+      { name: 'Automatic Covers', section: '#covers', keywords: ['cover', 'automatic', 'safety', 'solar'] },
+      { name: 'Screen Enclosures', section: '#screen-enclosures', keywords: ['screen', 'enclosure', 'cage', 'lanai'] },
+      { name: 'Pavers & Coping', section: '#pavers', keywords: ['paver', 'coping', 'deck', 'stone', 'concrete'] }
+    ];
+
+    sectionShortcuts.forEach(shortcut => {
+      catalogItems.push({
+        id: shortcut.section.replace('#', ''),
+        name: shortcut.name,
+        category: 'Section',
+        price: 0,
+        type: 'section',
+        section: shortcut.section,
+        matchedFields: shortcut.keywords
+      });
+    });
+
+    return catalogItems;
+  }, []);
+
+  // Helper function to create search keywords from query with vastly expanded terms
   const createSearchKeywords = (query: string): string[] => {
     const keywords = query.toLowerCase()
       .split(/[\s,.-]+/)
-      .filter(word => word.length > 2)
+      .filter(word => word.length > 1)
       .map(word => word.trim());
     
-    // Add expanded keywords for common terms
+    // Add expanded keywords for comprehensive search coverage
     const expandedKeywords = [...keywords];
     keywords.forEach(keyword => {
       // Pool-related expansions
-      if (keyword.includes('pool')) expandedKeywords.push('swimming', 'fiberglass', 'inground', 'above ground');
-      if (keyword.includes('spa')) expandedKeywords.push('hot tub', 'jacuzzi', 'therapy');
-      if (keyword.includes('paver')) expandedKeywords.push('stone', 'brick', 'concrete', 'hardscape');
-      if (keyword.includes('install')) expandedKeywords.push('contractor', 'service', 'installation', 'builder');
-      if (keyword.includes('clean')) expandedKeywords.push('maintenance', 'service', 'chemical', 'chlorine');
-      if (keyword.includes('repair')) expandedKeywords.push('fix', 'maintenance', 'service', 'restoration');
-      if (keyword.includes('heat')) expandedKeywords.push('heater', 'heating', 'warmer', 'temperature');
-      if (keyword.includes('cover')) expandedKeywords.push('safety', 'automatic', 'winter', 'solar');
-      if (keyword.includes('filter')) expandedKeywords.push('cleaning', 'system', 'pump', 'equipment');
+      if (keyword.includes('pool')) expandedKeywords.push('swimming', 'fiberglass', 'inground', 'above ground', 'gunite', 'vinyl');
+      if (keyword.includes('spa')) expandedKeywords.push('hot tub', 'jacuzzi', 'therapy', 'whirlpool', 'hottub');
+      if (keyword.includes('paver')) expandedKeywords.push('stone', 'brick', 'concrete', 'hardscape', 'deck', 'patio');
+      if (keyword.includes('tile')) expandedKeywords.push('mosaic', 'ceramic', 'porcelain', 'glass', 'border', 'waterline');
+      if (keyword.includes('finish')) expandedKeywords.push('plaster', 'aggregate', 'crystite', 'quartz', 'pebble');
+      if (keyword.includes('liner')) expandedKeywords.push('vinyl', 'replacement', 'pattern', 'membrane');
+      if (keyword.includes('cover')) expandedKeywords.push('safety', 'automatic', 'winter', 'solar', 'thermal');
+      if (keyword.includes('screen')) expandedKeywords.push('enclosure', 'cage', 'lanai', 'mesh', 'aluminum');
+      if (keyword.includes('tanning')) expandedKeywords.push('ledge', 'baja', 'shelf', 'lounging', 'shallow');
+      if (keyword.includes('coping')) expandedKeywords.push('edge', 'border', 'cap', 'bullnose', 'cantilever');
+      
+      // Service-related expansions
+      if (keyword.includes('install')) expandedKeywords.push('contractor', 'service', 'installation', 'builder', 'construction');
+      if (keyword.includes('clean')) expandedKeywords.push('maintenance', 'service', 'chemical', 'chlorine', 'vacuum');
+      if (keyword.includes('repair')) expandedKeywords.push('fix', 'maintenance', 'service', 'restoration', 'renovation');
+      if (keyword.includes('heat')) expandedKeywords.push('heater', 'heating', 'warmer', 'temperature', 'pump');
+      if (keyword.includes('filter')) expandedKeywords.push('cleaning', 'system', 'pump', 'equipment', 'cartridge');
+      
+      // Material expansions
+      if (keyword.includes('glass')) expandedKeywords.push('tile', 'mosaic', 'crystal', 'iridescent');
+      if (keyword.includes('stone')) expandedKeywords.push('natural', 'travertine', 'limestone', 'granite', 'marble');
+      if (keyword.includes('concrete')) expandedKeywords.push('gunite', 'shotcrete', 'cement', 'aggregate');
+      
+      // Color expansions
+      if (keyword.includes('blue')) expandedKeywords.push('sapphire', 'ocean', 'azure', 'navy', 'aqua', 'turquoise');
+      if (keyword.includes('white')) expandedKeywords.push('pearl', 'cream', 'ivory', 'alabaster');
+      if (keyword.includes('gray') || keyword.includes('grey')) expandedKeywords.push('silver', 'charcoal', 'slate');
+      
+      // Brand and quality expansions
+      if (keyword.includes('premium')) expandedKeywords.push('luxury', 'high-end', 'quality', 'deluxe');
+      if (keyword.includes('crystite')) expandedKeywords.push('crystal', 'aggregate', 'finish', 'sparkle');
     });
     
     return [...new Set(expandedKeywords)];
@@ -83,6 +248,27 @@ const AdvancedSearch = () => {
     try {
       const keywords = createSearchKeywords(query);
       const allResults: SearchResult[] = [];
+
+      // Search static catalog data first for immediate results
+      const staticResults = staticCatalogData.filter(item => {
+        const searchableFields = [
+          item.name,
+          item.category,
+          item.subcategory,
+          item.description,
+          item.collection,
+          ...(item.features || []),
+          ...(item.matchedFields || [])
+        ];
+        
+        return keywords.some(keyword =>
+          searchableFields.some(field => 
+            field && field.toString().toLowerCase().includes(keyword)
+          )
+        );
+      });
+
+      allResults.push(...staticResults);
 
       // Search pools table
       const { data: pools, error: poolsError } = await supabase
@@ -367,7 +553,16 @@ const AdvancedSearch = () => {
         return a.name.localeCompare(b.name);
       });
 
-      setSearchResults(allResults.slice(0, 12)); // Increased limit for better coverage
+      // Remove duplicates by id and type combination
+      const uniqueResults = allResults.reduce((acc, current) => {
+        const key = `${current.type}_${current.id}`;
+        if (!acc.has(key)) {
+          acc.set(key, current);
+        }
+        return acc;
+      }, new Map());
+
+      setSearchResults(Array.from(uniqueResults.values()).slice(0, 15)); // Show more results
       setShowResults(true);
     } catch (error) {
       console.error('Search error:', error);
@@ -397,47 +592,64 @@ const AdvancedSearch = () => {
 
   const scrollToSection = (result: SearchResult) => {
     if (result.type === 'pool') {
-      // Find the full pool data from PoolCatalog
-      import('./PoolCatalog').then(({ pools }) => {
-        const selectedPool = pools.find(p => p.model.toLowerCase().replace(/\s+/g, '-') === result.id);
-        if (selectedPool) {
-          const params = new URLSearchParams({
-            model: selectedPool.model,
-            price: selectedPool.price.toString(),
-            category: selectedPool.category,
-            ...(selectedPool.image && { image: selectedPool.image }),
-            ...(selectedPool.dimensions && { dimensions: selectedPool.dimensions }),
-            ...(selectedPool.depth && { depth: selectedPool.depth }),
-            ...(selectedPool.installationTimeWeeks && { installationTimeWeeks: selectedPool.installationTimeWeeks.toString() }),
-            ...(selectedPool.warrantyYears && { warrantyYears: selectedPool.warrantyYears.toString() }),
-            ...(selectedPool.saltSystem !== undefined && { saltSystem: selectedPool.saltSystem.toString() }),
-            ...(selectedPool.carbonFiber !== undefined && { carbonFiber: selectedPool.carbonFiber.toString() })
-          });
-          navigate(`/pool/${result.id}?${params.toString()}`);
-        } else {
-          navigate(`/pool/${result.id}`);
-        }
-      });
+      // Navigate to pool details using model slug
+      const slug = result.name.toLowerCase().replace(/\s+/g, '-');
+      navigate(`/pool/${slug}`);
+    } else if (result.section) {
+      // Direct section navigation
+      window.location.hash = result.section;
+      const element = document.querySelector(result.section);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     } else {
-      // Scroll to the appropriate section based on category
+      // Fallback section mapping for enhanced coverage
       const sectionMap: { [key: string]: string } = {
-        'spa': '#spas',
+        'pool': '#pools',
+        'spa': '#spas', 
+        'tanning': '#spas',
+        'ledge': '#spas',
         'finish': '#finishes',
+        'plaster': '#finishes',
+        'aggregate': '#finishes',
+        'crystite': '#finishes',
         'liner': '#liners',
+        'vinyl': '#liners',
+        'tile': '#tiles',
+        'mosaic': '#tiles',
+        'border': '#tiles',
         'cover': '#covers',
-        'screen enclosure': '#screen-enclosures',
-        'tanning ledge': '#spas'
+        'automatic': '#covers',
+        'safety': '#covers',
+        'solar': '#covers',
+        'screen': '#screen-enclosures',
+        'enclosure': '#screen-enclosures',
+        'cage': '#screen-enclosures',
+        'lanai': '#screen-enclosures',
+        'paver': '#pavers',
+        'coping': '#pavers',
+        'stone': '#pavers',
+        'deck': '#pavers'
       };
 
+      const searchText = `${result.name} ${result.category} ${result.subcategory || ''} ${result.description || ''}`.toLowerCase();
+      
       const section = Object.keys(sectionMap).find(key => 
-        result.category.toLowerCase().includes(key)
+        searchText.includes(key)
       );
 
       if (section) {
         window.location.hash = sectionMap[section];
         const element = document.querySelector(sectionMap[section]);
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } else {
+        // Default to pools section if no match found
+        window.location.hash = '#pools';
+        const element = document.querySelector('#pools');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       }
     }
@@ -457,7 +669,7 @@ const AdvancedSearch = () => {
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
         <Input
           type="text"
-          placeholder="Search pools, services, contractors, suppliers, products..."
+          placeholder="Search pools, spas, finishes, tiles, pavers, covers, contractors, services..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => setShowResults(true)}
@@ -472,8 +684,8 @@ const AdvancedSearch = () => {
               Searching...
             </div>
           ) : searchResults.length > 0 ? (
-            <div className="max-h-80 overflow-y-auto">
-              {searchResults.slice(0, 6).map((result) => (
+            <div className="max-h-96 overflow-y-auto">
+              {searchResults.slice(0, 12).map((result) => (
                 <div
                   key={`${result.category}-${result.id}`}
                   className="p-3 hover:bg-accent/50 cursor-pointer border-b border-border/20 last:border-b-0 transition-colors"
