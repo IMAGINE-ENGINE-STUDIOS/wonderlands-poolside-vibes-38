@@ -201,7 +201,17 @@ const coverOptions = [{
   price: 16000,
   image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png',
   category: 'cover',
-  description: 'High-grade PVC with dual track system and emergency manual override'
+  description: 'High-grade PVC with dual track system and emergency manual override',
+  colors: [
+    { name: 'Light Blue', value: '#87CEEB', hex: '#87CEEB' },
+    { name: 'Royal Blue', value: '#4169E1', hex: '#4169E1' },
+    { name: 'Navy Blue', value: '#000080', hex: '#000080' },
+    { name: 'Forest Green', value: '#228B22', hex: '#228B22' },
+    { name: 'Light Gray', value: '#D3D3D3', hex: '#D3D3D3' },
+    { name: 'Charcoal Gray', value: '#36454F', hex: '#36454F' },
+    { name: 'Brown', value: '#964B00', hex: '#964B00' },
+    { name: 'Beige', value: '#F5F5DC', hex: '#F5F5DC' }
+  ]
 }, {
   name: 'CS3000 Safety Cover',
   surname: 'CS3000',
@@ -209,7 +219,17 @@ const coverOptions = [{
   price: 24000,
   image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png',
   category: 'cover',
-  description: 'Multi-layer vinyl with smart automation and weather sensors'
+  description: 'Multi-layer vinyl with smart automation and weather sensors',
+  colors: [
+    { name: 'Light Blue', value: '#87CEEB', hex: '#87CEEB' },
+    { name: 'Royal Blue', value: '#4169E1', hex: '#4169E1' },
+    { name: 'Navy Blue', value: '#000080', hex: '#000080' },
+    { name: 'Forest Green', value: '#228B22', hex: '#228B22' },
+    { name: 'Light Gray', value: '#D3D3D3', hex: '#D3D3D3' },
+    { name: 'Charcoal Gray', value: '#36454F', hex: '#36454F' },
+    { name: 'Brown', value: '#964B00', hex: '#964B00' },
+    { name: 'Beige', value: '#F5F5DC', hex: '#F5F5DC' }
+  ]
 }, {
   name: 'Infinity 4000 Smart Cover',
   surname: 'Infinity',
@@ -217,7 +237,17 @@ const coverOptions = [{
   price: 32000,
   image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png',
   category: 'cover',
-  description: 'Premium composite with AI-powered automation and solar integration'
+  description: 'Premium composite with AI-powered automation and solar integration',
+  colors: [
+    { name: 'Light Blue', value: '#87CEEB', hex: '#87CEEB' },
+    { name: 'Royal Blue', value: '#4169E1', hex: '#4169E1' },
+    { name: 'Navy Blue', value: '#000080', hex: '#000080' },
+    { name: 'Forest Green', value: '#228B22', hex: '#228B22' },
+    { name: 'Light Gray', value: '#D3D3D3', hex: '#D3D3D3' },
+    { name: 'Charcoal Gray', value: '#36454F', hex: '#36454F' },
+    { name: 'Brown', value: '#964B00', hex: '#964B00' },
+    { name: 'Beige', value: '#F5F5DC', hex: '#F5F5DC' }
+  ]
 }, {
   name: 'Atom Loop-Loc Cover',
   surname: 'Loop-Loc',
@@ -303,6 +333,7 @@ const PoolProductCard = ({
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
   const [copingSurfaceArea, setCopingSurfaceArea] = useState('');
   const [showFinancing, setShowFinancing] = useState(false);
+  const [coverColor, setCoverColor] = useState('Light Blue');
   const {
     addToCart
   } = useShoppingCart();
@@ -876,21 +907,48 @@ const PoolProductCard = ({
                      </div>
                    </label>
 
-                   {extras.cover && <div className="ml-6 space-y-2">
-                       <label className="text-xs font-medium text-muted-foreground">Select Cover Type:</label>
-                        <div className="grid grid-cols-1 gap-2">
-                          {coverOptions.map(cover => <button key={cover.name} onClick={() => setExtras(prev => ({
-                  ...prev,
-                  coverOption: cover.name
-                }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.coverOption === cover.name ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'}`}>
-                               <img src={cover.image} alt={cover.name} className="w-8 h-8 rounded object-cover" />
-                               <div className="flex-1 text-left">
-                                 <div>{cover.surname}</div>
-                                 <div className="text-xs text-muted-foreground">{cover.price > 0 ? `$${cover.price.toLocaleString()}` : 'No Cost'}</div>
+                    {extras.cover && <div className="ml-6 space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground">Select Cover Type:</label>
+                         <div className="grid grid-cols-1 gap-2">
+                           {coverOptions.map(cover => <button key={cover.name} onClick={() => setExtras(prev => ({
+                   ...prev,
+                   coverOption: cover.name
+                 }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.coverOption === cover.name ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'}`}>
+                                <img src={cover.image} alt={cover.name} className="w-8 h-8 rounded object-cover" />
+                                <div className="flex-1 text-left">
+                                  <div>{cover.surname}</div>
+                                  <div className="text-xs text-muted-foreground">{cover.price > 0 ? `$${cover.price.toLocaleString()}` : 'No Cost'}</div>
+                                </div>
+                               </button>)}
+                         </div>
+                         
+                         {/* Color Selection for Covers */}
+                         {extras.coverOption && extras.coverOption !== 'NO COVER' && (() => {
+                           const selectedCover = coverOptions.find(c => c.name === extras.coverOption);
+                           return selectedCover?.colors && (
+                             <div className="mt-3">
+                               <label className="text-xs font-medium text-muted-foreground mb-2 block">Select Cover Color:</label>
+                               <div className="grid grid-cols-4 gap-2">
+                                 {selectedCover.colors.map(color => (
+                                   <button
+                                     key={color.name}
+                                     onClick={() => setCoverColor(color.name)}
+                                     className={`p-2 text-xs rounded-md border transition-all flex flex-col items-center gap-1 ${
+                                       coverColor === color.name ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'
+                                     }`}
+                                   >
+                                     <div 
+                                       className="w-6 h-6 rounded-full border border-border" 
+                                       style={{ backgroundColor: color.hex }}
+                                     />
+                                     <span className="text-[10px] leading-tight text-center">{color.name}</span>
+                                   </button>
+                                 ))}
                                </div>
-                              </button>)}
-                       </div>
-                     </div>}
+                             </div>
+                           );
+                         })()}
+                       </div>}
 
                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                      <Checkbox checked={extras.concreteConstruction} onCheckedChange={() => toggleExtra('concreteConstruction')} className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" />

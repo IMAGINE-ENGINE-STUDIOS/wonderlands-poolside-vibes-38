@@ -141,7 +141,16 @@ const coverOptions = [{
   image: nightSkyFinish,
   category: 'cover',
   description: 'Premium automatic pool cover with solar heating',
-  colors: ['Charcoal', 'Navy Blue', 'Forest Green', 'Brown'],
+  colors: [
+    { name: 'Light Blue', value: '#87CEEB', hex: '#87CEEB' },
+    { name: 'Royal Blue', value: '#4169E1', hex: '#4169E1' },
+    { name: 'Navy Blue', value: '#000080', hex: '#000080' },
+    { name: 'Forest Green', value: '#228B22', hex: '#228B22' },
+    { name: 'Light Gray', value: '#D3D3D3', hex: '#D3D3D3' },
+    { name: 'Charcoal Gray', value: '#36454F', hex: '#36454F' },
+    { name: 'Brown', value: '#964B00', hex: '#964B00' },
+    { name: 'Beige', value: '#F5F5DC', hex: '#F5F5DC' }
+  ],
   engines: ['Standard Motor', 'Quiet Motor', 'Smart Motor']
 }, {
   name: 'CS3000 Safety Cover',
@@ -150,7 +159,16 @@ const coverOptions = [{
   image: shaleGrayFinish,
   category: 'cover',
   description: 'Heavy-duty safety cover with anchoring system',
-  colors: ['Black', 'Green', 'Blue', 'Tan'],
+  colors: [
+    { name: 'Light Blue', value: '#87CEEB', hex: '#87CEEB' },
+    { name: 'Royal Blue', value: '#4169E1', hex: '#4169E1' },
+    { name: 'Navy Blue', value: '#000080', hex: '#000080' },
+    { name: 'Forest Green', value: '#228B22', hex: '#228B22' },
+    { name: 'Light Gray', value: '#D3D3D3', hex: '#D3D3D3' },
+    { name: 'Charcoal Gray', value: '#36454F', hex: '#36454F' },
+    { name: 'Brown', value: '#964B00', hex: '#964B00' },
+    { name: 'Beige', value: '#F5F5DC', hex: '#F5F5DC' }
+  ],
   engines: ['Manual', 'Semi-Auto', 'Full Auto']
 }, {
   name: 'Infinity 4000 Smart Cover',
@@ -159,7 +177,16 @@ const coverOptions = [{
   image: coastalBronzeFinish,
   category: 'cover',
   description: 'Smart automated cover with app control',
-  colors: ['Slate Gray', 'Ocean Blue', 'Midnight Black'],
+  colors: [
+    { name: 'Light Blue', value: '#87CEEB', hex: '#87CEEB' },
+    { name: 'Royal Blue', value: '#4169E1', hex: '#4169E1' },
+    { name: 'Navy Blue', value: '#000080', hex: '#000080' },
+    { name: 'Forest Green', value: '#228B22', hex: '#228B22' },
+    { name: 'Light Gray', value: '#D3D3D3', hex: '#D3D3D3' },
+    { name: 'Charcoal Gray', value: '#36454F', hex: '#36454F' },
+    { name: 'Brown', value: '#964B00', hex: '#964B00' },
+    { name: 'Beige', value: '#F5F5DC', hex: '#F5F5DC' }
+  ],
   engines: ['AI Smart Motor', 'Wi-Fi Motor', 'Premium Quiet Motor']
 }, {
   name: 'Atom Loop-Loc Cover',
@@ -286,7 +313,7 @@ const PoolDetails = () => {
   const [paverQuantity, setPaverQuantity] = useState<number>(50); // quantity of pavers
   const [copingQuantity, setCopingQuantity] = useState<number>(25); // quantity of coping pieces
   const [showPriceDropdown, setShowPriceDropdown] = useState(false);
-  const [coverColor, setCoverColor] = useState<string>('');
+  const [coverColor, setCoverColor] = useState<string>('Light Blue');
   const [coverEngine, setCoverEngine] = useState<string>('');
   const [editorActive, setEditorActive] = useState(false);
   const [showFinancing, setShowFinancing] = useState(false);
@@ -1978,6 +2005,33 @@ const PoolDetails = () => {
                             </button>
                           ))}
                         </div>
+                        
+                        {/* Color Selection for Covers */}
+                        {extras.coverOption && (() => {
+                          const selectedCover = coverOptions.find(c => c.name === extras.coverOption);
+                          return selectedCover?.colors && (
+                            <div className="mt-3">
+                              <label className="text-xs font-medium text-muted-foreground mb-2 block">Select Cover Color:</label>
+                              <div className="grid grid-cols-4 gap-2">
+                                {selectedCover.colors.map(color => (
+                                  <button
+                                    key={color.name}
+                                    onClick={() => setCoverColor(color.name)}
+                                    className={`p-2 text-xs rounded-md border transition-all flex flex-col items-center gap-1 ${
+                                      coverColor === color.name ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'
+                                    }`}
+                                  >
+                                    <div 
+                                      className="w-6 h-6 rounded-full border border-border" 
+                                      style={{ backgroundColor: color.hex }}
+                                    />
+                                    <span className="text-[10px] leading-tight text-center">{color.name}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
 
