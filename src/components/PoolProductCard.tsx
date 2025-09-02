@@ -202,16 +202,39 @@ const coverOptions = [{
   image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png',
   category: 'cover',
   description: 'High-grade PVC with dual track system and emergency manual override',
-  colors: [
-    { name: 'Light Blue', value: '#87CEEB', hex: '#87CEEB' },
-    { name: 'Royal Blue', value: '#4169E1', hex: '#4169E1' },
-    { name: 'Navy Blue', value: '#000080', hex: '#000080' },
-    { name: 'Forest Green', value: '#228B22', hex: '#228B22' },
-    { name: 'Light Gray', value: '#D3D3D3', hex: '#D3D3D3' },
-    { name: 'Charcoal Gray', value: '#36454F', hex: '#36454F' },
-    { name: 'Brown', value: '#964B00', hex: '#964B00' },
-    { name: 'Beige', value: '#F5F5DC', hex: '#F5F5DC' }
-  ]
+  colors: [{
+    name: 'Light Blue',
+    value: '#87CEEB',
+    hex: '#87CEEB'
+  }, {
+    name: 'Royal Blue',
+    value: '#4169E1',
+    hex: '#4169E1'
+  }, {
+    name: 'Navy Blue',
+    value: '#000080',
+    hex: '#000080'
+  }, {
+    name: 'Forest Green',
+    value: '#228B22',
+    hex: '#228B22'
+  }, {
+    name: 'Light Gray',
+    value: '#D3D3D3',
+    hex: '#D3D3D3'
+  }, {
+    name: 'Charcoal Gray',
+    value: '#36454F',
+    hex: '#36454F'
+  }, {
+    name: 'Brown',
+    value: '#964B00',
+    hex: '#964B00'
+  }, {
+    name: 'Beige',
+    value: '#F5F5DC',
+    hex: '#F5F5DC'
+  }]
 }, {
   name: 'CS3000 Safety Cover',
   surname: 'CS3000',
@@ -220,16 +243,39 @@ const coverOptions = [{
   image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png',
   category: 'cover',
   description: 'Multi-layer vinyl with smart automation and weather sensors',
-  colors: [
-    { name: 'Light Blue', value: '#87CEEB', hex: '#87CEEB' },
-    { name: 'Royal Blue', value: '#4169E1', hex: '#4169E1' },
-    { name: 'Navy Blue', value: '#000080', hex: '#000080' },
-    { name: 'Forest Green', value: '#228B22', hex: '#228B22' },
-    { name: 'Light Gray', value: '#D3D3D3', hex: '#D3D3D3' },
-    { name: 'Charcoal Gray', value: '#36454F', hex: '#36454F' },
-    { name: 'Brown', value: '#964B00', hex: '#964B00' },
-    { name: 'Beige', value: '#F5F5DC', hex: '#F5F5DC' }
-  ]
+  colors: [{
+    name: 'Light Blue',
+    value: '#87CEEB',
+    hex: '#87CEEB'
+  }, {
+    name: 'Royal Blue',
+    value: '#4169E1',
+    hex: '#4169E1'
+  }, {
+    name: 'Navy Blue',
+    value: '#000080',
+    hex: '#000080'
+  }, {
+    name: 'Forest Green',
+    value: '#228B22',
+    hex: '#228B22'
+  }, {
+    name: 'Light Gray',
+    value: '#D3D3D3',
+    hex: '#D3D3D3'
+  }, {
+    name: 'Charcoal Gray',
+    value: '#36454F',
+    hex: '#36454F'
+  }, {
+    name: 'Brown',
+    value: '#964B00',
+    hex: '#964B00'
+  }, {
+    name: 'Beige',
+    value: '#F5F5DC',
+    hex: '#F5F5DC'
+  }]
 }, {
   name: 'Infinity 4000 Smart Cover',
   surname: 'Infinity',
@@ -238,16 +284,39 @@ const coverOptions = [{
   image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png',
   category: 'cover',
   description: 'Premium composite with AI-powered automation and solar integration',
-  colors: [
-    { name: 'Light Blue', value: '#87CEEB', hex: '#87CEEB' },
-    { name: 'Royal Blue', value: '#4169E1', hex: '#4169E1' },
-    { name: 'Navy Blue', value: '#000080', hex: '#000080' },
-    { name: 'Forest Green', value: '#228B22', hex: '#228B22' },
-    { name: 'Light Gray', value: '#D3D3D3', hex: '#D3D3D3' },
-    { name: 'Charcoal Gray', value: '#36454F', hex: '#36454F' },
-    { name: 'Brown', value: '#964B00', hex: '#964B00' },
-    { name: 'Beige', value: '#F5F5DC', hex: '#F5F5DC' }
-  ]
+  colors: [{
+    name: 'Light Blue',
+    value: '#87CEEB',
+    hex: '#87CEEB'
+  }, {
+    name: 'Royal Blue',
+    value: '#4169E1',
+    hex: '#4169E1'
+  }, {
+    name: 'Navy Blue',
+    value: '#000080',
+    hex: '#000080'
+  }, {
+    name: 'Forest Green',
+    value: '#228B22',
+    hex: '#228B22'
+  }, {
+    name: 'Light Gray',
+    value: '#D3D3D3',
+    hex: '#D3D3D3'
+  }, {
+    name: 'Charcoal Gray',
+    value: '#36454F',
+    hex: '#36454F'
+  }, {
+    name: 'Brown',
+    value: '#964B00',
+    hex: '#964B00'
+  }, {
+    name: 'Beige',
+    value: '#F5F5DC',
+    hex: '#F5F5DC'
+  }]
 }, {
   name: 'Atom Loop-Loc Cover',
   surname: 'Loop-Loc',
@@ -343,7 +412,6 @@ const PoolProductCard = ({
   const handleImageClick = () => {
     setShowDetails(!showDetails);
   };
-  
   const handleImageHover = (isHovering: boolean) => {
     if (isHovering && !showDetails) {
       setShowDetails(true);
@@ -583,10 +651,7 @@ const PoolProductCard = ({
   };
   return <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
       {/* Edge-to-edge Pool Image at top */}
-      <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image" 
-           onClick={handleImageClick}
-           onMouseEnter={() => handleImageHover(true)}
-           onMouseLeave={() => handleImageHover(false)}>
+      <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image" onClick={handleImageClick} onMouseEnter={() => handleImageHover(true)} onMouseLeave={() => handleImageHover(false)}>
         {currentPoolImage ? <img src={currentPoolImage} alt={pool.model} className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
             <Waves size={48} className="text-primary/60" />
           </div>}
@@ -634,9 +699,7 @@ const PoolProductCard = ({
             </span>
           </div>
           {pool.category === 'deluxe' && <div className="flex items-center gap-2">
-              <span className="text-xs sm:text-sm text-muted-foreground line-through">
-                ${pool.price.toLocaleString()}
-              </span>
+              
               
             </div>}
           {hasExtras && pool.category !== 'deluxe'}
@@ -911,9 +974,9 @@ const PoolProductCard = ({
                         <label className="text-xs font-medium text-muted-foreground">Select Cover Type:</label>
                          <div className="grid grid-cols-1 gap-2">
                            {coverOptions.map(cover => <button key={cover.name} onClick={() => setExtras(prev => ({
-                   ...prev,
-                   coverOption: cover.name
-                 }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.coverOption === cover.name ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'}`}>
+                  ...prev,
+                  coverOption: cover.name
+                }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.coverOption === cover.name ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'}`}>
                                 <img src={cover.image} alt={cover.name} className="w-8 h-8 rounded object-cover" />
                                 <div className="flex-1 text-left">
                                   <div>{cover.surname}</div>
@@ -924,30 +987,19 @@ const PoolProductCard = ({
                          
                          {/* Color Selection for Covers */}
                          {extras.coverOption && extras.coverOption !== 'NO COVER' && (() => {
-                           const selectedCover = coverOptions.find(c => c.name === extras.coverOption);
-                           return selectedCover?.colors && (
-                             <div className="mt-3">
+                const selectedCover = coverOptions.find(c => c.name === extras.coverOption);
+                return selectedCover?.colors && <div className="mt-3">
                                <label className="text-xs font-medium text-muted-foreground mb-2 block">Select Cover Color:</label>
                                <div className="grid grid-cols-4 gap-2">
-                                 {selectedCover.colors.map(color => (
-                                   <button
-                                     key={color.name}
-                                     onClick={() => setCoverColor(color.name)}
-                                     className={`p-2 text-xs rounded-md border transition-all flex flex-col items-center gap-1 ${
-                                       coverColor === color.name ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'
-                                     }`}
-                                   >
-                                     <div 
-                                       className="w-6 h-6 rounded-full border border-border" 
-                                       style={{ backgroundColor: color.hex }}
-                                     />
+                                 {selectedCover.colors.map(color => <button key={color.name} onClick={() => setCoverColor(color.name)} className={`p-2 text-xs rounded-md border transition-all flex flex-col items-center gap-1 ${coverColor === color.name ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'}`}>
+                                     <div className="w-6 h-6 rounded-full border border-border" style={{
+                        backgroundColor: color.hex
+                      }} />
                                      <span className="text-[10px] leading-tight text-center">{color.name}</span>
-                                   </button>
-                                 ))}
+                                   </button>)}
                                </div>
-                             </div>
-                           );
-                         })()}
+                             </div>;
+              })()}
                        </div>}
 
                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">

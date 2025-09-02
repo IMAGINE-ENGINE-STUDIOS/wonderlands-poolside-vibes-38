@@ -37,13 +37,7 @@ const Footer = () => {
                 <Mail className="w-4 h-4 text-teal" />
                 <span className="text-muted-foreground">sales@wonderlandsworld.com</span>
               </div>
-              <div className="flex items-start gap-3 text-sm">
-                <MapPin className="w-4 h-4 text-coral mt-0.5" />
-                <span className="text-muted-foreground">
-                  123 Pool Paradise Blvd<br />
-                  Orlando, FL 32801
-                </span>
-              </div>
+              
               <div className="flex items-center gap-3 text-sm">
                 <Clock className="w-4 h-4 text-orange" />
                 <span className="text-muted-foreground">Opens 24/7 </span>
@@ -55,14 +49,12 @@ const Footer = () => {
           <div className="space-y-4">
             
             <div className="space-y-2">
-              {["Pool Installation", "Pool Renovation", "LED Lighting Systems", "Salt Water Systems", "Pool Equipment", "Maintenance & Repair"].map((service, idx) => (
-                <div key={idx} className="flex items-center gap-2">
+              {["Pool Installation", "Pool Renovation", "LED Lighting Systems", "Salt Water Systems", "Pool Equipment", "Maintenance & Repair"].map((service, idx) => <div key={idx} className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 bg-gradient-to-r from-primary to-teal rounded-full"></div>
                   <span className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                     {service}
                   </span>
-                </div>
-              ))}
+                </div>)}
               {/* Referral Program Link */}
               <Link to="/referral" className="flex items-center gap-2 group">
                 <div className="w-1.5 h-1.5 bg-gradient-to-r from-coral to-orange rounded-full"></div>

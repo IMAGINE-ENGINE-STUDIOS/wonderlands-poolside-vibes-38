@@ -403,9 +403,7 @@ const SpaProductCard = ({
           <h3 className="text-lg sm:text-xl font-bold text-foreground group-hover:text-primary transition-colors">
             {spa.model}
           </h3>
-          {spa.galaCategory && <Badge variant="secondary" className="text-xs font-semibold">
-              Premium Spa Collection
-            </Badge>}
+          {spa.galaCategory}
         </div>
         
         {/* Rating */}
@@ -438,12 +436,10 @@ const SpaProductCard = ({
         {spa.features && spa.features.length > 0 && <div className="space-y-2">
             <h4 className="font-semibold text-sm">Features:</h4>
             <ul className="space-y-1">
-              {spa.features.slice(0, 2).map((feature, idx) => (
-                <li key={idx} className="flex items-center gap-2 text-xs text-muted-foreground">
+              {spa.features.slice(0, 2).map((feature, idx) => <li key={idx} className="flex items-center gap-2 text-xs text-muted-foreground">
                   <div className="w-1 h-1 bg-primary rounded-full"></div>
                   {feature}
-                </li>
-              ))}
+                </li>)}
             </ul>
           </div>}
         
