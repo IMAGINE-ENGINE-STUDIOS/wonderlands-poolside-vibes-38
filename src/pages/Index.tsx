@@ -32,9 +32,7 @@ const Index = () => {
       <section className="py-12 bg-gradient-to-b from-background to-accent/20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-primary via-teal to-coral bg-clip-text text-transparent mb-2">
-              Wonderlands Pool Collection
-            </h2>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-primary via-teal to-coral bg-clip-text text-transparent mb-2">Wonderlands World</h2>
             <p className="text-muted-foreground text-lg">Premium Concrete and Carbon Fiber Glass Pools, Spas & Outdoor Living for Homeowners and Dealers</p>
           </div>
           <AdvancedSearch />
