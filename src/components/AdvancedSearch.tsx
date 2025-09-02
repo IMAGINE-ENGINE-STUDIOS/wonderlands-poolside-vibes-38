@@ -42,111 +42,125 @@ const AdvancedSearch = () => {
   const staticCatalogData = useMemo(() => {
     const catalogItems: SearchResult[] = [];
 
-    // Pool finishes
+    // Pool finishes - only valid items with image and price
     poolFinishes.forEach(finish => {
-      catalogItems.push({
-        id: finish.id,
-        name: finish.name,
-        category: 'Pool Finish',
-        subcategory: finish.collection,
-        price: finish.price,
-        image: finish.image,
-        description: finish.description,
-        features: finish.features,
-        type: 'finish',
-        collection: finish.collection,
-        section: '#finishes'
-      });
+      if (finish.image && finish.price > 0) {
+        catalogItems.push({
+          id: finish.id,
+          name: finish.name,
+          category: 'Pool Finish',
+          subcategory: finish.collection,
+          price: finish.price,
+          image: finish.image,
+          description: finish.description,
+          features: finish.features,
+          type: 'finish',
+          collection: finish.collection,
+          section: '#finishes'
+        });
+      }
     });
 
-    // Pool liners
+    // Pool liners - only valid items with image and price
     poolLiners.forEach(liner => {
-      catalogItems.push({
-        id: liner.name.toLowerCase().replace(/\s+/g, '-'),
-        name: liner.name,
-        category: 'Pool Liner',
-        subcategory: liner.type,
-        price: liner.price,
-        image: liner.image,
-        description: liner.description,
-        type: 'liner',
-        section: '#liners'
-      });
+      if (liner.image && liner.price > 0) {
+        catalogItems.push({
+          id: liner.name.toLowerCase().replace(/\s+/g, '-'),
+          name: liner.name,
+          category: 'Pool Liner',
+          subcategory: liner.type,
+          price: liner.price,
+          image: liner.image,
+          description: liner.description,
+          type: 'liner',
+          section: '#liners'
+        });
+      }
     });
 
-    // Pool tiles
+    // Pool tiles - only valid items with image and price
     poolTiles.forEach(tile => {
-      catalogItems.push({
-        id: tile.name.toLowerCase().replace(/\s+/g, '-'),
-        name: tile.name,
-        category: 'Pool Tile',
-        price: tile.price,
-        image: tile.image,
-        description: tile.description,
-        type: 'tile',
-        section: '#tiles'
-      });
+      if (tile.image && tile.price > 0) {
+        catalogItems.push({
+          id: tile.name.toLowerCase().replace(/\s+/g, '-'),
+          name: tile.name,
+          category: 'Pool Tile',
+          price: tile.price,
+          image: tile.image,
+          description: tile.description,
+          type: 'tile',
+          section: '#tiles'
+        });
+      }
     });
 
-    // Tanning ledges
+    // Tanning ledges - only valid items with image and price
     tanningLedges.forEach(ledge => {
-      catalogItems.push({
-        id: ledge.name.toLowerCase().replace(/\s+/g, '-'),
-        name: ledge.name,
-        category: 'Tanning Ledge',
-        price: ledge.price,
-        image: ledge.image,
-        description: ledge.description,
-        features: ledge.features,
-        type: 'tanning-ledge',
-        section: '#spas'
-      });
+      if (ledge.image && ledge.price > 0) {
+        catalogItems.push({
+          id: ledge.name.toLowerCase().replace(/\s+/g, '-'),
+          name: ledge.name,
+          category: 'Tanning Ledge',
+          price: ledge.price,
+          image: ledge.image,
+          description: ledge.description,
+          features: ledge.features,
+          type: 'tanning-ledge',
+          section: '#spas'
+        });
+      }
     });
 
-    // Automatic covers
+    // Automatic covers - only valid items with image and price
     automaticCovers.forEach(cover => {
-      catalogItems.push({
-        id: cover.name.toLowerCase().replace(/\s+/g, '-'),
-        name: cover.name,
-        category: 'Automatic Cover',
-        subcategory: cover.type,
-        price: cover.price,
-        image: cover.image,
-        description: `${cover.material} cover with ${cover.motorType} - ${cover.warranty} warranty`,
-        features: [...cover.features, ...cover.benefits],
-        type: 'cover',
-        section: '#covers'
-      });
+      if (cover.image && cover.price > 0) {
+        catalogItems.push({
+          id: cover.name.toLowerCase().replace(/\s+/g, '-'),
+          name: cover.name,
+          category: 'Automatic Cover',
+          subcategory: cover.type,
+          price: cover.price,
+          image: cover.image,
+          description: `${cover.material} cover with ${cover.motorType} - ${cover.warranty} warranty`,
+          features: [...cover.features, ...cover.benefits],
+          type: 'cover',
+          section: '#covers'
+        });
+      }
     });
 
-    // Screen enclosures
+    // Screen enclosures - only valid items with image and price
     screenEnclosureOptions.forEach(enclosure => {
-      catalogItems.push({
-        id: enclosure.name.toLowerCase().replace(/\s+/g, '-'),
-        name: enclosure.name,
-        category: 'Screen Enclosure',
-        subcategory: enclosure.type,
-        price: enclosure.pricePerSqFt * 400, // Estimated for 400 sq ft average
-        image: enclosure.image,
-        description: enclosure.description,
-        features: enclosure.features,
-        type: 'enclosure',
-        section: '#screen-enclosures'
-      });
+      if (enclosure.image && enclosure.pricePerSqFt > 0) {
+        catalogItems.push({
+          id: enclosure.name.toLowerCase().replace(/\s+/g, '-'),
+          name: enclosure.name,
+          category: 'Screen Enclosure',
+          subcategory: enclosure.type,
+          price: enclosure.pricePerSqFt * 400, // Estimated for 400 sq ft average
+          image: enclosure.image,
+          description: enclosure.description,
+          features: enclosure.features,
+          type: 'enclosure',
+          section: '#screen-enclosures'
+        });
+      }
     });
 
-    // Pavers and coping
-    [...paverTypes, ...copingTypes].forEach(paver => {
-      catalogItems.push({
-        id: paver.id,
-        name: paver.name,
-        category: paver.category === 'paver' ? 'Paver' : 'Pool Coping',
-        price: paver.basePrice,
-        image: paver.image,
-        description: paver.description,
-        type: 'paver',
-        section: '#pavers'
-      });
+    // Pavers only (exclude coping from static to avoid non-existent items)
+    [...paverTypes].forEach(paver => {
+      if (paver.image && paver.basePrice > 0) {
+        catalogItems.push({
+          id: paver.id,
+          name: paver.name,
+          category: 'Paver',
+          price: paver.basePrice,
+          image: paver.image,
+          description: paver.description,
+          type: 'paver',
+          section: '#pavers'
+        });
+      }
     });
 
     // Section shortcuts for direct navigation
@@ -544,16 +558,14 @@ const AdvancedSearch = () => {
       }
     }
 
-    // Open products in the editor studio
-    if (result.type === 'pool' || result.type === 'product' || result.type === 'paver' || 
-        result.type === 'finish' || result.type === 'liner' || result.type === 'tile' || 
-        result.type === 'cover' || result.type === 'enclosure' || result.type === 'tanning-ledge') {
-      
-      // Dispatch custom event to open editor studio with product data
+    // Open only valid products in the editor studio
+    const isProductType = ['pool','product','paver','finish','liner','tile','cover','enclosure','tanning-ledge'].includes(result.type);
+    const hasValidImage = !!result.image;
+    const hasValidPrice = typeof result.price === 'number' && result.price >= 0;
+
+    if (isProductType && hasValidImage && hasValidPrice) {
       const editorEvent = new CustomEvent('openEditorStudio', {
-        detail: {
-          product: result
-        }
+        detail: { product: result }
       });
       window.dispatchEvent(editorEvent);
       setShowResults(false);
