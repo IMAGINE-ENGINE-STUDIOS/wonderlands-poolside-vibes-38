@@ -223,6 +223,57 @@ export type Database = {
           },
         ]
       }
+      conversion_funnels: {
+        Row: {
+          average_session_duration: unknown | null
+          bounce_rate: number | null
+          campaign_id: string | null
+          conversion_rate: number | null
+          created_at: string
+          description: string | null
+          funnel_name: string
+          funnel_steps: Json
+          id: string
+          is_active: boolean | null
+          revenue_generated: number | null
+          total_conversions: number | null
+          total_visitors: number | null
+          updated_at: string
+        }
+        Insert: {
+          average_session_duration?: unknown | null
+          bounce_rate?: number | null
+          campaign_id?: string | null
+          conversion_rate?: number | null
+          created_at?: string
+          description?: string | null
+          funnel_name: string
+          funnel_steps?: Json
+          id?: string
+          is_active?: boolean | null
+          revenue_generated?: number | null
+          total_conversions?: number | null
+          total_visitors?: number | null
+          updated_at?: string
+        }
+        Update: {
+          average_session_duration?: unknown | null
+          bounce_rate?: number | null
+          campaign_id?: string | null
+          conversion_rate?: number | null
+          created_at?: string
+          description?: string | null
+          funnel_name?: string
+          funnel_steps?: Json
+          id?: string
+          is_active?: boolean | null
+          revenue_generated?: number | null
+          total_conversions?: number | null
+          total_visitors?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       florida_locations: {
         Row: {
           city: string
@@ -573,6 +624,72 @@ export type Database = {
           },
         ]
       }
+      page_analytics: {
+        Row: {
+          accessibility_score: number | null
+          average_session_duration: unknown | null
+          backlinks_count: number | null
+          bounce_rate: number | null
+          created_at: string
+          date_recorded: string
+          exit_rate: number | null
+          id: string
+          keywords_ranking: Json | null
+          load_time: number | null
+          meta_description: string | null
+          mobile_friendly_score: number | null
+          page_title: string | null
+          page_url: string
+          page_views: number | null
+          performance_score: number | null
+          seo_score: number | null
+          social_shares: number | null
+          unique_visitors: number | null
+        }
+        Insert: {
+          accessibility_score?: number | null
+          average_session_duration?: unknown | null
+          backlinks_count?: number | null
+          bounce_rate?: number | null
+          created_at?: string
+          date_recorded?: string
+          exit_rate?: number | null
+          id?: string
+          keywords_ranking?: Json | null
+          load_time?: number | null
+          meta_description?: string | null
+          mobile_friendly_score?: number | null
+          page_title?: string | null
+          page_url: string
+          page_views?: number | null
+          performance_score?: number | null
+          seo_score?: number | null
+          social_shares?: number | null
+          unique_visitors?: number | null
+        }
+        Update: {
+          accessibility_score?: number | null
+          average_session_duration?: unknown | null
+          backlinks_count?: number | null
+          bounce_rate?: number | null
+          created_at?: string
+          date_recorded?: string
+          exit_rate?: number | null
+          id?: string
+          keywords_ranking?: Json | null
+          load_time?: number | null
+          meta_description?: string | null
+          mobile_friendly_score?: number | null
+          page_title?: string | null
+          page_url?: string
+          page_views?: number | null
+          performance_score?: number | null
+          seo_score?: number | null
+          social_shares?: number | null
+          unique_visitors?: number | null
+        }
+        Relationships: []
+      }
       pavers: {
         Row: {
           base_price: number
@@ -750,6 +867,36 @@ export type Database = {
           total_amount?: number
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      product_search_tags: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          product_id: string | null
+          tag: string
+          tag_type: string | null
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          product_id?: string | null
+          tag: string
+          tag_type?: string | null
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          product_id?: string | null
+          tag?: string
+          tag_type?: string | null
+          weight?: number | null
         }
         Relationships: []
       }
@@ -941,6 +1088,7 @@ export type Database = {
           estimated_budget: number | null
           estimated_commission: number | null
           id: string
+          is_sales_team_verified: boolean | null
           lead_company: string | null
           lead_email: string
           lead_name: string
@@ -951,7 +1099,13 @@ export type Database = {
           referrer_email: string
           referrer_name: string
           referrer_phone: string | null
+          referrer_type: string | null
           referrer_user_id: string | null
+          sales_company_name: string | null
+          sales_company_phone: string | null
+          sales_company_website: string | null
+          sales_license_number: string | null
+          sales_team_position: string | null
           status: string | null
           updated_at: string
         }
@@ -961,6 +1115,7 @@ export type Database = {
           estimated_budget?: number | null
           estimated_commission?: number | null
           id?: string
+          is_sales_team_verified?: boolean | null
           lead_company?: string | null
           lead_email: string
           lead_name: string
@@ -971,7 +1126,13 @@ export type Database = {
           referrer_email: string
           referrer_name: string
           referrer_phone?: string | null
+          referrer_type?: string | null
           referrer_user_id?: string | null
+          sales_company_name?: string | null
+          sales_company_phone?: string | null
+          sales_company_website?: string | null
+          sales_license_number?: string | null
+          sales_team_position?: string | null
           status?: string | null
           updated_at?: string
         }
@@ -981,6 +1142,7 @@ export type Database = {
           estimated_budget?: number | null
           estimated_commission?: number | null
           id?: string
+          is_sales_team_verified?: boolean | null
           lead_company?: string | null
           lead_email?: string
           lead_name?: string
@@ -991,9 +1153,216 @@ export type Database = {
           referrer_email?: string
           referrer_name?: string
           referrer_phone?: string | null
+          referrer_type?: string | null
           referrer_user_id?: string | null
+          sales_company_name?: string | null
+          sales_company_phone?: string | null
+          sales_company_website?: string | null
+          sales_license_number?: string | null
+          sales_team_position?: string | null
           status?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      search_analytics: {
+        Row: {
+          clicked_position: number | null
+          clicked_result_id: string | null
+          has_results: boolean | null
+          id: string
+          ip_address: unknown | null
+          results_count: number | null
+          search_query: string
+          search_refinements: Json | null
+          search_timestamp: string
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          clicked_position?: number | null
+          clicked_result_id?: string | null
+          has_results?: boolean | null
+          id?: string
+          ip_address?: unknown | null
+          results_count?: number | null
+          search_query: string
+          search_refinements?: Json | null
+          search_timestamp?: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          clicked_position?: number | null
+          clicked_result_id?: string | null
+          has_results?: boolean | null
+          id?: string
+          ip_address?: unknown | null
+          results_count?: number | null
+          search_query?: string
+          search_refinements?: Json | null
+          search_timestamp?: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      seo_campaigns: {
+        Row: {
+          budget_allocated: number | null
+          budget_spent: number | null
+          campaign_type: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          landing_page_url: string | null
+          name: string
+          start_date: string | null
+          status: string
+          target_audience: string | null
+          target_keywords: Json | null
+          updated_at: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          budget_allocated?: number | null
+          budget_spent?: number | null
+          campaign_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          landing_page_url?: string | null
+          name: string
+          start_date?: string | null
+          status?: string
+          target_audience?: string | null
+          target_keywords?: Json | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          budget_allocated?: number | null
+          budget_spent?: number | null
+          campaign_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          landing_page_url?: string | null
+          name?: string
+          start_date?: string | null
+          status?: string
+          target_audience?: string | null
+          target_keywords?: Json | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: []
+      }
+      seo_keywords: {
+        Row: {
+          campaign_id: string | null
+          competition_level: string | null
+          content_url: string | null
+          created_at: string
+          current_ranking: number | null
+          difficulty_score: number | null
+          id: string
+          is_active: boolean | null
+          keyword: string
+          related_keywords: Json | null
+          search_intent: string | null
+          search_volume: number | null
+          target_ranking: number | null
+          updated_at: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          competition_level?: string | null
+          content_url?: string | null
+          created_at?: string
+          current_ranking?: number | null
+          difficulty_score?: number | null
+          id?: string
+          is_active?: boolean | null
+          keyword: string
+          related_keywords?: Json | null
+          search_intent?: string | null
+          search_volume?: number | null
+          target_ranking?: number | null
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string | null
+          competition_level?: string | null
+          content_url?: string | null
+          created_at?: string
+          current_ranking?: number | null
+          difficulty_score?: number | null
+          id?: string
+          is_active?: boolean | null
+          keyword?: string
+          related_keywords?: Json | null
+          search_intent?: string | null
+          search_volume?: number | null
+          target_ranking?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      service_offerings: {
+        Row: {
+          base_price: number | null
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_price?: number | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_price?: number | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1037,6 +1406,126 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_api_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          name: string | null
+          scopes: string[]
+          token_hash: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          name?: string | null
+          scopes?: string[]
+          token_hash: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          name?: string | null
+          scopes?: string[]
+          token_hash?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_pipelines: {
+        Row: {
+          browser: string | null
+          city: string | null
+          conversion_value: number | null
+          converted_at: string | null
+          country: string | null
+          created_at: string
+          current_page: string | null
+          device_type: string | null
+          id: string
+          ip_address: unknown | null
+          is_converted: boolean | null
+          landing_page: string | null
+          pipeline_stage: string
+          referrer_url: string | null
+          session_id: string
+          source_channel: string | null
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          browser?: string | null
+          city?: string | null
+          conversion_value?: number | null
+          converted_at?: string | null
+          country?: string | null
+          created_at?: string
+          current_page?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_converted?: boolean | null
+          landing_page?: string | null
+          pipeline_stage?: string
+          referrer_url?: string | null
+          session_id: string
+          source_channel?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          browser?: string | null
+          city?: string | null
+          conversion_value?: number | null
+          converted_at?: string | null
+          country?: string | null
+          created_at?: string
+          current_page?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_converted?: boolean | null
+          landing_page?: string | null
+          pipeline_stage?: string
+          referrer_url?: string | null
+          session_id?: string
+          source_channel?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: []
       }
       user_preferences: {
         Row: {

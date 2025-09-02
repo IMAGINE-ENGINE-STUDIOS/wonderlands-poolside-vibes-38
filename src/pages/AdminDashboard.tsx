@@ -22,6 +22,7 @@ import {
   LogOut,
   Gift,
   Building2,
+  Key,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,8 @@ import AdminOrdersManager from '@/components/AdminOrdersManager';
 import AdminDashboardMetrics from '@/components/AdminDashboardMetrics';
 import AdminReferralsManager from '@/components/AdminReferralsManager';
 import { DragDropEditor } from '@/components/DragDropEditor';
+import ApiKeyManager from '@/components/ApiKeyManager';
+import SampleDataSetup from '@/components/SampleDataSetup';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -88,9 +91,10 @@ const AdminDashboard = () => {
   ]);
 
   // Role-based access control
-  const isMainAdmin = profile?.role === 'main_admin';
+  const isMainAdmin = profile?.role === 'main_admin' && profile?.email === 'rikicot@hotmail.com';
   const isSupplier = profile?.role === 'supplier';
   const isInstaller = profile?.role === 'installer';
+  const isContractorOrSupplier = isSupplier || isInstaller;
   
   // Calculate metrics from database
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
@@ -114,6 +118,18 @@ const AdminDashboard = () => {
     navigate('/');
   };
 
+  // Redirect non-admin users or wrong admin
+  useEffect(() => {
+    if (profile && !isMainAdmin && !isContractorOrSupplier) {
+      navigate('/');
+    }
+  }, [profile, isMainAdmin, isContractorOrSupplier, navigate]);
+
+  // Don't render anything if not authorized
+  if (!user || (!isMainAdmin && !isContractorOrSupplier)) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
       {/* Header */}
@@ -122,13 +138,13 @@ const AdminDashboard = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
             <div className="flex-1">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Admin Dashboard
+                {isMainAdmin ? 'Admin Dashboard' : `${profile?.role === 'supplier' ? 'Supplier' : 'Contractor'} Dashboard`}
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Manage products, orders, and content
+                {isMainAdmin ? 'Manage products, orders, and content' : 'Manage your business operations'}
                 {profile && (
                   <span className="ml-2 text-primary font-medium">
-                    Welcome, {profile.role} - {profile.first_name} {profile.last_name}
+                    Welcome, {profile.first_name} {profile.last_name} ({profile.company_name})
                   </span>
                 )}
               </p>
@@ -157,74 +173,100 @@ const AdminDashboard = () => {
         <AdminDashboardMetrics />
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="quotes" className="space-y-4 sm:space-y-6">
+        <Tabs defaultValue={isMainAdmin ? "quotes" : "procurement"} className="space-y-4 sm:space-y-6">
           <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 sm:mb-6">
             <TabsList className="grid w-full grid-cols-3 sm:flex sm:flex-wrap gap-1">
-              {/* Show Product Management only to main admins */}
-              {isMainAdmin && (
-                <TabsTrigger value="unified-products" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <Database className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Products</span>
-                </TabsTrigger>
+              {/* For contractors and suppliers: limited tabs */}
+              {isContractorOrSupplier && (
+                <>
+                  <TabsTrigger value="procurement" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <Building2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Procurement</span>
+                  </TabsTrigger>
+                  
+                  <TabsTrigger value="orders" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Orders</span>
+                  </TabsTrigger>
+                  
+                  <TabsTrigger value="analytics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Analytics</span>
+                  </TabsTrigger>
+                  
+                  <TabsTrigger value="api-keys" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <Key className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">API Keys</span>
+                  </TabsTrigger>
+                </>
               )}
-              
-              <TabsTrigger value="quotes" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                <Star className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Quotes</span>
-              </TabsTrigger>
-              
-              <TabsTrigger value="orders" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Orders</span>
-              </TabsTrigger>
-              
-              <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Users</span>
-              </TabsTrigger>
 
-              <TabsTrigger value="referrals" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                <Gift className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Referrals</span>
-              </TabsTrigger>
-              
-              <TabsTrigger value="api-manager" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">API</span>
-              </TabsTrigger>
-              
-              <TabsTrigger value="pool-specs" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                <Package className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Specs</span>
-              </TabsTrigger>
-              
-              {/* Show Delivery only to main admins and suppliers (not installers) */}
-              {!isInstaller && (
-                <TabsTrigger value="delivery-logistics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Delivery</span>
-                </TabsTrigger>
-              )}
-              
-              {/* Show Content Editor only to main admins */}
+              {/* For main admin: full tabs */}
               {isMainAdmin && (
-                <TabsTrigger value="content-editor" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden sm:inline">Content Editor</span>
-                  <span className="sm:hidden">Content</span>
-                </TabsTrigger>
+                <>
+                  <TabsTrigger value="unified-products" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <Database className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Products</span>
+                  </TabsTrigger>
+                  
+                  <TabsTrigger value="quotes" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <Star className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Quotes</span>
+                  </TabsTrigger>
+                  
+                  <TabsTrigger value="orders" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Orders</span>
+                  </TabsTrigger>
+                  
+                  <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Users</span>
+                  </TabsTrigger>
+
+                  <TabsTrigger value="referrals" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <Gift className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Referrals</span>
+                  </TabsTrigger>
+                  
+                  <TabsTrigger value="api-manager" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">API</span>
+                  </TabsTrigger>
+                  
+                  <TabsTrigger value="pool-specs" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <Package className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Specs</span>
+                  </TabsTrigger>
+                  
+                  <TabsTrigger value="delivery-logistics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Delivery</span>
+                  </TabsTrigger>
+                  
+                  <TabsTrigger value="content-editor" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Content Editor</span>
+                    <span className="sm:hidden">Content</span>
+                  </TabsTrigger>
+                  
+                  <TabsTrigger value="procurement" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <Building2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Procurement</span>
+                  </TabsTrigger>
+                  
+                  <TabsTrigger value="analytics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Analytics</span>
+                    <span className="sm:hidden">Stats</span>
+                  </TabsTrigger>
+                  
+                  <TabsTrigger value="setup" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <Database className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Setup</span>
+                  </TabsTrigger>
+                </>
               )}
-              
-              <TabsTrigger value="procurement" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                <Building2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Procurement</span>
-              </TabsTrigger>
-              
-              <TabsTrigger value="analytics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Analytics</span>
-                <span className="sm:hidden">Stats</span>
-              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -340,10 +382,19 @@ const AdminDashboard = () => {
             </TabsContent>
           )}
 
-          {/* API Manager Tab */}
-          <TabsContent value="api-manager" className="space-y-6">
-            <RealApiManager />
-          </TabsContent>
+          {/* API Manager Tab - Main Admin Only */}
+          {isMainAdmin && (
+            <TabsContent value="api-manager" className="space-y-6">
+              <RealApiManager />
+            </TabsContent>
+          )}
+
+          {/* API Keys Tab - Contractors and Suppliers */}
+          {isContractorOrSupplier && (
+            <TabsContent value="api-keys" className="space-y-6">
+              <ApiKeyManager />
+            </TabsContent>
+          )}
 
           {/* Pool Specs Tab */}
           <TabsContent value="pool-specs" className="space-y-6">
@@ -558,6 +609,12 @@ const AdminDashboard = () => {
               </Card>
             </div>
           </TabsContent>
+          {/* Setup Tab - Main Admin Only */}
+          {isMainAdmin && (
+            <TabsContent value="setup" className="space-y-6">
+              <SampleDataSetup />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
