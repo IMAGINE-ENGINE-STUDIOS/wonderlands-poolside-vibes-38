@@ -2306,8 +2306,8 @@ const PoolDetails = () => {
                         }
                       }
 
-                      // Add pavers if selected
-                      if (extras.pavers && extras.paverOption && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+                      // Add pavers if selected (use surface area input instead of a boolean flag)
+                      if (extras.paverOption && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
                         const paverOption = paverOptions.find(p => p.name === extras.paverOption);
                         if (paverOption) {
                           extrasBreakdown.push({
@@ -2327,8 +2327,8 @@ const PoolDetails = () => {
                         });
                       }
 
-                      // Add screen enclosure if selected
-                      if (extras.screenEnclosure && extras.screenEnclosureArea && !isNaN(parseFloat(extras.screenEnclosureArea.toString()))) {
+                      // Add screen enclosure if area provided (no separate toggle needed)
+                      if (extras.screenEnclosureArea && !isNaN(parseFloat(extras.screenEnclosureArea.toString()))) {
                         let pricePerSqFt = 15;
                         if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
                         if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
@@ -2337,6 +2337,16 @@ const PoolDetails = () => {
                           name: `Screen Enclosure - ${extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality} (${extras.screenEnclosureArea} sq ft)`,
                           price: enclosurePrice,
                           image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png'
+                        });
+                      }
+
+                      // Add concrete construction upgrade if selected
+                      if (extras.concreteConstruction) {
+                        const concretePrice = Math.round(pool.price * 0.2);
+                        extrasBreakdown.push({
+                          name: 'Concrete Construction Upgrade',
+                          price: concretePrice,
+                          image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
                         });
                       }
 

@@ -15,6 +15,7 @@ const RightNavigation = () => {
   // Check if we're on the content editor or admin dashboard page
   const isContentEditor = location.pathname === '/content-editor';
   const isAdminDashboard = location.pathname === '/admin';
+  const isQuoteOpen = typeof document !== 'undefined' && document.body.dataset.quoteOpen === 'true';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -77,8 +78,8 @@ const RightNavigation = () => {
         isAdminDashboard ? 'top-4' : 'top-1/2 transform -translate-y-1/2'
       }`}>
         {/* Conditional rendering based on current page */}
-        {(isContentEditor || isAdminDashboard) ? (
-          /* Show only Home button on Content Editor and Admin Dashboard pages */
+        {(isContentEditor || isAdminDashboard || isQuoteOpen) ? (
+          /* Show only Home button on Content Editor, Admin Dashboard pages, or when quote modal open */
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

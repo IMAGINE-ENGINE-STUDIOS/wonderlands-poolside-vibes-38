@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,7 +94,19 @@ const SurveyQuoteTool = ({
   const {
     toast
   } = useToast();
-  // Removed GALA-GOODS integration
+// Removed GALA-GOODS integration
+
+  // Toggle a global flag so other components (e.g., RightNavigation) can react when the quote dialog is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.dataset.quoteOpen = 'true';
+    } else {
+      delete document.body.dataset.quoteOpen;
+    }
+    return () => {
+      delete document.body.dataset.quoteOpen;
+    };
+  }, [isOpen]);
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -337,6 +349,28 @@ const SurveyQuoteTool = ({
     await saveQuotationToDatabase();
     setCurrentStep('quote');
   };
+
+  const handleScheduleInstallation = async () => {
+    // Ensure the quotation is saved and user is authenticated
+    const saved = await saveQuotationToDatabase();
+    if (!user) {
+      // saveQuotationToDatabase will trigger auth prompt
+      return;
+    }
+    const subject = encodeURIComponent(`Schedule Installation - ${pool?.model || customProduct?.name || 'Pool'}`);
+    const body = encodeURIComponent(
+      `Hello Wonderlands,\n\n` +
+      `I would like to schedule installation for the following configuration:\n\n` +
+      `Customer: ${surveyData.name}\n` +
+      `Email: ${surveyData.email}\n` +
+      `Phone: ${surveyData.phone}\n` +
+      `Address: ${surveyData.address}\n\n` +
+      `Total Investment: $${calculateQuote().toLocaleString()}\n\n` +
+      `Thank you.`
+    );
+    window.location.href = `mailto:sales@wonderlandsworld.com?subject=${subject}&body=${body}`;
+  };
+
   if (!pool && !customProduct) return null;
   return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -995,7 +1029,7 @@ const SurveyQuoteTool = ({
                   <Button variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-50" onClick={() => setCurrentStep('options')}>
                     Modify Options
                   </Button>
-                  <Button variant="default" className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white">
+                  <Button variant="default" className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white" onClick={handleScheduleInstallation}>
                     Schedule Installation
                   </Button>
                 </div>
