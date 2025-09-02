@@ -2318,6 +2318,15 @@ const PoolDetails = () => {
                         }
                       }
 
+                      // Add jets if selected
+                      if (extras.jets) {
+                        extrasBreakdown.push({
+                          name: `Spa Jets (${extras.jetQuantity}x)`,
+                          price: getExtraPrice('jets') * extras.jetQuantity,
+                          image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" // Jets don't have their own image, using heater image as placeholder
+                        });
+                      }
+
                       // Add screen enclosure if selected
                       if (extras.screenEnclosure && extras.screenEnclosureArea && !isNaN(parseFloat(extras.screenEnclosureArea.toString()))) {
                         let pricePerSqFt = 15;
