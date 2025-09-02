@@ -490,86 +490,89 @@ const AdvancedSearch = () => {
         allResults.push(...supplierResults);
       }
 
-      // Remove duplicates and sort by relevance
+      // Remove duplicates based on ID and type
       const uniqueResults = allResults.filter((result, index, self) => 
-        index === self.findIndex(r => r.id === result.id && r.type === result.type)
+        index === self.findIndex((other) => other.id === result.id && other.type === result.type)
       );
 
-      // Sort by type priority and name
+      // Sort results by type priority and then by name
+      const typePriority = {
+        'pool': 1,
+        'product': 2,
+        'finish': 3,
+        'liner': 4,
+        'tile': 5,
+        'cover': 6,
+        'enclosure': 7,
+        'paver': 8,
+        'tanning-ledge': 9,
+        'service': 10,
+        'supplier': 11,
+        'section': 12
+      };
+
       const sortedResults = uniqueResults.sort((a, b) => {
-        const typePriority = {
-          'section': 1,
-          'pool': 2,
-          'finish': 3,
-          'liner': 4,
-          'tile': 5,
-          'cover': 6,
-          'enclosure': 7,
-          'paver': 8,
-          'tanning-ledge': 9,
-          'product': 10,
-          'service': 11,
-          'supplier': 12
-        };
+        const priorityA = typePriority[a.type] || 99;
+        const priorityB = typePriority[b.type] || 99;
         
-        const aPriority = typePriority[a.type] || 99;
-        const bPriority = typePriority[b.type] || 99;
-        
-        if (aPriority !== bPriority) {
-          return aPriority - bPriority;
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
         }
         
         return a.name.localeCompare(b.name);
       });
 
-      setSearchResults(sortedResults.slice(0, 20)); // Limit to top 20 results
+      setSearchResults(sortedResults.slice(0, 12)); // Limit to 12 results
       setShowResults(true);
+
     } catch (error) {
       console.error('Search error:', error);
+      setSearchResults([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleResultClick = (result: SearchResult) => {
-    console.log('Search result clicked:', result);
-    
-    // Hide search results
-    setShowResults(false);
-    setSearchQuery('');
-
-    // Handle different result types
-    switch (result.type) {
-      case 'pool':
-        navigate(`/pool/${result.id}`);
-        break;
-        
-      case 'section':
-        if (result.section) {
-          const element = document.getElementById(result.section.replace('#', ''));
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-          }
-        }
-        break;
-        
-      case 'product':
-        console.log('Navigate to product:', result.id);
-        break;
-        
-      case 'supplier':
-        console.log('Show supplier profile:', result.id);
-        break;
-        
-      default:
-        if (result.section) {
-          const element = document.getElementById(result.section.replace('#', ''));
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-          }
-        }
-        break;
+    // For section shortcuts, scroll to the section
+    if (result.type === 'section' && result.section) {
+      const element = document.querySelector(result.section);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+        setShowResults(false);
+        return;
+      }
     }
+
+    // Open products in the editor studio
+    if (result.type === 'pool' || result.type === 'product' || result.type === 'paver' || 
+        result.type === 'finish' || result.type === 'liner' || result.type === 'tile' || 
+        result.type === 'cover' || result.type === 'enclosure' || result.type === 'tanning-ledge') {
+      
+      // Dispatch custom event to open editor studio with product data
+      const editorEvent = new CustomEvent('openEditorStudio', {
+        detail: {
+          product: result
+        }
+      });
+      window.dispatchEvent(editorEvent);
+      setShowResults(false);
+      return;
+    }
+
+    // For other types, handle as before
+    switch (result.type) {
+      case 'service':
+        console.log('Service selected:', result);
+        break;
+      case 'supplier':
+        console.log('Supplier selected:', result);
+        break;
+      default:
+        console.log('Result selected:', result);
+    }
+    
+    setShowResults(false);
   };
 
   // Debounced search effect
@@ -598,92 +601,82 @@ const AdvancedSearch = () => {
 
   return (
     <div id="search-container" className="relative w-full">
-      <div className="relative max-w-2xl mx-auto">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-          <Input
-            type="text"
-            placeholder="Search pools, spas, finishes, covers, pavers, services, contractors..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-4 py-3 w-full text-lg bg-card/90 backdrop-blur-md border-2 border-border rounded-xl shadow-lg focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all duration-300 text-card-foreground placeholder:text-muted-foreground"
-          />
-        </div>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
+        <Input
+          type="text"
+          placeholder="Search pools, covers, finishes, pavers, services..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10 pr-4 py-2 w-full bg-background/95 backdrop-blur-sm border-border focus:border-primary transition-colors text-foreground placeholder:text-muted-foreground"
+          onFocus={() => searchQuery && setShowResults(true)}
+        />
+      </div>
 
-        {/* Search Results Dropdown */}
-        {showResults && searchResults.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-2 z-50">
-            <Card className="bg-card/95 backdrop-blur-md border-border shadow-lg max-h-96 overflow-y-auto">
-              <div className="p-4 border-b border-border">
-                <p className="text-sm text-muted-foreground">
-                  {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "{searchQuery}"
-                </p>
-              </div>
-              
-              {searchResults.map((result) => (
+      {showResults && (
+        <Card className="absolute top-full left-0 right-0 mt-2 max-h-96 overflow-y-auto z-50 bg-background border-border shadow-lg">
+          {isLoading ? (
+            <div className="p-4 text-center text-muted-foreground">
+              <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+              Searching...
+            </div>
+          ) : searchResults.length > 0 ? (
+            <div className="divide-y divide-border">
+              {searchResults.map((result, index) => (
                 <div
-                  key={`${result.type}-${result.id}`}
+                  key={`${result.type}-${result.id}-${index}`}
+                  className="p-3 hover:bg-muted/50 cursor-pointer transition-colors"
                   onClick={() => handleResultClick(result)}
-                  className="p-3 hover:bg-muted/50 cursor-pointer border-b border-border last:border-b-0 transition-colors"
                 >
                   <div className="flex items-start gap-3">
                     {result.image && (
                       <img 
                         src={result.image} 
                         alt={result.name}
-                        className="w-12 h-12 object-cover rounded-md flex-shrink-0"
+                        className="w-12 h-12 object-cover rounded border border-border flex-shrink-0"
                       />
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium text-card-foreground truncate">{result.name}</h4>
-                        <Badge variant="secondary" className="text-xs">
+                        <h4 className="font-medium text-foreground truncate">{result.name}</h4>
+                        <Badge variant="secondary" className="text-xs shrink-0">
                           {result.category}
                         </Badge>
                       </div>
-                      {result.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">{result.description}</p>
+                      
+                      {result.subcategory && (
+                        <p className="text-sm text-muted-foreground mb-1">{result.subcategory}</p>
                       )}
-                      <div className="flex items-center justify-between mt-2">
-                        {result.price > 0 && (
-                          <span className="font-semibold text-primary">
-                            ${result.price.toLocaleString()}
-                          </span>
-                        )}
-                        {result.brand && (
-                          <span className="text-xs text-muted-foreground">{result.brand}</span>
-                        )}
-                      </div>
+                      
+                      {result.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-1">
+                          {result.description}
+                        </p>
+                      )}
+                      
+                      {result.price > 0 && (
+                        <div className="text-sm font-semibold text-primary">
+                          ${result.price.toLocaleString()}
+                        </div>
+                      )}
+                      
+                      {result.companyName && (
+                        <div className="text-sm text-muted-foreground">
+                          Company: {result.companyName}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
               ))}
-            </Card>
-          </div>
-        )}
-
-        {/* Loading indicator */}
-        {isLoading && (
-          <div className="absolute top-full left-0 right-0 mt-2 z-50">
-            <Card className="bg-card/95 backdrop-blur-md border-border shadow-lg">
-              <div className="p-4 text-center">
-                <p className="text-sm text-muted-foreground">Searching...</p>
-              </div>
-            </Card>
-          </div>
-        )}
-
-        {/* No results */}
-        {showResults && searchResults.length === 0 && !isLoading && searchQuery.trim() && (
-          <div className="absolute top-full left-0 right-0 mt-2 z-50">
-            <Card className="bg-card/95 backdrop-blur-md border-border shadow-lg">
-              <div className="p-4 text-center">
-                <p className="text-sm text-muted-foreground">No results found for "{searchQuery}"</p>
-              </div>
-            </Card>
-          </div>
-        )}
-      </div>
+            </div>
+          ) : (
+            <div className="p-4 text-center text-muted-foreground">
+              No results found for "{searchQuery}"
+            </div>
+          )}
+        </Card>
+      )}
     </div>
   );
 };

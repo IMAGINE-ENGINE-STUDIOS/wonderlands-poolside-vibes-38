@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Shield, User, LogOut, Briefcase, Moon, Sun } from "lucide-react";
+import { Shield, User, LogOut, Briefcase, Moon, Sun, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminLogin from "./AdminLogin";
+import FixedEditorStudio from "./FixedEditorStudio";
 
 const Header = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [showEditorStudio, setShowEditorStudio] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const { user, profile, signOut } = useAuth();
   const location = useLocation();
@@ -20,6 +22,16 @@ const Header = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
+
+  // Listen for editor studio open requests
+  useEffect(() => {
+    const handleOpenEditor = () => {
+      setShowEditorStudio(true);
+    };
+
+    window.addEventListener('openEditorStudio', handleOpenEditor);
+    return () => window.removeEventListener('openEditorStudio', handleOpenEditor);
+  }, []);
 
   const handleAdminAccess = () => {
     setShowAdminLogin(true);
@@ -115,10 +127,15 @@ const Header = () => {
         </div>
       </header>
 
-      <AdminLogin 
+      <AdminLogin
         isOpen={showAdminLogin}
         onClose={() => setShowAdminLogin(false)}
         onLoginSuccess={handleLoginSuccess}
+      />
+
+      <FixedEditorStudio
+        isOpen={showEditorStudio}
+        onClose={() => setShowEditorStudio(false)}
       />
     </>
   );

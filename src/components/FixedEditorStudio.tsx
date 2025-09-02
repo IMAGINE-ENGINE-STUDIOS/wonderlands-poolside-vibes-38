@@ -33,7 +33,8 @@ import {
   Database,
   X,
   Video,
-  Users
+  Users,
+  ShoppingCart
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import TextCard from './TextCard';
@@ -49,6 +50,24 @@ interface EditableElement {
   target?: string;
   editable: boolean;
   selector?: string;
+  productData?: {
+    name: string;
+    price: number;
+    image?: string;
+    category: string;
+    type: string;
+    description?: string;
+    features?: string[];
+    options?: ProductOption[];
+  };
+}
+
+interface ProductOption {
+  id: string;
+  name: string;
+  price: number;
+  image?: string;
+  selected: boolean;
 }
 
 interface FixedEditorStudioProps {
@@ -67,6 +86,8 @@ const FixedEditorStudio: React.FC<FixedEditorStudioProps> = ({ isOpen, onClose }
   const [pendingChanges, setPendingChanges] = useState(0);
   const [showTextCard, setShowTextCard] = useState(false);
   const [showJoinChat, setShowJoinChat] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<EditableElement[]>([]);
+  const [totalQuoteAmount, setTotalQuoteAmount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -91,6 +112,82 @@ const FixedEditorStudio: React.FC<FixedEditorStudioProps> = ({ isOpen, onClose }
     }
   }, [elements]);
 
+  // Listen for product selection from search
+  useEffect(() => {
+    const handleOpenEditor = (event: CustomEvent) => {
+      const product = event.detail.product;
+      addProductElement(product);
+    };
+
+    window.addEventListener('openEditorStudio', handleOpenEditor as EventListener);
+    return () => window.removeEventListener('openEditorStudio', handleOpenEditor as EventListener);
+  }, []);
+
+  // Calculate total quote amount
+  useEffect(() => {
+    const products = elements.filter(el => el.type === 'product' && el.productData);
+    const total = products.reduce((sum, product) => {
+      const basePrice = product.productData?.price || 0;
+      const optionsPrice = product.productData?.options?.reduce((optSum, opt) => 
+        opt.selected ? optSum + opt.price : optSum, 0) || 0;
+      return sum + basePrice + optionsPrice;
+    }, 0);
+    setTotalQuoteAmount(total);
+    setSelectedProducts(products);
+  }, [elements]);
+
+  const addProductElement = (product: any) => {
+    const productOptions: ProductOption[] = [];
+    
+    // Add relevant options based on product type
+    if (product.type === 'pool') {
+      productOptions.push(
+        { id: 'heater', name: 'Pool Heater', price: 5000, image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png', selected: false },
+        { id: 'cover', name: 'Automatic Cover', price: 16000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png', selected: false },
+        { id: 'jets', name: 'Spa Jets', price: 1800, image: '/lovable-uploads/4f27a800-295b-476c-924c-1790ab191a5c.png', selected: false },
+        { id: 'lights', name: 'LED Lights', price: 800, selected: false }
+      );
+    } else if (product.type === 'finish') {
+      productOptions.push(
+        { id: 'premium', name: 'Premium Application', price: 2000, selected: false },
+        { id: 'warranty', name: 'Extended Warranty', price: 500, selected: false }
+      );
+    } else if (product.type === 'cover') {
+      productOptions.push(
+        { id: 'installation', name: 'Professional Installation', price: 1500, selected: false },
+        { id: 'maintenance', name: 'Maintenance Package', price: 800, selected: false }
+      );
+    }
+
+    const newElement: EditableElement = {
+      id: generateId(),
+      type: 'product',
+      content: product.name,
+      position: { x: 100 + Math.random() * 200, y: 100 + Math.random() * 200 },
+      size: { width: 400, height: 350 },
+      styles: 'bg-background border border-border rounded-lg shadow-lg overflow-hidden',
+      editable: true,
+      productData: {
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        category: product.category,
+        type: product.type,
+        description: product.description,
+        features: product.features,
+        options: productOptions
+      }
+    };
+    
+    setElements(prev => [...prev, newElement]);
+    setPendingChanges(prev => prev + 1);
+    
+    toast({
+      title: "Product Added",
+      description: `${product.name} added to your configuration`,
+    });
+  };
+
   const addElement = (type: EditableElement['type'], content: string) => {
     const newElement: EditableElement = {
       id: generateId(),
@@ -98,11 +195,12 @@ const FixedEditorStudio: React.FC<FixedEditorStudioProps> = ({ isOpen, onClose }
       content,
       position: { x: 100 + Math.random() * 200, y: 100 + Math.random() * 200 },
       size: { 
-        width: type === 'image' ? 200 : 300, 
-        height: type === 'image' ? 150 : type === 'button' ? 40 : 100 
+        width: type === 'image' ? 200 : type === 'product' ? 400 : 300, 
+        height: type === 'image' ? 150 : type === 'button' ? 40 : type === 'product' ? 350 : 100 
       },
       styles: type === 'button' ? 'bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90' : 
               type === 'heading' ? 'text-2xl font-bold text-foreground' :
+              type === 'product' ? 'bg-background border border-border rounded-lg shadow-lg overflow-hidden' :
               'bg-background border border-border p-4 rounded shadow',
       editable: true
     };
@@ -120,10 +218,10 @@ const FixedEditorStudio: React.FC<FixedEditorStudioProps> = ({ isOpen, onClose }
     setElements(prev => prev.map(el => 
       el.id === updatedElement.id ? updatedElement : el
     ));
+    
     setPendingChanges(prev => prev + 1);
     
     if (isLivePreview) {
-      // Apply changes in real-time
       setTimeout(() => {
         toast({
           title: "Element Updated",
@@ -168,12 +266,102 @@ const FixedEditorStudio: React.FC<FixedEditorStudioProps> = ({ isOpen, onClose }
   };
 
   const publishChanges = () => {
-    // In a real implementation, this would publish to the live site
     toast({
       title: "Changes Published",
       description: `${pendingChanges} changes published to live site`,
     });
     setPendingChanges(0);
+  };
+
+  const generateQuote = () => {
+    const quoteData = {
+      products: selectedProducts.map(product => ({
+        name: product.productData?.name,
+        price: product.productData?.price,
+        image: product.productData?.image,
+        options: product.productData?.options?.filter(opt => opt.selected)
+      })),
+      totalAmount: totalQuoteAmount,
+      timestamp: new Date().toISOString()
+    };
+
+    // Create printable quote
+    const quoteWindow = window.open('', '_blank');
+    if (quoteWindow) {
+      quoteWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Pool Configuration Quote</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <style>
+              @media print {
+                .print-hide { display: none !important; }
+                body { margin: 0; padding: 20px; }
+                * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+              }
+            </style>
+          </head>
+          <body class="bg-white">
+            <div class="max-w-4xl mx-auto p-8">
+              <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-blue-600 mb-2">Wonderlands Pools</h1>
+                <h2 class="text-xl text-gray-700">Pool Configuration Quote</h2>
+              </div>
+              
+              <div class="grid gap-6">
+                ${selectedProducts.map(product => `
+                  <div class="border rounded-lg p-4 shadow-sm">
+                    <div class="flex items-start gap-4">
+                      ${product.productData?.image ? `
+                        <img src="${product.productData.image}" alt="${product.productData.name}" class="w-32 h-24 object-cover rounded">
+                      ` : ''}
+                      <div class="flex-1">
+                        <h3 class="text-lg font-semibold">${product.productData?.name}</h3>
+                        <p class="text-sm text-gray-600 mb-2">${product.productData?.category}</p>
+                        <div class="text-xl font-bold text-blue-600">$${product.productData?.price.toLocaleString()}</div>
+                        ${product.productData?.options?.filter(opt => opt.selected).length ? `
+                          <div class="mt-3">
+                            <h4 class="font-medium text-sm mb-2">Selected Options:</h4>
+                            ${product.productData.options.filter(opt => opt.selected).map(option => `
+                              <div class="flex items-center gap-2 text-sm">
+                                ${option.image ? `<img src="${option.image}" alt="${option.name}" class="w-8 h-8 object-cover rounded">` : ''}
+                                <span>${option.name}: +$${option.price.toLocaleString()}</span>
+                              </div>
+                            `).join('')}
+                          </div>
+                        ` : ''}
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+              
+              <div class="mt-8 p-6 bg-blue-50 rounded-lg">
+                <div class="flex justify-between items-center">
+                  <span class="text-xl font-semibold">Total Quote Amount:</span>
+                  <span class="text-3xl font-bold text-blue-600">$${totalQuoteAmount.toLocaleString()}</span>
+                </div>
+              </div>
+              
+              <div class="mt-6 text-center text-sm text-gray-600">
+                <p>Quote generated on ${new Date().toLocaleDateString()}</p>
+                <p>Valid for 30 days from quote date</p>
+              </div>
+            </div>
+            
+            <script>
+              window.addEventListener('load', function() {
+                setTimeout(function() {
+                  window.print();
+                }, 500);
+              });
+            </script>
+          </body>
+        </html>
+      `);
+      quoteWindow.document.close();
+    }
   };
 
   const getDeviceStyles = () => {
@@ -213,6 +401,16 @@ const FixedEditorStudio: React.FC<FixedEditorStudioProps> = ({ isOpen, onClose }
                 </div>
                 
                 <div className="flex items-center gap-2">
+                  {totalQuoteAmount > 0 && (
+                    <Button
+                      onClick={generateQuote}
+                      variant="default"
+                      size="sm"
+                    >
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      Generate Quote (${totalQuoteAmount.toLocaleString()})
+                    </Button>
+                  )}
                   <Button
                     onClick={() => setShowJoinChat(true)}
                     variant="outline"
@@ -284,12 +482,27 @@ const FixedEditorStudio: React.FC<FixedEditorStudioProps> = ({ isOpen, onClose }
                           <MousePointer className="h-4 w-4 mr-2" />
                           Button
                         </Button>
+                        <Button 
+                          onClick={() => addElement('product', 'Product Placeholder')}
+                          variant="outline" 
+                          className="w-full justify-start"
+                        >
+                          <Package className="h-4 w-4 mr-2" />
+                          Product Card
+                        </Button>
                       </CardContent>
                     </Card>
 
                     <Card>
                       <CardHeader className="pb-3">
-                        <CardTitle className="text-sm">Element List</CardTitle>
+                        <CardTitle className="text-sm">
+                          Elements ({elements.length})
+                          {totalQuoteAmount > 0 && (
+                            <Badge className="ml-2">
+                              ${totalQuoteAmount.toLocaleString()}
+                            </Badge>
+                          )}
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -311,6 +524,11 @@ const FixedEditorStudio: React.FC<FixedEditorStudioProps> = ({ isOpen, onClose }
                                   <span className="text-sm truncate">
                                     {element.content.substring(0, 15)}...
                                   </span>
+                                  {element.type === 'product' && element.productData && (
+                                    <Badge variant="outline" className="text-xs">
+                                      ${element.productData.price.toLocaleString()}
+                                    </Badge>
+                                  )}
                                 </div>
                                 <Button
                                   onClick={(e) => {
@@ -365,29 +583,6 @@ const FixedEditorStudio: React.FC<FixedEditorStudioProps> = ({ isOpen, onClose }
                         </Button>
                       </CardContent>
                     </Card>
-
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm">Device Preview</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {[
-                          { value: 'desktop', label: 'Desktop', icon: Monitor },
-                          { value: 'tablet', label: 'Tablet', icon: Tablet },
-                          { value: 'mobile', label: 'Mobile', icon: Smartphone }
-                        ].map(({ value, label, icon: Icon }) => (
-                          <Button
-                            key={value}
-                            onClick={() => setSelectedDevice(value)}
-                            variant={selectedDevice === value ? "default" : "outline"}
-                            className="w-full justify-start"
-                          >
-                            <Icon className="h-4 w-4 mr-2" />
-                            {label}
-                          </Button>
-                        ))}
-                      </CardContent>
-                    </Card>
                   </TabsContent>
 
                   <TabsContent value="settings" className="space-y-4 mt-4">
@@ -410,31 +605,17 @@ const FixedEditorStudio: React.FC<FixedEditorStudioProps> = ({ isOpen, onClose }
                           <Globe className="h-4 w-4 mr-2" />
                           Publish ({pendingChanges})
                         </Button>
-                        
-                        <Button 
-                          onClick={() => setIsLivePreview(!isLivePreview)}
-                          variant={isLivePreview ? "default" : "outline"}
-                          className="w-full"
-                        >
-                          <RefreshCw className="h-4 w-4 mr-2" />
-                          Live Preview
-                        </Button>
-                      </CardContent>
-                    </Card>
 
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm">Communication</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        <Button
-                          onClick={() => setShowJoinChat(true)}
-                          variant="outline"
-                          className="w-full"
-                        >
-                          <Video className="h-4 w-4 mr-2" />
-                          Open Join (Video Chat)
-                        </Button>
+                        {totalQuoteAmount > 0 && (
+                          <Button 
+                            onClick={generateQuote} 
+                            variant="default"
+                            className="w-full"
+                          >
+                            <ShoppingCart className="h-4 w-4 mr-2" />
+                            Generate Quote
+                          </Button>
+                        )}
                       </CardContent>
                     </Card>
                   </TabsContent>
@@ -453,97 +634,88 @@ const FixedEditorStudio: React.FC<FixedEditorStudioProps> = ({ isOpen, onClose }
                       Transform your backyard into a paradise
                     </p>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                      <div className={`p-4 bg-white rounded shadow ${showOutlines ? 'outline-dashed outline-2 outline-green-500' : ''}`}>
-                        <h3 className="font-semibold">Premium Pools</h3>
-                        <p className="text-sm text-gray-600">Luxury swimming pools</p>
+                    {/* Quote Summary */}
+                    {totalQuoteAmount > 0 && (
+                      <div className="mb-8 p-4 bg-primary/10 rounded-lg border">
+                        <h3 className="text-xl font-semibold mb-2">Current Quote</h3>
+                        <div className="text-2xl font-bold text-primary">
+                          ${totalQuoteAmount.toLocaleString()}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} selected
+                        </p>
                       </div>
-                      <div className={`p-4 bg-white rounded shadow ${showOutlines ? 'outline-dashed outline-2 outline-green-500' : ''}`}>
-                        <h3 className="font-semibold">Expert Installation</h3>
-                        <p className="text-sm text-gray-600">Professional service</p>
-                      </div>
-                      <div className={`p-4 bg-white rounded shadow ${showOutlines ? 'outline-dashed outline-2 outline-green-500' : ''}`}>
-                        <h3 className="font-semibold">Lifetime Warranty</h3>
-                        <p className="text-sm text-gray-600">Peace of mind guarantee</p>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* Dynamic Elements */}
-                  {elements.map((element) => (
+                  {elements.map(element => (
                     <div
                       key={element.id}
-                      className={`absolute cursor-move ${element.styles || 'bg-white border border-gray-300 p-4 rounded shadow'} ${
-                        editMode && showOutlines ? 'outline-dashed outline-2 outline-red-500' : ''
-                      } ${editMode ? 'hover:shadow-lg transition-shadow' : ''}`}
+                      className={`absolute cursor-pointer transition-all duration-200 ${
+                        showOutlines ? 'outline-dashed outline-2 outline-primary' : ''
+                      } ${
+                        selectedElement?.id === element.id ? 'ring-2 ring-primary' : ''
+                      } ${element.styles || ''}`}
                       style={{
                         left: element.position.x,
                         top: element.position.y,
                         width: element.size?.width,
                         height: element.size?.height,
                       }}
-                      onClick={() => editMode && setSelectedElement(element)}
-                      draggable={editMode}
-                      onDragEnd={(e) => {
-                        if (editMode) {
-                          const rect = e.currentTarget.parentElement!.getBoundingClientRect();
-                          updateElement({
-                            ...element,
-                            position: {
-                              x: e.clientX - rect.left,
-                              y: e.clientY - rect.top
-                            }
-                          });
-                        }
-                      }}
+                      onClick={() => setSelectedElement(element)}
                     >
-                      {element.type === 'image' ? (
+                      {element.type === 'text' && (
+                        <p className="text-sm">{element.content}</p>
+                      )}
+                      {element.type === 'heading' && (
+                        <h2 className="text-xl font-bold">{element.content}</h2>
+                      )}
+                      {element.type === 'image' && (
                         <img 
                           src={element.content} 
-                          alt="Custom" 
+                          alt="Element" 
                           className="w-full h-full object-cover rounded"
-                          draggable={false}
                         />
-                      ) : (
-                        <div className="break-words">{element.content}</div>
                       )}
-                      
-                      {editMode && selectedElement?.id === element.id && (
-                        <div className="absolute -top-8 right-0 flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditDialog(true);
-                            }}
-                          >
-                            <Edit3 className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            className="h-6 w-6 p-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteElement(element.id);
-                            }}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+                      {element.type === 'button' && (
+                        <button className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90">
+                          {element.content}
+                        </button>
+                      )}
+                      {element.type === 'product' && element.productData && (
+                        <div className="w-full h-full bg-white rounded-lg border shadow-lg overflow-hidden">
+                          {element.productData.image && (
+                            <img 
+                              src={element.productData.image} 
+                              alt={element.productData.name}
+                              className="w-full h-40 object-cover"
+                            />
+                          )}
+                          <div className="p-3">
+                            <h3 className="font-semibold text-sm mb-1">{element.productData.name}</h3>
+                            <div className="text-lg font-bold text-primary mb-2">
+                              ${element.productData.price.toLocaleString()}
+                            </div>
+                            <Badge className="text-xs mb-2">{element.productData.category}</Badge>
+                            {element.productData.options && element.productData.options.some(opt => opt.selected) && (
+                              <div className="mt-2 space-y-1">
+                                <div className="text-xs text-muted-foreground">Options:</div>
+                                {element.productData.options.filter(opt => opt.selected).map(option => (
+                                  <div key={option.id} className="flex items-center gap-1 text-xs">
+                                    {option.image && (
+                                      <img src={option.image} alt={option.name} className="w-4 h-4 object-cover rounded" />
+                                    )}
+                                    <span>{option.name} (+${option.price.toLocaleString()})</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
                   ))}
-
-                  {editMode && (
-                    <div className="absolute inset-0 bg-blue-500/5 pointer-events-none">
-                      <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                        Edit Mode Active - Click elements to select
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -558,10 +730,10 @@ const FixedEditorStudio: React.FC<FixedEditorStudioProps> = ({ isOpen, onClose }
             className="hidden"
           />
 
-          {/* Edit Dialog */}
+          {/* Element Edit Dialog */}
           {selectedElement && (
             <Dialog open={editDialog} onOpenChange={setEditDialog}>
-              <DialogContent>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Edit Element</DialogTitle>
                 </DialogHeader>
@@ -624,6 +796,48 @@ const FixedEditorStudio: React.FC<FixedEditorStudioProps> = ({ isOpen, onClose }
                       />
                     </div>
                   </div>
+
+                  {/* Product Options Panel */}
+                  {selectedElement.type === 'product' && selectedElement.productData?.options && (
+                    <div className="space-y-4">
+                      <h4 className="font-semibold">Product Options</h4>
+                      <div className="grid gap-3">
+                        {selectedElement.productData.options.map(option => (
+                          <div key={option.id} className="flex items-center justify-between p-3 border rounded">
+                            <div className="flex items-center space-x-3">
+                              <input
+                                type="checkbox"
+                                checked={option.selected}
+                                onChange={(e) => {
+                                  const updatedOptions = selectedElement.productData!.options!.map(opt =>
+                                    opt.id === option.id ? { ...opt, selected: e.target.checked } : opt
+                                  );
+                                  const updatedElement = {
+                                    ...selectedElement,
+                                    productData: {
+                                      ...selectedElement.productData!,
+                                      options: updatedOptions
+                                    }
+                                  };
+                                  setSelectedElement(updatedElement);
+                                }}
+                                className="w-4 h-4"
+                              />
+                              {option.image && (
+                                <img src={option.image} alt={option.name} className="w-12 h-12 object-cover rounded" />
+                              )}
+                              <div>
+                                <div className="font-medium">{option.name}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  +${option.price.toLocaleString()}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   
                   <div>
                     <label className="text-sm font-medium mb-2 block">Custom Styles (Tailwind Classes)</label>
@@ -638,10 +852,12 @@ const FixedEditorStudio: React.FC<FixedEditorStudioProps> = ({ isOpen, onClose }
                     <Button variant="outline" onClick={() => setEditDialog(false)}>
                       Cancel
                     </Button>
-                    <Button onClick={() => {
-                      updateElement(selectedElement);
-                      setEditDialog(false);
-                    }}>
+                    <Button 
+                      onClick={() => {
+                        updateElement(selectedElement);
+                        setEditDialog(false);
+                      }}
+                    >
                       Save Changes
                     </Button>
                   </div>
