@@ -1,19 +1,15 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Shield, User, LogOut, Briefcase, Moon, Sun, Home } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Shield, User, LogOut, Briefcase, Moon, Sun } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminLogin from "./AdminLogin";
-import FixedEditorStudio from "./FixedEditorStudio";
 
 const Header = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [showEditorStudio, setShowEditorStudio] = useState(false);
-  const [pendingProduct, setPendingProduct] = useState<any | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const { user, profile, signOut } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const isContentEditor = location.pathname === '/content-editor';
 
   // Dark mode toggle effect
@@ -24,28 +20,6 @@ const Header = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
-
-  // Listen for editor studio open requests from search
-  useEffect(() => {
-    const handleOpenEditor = (e: any) => {
-      const product = e.detail?.product;
-      setPendingProduct(product || null);
-      setShowEditorStudio(true);
-    };
-
-    window.addEventListener('openEditorStudio', handleOpenEditor);
-    return () => window.removeEventListener('openEditorStudio', handleOpenEditor);
-  }, []);
-
-  // When editor opens and there is a pending product, forward to studio
-  useEffect(() => {
-    if (showEditorStudio && pendingProduct) {
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('editorStudioAddProduct', { detail: { product: pendingProduct } }));
-        setPendingProduct(null);
-      }, 100);
-    }
-  }, [showEditorStudio, pendingProduct]);
 
   const handleAdminAccess = () => {
     setShowAdminLogin(true);
@@ -60,19 +34,17 @@ const Header = () => {
   return (
     <>
       {/* Dark Mode Toggle - Top Left Corner */}
-      {!showEditorStudio && (
-        <div className="fixed top-4 left-24 sm:left-28 md:left-32 z-[100]">
-          <Button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            variant="outline"
-            size="sm"
-            className="transition-all duration-300 hover:scale-105 bg-background/80 backdrop-blur-sm"
-            title="Toggle Dark Mode"
-          >
-            {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </Button>
-        </div>
-      )}
+      <div className="fixed top-4 left-24 sm:left-28 md:left-32 z-[100]">
+        <Button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          variant="outline"
+          size="sm"
+          className="transition-all duration-300 hover:scale-105 bg-background/80 backdrop-blur-sm"
+          title="Toggle Dark Mode"
+        >
+          {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </Button>
+      </div>
 
       <header className={`fixed top-0 left-0 right-0 p-2 sm:p-4 ${
         isContentEditor ? 'z-30 pointer-events-none' : 'z-50'
@@ -91,84 +63,27 @@ const Header = () => {
           
           {/* Header Controls */}
           <div className="flex items-center gap-2">
-            {/* When Editor Studio is open: show only Home button */}
-            {showEditorStudio ? (
-              <Button 
-                variant="default" 
-                size="sm" 
-                className="transition-all duration-300 hover:scale-105"
-                title="Go Home"
-                onClick={() => {
-                  setShowEditorStudio(false);
-                  navigate('/');
-                }}
-              >
-                <Home className="w-4 h-4 mr-1" />
-                Home
-              </Button>
-            ) : (
-              // Authentication-based navigation
-              !isContentEditor && (
-                <>
-                  {!user ? (
-                    <Link to="/auth">
-                      <Button 
-                        variant="default" 
-                        size="sm" 
-                        className="transition-all duration-300 hover:scale-105"
-                        title="Sign in to your account"
-                      >
-                        Sign In
-                      </Button>
-                    </Link>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      {/* User menu based on role */}
-                      {profile?.role === 'main_admin' && (
-                        <Link to="/admin">
-                          <Button variant="outline" size="sm" className="transition-all duration-300 hover:scale-105">
-                            <Shield className="w-4 h-4 mr-1" />
-                            Admin
-                          </Button>
-                        </Link>
-                      )}
-                      
-                      {(profile?.role === 'supplier' || profile?.role === 'installer') && (
-                        <Link to="/procurement">
-                          <Button variant="outline" size="sm" className="transition-all duration-300 hover:scale-105">
-                            <Briefcase className="w-4 h-4 mr-1" />
-                            Jobs
-                          </Button>
-                        </Link>
-                      )}
-                      
-                      <Button 
-                        onClick={signOut}
-                        variant="ghost" 
-                        size="sm" 
-                        className="transition-all duration-300 hover:scale-105"
-                        title="Sign out"
-                      >
-                        <LogOut className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )
+            {/* Simplified Auth - Only when not logged in and not in content editor */}
+            {!isContentEditor && !user && (
+              <Link to="/auth">
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="transition-all duration-300 hover:scale-105"
+                  title="Sign in to your account"
+                >
+                  Sign In
+                </Button>
+              </Link>
             )}
           </div>
         </div>
       </header>
 
-      <AdminLogin
+      <AdminLogin 
         isOpen={showAdminLogin}
         onClose={() => setShowAdminLogin(false)}
         onLoginSuccess={handleLoginSuccess}
-      />
-
-      <FixedEditorStudio
-        isOpen={showEditorStudio}
-        onClose={() => setShowEditorStudio(false)}
       />
     </>
   );
