@@ -12,9 +12,8 @@ const RightNavigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Check if we're on the content editor or admin dashboard page
-  const isContentEditor = location.pathname === '/content-editor';
-  const isAdminDashboard = location.pathname === '/admin';
+  // Check if we're on the main page - only show full navigation on main page
+  const isMainPage = location.pathname === '/';
   const isQuoteOpen = typeof document !== 'undefined' && document.body.dataset.quoteOpen === 'true';
 
   useEffect(() => {
@@ -75,11 +74,11 @@ const RightNavigation = () => {
   return (
     <TooltipProvider>
       <div className={`fixed right-4 z-[70] flex flex-col gap-2 ${
-        isAdminDashboard ? 'top-4' : 'top-1/2 transform -translate-y-1/2'
+        !isMainPage ? 'top-4' : 'top-1/2 transform -translate-y-1/2'
       }`}>
         {/* Conditional rendering based on current page */}
-        {(isContentEditor || isAdminDashboard || isQuoteOpen) ? (
-          /* Show only Home button on Content Editor, Admin Dashboard pages, or when quote modal open */
+        {(!isMainPage || isQuoteOpen) ? (
+          /* Show only Home button on non-main pages or when quote modal open */
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

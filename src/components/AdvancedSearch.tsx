@@ -23,19 +23,53 @@ const AdvancedSearch = () => {
 
   // Consolidated product data from all main page components
   
-  // Pool models from PoolCatalog
+  // Pool models from PoolCatalog - Complete list
   const poolData = [
+    // Enchantment Series
     { id: 'enchantment-917', name: 'Enchantment 9.17', category: 'Compact', price: 47900, image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png' },
     { id: 'enchantment-921', name: 'Enchantment 9.21', category: 'Compact', price: 54400, image: '/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png' },
     { id: 'enchantment-924', name: 'Enchantment 9.24', category: 'Compact', price: 60800, image: '/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png' },
+    
+    // Standard Series
     { id: 'astoria', name: 'Astoria', category: 'Standard', price: 89999, image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png' },
     { id: 'milan', name: 'Milan', category: 'Standard', price: 45300, image: '/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png' },
     { id: 'jamaica', name: 'Jamaica', category: 'Standard', price: 46100, image: '/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png' },
     { id: 'aruba', name: 'Aruba', category: 'Standard', price: 51300, image: '/lovable-uploads/ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5.png' },
+    { id: 'pleasant-cove', name: 'Pleasant Cove', category: 'Standard', price: 51300, image: '/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.png' },
+    
+    // Tuscan Series
+    { id: 'tuscan-1120', name: 'Tuscan 11.20', category: 'Deluxe', price: 59430, image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png' },
+    { id: 'tuscan-1324', name: 'Tuscan 13.24', category: 'Deluxe', price: 72870, image: '/lovable-uploads/2677d17d-ba82-407b-896c-b4b3e238b8d5.png' },
+    { id: 'tuscan-1427', name: 'Tuscan 14.27', category: 'Deluxe', price: 84000, image: '/lovable-uploads/de3068d3-0f04-4a3c-a2ed-f52141f36b3e.png' },
+    { id: 'tuscan-1430', name: 'Tuscan 14.30', category: 'Deluxe', price: 92610, image: '/lovable-uploads/d1c952c1-8786-444d-b405-903533bc20d1.png' },
+    { id: 'tuscan-1440', name: 'Tuscan 14.40', category: 'Deluxe', price: 116550, image: '/lovable-uploads/c1225a37-626d-49a2-9ec4-eb0da0f10060.png' },
+    
+    // Premium/Deluxe Series
     { id: 'st-lucia', name: 'St. Lucia', category: 'Deluxe', price: 59640, image: '/lovable-uploads/03b6750e-bed3-41df-abcb-6657d36cfa62.png' },
+    { id: 'delray', name: 'Delray', category: 'Deluxe', price: 62265, image: '/lovable-uploads/f549e4e8-647d-4b21-8d48-441f83955c73.png' },
+    { id: 'java', name: 'Java', category: 'Deluxe', price: 63000, image: '/lovable-uploads/bca99a48-ba6b-42d0-96d0-bf5ecfc2e4fd.png' },
+    { id: 'bermuda', name: 'Bermuda', category: 'Deluxe', price: 64575, image: '/lovable-uploads/311a7002-2a40-4c59-a143-9f0236ece5d4.png' },
+    { id: 'key-west', name: 'Key West', category: 'Deluxe', price: 67515, image: '/lovable-uploads/4e43c832-af03-4cf4-9104-0117e5f3321c.png' },
     { id: 'valencia', name: 'Valencia', category: 'Deluxe', price: 68775, image: '/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.png' },
+    { id: 'vista-isle', name: 'Vista Isle', category: 'Premium', price: 70000, image: '/lovable-uploads/6a41df5e-d6f6-4e49-aa1a-b457ac1902a0.png' },
+    
+    // Corinthian Series
     { id: 'corinthian-12', name: 'Corinthian 12', category: 'Premium', price: 75400, image: '/lovable-uploads/221a9844-ee7c-4fe3-b421-a9fe99bccabf.png' },
-    { id: 'laguna', name: 'Laguna', category: 'Premium', price: 82600, image: '/lovable-uploads/ee464b25-683d-4367-a208-2159c2bd13f3.png' }
+    { id: 'corinthian-12-bme', name: 'Corinthian 12 BME', category: 'Premium', price: 79400, image: '/lovable-uploads/86678699-3f2c-4863-8a81-d8c63721e03c.png' },
+    { id: 'corinthian-14', name: 'Corinthian 14', category: 'Premium', price: 94500, image: '/lovable-uploads/3ae37221-0f97-48df-addd-632c423868e2.png' },
+    { id: 'corinthian-14-bme', name: 'Corinthian 14 BME', category: 'Premium', price: 98500, image: '/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.png' },
+    
+    // Olympia Series
+    { id: 'olympia-12', name: 'Olympia 12', category: 'Premium', price: 76300, image: '/lovable-uploads/0aa90de6-b1eb-43a4-91ec-10c05388c900.png' },
+    { id: 'olympia-14', name: 'Olympia 14', category: 'Premium', price: 96400, image: '/lovable-uploads/d707c6e1-8471-404f-9312-bd6773152617.png' },
+    
+    // Large Premium Series
+    { id: 'bay-isle', name: 'Bay Isle', category: 'Premium', price: 80400, image: '/lovable-uploads/a91d91f2-51f8-470c-9894-4a1cf8b1f2c0.png' },
+    { id: 'laguna', name: 'Laguna', category: 'Premium', price: 82600, image: '/lovable-uploads/ee464b25-683d-4367-a208-2159c2bd13f3.png' },
+    { id: 'laguna-deluxe', name: 'Laguna Deluxe', category: 'Premium', price: 95300, image: '/lovable-uploads/46d142d3-b106-406d-9867-9bf7b63fd469.png' },
+    { id: 'claremont', name: 'Claremont', category: 'Premium', price: 83400, image: '/lovable-uploads/6b7b34a3-03f7-4179-b34a-3458dc881efd.png' },
+    { id: 'axiom-14', name: 'Axiom 14', category: 'Premium', price: 87500, image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png' },
+    { id: 'providence-14', name: 'Providence 14', category: 'Premium', price: 95600, image: '/lovable-uploads/3929943c-2e46-426f-b155-3d79c96d7eb4.png' }
   ];
 
   // All other product categories consolidated from main page sections
