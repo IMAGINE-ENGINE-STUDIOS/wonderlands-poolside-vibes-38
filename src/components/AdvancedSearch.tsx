@@ -182,48 +182,88 @@ const AdvancedSearch = () => {
 
   const scrollToSection = (result: SearchResult) => {
     if (result.type === 'pool') {
-      // Find the full pool data from PoolCatalog
-      import('./PoolCatalog').then(({ pools }) => {
-        const selectedPool = pools.find(p => p.model.toLowerCase().replace(/\s+/g, '-') === result.id);
-        if (selectedPool) {
-          const params = new URLSearchParams({
-            model: selectedPool.model,
-            price: selectedPool.price.toString(),
-            category: selectedPool.category,
-            ...(selectedPool.image && { image: selectedPool.image }),
-            ...(selectedPool.dimensions && { dimensions: selectedPool.dimensions }),
-            ...(selectedPool.depth && { depth: selectedPool.depth }),
-            ...(selectedPool.installationTimeWeeks && { installationTimeWeeks: selectedPool.installationTimeWeeks.toString() }),
-            ...(selectedPool.warrantyYears && { warrantyYears: selectedPool.warrantyYears.toString() }),
-            ...(selectedPool.saltSystem !== undefined && { saltSystem: selectedPool.saltSystem.toString() }),
-            ...(selectedPool.carbonFiber !== undefined && { carbonFiber: selectedPool.carbonFiber.toString() })
-          });
-          navigate(`/pool/${result.id}?${params.toString()}`);
-        } else {
-          navigate(`/pool/${result.id}`);
-        }
-      });
+      // Navigate to pools section first, then to specific pool detail
+      window.location.hash = '#pools';
+      const element = document.querySelector('#pools');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+      
+      // Then navigate to pool detail page after a short delay
+      setTimeout(() => {
+        import('./PoolCatalog').then(({ pools }) => {
+          const selectedPool = pools.find(p => p.model.toLowerCase().replace(/\s+/g, '-') === result.id);
+          if (selectedPool) {
+            const params = new URLSearchParams({
+              model: selectedPool.model,
+              price: selectedPool.price.toString(),
+              category: selectedPool.category,
+              ...(selectedPool.image && { image: selectedPool.image }),
+              ...(selectedPool.dimensions && { dimensions: selectedPool.dimensions }),
+              ...(selectedPool.depth && { depth: selectedPool.depth }),
+              ...(selectedPool.installationTimeWeeks && { installationTimeWeeks: selectedPool.installationTimeWeeks.toString() }),
+              ...(selectedPool.warrantyYears && { warrantyYears: selectedPool.warrantyYears.toString() }),
+              ...(selectedPool.saltSystem !== undefined && { saltSystem: selectedPool.saltSystem.toString() }),
+              ...(selectedPool.carbonFiber !== undefined && { carbonFiber: selectedPool.carbonFiber.toString() })
+            });
+            navigate(`/pool/${result.id}?${params.toString()}`);
+          } else {
+            navigate(`/pool/${result.id}`);
+          }
+        });
+      }, 500);
     } else {
-      // Scroll to the appropriate section based on category
+      // Enhanced section mapping for all product categories
       const sectionMap: { [key: string]: string } = {
         'spa': '#spas',
         'finish': '#finishes',
         'liner': '#liners',
         'cover': '#covers',
+        'automatic': '#covers',
         'screen enclosure': '#screen-enclosures',
-        'tanning ledge': '#spas'
+        'screen': '#screen-enclosures',
+        'enclosure': '#screen-enclosures',
+        'paver': '#pavers',
+        'pavers': '#pavers',
+        'appian': '#pavers',
+        'catalina': '#pavers',
+        'tanning ledge': '#spas',
+        'tanning': '#spas',
+        'ledge': '#spas',
+        'tile': '#finishes',
+        'tiles': '#finishes',
+        'heater': '#covers',
+        'heating': '#covers',
+        'pool heater': '#covers'
       };
 
-      const section = Object.keys(sectionMap).find(key => 
-        result.category.toLowerCase().includes(key)
-      );
+      // Find matching section - check multiple ways
+      let targetSection = '';
+      const categoryLower = result.category.toLowerCase();
+      const nameLower = result.name.toLowerCase();
+      
+      // Direct category match
+      if (sectionMap[categoryLower]) {
+        targetSection = sectionMap[categoryLower];
+      } else {
+        // Check if any section key is contained in category or name
+        const matchingKey = Object.keys(sectionMap).find(key => 
+          categoryLower.includes(key) || nameLower.includes(key)
+        );
+        if (matchingKey) {
+          targetSection = sectionMap[matchingKey];
+        }
+      }
 
-      if (section) {
-        window.location.hash = sectionMap[section];
-        const element = document.querySelector(sectionMap[section]);
+      if (targetSection) {
+        window.location.hash = targetSection;
+        const element = document.querySelector(targetSection);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
         }
+      } else {
+        // Fallback: scroll to top of page
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
   };
