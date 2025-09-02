@@ -15,7 +15,6 @@ import PoolDetails from "./pages/PoolDetails";
 import ContentEditor from "./pages/ContentEditor";
 import ReferralPortal from "./pages/ReferralPortal";
 import ProtectedRoute from "./components/ProtectedRoute";
-import SimplifiedDashboard from "./components/SimplifiedDashboard";
 
 const App = () => (
   <AuthProvider>
@@ -30,31 +29,18 @@ const App = () => (
           element={<ProcurementSystem />} 
         />
         <Route path="/referral" element={<ReferralPortal />} />
-        
-        {/* Main Admin Dashboard - Only for rikicot@hotmail.com */}
         <Route 
           path="/admin" 
           element={
-            <ProtectedRoute requireAuth={true} requireMainAdmin={true}>
+            <ProtectedRoute requireAuth={true}>
               <AdminDashboard />
             </ProtectedRoute>
           } 
         />
-        
-        {/* Simplified Dashboard for Suppliers and Contractors */}
-        <Route 
-          path="/dashboard" 
-          element={
-            <ProtectedRoute requireAuth={true} requiredRoles={['supplier', 'installer']}>
-              <SimplifiedDashboard />
-            </ProtectedRoute>
-          } 
-        />
-        
         <Route 
           path="/content-editor" 
           element={
-            <ProtectedRoute requireMainAdmin={true}>
+            <ProtectedRoute requiredRoles={['main_admin']}>
               <ContentEditor />
             </ProtectedRoute>
           } 
@@ -62,7 +48,7 @@ const App = () => (
         <Route 
           path="/template" 
           element={
-            <ProtectedRoute requireMainAdmin={true}>
+            <ProtectedRoute requiredRoles={['main_admin']}>
               <EcommerceTemplate />
             </ProtectedRoute>
           } 

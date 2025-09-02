@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 
 interface SearchResult {
   id: string;
@@ -12,16 +11,7 @@ interface SearchResult {
   category: string;
   price: number;
   image?: string;
-  type: 'pool' | 'product' | 'paver' | 'service' | 'supplier';
-  subcategory?: string;
-  description?: string;
-  brand?: string;
-  material?: string;
-  pattern?: string;
-  features?: string[];
-  matchedFields?: string[];
-  companyName?: string;
-  location?: string;
+  type: 'pool' | 'product';
 }
 
 const AdvancedSearch = () => {
@@ -31,46 +21,65 @@ const AdvancedSearch = () => {
   const [showResults, setShowResults] = useState(false);
   const navigate = useNavigate();
 
-  // Static fallback data (kept for offline/backup scenarios)
+  // Consolidated product data from all main page components
+  
+  // Pool models from PoolCatalog
+  const poolData = [
+    { id: 'enchantment-917', name: 'Enchantment 9.17', category: 'Compact', price: 47900, image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png' },
+    { id: 'enchantment-921', name: 'Enchantment 9.21', category: 'Compact', price: 54400, image: '/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png' },
+    { id: 'enchantment-924', name: 'Enchantment 9.24', category: 'Compact', price: 60800, image: '/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png' },
+    { id: 'astoria', name: 'Astoria', category: 'Standard', price: 89999, image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png' },
+    { id: 'milan', name: 'Milan', category: 'Standard', price: 45300, image: '/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png' },
+    { id: 'jamaica', name: 'Jamaica', category: 'Standard', price: 46100, image: '/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png' },
+    { id: 'aruba', name: 'Aruba', category: 'Standard', price: 51300, image: '/lovable-uploads/ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5.png' },
+    { id: 'st-lucia', name: 'St. Lucia', category: 'Deluxe', price: 59640, image: '/lovable-uploads/03b6750e-bed3-41df-abcb-6657d36cfa62.png' },
+    { id: 'valencia', name: 'Valencia', category: 'Deluxe', price: 68775, image: '/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.png' },
+    { id: 'corinthian-12', name: 'Corinthian 12', category: 'Premium', price: 75400, image: '/lovable-uploads/221a9844-ee7c-4fe3-b421-a9fe99bccabf.png' },
+    { id: 'laguna', name: 'Laguna', category: 'Premium', price: 82600, image: '/lovable-uploads/ee464b25-683d-4367-a208-2159c2bd13f3.png' }
+  ];
 
-  // Helper function to create search keywords from query with expanded terms
-  const createSearchKeywords = (query: string): string[] => {
-    const keywords = query.toLowerCase()
-      .split(/[\s,.-]+/)
-      .filter(word => word.length > 2)
-      .map(word => word.trim());
+  // All other product categories consolidated from main page sections
+  const productCategories = [
+    // Spas from SpaCatalog
+    { id: 'mystic', name: 'Mystic Spa', category: 'Spa', price: 22000, image: '/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.png' },
+    { id: 'serenity', name: 'Serenity Spa', category: 'Spa', price: 24000, image: '/lovable-uploads/e3bbb69b-9699-4d9e-aca9-8c98b50f2c78.png' },
+    { id: 'tranquil', name: 'Tranquil Spa', category: 'Spa', price: 26000, image: '/lovable-uploads/7edc4a89-7438-4f88-81f4-8beea8152f07.png' },
+    { id: 'oasis', name: 'Oasis Spa', category: 'Spa', price: 28000, image: '/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.png' },
     
-    // Add expanded keywords for common terms
-    const expandedKeywords = [...keywords];
-    keywords.forEach(keyword => {
-      // Pool-related expansions
-      if (keyword.includes('pool')) expandedKeywords.push('swimming', 'fiberglass', 'inground', 'above ground');
-      if (keyword.includes('spa')) expandedKeywords.push('hot tub', 'jacuzzi', 'therapy');
-      if (keyword.includes('paver')) expandedKeywords.push('stone', 'brick', 'concrete', 'hardscape');
-      if (keyword.includes('install')) expandedKeywords.push('contractor', 'service', 'installation', 'builder');
-      if (keyword.includes('clean')) expandedKeywords.push('maintenance', 'service', 'chemical', 'chlorine');
-      if (keyword.includes('repair')) expandedKeywords.push('fix', 'maintenance', 'service', 'restoration');
-      if (keyword.includes('heat')) expandedKeywords.push('heater', 'heating', 'warmer', 'temperature');
-      if (keyword.includes('cover')) expandedKeywords.push('safety', 'automatic', 'winter', 'solar');
-      if (keyword.includes('filter')) expandedKeywords.push('cleaning', 'system', 'pump', 'equipment');
-    });
+    // Pool finishes from PoolFinishesSection
+    { id: 'sapphire-blue-crystal', name: 'Sapphire Blue Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png' },
+    { id: 'ocean-blue-crystal', name: 'Ocean Blue Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/2103693f-cf54-423d-99c7-68d6f3951388.png' },
+    { id: 'night-sky-crystal', name: 'Night Sky Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/90fe0136-31f1-4fa3-b816-56a7a74484fa.png' },
+    { id: 'shale-gray-crystal', name: 'Shale Gray Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/15032ed4-f745-4152-ae9b-c26fdb52f68c.png' },
+    { id: 'coastal-bronze-crystal', name: 'Coastal Bronze Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/b1abd5c3-af2e-46fa-82be-5db27d20a388.png' },
     
-    return [...new Set(expandedKeywords)];
-  };
-
-  // Helper function to check if any keywords match in a text field
-  const matchesKeywords = (text: string | null | undefined, keywords: string[]): boolean => {
-    if (!text) return false;
-    const lowerText = text.toLowerCase();
-    return keywords.some(keyword => lowerText.includes(keyword));
-  };
-
-  // Helper function to check if any keywords match in an array field
-  const matchesArrayKeywords = (arr: string[] | null | undefined, keywords: string[]): boolean => {
-    if (!arr || !Array.isArray(arr)) return false;
-    const arrText = arr.join(' ').toLowerCase();
-    return keywords.some(keyword => arrText.includes(keyword));
-  };
+    // Pool liners from LinersSection
+    { id: 'paradise', name: 'Paradise Glass Liner', category: 'Liner', price: 4500, image: '/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.png' },
+    { id: 'water-lilies', name: 'Water Lilies Glass Liner', category: 'Liner', price: 4500, image: '/lovable-uploads/7f1b802e-1c58-4807-b6d6-41aab2eed1ca.png' },
+    { id: 'sail-boat', name: 'Sail Boat Glass Liner', category: 'Liner', price: 4500, image: '/lovable-uploads/c4b386e8-679d-4ea3-be08-9b8fb9e8d50e.png' },
+    { id: 'tikal', name: 'Tikal Porcelain Liner', category: 'Liner', price: 4500, image: '/lovable-uploads/d5e74c29-95f6-4a9a-9395-a98fe4efdadd.png' },
+    
+    // Pavers from PaversSection
+    { id: 'appian-collection', name: 'Appian Collection Pavers', category: 'Paver', price: 15, image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png' },
+    { id: 'catalina-grana', name: 'Catalina Grana Collection', category: 'Paver', price: 15, image: '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png' },  
+    { id: 'catalina-collection', name: 'Catalina Collection Pavers', category: 'Paver', price: 15, image: '/lovable-uploads/9acbe973-a637-476f-bd20-bf7493afcc0c.png' },
+    
+    // Automatic covers from AutomaticCoversSection
+    { id: 'eclipse', name: 'Eclipse Automatic Cover', category: 'Cover', price: 16000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png' },
+    { id: 'cs3000', name: 'CS3000 Automatic Cover', category: 'Cover', price: 24000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png' },
+    { id: 'infinity-4000', name: 'Infinity 4000 Cover', category: 'Cover', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png' },
+    { id: 'atom', name: 'Atom Automatic Cover', category: 'Cover', price: 19000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png' },
+    
+    // Screen enclosures from ScreenEnclosureSection
+    { id: 'standard-screen', name: 'Standard Screen Enclosure', category: 'Screen Enclosure', price: 15, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png' },
+    { id: 'deluxe-screen', name: 'Deluxe Screen Enclosure', category: 'Screen Enclosure', price: 22, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png' },
+    { id: 'premium-screen', name: 'Premium Screen Enclosure', category: 'Screen Enclosure', price: 28, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png' },
+    
+    // Tanning ledges from TanningLedgeSection  
+    { id: 'genesis', name: 'Genesis Tanning Ledge', category: 'Tanning Ledge', price: 22000, image: '/lovable-uploads/2af253b1-b9be-487f-a998-476d396772c4.png' },
+    { id: 'hermosa', name: 'Hermosa Tanning Ledge', category: 'Tanning Ledge', price: 24000, image: '/lovable-uploads/8228c334-6fd7-4b29-afae-98628493480d.png' },
+    { id: 'rectangle', name: 'Rectangle Tanning Ledge', category: 'Tanning Ledge', price: 25000, image: '/lovable-uploads/c6bebb1e-d2ed-4591-b81d-0af558ed3e52.png' }
+  ];
 
   const performSearch = async (query: string) => {
     if (!query.trim()) {
@@ -81,299 +90,41 @@ const AdvancedSearch = () => {
 
     setIsLoading(true);
     try {
-      const keywords = createSearchKeywords(query);
-      const allResults: SearchResult[] = [];
+      // Search in pool data
+      const poolResults: SearchResult[] = poolData
+        .filter(pool => 
+          pool.name.toLowerCase().includes(query.toLowerCase()) ||
+          pool.category.toLowerCase().includes(query.toLowerCase())
+        )
+        .map(pool => ({
+          id: pool.id,
+          name: pool.name,
+          category: pool.category,
+          price: pool.price,
+          image: pool.image,
+          type: 'pool' as const
+        }));
 
-      // Search pools table
-      const { data: pools, error: poolsError } = await supabase
-        .from('pools')
-        .select('*')
-        .eq('is_active', true);
+      // Search in consolidated product categories
+      const productResults: SearchResult[] = productCategories
+        .filter(product => 
+          product.name.toLowerCase().includes(query.toLowerCase()) ||
+          product.category.toLowerCase().includes(query.toLowerCase())
+        )
+        .map((product) => ({
+          id: product.id,
+          name: product.name,
+          category: product.category,
+          price: product.price,
+          image: product.image,
+          type: 'product' as const
+        }));
 
-      if (!poolsError && pools) {
-        const poolResults = pools
-          .filter(pool => {
-            const searchableFields = [
-              pool.model,
-              pool.category,
-              pool.gala_category,
-              pool.dimensions,
-              pool.depth,
-              pool.warranty_years,
-              ...(pool.features || []),
-              ...(pool.finishes || []),
-              ...(pool.covers || []),
-              ...(pool.liners || [])
-            ];
-            
-            return keywords.some(keyword =>
-              searchableFields.some(field => 
-                field && field.toString().toLowerCase().includes(keyword)
-              )
-            );
-          })
-          .map(pool => ({
-            id: pool.id,
-            name: pool.model,
-            category: pool.category || 'Pool',
-            subcategory: pool.gala_category,
-            price: Number(pool.price),
-            image: pool.image_url,
-            description: `${pool.dimensions || ''} ${pool.depth || ''} ${pool.warranty_years || ''}`.trim(),
-            features: pool.features,
-            type: 'pool' as const,
-            matchedFields: []
-          }));
-
-        allResults.push(...poolResults);
-      }
-
-      // Search products table
-      const { data: products, error: productsError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .gt('stock_quantity', 0);
-
-      if (!productsError && products) {
-        const productResults = products
-          .filter(product => {
-            const searchableFields = [
-              product.name,
-              product.description,
-              product.category,
-              product.subcategory,
-              product.brand,
-              product.sku,
-              product.pattern,
-              product.material,
-              product.motor_type,
-              product.installation_time,
-              product.warranty_years_text,
-              product.type_category,
-              product.collection_name,
-              ...(product.benefits || [])
-            ];
-            
-            return keywords.some(keyword =>
-              searchableFields.some(field => 
-                field && field.toString().toLowerCase().includes(keyword)
-              )
-            );
-          })
-          .map(product => ({
-            id: product.id,
-            name: product.name,
-            category: product.category || 'Product',
-            subcategory: product.subcategory,
-            price: Number(product.price),
-            image: product.image_url,
-            description: product.description,
-            brand: product.brand,
-            material: product.material,
-            pattern: product.pattern,
-            type: 'product' as const,
-            matchedFields: []
-          }));
-
-        allResults.push(...productResults);
-      }
-
-      // Search pavers table
-      const { data: pavers, error: paversError } = await supabase
-        .from('pavers')
-        .select('*')
-        .eq('is_active', true);
-
-      if (!paversError && pavers) {
-        const paverResults = pavers
-          .filter(paver => {
-            const searchableFields = [
-              paver.name,
-              paver.description,
-              paver.category,
-              paver.collection,
-              'paver',
-              'pavers',
-              'stone',
-              'brick',
-              'concrete'
-            ];
-            
-            // Also check colors array
-            const colorMatches = paver.colors && Array.isArray(paver.colors) 
-              ? matchesArrayKeywords(paver.colors as string[], keywords)
-              : false;
-            
-            return keywords.some(keyword =>
-              searchableFields.some(field => 
-                field && field.toString().toLowerCase().includes(keyword)
-              )
-            ) || colorMatches;
-          })
-          .map(paver => ({
-            id: paver.id,
-            name: paver.name,
-            category: paver.category || 'Paver',
-            subcategory: paver.collection,
-            price: Number(paver.base_price),
-            image: paver.image_url,
-            description: paver.description,
-            type: 'paver' as const,
-            matchedFields: []
-          }));
-
-        allResults.push(...paverResults);
-      }
-
-      // Search service offerings (contractor services)
-      const { data: services, error: servicesError } = await supabase
-        .from('service_offerings')
-        .select('*')
-        .eq('is_active', true);
-
-      if (!servicesError && services) {
-        const serviceResults = services
-          .filter(service => {
-            const searchableFields = [
-              service.name,
-              service.description,
-              service.category,
-              'service',
-              'contractor',
-              'installation',
-              'maintenance',
-              'repair'
-            ];
-            
-            return keywords.some(keyword =>
-              searchableFields.some(field => 
-                field && field.toString().toLowerCase().includes(keyword)
-              )
-            );
-          })
-          .map(service => ({
-            id: service.id,
-            name: service.name,
-            category: service.category || 'Service',
-            price: Number(service.base_price || 0),
-            description: service.description,
-            type: 'service' as const,
-            matchedFields: []
-          }));
-
-        allResults.push(...serviceResults);
-      }
-
-      // Search supplier profiles
-      const { data: suppliers, error: suppliersError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('role', 'supplier')
-        .eq('is_active', true);
-
-      if (!suppliersError && suppliers) {
-        const supplierResults = suppliers
-          .filter(supplier => {
-            const searchableFields = [
-              supplier.company_name,
-              supplier.first_name,
-              supplier.last_name,
-              'supplier',
-              'vendor',
-              'manufacturer',
-              'distributor'
-            ];
-            
-            return keywords.some(keyword =>
-              searchableFields.some(field => 
-                field && field.toString().toLowerCase().includes(keyword)
-              )
-            );
-          })
-          .map(supplier => ({
-            id: supplier.id,
-            name: supplier.company_name || `${supplier.first_name || ''} ${supplier.last_name || ''}`.trim(),
-            category: 'Supplier',
-            price: 0,
-            description: `Supplier - ${supplier.company_name || 'Contact for products and services'}`,
-            companyName: supplier.company_name,
-            type: 'supplier' as const,
-            matchedFields: []
-          }));
-
-        allResults.push(...supplierResults);
-      }
-
-      // Search product search tags for enhanced keyword matching
-      const { data: searchTags, error: tagsError } = await supabase
-        .from('product_search_tags')
-        .select('*')
-        .eq('is_active', true);
-
-      if (!tagsError && searchTags) {
-        // Get unique product IDs from matching tags
-        const matchingTags = searchTags.filter(tag => {
-          return keywords.some(keyword => 
-            tag.tag.toLowerCase().includes(keyword)
-          );
-        });
-
-        const taggedProductIds = [...new Set(matchingTags.map(tag => tag.product_id))];
-        
-        if (taggedProductIds.length > 0) {
-          // Fetch products for the matching tags
-          const { data: taggedProducts, error: taggedProductsError } = await supabase
-            .from('products')
-            .select('*')
-            .in('id', taggedProductIds)
-            .eq('is_active', true);
-
-          if (!taggedProductsError && taggedProducts) {
-            const tagResults = taggedProducts.map(product => ({
-              id: product.id,
-              name: product.name,
-              category: product.category || 'Product',
-              subcategory: product.subcategory,
-              price: Number(product.price),
-              image: product.image_url,
-              description: product.description,
-              brand: product.brand,
-              type: 'product' as const,
-              matchedFields: matchingTags
-                .filter(tag => tag.product_id === product.id)
-                .map(tag => tag.tag)
-            }));
-
-            // Remove duplicates from products already found
-            const existingProductIds = new Set(allResults.filter(r => r.type === 'product').map(r => r.id));
-            const uniqueTagResults = tagResults.filter(result => 
-              !existingProductIds.has(result.id)
-            );
-
-            allResults.push(...uniqueTagResults);
-          }
-        }
-      }
-
-      // Sort by relevance (prioritize name matches, then category matches)
-      allResults.sort((a, b) => {
-        const aNameMatch = keywords.some(keyword => a.name.toLowerCase().includes(keyword));
-        const bNameMatch = keywords.some(keyword => b.name.toLowerCase().includes(keyword));
-        
-        if (aNameMatch && !bNameMatch) return -1;
-        if (!aNameMatch && bNameMatch) return 1;
-        
-        return a.name.localeCompare(b.name);
-      });
-
-      setSearchResults(allResults.slice(0, 12)); // Increased limit for better coverage
+      const allResults = [...poolResults, ...productResults];
+      setSearchResults(allResults.slice(0, 8)); // Limit to 8 results
       setShowResults(true);
     } catch (error) {
       console.error('Search error:', error);
-      // Fallback to static search if database fails
-      setSearchResults([]);
-      setShowResults(true);
     } finally {
       setIsLoading(false);
     }
@@ -452,65 +203,60 @@ const AdvancedSearch = () => {
   }, [searchQuery]);
 
   return (
-    <div className="w-full">
+    <div className="relative w-full max-w-2xl mx-auto">
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
         <Input
           type="text"
-          placeholder="Search pools, services, contractors, suppliers, products..."
+          placeholder="Search pools, spas, finishes, covers & more..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          onFocus={() => setShowResults(true)}
-          className="pl-12 pr-4 py-4 text-lg w-full bg-white/90 backdrop-blur-sm border-none shadow-lg rounded-full text-foreground placeholder:text-muted-foreground"
+          className="pl-12 pr-4 py-3 text-lg bg-background/95 backdrop-blur border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 rounded-xl shadow-lg"
         />
       </div>
 
       {showResults && (
-        <Card className="absolute top-full mt-2 w-full bg-white/95 backdrop-blur-sm border-none shadow-xl rounded-2xl overflow-hidden z-50">
+        <Card className="absolute top-full mt-2 w-full bg-background/95 backdrop-blur border-border/50 shadow-2xl rounded-xl overflow-hidden z-50">
           {isLoading ? (
-            <div className="p-4 text-center text-muted-foreground">
+            <div className="p-6 text-center text-muted-foreground">
               Searching...
             </div>
           ) : searchResults.length > 0 ? (
-            <div className="max-h-80 overflow-y-auto">
-              {searchResults.slice(0, 6).map((result) => (
+            <div className="max-h-96 overflow-y-auto">
+              {searchResults.map((result) => (
                 <div
                   key={`${result.category}-${result.id}`}
-                  className="p-3 hover:bg-accent/50 cursor-pointer border-b border-border/20 last:border-b-0 transition-colors"
+                  className="p-4 hover:bg-accent/50 cursor-pointer border-b border-border/30 last:border-b-0 transition-colors"
                   onClick={() => handleProductSelect(result)}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
                     {result.image && (
                       <img 
                         src={result.image} 
                         alt={result.name}
-                        className="w-10 h-10 object-cover rounded"
+                        className="w-12 h-12 object-cover rounded-lg"
                       />
                     )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-sm truncate">{result.name}</h3>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-foreground">{result.name}</h3>
                         <Badge variant="secondary" className="text-xs">
                           {result.category}
                         </Badge>
                       </div>
-                      {result.companyName && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          {result.companyName}
+                      {result.price > 0 && (
+                        <p className="text-sm text-muted-foreground">
+                          ${result.price.toLocaleString()}
                         </p>
                       )}
-                      <p className="text-sm text-primary font-medium">
-                        {result.type === 'supplier' ? 'Contact for pricing' : 
-                         result.price > 0 ? `$${result.price?.toLocaleString()}` : 'Price on request'}
-                      </p>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="p-4 text-center text-muted-foreground">
-              No results found
+            <div className="p-6 text-center text-muted-foreground">
+              No results found for "{searchQuery}"
             </div>
           )}
         </Card>

@@ -9,15 +9,13 @@ interface ProtectedRouteProps {
   requiredRoles?: UserRole[];
   requireAuth?: boolean;
   requireEmailVerification?: boolean;
-  requireMainAdmin?: boolean;
 }
 
 const ProtectedRoute = ({ 
   children, 
   requiredRoles = [], 
   requireAuth = true,
-  requireEmailVerification = false,
-  requireMainAdmin = false
+  requireEmailVerification = false 
 }: ProtectedRouteProps) => {
   const { user, profile, loading } = useAuth();
   const location = useLocation();
@@ -58,33 +56,6 @@ const ProtectedRoute = ({
         </div>
       </div>
     );
-  }
-
-  // Check for main admin access (special case for rikicot@hotmail.com)
-  if (requireMainAdmin) {
-    const isMainAdmin = profile?.role === 'main_admin' && user?.email === 'rikicot@hotmail.com';
-    if (!isMainAdmin) {
-      return (
-        <div className="min-h-screen flex items-center justify-center px-4">
-          <div className="max-w-md w-full text-center">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-red-800 mb-2">
-                Administrative Access Required
-              </h2>
-              <p className="text-red-700 mb-4">
-                This area is restricted to main administrators only.
-              </p>
-              <button 
-                onClick={() => window.history.back()} 
-                className="mt-4 px-4 py-2 bg-red-100 text-red-800 rounded hover:bg-red-200 transition-colors"
-              >
-                Go Back
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
   }
 
   // Check role-based access
