@@ -11,6 +11,14 @@ import "./styles/critical.css";
 import "./styles/components.css";
 import "./styles/animations.css";
 
+// Declare global window types for boot watchdog
+declare global {
+  interface Window {
+    __app_booted?: boolean;
+    __boot_watchdog_clear?: () => void;
+  }
+}
+
 const queryClient = new QueryClient();
 
 // Register service worker for caching static assets
@@ -26,7 +34,9 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(
+const root = createRoot(document.getElementById("root")!);
+
+root.render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -41,3 +51,11 @@ createRoot(document.getElementById("root")!).render(
     </QueryClientProvider>
   </StrictMode>
 );
+
+// Signal successful app boot to the watchdog
+requestAnimationFrame(() => {
+  window.__app_booted = true;
+  if (window.__boot_watchdog_clear) {
+    window.__boot_watchdog_clear();
+  }
+});
