@@ -135,5 +135,22 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Enhance overlay with file/line info
+      window.addEventListener('error', function(e){
+        var details = '';
+        try { details = ' at ' + (e.filename || '') + ':' + (e.lineno || '') + ':' + (e.colno || ''); } catch(_) {}
+        var msg = 'JS Error: ' + (e.message || (e.error && e.error.message) || e.error || 'unknown') + details;
+        console.error(msg, e.error || e);
+        var el = document.getElementById('runtime-error-overlay');
+        if (el) el.textContent = msg;
+      });
+      window.addEventListener('unhandledrejection', function(e){
+        var r = e.reason; var msg = 'Unhandled Promise Rejection: ' + (r && r.message ? r.message : r);
+        console.error(msg, r);
+        var el = document.getElementById('runtime-error-overlay');
+        if (el) el.textContent = msg;
+      });
+    </script>
   </body>
 </html>
