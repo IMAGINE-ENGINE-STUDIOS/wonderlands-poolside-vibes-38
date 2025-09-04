@@ -19,7 +19,7 @@ interface AutomaticCover {
 }
 const covers: AutomaticCover[] = [{
   name: "Eclipse",
-  price: 16000,
+  price: 22000,
   type: 'safety',
   material: "High-grade PVC",
   motorType: "DC Motor",

@@ -102,7 +102,7 @@ const AdvancedSearch = () => {
     { id: 'catalina-collection', name: 'Catalina Collection Pavers', category: 'Paver', price: 15, image: '/lovable-uploads/9acbe973-a637-476f-bd20-bf7493afcc0c.png' },
     
     // Automatic covers from AutomaticCoversSection
-    { id: 'eclipse', name: 'Eclipse Automatic Cover', category: 'Cover', price: 16000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png' },
+    { id: 'eclipse', name: 'Eclipse Automatic Cover', category: 'Cover', price: 22000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png' },
     { id: 'cs3000', name: 'CS3000 Automatic Cover', category: 'Cover', price: 24000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png' },
     { id: 'infinity-4000', name: 'Infinity 4000 Cover', category: 'Cover', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png' },
     { id: 'atom', name: 'Atom Automatic Cover', category: 'Cover', price: 19000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png' },
@@ -126,42 +126,93 @@ const AdvancedSearch = () => {
     }
 
     setIsLoading(true);
+    
     try {
-      // Search in pool data
-      const poolResults: SearchResult[] = poolData
-        .filter(pool => 
-          pool.name.toLowerCase().includes(query.toLowerCase()) ||
-          pool.category.toLowerCase().includes(query.toLowerCase())
-        )
-        .map(pool => ({
-          id: pool.id,
-          name: pool.name,
-          category: pool.category,
-          price: pool.price,
-          image: pool.image,
-          type: 'pool' as const
-        }));
+      const lowerQuery = query.toLowerCase();
+      
+      // Pool keywords that should show all pools
+      const poolKeywords = ['pool', 'pools', 'swimming pool', 'swimming pools', 'inground pool', 'fiberglass pool'];
+      const showAllPools = poolKeywords.some(keyword => lowerQuery.includes(keyword));
+      
+      // Search pools - show all if pool keywords match, otherwise filter by name/category
+      const poolResults = poolData.filter(pool => {
+        if (showAllPools) return true;
+        return pool.name.toLowerCase().includes(lowerQuery) ||
+               pool.category.toLowerCase().includes(lowerQuery);
+      }).map(pool => ({
+        id: pool.id,
+        name: pool.name,
+        category: pool.category,
+        price: pool.price,
+        image: pool.image,
+        type: 'pool' as const
+      }));
 
-      // Search in consolidated product categories
-      const productResults: SearchResult[] = productCategories
-        .filter(product => 
-          product.name.toLowerCase().includes(query.toLowerCase()) ||
-          product.category.toLowerCase().includes(query.toLowerCase())
-        )
-        .map((product) => ({
-          id: product.id,
-          name: product.name,
-          category: product.category,
-          price: product.price,
-          image: product.image,
+      // Enhanced product search with category keywords
+      const categoryKeywords = {
+        'finish': ['finish', 'finishes', 'color', 'colors'],
+        'liner': ['liner', 'liners'],
+        'tile': ['tile', 'tiles', 'waterline'],
+        'spa': ['spa', 'spas', 'hot tub'],
+        'cover': ['cover', 'covers', 'automatic cover', 'automatic covers', 'pool cover'],
+        'enclosure': ['screen', 'enclosure', 'screen enclosure'],
+        'paver': ['paver', 'pavers', 'decking'],
+        'ledge': ['tanning ledge', 'ledge', 'sun shelf'],
+        'appointment': ['appointment', 'schedule', 'consultation', 'meet']
+      };
+
+      let productResults = [];
+      
+      // Check for category-wide searches
+      const showAllFinishes = categoryKeywords.finish.some(keyword => lowerQuery.includes(keyword));
+      const showAllCovers = categoryKeywords.cover.some(keyword => lowerQuery.includes(keyword));
+      const showAllSpas = categoryKeywords.spa.some(keyword => lowerQuery.includes(keyword));
+      const showAllTiles = categoryKeywords.tile.some(keyword => lowerQuery.includes(keyword));
+      const showAllPavers = categoryKeywords.paver.some(keyword => lowerQuery.includes(keyword));
+      const showAllLedges = categoryKeywords.ledge.some(keyword => lowerQuery.includes(keyword));
+      const showAllEnclosures = categoryKeywords.enclosure.some(keyword => lowerQuery.includes(keyword));
+      
+      // Add appointment/schedule result
+      if (categoryKeywords.appointment.some(keyword => lowerQuery.includes(keyword))) {
+        productResults.push({
+          id: 'appointment',
+          name: 'Schedule Appointment',
+          category: 'Service',
+          price: 0,
+          image: '/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.png',
           type: 'product' as const
-        }));
+        });
+      }
 
-      const allResults = [...poolResults, ...productResults];
-      setSearchResults(allResults); // Show all results
+      // Regular product search with enhanced filtering
+      const regularResults = productCategories.filter(product => {
+        // Show all items in category if category keyword matches
+        if (showAllFinishes && product.category.toLowerCase().includes('finish')) return true;
+        if (showAllCovers && product.category.toLowerCase().includes('cover')) return true;
+        if (showAllSpas && product.category.toLowerCase().includes('spa')) return true;
+        if (showAllTiles && product.category.toLowerCase().includes('tile')) return true;
+        if (showAllPavers && product.category.toLowerCase().includes('paver')) return true;
+        if (showAllLedges && product.category.toLowerCase().includes('ledge')) return true;
+        if (showAllEnclosures && product.category.toLowerCase().includes('enclosure')) return true;
+        
+        // Regular name/category search
+        return product.name.toLowerCase().includes(lowerQuery) ||
+               product.category.toLowerCase().includes(lowerQuery);
+      }).map(product => ({
+        id: product.id,
+        name: product.name,
+        category: product.category,
+        price: product.price,
+        image: product.image,
+        type: 'product' as const
+      }));
+
+      productResults = [...productResults, ...regularResults];
+      setSearchResults([...poolResults, ...productResults]);
       setShowResults(true);
     } catch (error) {
       console.error('Search error:', error);
+      setSearchResults([]);
     } finally {
       setIsLoading(false);
     }

@@ -97,7 +97,7 @@ const getExtraPrice = (extra: string) => {
   switch (extra) {
     case 'liner': return 0;
     case 'heater': return 5000;
-    case 'cover': return 3200;
+    case 'cover': return 22000; // Updated to match cheapest Eclipse cover price
     case 'jets': return 1800;
     case 'tiles': return 0;
     default: return 0;
@@ -132,7 +132,7 @@ const linerOptions = [
 ];
 
 const coverOptions = [
-  { name: 'Eclipse', color: '#2F4F4F', price: 16000 },
+  { name: 'Eclipse', color: '#2F4F4F', price: 22000 },
   { name: 'CS3000', color: '#2F4F4F', price: 24000 },
   { name: 'Infinity 4000', color: '#2F4F4F', price: 32000 },
   { name: 'Atom', color: '#2F4F4F', price: 19000 }
@@ -625,8 +625,18 @@ const EditablePoolProductCard = ({
                     checked={extras.heater} 
                     onCheckedChange={() => toggleExtra('heater')}
                   />
+                 <div className="flex items-center gap-2">
                   <Thermometer className="h-4 w-4 text-orange-500" />
+                  <img 
+                    src="/src/assets/pool-heater.png"
+                    alt="Pool Heater"
+                    className="w-4 h-4 object-cover rounded"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
                   <span>Pool Heater (+$5,000)</span>
+                </div>
                 </label>
                 
                 <label className="flex items-center space-x-2 text-sm cursor-pointer p-2 rounded border hover:bg-muted/30">
