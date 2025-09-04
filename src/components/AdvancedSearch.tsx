@@ -285,7 +285,7 @@ const AdvancedSearch = () => {
           placeholder="Search pools, spas, finishes, covers & more..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-12 pr-4 py-3 text-lg bg-background/10 backdrop-blur-md border-border/40 focus:border-primary/60 focus:ring-2 focus:ring-primary/30 rounded-xl shadow-lg text-foreground placeholder:text-foreground/80"
+          className="pl-12 pr-4 py-3 text-lg bg-background/10 backdrop-blur-md border-border/40 focus:border-primary/60 focus:ring-2 focus:ring-primary/30 rounded-xl shadow-lg text-white placeholder:text-foreground/80"
         />
       </div>
 
