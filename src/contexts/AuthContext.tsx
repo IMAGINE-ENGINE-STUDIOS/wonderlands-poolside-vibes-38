@@ -43,6 +43,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Add timeout to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.log("AuthProvider: Timeout reached, stopping loading state");
+        setLoading(false);
+      }
+    }, 3000);
+
+    return () => clearTimeout(timeout);
+  }, [loading]);
+
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -175,8 +187,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   if (loading) {
     console.log("AuthProvider: Still loading...");
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading application...</div>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <div className="text-lg text-foreground">Loading application...</div>
+        </div>
       </div>
     );
   }
