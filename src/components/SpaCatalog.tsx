@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SpaProductCard from "./SpaProductCard";
 import SpaDetailModal from "./SpaDetailModal";
 import SurveyQuoteTool from "./SurveyQuoteTool";
@@ -103,11 +103,30 @@ const SpaCatalog = () => {
     setShowDetailModal(true);
   };
 
-const handleRequestQuote = (spa: Spa, extras?: any) => {
-  setSelectedSpa(spa);
-  setSelectedExtras(extras || null);
-  setShowQuoteModal(true);
-};
+  const handleRequestQuote = (spa: Spa, extras?: any) => {
+    setSelectedSpa(spa);
+    setSelectedExtras(extras || null);
+    setShowQuoteModal(true);
+  };
+
+  // Listen for search results to open spa details
+  useEffect(() => {
+    const handleOpenProduct = (event: CustomEvent) => {
+      const { type, id, name } = event.detail;
+      if (type === 'spa') {
+        const foundSpa = spas.find(spa => 
+          spa.model.toLowerCase() === name.toLowerCase().replace(' spa', '') ||
+          spa.model.toLowerCase().includes(id.toLowerCase())
+        );
+        if (foundSpa) {
+          handleViewDetails(foundSpa);
+        }
+      }
+    };
+
+    window.addEventListener('open-product', handleOpenProduct as EventListener);
+    return () => window.removeEventListener('open-product', handleOpenProduct as EventListener);
+  }, []);
 
   return (
     <>

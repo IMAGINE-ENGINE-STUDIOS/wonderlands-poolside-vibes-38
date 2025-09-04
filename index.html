@@ -87,6 +87,23 @@
       }
     </script>
     <script>
+      // Unregister any existing service workers and clear caches
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            for (let name of names) {
+              caches.delete(name);
+            }
+          });
+        }
+      }
+      
+      // Set canonical URL dynamically
       (function(){
         var l=document.querySelector('link[rel="canonical"]');
         var href=location.origin+location.pathname;

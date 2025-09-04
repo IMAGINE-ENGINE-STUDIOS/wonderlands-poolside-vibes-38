@@ -260,6 +260,19 @@ const AdvancedSearch = () => {
         const element = document.querySelector(targetSection);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
+          
+          // Dispatch custom event to open product in editor after scrolling
+          setTimeout(() => {
+            const event = new CustomEvent('open-product', {
+              detail: { 
+                type: result.category.toLowerCase(),
+                id: result.id,
+                name: result.name,
+                searchResult: result
+              }
+            });
+            window.dispatchEvent(event);
+          }, 1000);
         }
       } else {
         // Fallback: scroll to top of page

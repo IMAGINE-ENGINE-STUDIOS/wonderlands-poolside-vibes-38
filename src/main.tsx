@@ -11,8 +11,8 @@ import "./styles/critical.css";
 
 const queryClient = new QueryClient();
 
-// Register service worker for caching static assets
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
+// Register service worker for caching static assets (disabled by default)
+if ('serviceWorker' in navigator && import.meta.env.PROD && import.meta.env.VITE_ENABLE_SW) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {

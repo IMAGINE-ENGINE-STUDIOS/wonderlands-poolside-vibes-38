@@ -1,20 +1,17 @@
-const CACHE_NAME = 'wonderlands-cache-v5';
+const CACHE_NAME = 'wonderlands-cache-v6';
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
-// Assets to cache
+// Assets to cache initially
 const urlsToCache = [
-  '/',
-  '/assets/',
-  '/lovable-uploads/',
+  '/'
 ];
 
-// Install event - cache initial resources
+// Install event - cache initial assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        // Cache will be populated as resources are requested
-        return cache;
+        return cache.addAll(urlsToCache);
       })
   );
   self.skipWaiting();
@@ -36,62 +33,97 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - serve from cache when possible
+// Fetch event - network first for critical resources, cache for others
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
-  
-  // Only cache GET requests for static assets
-  if (request.method !== 'GET') return;
-  
-  // Cache static assets (images, CSS, JS)
-  if (
-    url.pathname.startsWith('/lovable-uploads/') ||
-    url.pathname.startsWith('/assets/') ||
-    url.pathname.endsWith('.js') ||
-    url.pathname.endsWith('.css') ||
-    url.pathname.endsWith('.png') ||
-    url.pathname.endsWith('.jpg') ||
-    url.pathname.endsWith('.jpeg') ||
-    url.pathname.endsWith('.webp') ||
-    url.pathname.endsWith('.svg')
-  ) {
+  // Only handle GET requests
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // Skip non-http requests
+  if (!event.request.url.startsWith('http')) {
+    return;
+  }
+
+  // Exclude source files from caching
+  if (event.request.url.includes('/src/') || 
+      event.request.url.includes('.tsx') || 
+      event.request.url.includes('.ts') ||
+      event.request.url.includes('main.tsx')) {
+    return fetch(event.request);
+  }
+
+  // Network first strategy for HTML, JS, CSS
+  if (event.request.url.match(/\.(html|js|css)$/) || 
+      event.request.destination === 'document' ||
+      event.request.url.includes('main.js') ||
+      event.request.url.includes('index.js')) {
+    
     event.respondWith(
-      caches.open(CACHE_NAME).then((cache) => {
-        return cache.match(request).then((response) => {
-          if (response) {
-            // Check if cached response is still valid (within cache duration)
-            const cachedDate = new Date(response.headers.get('sw-cached-date') || 0);
-            const now = new Date();
-            
-            if (now - cachedDate < CACHE_DURATION) {
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+
+  // Cache first strategy for images and other static assets
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        if (response) {
+          // Check if the cached response is still valid
+          const cachedTime = response.headers.get('sw-cache-time');
+          if (cachedTime) {
+            const cacheAge = Date.now() - parseInt(cachedTime);
+            if (cacheAge < CACHE_DURATION) {
               return response;
             }
           }
-          
-          // Fetch from network and cache the response
-          return fetch(request).then((networkResponse) => {
-            // Only cache successful responses
-            if (networkResponse && networkResponse.status === 200) {
-              const responseToCache = networkResponse.clone();
-              
-              // Add timestamp header for cache validation
-              const headers = new Headers(responseToCache.headers);
-              headers.set('sw-cached-date', new Date().toISOString());
-              
-              const cachedResponse = new Response(responseToCache.body, {
-                status: responseToCache.status,
-                statusText: responseToCache.statusText,
-                headers: headers
-              });
-              
-              cache.put(request, cachedResponse);
+        }
+
+        // Fetch from network
+        return fetch(event.request).then((response) => {
+          if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response;
+          }
+
+          const responseToCache = response.clone();
+          const modifiedResponse = new Response(responseToCache.body, {
+            status: responseToCache.status,
+            statusText: responseToCache.statusText,
+            headers: {
+              ...Object.fromEntries(responseToCache.headers.entries()),
+              'sw-cache-time': Date.now().toString()
             }
-            
-            return networkResponse;
+          });
+
+          // Cache images and static assets
+          if (event.request.url.match(/\.(png|jpg|jpeg|gif|svg|webp|woff|woff2|ico)$/)) {
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, modifiedResponse.clone());
+              });
+          }
+
+          return response;
+        }).catch(() => {
+          return response || new Response('Network error occurred', { 
+            status: 408,
+            headers: { 'Content-Type': 'text/plain' }
           });
         });
       })
-    );
-  }
+  );
 });
