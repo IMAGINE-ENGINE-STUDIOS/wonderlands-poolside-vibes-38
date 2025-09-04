@@ -9,8 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, Camera, FileText, LogIn, Phone, Mail, Download, Printer } from "lucide-react";
-import PoolCustomizationOptions from "./PoolCustomizationOptions";
+import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Camera, FileText, LogIn, Phone, Mail, Download, Printer, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
@@ -87,8 +86,7 @@ const SurveyQuoteTool = ({
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showQuote, setShowQuote] = useState(false);
-  const [selectedOptions, setSelectedOptions] = useState<PoolOption[]>([]);
-  const [currentStep, setCurrentStep] = useState<'survey' | 'options' | 'quote'>('survey');
+  const [currentStep, setCurrentStep] = useState<'survey' | 'quote'>('survey');
   const [isSaving, setIsSaving] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const {
@@ -171,25 +169,23 @@ const SurveyQuoteTool = ({
     if (!pool && !customProduct) return 0;
     let basePrice = pool?.price || customProduct?.price || 0;
 
-    // Add selected options (including screen enclosures with area-based pricing)
-    const optionsPrice = selectedOptions.reduce((total, option) => {
-      if (option.category === 'screen-enclosure') {
-        // Calculate screen enclosure price based on enclosure footprint area
-        const enclosureArea = getEnclosureArea();
-        
-        if (option.id.includes('standard-1-story')) {
-          return total + (enclosureArea * 15);
-        } else if (option.id.includes('standard-2-story')) {
-          return total + (enclosureArea * 22);
-        } else if (option.id.includes('premium-1-story')) {
-          return total + (enclosureArea * 20);
-        } else if (option.id.includes('premium-2-story')) {
-          return total + (enclosureArea * 28);
-        }
-      }
-      return total + option.price;
-    }, 0);
-    basePrice += optionsPrice;
+    // Base price calculation - use extras from PoolDetails customization
+    let totalPrice = basePrice;
+    
+    // Add any extras passed from PoolDetails
+    if (extras) {
+      if (extras.heater) totalPrice += 4500;
+      if (extras.cover) totalPrice += 16000;
+      if (extras.jets) totalPrice += extras.jetQuantity * 1800;
+      if (extras.spa) totalPrice += 8000;
+      if (extras.tanningLedge) totalPrice += 5000;
+      if (extras.tiles) totalPrice += 2500;
+      if (extras.pavers && extras.paverOption !== 'No Pavers') totalPrice += 3000;
+      if (extras.copingPaverOption !== 'No Coping') totalPrice += 1500;
+      if (extras.screenEnclosure) totalPrice += extras.screenEnclosureArea * 15;
+    }
+
+    basePrice = totalPrice;
 
     // Add extras from product card if provided
     const extrasTotal = (extras as any)?.extrasTotal ? Number((extras as any).extrasTotal) : 0;
@@ -259,7 +255,7 @@ const SurveyQuoteTool = ({
         pool_model: pool?.model || customProduct?.name || null,
         pool_price: pool?.price || customProduct?.price || null,
         pool_category: pool?.category || customProduct?.type || null,
-        selected_options: JSON.parse(JSON.stringify(selectedOptions)),
+        extras_data: extras ? JSON.stringify(extras) : null,
         total_quote_amount: quoteAmount,
         recommendations: recommendations,
         uploaded_image_url: uploadedImage ? URL.createObjectURL(uploadedImage) : null,
@@ -317,12 +313,7 @@ const SurveyQuoteTool = ({
       });
       return;
     }
-    setCurrentStep('options');
-  };
-  const handleContinueToQuote = async () => {
-    // Save the quotation to database before showing the quote
-    await saveQuotationToDatabase();
-    setCurrentStep('quote');
+    setCurrentStep('survey');
   };
   const handleGetQuote = async () => {
     if (!surveyData.name || !surveyData.email || !surveyData.address || !surveyData.yardSize) {
@@ -388,7 +379,7 @@ const SurveyQuoteTool = ({
             <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-teal/5">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Settings className="h-5 w-5 text-primary" />
+                  <User className="h-5 w-5 text-primary" />
                   Contact Information
                 </CardTitle>
                 <CardDescription>
@@ -605,22 +596,7 @@ const SurveyQuoteTool = ({
                 * By submitting, you agree to receive follow-up communications about your pool project
               </p>
             </div>
-          </div> : currentStep === 'options' ? (/* Pool Customization Options */
-      <div className="space-y-6">
-            <PoolCustomizationOptions onSelectionChange={options => setSelectedOptions(options)} />
-            
-            <div className="flex gap-3">
-              <Button onClick={() => setCurrentStep('survey')} variant="outline" size="lg" className="flex-1">
-                Back to Survey
-              </Button>
-              <Button onClick={handleContinueToQuote} variant="gradient" size="lg" className="flex-1" disabled={isSaving}>
-                {isSaving ? <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Saving Quote...
-                  </> : 'Generate Quote'}
-              </Button>
-            </div>
-          </div>) : (/* Professional Quotation Display */
+          </div> : (/* Professional Quotation Display */
       <div className="space-y-6" data-quote-content>
             <div className="bg-white dark:bg-gray-900 border-2 border-orange-400 rounded-lg overflow-hidden">
               
@@ -793,56 +769,42 @@ const SurveyQuoteTool = ({
                   </div>
                 </div>
 
-                {/* Selected Options with Images */}
-                {selectedOptions.length > 0 && <div className="mb-6">
+                {/* Pool Configuration Summary from PoolDetails */}
+                {(pool || customProduct) && extras && (
+                  <div className="mb-6">
                     <h4 className="font-bold text-lg mb-3 text-teal-600">Selected Features</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {selectedOptions.map((option, index) => {
-                        let displayPrice = option.price;
-                        
-                        // Calculate area-based pricing for screen enclosures
-                        if (option.category === 'screen-enclosure') {
-                          const enclosureArea = getEnclosureArea();
-                          
-                          if (option.id.includes('standard-1-story')) {
-                            displayPrice = enclosureArea * 15;
-                          } else if (option.id.includes('standard-2-story')) {
-                            displayPrice = enclosureArea * 22;
-                          } else if (option.id.includes('premium-1-story')) {
-                            displayPrice = enclosureArea * 20;
-                          } else if (option.id.includes('premium-2-story')) {
-                            displayPrice = enclosureArea * 28;
-                          }
-                        }
-                        
-                        return (
-                          <div key={index} className="border border-orange-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
-                            {/* Add image for screen enclosures */}
-                            {option.category === 'screen-enclosure' && (
-                              <div className="mb-3">
-                                <img 
-                                  src="/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" 
-                                  alt={option.name}
-                                  className="w-full h-20 rounded-md border border-orange-200 object-cover"
-                                />
-                              </div>
-                            )}
-                            <h5 className="font-semibold text-sm">{option.name}</h5>
-                            <p className="text-xs text-muted-foreground mb-2">{option.description}</p>
-                            {option.category === 'screen-enclosure' && (
-                              <p className="text-xs text-blue-600 mb-2">
-                                Calculated area: {getEnclosureArea()} sq ft
-                              </p>
-                            )}
-                            <div className="flex justify-between text-sm">
-                              <span>Price:</span>
-                              <span className="font-semibold text-teal-600">+${displayPrice.toLocaleString()}</span>
-                            </div>
-                          </div>
-                        );
-                      })}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {extras.heater && (
+                        <div className="bg-teal-50 p-3 rounded-lg border border-teal-200">
+                          <h5 className="font-semibold text-sm">Pool Heater</h5>
+                          <p className="text-xs text-teal-700">{extras.heaterModel}</p>
+                          <p className="text-teal-600 font-medium">+$4,500</p>
+                        </div>
+                      )}
+                      {extras.cover && (
+                        <div className="bg-teal-50 p-3 rounded-lg border border-teal-200">
+                          <h5 className="font-semibold text-sm">Pool Cover</h5>
+                          <p className="text-xs text-teal-700">{extras.coverOption}</p>
+                          <p className="text-teal-600 font-medium">+$16,000</p>
+                        </div>
+                      )}
+                      {extras.jets && (
+                        <div className="bg-teal-50 p-3 rounded-lg border border-teal-200">
+                          <h5 className="font-semibold text-sm">Water Jets</h5>
+                          <p className="text-xs text-teal-700">{extras.jetQuantity} jets</p>
+                          <p className="text-teal-600 font-medium">+${extras.jetQuantity * 1800}</p>
+                        </div>
+                      )}
+                      {extras.spa && (
+                        <div className="bg-teal-50 p-3 rounded-lg border border-teal-200">
+                          <h5 className="font-semibold text-sm">Spa</h5>
+                          <p className="text-xs text-teal-700">{extras.spaModel}</p>
+                          <p className="text-teal-600 font-medium">+$8,000</p>
+                        </div>
+                      )}
                     </div>
-                  </div>}
+                  </div>
+                )}
 
                 {/* Product Card Selected Items */}
                 {extras?.extrasBreakdown && extras.extrasBreakdown.length > 0 && <div className="mb-6">
@@ -1020,19 +982,16 @@ const SurveyQuoteTool = ({
                    <p className="text-orange-100">Complete installation including permits, excavation, and {surveyData.deckWidth || 3}ft paver deck</p>
                  </div>
 
-                {/* Action Buttons */}
-                <div className="flex flex-wrap gap-3 mt-6 justify-center print-hide">
-                  <Button variant="default" className="bg-gradient-to-r from-orange-500 to-teal-500 hover:from-orange-600 hover:to-teal-600 text-white" onClick={handlePrintQuote}>
-                    <Printer className="h-4 w-4 mr-2" />
-                    Print Quote
-                  </Button>
-                  <Button variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-50" onClick={() => setCurrentStep('options')}>
-                    Modify Options
-                  </Button>
-                  <Button variant="default" className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white" onClick={handleScheduleInstallation}>
-                    Schedule Installation
-                  </Button>
-                </div>
+                 {/* Action Buttons */}
+                 <div className="flex flex-wrap gap-3 mt-6 justify-center print-hide">
+                   <Button variant="default" className="bg-gradient-to-r from-orange-500 to-teal-500 hover:from-orange-600 hover:to-teal-600 text-white" onClick={handlePrintQuote}>
+                     <Printer className="h-4 w-4 mr-2" />
+                     Print Quote
+                   </Button>
+                   <Button variant="default" className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white" onClick={handleScheduleInstallation}>
+                     Schedule Installation
+                   </Button>
+                 </div>
               </div>
             </div>
           </div>)}
