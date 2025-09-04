@@ -94,7 +94,7 @@ const SurveyQuoteTool = ({
   const {
     toast
   } = useToast();
-// Removed GALA-GOODS integration
+  // Removed GALA-GOODS integration
 
   // Toggle a global flag so other components (e.g., RightNavigation) can react when the quote dialog is open
   useEffect(() => {
@@ -107,7 +107,6 @@ const SurveyQuoteTool = ({
       delete document.body.dataset.quoteOpen;
     };
   }, [isOpen]);
-
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -176,15 +175,14 @@ const SurveyQuoteTool = ({
       if (option.category === 'screen-enclosure') {
         // Calculate screen enclosure price based on enclosure footprint area
         const enclosureArea = getEnclosureArea();
-        
         if (option.id.includes('standard-1-story')) {
-          return total + (enclosureArea * 15);
+          return total + enclosureArea * 15;
         } else if (option.id.includes('standard-2-story')) {
-          return total + (enclosureArea * 22);
+          return total + enclosureArea * 22;
         } else if (option.id.includes('premium-1-story')) {
-          return total + (enclosureArea * 20);
+          return total + enclosureArea * 20;
         } else if (option.id.includes('premium-2-story')) {
-          return total + (enclosureArea * 28);
+          return total + enclosureArea * 28;
         }
       }
       return total + option.price;
@@ -205,10 +203,9 @@ const SurveyQuoteTool = ({
 
     return Math.round(basePrice);
   };
-
   const getPoolArea = () => {
     if (!pool?.dimensions) return 600; // Default pool area
-    
+
     const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
     const poolLength = dims[0] || 30;
     const poolWidth = dims[1] || 20;
@@ -349,7 +346,6 @@ const SurveyQuoteTool = ({
     await saveQuotationToDatabase();
     setCurrentStep('quote');
   };
-
   const handleScheduleInstallation = async () => {
     // Ensure the quotation is saved and user is authenticated
     const saved = await saveQuotationToDatabase();
@@ -358,19 +354,9 @@ const SurveyQuoteTool = ({
       return;
     }
     const subject = encodeURIComponent(`Schedule Installation - ${pool?.model || customProduct?.name || 'Pool'}`);
-    const body = encodeURIComponent(
-      `Hello Wonderlands,\n\n` +
-      `I would like to schedule installation for the following configuration:\n\n` +
-      `Customer: ${surveyData.name}\n` +
-      `Email: ${surveyData.email}\n` +
-      `Phone: ${surveyData.phone}\n` +
-      `Address: ${surveyData.address}\n\n` +
-      `Total Investment: $${calculateQuote().toLocaleString()}\n\n` +
-      `Thank you.`
-    );
+    const body = encodeURIComponent(`Hello Wonderlands,\n\n` + `I would like to schedule installation for the following configuration:\n\n` + `Customer: ${surveyData.name}\n` + `Email: ${surveyData.email}\n` + `Phone: ${surveyData.phone}\n` + `Address: ${surveyData.address}\n\n` + `Total Investment: $${calculateQuote().toLocaleString()}\n\n` + `Thank you.`);
     window.location.href = `mailto:sales@wonderlandsworld.com?subject=${subject}&body=${body}`;
   };
-
   if (!pool && !customProduct) return null;
   return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -692,78 +678,69 @@ const SurveyQuoteTool = ({
                       <h4 className="font-semibold mb-2">Paver Deck ({surveyData.deckWidth || 3}ft Width)</h4>
                       <p className="text-sm text-muted-foreground mb-2">
                         {(() => {
-                          const hasPavers = extras?.extrasBreakdown?.some((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
-                          return hasPavers ? "Custom paver selection with chargeable area" : "Standard 3-foot paver deck included in base price";
-                        })()}
+                      const hasPavers = extras?.extrasBreakdown?.some((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
+                      return hasPavers ? "Custom paver selection with chargeable area" : "Standard 3-foot paver deck included in base price";
+                    })()}
                       </p>
                       {pool?.dimensions && (() => {
-                        const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
-                        const poolLength = dims[0] || 0;
-                        const poolWidth = dims[1] || 0;
-                        const deckWidth = parseInt(surveyData.deckWidth || "3");
-                        const poolArea = poolLength * poolWidth;
-                        const totalArea = (poolLength + 2 * deckWidth) * (poolWidth + 2 * deckWidth);
-                        const freeArea = (poolLength + 6) * (poolWidth + 6) - poolArea; // 3ft perimeter free area
-                        const chargeableArea = totalArea - poolArea - freeArea;
-                        return (
-                          <div className="text-xs space-y-1 bg-teal-50 dark:bg-gray-700 p-2 rounded border mb-2">
+                    const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+                    const poolLength = dims[0] || 0;
+                    const poolWidth = dims[1] || 0;
+                    const deckWidth = parseInt(surveyData.deckWidth || "3");
+                    const poolArea = poolLength * poolWidth;
+                    const totalArea = (poolLength + 2 * deckWidth) * (poolWidth + 2 * deckWidth);
+                    const freeArea = (poolLength + 6) * (poolWidth + 6) - poolArea; // 3ft perimeter free area
+                    const chargeableArea = totalArea - poolArea - freeArea;
+                    return <div className="text-xs space-y-1 bg-teal-50 dark:bg-gray-700 p-2 rounded border mb-2">
                             <p className="font-medium">Area Calculation:</p>
                             <p>• Pool area: {poolArea} sq ft</p>
                             <p>• Total deck area: {totalArea - poolArea} sq ft</p>
                             <p>• Free 3ft perimeter: {freeArea} sq ft</p>
                             <p>• Chargeable area: {Math.max(0, chargeableArea)} sq ft</p>
-                          </div>
-                        );
-                      })()}
+                          </div>;
+                  })()}
                       
                       {/* Show selected paver image and details from extras */}
                       {extras?.extrasBreakdown && (() => {
-                        const paverItem = extras.extrasBreakdown.find((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
-                        if (paverItem) {
-                          // Find the paver image from paverTypes - extract correct paver name
-                          const selectedPaverName = paverItem.name.split(' (')[0];
-                          
-                          // Comprehensive paver image mapping based on paverData.ts
-                          const paverImages = {
-                            // Appian Collection
-                            'Appian Adobe': '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
-                            'Appian Amaretto': '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png',
-                            'Appian Harvest Blend': '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png',
-                            'Appian Knightsbridge': '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png',
-                            'Appian Napoli': '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.png',
-                            'Appian Rio': '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.png',
-                            'Appian Slate': '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.png',
-                            'Appian Titanium': '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
-                            'Appian Charco': '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.png',
-                            // Catalina Grana Collection
-                            'Catalina Grana Amaretto': '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png',
-                            'Catalina Grana Napoli': '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.png',
-                            'Catalina Grana Rio': '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.png',
-                            'Catalina Grana Scandina Gray': '/lovable-uploads/638972ac-6a43-41e7-ae3c-bce58ab9417b.png',
-                            'Catalina Grana Slate': '/lovable-uploads/d85c2bf0-0a66-4aa0-9f64-5e76b511b428.png',
-                            'Catalina Grana Titanium': '/lovable-uploads/6aefa246-2c01-43a1-8a58-e195ec3355dc.png',
-                            // Catalina Collection
-                            'Catalina Napoli': '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.png',
-                            'Catalina Slate': '/lovable-uploads/3f98fbbb-b09a-4dbc-82f5-5d811564b9f4.png',
-                            'Catalina Titanium': '/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.png',
-                            // Fallback brands
-                            'Premier Pavers': '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
-                            'Belgard Pavers': '/lovable-uploads/46d142d3-b106-406d-9867-9bf7b63fd469.png',
-                            'Tremron Pavers': '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png',
-                            'Cambridge Pavers': '/lovable-uploads/8033278d-a737-4b1d-84bf-fd0ac9126406.png'
-                          };
-                          
-                          const paverImage = paverImages[selectedPaverName] || paverImages['Premier Pavers'];
-                          
-                          return (
-                            <div className="mb-3 p-2 border border-teal-200 rounded-md">
+                    const paverItem = extras.extrasBreakdown.find((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
+                    if (paverItem) {
+                      // Find the paver image from paverTypes - extract correct paver name
+                      const selectedPaverName = paverItem.name.split(' (')[0];
+
+                      // Comprehensive paver image mapping based on paverData.ts
+                      const paverImages = {
+                        // Appian Collection
+                        'Appian Adobe': '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
+                        'Appian Amaretto': '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png',
+                        'Appian Harvest Blend': '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png',
+                        'Appian Knightsbridge': '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png',
+                        'Appian Napoli': '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.png',
+                        'Appian Rio': '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.png',
+                        'Appian Slate': '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.png',
+                        'Appian Titanium': '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
+                        'Appian Charco': '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.png',
+                        // Catalina Grana Collection
+                        'Catalina Grana Amaretto': '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png',
+                        'Catalina Grana Napoli': '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.png',
+                        'Catalina Grana Rio': '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.png',
+                        'Catalina Grana Scandina Gray': '/lovable-uploads/638972ac-6a43-41e7-ae3c-bce58ab9417b.png',
+                        'Catalina Grana Slate': '/lovable-uploads/d85c2bf0-0a66-4aa0-9f64-5e76b511b428.png',
+                        'Catalina Grana Titanium': '/lovable-uploads/6aefa246-2c01-43a1-8a58-e195ec3355dc.png',
+                        // Catalina Collection
+                        'Catalina Napoli': '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.png',
+                        'Catalina Slate': '/lovable-uploads/3f98fbbb-b09a-4dbc-82f5-5d811564b9f4.png',
+                        'Catalina Titanium': '/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.png',
+                        // Fallback brands
+                        'Premier Pavers': '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
+                        'Belgard Pavers': '/lovable-uploads/46d142d3-b106-406d-9867-9bf7b63fd469.png',
+                        'Tremron Pavers': '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png',
+                        'Cambridge Pavers': '/lovable-uploads/8033278d-a737-4b1d-84bf-fd0ac9126406.png'
+                      };
+                      const paverImage = paverImages[selectedPaverName] || paverImages['Premier Pavers'];
+                      return <div className="mb-3 p-2 border border-teal-200 rounded-md">
                               <div className="flex items-center gap-3">
                                 <div className="w-16 h-16 rounded-md overflow-hidden border">
-                                  <img 
-                                    src={paverImage} 
-                                    alt={selectedPaverName}
-                                    className="w-full h-full object-cover"
-                                  />
+                                  <img src={paverImage} alt={selectedPaverName} className="w-full h-full object-cover" />
                                 </div>
                                 <div className="flex-1">
                                   <p className="text-sm font-medium">{selectedPaverName}</p>
@@ -775,21 +752,18 @@ const SurveyQuoteTool = ({
                                   </p>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
+                            </div>;
+                    }
+                    return null;
+                  })()}
                     </div>
                   </div>
                   
                   <div>
-                    {(pool?.image || customProduct?.image) && (
-                      <div className="mb-4">
+                    {(pool?.image || customProduct?.image) && <div className="mb-4">
                         <ImageCard src={pool?.image || customProduct?.image} alt={pool?.model || customProduct?.name} className="w-full h-48 rounded-lg border border-orange-200" objectFit="cover" enableZoom={true} />
                         <p className="text-xs text-center mt-1 text-muted-foreground">{pool?.model || customProduct?.name}</p>
-                      </div>
-                    )}
+                      </div>}
                   </div>
                 </div>
 
@@ -798,49 +772,37 @@ const SurveyQuoteTool = ({
                     <h4 className="font-bold text-lg mb-3 text-teal-600">Selected Features</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {selectedOptions.map((option, index) => {
-                        let displayPrice = option.price;
-                        
-                        // Calculate area-based pricing for screen enclosures
-                        if (option.category === 'screen-enclosure') {
-                          const enclosureArea = getEnclosureArea();
-                          
-                          if (option.id.includes('standard-1-story')) {
-                            displayPrice = enclosureArea * 15;
-                          } else if (option.id.includes('standard-2-story')) {
-                            displayPrice = enclosureArea * 22;
-                          } else if (option.id.includes('premium-1-story')) {
-                            displayPrice = enclosureArea * 20;
-                          } else if (option.id.includes('premium-2-story')) {
-                            displayPrice = enclosureArea * 28;
-                          }
-                        }
-                        
-                        return (
-                          <div key={index} className="border border-orange-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
+                  let displayPrice = option.price;
+
+                  // Calculate area-based pricing for screen enclosures
+                  if (option.category === 'screen-enclosure') {
+                    const enclosureArea = getEnclosureArea();
+                    if (option.id.includes('standard-1-story')) {
+                      displayPrice = enclosureArea * 15;
+                    } else if (option.id.includes('standard-2-story')) {
+                      displayPrice = enclosureArea * 22;
+                    } else if (option.id.includes('premium-1-story')) {
+                      displayPrice = enclosureArea * 20;
+                    } else if (option.id.includes('premium-2-story')) {
+                      displayPrice = enclosureArea * 28;
+                    }
+                  }
+                  return <div key={index} className="border border-orange-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
                             {/* Add image for screen enclosures */}
-                            {option.category === 'screen-enclosure' && (
-                              <div className="mb-3">
-                                <img 
-                                  src="/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" 
-                                  alt={option.name}
-                                  className="w-full h-20 rounded-md border border-orange-200 object-cover"
-                                />
-                              </div>
-                            )}
+                            {option.category === 'screen-enclosure' && <div className="mb-3">
+                                <img src="/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" alt={option.name} className="w-full h-20 rounded-md border border-orange-200 object-cover" />
+                              </div>}
                             <h5 className="font-semibold text-sm">{option.name}</h5>
                             <p className="text-xs text-muted-foreground mb-2">{option.description}</p>
-                            {option.category === 'screen-enclosure' && (
-                              <p className="text-xs text-blue-600 mb-2">
+                            {option.category === 'screen-enclosure' && <p className="text-xs text-blue-600 mb-2">
                                 Calculated area: {getEnclosureArea()} sq ft
-                              </p>
-                            )}
+                              </p>}
                             <div className="flex justify-between text-sm">
                               <span>Price:</span>
                               <span className="font-semibold text-teal-600">+${displayPrice.toLocaleString()}</span>
                             </div>
-                          </div>
-                        );
-                      })}
+                          </div>;
+                })}
                     </div>
                   </div>}
 
@@ -848,9 +810,7 @@ const SurveyQuoteTool = ({
                 {extras?.extrasBreakdown && extras.extrasBreakdown.length > 0 && <div className="mb-6">
                     <h4 className="font-bold text-lg mb-3 text-coral-600">Added Features from Product Card</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {extras.extrasBreakdown
-                        .filter((item: any) => !(item.name.includes('sq ft') && !item.name.includes('Screen Enclosure')))
-                        .map((item: any, index: number) => <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
+                      {extras.extrasBreakdown.filter((item: any) => !(item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'))).map((item: any, index: number) => <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
                           {/* Display item image - use actual image if available or fallback based on type */}
                           {(() => {
                     // First check if item has its own image property
@@ -859,7 +819,7 @@ const SurveyQuoteTool = ({
                                  <ImageCard src={item.image} alt={item.name} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
                                </div>;
                     }
-                    
+
                     // Fallback to type-based image mapping
                     let itemImage = null;
                     if (item.name.includes('Heater') || item.name.includes('Heat Pump') || item.name.includes('Gas Heater') || item.name.includes('Solar Heater')) {
@@ -949,15 +909,12 @@ const SurveyQuoteTool = ({
                     <p className="text-sm">
                       {getIncludedItems().filter(item => !item.startsWith("FREE")).join(", ")}
                     </p>
-                    <p className="text-xs mt-2 opacity-80">
-                      FREE Finish of choice (included in pool price - promotional offer)
-                    </p>
+                    <p className="text-xs mt-2 opacity-80">Architectural Design, Construction and permiting is included in all products, unless project scope is modified.</p>
                   </div>
                 </div>
 
                 {/* Pool Construction Details */}
-                {extras?.concreteConstruction && (
-                  <div className="mb-6">
+                {extras?.concreteConstruction && <div className="mb-6">
                     <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-blue-200">
                       <h4 className="font-bold text-lg mb-2 text-blue-600">Pool Construction</h4>
                       <p className="text-sm mb-2">
@@ -970,31 +927,26 @@ const SurveyQuoteTool = ({
                         <li>• <span className="font-semibold text-amber-600">15 Years Structural Integrity, 5 Years Finishing Warranty</span> for concrete construction</li>
                       </ul>
                     </div>
-                  </div>
-                )}
+                  </div>}
 
                 {/* Warranty Information */}
                 <div className="mb-6">
                   <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200">
                     <h4 className="font-bold text-lg mb-2 text-green-600">Warranty Coverage</h4>
                     <div className="text-sm space-y-2">
-                      {extras?.concreteConstruction ? (
-                        <div>
+                      {extras?.concreteConstruction ? <div>
                           <p className="font-semibold">Concrete Pool Construction:</p>
                           <p className="text-sm"><span className="text-amber-600 font-semibold">15 Years Structural Integrity</span></p>
                           <p className="text-sm"><span className="text-amber-600 font-semibold">5 Years Finishing</span></p>
                           <p className="text-xs text-muted-foreground">
                             Comprehensive warranty covering structural integrity and finishing for concrete construction
                           </p>
-                        </div>
-                      ) : (
-                        <div>
+                        </div> : <div>
                           <p className="font-semibold">Pool Structure: <span className="text-green-600">{pool?.warrantyYears || "Lifetime"}</span></p>
                           <p className="text-xs text-muted-foreground">
                             {pool?.model === "Astoria" ? "Life Warranty - Special Offer" : "Standard structural warranty coverage"}
                           </p>
-                        </div>
-                      )}
+                        </div>}
                     </div>
                   </div>
                 </div>
@@ -1006,11 +958,9 @@ const SurveyQuoteTool = ({
                     <p className="text-sm">
                       {extras?.deliveryTime || (extras?.concreteConstruction ? "8-12 weeks+" : "6 weeks")}
                     </p>
-                    {extras?.concreteConstruction && (
-                      <p className="text-xs mt-1 text-muted-foreground">
+                    {extras?.concreteConstruction && <p className="text-xs mt-1 text-muted-foreground">
                         Extended timeline due to custom concrete construction
-                      </p>
-                    )}
+                      </p>}
                   </div>
                 </div>
 
