@@ -11,6 +11,7 @@ import AutomaticCoversSection from "@/components/AutomaticCoversSection";
 import ScreenEnclosureSection from "@/components/ScreenEnclosureSection";
 import PaversSection from "@/components/PaversSection";
 import Footer from "@/components/Footer";
+import LazySection from "@/components/LazySection";
 const Index = () => {
   useEffect(() => {
     // Handle navigation to sections from URL hash
@@ -42,18 +43,32 @@ const Index = () => {
       <div id="pools" />
       <PoolCatalog />
       <div id="spas" />
-      <SpaCatalog />
-      <TanningLedgeSection />
+      <LazySection>
+        <SpaCatalog />
+      </LazySection>
+      <LazySection>
+        <TanningLedgeSection />
+      </LazySection>
       <div id="finishes" />
-      <PoolFinishesSection />
+      <LazySection>
+        <PoolFinishesSection />
+      </LazySection>
       <div id="liners" />
-      <LinersSection />
+      <LazySection>
+        <LinersSection />
+      </LazySection>
       <div id="screen-enclosures" />
-      <ScreenEnclosureSection />
+      <LazySection>
+        <ScreenEnclosureSection />
+      </LazySection>
       <div id="pavers" />
-      <PaversSection />
+      <LazySection>
+        <PaversSection />
+      </LazySection>
       <div id="covers" />
-      <AutomaticCoversSection />
+      <LazySection>
+        <AutomaticCoversSection />
+      </LazySection>
       <Footer />
     </div>;
 };
