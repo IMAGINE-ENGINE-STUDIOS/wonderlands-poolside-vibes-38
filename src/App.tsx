@@ -1,61 +1,77 @@
 
+import { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ShoppingCartProvider } from "@/components/ShoppingCartProvider";
 import RightNavigation from "@/components/RightNavigation";
 
+// Eager load critical components
 import Index from "./pages/Index";
-import AdminDashboard from "./pages/AdminDashboard";
-import EcommerceTemplate from "./pages/EcommerceTemplate";
 import NotFound from "./pages/NotFound";
-import AuthPage from "./components/AuthPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import ProcurementSystem from "./pages/ProcurementSystem";
-import PoolDetails from "./pages/PoolDetails";
-import ContentEditor from "./pages/ContentEditor";
-import ReferralPortal from "./pages/ReferralPortal";
 import ProtectedRoute from "./components/ProtectedRoute";
+
+// Lazy load non-critical route components
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const EcommerceTemplate = lazy(() => import("./pages/EcommerceTemplate"));
+const AuthPage = lazy(() => import("./components/AuthPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const ProcurementSystem = lazy(() => import("./pages/ProcurementSystem"));
+const PoolDetails = lazy(() => import("./pages/PoolDetails"));
+const ContentEditor = lazy(() => import("./pages/ContentEditor"));
+const ReferralPortal = lazy(() => import("./pages/ReferralPortal"));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+      <p className="text-muted-foreground">Loading...</p>
+    </div>
+  </div>
+);
 
 const App = () => (
   <AuthProvider>
     <ShoppingCartProvider>
       <RightNavigation />
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
-        <Route 
-          path="/procurement" 
-          element={<ProcurementSystem />} 
-        />
-        <Route path="/referral" element={<ReferralPortal />} />
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute requireAuth={true}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/content-editor" 
-          element={
-            <ProtectedRoute requiredRoles={['main_admin']}>
-              <ContentEditor />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/template" 
-          element={
-            <ProtectedRoute requiredRoles={['main_admin']}>
-              <EcommerceTemplate />
-            </ProtectedRoute>
-          } 
-        />
-        <Route path="/pool/:poolId" element={<PoolDetails />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+          <Route 
+            path="/procurement" 
+            element={<ProcurementSystem />} 
+          />
+          <Route path="/referral" element={<ReferralPortal />} />
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute requireAuth={true}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/content-editor" 
+            element={
+              <ProtectedRoute requiredRoles={['main_admin']}>
+                <ContentEditor />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/template" 
+            element={
+              <ProtectedRoute requiredRoles={['main_admin']}>
+                <EcommerceTemplate />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="/pool/:poolId" element={<PoolDetails />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </ShoppingCartProvider>
   </AuthProvider>
 );
