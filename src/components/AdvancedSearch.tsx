@@ -285,12 +285,12 @@ const AdvancedSearch = () => {
           placeholder="Search pools, spas, finishes, covers & more..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-12 pr-4 py-3 text-lg bg-background/70 backdrop-blur-md border-border/40 focus:border-primary/60 focus:ring-2 focus:ring-primary/30 rounded-xl shadow-lg text-foreground placeholder:text-foreground/80"
+          className="pl-12 pr-4 py-3 text-lg bg-background/10 backdrop-blur-md border-border/40 focus:border-primary/60 focus:ring-2 focus:ring-primary/30 rounded-xl shadow-lg text-foreground placeholder:text-foreground/80"
         />
       </div>
 
       {showResults && (
-        <Card className="absolute top-full mt-2 w-full bg-background/70 backdrop-blur-md border-border/40 shadow-2xl rounded-xl overflow-hidden z-50">
+        <Card className="absolute top-full mt-2 w-full bg-background/80 backdrop-blur-md border-border/50 shadow-2xl rounded-xl overflow-hidden z-50">
           {isLoading ? (
             <div className="p-6 text-center text-muted-foreground">
               Searching...
