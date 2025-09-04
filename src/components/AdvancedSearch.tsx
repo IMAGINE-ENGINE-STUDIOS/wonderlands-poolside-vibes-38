@@ -166,10 +166,11 @@ const AdvancedSearch = () => {
 
   const handleProductSelect = (result: SearchResult) => {
     if (result.type === 'pool') {
-      // Navigate directly to pool editor studio
-      navigate(`/pool/${result.id}`);
+      // Navigate to pool editor studio with model preselected
+      const modelParam = encodeURIComponent(result.name);
+      navigate(`/pool/${result.id}?model=${modelParam}`);
     } else {
-      // Navigate to main page first if not already there
+      // For non-pool items, keep current behavior (scroll to section)
       if (window.location.pathname !== '/') {
         navigate('/');
         // Wait for navigation then scroll to section
