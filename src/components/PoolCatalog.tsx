@@ -70,48 +70,7 @@ const getPoolPrice = (pool: Pool) => {
   return pool.price;
 };
 const pools: Pool[] = [
-// Enchantment Series
-{
-  model: "Enchantment 9.17",
-  price: 47900,
-  category: 'compact',
-  image: "/src/assets/pools/enchantment-917.jpg",
-  dimensions: "9′ 1″ × 17′ 5″",
-  depth: "~4′ 9″",
-  installationTimeWeeks: 4,
-  warrantyYears: "Lifetime",
-  features: ["Salt system included in final price", "Compact Design", "Energy Efficient"],
-  heater: false,
-  saltSystem: true,
-  carbonFiber: true
-}, {
-  model: "Enchantment 9.21",
-  price: 54400,
-  category: 'compact',
-  image: "/src/assets/pools/enchantment-921.jpg",
-  dimensions: "9′ 1″ × 20′ 7″",
-  depth: "~4′ 9″",
-  installationTimeWeeks: 4,
-  warrantyYears: "Lifetime",
-  features: ["Salt system included in final price", "Compact Design", "Energy Efficient"],
-  heater: false,
-  saltSystem: true,
-  carbonFiber: true
-}, {
-  model: "Enchantment 9.24",
-  price: 60800,
-  category: 'compact',
-  image: "/src/assets/pools/enchantment-924.jpg",
-  dimensions: "9′ 1″ × 23′ 10″",
-  depth: "~4′ 9″",
-  installationTimeWeeks: 4,
-  warrantyYears: "Lifetime",
-  features: ["Salt system included in final price", "Compact Design", "Energy Efficient"],
-  heater: false,
-  saltSystem: true,
-  carbonFiber: true
-},
-// Standard Series
+// Most Popular - Standard Series (Special Offers & Best Value)
 {
   model: "Astoria",
   price: 89999,
@@ -174,6 +133,47 @@ const pools: Pool[] = [
   installationTimeWeeks: 4,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Elegant Design", "Versatile Depth"],
+  heater: false,
+  saltSystem: true,
+  carbonFiber: true
+},
+// Popular Compact Series - Enchantment
+{
+  model: "Enchantment 9.17",
+  price: 47900,
+  category: 'compact',
+  image: "/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png",
+  dimensions: "9′ 1″ × 17′ 5″",
+  depth: "~4′ 9″",
+  installationTimeWeeks: 4,
+  warrantyYears: "Lifetime",
+  features: ["Salt system included in final price", "Compact Design", "Energy Efficient"],
+  heater: false,
+  saltSystem: true,
+  carbonFiber: true
+}, {
+  model: "Enchantment 9.21",
+  price: 54400,
+  category: 'compact',
+  image: "/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png",
+  dimensions: "9′ 1″ × 20′ 7″",
+  depth: "~4′ 9″",
+  installationTimeWeeks: 4,
+  warrantyYears: "Lifetime",
+  features: ["Salt system included in final price", "Compact Design", "Energy Efficient"],
+  heater: false,
+  saltSystem: true,
+  carbonFiber: true
+}, {
+  model: "Enchantment 9.24",
+  price: 60800,
+  category: 'compact',
+  image: "/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png",
+  dimensions: "9′ 1″ × 23′ 10″",
+  depth: "~4′ 9″",
+  installationTimeWeeks: 4,
+  warrantyYears: "Lifetime",
+  features: ["Salt system included in final price", "Compact Design", "Energy Efficient"],
   heater: false,
   saltSystem: true,
   carbonFiber: true
@@ -397,7 +397,7 @@ const pools: Pool[] = [
   model: "Olympia 12",
   price: 76300,
   category: 'premium',
-  image: "/src/assets/pools/olympia-12-optimized.webp",
+  image: "/lovable-uploads/0aa90de6-b1eb-43a4-91ec-10c05388c900.png",
   dimensions: "12′ × 26′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 6,
@@ -410,7 +410,7 @@ const pools: Pool[] = [
   model: "Olympia 14",
   price: 96400,
   category: 'premium',
-  image: "/src/assets/pools/olympia-14-optimized.webp",
+  image: "/lovable-uploads/d707c6e1-8471-404f-9312-bd6773152617.png",
   dimensions: "14′ × 30′",
   depth: "3′ 6″ – 6′",
   installationTimeWeeks: 6,
