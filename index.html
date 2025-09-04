@@ -3,6 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Resource hints for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    
     <title>Wonderlands Pools & Spas | Luxury Fiberglass Pools</title>
     <meta name="description" content="Shop luxury fiberglass pools, spas, liners, tiles, and finishes. Customize models and request a quote." />
     <meta name="author" content="Wonderlands" />
@@ -91,12 +96,39 @@
         var l=document.querySelector('link[rel="canonical"]');
         var href=location.origin+location.pathname;
         if(l){l.setAttribute('href', href);} else {l=document.createElement('link');l.rel='canonical';l.href=href;document.head.appendChild(l);}
+        
+        // Preload critical resources to break dependency chain
+        var observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+              if (node.tagName === 'SCRIPT' && node.src && node.src.includes('/assets/') && node.type === 'module') {
+                var preload = document.createElement('link');
+                preload.rel = 'modulepreload';
+                preload.href = node.src;
+                document.head.appendChild(preload);
+              }
+              if (node.tagName === 'LINK' && node.href && node.href.includes('/assets/') && node.rel === 'stylesheet') {
+                var preload = document.createElement('link');
+                preload.rel = 'preload';
+                preload.href = node.href;
+                preload.as = 'style';
+                document.head.appendChild(preload);
+              }
+            });
+          });
+        });
+        observer.observe(document.head, { childList: true, subtree: true });
+        
+        // Stop observing after 5 seconds to prevent memory leaks
+        setTimeout(function() { observer.disconnect(); }, 5000);
       })();
     </script>
   </head>
 
   <body>
     <div id="root"></div>
+    <!-- Preload main script as module -->
+    <link rel="modulepreload" href="/src/main.tsx">
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
