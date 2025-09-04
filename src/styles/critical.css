@@ -1,0 +1,94 @@
+/* Critical CSS - Above the fold content only */
+@tailwind base;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --primary: 210 100% 35%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 45%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --border: 240 5.9% 90%;
+  --ring: 210 100% 35%;
+  --radius: 0.75rem;
+  --teal: 180 100% 25%;
+  --coral: 16 100% 66%;
+  --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--teal)));
+  --gradient-secondary: linear-gradient(135deg, hsl(var(--teal)), hsl(var(--coral)));
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --primary: 210 100% 60%;
+  --primary-foreground: 240 5.9% 10%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --ring: 210 100% 60%;
+}
+
+* {
+  box-sizing: border-box;
+  border-color: hsl(var(--border));
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: "rlig" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Essential hero/landscape styles only */
+.relative { position: relative; }
+.absolute { position: absolute; }
+.inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+.min-h-screen { min-height: 100vh; }
+.overflow-hidden { overflow: hidden; }
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.bg-background { background-color: hsl(var(--background)); }
+.text-foreground { color: hsl(var(--foreground)); }
+
+/* Loading spinner for lazy components */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.rounded-full { border-radius: 9999px; }
+.border-b-2 { border-bottom-width: 2px; }
+.border-primary { border-color: hsl(var(--primary)); }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.mb-4 { margin-bottom: 1rem; }
+.text-center { text-align: center; }
+.text-muted-foreground { color: hsl(var(--muted-foreground)); }
+.h-8 { height: 2rem; }
+.w-8 { width: 2rem; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

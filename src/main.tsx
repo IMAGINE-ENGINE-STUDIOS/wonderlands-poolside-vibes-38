@@ -7,7 +7,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DarkModeProvider } from "@/components/DarkModeProvider";
 import App from "./App.tsx";
-import "./index.css";
+import "./styles/critical.css";
 
 const queryClient = new QueryClient();
 
