@@ -198,8 +198,9 @@ const AdvancedSearch = () => {
         ) as HTMLElement;
         
         if (targetCard) {
-          // Trigger click on the pool card to open the editor
-          targetCard.click();
+          // Prefer clicking the card's inner trigger to open the editor
+          const trigger = targetCard.querySelector('[data-pool-trigger="true"]') as HTMLElement | null;
+          (trigger || targetCard).click();
         }
       }, 800);
     } else {
