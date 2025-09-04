@@ -1710,7 +1710,7 @@ const PoolDetails = () => {
                   </div>}
                 
                 <div className="aspect-[4/3] overflow-hidden">
-                  <img src={getCurrentImage()} alt={pool.model} className="w-full h-full object-cover transition-all duration-500" />
+                  <img src={getCurrentImage()} alt={pool.model} className="w-[90%] h-[90%] object-cover transition-all duration-500 mx-auto my-auto" />
                 </div>
                 
                 {/* Pool Info Overlay - Responsive */}
@@ -1749,38 +1749,39 @@ const PoolDetails = () => {
                     <label className="text-sm font-medium text-muted-foreground mb-2 block">
                       Browse Other Pool Models
                     </label>
-                    <select value={pool.model} onChange={e => {
-                    const selectedPool = pools.find(p => p.model === e.target.value);
-                    if (selectedPool) {
-                      const params = new URLSearchParams({
-                        model: selectedPool.model,
-                        price: selectedPool.price.toString(),
-                        category: selectedPool.category,
-                        ...(selectedPool.image && {
-                          image: selectedPool.image
-                        }),
-                        ...(selectedPool.dimensions && {
-                          dimensions: selectedPool.dimensions
-                        }),
-                        ...(selectedPool.depth && {
-                          depth: selectedPool.depth
-                        }),
-                        ...(selectedPool.installationTimeWeeks && {
-                          installationTimeWeeks: selectedPool.installationTimeWeeks.toString()
-                        }),
-                        ...(selectedPool.warrantyYears && {
-                          warrantyYears: selectedPool.warrantyYears.toString()
-                        }),
-                        ...(selectedPool.saltSystem !== undefined && {
-                          saltSystem: selectedPool.saltSystem.toString()
-                        }),
-                        ...(selectedPool.carbonFiber !== undefined && {
-                          carbonFiber: selectedPool.carbonFiber.toString()
-                        })
-                      });
-                      window.location.href = `/pool/${selectedPool.model.toLowerCase().replace(/\s+/g, '-')}?${params.toString()}`;
-                    }
-                  }} className="w-full p-2 text-sm border rounded-md bg-background">
+                     <select value={pool.model} onChange={e => {
+                     const selectedPool = pools.find(p => p.model === e.target.value);
+                     if (selectedPool) {
+                       const params = new URLSearchParams({
+                         model: selectedPool.model,
+                         price: selectedPool.price.toString(),
+                         category: selectedPool.category,
+                         ...(selectedPool.image && {
+                           image: selectedPool.image
+                         }),
+                         ...(selectedPool.dimensions && {
+                           dimensions: selectedPool.dimensions
+                         }),
+                         ...(selectedPool.depth && {
+                           depth: selectedPool.depth
+                         }),
+                         ...(selectedPool.installationTimeWeeks && {
+                           installationTimeWeeks: selectedPool.installationTimeWeeks.toString()
+                         }),
+                         ...(selectedPool.warrantyYears && {
+                           warrantyYears: selectedPool.warrantyYears.toString()
+                         }),
+                         ...(selectedPool.saltSystem !== undefined && {
+                           saltSystem: selectedPool.saltSystem.toString()
+                         }),
+                         ...(selectedPool.carbonFiber !== undefined && {
+                           carbonFiber: selectedPool.carbonFiber.toString()
+                         })
+                       });
+                       navigate(`/pool/${selectedPool.model.toLowerCase().replace(/\s+/g, '-')}?${params.toString()}`);
+                     }
+                   }} className="w-full p-2 text-sm border rounded-md bg-background z-50 relative"
+                      style={{ position: 'relative', zIndex: 50, backgroundColor: 'hsl(var(--background))' }}>
                       {pools.map(poolOption => <option key={poolOption.model} value={poolOption.model}>
                           {poolOption.model} - ${poolOption.price.toLocaleString()}
                         </option>)}
