@@ -353,9 +353,10 @@ const SurveyQuoteTool = ({
       // saveQuotationToDatabase will trigger auth prompt
       return;
     }
-    const subject = encodeURIComponent(`Schedule Installation - ${pool?.model || customProduct?.name || 'Pool'}`);
-    const body = encodeURIComponent(`Hello Wonderlands,\n\n` + `I would like to schedule installation for the following configuration:\n\n` + `Customer: ${surveyData.name}\n` + `Email: ${surveyData.email}\n` + `Phone: ${surveyData.phone}\n` + `Address: ${surveyData.address}\n\n` + `Total Investment: $${calculateQuote().toLocaleString()}\n\n` + `Thank you.`);
-    window.location.href = `mailto:sales@wonderlandsworld.com?subject=${subject}&body=${body}`;
+    
+    // Open Calendly scheduling link in new tab
+    const calendlyUrl = "https://calendly.com/wonderlands-pools/consultation"; // Replace with your actual Calendly link
+    window.open(calendlyUrl, '_blank');
   };
   if (!pool && !customProduct) return null;
   return <Dialog open={isOpen} onOpenChange={onClose}>
