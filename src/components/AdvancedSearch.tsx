@@ -165,15 +165,20 @@ const AdvancedSearch = () => {
   };
 
   const handleProductSelect = (result: SearchResult) => {
-    // Navigate to main page first if not already there
-    if (window.location.pathname !== '/') {
-      navigate('/');
-      // Wait for navigation then scroll to section
-      setTimeout(() => {
-        scrollToSection(result);
-      }, 100);
+    if (result.type === 'pool') {
+      // Navigate directly to pool editor studio
+      navigate(`/pool/${result.id}`);
     } else {
-      scrollToSection(result);
+      // Navigate to main page first if not already there
+      if (window.location.pathname !== '/') {
+        navigate('/');
+        // Wait for navigation then scroll to section
+        setTimeout(() => {
+          scrollToSection(result);
+        }, 100);
+      } else {
+        scrollToSection(result);
+      }
     }
     
     setShowResults(false);
