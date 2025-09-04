@@ -7,9 +7,6 @@
     <!-- Resource hints for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
-    <link rel="dns-prefetch" href="https://bwngxlbnavnhbtahyzbf.supabase.co">
-    
-    <!-- Preload critical resources - build assets only -->
     
     <title>Wonderlands Pools & Spas | Luxury Fiberglass Pools</title>
     <meta name="description" content="Shop luxury fiberglass pools, spas, liners, tiles, and finishes. Customize models and request a quote." />
@@ -75,15 +72,6 @@
       .w-full { width: 100%; }
       .h-full { height: 100%; }
       img { max-width: 100%; height: auto; }
-      
-      /* Optimize initial paint */
-      .animate-pulse { 
-        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-      }
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: .5; }
-      }
     </style>
 
     <meta property="og:title" content="Wonderlands Pools & Spas" />
@@ -135,79 +123,12 @@
         setTimeout(function() { observer.disconnect(); }, 5000);
       })();
     </script>
-    
-    <!-- Boot Watchdog: Prevents white screen by dynamically loading build assets if app fails to boot -->
-    <script>
-      (function() {
-        var bootTimeout = setTimeout(function() {
-          if (!window.__app_booted) {
-            console.warn('🚨 App boot timeout - attempting manifest fallback');
-            
-            // Try to fetch manifest and inject correct assets
-            var manifestPaths = ['.vite/manifest.json', 'assets/manifest.json', 'manifest.json'];
-            var currentPath = 0;
-            
-            function tryManifest() {
-              if (currentPath >= manifestPaths.length) {
-                // All manifest paths failed - show error message
-                document.getElementById('root').innerHTML = 
-                  '<div style="padding: 40px; text-align: center; font-family: system-ui;">' +
-                  '<h2 style="color: #dc2626;">Build not found</h2>' +
-                  '<p>Please re-publish or ensure dist/ folder is being served.</p>' +
-                  '<p style="font-size: 0.9em; color: #666; margin-top: 20px;">Debug: Tried paths: ' + manifestPaths.join(', ') + '</p>' +
-                  '</div>';
-                return;
-              }
-              
-              fetch('/' + manifestPaths[currentPath])
-                .then(function(response) {
-                  if (!response.ok) throw new Error('Not found');
-                  return response.json();
-                })
-                .then(function(manifest) {
-                  console.log('📦 Manifest loaded, injecting assets:', manifest);
-                  
-                  // Find main.tsx entry
-                  var mainEntry = manifest['src/main.tsx'];
-                  if (mainEntry) {
-                    // Inject CSS
-                    if (mainEntry.css) {
-                      mainEntry.css.forEach(function(cssPath) {
-                        var link = document.createElement('link');
-                        link.rel = 'stylesheet';
-                        link.href = '/' + cssPath;
-                        document.head.appendChild(link);
-                      });
-                    }
-                    
-                    // Inject JS
-                    var script = document.createElement('script');
-                    script.type = 'module';
-                    script.src = '/' + mainEntry.file;
-                    document.body.appendChild(script);
-                  }
-                })
-                .catch(function() {
-                  currentPath++;
-                  tryManifest();
-                });
-            }
-            
-            tryManifest();
-          }
-        }, 1500); // 1.5 second timeout
-        
-        // Clear timeout if app boots successfully
-        window.__boot_watchdog_clear = function() {
-          clearTimeout(bootTimeout);
-        };
-      })();
-    </script>
   </head>
 
   <body>
     <div id="root"></div>
-    <!-- Vite will inject proper modulepreloads during build -->
+    <!-- Preload main script as module -->
+    <link rel="modulepreload" href="/src/main.tsx">
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

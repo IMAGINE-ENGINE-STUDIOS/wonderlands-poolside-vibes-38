@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wonderlands-cache-v4';
+const CACHE_NAME = 'wonderlands-cache-v1';
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
 // Assets to cache
@@ -43,17 +43,6 @@ self.addEventListener('fetch', (event) => {
   
   // Only cache GET requests for static assets
   if (request.method !== 'GET') return;
-  
-  // Never cache source files
-  if (url.pathname.startsWith('/src/') || url.pathname.endsWith('.tsx')) return;
-  
-  // Network-first strategy for navigation requests to prevent stale index.html
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request).catch(() => caches.match(request))
-    );
-    return;
-  }
   
   // Cache static assets (images, CSS, JS)
   if (

@@ -32,30 +32,30 @@ const Index = () => {
       <div id="pools" />
       <PoolCatalog />
       <div id="spas" />
-      <LazySection delay={100}>
+      <LazySection>
         <SpaCatalog />
       </LazySection>
-      <LazySection delay={200}>
+      <LazySection>
         <TanningLedgeSection />
       </LazySection>
       <div id="finishes" />
-      <LazySection delay={300}>
+      <LazySection>
         <PoolFinishesSection />
       </LazySection>
       <div id="liners" />
-      <LazySection delay={400}>
+      <LazySection>
         <LinersSection />
       </LazySection>
       <div id="screen-enclosures" />
-      <LazySection delay={500}>
+      <LazySection>
         <ScreenEnclosureSection />
       </LazySection>
       <div id="pavers" />
-      <LazySection delay={600}>
+      <LazySection>
         <PaversSection />
       </LazySection>
       <div id="covers" />
-      <LazySection delay={700}>
+      <LazySection>
         <AutomaticCoversSection />
       </LazySection>
       <Footer />

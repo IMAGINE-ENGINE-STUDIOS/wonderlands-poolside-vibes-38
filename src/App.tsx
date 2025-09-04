@@ -4,37 +4,22 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ShoppingCartProvider } from "@/components/ShoppingCartProvider";
 import RightNavigation from "@/components/RightNavigation";
+import { useConditionalCSS } from "@/components/CSSLoader";
 
 // Eager load critical components
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// Lazy load non-critical route components with better chunking
-const AdminDashboard = lazy(() => 
-  import("./pages/AdminDashboard").then(module => ({ default: module.default }))
-);
-const EcommerceTemplate = lazy(() => 
-  import("./pages/EcommerceTemplate").then(module => ({ default: module.default }))
-);
-const AuthPage = lazy(() => 
-  import("./components/AuthPage").then(module => ({ default: module.default }))
-);
-const ResetPasswordPage = lazy(() => 
-  import("./pages/ResetPasswordPage").then(module => ({ default: module.default }))
-);
-const ProcurementSystem = lazy(() => 
-  import("./pages/ProcurementSystem").then(module => ({ default: module.default }))
-);
-const PoolDetails = lazy(() => 
-  import("./pages/PoolDetails").then(module => ({ default: module.default }))
-);
-const ContentEditor = lazy(() => 
-  import("./pages/ContentEditor").then(module => ({ default: module.default }))
-);
-const ReferralPortal = lazy(() => 
-  import("./pages/ReferralPortal").then(module => ({ default: module.default }))
-);
+// Lazy load non-critical route components
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const EcommerceTemplate = lazy(() => import("./pages/EcommerceTemplate"));
+const AuthPage = lazy(() => import("./components/AuthPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const ProcurementSystem = lazy(() => import("./pages/ProcurementSystem"));
+const PoolDetails = lazy(() => import("./pages/PoolDetails"));
+const ContentEditor = lazy(() => import("./pages/ContentEditor"));
+const ReferralPortal = lazy(() => import("./pages/ReferralPortal"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -47,12 +32,15 @@ const LoadingFallback = () => (
 );
 
 const App = () => {
-  // Runtime check for production debugging
-  useEffect(() => {
-    if (import.meta.env.PROD && window.location.pathname.includes('/src/')) {
-      console.error('🚨 Production app is trying to load source files:', window.location.pathname);
-    }
-  }, []);
+  const location = useLocation();
+  
+  // Load CSS conditionally based on route
+  useConditionalCSS(true, '/src/styles/components.css', 'components-css');
+  useConditionalCSS(
+    location.pathname === '/', 
+    '/src/styles/animations.css', 
+    'animations-css'
+  );
 
   return (
     <AuthProvider>

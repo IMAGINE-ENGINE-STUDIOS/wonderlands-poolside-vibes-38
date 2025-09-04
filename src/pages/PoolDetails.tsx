@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -488,19 +488,6 @@ const PoolDetails = () => {
     concreteConstruction: false
   });
 
-  const loadMarketplaceProducts = useCallback(async () => {
-    try {
-      const {
-        data: products,
-        error
-      } = await supabase.from('products').select('id, name, price, image_url, description, category, brand').eq('is_active', true).gt('stock_quantity', 0);
-      if (error) throw error;
-      setMarketplaceProducts(products || []);
-    } catch (error) {
-      console.error('Error loading marketplace products:', error);
-    }
-  }, []);
-
   // Load cached selections and marketplace products on mount
   useEffect(() => {
     const cached = localStorage.getItem(cacheKey);
@@ -512,21 +499,25 @@ const PoolDetails = () => {
       }
     }
 
-    // Defer marketplace products loading to improve TTI
-    const timeoutId = setTimeout(() => {
-      loadMarketplaceProducts();
-    }, 100);
+    // Load marketplace products
+    loadMarketplaceProducts();
+  }, [cacheKey]);
+  const loadMarketplaceProducts = async () => {
+    try {
+      const {
+        data: products,
+        error
+      } = await supabase.from('products').select('id, name, price, image_url, description, category, brand').eq('is_active', true).gt('stock_quantity', 0);
+      if (error) throw error;
+      setMarketplaceProducts(products || []);
+    } catch (error) {
+      console.error('Error loading marketplace products:', error);
+    }
+  };
 
-    return () => clearTimeout(timeoutId);
-  }, [cacheKey, loadMarketplaceProducts]);
-
-  // Save selections to cache whenever extras change (debounced)
+  // Save selections to cache whenever extras change
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      localStorage.setItem(cacheKey, JSON.stringify(extras));
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
+    localStorage.setItem(cacheKey, JSON.stringify(extras));
   }, [extras, cacheKey]);
   const calculateTotalPrice = () => {
     let total = pool.price;

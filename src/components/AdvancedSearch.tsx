@@ -165,21 +165,15 @@ const AdvancedSearch = () => {
   };
 
   const handleProductSelect = (result: SearchResult) => {
-    if (result.type === 'pool') {
-      // Navigate to pool editor studio with model preselected
-      const modelParam = encodeURIComponent(result.name);
-      navigate(`/pool/${result.id}?model=${modelParam}`);
-    } else {
-      // For non-pool items, keep current behavior (scroll to section)
-      if (window.location.pathname !== '/') {
-        navigate('/');
-        // Wait for navigation then scroll to section
-        setTimeout(() => {
-          scrollToSection(result);
-        }, 100);
-      } else {
+    // Navigate to main page first if not already there
+    if (window.location.pathname !== '/') {
+      navigate('/');
+      // Wait for navigation then scroll to section
+      setTimeout(() => {
         scrollToSection(result);
-      }
+      }, 100);
+    } else {
+      scrollToSection(result);
     }
     
     setShowResults(false);
@@ -188,27 +182,36 @@ const AdvancedSearch = () => {
 
   const scrollToSection = (result: SearchResult) => {
     if (result.type === 'pool') {
-      // Navigate to pools section and trigger pool selection
+      // Navigate to pools section first, then to specific pool detail
       window.location.hash = '#pools';
       const element = document.querySelector('#pools');
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
       
-      // Trigger pool card click after a short delay to allow scrolling
+      // Then navigate to pool detail page after a short delay
       setTimeout(() => {
-        // Find and click the pool card based on the search result
-        const poolCards = document.querySelectorAll('[data-pool-id]');
-        const targetCard = Array.from(poolCards).find(card => 
-          card.getAttribute('data-pool-id') === result.id
-        ) as HTMLElement;
-        
-        if (targetCard) {
-          // Prefer clicking the card's inner trigger to open the editor
-          const trigger = targetCard.querySelector('[data-pool-trigger="true"]') as HTMLElement | null;
-          (trigger || targetCard).click();
-        }
-      }, 800);
+        import('./PoolCatalog').then(({ pools }) => {
+          const selectedPool = pools.find(p => p.model.toLowerCase().replace(/\s+/g, '-') === result.id);
+          if (selectedPool) {
+            const params = new URLSearchParams({
+              model: selectedPool.model,
+              price: selectedPool.price.toString(),
+              category: selectedPool.category,
+              ...(selectedPool.image && { image: selectedPool.image }),
+              ...(selectedPool.dimensions && { dimensions: selectedPool.dimensions }),
+              ...(selectedPool.depth && { depth: selectedPool.depth }),
+              ...(selectedPool.installationTimeWeeks && { installationTimeWeeks: selectedPool.installationTimeWeeks.toString() }),
+              ...(selectedPool.warrantyYears && { warrantyYears: selectedPool.warrantyYears.toString() }),
+              ...(selectedPool.saltSystem !== undefined && { saltSystem: selectedPool.saltSystem.toString() }),
+              ...(selectedPool.carbonFiber !== undefined && { carbonFiber: selectedPool.carbonFiber.toString() })
+            });
+            navigate(`/pool/${result.id}?${params.toString()}`);
+          } else {
+            navigate(`/pool/${result.id}`);
+          }
+        });
+      }, 500);
     } else {
       // Enhanced section mapping for all product categories
       const sectionMap: { [key: string]: string } = {

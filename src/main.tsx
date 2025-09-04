@@ -8,16 +8,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { DarkModeProvider } from "@/components/DarkModeProvider";
 import App from "./App.tsx";
 import "./styles/critical.css";
-import "./styles/components.css";
-import "./styles/animations.css";
-
-// Declare global window types for boot watchdog
-declare global {
-  interface Window {
-    __app_booted?: boolean;
-    __boot_watchdog_clear?: () => void;
-  }
-}
 
 const queryClient = new QueryClient();
 
@@ -34,9 +24,7 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
-const root = createRoot(document.getElementById("root")!);
-
-root.render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -51,11 +39,3 @@ root.render(
     </QueryClientProvider>
   </StrictMode>
 );
-
-// Signal successful app boot to the watchdog
-requestAnimationFrame(() => {
-  window.__app_booted = true;
-  if (window.__boot_watchdog_clear) {
-    window.__boot_watchdog_clear();
-  }
-});

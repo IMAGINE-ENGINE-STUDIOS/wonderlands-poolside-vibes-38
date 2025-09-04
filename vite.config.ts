@@ -20,7 +20,6 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    manifest: true,
     cssCodeSplit: true,
     sourcemap: false,
     minify: 'esbuild',
