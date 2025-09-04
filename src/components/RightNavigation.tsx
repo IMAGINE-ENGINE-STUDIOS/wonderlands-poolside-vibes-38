@@ -5,10 +5,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ShoppingCart, Home, Waves, Sparkles, Palette, Droplets, Shield, Grid3X3, Mountain, Settings } from "lucide-react";
 import { useShoppingCart } from "./ShoppingCart";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const RightNavigation = () => {
   const [activeSection, setActiveSection] = useState("hero");
   const { getCartCount, setIsCartOpen } = useShoppingCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -92,18 +94,20 @@ const RightNavigation = () => {
           </Tooltip>
         ) : (
           <>
-            {/* Admin Dashboard Button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={() => navigate('/admin')}
-                  className="relative rounded-full w-11 h-11 bg-secondary hover:bg-secondary/90 shadow-lg"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Admin</TooltipContent>
-            </Tooltip>
+            {/* Admin Dashboard Button - Only show to logged in users */}
+            {user && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => navigate('/admin')}
+                    className="relative rounded-full w-11 h-11 bg-secondary hover:bg-secondary/90 shadow-lg"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Admin</TooltipContent>
+              </Tooltip>
+            )}
 
             {/* Shopping Cart Button */}
             <Tooltip>

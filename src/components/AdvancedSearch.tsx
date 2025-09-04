@@ -294,20 +294,20 @@ const AdvancedSearch = () => {
   return (
     <div className="relative w-full max-w-2xl mx-auto">
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white w-5 h-5" />
         <Input
           type="text"
           placeholder="Search pools, spas, finishes, covers & more..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-12 pr-4 py-3 text-lg bg-background/95 backdrop-blur border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 rounded-xl shadow-lg"
+          className="pl-12 pr-4 py-3 text-lg bg-black/10 backdrop-blur text-white placeholder:text-white/70 border-white/20 focus:border-white/50 focus:ring-2 focus:ring-white/20 rounded-xl shadow-lg"
         />
       </div>
 
       {showResults && (
-        <Card className="absolute top-full mt-2 w-full bg-background/95 backdrop-blur border-border/50 shadow-2xl rounded-xl overflow-hidden z-50">
+        <Card className="absolute top-full mt-2 w-full bg-black/10 backdrop-blur border-white/20 shadow-2xl rounded-xl overflow-hidden z-50">
           {isLoading ? (
-            <div className="p-6 text-center text-muted-foreground">
+            <div className="p-6 text-center text-white">
               Searching...
             </div>
           ) : searchResults.length > 0 ? (
@@ -315,7 +315,7 @@ const AdvancedSearch = () => {
               {searchResults.map((result) => (
                 <div
                   key={`${result.category}-${result.id}`}
-                  className="p-4 hover:bg-accent/50 cursor-pointer border-b border-border/30 last:border-b-0 transition-colors"
+                  className="p-4 hover:bg-white/10 cursor-pointer border-b border-white/20 last:border-b-0 transition-colors"
                   onClick={() => handleProductSelect(result)}
                 >
                   <div className="flex items-center gap-4">
@@ -328,13 +328,13 @@ const AdvancedSearch = () => {
                     )}
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-foreground">{result.name}</h3>
-                        <Badge variant="secondary" className="text-xs">
+                        <h3 className="font-semibold text-white">{result.name}</h3>
+                        <Badge variant="secondary" className="text-xs bg-white/20 text-white border-white/30">
                           {result.category}
                         </Badge>
                       </div>
                       {result.price > 0 && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-white/70">
                           ${result.price.toLocaleString()}
                         </p>
                       )}
@@ -344,7 +344,7 @@ const AdvancedSearch = () => {
               ))}
             </div>
           ) : (
-            <div className="p-6 text-center text-muted-foreground">
+            <div className="p-6 text-center text-white">
               No results found for "{searchQuery}"
             </div>
           )}
