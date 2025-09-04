@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-import { OptimizedImage } from './OptimizedImage';
 
 interface SearchResult {
   id: string;
@@ -183,36 +182,26 @@ const AdvancedSearch = () => {
 
   const scrollToSection = (result: SearchResult) => {
     if (result.type === 'pool') {
-      // Navigate to pools section first, then to specific pool detail
+      // Navigate to pools section and trigger pool selection
       window.location.hash = '#pools';
       const element = document.querySelector('#pools');
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
       
-      // Then navigate to pool detail page after a short delay
+      // Trigger pool card click after a short delay to allow scrolling
       setTimeout(() => {
-        import('./PoolCatalog').then(({ pools }) => {
-          const selectedPool = pools.find(p => p.model.toLowerCase().replace(/\s+/g, '-') === result.id);
-          if (selectedPool) {
-            const params = new URLSearchParams({
-              model: selectedPool.model,
-              price: selectedPool.price.toString(),
-              category: selectedPool.category,
-              ...(selectedPool.image && { image: selectedPool.image }),
-              ...(selectedPool.dimensions && { dimensions: selectedPool.dimensions }),
-              ...(selectedPool.depth && { depth: selectedPool.depth }),
-              ...(selectedPool.installationTimeWeeks && { installationTimeWeeks: selectedPool.installationTimeWeeks.toString() }),
-              ...(selectedPool.warrantyYears && { warrantyYears: selectedPool.warrantyYears.toString() }),
-              ...(selectedPool.saltSystem !== undefined && { saltSystem: selectedPool.saltSystem.toString() }),
-              ...(selectedPool.carbonFiber !== undefined && { carbonFiber: selectedPool.carbonFiber.toString() })
-            });
-            navigate(`/pool/${result.id}?${params.toString()}`);
-          } else {
-            navigate(`/pool/${result.id}`);
-          }
-        });
-      }, 500);
+        // Find and click the pool card based on the search result
+        const poolCards = document.querySelectorAll('[data-pool-id]');
+        const targetCard = Array.from(poolCards).find(card => 
+          card.getAttribute('data-pool-id') === result.id
+        ) as HTMLElement;
+        
+        if (targetCard) {
+          // Trigger click on the pool card to open the editor
+          targetCard.click();
+        }
+      }, 800);
     } else {
       // Enhanced section mapping for all product categories
       const sectionMap: { [key: string]: string } = {
@@ -306,12 +295,10 @@ const AdvancedSearch = () => {
                 >
                   <div className="flex items-center gap-4">
                     {result.image && (
-                      <OptimizedImage
+                      <img 
                         src={result.image} 
                         alt={result.name}
                         className="w-12 h-12 object-cover rounded-lg"
-                        sizeConfig="thumbnail"
-                        loading="eager"
                       />
                     )}
                     <div className="flex-1">

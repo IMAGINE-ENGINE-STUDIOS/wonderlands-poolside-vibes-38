@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { useSpring, animated } from '@react-spring/web';
-import { OptimizedImage } from './OptimizedImage';
 
 const AnimatedLandscape = () => {
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
@@ -31,13 +30,11 @@ const AnimatedLandscape = () => {
   return (
     <div className="absolute inset-0 overflow-hidden">
       {/* Background Image */}
-      <OptimizedImage
-        src="/lovable-uploads/7a94e712-7683-4a26-8a1c-c6974e320b5a.png"
-        alt="Pool landscape background"
-        className="absolute inset-0 w-full h-full object-cover"
-        sizeConfig="hero"
-        priority={true}
-        loading="eager"
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: 'url(/lovable-uploads/7a94e712-7683-4a26-8a1c-c6974e320b5a.png)'
+        }}
       />
       
       {/* Optional overlay for better text readability */}
