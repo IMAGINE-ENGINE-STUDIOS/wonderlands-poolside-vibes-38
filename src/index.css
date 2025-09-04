@@ -10,7 +10,7 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 210 100% 45%;
+    --primary: 210 100% 35%;
     --primary-foreground: 0 0% 98%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -22,7 +22,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 210 100% 45%;
+    --ring: 210 100% 35%;
     --radius: 0.75rem;
     --chart-1: 173 58% 39%;
     --chart-2: 12 76% 61%;
@@ -31,7 +31,7 @@
     --chart-5: 27 87% 67%;
     
     /* B2B Procurement Theme Colors */
-    --teal: 180 100% 35%;
+    --teal: 180 100% 25%;
     --coral: 16 100% 66%;
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--teal)));
     --gradient-secondary: linear-gradient(135deg, hsl(var(--teal)), hsl(var(--coral)));
