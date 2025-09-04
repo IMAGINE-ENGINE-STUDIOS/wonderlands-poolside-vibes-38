@@ -110,6 +110,26 @@
         if(l){l.setAttribute('href', href);} else {l=document.createElement('link');l.rel='canonical';l.href=href;document.head.appendChild(l);}
       })();
     </script>
+    <script>
+      (function(){
+        function showError(msg){
+          var el=document.getElementById('runtime-error-overlay');
+          if(!el){
+            el=document.createElement('div');
+            el.id='runtime-error-overlay';
+            el.style.cssText='position:fixed;z-index:99999;top:0;left:0;right:0;background:#fee;border-bottom:1px solid #f99;padding:12px 16px;font:14px/1.4 system-ui,sans-serif;color:#900';
+            if(document.body){
+              document.body.appendChild(el);
+            }else{
+              document.addEventListener('DOMContentLoaded', function(){ document.body.appendChild(el); el.textContent=msg; });
+            }
+          }
+          el.textContent=msg;
+        }
+        window.addEventListener('error', function(e){ showError('JS Error: '+ (e.message || (e.error && e.error.message) || e.error || 'unknown')); });
+        window.addEventListener('unhandledrejection', function(e){ var r=e.reason; showError('Unhandled Promise Rejection: '+ (r && r.message ? r.message : r)); });
+      })();
+    </script>
   </head>
 
   <body>

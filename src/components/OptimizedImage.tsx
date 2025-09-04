@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
 import { getImageConfig, generateSrcSet } from '@/utils/imageOptimization';
+import olympia12Webp from '@/assets/pools/olympia-12-optimized.webp';
+import olympia14Webp from '@/assets/pools/olympia-14-optimized.webp';
+import enchantment921Webp from '@/assets/pools/enchantment-921-optimized.webp';
+import enchantment924Webp from '@/assets/pools/enchantment-924-optimized.webp';
+import enchantment917Webp from '@/assets/pools/enchantment-917-optimized.webp';
+import heroPoolWebp from '@/assets/hero-pool-optimized.webp';
 
 interface OptimizedImageProps {
   src: string;
@@ -73,14 +79,14 @@ export const OptimizedImage = ({
     if (originalSrc.includes('/lovable-uploads/')) {
       const filename = originalSrc.split('/').pop()?.replace('.png', '');
       // Map specific high-impact images to optimized WebP versions
-      const webpMappings: Record<string, string> = {
-        '0aa90de6-b1eb-43a4-91ec-10c05388c900': '/src/assets/pools/olympia-12-optimized.webp',
-        'd707c6e1-8471-404f-9312-bd6773152617': '/src/assets/pools/olympia-14-optimized.webp',
-        '63844c0c-04e6-4628-ad09-1b98c9283cf0': '/src/assets/pools/enchantment-921-optimized.webp',
-        '749a82f6-561b-4f6b-982b-d343dfac9565': '/src/assets/pools/enchantment-924-optimized.webp',
-        'd7541cc8-f254-4f85-b6ee-f636a8726dcc': '/src/assets/pools/enchantment-917-optimized.webp',
-        '7a94e712-7683-4a26-8a1c-c6974e320b5a': '/src/assets/hero-pool-optimized.webp'
-      };
+        const webpMappings: Record<string, string> = {
+          '0aa90de6-b1eb-43a4-91ec-10c05388c900': olympia12Webp,
+          'd707c6e1-8471-404f-9312-bd6773152617': olympia14Webp,
+          '63844c0c-04e6-4628-ad09-1b98c9283cf0': enchantment921Webp,
+          '749a82f6-561b-4f6b-982b-d343dfac9565': enchantment924Webp,
+          'd7541cc8-f254-4f85-b6ee-f636a8726dcc': enchantment917Webp,
+          '7a94e712-7683-4a26-8a1c-c6974e320b5a': heroPoolWebp
+        };
       
       if (filename && webpMappings[filename]) {
         return webpMappings[filename];

@@ -34,11 +34,15 @@ const LoadingFallback = () => (
 const App = () => {
   const location = useLocation();
   
-  // Load CSS conditionally based on route
-  useConditionalCSS(true, '/src/styles/components.css', 'components-css');
+  // Resolve CSS URLs safely for build
+  const componentsCssUrl = new URL('./styles/components.css', import.meta.url).href;
+  const animationsCssUrl = new URL('./styles/animations.css', import.meta.url).href;
+
+  // Load CSS conditionally based on route with build-safe URLs
+  useConditionalCSS(true, componentsCssUrl, 'components-css');
   useConditionalCSS(
     location.pathname === '/', 
-    '/src/styles/animations.css', 
+    animationsCssUrl, 
     'animations-css'
   );
 
