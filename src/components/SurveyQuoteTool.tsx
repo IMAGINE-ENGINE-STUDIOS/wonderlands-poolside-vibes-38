@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";  
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -354,7 +354,7 @@ const SurveyQuoteTool = ({
       // saveQuotationToDatabase will trigger auth prompt
       return;
     }
-
+    
     // Open Calendly scheduling link in new tab
     const calendlyUrl = "https://calendly.com/wonderlands-pools/consultation"; // Replace with your actual Calendly link
     window.open(calendlyUrl, '_blank');
@@ -742,7 +742,12 @@ const SurveyQuoteTool = ({
                       return <div className="mb-3 p-2 border border-teal-200 rounded-md">
                               <div className="flex items-center gap-3">
                                 <div className="w-16 h-16 rounded-md overflow-hidden border">
-                                  <OptimizedImage src={paverImage} alt={selectedPaverName} className="w-full h-full object-cover" sizeConfig="thumbnail" />
+                                  <OptimizedImage 
+                                    src={paverImage} 
+                                    alt={selectedPaverName} 
+                                    className="w-full h-full object-cover"
+                                    sizeConfig="thumbnail"
+                                  />
                                 </div>
                                 <div className="flex-1">
                                   <p className="text-sm font-medium">{selectedPaverName}</p>
@@ -792,7 +797,12 @@ const SurveyQuoteTool = ({
                   return <div key={index} className="border border-orange-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
                             {/* Add image for screen enclosures */}
                             {option.category === 'screen-enclosure' && <div className="mb-3">
-                                <OptimizedImage src="/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" alt={option.name} className="w-full h-20 rounded-md border border-orange-200 object-cover" sizeConfig="quoteImage" />
+                                <OptimizedImage 
+                                  src="/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" 
+                                  alt={option.name} 
+                                  className="w-full h-20 rounded-md border border-orange-200 object-cover"
+                                  sizeConfig="quoteImage"
+                                />
                               </div>}
                             <h5 className="font-semibold text-sm">{option.name}</h5>
                             <p className="text-xs text-muted-foreground mb-2">{option.description}</p>
@@ -978,7 +988,9 @@ const SurveyQuoteTool = ({
                     <Printer className="h-4 w-4 mr-2" />
                     Print Quote
                   </Button>
-                  
+                  <Button variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-50" onClick={() => setCurrentStep('options')}>
+                    Modify Options
+                  </Button>
                   <Button variant="default" className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white" onClick={handleScheduleInstallation}>
                     Schedule Installation
                   </Button>
