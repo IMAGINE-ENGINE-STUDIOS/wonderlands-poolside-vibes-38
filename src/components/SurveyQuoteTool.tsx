@@ -932,7 +932,7 @@ const SurveyQuoteTool = ({
                 {/* Warranty Information */}
                 <div className="mb-6">
                   <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200">
-                    <h4 className="font-bold text-lg mb-2 text-green-600">Warranty Coverage</h4>
+                    
                     <div className="text-sm space-y-2">
                       {extras?.concreteConstruction ? <div>
                           <p className="font-semibold">Concrete Pool Construction:</p>
