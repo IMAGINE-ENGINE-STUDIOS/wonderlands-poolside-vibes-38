@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import AnimatedLandscape from "./AnimatedLandscape";
+import AdvancedSearch from "./AdvancedSearch";
 const Hero = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const scrollToCatalog = () => {
@@ -19,7 +20,14 @@ const Hero = () => {
       <AnimatedLandscape />
       
 
-      {/* Clean Hero Section - No Buttons */}
+      {/* Centered Search Engine */}
+      <div className="absolute inset-0 flex items-center justify-center z-10">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto">
+            <AdvancedSearch />
+          </div>
+        </div>
+      </div>
     </section>
     
     <SurveyQuoteTool pool={null} isOpen={showQuoteModal} onClose={() => setShowQuoteModal(false)} />
