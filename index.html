@@ -9,9 +9,64 @@
     <link rel="canonical" href="/" />
     <link rel="icon" href="/lovable-uploads/d5bdd8c9-0227-43f1-81a3-467617ed6c73.png" type="image/png" />
 
-    <!-- Non-blocking CSS load: preload + media swap with noscript fallback -->
-    <link rel="preload" as="style" href="/src/index.css" />
-    <link rel="stylesheet" href="/src/index.css" media="print" onload="this.media='all'" />
+    <!-- Critical CSS inlined for immediate render -->
+    <style>
+      :root {
+        --background: 0 0% 100%;
+        --foreground: 240 10% 3.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 240 10% 3.9%;
+        --primary: 210 100% 45%;
+        --primary-foreground: 0 0% 98%;
+        --secondary: 240 4.8% 95.9%;
+        --secondary-foreground: 240 5.9% 10%;
+        --muted: 240 4.8% 95.9%;
+        --muted-foreground: 240 3.8% 45%;
+        --accent: 240 4.8% 95.9%;
+        --accent-foreground: 240 5.9% 10%;
+        --border: 240 5.9% 90%;
+        --ring: 210 100% 45%;
+        --radius: 0.75rem;
+        --teal: 180 100% 35%;
+        --coral: 16 100% 66%;
+        --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--teal)));
+        --gradient-secondary: linear-gradient(135deg, hsl(var(--teal)), hsl(var(--coral)));
+      }
+      .dark {
+        --background: 240 10% 3.9%;
+        --foreground: 0 0% 98%;
+        --card: 240 10% 3.9%;
+        --card-foreground: 0 0% 98%;
+        --primary: 210 100% 60%;
+        --primary-foreground: 240 5.9% 10%;
+        --secondary: 240 3.7% 15.9%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 240 3.7% 15.9%;
+        --muted-foreground: 240 5% 64.9%;
+        --accent: 240 3.7% 15.9%;
+        --accent-foreground: 0 0% 98%;
+        --border: 240 3.7% 15.9%;
+        --ring: 210 100% 60%;
+      }
+      body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+      .min-h-screen { min-height: 100vh; }
+      .bg-background { background-color: hsl(var(--background)); }
+      .text-foreground { color: hsl(var(--foreground)); }
+    </style>
+
+    <!-- Preload and async load main CSS bundle -->
+    <script>
+      (function() {
+        var link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'style';
+        link.href = '/src/index.css';
+        link.onload = function() {
+          link.rel = 'stylesheet';
+        };
+        document.head.appendChild(link);
+      })();
+    </script>
     <noscript><link rel="stylesheet" href="/src/index.css" /></noscript>
 
     <meta property="og:title" content="Wonderlands Pools & Spas" />
