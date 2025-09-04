@@ -48,26 +48,26 @@
         --border: 240 3.7% 15.9%;
         --ring: 210 100% 60%;
       }
-      body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+      * { box-sizing: border-box; }
+      body { 
+        margin: 0; 
+        font-family: system-ui, -apple-system, sans-serif;
+        line-height: 1.5;
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+      }
+      #root { min-height: 100vh; }
       .min-h-screen { min-height: 100vh; }
       .bg-background { background-color: hsl(var(--background)); }
       .text-foreground { color: hsl(var(--foreground)); }
+      .relative { position: relative; }
+      .overflow-hidden { overflow: hidden; }
+      .flex { display: flex; }
+      .hidden { display: none; }
+      .w-full { width: 100%; }
+      .h-full { height: 100%; }
+      img { max-width: 100%; height: auto; }
     </style>
-
-    <!-- Preload and async load main CSS bundle -->
-    <script>
-      (function() {
-        var link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'style';
-        link.href = '/src/index.css';
-        link.onload = function() {
-          link.rel = 'stylesheet';
-        };
-        document.head.appendChild(link);
-      })();
-    </script>
-    <noscript><link rel="stylesheet" href="/src/index.css" /></noscript>
 
     <meta property="og:title" content="Wonderlands Pools & Spas" />
     <meta property="og:description" content="Luxury fiberglass pools, spas, liners, tiles, and finishes." />
