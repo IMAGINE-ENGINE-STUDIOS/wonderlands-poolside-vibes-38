@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: {
           'vendor': ['react', 'react-dom'],
-          'ui': ['@radix-ui/react-dialog', '@radix-ui/react-button', 'lucide-react']
+          'ui': ['@radix-ui/react-dialog', '@radix-ui/react-slot', 'lucide-react']
         },
         assetFileNames: (assetInfo) => {
           if (assetInfo.name && assetInfo.name.endsWith('.css')) {
