@@ -285,12 +285,12 @@ const AdvancedSearch = () => {
           placeholder="Search pools, spas, finishes, covers & more..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-12 pr-4 py-3 text-lg bg-background/95 backdrop-blur border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 rounded-xl shadow-lg"
+          className="pl-12 pr-4 py-3 text-lg bg-background/70 backdrop-blur-md border-border/40 focus:border-primary/60 focus:ring-2 focus:ring-primary/30 rounded-xl shadow-lg text-foreground placeholder:text-foreground/80"
         />
       </div>
 
       {showResults && (
-        <Card className="absolute top-full mt-2 w-full bg-background/95 backdrop-blur border-border/50 shadow-2xl rounded-xl overflow-hidden z-50">
+        <Card className="absolute top-full mt-2 w-full bg-background/70 backdrop-blur-md border-border/40 shadow-2xl rounded-xl overflow-hidden z-50">
           {isLoading ? (
             <div className="p-6 text-center text-muted-foreground">
               Searching...
@@ -300,7 +300,7 @@ const AdvancedSearch = () => {
               {searchResults.map((result) => (
                 <div
                   key={`${result.category}-${result.id}`}
-                  className="p-4 hover:bg-accent/50 cursor-pointer border-b border-border/30 last:border-b-0 transition-colors"
+                  className="p-4 hover:bg-accent/60 cursor-pointer border-b border-border/30 last:border-b-0 transition-colors"
                   onClick={() => handleProductSelect(result)}
                 >
                   <div className="flex items-center gap-4">
