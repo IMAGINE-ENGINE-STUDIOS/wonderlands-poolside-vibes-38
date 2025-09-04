@@ -568,25 +568,39 @@ const PoolCatalog = () => {
   const [selectedTile, setSelectedTile] = useState<any>(null);
   const [showTileModal, setShowTileModal] = useState(false);
   const [selectedExtras, setSelectedExtras] = useState<any>(null);
-  const {
-    addToCart
-  } = useShoppingCart();
-  const {
-    toast
-  } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  const poolsPerPage = 9; // Show 9 pools per page to reduce initial DOM size
+  
+  const { addToCart } = useShoppingCart();
+  const { toast } = useToast();
+
+  // Filter and paginate pools
+  const filteredPools = pools.filter(pool => pool.model !== 'Pleasant Cove');
+  const totalPages = Math.ceil(filteredPools.length / poolsPerPage);
+  const startIndex = (currentPage - 1) * poolsPerPage;
+  const paginatedPools = filteredPools.slice(startIndex, startIndex + poolsPerPage);
+
   const handleViewDetails = (pool: Pool) => {
     setSelectedPool(pool);
     setShowDetailModal(true);
   };
+  
   const handleRequestQuote = (pool: Pool, extras?: any) => {
     setSelectedPool(pool);
     setSelectedExtras(extras);
     setShowDetailModal(false);
     setShowQuoteModal(true);
   };
+  
   const handleSpaRequest = (spa: Spa) => {
     setSelectedSpa(spa);
     setShowSpaModal(true);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Smooth scroll to top of catalog section
+    document.getElementById('pool-catalog')?.scrollIntoView({ behavior: 'smooth' });
   };
   return <>
       {/* Pool Collection Section */}
@@ -600,7 +614,49 @@ const PoolCatalog = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {pools.filter(pool => pool.model !== 'Pleasant Cove').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
+            {paginatedPools.map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-8">
+              <Button
+                variant="outline"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2"
+              >
+                Previous
+              </Button>
+              
+              {[...Array(totalPages)].map((_, index) => {
+                const page = index + 1;
+                return (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    onClick={() => handlePageChange(page)}
+                    className="px-3 py-2"
+                  >
+                    {page}
+                  </Button>
+                );
+              })}
+              
+              <Button
+                variant="outline"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2"
+              >
+                Next
+              </Button>
+            </div>
+          )}
+
+          {/* Results Info */}
+          <div className="text-center mt-4 text-sm text-muted-foreground">
+            Showing {startIndex + 1}-{Math.min(startIndex + poolsPerPage, filteredPools.length)} of {filteredPools.length} pools
           </div>
         </div>
       </section>
