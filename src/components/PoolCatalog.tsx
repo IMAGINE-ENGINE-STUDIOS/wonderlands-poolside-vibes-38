@@ -570,47 +570,47 @@ const PoolCatalog = () => {
   const [selectedExtras, setSelectedExtras] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const poolsPerPage = 9; // Show 9 pools per page to reduce initial DOM size
-  
-  const { addToCart } = useShoppingCart();
-  const { toast } = useToast();
+
+  const {
+    addToCart
+  } = useShoppingCart();
+  const {
+    toast
+  } = useToast();
 
   // Filter and paginate pools
   const filteredPools = pools.filter(pool => pool.model !== 'Pleasant Cove');
   const totalPages = Math.ceil(filteredPools.length / poolsPerPage);
   const startIndex = (currentPage - 1) * poolsPerPage;
   const paginatedPools = filteredPools.slice(startIndex, startIndex + poolsPerPage);
-
   const handleViewDetails = (pool: Pool) => {
     setSelectedPool(pool);
     setShowDetailModal(true);
   };
-  
   const handleRequestQuote = (pool: Pool, extras?: any) => {
     setSelectedPool(pool);
     setSelectedExtras(extras);
     setShowDetailModal(false);
     setShowQuoteModal(true);
   };
-  
   const handleSpaRequest = (spa: Spa) => {
     setSelectedSpa(spa);
     setShowSpaModal(true);
   };
-
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     // Smooth scroll to top of catalog section
-    document.getElementById('pool-catalog')?.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('pool-catalog')?.scrollIntoView({
+      behavior: 'smooth'
+    });
   };
   return <>
       {/* Pool Collection Section */}
       <section id="pool-catalog" className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 sm:mb-12 lg:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-              Wonderland's Pool Collection
-            </h2>
-            <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">Discover our premium fiberglass pools with lifetime warranty and carbon fiber technology, and make any pool made out of concrete.</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">Wonderland's Pool Collection</h2>
+            <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">Discover our wonderful Carbon Fiber and Concrete Pools with lifetime warranty in the carbon fiber technology or make it solid as a rock!</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
@@ -618,41 +618,22 @@ const PoolCatalog = () => {
           </div>
 
           {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-8">
-              <Button
-                variant="outline"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-3 py-2"
-              >
+          {totalPages > 1 && <div className="flex justify-center items-center gap-2 mt-8">
+              <Button variant="outline" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="px-3 py-2">
                 Previous
               </Button>
               
               {[...Array(totalPages)].map((_, index) => {
-                const page = index + 1;
-                return (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? "default" : "outline"}
-                    onClick={() => handlePageChange(page)}
-                    className="px-3 py-2"
-                  >
+            const page = index + 1;
+            return <Button key={page} variant={currentPage === page ? "default" : "outline"} onClick={() => handlePageChange(page)} className="px-3 py-2">
                     {page}
-                  </Button>
-                );
-              })}
+                  </Button>;
+          })}
               
-              <Button
-                variant="outline"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-3 py-2"
-              >
+              <Button variant="outline" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="px-3 py-2">
                 Next
               </Button>
-            </div>
-          )}
+            </div>}
 
           {/* Results Info */}
           <div className="text-center mt-4 text-sm text-muted-foreground">

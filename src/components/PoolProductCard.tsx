@@ -653,12 +653,7 @@ const PoolProductCard = ({
   return <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
       {/* Edge-to-edge Pool Image at top */}
       <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image" onClick={handleImageClick} onMouseEnter={() => handleImageHover(true)} onMouseLeave={() => handleImageHover(false)}>
-        {currentPoolImage ? <OptimizedImage 
-          src={currentPoolImage} 
-          alt={pool.model} 
-          className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105"
-          sizeConfig="poolCard"
-        /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
+        {currentPoolImage ? <OptimizedImage src={currentPoolImage} alt={pool.model} className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105" sizeConfig="poolCard" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
             <Waves size={48} className="text-primary/60" />
           </div>}
         
@@ -817,7 +812,7 @@ const PoolProductCard = ({
 
             {/* Pavers Options */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Pavers & Surface Area Calculator</h4>
+              <h4 className="font-semibold text-foreground">Pavers Surface Area Calculator</h4>
               <div className="mb-3">
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">
                   Paver Surface Area (sq ft)
@@ -858,7 +853,7 @@ const PoolProductCard = ({
 
             {/* Screen Enclosure Options */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Screen Enclosure & Surface Area Calculator</h4>
+              <h4 className="font-semibold text-foreground">Screen Enclosure Surface Area Calculator</h4>
               <div className="mb-3">
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">
                   Screen Enclosure Area (sq ft)
