@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu, Edit, ShoppingCart, Sun } from "lucide-react";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import ImageEditor from "./ImageEditor";
+import { OptimizedImage } from "./OptimizedImage";
 import { useShoppingCart } from "./ShoppingCart";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { spas } from "./PoolCatalog";
@@ -652,7 +653,12 @@ const PoolProductCard = ({
   return <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
       {/* Edge-to-edge Pool Image at top */}
       <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image" onClick={handleImageClick} onMouseEnter={() => handleImageHover(true)} onMouseLeave={() => handleImageHover(false)}>
-        {currentPoolImage ? <img src={currentPoolImage} alt={pool.model} className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
+        {currentPoolImage ? <OptimizedImage 
+          src={currentPoolImage} 
+          alt={pool.model} 
+          className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105"
+          sizeConfig="poolCard"
+        /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
             <Waves size={48} className="text-primary/60" />
           </div>}
         

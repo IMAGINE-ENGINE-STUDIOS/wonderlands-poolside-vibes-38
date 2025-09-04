@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";  
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,7 @@ import PoolCustomizationOptions from "./PoolCustomizationOptions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
+import { OptimizedImage } from "./OptimizedImage";
 import ImageCard from "./ImageCard";
 const poolHeaterImg = "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png";
 // Jets intentionally have no image in the quote
@@ -741,7 +742,12 @@ const SurveyQuoteTool = ({
                       return <div className="mb-3 p-2 border border-teal-200 rounded-md">
                               <div className="flex items-center gap-3">
                                 <div className="w-16 h-16 rounded-md overflow-hidden border">
-                                  <img src={paverImage} alt={selectedPaverName} className="w-full h-full object-cover" />
+                                  <OptimizedImage 
+                                    src={paverImage} 
+                                    alt={selectedPaverName} 
+                                    className="w-full h-full object-cover"
+                                    sizeConfig="thumbnail"
+                                  />
                                 </div>
                                 <div className="flex-1">
                                   <p className="text-sm font-medium">{selectedPaverName}</p>
@@ -791,7 +797,12 @@ const SurveyQuoteTool = ({
                   return <div key={index} className="border border-orange-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
                             {/* Add image for screen enclosures */}
                             {option.category === 'screen-enclosure' && <div className="mb-3">
-                                <img src="/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" alt={option.name} className="w-full h-20 rounded-md border border-orange-200 object-cover" />
+                                <OptimizedImage 
+                                  src="/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" 
+                                  alt={option.name} 
+                                  className="w-full h-20 rounded-md border border-orange-200 object-cover"
+                                  sizeConfig="quoteImage"
+                                />
                               </div>}
                             <h5 className="font-semibold text-sm">{option.name}</h5>
                             <p className="text-xs text-muted-foreground mb-2">{option.description}</p>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getImageConfig, generateSrcSet } from '@/utils/imageOptimization';
 
 interface OptimizedImageProps {
   src: string;
@@ -6,6 +7,11 @@ interface OptimizedImageProps {
   className?: string;
   webpSrc?: string;
   loading?: 'lazy' | 'eager';
+  width?: number;
+  height?: number;
+  sizes?: string;
+  priority?: boolean;
+  sizeConfig?: 'poolCard' | 'logoLarge' | 'logoSmall' | 'thumbnail' | 'quoteImage' | 'hero';
 }
 
 export const OptimizedImage = ({ 
@@ -13,10 +19,24 @@ export const OptimizedImage = ({
   alt, 
   className, 
   webpSrc,
-  loading = 'lazy' 
+  loading = 'lazy',
+  width,
+  height,
+  sizes,
+  priority = false,
+  sizeConfig
 }: OptimizedImageProps) => {
   const [supportsWebP, setSupportsWebP] = useState<boolean | null>(null);
   const [imgError, setImgError] = useState(false);
+
+  // Use size config if provided, otherwise use manual dimensions
+  const config = sizeConfig ? getImageConfig(sizeConfig) : null;
+  const actualWidth = width || config?.width;
+  const actualHeight = height || config?.height;
+  const actualSizes = sizes || config?.sizes || "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw";
+
+  // Use eager loading for priority images
+  const actualLoading = priority ? 'eager' : loading;
 
   // Check WebP support
   useEffect(() => {
@@ -33,6 +53,11 @@ export const OptimizedImage = ({
 
   const handleError = () => {
     setImgError(true);
+  };
+
+  // Generate responsive srcset for better sizing
+  const generateSrcSetForImage = (baseSrc: string) => {
+    return generateSrcSet(baseSrc, actualWidth || 1200);
   };
 
   const getOptimizedSrc = () => {
@@ -67,21 +92,38 @@ export const OptimizedImage = ({
   const finalWebPSrc = webpSrc || getAutoWebPSrc(src);
 
   if (supportsWebP === null) {
-    // Loading state - show a placeholder or the original image
-    return <img src={src} alt={alt} className={className} loading={loading} />;
+    // Loading state - show a placeholder with proper dimensions
+    return (
+      <img 
+        src={src} 
+        alt={alt} 
+        className={className} 
+        loading={actualLoading}
+        width={actualWidth}
+        height={actualHeight}
+      />
+    );
   }
 
   return (
     <picture>
       {finalWebPSrc && supportsWebP && !imgError && (
-        <source srcSet={finalWebPSrc} type="image/webp" />
+        <source 
+          srcSet={finalWebPSrc} 
+          type="image/webp"
+          sizes={actualSizes}
+        />
       )}
       <img 
         src={getOptimizedSrc()} 
         alt={alt} 
         className={className}
-        loading={loading}
+        loading={actualLoading}
         onError={handleError}
+        width={actualWidth}
+        height={actualHeight}
+        sizes={actualSizes}
+        srcSet={generateSrcSetForImage(getOptimizedSrc())}
       />
     </picture>
   );

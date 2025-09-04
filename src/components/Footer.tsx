@@ -2,6 +2,7 @@ import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Star } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router-dom";
+import { OptimizedImage } from "./OptimizedImage";
 const Footer = () => {
   return <footer className="bg-gradient-to-br from-primary/5 via-background to-teal/5 border-t border-border/50">
       <div className="max-w-7xl mx-auto px-4 py-16">
@@ -9,7 +10,12 @@ const Footer = () => {
           {/* Company Info */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <img src="/lovable-uploads/155c5b3a-8bd3-4060-8141-7cf76cb9f153.png" alt="Wonderlands Logo" className="w-12 h-12" />
+              <OptimizedImage 
+                src="/lovable-uploads/155c5b3a-8bd3-4060-8141-7cf76cb9f153.png" 
+                alt="Wonderlands Logo" 
+                className="w-12 h-12"
+                sizeConfig="logoSmall"
+              />
               <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
                 Wonderlands
               </h3>
