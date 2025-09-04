@@ -27,8 +27,8 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Vendor chunk for React ecosystem
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+          // Vendor chunk for React ecosystem - keep React Query with React
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('@tanstack/react-query')) {
             return 'react-vendor';
           }
           
@@ -37,8 +37,8 @@ export default defineConfig(({ mode }) => ({
             return 'ui-vendor';
           }
           
-          // Supabase and query libraries
-          if (id.includes('@supabase') || id.includes('@tanstack/react-query')) {
+          // Supabase only (removed React Query from here to prevent loading order issues)
+          if (id.includes('@supabase')) {
             return 'data-vendor';
           }
           
