@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -97,6 +97,26 @@ const AutomaticCoversSection = () => {
     setSelectedCover(cover);
     setShowQuoteModal(true);
   };
+
+  // Listen for search events to open specific covers
+  React.useEffect(() => {
+    const handleOpenProduct = (event: CustomEvent) => {
+      const { type, id, name } = event.detail;
+      if (type === 'cover' || type === 'automatic' || name?.toLowerCase().includes('cover')) {
+        const cover = covers.find(c => 
+          c.name.toLowerCase() === name?.toLowerCase() ||
+          c.name.toLowerCase().includes(name?.toLowerCase())
+        );
+        if (cover) {
+          setSelectedCover(cover);
+          setShowQuoteModal(true);
+        }
+      }
+    };
+
+    window.addEventListener('open-product', handleOpenProduct as EventListener);
+    return () => window.removeEventListener('open-product', handleOpenProduct as EventListener);
+  }, []);
   return <>
       <section className="py-20 px-4 bg-gradient-to-br from-muted/30 to-background">
         <div className="max-w-7xl mx-auto">

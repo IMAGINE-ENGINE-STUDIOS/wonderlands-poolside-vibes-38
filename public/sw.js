@@ -1,31 +1,21 @@
-const CACHE_NAME = 'wonderlands-cache-v6';
-const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+// No-op service worker - passthrough to ensure fresh assets
+console.log('Service Worker: No-op passthrough mode active');
 
-// Assets to cache initially
-const urlsToCache = [
-  '/'
-];
-
-// Install event - cache initial assets
+// Install event - just skip waiting
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        return cache.addAll(urlsToCache);
-      })
-  );
+  console.log('Service Worker: Installing (no-op mode)');
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up ALL old caches and claim clients
 self.addEventListener('activate', (event) => {
+  console.log('Service Worker: Activating (no-op mode)');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
+          console.log('Service Worker: Deleting cache:', cacheName);
+          return caches.delete(cacheName);
         })
       );
     })
@@ -33,97 +23,16 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - network first for critical resources, cache for others
+// Fetch event - passthrough everything to network (no caching)
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  // Skip non-http requests
-  if (!event.request.url.startsWith('http')) {
-    return;
-  }
-
-  // Exclude source files from caching
-  if (event.request.url.includes('/src/') || 
-      event.request.url.includes('.tsx') || 
-      event.request.url.includes('.ts') ||
-      event.request.url.includes('main.tsx')) {
-    return fetch(event.request);
-  }
-
-  // Network first strategy for HTML, JS, CSS
-  if (event.request.url.match(/\.(html|js|css)$/) || 
-      event.request.destination === 'document' ||
-      event.request.url.includes('main.js') ||
-      event.request.url.includes('index.js')) {
-    
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response && response.status === 200) {
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-          }
-          return response;
-        })
-        .catch(() => {
-          return caches.match(event.request);
-        })
-    );
-    return;
-  }
-
-  // Cache first strategy for images and other static assets
+  // Simply pass through all requests to the network
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        if (response) {
-          // Check if the cached response is still valid
-          const cachedTime = response.headers.get('sw-cache-time');
-          if (cachedTime) {
-            const cacheAge = Date.now() - parseInt(cachedTime);
-            if (cacheAge < CACHE_DURATION) {
-              return response;
-            }
-          }
-        }
-
-        // Fetch from network
-        return fetch(event.request).then((response) => {
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-
-          const responseToCache = response.clone();
-          const modifiedResponse = new Response(responseToCache.body, {
-            status: responseToCache.status,
-            statusText: responseToCache.statusText,
-            headers: {
-              ...Object.fromEntries(responseToCache.headers.entries()),
-              'sw-cache-time': Date.now().toString()
-            }
-          });
-
-          // Cache images and static assets
-          if (event.request.url.match(/\.(png|jpg|jpeg|gif|svg|webp|woff|woff2|ico)$/)) {
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, modifiedResponse.clone());
-              });
-          }
-
-          return response;
-        }).catch(() => {
-          return response || new Response('Network error occurred', { 
-            status: 408,
-            headers: { 'Content-Type': 'text/plain' }
-          });
-        });
-      })
+    fetch(event.request).catch((error) => {
+      console.log('Service Worker: Network error:', error);
+      return new Response('Network error occurred', { 
+        status: 503,
+        headers: { 'Content-Type': 'text/plain' }
+      });
+    })
   );
 });

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,26 @@ const LinersSection = ({
       extras: []
     });
   };
+
+  // Listen for search events to open specific liners
+  React.useEffect(() => {
+    const handleOpenProduct = (event: CustomEvent) => {
+      const { type, id, name } = event.detail;
+      if (type === 'liner' || type === 'liners') {
+        const liner = poolLiners.find(l => 
+          l.name.toLowerCase() === name?.toLowerCase() ||
+          l.name.toLowerCase().includes(name?.toLowerCase())
+        );
+        if (liner) {
+          setSelectedLiner(liner);
+          setShowDetailModal(true);
+        }
+      }
+    };
+
+    window.addEventListener('open-product', handleOpenProduct as EventListener);
+    return () => window.removeEventListener('open-product', handleOpenProduct as EventListener);
+  }, []);
   return <>
       <section id="liners" className="py-20 px-4 bg-gradient-to-br from-background to-muted/30">
         <div className="max-w-7xl mx-auto">

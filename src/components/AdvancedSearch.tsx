@@ -155,7 +155,7 @@ const AdvancedSearch = () => {
         }));
 
       const allResults = [...poolResults, ...productResults];
-      setSearchResults(allResults.slice(0, 8)); // Limit to 8 results
+      setSearchResults(allResults); // Show all results
       setShowResults(true);
     } catch (error) {
       console.error('Search error:', error);
@@ -192,7 +192,9 @@ const AdvancedSearch = () => {
       // Then navigate to pool detail page after a short delay
       setTimeout(() => {
         import('./PoolCatalog').then(({ pools }) => {
-          const selectedPool = pools.find(p => p.model.toLowerCase().replace(/\s+/g, '-') === result.id);
+          // Normalize both the search result ID and pool model for matching
+          const normalizeId = (str) => str.toLowerCase().replace(/\s+/g, '-').replace(/\./g, '');
+          const selectedPool = pools.find(p => normalizeId(p.model) === normalizeId(result.name) || normalizeId(p.model) === result.id);
           if (selectedPool) {
             const params = new URLSearchParams({
               model: selectedPool.model,

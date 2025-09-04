@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -166,6 +166,26 @@ const PoolFinishesSection = () => {
     setSelectedFinish(finish);
     setShowQuoteModal(true);
   };
+
+  // Listen for search events to open specific finishes
+  React.useEffect(() => {
+    const handleOpenProduct = (event: CustomEvent) => {
+      const { type, id, name } = event.detail;
+      if (type === 'finish' || type === 'finishes') {
+        const finish = poolFinishes.find(f => 
+          f.id === id || 
+          f.name.toLowerCase() === name?.toLowerCase() ||
+          f.name.toLowerCase().includes(name?.toLowerCase())
+        );
+        if (finish) {
+          setSelectedFinish(finish);
+        }
+      }
+    };
+
+    window.addEventListener('open-product', handleOpenProduct as EventListener);
+    return () => window.removeEventListener('open-product', handleOpenProduct as EventListener);
+  }, []);
 
   const filteredFinishes = activeCategory === "all" 
     ? poolFinishes 

@@ -32,6 +32,31 @@ const handleRequestQuote = (ledge: TanningLedge, extras?: any) => {
   setShowQuoteModal(true);
 };
 
+  // Listen for search events to open specific tanning ledges
+  React.useEffect(() => {
+    const handleOpenProduct = (event: CustomEvent) => {
+      const { type, id, name } = event.detail;
+      if (type === 'tanning ledge' || type === 'tanning' || type === 'ledge') {
+        const ledge = tanningLedges.find(l => 
+          l.name.toLowerCase() === name?.toLowerCase() ||
+          l.name.toLowerCase().includes(name?.toLowerCase())
+        );
+        if (ledge) {
+          const mappedLedge = {
+            ...ledge,
+            category: 'premium' as const,
+            installationTimeWeeks: 2,
+            warrantyYears: 'LIFETIME'
+          };
+          setSelectedLedge(mappedLedge);
+        }
+      }
+    };
+
+    window.addEventListener('open-product', handleOpenProduct as EventListener);
+    return () => window.removeEventListener('open-product', handleOpenProduct as EventListener);
+  }, []);
+
   // Convert tanningLedges to include category for spa-like format
   const tanningLedgesWithCategory = tanningLedges.map(ledge => ({
     ...ledge,
