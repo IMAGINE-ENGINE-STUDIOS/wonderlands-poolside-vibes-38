@@ -11,15 +11,31 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// Lazy load non-critical route components
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const EcommerceTemplate = lazy(() => import("./pages/EcommerceTemplate"));
-const AuthPage = lazy(() => import("./components/AuthPage"));
-const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
-const ProcurementSystem = lazy(() => import("./pages/ProcurementSystem"));
-const PoolDetails = lazy(() => import("./pages/PoolDetails"));
-const ContentEditor = lazy(() => import("./pages/ContentEditor"));
-const ReferralPortal = lazy(() => import("./pages/ReferralPortal"));
+// Lazy load non-critical route components with better chunking
+const AdminDashboard = lazy(() => 
+  import("./pages/AdminDashboard").then(module => ({ default: module.default }))
+);
+const EcommerceTemplate = lazy(() => 
+  import("./pages/EcommerceTemplate").then(module => ({ default: module.default }))
+);
+const AuthPage = lazy(() => 
+  import("./components/AuthPage").then(module => ({ default: module.default }))
+);
+const ResetPasswordPage = lazy(() => 
+  import("./pages/ResetPasswordPage").then(module => ({ default: module.default }))
+);
+const ProcurementSystem = lazy(() => 
+  import("./pages/ProcurementSystem").then(module => ({ default: module.default }))
+);
+const PoolDetails = lazy(() => 
+  import("./pages/PoolDetails").then(module => ({ default: module.default }))
+);
+const ContentEditor = lazy(() => 
+  import("./pages/ContentEditor").then(module => ({ default: module.default }))
+);
+const ReferralPortal = lazy(() => 
+  import("./pages/ReferralPortal").then(module => ({ default: module.default }))
+);
 
 // Loading fallback component
 const LoadingFallback = () => (

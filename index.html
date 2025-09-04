@@ -7,6 +7,11 @@
     <!-- Resource hints for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://bwngxlbnavnhbtahyzbf.supabase.co">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/styles/critical.css" as="style">
+    <link rel="preload" href="/src/styles/components.css" as="style">
     
     <title>Wonderlands Pools & Spas | Luxury Fiberglass Pools</title>
     <meta name="description" content="Shop luxury fiberglass pools, spas, liners, tiles, and finishes. Customize models and request a quote." />
@@ -72,6 +77,15 @@
       .w-full { width: 100%; }
       .h-full { height: 100%; }
       img { max-width: 100%; height: auto; }
+      
+      /* Optimize initial paint */
+      .animate-pulse { 
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: .5; }
+      }
     </style>
 
     <meta property="og:title" content="Wonderlands Pools & Spas" />
