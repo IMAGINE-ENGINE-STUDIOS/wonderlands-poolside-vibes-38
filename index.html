@@ -9,9 +9,7 @@
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link rel="dns-prefetch" href="https://bwngxlbnavnhbtahyzbf.supabase.co">
     
-    <!-- Preload critical resources -->
-    <link rel="preload" href="/src/styles/critical.css" as="style">
-    <link rel="preload" href="/src/styles/components.css" as="style">
+    <!-- Preload critical resources - build assets only -->
     
     <title>Wonderlands Pools & Spas | Luxury Fiberglass Pools</title>
     <meta name="description" content="Shop luxury fiberglass pools, spas, liners, tiles, and finishes. Customize models and request a quote." />
@@ -141,8 +139,7 @@
 
   <body>
     <div id="root"></div>
-    <!-- Preload main script as module -->
-    <link rel="modulepreload" href="/src/main.tsx">
+    <!-- Vite will inject proper modulepreloads during build -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

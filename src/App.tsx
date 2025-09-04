@@ -4,7 +4,6 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ShoppingCartProvider } from "@/components/ShoppingCartProvider";
 import RightNavigation from "@/components/RightNavigation";
-import { useConditionalCSS } from "@/components/CSSLoader";
 
 // Eager load critical components
 import Index from "./pages/Index";
@@ -48,15 +47,12 @@ const LoadingFallback = () => (
 );
 
 const App = () => {
-  const location = useLocation();
-  
-  // Load CSS conditionally based on route
-  useConditionalCSS(true, '/src/styles/components.css', 'components-css');
-  useConditionalCSS(
-    location.pathname === '/', 
-    '/src/styles/animations.css', 
-    'animations-css'
-  );
+  // Runtime check for production debugging
+  useEffect(() => {
+    if (import.meta.env.PROD && window.location.pathname.includes('/src/')) {
+      console.error('🚨 Production app is trying to load source files:', window.location.pathname);
+    }
+  }, []);
 
   return (
     <AuthProvider>
