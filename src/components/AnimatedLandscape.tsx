@@ -33,7 +33,7 @@ const AnimatedLandscape = () => {
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: 'url(/lovable-uploads/0c70745d-4bf3-4394-8fb2-da6024bf72b9.png)'
+          backgroundImage: 'url(/lovable-uploads/7a94e712-7683-4a26-8a1c-c6974e320b5a.png)'
         }}
       />
       
