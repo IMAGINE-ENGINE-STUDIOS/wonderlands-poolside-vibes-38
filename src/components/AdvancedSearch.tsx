@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
+import { OptimizedImage } from './OptimizedImage';
 
 interface SearchResult {
   id: string;
@@ -305,10 +306,12 @@ const AdvancedSearch = () => {
                 >
                   <div className="flex items-center gap-4">
                     {result.image && (
-                      <img 
+                      <OptimizedImage
                         src={result.image} 
                         alt={result.name}
                         className="w-12 h-12 object-cover rounded-lg"
+                        sizeConfig="thumbnail"
+                        loading="eager"
                       />
                     )}
                     <div className="flex-1">

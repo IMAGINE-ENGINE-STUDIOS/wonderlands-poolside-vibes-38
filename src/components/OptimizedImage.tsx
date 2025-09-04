@@ -79,7 +79,14 @@ export const OptimizedImage = ({
         '63844c0c-04e6-4628-ad09-1b98c9283cf0': '/src/assets/pools/enchantment-921-optimized.webp',
         '749a82f6-561b-4f6b-982b-d343dfac9565': '/src/assets/pools/enchantment-924-optimized.webp',
         'd7541cc8-f254-4f85-b6ee-f636a8726dcc': '/src/assets/pools/enchantment-917-optimized.webp',
-        '7a94e712-7683-4a26-8a1c-c6974e320b5a': '/src/assets/hero-pool-optimized.webp'
+        '7a94e712-7683-4a26-8a1c-c6974e320b5a': '/src/assets/hero-pool-optimized.webp',
+        // Additional optimized images
+        'e2d562f0-9a55-4293-8a9f-26d9b09ebf15': '/src/assets/pools/jamaica.jpg',
+        'ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5': '/src/assets/pools/aruba-16-new.jpg',
+        '2677d17d-ba82-407b-896c-b4b3e238b8d5': '/src/assets/pools/tuscan-1324.jpg',
+        '579d34e1-ef64-4134-bf8b-dff4980bb17a': '/src/assets/pools/tuscan-1120.jpg',
+        '121eda70-3d05-4624-afb0-5dba766d8b2f': '/src/assets/pools/milan-16.jpg',
+        'c7c3ab88-34ab-47d4-bf6c-38893a5b13f2': '/src/assets/pools/astoria-12.jpg'
       };
       
       if (filename && webpMappings[filename]) {
