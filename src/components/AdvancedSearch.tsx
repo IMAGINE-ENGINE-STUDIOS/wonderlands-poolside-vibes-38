@@ -78,8 +78,8 @@ const AdvancedSearch = () => {
   // All other product categories consolidated from main page sections
   const productCategories = [
     // Spas from SpaCatalog
-    { id: 'mystic', name: 'Mystic Spa', category: 'Spa', price: 22000, image: '/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.png' },
-    { id: 'serenity', name: 'Serenity Spa', category: 'Spa', price: 24000, image: '/lovable-uploads/e3bbb69b-9699-4d9e-aca9-8c98b50f2c78.png' },
+    { id: 'mystic', name: 'Mystic Spa', category: 'Spa', price: 24000, image: '/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.png' },
+    { id: 'serenity', name: 'Serenity Spa', category: 'Spa', price: 26000, image: '/lovable-uploads/e3bbb69b-9699-4d9e-aca9-8c98b50f2c78.png' },
     { id: 'tranquil', name: 'Tranquil Spa', category: 'Spa', price: 26000, image: '/lovable-uploads/7edc4a89-7438-4f88-81f4-8beea8152f07.png' },
     { id: 'oasis', name: 'Oasis Spa', category: 'Spa', price: 28000, image: '/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.png' },
     
@@ -105,7 +105,7 @@ const AdvancedSearch = () => {
     { id: 'eclipse', name: 'Eclipse Automatic Cover', category: 'Cover', price: 22000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png' },
     { id: 'cs3000', name: 'CS3000 Automatic Cover', category: 'Cover', price: 24000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png' },
     { id: 'infinity-4000', name: 'Infinity 4000 Cover', category: 'Cover', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png' },
-    { id: 'atom', name: 'Atom Automatic Cover', category: 'Cover', price: 19000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png' },
+    { id: 'atom', name: 'Atom Automatic Cover', category: 'Cover', price: 22000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png' },
     
     // Screen enclosures from ScreenEnclosureSection
     { id: 'standard-screen', name: 'Standard Screen Enclosure', category: 'Screen Enclosure', price: 15, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png' },

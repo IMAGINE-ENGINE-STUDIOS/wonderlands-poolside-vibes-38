@@ -106,7 +106,7 @@ const getExtraPrice = (extra: string) => {
       return 5000;
     // Pool Heater is exactly $5,000
     case 'cover':
-      return 3200;
+      return 22000;
     case 'jets':
       return 1800;
     case 'tiles':

@@ -24,7 +24,7 @@ interface Spa {
 const spas = [
   {
     model: "Mystic",
-    price: 22000,
+    price: 24000,
     category: 'premium' as const,
     image: "/lovable-uploads/09999795-2565-4094-8391-0511c1590998.png",
     dimensions: "7' x 7' x 34\"",
@@ -36,7 +36,7 @@ const spas = [
   },
   {
     model: "Serenity",
-    price: 24000,
+    price: 26000,
     category: 'deluxe' as const,
     image: "/lovable-uploads/41959951-1a93-4941-a5f9-53095e959961.png",
     dimensions: "8' x 8' x 36\"",

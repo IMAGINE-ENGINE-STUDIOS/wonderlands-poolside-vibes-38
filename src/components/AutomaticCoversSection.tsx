@@ -52,7 +52,7 @@ const covers: AutomaticCover[] = [{
   image: "/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png"
 }, {
   name: "Atom",
-  price: 19000,
+  price: 22000,
   type: 'thermal',
   material: "Insulated fabric",
   motorType: "DC Motor",

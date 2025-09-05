@@ -504,7 +504,7 @@ const pools: Pool[] = [
 // Spa models
 const spas: Spa[] = [{
   model: "Mystic",
-  price: 28500,
+  price: 26500,
   category: 'premium',
   image: "/lovable-uploads/3bdd9802-26f9-47ab-8498-e0e66344685c.png",
   dimensions: "8′ × 8′",
@@ -515,7 +515,7 @@ const spas: Spa[] = [{
   warrantyYears: "Lifetime"
 }, {
   model: "Regal",
-  price: 22800,
+  price: 24500,
   category: 'deluxe',
   image: "/lovable-uploads/31da0c59-77d4-4fa1-838b-cb525acd404b.png",
   dimensions: "7′ × 7′",
@@ -526,7 +526,7 @@ const spas: Spa[] = [{
   warrantyYears: "Lifetime"
 }, {
   model: "Royal",
-  price: 19500,
+  price: 24000,
   category: 'standard',
   image: "/lovable-uploads/62676335-6a09-4389-9a8a-cba74d583c53.png",
   dimensions: "6′ × 8′",
@@ -537,7 +537,7 @@ const spas: Spa[] = [{
   warrantyYears: "10 Years"
 }, {
   model: "Shafta",
-  price: 18200,
+  price: 24000,
   category: 'standard',
   image: "/lovable-uploads/1a143a47-5e78-46a8-8172-426b7644bea8.png",
   dimensions: "7′ diameter",
