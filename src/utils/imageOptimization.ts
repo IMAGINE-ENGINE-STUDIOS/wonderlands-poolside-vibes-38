@@ -42,11 +42,11 @@ export const imageSizeConfigs = {
     sizes: "80px"
   },
   
-  // Hero images
+  // Hero images - optimized for fast loading
   hero: {
-    width: 1200,
-    height: 600,
-    sizes: "(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+    width: 1920,
+    height: 800,
+    sizes: "(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1920px"
   }
 } as const;
 

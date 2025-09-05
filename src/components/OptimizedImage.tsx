@@ -85,7 +85,8 @@ export const OptimizedImage = ({
           '63844c0c-04e6-4628-ad09-1b98c9283cf0': enchantment921Webp,
           '749a82f6-561b-4f6b-982b-d343dfac9565': enchantment924Webp,
           'd7541cc8-f254-4f85-b6ee-f636a8726dcc': enchantment917Webp,
-          '7a94e712-7683-4a26-8a1c-c6974e320b5a': heroPoolWebp
+          '7a94e712-7683-4a26-8a1c-c6974e320b5a': heroPoolWebp,
+          'ff4b7b6f-f7a9-4e18-969d-3c3f2a35e471': heroPoolWebp // Use optimized WebP for new hero image
         };
       
       if (filename && webpMappings[filename]) {
