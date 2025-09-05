@@ -1,6 +1,8 @@
 /* Minimal CSS file - only essential theme variables */
 /* All other styles moved to separate files for better performance */
 
+@tailwind base;
+
 @layer base {
   :root {
     /* Essential theme colors only */
