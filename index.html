@@ -9,6 +9,15 @@
     <link rel="canonical" href="/" />
     <link rel="icon" href="/lovable-uploads/d5bdd8c9-0227-43f1-81a3-467617ed6c73.png" type="image/png" />
 
+    <!-- Critical resource preloads for faster FCP -->
+    <link rel="preload" as="image" href="/lovable-uploads/7a94e712-7683-4a26-8a1c-c6974e320b5a.png" fetchpriority="high" />
+    <link rel="preload" as="style" href="/src/index.css" />
+    <link rel="modulepreload" href="/src/main.tsx" />
+    
+    <!-- DNS prefetch for external resources -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="preconnect" href="//fonts.gstatic.com" crossorigin />
+
     <!-- Critical CSS inlined for immediate render -->
     <style>
       :root {
@@ -52,9 +61,13 @@
       body { 
         margin: 0; 
         font-family: system-ui, -apple-system, sans-serif;
+        font-display: swap;
         line-height: 1.5;
         background-color: hsl(var(--background));
         color: hsl(var(--foreground));
+        font-feature-settings: "rlig" 1, "calt" 1;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeSpeed;
       }
       #root { min-height: 100vh; }
       .min-h-screen { min-height: 100vh; }
@@ -67,6 +80,9 @@
       .w-full { width: 100%; }
       .h-full { height: 100%; }
       img { max-width: 100%; height: auto; }
+      .bg-cover { background-size: cover; }
+      .bg-center { background-position: center; }
+      .bg-no-repeat { background-repeat: no-repeat; }
     </style>
 
     <meta property="og:title" content="Wonderlands Pools & Spas" />
