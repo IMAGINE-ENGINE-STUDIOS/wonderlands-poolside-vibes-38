@@ -756,14 +756,12 @@ const PoolProductCard = ({
                   finish: finish.name
                 }))}>
                         <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" onError={e => {
-                      const target = e.target as HTMLImageElement;
-                      const parent = target.parentElement;
-                      if (parent) {
-                        parent.style.backgroundColor = finish.color;
-                        target.style.display = 'none';
-                      }
-                    }} />
+                          <OptimizedImage 
+                            src={finish.image} 
+                            alt={finish.name} 
+                            className="w-full h-full object-cover" 
+                            sizeConfig="thumbnail"
+                          />
                         </div>
                         <div className="flex-1 flex flex-col justify-between min-h-0">
                           <p className="text-xs font-medium text-center line-clamp-2">{finish.name}</p>
@@ -835,14 +833,12 @@ const PoolProductCard = ({
                   paverOption: paver.name
                 }))}>
                         <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <img src={paver.image} alt={paver.name} className="w-full h-full object-cover" onError={e => {
-                      const target = e.target as HTMLImageElement;
-                      const parent = target.parentElement;
-                      if (parent) {
-                        parent.style.backgroundColor = paver.color;
-                        target.style.display = 'none';
-                      }
-                    }} />
+                          <OptimizedImage 
+                            src={paver.image} 
+                            alt={paver.name} 
+                            className="w-full h-full object-cover" 
+                            sizeConfig="thumbnail"
+                          />
                         </div>
                         <div className="flex-1 flex flex-col justify-between min-h-0">
                           <p className="text-xs font-medium text-center line-clamp-2">{paver.name}</p>
@@ -1092,14 +1088,12 @@ const PoolProductCard = ({
                       tileOption: tile.name
                     }))}>
                                 <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                  <img src={tile.image} alt={tile.name} className="w-full h-full object-cover" onError={e => {
-                          const target = e.target as HTMLImageElement;
-                          const parent = target.parentElement;
-                          if (parent) {
-                            parent.style.backgroundColor = tile.color;
-                            target.style.display = 'none';
-                          }
-                        }} />
+                                  <OptimizedImage 
+                                    src={tile.image} 
+                                    alt={tile.name} 
+                                    className="w-full h-full object-cover" 
+                                    sizeConfig="thumbnail"
+                                  />
                                 </div>
                                 <div className="flex-1 flex flex-col justify-between min-h-0">
                                   <p className="text-xs font-medium text-center line-clamp-2">{tile.name}</p>

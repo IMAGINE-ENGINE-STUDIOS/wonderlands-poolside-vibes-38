@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Eye, ShoppingCart, Star, Heart, Share2 } from "lucide-react";
 import { useShoppingCart } from "./ShoppingCart";
 import { useToast } from "@/hooks/use-toast";
+import { OptimizedImage } from "./OptimizedImage";
 
 interface Product {
   id: string;
@@ -116,10 +117,11 @@ const ProductPreview = ({ product, variant = 'default' }: ProductPreviewProps) =
                       <DialogDescription>{product.description}</DialogDescription>
                     </DialogHeader>
                     <div className="grid md:grid-cols-2 gap-4">
-                      <img
+                      <OptimizedImage
                         src={product.image || '/placeholder.svg'}
                         alt={product.name}
                         className="w-full h-64 object-cover rounded-lg"
+                        sizeConfig="poolCard"
                       />
                       <div className="space-y-4">
                         <div>
@@ -171,13 +173,11 @@ const ProductPreview = ({ product, variant = 'default' }: ProductPreviewProps) =
   return (
     <Card className="group hover:shadow-xl transition-all duration-300 hover:scale-[1.02] bg-card/50 backdrop-blur-sm">
       <div className="relative overflow-hidden">
-        <img
+        <OptimizedImage
           src={product.image || '/placeholder.svg'}
           alt={product.name}
           className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-          onError={(e) => {
-            e.currentTarget.src = '/placeholder.svg';
-          }}
+          sizeConfig="poolCard"
         />
         <Badge className={`absolute top-2 left-2 ${getCategoryColor(product.category)}`}>
           {product.category.replace('_', ' ')}
@@ -266,10 +266,11 @@ const ProductPreview = ({ product, variant = 'default' }: ProductPreviewProps) =
               </DialogHeader>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <img
+                  <OptimizedImage
                     src={product.image || '/placeholder.svg'}
                     alt={product.name}
                     className="w-full h-64 object-cover rounded-lg"
+                    sizeConfig="poolCard"
                   />
                   <div className="grid grid-cols-2 gap-2">
                     <Badge className={getCategoryColor(product.category)}>
