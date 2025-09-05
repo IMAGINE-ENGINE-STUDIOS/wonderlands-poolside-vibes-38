@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 // Import real website options data
-import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
+import { getProductsByCategory } from '@/data/consolidatedProducts';
 import { poolLiners, poolTiles } from '@/data/poolData';
 import { paverTypes } from '@/data/paverData';
 
@@ -33,7 +33,7 @@ interface PoolOption {
 // Build pool options from actual website data
 const poolOptions: PoolOption[] = [
   // Real Pool Finishes
-  ...poolFinishesData.map(finish => ({
+  ...getProductsByCategory('finish').map(finish => ({
     id: `finish-${finish.name.toLowerCase().replace(/\s+/g, '-')}`,
     name: finish.name,
     description: finish.description || `Premium ${finish.collection} finish`,

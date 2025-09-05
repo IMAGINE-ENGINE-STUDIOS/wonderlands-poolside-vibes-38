@@ -14,7 +14,7 @@ import { useShoppingCart } from "@/components/ShoppingCart";
 import { spas, pools } from "@/components/PoolCatalog";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
 import { paverTypes } from "@/data/paverData";
-import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
+import { getProductsByCategory } from '@/data/consolidatedProducts';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SurveyQuoteTool from "@/components/SurveyQuoteTool";
@@ -106,13 +106,13 @@ const poolHeaters = [{
 }];
 
 // Convert pool finishes data to finish options format
-const finishOptions = poolFinishesData.map(finish => ({
+const finishOptions = getProductsByCategory('finish').map(finish => ({
   name: finish.name,
   color: '#4169E1',
   image: finish.image,
   price: finish.price,
   collection: finish.collection,
-  category: finish.category,
+  category: finish.subcategory || 'General',
   description: finish.description
 }));
 

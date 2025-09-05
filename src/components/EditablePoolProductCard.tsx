@@ -20,7 +20,7 @@ const getPoolPrice = (pool: Pool) => {
 // Import the same data sources as PoolProductCard
 import { spas } from "./PoolCatalog";
 import { tanningLedges } from "@/data/poolData";
-import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
+import { getProductsByCategory } from '@/data/consolidatedProducts';
 import { poolLiners, poolTiles } from '@/data/poolData';
 
 // Import finish images
@@ -105,7 +105,7 @@ const getExtraPrice = (extra: string) => {
 };
 
 // Convert pool finishes data to finish options format
-const finishOptions = poolFinishesData.map(finish => ({
+const finishOptions = getProductsByCategory('finish').map(finish => ({
   name: finish.name,
   color: '#4169E1',
   image: finish.image,

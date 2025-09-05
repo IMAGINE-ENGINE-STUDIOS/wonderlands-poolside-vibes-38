@@ -117,11 +117,11 @@ const getExtraPrice = (extra: string) => {
   }
 };
 
-// Import pool finishes from PoolFinishesSection
-import { poolFinishes as poolFinishesData } from '@/components/PoolFinishesSection';
+// Import pool finishes from consolidated products
+import { getProductsByCategory } from '@/data/consolidatedProducts';
 
 // Convert pool finishes data to finish options format
-const finishOptions = poolFinishesData.map(finish => ({
+const finishOptions = getProductsByCategory('finish').map(finish => ({
   name: finish.name,
   color: '#4169E1',
   // fallback color
