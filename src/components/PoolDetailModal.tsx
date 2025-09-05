@@ -34,7 +34,7 @@ const getCategoryColor = (category: string) => {
   switch (category) {
     case 'premium': return 'bg-gradient-to-r from-coral to-orange';
     case 'deluxe': return 'bg-gradient-to-r from-primary to-teal';
-    case 'standard': return 'bg-gradient-to-r from-secondary to-accent';
+    case 'standard': return 'bg-gradient-to-r from-[hsl(var(--golden))] to-[hsl(var(--golden-light))]';
     case 'compact': return 'bg-gradient-to-r from-teal to-primary';
     default: return 'bg-gradient-to-r from-primary to-teal';
   }
@@ -82,8 +82,8 @@ const PoolDetailModal = ({ pool, isOpen, onClose, onRequestQuote }: PoolDetailMo
             <DialogTitle className="text-2xl font-bold text-foreground">
               {pool.model}
             </DialogTitle>
-            <Badge className={`${getCategoryColor(pool.category)} text-white capitalize`}>
-              {pool.category}
+<Badge className={`${getCategoryColor(pool.category)} text-white capitalize`}>
+              {pool.category === 'standard' ? 'Wonderful' : pool.category}
             </Badge>
           </div>
           <DialogDescription className="text-lg text-muted-foreground">

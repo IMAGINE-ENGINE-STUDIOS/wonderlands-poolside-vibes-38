@@ -62,16 +62,16 @@ export const ProductCardLivePreviewer = ({ product, isOpen, onClose, onSave }: P
 
   if (!product || !editedProduct) return null;
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'premium': return 'bg-gradient-to-r from-coral to-orange';
-      case 'deluxe': return 'bg-gradient-to-r from-primary to-teal';
-      case 'standard': return 'bg-gradient-to-r from-secondary to-accent';
-      case 'compact': return 'bg-gradient-to-r from-teal to-primary';
-      case 'pools': return 'bg-gradient-to-r from-primary to-teal';
-      default: return 'bg-gradient-to-r from-primary to-teal';
-    }
-  };
+const getCategoryColor = (category: string) => {
+  switch (category) {
+    case 'premium': return 'bg-gradient-to-r from-coral to-orange';
+    case 'deluxe': return 'bg-gradient-to-r from-primary to-teal';
+    case 'standard': return 'bg-gradient-to-r from-[hsl(var(--golden))] to-[hsl(var(--golden-light))]';
+    case 'compact': return 'bg-gradient-to-r from-teal to-primary';
+    case 'pools': return 'bg-gradient-to-r from-primary to-teal';
+    default: return 'bg-gradient-to-r from-primary to-teal';
+  }
+};
 
   const handleInputChange = (field: keyof Product, value: any) => {
     if (!editedProduct) return;
@@ -342,8 +342,8 @@ export const ProductCardLivePreviewer = ({ product, isOpen, onClose, onSave }: P
                 
                 {/* Category Badge */}
                 <div className="absolute top-4 left-4">
-                  <Badge className={`${getCategoryColor(editedProduct.category)} text-white capitalize font-medium px-3 py-1`}>
-                    {editedProduct.category}
+<Badge className={`${getCategoryColor(editedProduct.category)} text-white capitalize font-medium px-3 py-1`}>
+                    {editedProduct.category === 'standard' ? 'Wonderful' : editedProduct.category}
                   </Badge>
                 </div>
               </div>

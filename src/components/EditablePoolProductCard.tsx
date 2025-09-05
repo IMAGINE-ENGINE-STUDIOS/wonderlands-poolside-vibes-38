@@ -87,7 +87,7 @@ const getCategoryColor = (category: string) => {
   switch (category) {
     case 'premium': return 'bg-gradient-to-r from-coral to-orange';
     case 'deluxe': return 'bg-gradient-to-r from-primary to-teal';
-    case 'standard': return 'bg-gradient-to-r from-secondary to-accent';
+    case 'standard': return 'bg-gradient-to-r from-[hsl(var(--golden))] to-[hsl(var(--golden-light))]';
     case 'compact': return 'bg-gradient-to-r from-teal to-primary';
     default: return 'bg-gradient-to-r from-primary to-teal';
   }
@@ -394,8 +394,8 @@ const EditablePoolProductCard = ({
         
         {/* Category Badge */}
         <div className="absolute top-4 left-4">
-          <Badge className={`${getCategoryColor(editedPool.category)} text-white capitalize font-medium px-3 py-1`}>
-            {editedPool.category}
+<Badge className={`${getCategoryColor(editedPool.category)} text-white capitalize font-medium px-3 py-1`}>
+            {editedPool.category === 'standard' ? 'Wonderful' : editedPool.category}
           </Badge>
         </div>
         

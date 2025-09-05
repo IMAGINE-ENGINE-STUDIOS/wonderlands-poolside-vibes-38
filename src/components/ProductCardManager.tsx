@@ -181,15 +181,15 @@ export const ProductCardManager = () => {
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'premium': return 'bg-gradient-to-r from-coral to-orange';
-      case 'deluxe': return 'bg-gradient-to-r from-primary to-teal';
-      case 'standard': return 'bg-gradient-to-r from-secondary to-accent';
-      case 'compact': return 'bg-gradient-to-r from-teal to-primary';
-      default: return 'bg-gradient-to-r from-primary to-teal';
-    }
-  };
+const getCategoryColor = (category: string) => {
+  switch (category) {
+    case 'premium': return 'bg-gradient-to-r from-coral to-orange';
+    case 'deluxe': return 'bg-gradient-to-r from-primary to-teal';
+    case 'standard': return 'bg-gradient-to-r from-[hsl(var(--golden))] to-[hsl(var(--golden-light))]';
+    case 'compact': return 'bg-gradient-to-r from-teal to-primary';
+    default: return 'bg-gradient-to-r from-primary to-teal';
+  }
+};
 
   return (
     <div className="space-y-6">
@@ -220,8 +220,8 @@ export const ProductCardManager = () => {
                         <div>
                           <div className="flex items-center gap-2">
                             <h4 className="font-medium">{product.model || 'Untitled Product'}</h4>
-                            <Badge className={`${getCategoryColor(product.category)} text-white text-xs`}>
-                              {product.category}
+<Badge className={`${getCategoryColor(product.category)} text-white text-xs`}>
+                              {product.category === 'standard' ? 'Wonderful' : product.category}
                             </Badge>
                             {!product.isActive && (
                               <Badge variant="secondary">Inactive</Badge>

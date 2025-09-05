@@ -90,7 +90,7 @@ const getCategoryColor = (category: string) => {
     case 'deluxe':
       return 'bg-gradient-to-r from-primary to-teal';
     case 'standard':
-      return 'bg-gradient-to-r from-secondary to-accent';
+      return 'bg-gradient-to-r from-[hsl(var(--golden))] to-[hsl(var(--golden-light))]';
     case 'compact':
       return 'bg-gradient-to-r from-teal to-primary';
     default:
@@ -659,8 +659,8 @@ const PoolProductCard = ({
         
         {/* Category Badge overlay */}
         <div className="absolute top-4 left-4">
-          <Badge className={`${getCategoryColor(pool.category)} text-white capitalize font-medium px-3 py-1`}>
-            {pool.category}
+<Badge className={`${getCategoryColor(pool.category)} text-white capitalize font-medium px-3 py-1`}>
+            {pool.category === 'standard' ? 'Wonderful' : pool.category}
           </Badge>
         </div>
         
@@ -691,13 +691,18 @@ const PoolProductCard = ({
             </Badge>}
         </div>
         
-        {/* Price */}
+{/* Price */}
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
             <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
               ${calculateTotalPrice().toLocaleString()}
             </span>
+            <Badge variant="secondary" className="ml-2 text-[10px] px-2 py-0.5">15% OFF</Badge>
+          </div>
+          <div className="flex items-center gap-2 pl-6">
+            <span className="text-sm text-muted-foreground line-through">${pool.price.toLocaleString()}</span>
+            <span className="text-base font-semibold text-primary">${Math.round(pool.price * 0.85).toLocaleString()}</span>
           </div>
           {pool.category === 'deluxe' && <div className="flex items-center gap-2">
               

@@ -11,35 +11,4 @@
   @apply bg-background/60 backdrop-blur-lg border border-border/40 hover:bg-background/80 transition-all duration-300;
 }
 
-/* Golden edge icons - applies to all Lucide React icons */
-svg.lucide {
-  @apply transition-all duration-300;
-  filter: drop-shadow(0 0 2px hsl(var(--golden)));
-  stroke: currentColor;
-  border-radius: 4px;
-  padding: 2px;
-  background: linear-gradient(135deg, transparent, hsl(var(--golden) / 0.1));
-  border: 1px solid hsl(var(--golden) / 0.3);
-}
-
-svg.lucide:hover {
-  filter: drop-shadow(0 0 4px hsl(var(--golden))) drop-shadow(0 0 8px hsl(var(--golden-light) / 0.5));
-  border-color: hsl(var(--golden) / 0.6);
-  background: linear-gradient(135deg, hsl(var(--golden) / 0.05), hsl(var(--golden) / 0.15));
-}
-
-/* Variant for buttons and interactive elements */
-button svg.lucide,
-[role="button"] svg.lucide,
-.clickable svg.lucide {
-  border: 1.5px solid hsl(var(--golden) / 0.4);
-  background: linear-gradient(135deg, hsl(var(--golden) / 0.08), hsl(var(--golden-light) / 0.12));
-}
-
-button:hover svg.lucide,
-[role="button"]:hover svg.lucide,
-.clickable:hover svg.lucide {
-  border-color: hsl(var(--golden) / 0.8);
-  background: linear-gradient(135deg, hsl(var(--golden) / 0.15), hsl(var(--golden-light) / 0.25));
-  box-shadow: 0 0 8px hsl(var(--golden) / 0.3);
-}
+/* Reverted global Lucide icon styling per user request */

@@ -195,15 +195,15 @@ const PoolManager = () => {
     setFormData(prev => ({ ...prev, [field]: items }));
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'premium': return 'bg-gradient-to-r from-purple-500 to-pink-500';
-      case 'deluxe': return 'bg-gradient-to-r from-blue-500 to-cyan-500';
-      case 'standard': return 'bg-gradient-to-r from-green-500 to-teal-500';
-      case 'compact': return 'bg-gradient-to-r from-orange-500 to-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
+const getCategoryColor = (category: string) => {
+  switch (category) {
+    case 'premium': return 'bg-gradient-to-r from-purple-500 to-pink-500';
+    case 'deluxe': return 'bg-gradient-to-r from-blue-500 to-cyan-500';
+    case 'standard': return 'bg-gradient-to-r from-[hsl(var(--golden))] to-[hsl(var(--golden-light))]';
+    case 'compact': return 'bg-gradient-to-r from-orange-500 to-red-500';
+    default: return 'bg-gray-500';
+  }
+};
 
   const PoolForm = () => (
     <div className="space-y-6">
@@ -405,8 +405,8 @@ const PoolManager = () => {
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
                   <CardTitle className="text-lg">{pool.model}</CardTitle>
-                  <Badge className={`${getCategoryColor(pool.category)} text-white`}>
-                    {pool.category}
+<Badge className={`${getCategoryColor(pool.category)} text-white`}>
+                    {pool.category === 'standard' ? 'Wonderful' : pool.category}
                   </Badge>
                 </div>
                 <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
