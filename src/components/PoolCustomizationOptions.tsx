@@ -17,9 +17,24 @@ import {
 } from "lucide-react";
 
 // Import real website options data
-import { getProductsByCategory } from '@/data/consolidatedProducts';
+import { getProductsByCategory, allProducts, type Product } from '@/data/consolidatedProducts';
 import { poolLiners, poolTiles } from '@/data/poolData';
 import { paverTypes } from '@/data/paverData';
+
+console.log('PoolCustomizationOptions: getProductsByCategory function:', getProductsByCategory);
+console.log('PoolCustomizationOptions: allProducts:', allProducts);
+
+// Safely get finish products with error handling
+const getFinishProducts = () => {
+  try {
+    const finishes = getProductsByCategory('finish');
+    console.log('PoolCustomizationOptions: finish products:', finishes);
+    return finishes;
+  } catch (error) {
+    console.error('Error getting finish products:', error);
+    return [];
+  }
+};
 
 interface PoolOption {
   id: string;
@@ -33,7 +48,7 @@ interface PoolOption {
 // Build pool options from actual website data
 const poolOptions: PoolOption[] = [
   // Real Pool Finishes
-  ...getProductsByCategory('finish').map(finish => ({
+  ...getFinishProducts().map(finish => ({
     id: `finish-${finish.name.toLowerCase().replace(/\s+/g, '-')}`,
     name: finish.name,
     description: finish.description || `Premium ${finish.collection} finish`,
