@@ -85,9 +85,20 @@ const PaversSection = () => {
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
               Premium Pool Pavers
             </h2>
-            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
+            <p className="text-xl text-foreground/80 max-w-2xl mx-auto mb-6">
               Transform your pool area with our premium paver collections, featuring multiple styles and finishes.
             </p>
+            <div className="mt-6">
+              <Button 
+                onClick={() => window.open('/belgard-studio', '_blank')}
+                className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                🏗️ Open Belgard Studio
+              </Button>
+              <p className="text-sm text-muted-foreground mt-2">
+                Design & configure your complete hardscape project
+              </p>
+            </div>
           </div>
 
           {/* Three Collections Grid */}

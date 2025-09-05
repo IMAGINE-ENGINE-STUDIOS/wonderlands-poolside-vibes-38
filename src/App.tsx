@@ -17,6 +17,7 @@ const AuthPage = lazy(() => import("./components/AuthPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const ProcurementSystem = lazy(() => import("./pages/ProcurementSystem"));
 const PoolDetails = lazy(() => import("./pages/PoolDetails"));
+const BelgardStudio = lazy(() => import("./pages/BelgardStudio"));
 const ContentEditor = lazy(() => import("./pages/ContentEditor"));
 const ReferralPortal = lazy(() => import("./pages/ReferralPortal"));
 
@@ -71,6 +72,7 @@ const App = () => {
               } 
             />
             <Route path="/pool/:poolId" element={<PoolDetails />} />
+            <Route path="/belgard-studio" element={<BelgardStudio />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
