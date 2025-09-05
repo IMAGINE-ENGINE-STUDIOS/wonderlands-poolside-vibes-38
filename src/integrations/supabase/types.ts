@@ -1743,14 +1743,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
-      decrypt_sensitive_data: {
-        Args: { encrypted_data: string }
-        Returns: string
-      }
-      encrypt_sensitive_data: {
-        Args: { data: string }
-        Returns: string
-      }
       get_installer_profile_safe: {
         Args: { installer_uuid: string }
         Returns: Json
