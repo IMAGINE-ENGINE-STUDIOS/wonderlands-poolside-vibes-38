@@ -1755,6 +1755,16 @@ export type Database = {
         Args: { installer_uuid: string }
         Returns: Json
       }
+      get_public_supplier_info: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          company_logo_url: string
+          company_name: string
+          id: string
+          is_active: boolean
+          role: Database["public"]["Enums"]["user_role"]
+        }[]
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
