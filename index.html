@@ -129,22 +129,6 @@
         }
       })();
 
-      // Unregister any existing service workers and clear caches
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for(let registration of registrations) {
-            registration.unregister();
-          }
-        });
-        if ('caches' in window) {
-          caches.keys().then(function(names) {
-            for (let name of names) {
-              caches.delete(name);
-            }
-          });
-        }
-      }
-      
       // Set canonical URL dynamically
       (function(){
         var l=document.querySelector('link[rel="canonical"]');
@@ -171,6 +155,15 @@
         window.addEventListener('error', function(e){ showError('JS Error: '+ (e.message || (e.error && e.error.message) || e.error || 'unknown')); });
         window.addEventListener('unhandledrejection', function(e){ var r=e.reason; showError('Unhandled Promise Rejection: '+ (r && r.message ? r.message : r)); });
       })();
+    </script>
+    <script>
+      // Register service worker for efficient caching
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .catch(() => {}); // Silently fail if registration fails
+        });
+      }
     </script>
   </head>
 
