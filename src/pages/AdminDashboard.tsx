@@ -48,6 +48,7 @@ import AdminReferralsManager from '@/components/AdminReferralsManager';
 import { DragDropEditor } from '@/components/DragDropEditor';
 import ApiKeyManager from '@/components/ApiKeyManager';
 import SampleDataSetup from '@/components/SampleDataSetup';
+import SetupDemoUsers from '@/components/SetupDemoUsers';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -299,6 +300,16 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <AdminUserManagement currentAdmin={profile} />
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Demo Users Setup</CardTitle>
+                <CardDescription>Create demo user accounts for testing</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SetupDemoUsers />
               </CardContent>
             </Card>
           </TabsContent>
