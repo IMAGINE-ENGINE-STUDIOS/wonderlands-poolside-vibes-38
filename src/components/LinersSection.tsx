@@ -8,13 +8,9 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Droplets, Palette, Shield, Star, DollarSign, ShoppingCart } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { useShoppingCart } from "./ShoppingCart";
-import { poolLiners } from "@/data/poolData";
-interface Liner {
-  name: string;
-  price: number;
-  type: string;
-  image?: string;
-  description: string;
+import { getProductsByCategory, Product } from "@/data/consolidatedProducts";
+interface Liner extends Product {
+  type?: string; // For backwards compatibility
 }
 interface LinersSectionProps {
   onLinerSelect?: (liner: Liner) => void;
@@ -50,26 +46,26 @@ const LinersSection = ({
   selectedLiner: selectedLinerProp,
   allowSelection
 }: LinersSectionProps = {}) => {
-  const [selectedLiner, setSelectedLiner] = useState<Liner | null>(null);
+  const [selectedLiner, setSelectedLiner] = useState<Product | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const {
     addToCart
   } = useShoppingCart();
-  const handleLinerClick = (liner: Liner) => {
+  const handleLinerClick = (liner: Product) => {
     setSelectedLiner(liner);
     setShowDetailModal(true);
   };
-  const handleRequestQuote = (liner: Liner) => {
+  const handleRequestQuote = (liner: Product) => {
     setSelectedLiner(liner);
     setShowDetailModal(false);
     setShowQuoteModal(true);
   };
-  const handleAddToCart = (liner: Liner) => {
+  const handleAddToCart = (liner: any) => {
     addToCart({
       id: `liner_${liner.name.replace(/\s+/g, '_')}_${Date.now()}`,
       name: liner.name,
-      price: 4500,
+      price: liner.price,
       category: 'liner',
       image: liner.image,
       extras: []
@@ -81,7 +77,7 @@ const LinersSection = ({
     const handleOpenProduct = (event: CustomEvent) => {
       const { type, id, name } = event.detail;
       if (type === 'liner' || type === 'liners') {
-        const liner = poolLiners.find(l => 
+        const liner = getProductsByCategory('liner').find(l => 
           l.name.toLowerCase() === name?.toLowerCase() ||
           l.name.toLowerCase().includes(name?.toLowerCase())
         );
@@ -110,45 +106,38 @@ const LinersSection = ({
             <div className="flex gap-4 overflow-x-auto pb-4">
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
-                  {poolLiners.map((liner, index) => <CarouselItem key={liner.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
+                  {getProductsByCategory('liner').slice(0, 3).map((liner, index) => <CarouselItem key={liner.name} className="pl-1 basis-1/3 md:basis-1/2 lg:basis-1/3">
                       <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer h-full" onClick={() => handleLinerClick(liner)}>
-                        <CardHeader className="pb-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <Badge className={`${getTypeColor(liner.type)} text-white capitalize font-medium px-3 py-1`}>
-                              <span className="flex items-center gap-1">
-                                {getTypeIcon(liner.type)}
-                                {liner.type}
-                              </span>
-                            </Badge>
-                            
+                        {/* Full Background Image */}
+                        <div className="relative h-64 overflow-hidden">
+                          <img src={liner.image} alt={liner.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent">
+                            <div className="absolute top-4 left-4">
+                              <Badge className={`${getTypeColor(liner.subcategory || 'Glass')} text-white capitalize font-medium px-3 py-1`}>
+                                <span className="flex items-center gap-1">
+                                  {getTypeIcon(liner.subcategory || 'Glass')}
+                                  {liner.subcategory}
+                                </span>
+                              </Badge>
+                            </div>
+                            <div className="absolute bottom-4 left-4 text-white">
+                              <CardTitle className="text-lg font-semibold mb-2">
+                                {liner.name}
+                              </CardTitle>
+                              <div className="flex items-center gap-2 mb-2">
+                                <DollarSign className="h-5 w-5 text-teal" />
+                                <span className="text-xl font-bold">
+                                  ${liner.price.toLocaleString()}
+                                </span>
+                              </div>
+                              <p className="text-sm text-white/80 line-clamp-2">
+                                {liner.description}
+                              </p>
+                            </div>
                           </div>
-                          
-                          <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                            {liner.name}
-                          </CardTitle>
-                        </CardHeader>
+                        </div>
                         
-                        <CardContent className="space-y-4">
-                          {/* Liner Preview */}
-                          <div className="w-full h-32 rounded-lg overflow-hidden border-2 border-muted">
-                            <img src={liner.image} alt={liner.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                          </div>
-                          
-                          {/* Price */}
-                          <div className="flex items-center gap-2">
-                            <DollarSign className="h-5 w-5 text-teal" />
-                            <span className="text-xl font-bold text-foreground">
-                              $4,500
-                            </span>
-                          </div>
-                          
-                          {/* Description */}
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {liner.description}
-                          </p>
-                          
-                          <Separator />
-                          
+                        <CardContent className="space-y-4 pt-4">
                           {/* Action Button */}
                           <Button onClick={e => {
                       e.stopPropagation();
@@ -179,21 +168,21 @@ const LinersSection = ({
                   <img src={selectedLiner.image} alt={selectedLiner.name} className="w-full h-64 object-cover rounded-lg" />
                 </div>
                 <div className="space-y-4">
-                  <Badge className={`${getTypeColor(selectedLiner.type)} text-white`}>
-                    {selectedLiner.type}
+                  <Badge className={`${getTypeColor(selectedLiner.subcategory || 'Glass')} text-white`}>
+                    {selectedLiner.subcategory}
                   </Badge>
                   <p className="text-foreground/80">{selectedLiner.description}</p>
                   
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-5 w-5 text-teal" />
                     <span className="text-2xl font-bold text-foreground">
-                      $4,500
+                      ${selectedLiner.price.toLocaleString()}
                     </span>
                   </div>
                   
                   <div className="flex gap-3">
                     {allowSelection && !selectedLinerProp && selectedLiner && <Button onClick={() => {
-                  onLinerSelect?.(selectedLiner!);
+                  onLinerSelect?.(selectedLiner as Liner);
                   setShowDetailModal(false);
                 }} variant="default" className="flex-1">
                         Select Liner

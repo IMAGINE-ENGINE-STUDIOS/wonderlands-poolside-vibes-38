@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Star, DollarSign, ShoppingCart, Sparkles } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { useShoppingCart } from "./ShoppingCart";
-import { poolTiles } from "@/data/poolData";
+import { getProductsByCategory, Product } from "@/data/consolidatedProducts";
+import { poolTiles as poolTilesData } from "@/data/poolData";
 
 interface PoolTile {
   name: string;
@@ -17,29 +18,31 @@ interface PoolTile {
 }
 
 interface PoolTilesSectionProps {
-  onTileSelect?: (tile: PoolTile) => void;
+  onTileSelect?: (tile: Product) => void;
   selectedTile?: string;
   allowSelection?: boolean;
 }
 
 const PoolTilesSection = ({ onTileSelect, selectedTile: selectedTileProp, allowSelection }: PoolTilesSectionProps = {}) => {
-  const [selectedTile, setSelectedTile] = useState<PoolTile | null>(null);
+  const [selectedTile, setSelectedTile] = useState<Product | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const { addToCart } = useShoppingCart();
+  
+  const poolTiles = getProductsByCategory('tile');
 
-  const handleTileClick = (tile: PoolTile) => {
+  const handleTileClick = (tile: Product) => {
     setSelectedTile(tile);
     setShowDetailModal(true);
   };
 
-  const handleRequestQuote = (tile: PoolTile) => {
+  const handleRequestQuote = (tile: Product) => {
     setSelectedTile(tile);
     setShowDetailModal(false);
     setShowQuoteModal(true);
   };
 
-  const handleAddToCart = (tile: PoolTile) => {
+  const handleAddToCart = (tile: Product) => {
     addToCart({
       id: `tile_${tile.name.replace(/\s+/g, '_')}_${Date.now()}`,
       name: tile.name,
