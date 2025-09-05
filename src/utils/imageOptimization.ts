@@ -8,10 +8,10 @@ export interface ImageDimensions {
 
 // Predefined size configurations for different use cases
 export const imageSizeConfigs = {
-  // Pool card images in catalog (displayed at ~401x280)
+  // Pool card images in catalog (displayed at ~400x256)
   poolCard: {
-    width: 401,
-    height: 280,
+    width: 400,
+    height: 256,
     sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
   },
   

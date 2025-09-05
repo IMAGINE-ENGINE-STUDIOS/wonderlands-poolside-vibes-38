@@ -6,12 +6,6 @@ import enchantment921Webp from '@/assets/pools/enchantment-921-optimized.webp';
 import enchantment924Webp from '@/assets/pools/enchantment-924-optimized.webp';
 import enchantment917Webp from '@/assets/pools/enchantment-917-optimized.webp';
 import heroPoolWebp from '@/assets/hero-pool-optimized.webp';
-import optimizedPoolE2d562f0 from '@/assets/pools/optimized-pool-e2d562f0.webp';
-import optimizedPoolAc53cd88 from '@/assets/pools/optimized-pool-ac53cd88.webp';
-import optimizedPool2677d17d from '@/assets/pools/optimized-pool-2677d17d.webp';
-import optimizedPool579d34e1 from '@/assets/pools/optimized-pool-579d34e1.webp';
-import optimizedPool121eda70 from '@/assets/pools/optimized-pool-121eda70.webp';
-import optimizedLogo02222bf9 from '@/assets/optimized-logo-02222bf9.webp';
 
 interface OptimizedImageProps {
   src: string;
@@ -92,13 +86,7 @@ export const OptimizedImage = ({
           '749a82f6-561b-4f6b-982b-d343dfac9565': enchantment924Webp,
           'd7541cc8-f254-4f85-b6ee-f636a8726dcc': enchantment917Webp,
           '7a94e712-7683-4a26-8a1c-c6974e320b5a': heroPoolWebp,
-          'ff4b7b6f-f7a9-4e18-969d-3c3f2a35e471': heroPoolWebp, // Use optimized WebP for new hero image
-          'e2d562f0-9a55-4293-8a9f-26d9b09ebf15': optimizedPoolE2d562f0,
-          'ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5': optimizedPoolAc53cd88,
-          '2677d17d-ba82-407b-896c-b4b3e238b8d5': optimizedPool2677d17d,
-          '579d34e1-ef64-4134-bf8b-dff4980bb17a': optimizedPool579d34e1,
-          '121eda70-3d05-4624-afb0-5dba766d8b2f': optimizedPool121eda70,
-          '02222bf9-70e0-46ee-9772-cacbabb3e9c2': optimizedLogo02222bf9
+          'ff4b7b6f-f7a9-4e18-969d-3c3f2a35e471': heroPoolWebp // Use optimized WebP for new hero image
         };
       
       if (filename && webpMappings[filename]) {
