@@ -48,6 +48,10 @@ const Footer = () => {
                 <Clock className="w-4 h-4 text-orange" />
                 <span className="text-muted-foreground">Opens 24/7 </span>
               </div>
+              <div className="flex items-center gap-3 text-sm">
+                <MapPin className="w-4 h-4 text-coral" />
+                <span className="text-muted-foreground">License #CGC1537275</span>
+              </div>
             </div>
           </div>
 
