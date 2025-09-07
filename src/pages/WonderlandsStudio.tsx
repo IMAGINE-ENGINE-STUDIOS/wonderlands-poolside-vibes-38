@@ -70,6 +70,16 @@ interface ProductExtras {
   screenEnclosureArea: number;
   screenEnclosureQuality: string;
   concreteConstruction: boolean;
+  // Belgard Studio options
+  concreteSlabs: boolean;
+  permeablePavers: boolean;
+  porcelainPavers: boolean;
+  wallSystems: boolean;
+  capsEdgers: boolean;
+  outdoorKitchens: boolean;
+  fireplaces: boolean;
+  firePitKits: boolean;
+  pergolas: boolean;
 }
 
 // Helper function to get discounted price for deluxe pools
@@ -190,7 +200,17 @@ const WonderlandsStudio = () => {
     screenEnclosure: false,
     screenEnclosureArea: 0,
     screenEnclosureQuality: 'standard',
-    concreteConstruction: false
+    concreteConstruction: false,
+    // Belgard Studio options
+    concreteSlabs: false,
+    permeablePavers: false,
+    porcelainPavers: false,
+    wallSystems: false,
+    capsEdgers: false,
+    outdoorKitchens: false,
+    fireplaces: false,
+    firePitKits: false,
+    pergolas: false
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
   const [showExtrasDropdown, setShowExtrasDropdown] = useState(false);
@@ -199,6 +219,14 @@ const WonderlandsStudio = () => {
   
   // Scene rooms from Belgard Studio
   const sceneRooms = [
+    {
+      id: 'sandbox',
+      name: 'Sandbox - Build Your Own',
+      category: 'scene',
+      price: 0,
+      image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png', // Astoria pool image
+      description: 'Build your own custom outdoor space with all available options'
+    },
     {
       id: 'mediterranean-villa',
       name: 'Mediterranean Villa',
@@ -232,6 +260,37 @@ const WonderlandsStudio = () => {
       description: 'Warm rustic design with natural materials and cozy atmosphere'
     }
   ];
+
+  // Belgard Studio additional features for scenes
+  const belgardStudioOptions = {
+    concreteSlabs: [
+      { name: 'Concrete Paver Slab - Sample', price: 12, image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png', category: 'sample' }
+    ],
+    permeablePavers: [
+      { name: 'Permeable Paver - Sample', price: 18, image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png', category: 'sample' }
+    ],
+    porcelainPavers: [
+      { name: 'Porcelain Paver - Sample', price: 25, image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png', category: 'sample' }
+    ],
+    wallSystems: [
+      { name: 'Retaining Wall System - Sample', price: 35, image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png', category: 'sample' }
+    ],
+    capsEdgers: [
+      { name: 'Cap & Edger Set - Sample', price: 8, image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png', category: 'sample' }
+    ],
+    outdoorKitchens: [
+      { name: 'Outdoor Kitchen Island - Sample', price: 8500, image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png', category: 'sample' }
+    ],
+    fireplaces: [
+      { name: 'Outdoor Fireplace - Sample', price: 4500, image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png', category: 'sample' }
+    ],
+    firePitKits: [
+      { name: 'Fire Pit Kit - Sample', price: 1200, image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png', category: 'sample' }
+    ],
+    pergolas: [
+      { name: 'Pergola & Panel System - Sample', price: 3500, image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png', category: 'sample' }
+    ]
+  };
 
   // Get filtered products based on active tab
   const getFilteredProducts = () => {
@@ -746,12 +805,319 @@ const WonderlandsStudio = () => {
                   </CardContent>
                 </Card>
 
-                {/* Configuration Card */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Additional Features</CardTitle>
+                    <CardTitle>
+                      {selectedProduct.type === 'scene' ? 'Belgard Studio Options' : 'Additional Features'}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
+                    {selectedProduct.type === 'scene' ? (
+                      // Belgard Studio Options for Scenes
+                      <>
+                        {/* Concrete Pavers & Slabs */}
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <Label className="text-sm font-medium">Concrete Pavers & Slabs</Label>
+                              <p className="text-xs text-muted-foreground">Durable concrete solutions</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                checked={selectedExtras.concreteSlabs}
+                                onCheckedChange={(checked) => {
+                                  const newExtras = { ...selectedExtras, concreteSlabs: !!checked };
+                                  setSelectedExtras(newExtras);
+                                  if (checked) {
+                                    setActiveFeatureCarousel('concreteSlabs');
+                                  } else {
+                                    setActiveFeatureCarousel(null);
+                                  }
+                                }}
+                              />
+                              {selectedExtras.concreteSlabs && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const newCarousel = activeFeatureCarousel === 'concreteSlabs' ? null : 'concreteSlabs';
+                                    setActiveFeatureCarousel(newCarousel);
+                                  }}
+                                >
+                                  <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'concreteSlabs' ? 'rotate-180' : ''}`} />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          {selectedExtras.concreteSlabs && activeFeatureCarousel === 'concreteSlabs' && (
+                            <div className="aspect-video">
+                              <Carousel className="w-full h-full">
+                                <CarouselContent className="-ml-1 h-full">
+                                  {belgardStudioOptions.concreteSlabs.map((option) => (
+                                    <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
+                                      <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
+                                        <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                                        <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                          ${option.price}/sq ft
+                                        </p>
+                                        {option.category === 'sample' && (
+                                          <Badge variant="secondary" className="text-xs mt-1">Sample</Badge>
+                                        )}
+                                      </div>
+                                    </CarouselItem>
+                                  ))}
+                                </CarouselContent>
+                                <CarouselPrevious />
+                                <CarouselNext />
+                              </Carousel>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Outdoor Kitchens */}
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <Label className="text-sm font-medium">Outdoor Kitchens</Label>
+                              <p className="text-xs text-muted-foreground">Complete cooking solutions</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                checked={selectedExtras.outdoorKitchens}
+                                onCheckedChange={(checked) => {
+                                  const newExtras = { ...selectedExtras, outdoorKitchens: !!checked };
+                                  setSelectedExtras(newExtras);
+                                  if (checked) {
+                                    setActiveFeatureCarousel('outdoorKitchens');
+                                  } else {
+                                    setActiveFeatureCarousel(null);
+                                  }
+                                }}
+                              />
+                              {selectedExtras.outdoorKitchens && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const newCarousel = activeFeatureCarousel === 'outdoorKitchens' ? null : 'outdoorKitchens';
+                                    setActiveFeatureCarousel(newCarousel);
+                                  }}
+                                >
+                                  <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'outdoorKitchens' ? 'rotate-180' : ''}`} />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          {selectedExtras.outdoorKitchens && activeFeatureCarousel === 'outdoorKitchens' && (
+                            <div className="aspect-video">
+                              <Carousel className="w-full h-full">
+                                <CarouselContent className="-ml-1 h-full">
+                                  {belgardStudioOptions.outdoorKitchens.map((option) => (
+                                    <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
+                                      <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
+                                        <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                                        <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                          ${option.price.toLocaleString()}
+                                        </p>
+                                        {option.category === 'sample' && (
+                                          <Badge variant="secondary" className="text-xs mt-1">Sample</Badge>
+                                        )}
+                                      </div>
+                                    </CarouselItem>
+                                  ))}
+                                </CarouselContent>
+                                <CarouselPrevious />
+                                <CarouselNext />
+                              </Carousel>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Fireplaces */}
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <Label className="text-sm font-medium">Fireplaces</Label>
+                              <p className="text-xs text-muted-foreground">Outdoor warmth and ambiance</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                checked={selectedExtras.fireplaces}
+                                onCheckedChange={(checked) => {
+                                  const newExtras = { ...selectedExtras, fireplaces: !!checked };
+                                  setSelectedExtras(newExtras);
+                                  if (checked) {
+                                    setActiveFeatureCarousel('fireplaces');
+                                  } else {
+                                    setActiveFeatureCarousel(null);
+                                  }
+                                }}
+                              />
+                              {selectedExtras.fireplaces && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const newCarousel = activeFeatureCarousel === 'fireplaces' ? null : 'fireplaces';
+                                    setActiveFeatureCarousel(newCarousel);
+                                  }}
+                                >
+                                  <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'fireplaces' ? 'rotate-180' : ''}`} />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          {selectedExtras.fireplaces && activeFeatureCarousel === 'fireplaces' && (
+                            <div className="aspect-video">
+                              <Carousel className="w-full h-full">
+                                <CarouselContent className="-ml-1 h-full">
+                                  {belgardStudioOptions.fireplaces.map((option) => (
+                                    <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
+                                      <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
+                                        <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                                        <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                          ${option.price.toLocaleString()}
+                                        </p>
+                                        {option.category === 'sample' && (
+                                          <Badge variant="secondary" className="text-xs mt-1">Sample</Badge>
+                                        )}
+                                      </div>
+                                    </CarouselItem>
+                                  ))}
+                                </CarouselContent>
+                                <CarouselPrevious />
+                                <CarouselNext />
+                              </Carousel>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Fire Pit Kits */}
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <Label className="text-sm font-medium">Fire Pit Kits</Label>
+                              <p className="text-xs text-muted-foreground">Cozy gathering spaces</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                checked={selectedExtras.firePitKits}
+                                onCheckedChange={(checked) => {
+                                  const newExtras = { ...selectedExtras, firePitKits: !!checked };
+                                  setSelectedExtras(newExtras);
+                                  if (checked) {
+                                    setActiveFeatureCarousel('firePitKits');
+                                  } else {
+                                    setActiveFeatureCarousel(null);
+                                  }
+                                }}
+                              />
+                              {selectedExtras.firePitKits && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const newCarousel = activeFeatureCarousel === 'firePitKits' ? null : 'firePitKits';
+                                    setActiveFeatureCarousel(newCarousel);
+                                  }}
+                                >
+                                  <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'firePitKits' ? 'rotate-180' : ''}`} />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          {selectedExtras.firePitKits && activeFeatureCarousel === 'firePitKits' && (
+                            <div className="aspect-video">
+                              <Carousel className="w-full h-full">
+                                <CarouselContent className="-ml-1 h-full">
+                                  {belgardStudioOptions.firePitKits.map((option) => (
+                                    <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
+                                      <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
+                                        <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                                        <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                          ${option.price.toLocaleString()}
+                                        </p>
+                                        {option.category === 'sample' && (
+                                          <Badge variant="secondary" className="text-xs mt-1">Sample</Badge>
+                                        )}
+                                      </div>
+                                    </CarouselItem>
+                                  ))}
+                                </CarouselContent>
+                                <CarouselPrevious />
+                                <CarouselNext />
+                              </Carousel>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Pergolas & Panels */}
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <Label className="text-sm font-medium">Pergolas & Panels</Label>
+                              <p className="text-xs text-muted-foreground">Shade and privacy solutions</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                checked={selectedExtras.pergolas}
+                                onCheckedChange={(checked) => {
+                                  const newExtras = { ...selectedExtras, pergolas: !!checked };
+                                  setSelectedExtras(newExtras);
+                                  if (checked) {
+                                    setActiveFeatureCarousel('pergolas');
+                                  } else {
+                                    setActiveFeatureCarousel(null);
+                                  }
+                                }}
+                              />
+                              {selectedExtras.pergolas && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const newCarousel = activeFeatureCarousel === 'pergolas' ? null : 'pergolas';
+                                    setActiveFeatureCarousel(newCarousel);
+                                  }}
+                                >
+                                  <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'pergolas' ? 'rotate-180' : ''}`} />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          {selectedExtras.pergolas && activeFeatureCarousel === 'pergolas' && (
+                            <div className="aspect-video">
+                              <Carousel className="w-full h-full">
+                                <CarouselContent className="-ml-1 h-full">
+                                  {belgardStudioOptions.pergolas.map((option) => (
+                                    <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
+                                      <div className="cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full border-border hover:border-primary/50">
+                                        <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                                        <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                          ${option.price.toLocaleString()}
+                                        </p>
+                                        {option.category === 'sample' && (
+                                          <Badge variant="secondary" className="text-xs mt-1">Sample</Badge>
+                                        )}
+                                      </div>
+                                    </CarouselItem>
+                                  ))}
+                                </CarouselContent>
+                                <CarouselPrevious />
+                                <CarouselNext />
+                              </Carousel>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      // Regular pool/spa features
+                      <>
                     {/* Pool Finish */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
@@ -1155,28 +1521,30 @@ const WonderlandsStudio = () => {
                       />
                     </div>
 
-                    <Separator />
+                     <Separator />
 
-                    {/* Action Buttons */}
-                    <div className="flex gap-3">
-                      <Button onClick={handleQuoteRequest} variant="outline" className="flex-1">
-                        <Download className="h-4 w-4 mr-2" />
-                        Generate Quote
-                      </Button>
-                      <Button onClick={handleAddToCart} variant="outline" className="flex-1">
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        Add to Cart
-                      </Button>
-                      <StripeCheckoutButton 
-                        productId={`${selectedProduct.type}_${selectedProduct.model?.replace(/\s+/g, '_') || selectedProduct.name?.replace(/\s+/g, '_')}`} 
-                        productName={selectedProduct.model || selectedProduct.name || 'Product'} 
-                        price={calculateTotalPrice()} 
-                        variant="default" 
-                        className="flex-1"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
+                     {/* Action Buttons */}
+                     <div className="flex gap-3">
+                       <Button onClick={handleQuoteRequest} variant="outline" className="flex-1">
+                         <Download className="h-4 w-4 mr-2" />
+                         Generate Quote
+                       </Button>
+                       <Button onClick={handleAddToCart} variant="outline" className="flex-1">
+                         <ShoppingCart className="h-4 w-4 mr-2" />
+                         Add to Cart
+                       </Button>
+                       <StripeCheckoutButton 
+                         productId={`${selectedProduct.type}_${selectedProduct.model?.replace(/\s+/g, '_') || selectedProduct.name?.replace(/\s+/g, '_')}`} 
+                         productName={selectedProduct.model || selectedProduct.name || 'Product'} 
+                         price={calculateTotalPrice()} 
+                         variant="default" 
+                         className="flex-1"
+                       />
+                     </div>
+                      </>
+                    )}
+                   </CardContent>
+                 </Card>
               </div>
             ) : (
               <Card className="h-96 flex items-center justify-center">
