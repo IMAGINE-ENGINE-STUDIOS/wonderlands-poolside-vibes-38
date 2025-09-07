@@ -1,66 +1,62 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart, Search, ChevronDown, Settings, Package, ChevronRight, ChevronLeft } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import StripeCheckoutButton from "@/components/StripeCheckoutButton";
+import { useShoppingCart } from "@/components/ShoppingCart";
 import { spas, pools } from "@/components/PoolCatalog";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
-import { poolFinishes } from "@/data/consolidatedProducts";
 import { paverTypes } from "@/data/paverData";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
-import { 
-  ChevronDown, 
-  ChevronLeft, 
-  ChevronRight, 
-  Droplets, 
-  Minus, 
-  Package, 
-  Plus, 
-  Settings, 
-  ShoppingCart, 
-  Sun, 
-  Waves 
-} from 'lucide-react';
+import SurveyQuoteTool from "@/components/SurveyQuoteTool";
+import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
+import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
+import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
+import nightSkyFinish from '@/assets/finishes/night-sky-g3.jpg';
+import athensPearlFinish from '@/assets/finishes/athens-pearl-white-g3.jpg';
+import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
+import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
+import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
+import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 
 interface Product {
-  id?: string;
   model?: string;
   name?: string;
   price: number;
-  image?: string;
   category: string;
+  image?: string;
   dimensions?: string;
   depth?: string;
   installationTimeWeeks?: number;
-  warrantyYears?: string;
+  warrantyYears?: number | string;
   saltSystem?: boolean;
   carbonFiber?: boolean;
-  heater?: boolean;
-  description?: string;
-  features?: string[];
-  warranty?: string;
-  type?: string;
-  gala_category?: string;
-  gala_points?: number;
-  collection?: string;
-  subcategory?: string;
-  
-  // Paver specific fields
-  paverType?: string;
-  surfaceArea?: number;
-  copingType?: string;
-  copingColor?: string;
+  type?: 'pool' | 'spa' | 'tanning-ledge';
+}
+
+interface ProductExtras {
+  liner: boolean;
+  heater: boolean;
+  cover: boolean;
+  jets: boolean;
+  jetQuantity: number;
+  finish: string;
+  linerOption: string;
+  coverOption: string;
+  tiles: boolean;
+  tileOption: string;
+  heaterModel: string;
+  pavers: boolean;
+  paverOption: string;
   copingPaverOption: string;
   screenEnclosure: boolean;
   screenEnclosureArea: number;
@@ -76,295 +72,530 @@ const getProductPrice = (product: Product) => {
   return product.price;
 };
 
-export default function WonderlandsStudio() {
-  const [searchParams] = useSearchParams();
+// Finish options with images
+const finishOptions = [
+  { name: 'Aquamarine', price: 0, image: aquamarineFinish },
+  { name: 'Ocean Blue', price: 2500, image: oceanBlueFinish },
+  { name: 'Sapphire Blue', price: 3500, image: sapphireBlueFinish },
+  { name: 'Night Sky', price: 4500, image: nightSkyFinish },
+  { name: 'Athens Pearl White', price: 5500, image: athensPearlFinish },
+  { name: 'Lagoon Blue', price: 3000, image: lagoonBlueFinish },
+  { name: 'Azure Blue', price: 2000, image: azureBlueFinish },
+  { name: 'Coastal Bronze', price: 6000, image: coastalBronzeFinish },
+  { name: 'Shale Gray', price: 4000, image: shaleGrayFinish }
+];
+
+// Pool heaters with models
+const poolHeaters = [
+  { name: 'Hayward H400FDN Natural Gas', price: 4500, image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png' },
+  { name: 'Pentair MasterTemp 400', price: 4200, image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png' },
+  { name: 'Raypak 406A Natural Gas', price: 3800, image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png' },
+  { name: 'Jandy JXi 400N', price: 5200, image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png' }
+];
+
+// Liner options 
+const linerOptions = [
+  { name: 'Standard Blue', price: 0, image: azureBlueFinish },
+  ...poolLiners.map(liner => ({
+    name: liner.name,
+    price: 4500,
+    image: liner.image
+  }))
+];
+
+// Cover options
+const coverOptions = [
+  { name: 'NO COVER', color: '#808080', price: 0, image: shaleGrayFinish, category: 'none' },
+  { name: 'ProMesh 2000', color: '#2F4F4F', price: 16000, image: nightSkyFinish, category: 'cover' },
+  { name: 'CS3000 Safety Cover', color: '#2F4F4F', price: 24000, image: shaleGrayFinish, category: 'cover' },
+  { name: 'Infinity 4000 Smart Cover', color: '#2F4F4F', price: 32000, image: coastalBronzeFinish, category: 'cover' },
+  { name: 'Atom Loop-Loc Cover', color: '#2F4F4F', price: 19000, image: aquamarineFinish, category: 'cover' }
+];
+
+// Tile options
+const tileOptions = [
+  { name: 'Standard Waterline', color: '#4682B4', price: 0, image: azureBlueFinish },
+  ...poolTiles.map(tile => ({
+    name: tile.name,
+    color: '#4682B4',
+    price: tile.price,
+    image: tile.image
+  }))
+];
+
+// Paver options
+const paverOptions = [
+  { name: 'No Pavers', color: '#808080', price: 0, image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png' },
+  ...paverTypes.map(paver => ({
+    name: paver.name,
+    color: '#D3D3D3',
+    price: 0,
+    image: paver.image,
+    collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina') ? 'catalina' : 'standard'
+  }))
+];
+
+const getCategoryColor = (category: string) => {
+  switch (category) {
+    case 'premium':
+      return 'bg-gradient-to-r from-coral to-orange';
+    case 'deluxe':
+      return 'bg-gradient-to-r from-primary to-teal';
+    case 'classic':
+      return 'bg-gradient-to-r from-secondary to-accent';
+    case 'compact':
+      return 'bg-gradient-to-r from-teal to-primary';
+    default:
+      return 'bg-gradient-to-r from-primary to-teal';
+  }
+};
+
+const getExtraPrice = (extra: string) => {
+  switch (extra) {
+    case 'jets':
+      return 1800;
+    default:
+      return 0;
+  }
+};
+
+const WonderlandsStudio = () => {
+  const { addToCart } = useShoppingCart();
   const { toast } = useToast();
-  
-  // State management
-  const [selectedCategory, setSelectedCategory] = useState('pools');
-  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
+  const [activeTab, setActiveTab] = useState<'pools' | 'spas' | 'tanning-ledges'>('pools');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [activeFeatureCarousel, setActiveFeatureCarousel] = useState<string | null>(null);
-  const [selectedExtras, setSelectedExtras] = useState({
-    finish: 'Standard',
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [selectedExtras, setSelectedExtras] = useState<ProductExtras>({
+    liner: false,
     heater: false,
-    heaterModel: '',
     cover: false,
-    coverOption: '',
     jets: false,
     jetQuantity: 4,
+    finish: 'Aquamarine',
+    linerOption: 'Standard Blue',
+    coverOption: 'NO COVER',
     tiles: false,
-    tileOption: '',
+    tileOption: 'Standard Waterline',
+    heaterModel: 'Hayward H400FDN Natural Gas',
     pavers: false,
-    paverType: '',
+    paverOption: 'No Pavers',
+    copingPaverOption: 'No Coping',
     screenEnclosure: false,
-    screenEnclosureType: ''
+    screenEnclosureArea: 0,
+    screenEnclosureQuality: 'standard',
+    concreteConstruction: false
   });
+  const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
+  const [showExtrasDropdown, setShowExtrasDropdown] = useState(false);
+  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
+  const [activeFeatureCarousel, setActiveFeatureCarousel] = useState<string | null>(null);
 
-  // Additional features data - comprehensive product catalog
-  const finishOptions = poolFinishes.map(finish => ({
-    name: finish.name,
-    price: finish.price,
-    image: finish.image,
-    description: finish.description
-  }));
-
-  const poolHeaters = [
-    { name: "Gas Heater 400K BTU", price: 3200, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: "High-efficiency gas heater for rapid heating" },
-    { name: "Heat Pump 140K BTU", price: 4800, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: "Energy-efficient heat pump technology" },
-    { name: "Solar Heating System", price: 6500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: "Eco-friendly solar heating solution" },
-    { name: "Electric Heater 57K BTU", price: 2800, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: "Compact electric heating unit" },
-    { name: "Hybrid Heat Pump", price: 5200, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: "Combines heat pump and gas heating" }
-  ];
-
-  const coverOptions = [
-    { name: "NO COVER", price: 0, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: "No pool cover selected" },
-    { name: "Standard Safety Cover", price: 2500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: "Mesh safety cover for protection" },
-    { name: "Automatic Cover", price: 12000, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: "Motorized retractable cover system" },
-    { name: "Solar Cover", price: 800, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: "Heat-retaining solar bubble cover" },
-    { name: "Vinyl Safety Cover", price: 3200, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: "Solid vinyl cover for winter protection" },
-    { name: "Automatic Solar Cover", price: 15000, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: "Premium automatic solar heating cover" }
-  ];
-
-  const tileOptions = poolTiles.map(tile => ({
-    name: tile.name,
-    price: tile.price,
-    image: tile.image,
-    description: tile.description
-  }));
-
-  const paverOptions = paverTypes.map(paver => ({
-    name: paver.name,
-    price: paver.basePrice * 100, // Assuming 100 sq ft base area
-    image: paver.image,
-    description: paver.description
-  }));
-
-  const screenEnclosureOptions = [
-    { name: "Basic Screen Enclosure", price: 8500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: "Standard aluminum frame with screen mesh" },
-    { name: "Premium Glass Enclosure", price: 18000, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: "Tempered glass panels with aluminum frame" },
-    { name: "Retractable Screen System", price: 25000, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: "Motorized retractable screen enclosure" },
-    { name: "Climate Control Enclosure", price: 35000, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png", description: "Insulated enclosure with HVAC system" }
-  ];
-
-  // Initialize product from URL parameters
-  useEffect(() => {
-    const model = searchParams.get('model');
-    const price = searchParams.get('price');
-    const category = searchParams.get('category');
-    const image = searchParams.get('image');
-    const dimensions = searchParams.get('dimensions');
-    const depth = searchParams.get('depth');
-    const installationTimeWeeks = searchParams.get('installationTimeWeeks');
-    const warrantyYears = searchParams.get('warrantyYears');
-    const saltSystem = searchParams.get('saltSystem') === 'true';
-    const carbonFiber = searchParams.get('carbonFiber') === 'true';
-
-    if (model && price && category) {
-      const urlProduct: Product = {
-        model: decodeURIComponent(model),
-        price: parseInt(price),
-        category: decodeURIComponent(category),
-        image: image ? decodeURIComponent(image) : undefined,
-        dimensions: dimensions ? decodeURIComponent(dimensions) : undefined,
-        depth: depth ? decodeURIComponent(depth) : undefined,
-        installationTimeWeeks: installationTimeWeeks ? parseInt(installationTimeWeeks) : undefined,
-        warrantyYears: warrantyYears ? decodeURIComponent(warrantyYears) : undefined,
-        saltSystem,
-        carbonFiber,
-        copingPaverOption: '',
-        screenEnclosure: false,
-        screenEnclosureArea: 0,
-        screenEnclosureQuality: '',
-        concreteConstruction: false
-      };
-
-      setSelectedProduct(urlProduct);
-      setSelectedCategory(category === 'standard' || category === 'premium' ? 'pools' : category);
-      setLeftSidebarCollapsed(true);
-    }
-  }, [searchParams]);
-
-  // Get filtered products based on selected category
+  // Get filtered products based on active tab
   const getFilteredProducts = () => {
-    switch (selectedCategory) {
+    let products: Product[] = [];
+    
+    switch (activeTab) {
       case 'pools':
-        return pools;
+        products = pools.map(pool => ({ ...pool, type: 'pool' as const }));
+        break;
       case 'spas':
-        return spas;
+        products = spas.map(spa => ({ ...spa, type: 'spa' as const, name: spa.model }));
+        break;
       case 'tanning-ledges':
-        return tanningLedges;
-      default:
-        return [];
+        products = tanningLedges.map(ledge => ({ ...ledge, type: 'tanning-ledge' as const, model: ledge.name, category: 'premium' }));
+        break;
     }
+
+    if (searchQuery) {
+      products = products.filter(product => 
+        (product.model || product.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    return products;
   };
 
-  // Calculate total price including extras
   const calculateTotalPrice = () => {
     if (!selectedProduct) return 0;
-    
+
     let total = getProductPrice(selectedProduct);
-    
-    // Add finish cost (find the selected finish and add its price)
-    if (selectedExtras.finish !== 'Standard') {
-      const finish = finishOptions.find(f => f.name === selectedExtras.finish);
-      if (finish) total += finish.price;
-    }
-    
+
+    // Add finish cost
+    const selectedFinish = finishOptions.find(finish => finish.name === selectedExtras.finish);
+    if (selectedFinish) total += selectedFinish.price;
+
     // Add heater cost
-    if (selectedExtras.heater && selectedExtras.heaterModel) {
-      const heater = poolHeaters.find(h => h.name === selectedExtras.heaterModel);
-      if (heater) total += heater.price;
-    }
-    
-    // Add cover cost
-    if (selectedExtras.cover && selectedExtras.coverOption) {
-      const cover = coverOptions.find(c => c.name === selectedExtras.coverOption);
-      if (cover) total += cover.price;
-    }
-    
-    // Add spa jets cost
-    if (selectedExtras.jets) {
-      total += selectedExtras.jetQuantity * 250; // $250 per jet
-    }
-    
-    // Add tile cost
-    if (selectedExtras.tiles && selectedExtras.tileOption) {
-      const tile = tileOptions.find(t => t.name === selectedExtras.tileOption);
-      if (tile) total += tile.price;
+    if (selectedExtras.heater) {
+      const selectedHeater = poolHeaters.find(heater => heater.name === selectedExtras.heaterModel);
+      if (selectedHeater) total += selectedHeater.price;
     }
 
-    // Add paver cost
-    if (selectedExtras.pavers && selectedExtras.paverType) {
-      const paver = paverOptions.find(p => p.name === selectedExtras.paverType);
-      if (paver) total += paver.price;
+    // Add cover cost
+    const coverOption = coverOptions.find(option => option.name === selectedExtras.coverOption);
+    if (coverOption && selectedExtras.cover && coverOption.name !== 'NO COVER') {
+      total += coverOption.price;
+    }
+
+    // Add jets cost
+    if (selectedExtras.jets) {
+      total += getExtraPrice('jets') * selectedExtras.jetQuantity;
+    }
+
+    // Add tiles cost
+    const tileOption = tileOptions.find(option => option.name === selectedExtras.tileOption);
+    if (tileOption && selectedExtras.tiles) {
+      total += tileOption.price;
+    }
+
+    // Add liner cost
+    if (selectedExtras.linerOption !== 'Standard Blue') {
+      total += 4500;
+    }
+
+    // Add paver surface area cost
+    if (selectedExtras.pavers && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+      total += parseFloat(paverSurfaceArea) * 15;
     }
 
     // Add screen enclosure cost
-    if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureType) {
-      const enclosure = screenEnclosureOptions.find(e => e.name === selectedExtras.screenEnclosureType);
-      if (enclosure) total += enclosure.price;
+    if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureArea > 0) {
+      let pricePerSqFt = 15;
+      if (selectedExtras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+      if (selectedExtras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+      total += selectedExtras.screenEnclosureArea * pricePerSqFt;
     }
-    
+
+    // Add concrete construction cost
+    if (selectedExtras.concreteConstruction) {
+      total += Math.round(getProductPrice(selectedProduct) * 0.2);
+    }
+
     return total;
   };
 
-  // Category color mapping
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'standard':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'premium':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'spa':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'ledge':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+  const getSelectedExtrasCount = () => {
+    let count = 0;
+    if (selectedExtras.finish !== 'Aquamarine') count++;
+    if (selectedExtras.heater) count++;
+    if (selectedExtras.cover && selectedExtras.coverOption !== 'NO COVER') count++;
+    if (selectedExtras.jets) count++;
+    if (selectedExtras.tiles) count++;
+    if (selectedExtras.linerOption !== 'Standard Blue') count++;
+    if (selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers') count++;
+    if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureArea > 0) count++;
+    if (selectedExtras.concreteConstruction) count++;
+    return count;
   };
 
-  // Handle checkout process
-  const handleCheckout = async () => {
+  const removeExtra = (extraType: string) => {
+    const newExtras = { ...selectedExtras };
+    switch (extraType) {
+      case 'finish':
+        newExtras.finish = 'Aquamarine';
+        break;
+      case 'heater':
+        newExtras.heater = false;
+        break;
+      case 'cover':
+        newExtras.cover = false;
+        newExtras.coverOption = 'NO COVER';
+        break;
+      case 'jets':
+        newExtras.jets = false;
+        break;
+      case 'tiles':
+        newExtras.tiles = false;
+        break;
+      case 'liner':
+        newExtras.linerOption = 'Standard Blue';
+        break;
+      case 'pavers':
+        newExtras.pavers = false;
+        newExtras.paverOption = 'No Pavers';
+        setPaverSurfaceArea('');
+        break;
+      case 'screen':
+        newExtras.screenEnclosure = false;
+        newExtras.screenEnclosureArea = 0;
+        break;
+      case 'concrete':
+        newExtras.concreteConstruction = false;
+        break;
+    }
+    setSelectedExtras(newExtras);
+  };
+
+  const handleQuoteRequest = () => {
     if (!selectedProduct) return;
 
-    try {
-      const orderData = {
-        product_name: selectedProduct.model || selectedProduct.name || 'Unknown Product',
-        product_category: selectedProduct.category,
-        product_type: selectedProduct.type || selectedProduct.category,
-        base_price: getProductPrice(selectedProduct),
-        total_amount: calculateTotalPrice(),
-        quantity: 1,
-        extras_data: selectedExtras,
-        product_identifier: selectedProduct.id || `${selectedProduct.model}-${Date.now()}`
-      };
+    // Create detailed extras breakdown for quote tool
+    const extrasBreakdown = [];
 
-      const { data, error } = await supabase.functions.invoke('stripe-checkout', {
-        body: orderData
-      });
-
-      if (error) throw error;
-
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } catch (error) {
-      console.error('Checkout error:', error);
-      toast({
-        title: "Checkout Error",
-        description: "There was an issue processing your request. Please try again.",
-        variant: "destructive",
+    // Add finish if not default
+    const selectedFinish = finishOptions.find(finish => finish.name === selectedExtras.finish);
+    if (selectedFinish && selectedFinish.price > 0) {
+      extrasBreakdown.push({
+        name: `${selectedFinish.name} Finish`,
+        price: selectedFinish.price,
+        image: selectedFinish.image
       });
     }
+
+    // Add heater if selected
+    if (selectedExtras.heater) {
+      const selectedHeater = poolHeaters.find(heater => heater.name === selectedExtras.heaterModel);
+      if (selectedHeater) {
+        extrasBreakdown.push({
+          name: selectedHeater.name,
+          price: selectedHeater.price,
+          image: selectedHeater.image
+        });
+      }
+    }
+
+    // Add cover if selected
+    const coverOption = coverOptions.find(option => option.name === selectedExtras.coverOption);
+    if (coverOption && selectedExtras.cover && coverOption.name !== 'NO COVER') {
+      extrasBreakdown.push({
+        name: coverOption.name,
+        price: coverOption.price,
+        image: coverOption.image
+      });
+    }
+
+    // Add jets if selected
+    if (selectedExtras.jets) {
+      extrasBreakdown.push({
+        name: `Spa Jets (${selectedExtras.jetQuantity})`,
+        price: getExtraPrice('jets') * selectedExtras.jetQuantity,
+        image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+      });
+    }
+
+    // Add tiles if selected
+    const tileOption = tileOptions.find(option => option.name === selectedExtras.tileOption);
+    if (tileOption && selectedExtras.tiles) {
+      extrasBreakdown.push({
+        name: tileOption.name,
+        price: tileOption.price,
+        image: tileOption.image
+      });
+    }
+
+    // Add liner if selected
+    if (selectedExtras.linerOption !== 'Standard Blue') {
+      const linerOption = linerOptions.find(option => option.name === selectedExtras.linerOption);
+      if (linerOption) {
+        extrasBreakdown.push({
+          name: `${linerOption.name} Liner`,
+          price: 4500,
+          image: linerOption.image
+        });
+      }
+    }
+
+    // Add paver surface area cost
+    if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+      extrasBreakdown.push({
+        name: `${selectedExtras.paverOption} (${paverSurfaceArea} sq ft)`,
+        price: parseFloat(paverSurfaceArea) * 15,
+        image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
+      });
+    }
+
+    // Add screen enclosure if area provided
+    if (selectedExtras.screenEnclosureArea > 0) {
+      let pricePerSqFt = 15;
+      if (selectedExtras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+      if (selectedExtras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+      const enclosurePrice = selectedExtras.screenEnclosureArea * pricePerSqFt;
+      extrasBreakdown.push({
+        name: `Screen Enclosure - ${selectedExtras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : selectedExtras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : 'Premium'} (${selectedExtras.screenEnclosureArea} sq ft)`,
+        price: enclosurePrice,
+        image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png'
+      });
+    }
+
+    // Add concrete construction if selected
+    if (selectedExtras.concreteConstruction) {
+      const concreteMarkup = Math.round(getProductPrice(selectedProduct) * 0.2);
+      extrasBreakdown.push({
+        name: 'Concrete Construction',
+        price: concreteMarkup,
+        image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+      });
+    }
+
+    const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
+    
+    setShowQuoteModal(true);
+  };
+
+  const handleAddToCart = () => {
+    if (!selectedProduct) return;
+
+    // Convert selectedExtras to the format expected by CartItem
+    const extrasArray = [];
+    
+    // Add finish if not default
+    const selectedFinish = finishOptions.find(finish => finish.name === selectedExtras.finish);
+    if (selectedFinish && selectedFinish.price > 0) {
+      extrasArray.push({
+        name: `${selectedFinish.name} Finish`,
+        price: selectedFinish.price
+      });
+    }
+
+    // Add heater if selected
+    if (selectedExtras.heater) {
+      const selectedHeater = poolHeaters.find(heater => heater.name === selectedExtras.heaterModel);
+      if (selectedHeater) {
+        extrasArray.push({
+          name: selectedHeater.name,
+          price: selectedHeater.price
+        });
+      }
+    }
+
+    // Add cover if selected
+    const coverOption = coverOptions.find(option => option.name === selectedExtras.coverOption);
+    if (coverOption && selectedExtras.cover && coverOption.name !== 'NO COVER') {
+      extrasArray.push({
+        name: coverOption.name,
+        price: coverOption.price
+      });
+    }
+
+    // Add jets if selected
+    if (selectedExtras.jets) {
+      extrasArray.push({
+        name: `Spa Jets (${selectedExtras.jetQuantity})`,
+        price: getExtraPrice('jets') * selectedExtras.jetQuantity
+      });
+    }
+
+    // Add tiles if selected
+    const tileOption = tileOptions.find(option => option.name === selectedExtras.tileOption);
+    if (tileOption && selectedExtras.tiles) {
+      extrasArray.push({
+        name: tileOption.name,
+        price: tileOption.price
+      });
+    }
+
+    // Add liner if selected
+    if (selectedExtras.linerOption !== 'Standard Blue') {
+      extrasArray.push({
+        name: `${selectedExtras.linerOption} Liner`,
+        price: 4500
+      });
+    }
+
+    // Add paver surface area cost
+    if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+      extrasArray.push({
+        name: `${selectedExtras.paverOption} (${paverSurfaceArea} sq ft)`,
+        price: parseFloat(paverSurfaceArea) * 15
+      });
+    }
+
+    // Add screen enclosure if area provided
+    if (selectedExtras.screenEnclosureArea > 0) {
+      let pricePerSqFt = 15;
+      if (selectedExtras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+      if (selectedExtras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+      const enclosurePrice = selectedExtras.screenEnclosureArea * pricePerSqFt;
+      extrasArray.push({
+        name: `Screen Enclosure - ${selectedExtras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : selectedExtras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : 'Premium'} (${selectedExtras.screenEnclosureArea} sq ft)`,
+        price: enclosurePrice
+      });
+    }
+
+    // Add concrete construction if selected
+    if (selectedExtras.concreteConstruction) {
+      const concreteMarkup = Math.round(getProductPrice(selectedProduct) * 0.2);
+      extrasArray.push({
+        name: 'Concrete Construction',
+        price: concreteMarkup
+      });
+    }
+
+    const cartItem = {
+      id: `${selectedProduct.type}_${selectedProduct.model || selectedProduct.name}`,
+      name: selectedProduct.model || selectedProduct.name || 'Product',
+      price: calculateTotalPrice(),
+      quantity: 1,
+      image: selectedProduct.image,
+      category: selectedProduct.category,
+      extras: extrasArray
+    };
+
+    addToCart(cartItem);
+    toast({
+      title: "Added to Cart",
+      description: `${cartItem.name} has been added to your cart.`,
+    });
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
       {/* Compact Header */}
-      <div className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-full flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-lg md:text-xl font-bold">Wonderlands Studio</h1>
-            {selectedProduct && (
-              <Badge variant="outline" className="hidden md:inline-flex">
-                {selectedProduct.model || selectedProduct.name}
-              </Badge>
-            )}
-          </div>
-          {selectedProduct && (
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">Total Price</p>
-                <p className="text-lg font-bold text-primary">
-                  ${calculateTotalPrice().toLocaleString()}
-                </p>
-              </div>
-              <Button onClick={handleCheckout} className="hidden md:flex">
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Checkout
-              </Button>
+      <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 py-2">
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-teal to-coral bg-clip-text text-transparent">
+              Wonderlands Studio
+            </h1>
+            
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-64"
+              />
             </div>
-          )}
+          </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-4 md:py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 md:gap-6 min-h-screen">
-          {/* Left Sidebar - Product Categories */}
-          <div className={`transition-all duration-300 ${leftSidebarCollapsed ? 'lg:w-12' : 'lg:w-80'} ${leftSidebarCollapsed ? 'hidden md:block' : ''}`}>
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex gap-4">
+          {/* Left Sidebar - Product Selection (Collapsible) */}
+          <div className={`transition-all duration-300 ${leftSidebarCollapsed ? 'w-12' : 'w-80'} flex-shrink-0`}>
             {leftSidebarCollapsed ? (
-              <Card className="h-fit">
-                <CardContent className="p-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setLeftSidebarCollapsed(false)}
-                    className="w-full justify-center"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </CardContent>
-              </Card>
+              <div className="sticky top-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLeftSidebarCollapsed(false)}
+                  className="w-10 h-10 p-0"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             ) : (
-              <Card className="h-fit">
-                <CardHeader className="pb-3">
+              <Card className="sticky top-4">
+                <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Products</CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setLeftSidebarCollapsed(true)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
+                    <CardTitle className="text-lg">Product Categories</CardTitle>
+                    {selectedProduct && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setLeftSidebarCollapsed(true)}
+                        className="w-8 h-8 p-0"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-                    <TabsList className="grid grid-cols-1 gap-1 h-auto bg-transparent p-0">
+                <CardContent>
+                  <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
+                    <TabsList className="grid w-full grid-cols-1 gap-2 h-auto bg-transparent p-0">
                       <TabsTrigger value="pools" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                         <Waves className="h-4 w-4 mr-2" />
                         Pools
@@ -425,10 +656,10 @@ export default function WonderlandsStudio() {
           {/* Main Content - Product Details & Configuration */}
           <div className="flex-1">
             {selectedProduct ? (
-              <div className="space-y-4 md:space-y-6">
+              <div className="space-y-6">
                 {/* Large Product Image */}
                 <Card>
-                  <CardContent className="p-3 md:p-6">
+                  <CardContent className="p-6">
                     <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
                       {selectedProduct.image ? (
                         <img 
@@ -443,15 +674,15 @@ export default function WonderlandsStudio() {
                       )}
                     </div>
                     <div className="mt-4">
-                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                      <div className="flex items-center justify-between">
                         <div>
-                          <h1 className="text-xl md:text-2xl font-bold">
+                          <h1 className="text-2xl font-bold">
                             {selectedProduct.model || selectedProduct.name}
                           </h1>
-                          <p className="text-2xl md:text-3xl font-bold text-primary mt-2">
+                          <p className="text-3xl font-bold text-primary mt-2">
                             ${getProductPrice(selectedProduct).toLocaleString()}
                           </p>
-                          <div className="flex flex-wrap gap-2 mt-2">
+                          <div className="flex gap-2 mt-2">
                             <Badge className={getCategoryColor(selectedProduct.category)}>
                               {selectedProduct.category}
                             </Badge>
@@ -468,9 +699,9 @@ export default function WonderlandsStudio() {
                 {/* Configuration Card */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg md:text-xl">Additional Features</CardTitle>
+                    <CardTitle>Additional Features</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4 md:space-y-6">
+                  <CardContent className="space-y-6">
                     {/* Pool Finish */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
@@ -478,14 +709,7 @@ export default function WonderlandsStudio() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            const newCarousel = selectedExtras.finish === 'Standard' ? 'finish' : null;
-                            setSelectedExtras({ 
-                              ...selectedExtras, 
-                              finish: selectedExtras.finish === 'Standard' ? finishOptions[0]?.name || 'Standard' : selectedExtras.finish 
-                            });
-                            setActiveFeatureCarousel(newCarousel);
-                          }}
+                          onClick={() => setActiveFeatureCarousel('finish')}
                         >
                           <Settings className="h-4 w-4 mr-2" />
                           {selectedExtras.finish}
@@ -493,35 +717,33 @@ export default function WonderlandsStudio() {
                         </Button>
                       </div>
                       {activeFeatureCarousel === 'finish' && (
-                        <div className="max-h-32 overflow-hidden">
-                          <Carousel className="w-full">
-                            <CarouselContent className="-ml-1">
-                              {finishOptions.map((finish) => (
-                                <CarouselItem key={finish.name} className="pl-1 basis-1/2 md:basis-1/3">
-                                  <div
-                                    className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
-                                      selectedExtras.finish === finish.name
-                                        ? 'border-primary shadow-md'
-                                        : 'border-border hover:border-primary/50'
-                                    }`}
-                                    onClick={() => {
-                                      setSelectedExtras({ ...selectedExtras, finish: finish.name });
-                                      setActiveFeatureCarousel(null);
-                                    }}
-                                  >
-                                    <img src={finish.image} alt={finish.name} className="w-full h-12 md:h-16 object-cover rounded" />
-                                    <p className="text-xs font-medium mt-1 truncate">{finish.name}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {finish.price > 0 ? `+$${finish.price.toLocaleString()}` : 'Included'}
-                                    </p>
-                                  </div>
-                                </CarouselItem>
-                              ))}
-                            </CarouselContent>
-                            <CarouselPrevious className="hidden md:flex" />
-                            <CarouselNext className="hidden md:flex" />
-                          </Carousel>
-                        </div>
+                        <Carousel className="w-full">
+                          <CarouselContent className="-ml-1">
+                            {finishOptions.map((finish) => (
+                              <CarouselItem key={finish.name} className="pl-1 basis-1/3">
+                                <div
+                                  className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                    selectedExtras.finish === finish.name
+                                      ? 'border-primary shadow-md'
+                                      : 'border-border hover:border-primary/50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedExtras({ ...selectedExtras, finish: finish.name });
+                                    setActiveFeatureCarousel(null);
+                                  }}
+                                >
+                                  <img src={finish.image} alt={finish.name} className="w-full h-16 object-cover rounded" />
+                                  <p className="text-xs font-medium mt-1 truncate">{finish.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {finish.price > 0 ? `+$${finish.price.toLocaleString()}` : 'Included'}
+                                  </p>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious />
+                          <CarouselNext />
+                        </Carousel>
                       )}
                     </div>
 
@@ -535,47 +757,47 @@ export default function WonderlandsStudio() {
                         <div className="flex items-center gap-2">
                           <Checkbox
                             checked={selectedExtras.heater}
-                            onCheckedChange={(checked) => {
-                              setSelectedExtras({ ...selectedExtras, heater: !!checked });
-                              if (checked) {
-                                setActiveFeatureCarousel('heater');
-                              } else {
-                                setActiveFeatureCarousel(null);
-                              }
-                            }}
+                            onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, heater: !!checked })}
                           />
+                          {selectedExtras.heater && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setActiveFeatureCarousel('heater')}
+                            >
+                              <ChevronDown className="h-3 w-3" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                       {selectedExtras.heater && activeFeatureCarousel === 'heater' && (
-                        <div className="max-h-32 overflow-hidden">
-                          <Carousel className="w-full">
-                            <CarouselContent className="-ml-1">
-                              {poolHeaters.map((heater) => (
-                                <CarouselItem key={heater.name} className="pl-1 basis-1/1 md:basis-1/2">
-                                  <div
-                                    className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
-                                      selectedExtras.heaterModel === heater.name
-                                        ? 'border-primary shadow-md'
-                                        : 'border-border hover:border-primary/50'
-                                    }`}
-                                    onClick={() => {
-                                      setSelectedExtras({ ...selectedExtras, heaterModel: heater.name });
-                                      setActiveFeatureCarousel(null);
-                                    }}
-                                  >
-                                    <img src={heater.image} alt={heater.name} className="w-full h-12 md:h-16 object-cover rounded" />
-                                    <p className="text-xs font-medium mt-1 truncate">{heater.name}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      ${heater.price.toLocaleString()}
-                                    </p>
-                                  </div>
-                                </CarouselItem>
-                              ))}
-                            </CarouselContent>
-                            <CarouselPrevious className="hidden md:flex" />
-                            <CarouselNext className="hidden md:flex" />
-                          </Carousel>
-                        </div>
+                        <Carousel className="w-full">
+                          <CarouselContent className="-ml-1">
+                            {poolHeaters.map((heater) => (
+                              <CarouselItem key={heater.name} className="pl-1 basis-1/2">
+                                <div
+                                  className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                    selectedExtras.heaterModel === heater.name
+                                      ? 'border-primary shadow-md'
+                                      : 'border-border hover:border-primary/50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedExtras({ ...selectedExtras, heaterModel: heater.name });
+                                    setActiveFeatureCarousel(null);
+                                  }}
+                                >
+                                  <img src={heater.image} alt={heater.name} className="w-full h-16 object-cover rounded" />
+                                  <p className="text-xs font-medium mt-1 truncate">{heater.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    ${heater.price.toLocaleString()}
+                                  </p>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious />
+                          <CarouselNext />
+                        </Carousel>
                       )}
                     </div>
 
@@ -589,47 +811,47 @@ export default function WonderlandsStudio() {
                         <div className="flex items-center gap-2">
                           <Checkbox
                             checked={selectedExtras.cover}
-                            onCheckedChange={(checked) => {
-                              setSelectedExtras({ ...selectedExtras, cover: !!checked });
-                              if (checked) {
-                                setActiveFeatureCarousel('cover');
-                              } else {
-                                setActiveFeatureCarousel(null);
-                              }
-                            }}
+                            onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, cover: !!checked })}
                           />
+                          {selectedExtras.cover && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setActiveFeatureCarousel('cover')}
+                            >
+                              <ChevronDown className="h-3 w-3" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                       {selectedExtras.cover && activeFeatureCarousel === 'cover' && (
-                        <div className="max-h-32 overflow-hidden">
-                          <Carousel className="w-full">
-                            <CarouselContent className="-ml-1">
-                              {coverOptions.filter(cover => cover.name !== 'NO COVER').map((cover) => (
-                                <CarouselItem key={cover.name} className="pl-1 basis-1/1 md:basis-1/2">
-                                  <div
-                                    className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
-                                      selectedExtras.coverOption === cover.name
-                                        ? 'border-primary shadow-md'
-                                        : 'border-border hover:border-primary/50'
-                                    }`}
-                                    onClick={() => {
-                                      setSelectedExtras({ ...selectedExtras, coverOption: cover.name });
-                                      setActiveFeatureCarousel(null);
-                                    }}
-                                  >
-                                    <img src={cover.image} alt={cover.name} className="w-full h-12 md:h-16 object-cover rounded" />
-                                    <p className="text-xs font-medium mt-1 truncate">{cover.name}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      ${cover.price.toLocaleString()}
-                                    </p>
-                                  </div>
-                                </CarouselItem>
-                              ))}
-                            </CarouselContent>
-                            <CarouselPrevious className="hidden md:flex" />
-                            <CarouselNext className="hidden md:flex" />
-                          </Carousel>
-                        </div>
+                        <Carousel className="w-full">
+                          <CarouselContent className="-ml-1">
+                            {coverOptions.filter(cover => cover.name !== 'NO COVER').map((cover) => (
+                              <CarouselItem key={cover.name} className="pl-1 basis-1/2">
+                                <div
+                                  className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                    selectedExtras.coverOption === cover.name
+                                      ? 'border-primary shadow-md'
+                                      : 'border-border hover:border-primary/50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedExtras({ ...selectedExtras, coverOption: cover.name });
+                                    setActiveFeatureCarousel(null);
+                                  }}
+                                >
+                                  <img src={cover.image} alt={cover.name} className="w-full h-16 object-cover rounded" />
+                                  <p className="text-xs font-medium mt-1 truncate">{cover.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    ${cover.price.toLocaleString()}
+                                  </p>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious />
+                          <CarouselNext />
+                        </Carousel>
                       )}
                     </div>
 
@@ -684,47 +906,47 @@ export default function WonderlandsStudio() {
                         <div className="flex items-center gap-2">
                           <Checkbox
                             checked={selectedExtras.tiles}
-                            onCheckedChange={(checked) => {
-                              setSelectedExtras({ ...selectedExtras, tiles: !!checked });
-                              if (checked) {
-                                setActiveFeatureCarousel('tiles');
-                              } else {
-                                setActiveFeatureCarousel(null);
-                              }
-                            }}
+                            onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, tiles: !!checked })}
                           />
+                          {selectedExtras.tiles && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setActiveFeatureCarousel('tiles')}
+                            >
+                              <ChevronDown className="h-3 w-3" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                       {selectedExtras.tiles && activeFeatureCarousel === 'tiles' && (
-                        <div className="max-h-32 overflow-hidden">
-                          <Carousel className="w-full">
-                            <CarouselContent className="-ml-1">
-                              {tileOptions.map((tile) => (
-                                <CarouselItem key={tile.name} className="pl-1 basis-1/2 md:basis-1/3">
-                                  <div
-                                    className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
-                                      selectedExtras.tileOption === tile.name
-                                        ? 'border-primary shadow-md'
-                                        : 'border-border hover:border-primary/50'
-                                    }`}
-                                    onClick={() => {
-                                      setSelectedExtras({ ...selectedExtras, tileOption: tile.name });
-                                      setActiveFeatureCarousel(null);
-                                    }}
-                                  >
-                                    <img src={tile.image} alt={tile.name} className="w-full h-12 md:h-16 object-cover rounded" />
-                                    <p className="text-xs font-medium mt-1 truncate">{tile.name}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      ${tile.price.toLocaleString()}
-                                    </p>
-                                  </div>
-                                </CarouselItem>
-                              ))}
-                            </CarouselContent>
-                            <CarouselPrevious className="hidden md:flex" />
-                            <CarouselNext className="hidden md:flex" />
-                          </Carousel>
-                        </div>
+                        <Carousel className="w-full">
+                          <CarouselContent className="-ml-1">
+                            {tileOptions.filter(tile => tile.name !== 'Standard Waterline').map((tile) => (
+                              <CarouselItem key={tile.name} className="pl-1 basis-1/3">
+                                <div
+                                  className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                    selectedExtras.tileOption === tile.name
+                                      ? 'border-primary shadow-md'
+                                      : 'border-border hover:border-primary/50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedExtras({ ...selectedExtras, tileOption: tile.name });
+                                    setActiveFeatureCarousel(null);
+                                  }}
+                                >
+                                  <img src={tile.image} alt={tile.name} className="w-full h-16 object-cover rounded" />
+                                  <p className="text-xs font-medium mt-1 truncate">{tile.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {tile.price > 0 ? `$${tile.price.toLocaleString()}` : 'Included'}
+                                  </p>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious />
+                          <CarouselNext />
+                        </Carousel>
                       )}
                     </div>
 
@@ -732,203 +954,354 @@ export default function WonderlandsStudio() {
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <div>
-                          <Label className="text-sm font-medium">Premium Pavers</Label>
-                          <p className="text-xs text-muted-foreground">Upgrade your pool deck</p>
+                          <Label className="text-sm font-medium">Deck Pavers</Label>
+                          <p className="text-xs text-muted-foreground">Beautiful hardscape surfaces</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <Checkbox
                             checked={selectedExtras.pavers}
-                            onCheckedChange={(checked) => {
-                              setSelectedExtras({ ...selectedExtras, pavers: !!checked });
-                              if (checked) {
-                                setActiveFeatureCarousel('pavers');
-                              } else {
-                                setActiveFeatureCarousel(null);
-                              }
-                            }}
+                            onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, pavers: !!checked })}
                           />
+                          {selectedExtras.pavers && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setActiveFeatureCarousel('pavers')}
+                            >
+                              <ChevronDown className="h-3 w-3" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                       {selectedExtras.pavers && activeFeatureCarousel === 'pavers' && (
-                        <div className="max-h-32 overflow-hidden">
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-sm font-medium">Surface Area (sq ft)</Label>
+                            <Input
+                              type="number"
+                              value={paverSurfaceArea}
+                              onChange={(e) => setPaverSurfaceArea(e.target.value)}
+                              placeholder="Enter area in square feet"
+                              className="mt-1"
+                            />
+                          </div>
                           <Carousel className="w-full">
                             <CarouselContent className="-ml-1">
-                              {paverOptions.map((paver) => (
-                                <CarouselItem key={paver.name} className="pl-1 basis-1/1 md:basis-1/2">
+                              {paverOptions.filter(paver => paver.name !== 'No Pavers').map((paver) => (
+                                <CarouselItem key={paver.name} className="pl-1 basis-1/3">
                                   <div
                                     className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
-                                      selectedExtras.paverType === paver.name
+                                      selectedExtras.paverOption === paver.name
                                         ? 'border-primary shadow-md'
                                         : 'border-border hover:border-primary/50'
                                     }`}
                                     onClick={() => {
-                                      setSelectedExtras({ ...selectedExtras, paverType: paver.name });
+                                      setSelectedExtras({ ...selectedExtras, paverOption: paver.name });
                                       setActiveFeatureCarousel(null);
                                     }}
                                   >
-                                    <img src={paver.image} alt={paver.name} className="w-full h-12 md:h-16 object-cover rounded" />
+                                    <img src={paver.image} alt={paver.name} className="w-full h-16 object-cover rounded" />
                                     <p className="text-xs font-medium mt-1 truncate">{paver.name}</p>
                                     <p className="text-xs text-muted-foreground">
-                                      +$${paver.price.toLocaleString()}
+                                      $15/sq ft
                                     </p>
                                   </div>
                                 </CarouselItem>
                               ))}
                             </CarouselContent>
-                            <CarouselPrevious className="hidden md:flex" />
-                            <CarouselNext className="hidden md:flex" />
+                            <CarouselPrevious />
+                            <CarouselNext />
                           </Carousel>
                         </div>
                       )}
                     </div>
 
                     {/* Screen Enclosure */}
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <Label className="text-sm font-medium">Screen Enclosure</Label>
-                          <p className="text-xs text-muted-foreground">Year-round comfort and protection</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            checked={selectedExtras.screenEnclosure}
-                            onCheckedChange={(checked) => {
-                              setSelectedExtras({ ...selectedExtras, screenEnclosure: !!checked });
-                              if (checked) {
-                                setActiveFeatureCarousel('screenEnclosure');
-                              } else {
-                                setActiveFeatureCarousel(null);
-                              }
-                            }}
-                          />
-                        </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-sm font-medium">Screen Enclosure</Label>
+                        <p className="text-xs text-muted-foreground">Year-round protection</p>
                       </div>
-                      {selectedExtras.screenEnclosure && activeFeatureCarousel === 'screenEnclosure' && (
-                        <div className="max-h-32 overflow-hidden">
-                          <Carousel className="w-full">
-                            <CarouselContent className="-ml-1">
-                              {screenEnclosureOptions.map((enclosure) => (
-                                <CarouselItem key={enclosure.name} className="pl-1 basis-1/1 md:basis-1/2">
-                                  <div
-                                    className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
-                                      selectedExtras.screenEnclosureType === enclosure.name
-                                        ? 'border-primary shadow-md'
-                                        : 'border-border hover:border-primary/50'
-                                    }`}
-                                    onClick={() => {
-                                      setSelectedExtras({ ...selectedExtras, screenEnclosureType: enclosure.name });
-                                      setActiveFeatureCarousel(null);
-                                    }}
-                                  >
-                                    <img src={enclosure.image} alt={enclosure.name} className="w-full h-12 md:h-16 object-cover rounded" />
-                                    <p className="text-xs font-medium mt-1 truncate">{enclosure.name}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      +$${enclosure.price.toLocaleString()}
-                                    </p>
-                                  </div>
-                                </CarouselItem>
-                              ))}
-                            </CarouselContent>
-                            <CarouselPrevious className="hidden md:flex" />
-                            <CarouselNext className="hidden md:flex" />
-                          </Carousel>
-                        </div>
-                      )}
+                      <Checkbox
+                        checked={selectedExtras.screenEnclosure}
+                        onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, screenEnclosure: !!checked })}
+                      />
                     </div>
-                  </CardContent>
-                </Card>
 
-                {/* Price Summary Card */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between text-lg md:text-xl">
-                      <span>Price Summary</span>
-                      <span className="text-2xl md:text-3xl font-bold text-primary">
-                        ${calculateTotalPrice().toLocaleString()}
-                      </span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Base Price ({selectedProduct.model || selectedProduct.name})</span>
-                        <span>${getProductPrice(selectedProduct).toLocaleString()}</span>
+                    {selectedExtras.screenEnclosure && (
+                      <div>
+                        <Label className="text-sm font-medium">Enclosure Area (sq ft)</Label>
+                        <Input
+                          type="number"
+                          value={selectedExtras.screenEnclosureArea}
+                          onChange={(e) => setSelectedExtras({ 
+                            ...selectedExtras, 
+                            screenEnclosureArea: parseInt(e.target.value) || 0 
+                          })}
+                          placeholder="Enter area in square feet"
+                          className="mt-1"
+                        />
                       </div>
-                      
-                      {selectedExtras.finish !== 'Standard' && (
-                        <div className="flex justify-between text-muted-foreground">
-                          <span>Pool Finish: {selectedExtras.finish}</span>
-                          <span>+${finishOptions.find(f => f.name === selectedExtras.finish)?.price.toLocaleString() || '0'}</span>
-                        </div>
-                      )}
-                      
-                      {selectedExtras.heater && selectedExtras.heaterModel && (
-                        <div className="flex justify-between text-muted-foreground">
-                          <span>Heater: {selectedExtras.heaterModel}</span>
-                          <span>+${poolHeaters.find(h => h.name === selectedExtras.heaterModel)?.price.toLocaleString() || '0'}</span>
-                        </div>
-                      )}
-                      
-                      {selectedExtras.cover && selectedExtras.coverOption && (
-                        <div className="flex justify-between text-muted-foreground">
-                          <span>Cover: {selectedExtras.coverOption}</span>
-                          <span>+${coverOptions.find(c => c.name === selectedExtras.coverOption)?.price.toLocaleString() || '0'}</span>
-                        </div>
-                      )}
-                      
-                      {selectedExtras.jets && (
-                        <div className="flex justify-between text-muted-foreground">
-                          <span>Spa Jets: {selectedExtras.jetQuantity} jets</span>
-                          <span>+${(selectedExtras.jetQuantity * 250).toLocaleString()}</span>
-                        </div>
-                      )}
-                      
-                      {selectedExtras.tiles && selectedExtras.tileOption && (
-                        <div className="flex justify-between text-muted-foreground">
-                          <span>Tiles: {selectedExtras.tileOption}</span>
-                          <span>+${tileOptions.find(t => t.name === selectedExtras.tileOption)?.price.toLocaleString() || '0'}</span>
-                        </div>
-                      )}
+                    )}
 
-                      {selectedExtras.pavers && selectedExtras.paverType && (
-                        <div className="flex justify-between text-muted-foreground">
-                          <span>Pavers: {selectedExtras.paverType}</span>
-                          <span>+${paverOptions.find(p => p.name === selectedExtras.paverType)?.price.toLocaleString() || '0'}</span>
-                        </div>
-                      )}
-
-                      {selectedExtras.screenEnclosure && selectedExtras.screenEnclosureType && (
-                        <div className="flex justify-between text-muted-foreground">
-                          <span>Screen Enclosure: {selectedExtras.screenEnclosureType}</span>
-                          <span>+${screenEnclosureOptions.find(e => e.name === selectedExtras.screenEnclosureType)?.price.toLocaleString() || '0'}</span>
-                        </div>
-                      )}
+                    {/* Concrete Construction */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-sm font-medium">Concrete Construction</Label>
+                        <p className="text-xs text-muted-foreground">Premium installation method</p>
+                      </div>
+                      <Checkbox
+                        checked={selectedExtras.concreteConstruction}
+                        onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, concreteConstruction: !!checked })}
+                      />
                     </div>
-                    
-                    <Button 
-                      onClick={handleCheckout} 
-                      className="w-full mt-6" 
-                      size="lg"
-                    >
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      Proceed to Checkout
-                    </Button>
+
+                    <Separator />
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
+                      <Button onClick={handleQuoteRequest} variant="outline" className="flex-1">
+                        <Download className="h-4 w-4 mr-2" />
+                        Generate Quote
+                      </Button>
+                      <Button onClick={handleAddToCart} variant="outline" className="flex-1">
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Add to Cart
+                      </Button>
+                      <StripeCheckoutButton 
+                        productId={`${selectedProduct.type}_${selectedProduct.model?.replace(/\s+/g, '_') || selectedProduct.name?.replace(/\s+/g, '_')}`} 
+                        productName={selectedProduct.model || selectedProduct.name || 'Product'} 
+                        price={calculateTotalPrice()} 
+                        variant="default" 
+                        className="flex-1"
+                      />
+                    </div>
                   </CardContent>
                 </Card>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-96">
-                <div className="text-center">
-                  <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h2 className="text-xl font-semibold mb-2">Select a Product</h2>
-                  <p className="text-muted-foreground">Choose a pool, spa, or tanning ledge from the sidebar to get started.</p>
+              <Card className="h-96 flex items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  <Package className="h-12 w-12 mx-auto mb-4" />
+                  <p>Select a product to start configuring</p>
                 </div>
-              </div>
+              </Card>
             )}
+          </div>
+
+          {/* Right Sidebar - Price Summary */}
+          <div className="w-80 flex-shrink-0">
+            <Card className="sticky top-4">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Total Price</CardTitle>
+                  {getSelectedExtrasCount() > 0 && (
+                    <DropdownMenu open={showExtrasDropdown} onOpenChange={setShowExtrasDropdown}>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <Badge variant="secondary" className="mr-2">
+                            {getSelectedExtrasCount()}
+                          </Badge>
+                          <ChevronDown className="h-3 w-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-64 p-2">
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium mb-2">Selected Features:</p>
+                          {selectedExtras.finish !== 'Aquamarine' && (
+                            <div className="flex items-center justify-between text-xs">
+                              <span>{selectedExtras.finish} Finish</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeExtra('finish')}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                          {selectedExtras.heater && (
+                            <div className="flex items-center justify-between text-xs">
+                              <span>Pool Heater</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeExtra('heater')}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                          {selectedExtras.cover && selectedExtras.coverOption !== 'NO COVER' && (
+                            <div className="flex items-center justify-between text-xs">
+                              <span>Safety Cover</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeExtra('cover')}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                          {selectedExtras.jets && (
+                            <div className="flex items-center justify-between text-xs">
+                              <span>Spa Jets ({selectedExtras.jetQuantity})</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeExtra('jets')}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                          {selectedExtras.tiles && (
+                            <div className="flex items-center justify-between text-xs">
+                              <span>Premium Tiles</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeExtra('tiles')}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                          {selectedExtras.linerOption !== 'Standard Blue' && (
+                            <div className="flex items-center justify-between text-xs">
+                              <span>Premium Liner</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeExtra('liner')}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                          {selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers' && (
+                            <div className="flex items-center justify-between text-xs">
+                              <span>Deck Pavers</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeExtra('pavers')}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                          {selectedExtras.screenEnclosure && (
+                            <div className="flex items-center justify-between text-xs">
+                              <span>Screen Enclosure</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeExtra('screen')}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                          {selectedExtras.concreteConstruction && (
+                            <div className="flex items-center justify-between text-xs">
+                              <span>Concrete Construction</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeExtra('concrete')}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {selectedProduct ? (
+                    <>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Base Price</span>
+                          <span>${getProductPrice(selectedProduct).toLocaleString()}</span>
+                        </div>
+                        <Separator />
+                      </div>
+                      
+                      <div className="text-center p-4 bg-gradient-to-r from-primary/10 to-teal/10 rounded-lg">
+                        <div className="text-2xl font-bold text-primary">
+                          ${calculateTotalPrice().toLocaleString()}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Total Configuration Price
+                        </p>
+                      </div>
+
+                      {/* Financing Options */}
+                      <div className="p-3 bg-muted/50 rounded-lg">
+                        <p className="text-xs font-medium mb-2">Financing Options:</p>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="text-center p-2 bg-background rounded">
+                            <div className="font-semibold">36 months</div>
+                            <div className="text-primary">${(calculateTotalPrice() / 36).toLocaleString()}/mo</div>
+                          </div>
+                          <div className="text-center p-2 bg-background rounded">
+                            <div className="font-semibold">72 months</div>
+                            <div className="text-primary">${(calculateTotalPrice() / 72).toLocaleString()}/mo</div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center text-muted-foreground py-8">
+                      <DollarSign className="h-8 w-8 mx-auto mb-2" />
+                      <p className="text-sm">Select a product to see pricing</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
 
+      {/* Quote Modal */}
+      <SurveyQuoteTool
+        pool={selectedProduct ? {
+          model: selectedProduct.model || selectedProduct.name || 'Product',
+          price: selectedProduct.price,
+          category: selectedProduct.category as any,
+          image: selectedProduct.image,
+          dimensions: selectedProduct.dimensions,
+          depth: selectedProduct.depth,
+          warrantyYears: selectedProduct.warrantyYears
+        } : null}
+        isOpen={showQuoteModal}
+        onClose={() => setShowQuoteModal(false)}
+        extras={{
+          ...selectedExtras,
+          extrasBreakdown: [],
+          extrasTotal: 0,
+          deliveryTime: selectedExtras.concreteConstruction ? '8-12 weeks+' : '6 weeks'
+        }}
+      />
     </div>
   );
-}
+};
+
+export default WonderlandsStudio;
