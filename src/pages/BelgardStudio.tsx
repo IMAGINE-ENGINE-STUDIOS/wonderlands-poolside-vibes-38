@@ -51,7 +51,7 @@ const BelgardStudio = () => {
   // Product categories
   const [products, setProducts] = useState<BelgardProduct[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<BelgardProduct[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('concrete-pavers');
+  const [selectedCategory, setSelectedCategory] = useState<string>('scene');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -68,6 +68,7 @@ const BelgardStudio = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
 
   const categories = [
+    { id: 'scene', name: 'Scene', icon: Cpu },
     { id: 'concrete-pavers', name: 'Concrete Pavers & Slabs', icon: Package },
     { id: 'permeable-pavers', name: 'Permeable Pavers', icon: Droplets },
     { id: 'porcelain-pavers', name: 'Porcelain Pavers', icon: Layers },
@@ -123,6 +124,11 @@ const BelgardStudio = () => {
 
   // Filter products by category and search
   useEffect(() => {
+    if (selectedCategory === 'scene') {
+      setFilteredProducts([]);
+      return;
+    }
+
     let filtered = products.filter(product => 
       product.category === selectedCategory
     );
@@ -385,9 +391,7 @@ const BelgardStudio = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        <Belgard3DVisualizer />
-        
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar - Categories */}
           <div className="lg:col-span-1">
             <Card>
@@ -446,21 +450,25 @@ const BelgardStudio = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            {/* Search */}
-            <div className="mb-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={`Search ${categories.find(c => c.id === selectedCategory)?.name || 'products'}...`}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
+            {selectedCategory === 'scene' ? (
+              <Belgard3DVisualizer />
+            ) : (
+              <>
+                {/* Search */}
+                <div className="mb-6">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder={`Search ${categories.find(c => c.id === selectedCategory)?.name || 'products'}...`}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
 
-            {/* Products Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {/* Products Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredProducts.map((product) => (
                 <Card key={product.id} className="overflow-hidden">
                   <div className="aspect-video bg-muted relative">
@@ -557,8 +565,10 @@ const BelgardStudio = () => {
                 </Card>
               ))}
             </div>
+              </>
+            )}
 
-            {filteredProducts.length === 0 && (
+            {filteredProducts.length === 0 && selectedCategory !== 'scene' && (
               <div className="text-center py-12">
                 <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No products found</h3>
