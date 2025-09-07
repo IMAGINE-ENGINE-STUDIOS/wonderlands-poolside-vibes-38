@@ -15,6 +15,12 @@ import { useShoppingCart } from "@/components/ShoppingCart";
 import { spas, pools } from "@/components/PoolCatalog";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
 import { paverTypes } from "@/data/paverData";
+import { 
+  poolFinishes as poolFinishesData, 
+  poolLiners as poolLinersData, 
+  poolTiles as poolTilesData,
+  tanningLedges as tanningLedgesData 
+} from "@/data/consolidatedProducts";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SurveyQuoteTool from "@/components/SurveyQuoteTool";
@@ -40,7 +46,9 @@ interface Product {
   warrantyYears?: number | string;
   saltSystem?: boolean;
   carbonFiber?: boolean;
-  type?: 'pool' | 'spa' | 'tanning-ledge';
+  type?: 'pool' | 'spa' | 'tanning-ledge' | 'scene';
+  id?: string;
+  description?: string;
 }
 
 interface ProductExtras {
@@ -69,21 +77,19 @@ const getProductPrice = (product: Product) => {
   if (product.category === 'premium') {
     return Math.round(product.price * 0.70); // 30% discount
   }
+  // Apply 15% discount to all pools
+  if (product.type === 'pool') {
+    return Math.round(product.price * 0.85); // 15% discount for pools
+  }
   return product.price;
 };
 
-// Finish options with images
-const finishOptions = [
-  { name: 'Aquamarine', price: 0, image: aquamarineFinish },
-  { name: 'Ocean Blue', price: 2500, image: oceanBlueFinish },
-  { name: 'Sapphire Blue', price: 3500, image: sapphireBlueFinish },
-  { name: 'Night Sky', price: 4500, image: nightSkyFinish },
-  { name: 'Athens Pearl White', price: 5500, image: athensPearlFinish },
-  { name: 'Lagoon Blue', price: 3000, image: lagoonBlueFinish },
-  { name: 'Azure Blue', price: 2000, image: azureBlueFinish },
-  { name: 'Coastal Bronze', price: 6000, image: coastalBronzeFinish },
-  { name: 'Shale Gray', price: 4000, image: shaleGrayFinish }
-];
+// Finish options with images - using consolidated data
+const finishOptions = poolFinishesData.map(finish => ({
+  name: finish.name,
+  price: finish.price,
+  image: finish.image
+}));
 
 // Pool heaters with models
 const poolHeaters = [
@@ -93,12 +99,12 @@ const poolHeaters = [
   { name: 'Jandy JXi 400N', price: 5200, image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png' }
 ];
 
-// Liner options 
+// Liner options - using consolidated data
 const linerOptions = [
   { name: 'Standard Blue', price: 0, image: azureBlueFinish },
-  ...poolLiners.map(liner => ({
+  ...poolLinersData.map(liner => ({
     name: liner.name,
-    price: 4500,
+    price: liner.price,
     image: liner.image
   }))
 ];
@@ -112,10 +118,10 @@ const coverOptions = [
   { name: 'Atom Loop-Loc Cover', color: '#2F4F4F', price: 19000, image: aquamarineFinish, category: 'cover' }
 ];
 
-// Tile options
+// Tile options - using consolidated data
 const tileOptions = [
   { name: 'Standard Waterline', color: '#4682B4', price: 0, image: azureBlueFinish },
-  ...poolTiles.map(tile => ({
+  ...poolTilesData.map(tile => ({
     name: tile.name,
     color: '#4682B4',
     price: tile.price,
@@ -123,7 +129,7 @@ const tileOptions = [
   }))
 ];
 
-// Paver options
+// Paver options - using consolidated data + existing paverTypes
 const paverOptions = [
   { name: 'No Pavers', color: '#808080', price: 0, image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png' },
   ...paverTypes.map(paver => ({
@@ -162,7 +168,7 @@ const getExtraPrice = (extra: string) => {
 const WonderlandsStudio = () => {
   const { addToCart } = useShoppingCart();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<'pools' | 'spas' | 'tanning-ledges'>('pools');
+  const [activeTab, setActiveTab] = useState<'pools' | 'spas' | 'tanning-ledges' | 'scenes'>('pools');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -190,6 +196,42 @@ const WonderlandsStudio = () => {
   const [showExtrasDropdown, setShowExtrasDropdown] = useState(false);
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
   const [activeFeatureCarousel, setActiveFeatureCarousel] = useState<string | null>(null);
+  
+  // Scene rooms from Belgard Studio
+  const sceneRooms = [
+    {
+      id: 'mediterranean-villa',
+      name: 'Mediterranean Villa',
+      category: 'scene',
+      price: 0,
+      image: 'https://rooms.belgard.com/wp-content/uploads/2024/07/KR_12_A_2.jpg?optimize=low&auto=webp',
+      description: 'Elegant Mediterranean-inspired outdoor living space with natural stone elements'
+    },
+    {
+      id: 'modern-courtyard',
+      name: 'Modern Courtyard',
+      category: 'scene', 
+      price: 0,
+      image: 'https://rooms.belgard.com/wp-content/uploads/KR_HNA_23_5.jpg?optimize=low&auto=webp',
+      description: 'Contemporary courtyard design with clean lines and geometric patterns'
+    },
+    {
+      id: 'coastal-retreat',
+      name: 'Coastal Retreat',
+      category: 'scene',
+      price: 0,
+      image: 'https://rooms.belgard.com/wp-content/uploads/KR_24_FL_1_5.jpg?optimize=low&auto=webp',
+      description: 'Relaxing coastal-inspired space perfect for entertaining'
+    },
+    {
+      id: 'rustic-lodge',
+      name: 'Rustic Lodge',
+      category: 'scene',
+      price: 0,
+      image: 'https://rooms.belgard.com/wp-content/uploads/cR_7_a_4-Photo.jpg?optimize=low&auto=webp',
+      description: 'Warm rustic design with natural materials and cozy atmosphere'
+    }
+  ];
 
   // Get filtered products based on active tab
   const getFilteredProducts = () => {
@@ -204,6 +246,9 @@ const WonderlandsStudio = () => {
         break;
       case 'tanning-ledges':
         products = tanningLedges.map(ledge => ({ ...ledge, type: 'tanning-ledge' as const, model: ledge.name, category: 'premium' }));
+        break;
+      case 'scenes':
+        products = sceneRooms.map(scene => ({ ...scene, type: 'scene' as const, model: scene.name }));
         break;
     }
 
@@ -249,8 +294,9 @@ const WonderlandsStudio = () => {
     }
 
     // Add liner cost
-    if (selectedExtras.linerOption !== 'Standard Blue') {
-      total += 4500;
+    const linerOption = linerOptions.find(option => option.name === selectedExtras.linerOption);
+    if (linerOption && selectedExtras.linerOption !== 'Standard Blue') {
+      total += linerOption.price;
     }
 
     // Add paver surface area cost
@@ -544,7 +590,7 @@ const WonderlandsStudio = () => {
       <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-between gap-4">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-teal to-coral bg-clip-text text-transparent">
+            <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary via-teal to-coral bg-clip-text text-transparent">
               Wonderlands Studio
             </h1>
             
@@ -554,7 +600,7 @@ const WonderlandsStudio = () => {
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 w-64"
+                className="pl-10 w-48 md:w-64"
               />
             </div>
           </div>
@@ -562,9 +608,9 @@ const WonderlandsStudio = () => {
       </div>
 
       <div className="container mx-auto px-4 py-4">
-        <div className="flex gap-4">
+        <div className="flex flex-col lg:flex-row gap-4">
           {/* Left Sidebar - Product Selection (Collapsible) */}
-          <div className={`transition-all duration-300 ${leftSidebarCollapsed ? 'w-12' : 'w-80'} flex-shrink-0`}>
+          <div className={`transition-all duration-300 ${leftSidebarCollapsed ? 'w-full lg:w-12' : 'w-full lg:w-80'} flex-shrink-0`}>
             {leftSidebarCollapsed ? (
               <div className="sticky top-4">
                 <Button
@@ -586,7 +632,7 @@ const WonderlandsStudio = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => setLeftSidebarCollapsed(true)}
-                        className="w-8 h-8 p-0"
+                        className="w-8 h-8 p-0 hidden lg:flex"
                       >
                         <ChevronLeft className="h-4 w-4" />
                       </Button>
@@ -607,6 +653,10 @@ const WonderlandsStudio = () => {
                       <TabsTrigger value="tanning-ledges" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                         <Sun className="h-4 w-4 mr-2" />
                         Tanning Ledges
+                      </TabsTrigger>
+                      <TabsTrigger value="scenes" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        <Camera className="h-4 w-4 mr-2" />
+                        Scenes
                       </TabsTrigger>
                     </TabsList>
 
@@ -709,41 +759,46 @@ const WonderlandsStudio = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setActiveFeatureCarousel('finish')}
+                          onClick={() => {
+                            const newCarousel = activeFeatureCarousel === 'finish' ? null : 'finish';
+                            setActiveFeatureCarousel(newCarousel);
+                          }}
                         >
                           <Settings className="h-4 w-4 mr-2" />
                           {selectedExtras.finish}
-                          <ChevronDown className="h-3 w-3 ml-2" />
+                          <ChevronDown className={`h-3 w-3 ml-2 transition-transform ${activeFeatureCarousel === 'finish' ? 'rotate-180' : ''}`} />
                         </Button>
                       </div>
                       {activeFeatureCarousel === 'finish' && (
-                        <Carousel className="w-full">
-                          <CarouselContent className="-ml-1">
-                            {finishOptions.map((finish) => (
-                              <CarouselItem key={finish.name} className="pl-1 basis-1/3">
-                                <div
-                                  className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
-                                    selectedExtras.finish === finish.name
-                                      ? 'border-primary shadow-md'
-                                      : 'border-border hover:border-primary/50'
-                                  }`}
-                                  onClick={() => {
-                                    setSelectedExtras({ ...selectedExtras, finish: finish.name });
-                                    setActiveFeatureCarousel(null);
-                                  }}
-                                >
-                                  <img src={finish.image} alt={finish.name} className="w-full h-16 object-cover rounded" />
-                                  <p className="text-xs font-medium mt-1 truncate">{finish.name}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {finish.price > 0 ? `+$${finish.price.toLocaleString()}` : 'Included'}
-                                  </p>
-                                </div>
-                              </CarouselItem>
-                            ))}
-                          </CarouselContent>
-                          <CarouselPrevious />
-                          <CarouselNext />
-                        </Carousel>
+                        <div className="aspect-video">
+                          <Carousel className="w-full h-full">
+                            <CarouselContent className="-ml-1 h-full">
+                              {finishOptions.map((finish) => (
+                                <CarouselItem key={finish.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
+                                  <div
+                                    className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full ${
+                                      selectedExtras.finish === finish.name
+                                        ? 'border-primary shadow-md'
+                                        : 'border-border hover:border-primary/50'
+                                    }`}
+                                    onClick={() => {
+                                      setSelectedExtras({ ...selectedExtras, finish: finish.name });
+                                      setActiveFeatureCarousel(null);
+                                    }}
+                                  >
+                                    <img src={finish.image} alt={finish.name} className="w-full h-16 object-cover rounded" />
+                                    <p className="text-xs font-medium mt-1 truncate">{finish.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {finish.price > 0 ? `+$${finish.price.toLocaleString()}` : 'Included'}
+                                    </p>
+                                  </div>
+                                </CarouselItem>
+                              ))}
+                            </CarouselContent>
+                            <CarouselPrevious />
+                            <CarouselNext />
+                          </Carousel>
+                        </div>
                       )}
                     </div>
 
@@ -757,15 +812,26 @@ const WonderlandsStudio = () => {
                         <div className="flex items-center gap-2">
                           <Checkbox
                             checked={selectedExtras.heater}
-                            onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, heater: !!checked })}
+                            onCheckedChange={(checked) => {
+                              const newExtras = { ...selectedExtras, heater: !!checked };
+                              setSelectedExtras(newExtras);
+                              if (checked) {
+                                setActiveFeatureCarousel('heater');
+                              } else {
+                                setActiveFeatureCarousel(null);
+                              }
+                            }}
                           />
                           {selectedExtras.heater && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setActiveFeatureCarousel('heater')}
+                              onClick={() => {
+                                const newCarousel = activeFeatureCarousel === 'heater' ? null : 'heater';
+                                setActiveFeatureCarousel(newCarousel);
+                              }}
                             >
-                              <ChevronDown className="h-3 w-3" />
+                              <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'heater' ? 'rotate-180' : ''}`} />
                             </Button>
                           )}
                         </div>
@@ -811,15 +877,26 @@ const WonderlandsStudio = () => {
                         <div className="flex items-center gap-2">
                           <Checkbox
                             checked={selectedExtras.cover}
-                            onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, cover: !!checked })}
+                            onCheckedChange={(checked) => {
+                              const newExtras = { ...selectedExtras, cover: !!checked };
+                              setSelectedExtras(newExtras);
+                              if (checked) {
+                                setActiveFeatureCarousel('cover');
+                              } else {
+                                setActiveFeatureCarousel(null);
+                              }
+                            }}
                           />
                           {selectedExtras.cover && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setActiveFeatureCarousel('cover')}
+                              onClick={() => {
+                                const newCarousel = activeFeatureCarousel === 'cover' ? null : 'cover';
+                                setActiveFeatureCarousel(newCarousel);
+                              }}
                             >
-                              <ChevronDown className="h-3 w-3" />
+                              <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'cover' ? 'rotate-180' : ''}`} />
                             </Button>
                           )}
                         </div>
@@ -906,15 +983,26 @@ const WonderlandsStudio = () => {
                         <div className="flex items-center gap-2">
                           <Checkbox
                             checked={selectedExtras.tiles}
-                            onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, tiles: !!checked })}
+                            onCheckedChange={(checked) => {
+                              const newExtras = { ...selectedExtras, tiles: !!checked };
+                              setSelectedExtras(newExtras);
+                              if (checked) {
+                                setActiveFeatureCarousel('tiles');
+                              } else {
+                                setActiveFeatureCarousel(null);
+                              }
+                            }}
                           />
                           {selectedExtras.tiles && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setActiveFeatureCarousel('tiles')}
+                              onClick={() => {
+                                const newCarousel = activeFeatureCarousel === 'tiles' ? null : 'tiles';
+                                setActiveFeatureCarousel(newCarousel);
+                              }}
                             >
-                              <ChevronDown className="h-3 w-3" />
+                              <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'tiles' ? 'rotate-180' : ''}`} />
                             </Button>
                           )}
                         </div>
@@ -960,15 +1048,26 @@ const WonderlandsStudio = () => {
                         <div className="flex items-center gap-2">
                           <Checkbox
                             checked={selectedExtras.pavers}
-                            onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, pavers: !!checked })}
+                            onCheckedChange={(checked) => {
+                              const newExtras = { ...selectedExtras, pavers: !!checked };
+                              setSelectedExtras(newExtras);
+                              if (checked) {
+                                setActiveFeatureCarousel('pavers');
+                              } else {
+                                setActiveFeatureCarousel(null);
+                              }
+                            }}
                           />
                           {selectedExtras.pavers && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setActiveFeatureCarousel('pavers')}
+                              onClick={() => {
+                                const newCarousel = activeFeatureCarousel === 'pavers' ? null : 'pavers';
+                                setActiveFeatureCarousel(newCarousel);
+                              }}
                             >
-                              <ChevronDown className="h-3 w-3" />
+                              <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'pavers' ? 'rotate-180' : ''}`} />
                             </Button>
                           )}
                         </div>
