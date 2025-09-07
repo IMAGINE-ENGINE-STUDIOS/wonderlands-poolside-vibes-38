@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart, Search, ChevronDown, Settings, Package } from "lucide-react";
+import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart, Search, ChevronDown, Settings, Package, ChevronRight, ChevronLeft } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import { useShoppingCart } from "@/components/ShoppingCart";
@@ -188,6 +188,8 @@ const WonderlandsStudio = () => {
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
   const [showExtrasDropdown, setShowExtrasDropdown] = useState(false);
+  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
+  const [activeFeatureCarousel, setActiveFeatureCarousel] = useState<string | null>(null);
 
   // Get filtered products based on active tab
   const getFilteredProducts = () => {
@@ -252,12 +254,12 @@ const WonderlandsStudio = () => {
     }
 
     // Add paver surface area cost
-    if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+    if (selectedExtras.pavers && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
       total += parseFloat(paverSurfaceArea) * 15;
     }
 
     // Add screen enclosure cost
-    if (selectedExtras.screenEnclosureArea > 0) {
+    if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureArea > 0) {
       let pricePerSqFt = 15;
       if (selectedExtras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
       if (selectedExtras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
@@ -281,7 +283,7 @@ const WonderlandsStudio = () => {
     if (selectedExtras.tiles) count++;
     if (selectedExtras.linerOption !== 'Standard Blue') count++;
     if (selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers') count++;
-    if (selectedExtras.screenEnclosure) count++;
+    if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureArea > 0) count++;
     if (selectedExtras.concreteConstruction) count++;
     return count;
   };
@@ -538,183 +540,319 @@ const WonderlandsStudio = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
-      {/* Header */}
+      {/* Compact Header */}
       <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-teal to-coral bg-clip-text text-transparent">
-                Wonderlands Studio
-              </h1>
-              <p className="text-muted-foreground mt-2">Design your perfect outdoor paradise</p>
-            </div>
+        <div className="container mx-auto px-4 py-2">
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-teal to-coral bg-clip-text text-transparent">
+              Wonderlands Studio
+            </h1>
             
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 w-64"
-                />
-              </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-64"
+              />
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left Sidebar - Product Selection */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-4">
-              <CardHeader>
-                <CardTitle className="text-lg">Product Categories</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
-                  <TabsList className="grid w-full grid-cols-1 gap-2 h-auto bg-transparent p-0">
-                    <TabsTrigger value="pools" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                      <Waves className="h-4 w-4 mr-2" />
-                      Pools
-                    </TabsTrigger>
-                    <TabsTrigger value="spas" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                      <Droplets className="h-4 w-4 mr-2" />
-                      Spas
-                    </TabsTrigger>
-                    <TabsTrigger value="tanning-ledges" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                      <Sun className="h-4 w-4 mr-2" />
-                      Tanning Ledges
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
-                    {getFilteredProducts().map((product, index) => (
-                      <div
-                        key={index}
-                        className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${
-                          selectedProduct?.model === product.model || selectedProduct?.name === product.name
-                            ? 'border-primary bg-primary/10 shadow-sm'
-                            : 'border-border hover:border-primary/50'
-                        }`}
-                        onClick={() => setSelectedProduct(product)}
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex gap-4">
+          {/* Left Sidebar - Product Selection (Collapsible) */}
+          <div className={`transition-all duration-300 ${leftSidebarCollapsed ? 'w-12' : 'w-80'} flex-shrink-0`}>
+            {leftSidebarCollapsed ? (
+              <div className="sticky top-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLeftSidebarCollapsed(false)}
+                  className="w-10 h-10 p-0"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <Card className="sticky top-4">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">Product Categories</CardTitle>
+                    {selectedProduct && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setLeftSidebarCollapsed(true)}
+                        className="w-8 h-8 p-0"
                       >
-                        <div className="flex items-center gap-3">
-                          {product.image && (
-                            <img 
-                              src={product.image} 
-                              alt={product.model || product.name || 'Product'} 
-                              className="w-12 h-12 object-cover rounded"
-                            />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-sm truncate">
-                              {product.model || product.name}
-                            </h4>
-                            <p className="text-xs text-muted-foreground">
-                              ${getProductPrice(product).toLocaleString()}
-                            </p>
-                            <Badge variant="secondary" className="text-xs mt-1">
-                              {product.category}
-                            </Badge>
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="w-full">
+                    <TabsList className="grid w-full grid-cols-1 gap-2 h-auto bg-transparent p-0">
+                      <TabsTrigger value="pools" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        <Waves className="h-4 w-4 mr-2" />
+                        Pools
+                      </TabsTrigger>
+                      <TabsTrigger value="spas" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        <Droplets className="h-4 w-4 mr-2" />
+                        Spas
+                      </TabsTrigger>
+                      <TabsTrigger value="tanning-ledges" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                        <Sun className="h-4 w-4 mr-2" />
+                        Tanning Ledges
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
+                      {getFilteredProducts().map((product, index) => (
+                        <div
+                          key={index}
+                          className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${
+                            selectedProduct?.model === product.model || selectedProduct?.name === product.name
+                              ? 'border-primary bg-primary/10 shadow-sm'
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            setLeftSidebarCollapsed(true);
+                          }}
+                        >
+                          <div className="flex items-center gap-3">
+                            {product.image && (
+                              <img 
+                                src={product.image} 
+                                alt={product.model || product.name || 'Product'} 
+                                className="w-12 h-12 object-cover rounded"
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm truncate">
+                                {product.model || product.name}
+                              </h4>
+                              <p className="text-xs text-muted-foreground">
+                                ${getProductPrice(product).toLocaleString()}
+                              </p>
+                              <Badge variant="secondary" className="text-xs mt-1">
+                                {product.category}
+                              </Badge>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </Tabs>
-              </CardContent>
-            </Card>
+                      ))}
+                    </div>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Main Content - Product Details & Configuration */}
-          <div className="lg:col-span-2">
+          <div className="flex-1">
             {selectedProduct ? (
-              <Card className="h-fit">
-                <CardHeader>
-                  <div className="flex items-start gap-4">
-                    {selectedProduct.image && (
-                      <img 
-                        src={selectedProduct.image} 
-                        alt={selectedProduct.model || selectedProduct.name || 'Product'} 
-                        className="w-24 h-24 object-cover rounded-lg"
-                      />
-                    )}
-                    <div className="flex-1">
-                      <CardTitle className="text-xl">
-                        {selectedProduct.model || selectedProduct.name}
-                      </CardTitle>
-                      <p className="text-2xl font-bold text-primary mt-2">
-                        ${getProductPrice(selectedProduct).toLocaleString()}
-                      </p>
-                      <div className="flex gap-2 mt-2">
-                        <Badge className={getCategoryColor(selectedProduct.category)}>
-                          {selectedProduct.category}
-                        </Badge>
-                        {selectedProduct.dimensions && (
-                          <Badge variant="outline">{selectedProduct.dimensions}</Badge>
-                        )}
+              <div className="space-y-6">
+                {/* Large Product Image */}
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
+                      {selectedProduct.image ? (
+                        <img 
+                          src={selectedProduct.image} 
+                          alt={selectedProduct.model || selectedProduct.name || 'Product'} 
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <Package className="h-16 w-16 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h1 className="text-2xl font-bold">
+                            {selectedProduct.model || selectedProduct.name}
+                          </h1>
+                          <p className="text-3xl font-bold text-primary mt-2">
+                            ${getProductPrice(selectedProduct).toLocaleString()}
+                          </p>
+                          <div className="flex gap-2 mt-2">
+                            <Badge className={getCategoryColor(selectedProduct.category)}>
+                              {selectedProduct.category}
+                            </Badge>
+                            {selectedProduct.dimensions && (
+                              <Badge variant="outline">{selectedProduct.dimensions}</Badge>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Additional Features Configuration */}
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-lg">Additional Features</h3>
-                    
-                    {/* Finish Selection */}
+                  </CardContent>
+                </Card>
+
+                {/* Configuration Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Additional Features</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Pool Finish */}
                     <div>
-                      <Label className="text-sm font-medium mb-2 block">Pool Finish</Label>
-                      <Carousel className="w-full">
-                        <CarouselContent className="-ml-1">
-                          {finishOptions.map((finish) => (
-                            <CarouselItem key={finish.name} className="pl-1 basis-1/3">
-                              <div
-                                className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
-                                  selectedExtras.finish === finish.name
-                                    ? 'border-primary shadow-md'
-                                    : 'border-border hover:border-primary/50'
-                                }`}
-                                onClick={() => setSelectedExtras({ ...selectedExtras, finish: finish.name })}
-                              >
-                                <img src={finish.image} alt={finish.name} className="w-full h-16 object-cover rounded" />
-                                <p className="text-xs font-medium mt-1 truncate">{finish.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {finish.price > 0 ? `+$${finish.price.toLocaleString()}` : 'Included'}
-                                </p>
-                              </div>
-                            </CarouselItem>
-                          ))}
-                        </CarouselContent>
-                        <CarouselPrevious />
-                        <CarouselNext />
-                      </Carousel>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-sm font-medium">Pool Finish</Label>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setActiveFeatureCarousel(activeFeatureCarousel === 'finish' ? null : 'finish')}
+                        >
+                          <Settings className="h-4 w-4 mr-2" />
+                          {selectedExtras.finish}
+                          <ChevronDown className="h-3 w-3 ml-2" />
+                        </Button>
+                      </div>
+                      {activeFeatureCarousel === 'finish' && (
+                        <Carousel className="w-full">
+                          <CarouselContent className="-ml-1">
+                            {finishOptions.map((finish) => (
+                              <CarouselItem key={finish.name} className="pl-1 basis-1/3">
+                                <div
+                                  className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                    selectedExtras.finish === finish.name
+                                      ? 'border-primary shadow-md'
+                                      : 'border-border hover:border-primary/50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedExtras({ ...selectedExtras, finish: finish.name });
+                                    setActiveFeatureCarousel(null);
+                                  }}
+                                >
+                                  <img src={finish.image} alt={finish.name} className="w-full h-16 object-cover rounded" />
+                                  <p className="text-xs font-medium mt-1 truncate">{finish.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {finish.price > 0 ? `+$${finish.price.toLocaleString()}` : 'Included'}
+                                  </p>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious />
+                          <CarouselNext />
+                        </Carousel>
+                      )}
                     </div>
 
                     {/* Heater */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label className="text-sm font-medium">Pool Heater</Label>
-                        <p className="text-xs text-muted-foreground">Extend your swimming season</p>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <Label className="text-sm font-medium">Pool Heater</Label>
+                          <p className="text-xs text-muted-foreground">Extend your swimming season</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={selectedExtras.heater}
+                            onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, heater: !!checked })}
+                          />
+                          {selectedExtras.heater && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setActiveFeatureCarousel(activeFeatureCarousel === 'heater' ? null : 'heater')}
+                            >
+                              <ChevronDown className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <Checkbox
-                        checked={selectedExtras.heater}
-                        onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, heater: !!checked })}
-                      />
+                      {selectedExtras.heater && activeFeatureCarousel === 'heater' && (
+                        <Carousel className="w-full">
+                          <CarouselContent className="-ml-1">
+                            {poolHeaters.map((heater) => (
+                              <CarouselItem key={heater.name} className="pl-1 basis-1/2">
+                                <div
+                                  className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                    selectedExtras.heaterModel === heater.name
+                                      ? 'border-primary shadow-md'
+                                      : 'border-border hover:border-primary/50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedExtras({ ...selectedExtras, heaterModel: heater.name });
+                                    setActiveFeatureCarousel(null);
+                                  }}
+                                >
+                                  <img src={heater.image} alt={heater.name} className="w-full h-16 object-cover rounded" />
+                                  <p className="text-xs font-medium mt-1 truncate">{heater.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    ${heater.price.toLocaleString()}
+                                  </p>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious />
+                          <CarouselNext />
+                        </Carousel>
+                      )}
                     </div>
 
                     {/* Cover */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label className="text-sm font-medium">Safety Cover</Label>
-                        <p className="text-xs text-muted-foreground">Protect your investment</p>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <Label className="text-sm font-medium">Safety Cover</Label>
+                          <p className="text-xs text-muted-foreground">Protect your investment</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={selectedExtras.cover}
+                            onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, cover: !!checked })}
+                          />
+                          {selectedExtras.cover && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setActiveFeatureCarousel(activeFeatureCarousel === 'cover' ? null : 'cover')}
+                            >
+                              <ChevronDown className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <Checkbox
-                        checked={selectedExtras.cover}
-                        onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, cover: !!checked })}
-                      />
+                      {selectedExtras.cover && activeFeatureCarousel === 'cover' && (
+                        <Carousel className="w-full">
+                          <CarouselContent className="-ml-1">
+                            {coverOptions.filter(cover => cover.name !== 'NO COVER').map((cover) => (
+                              <CarouselItem key={cover.name} className="pl-1 basis-1/2">
+                                <div
+                                  className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                    selectedExtras.coverOption === cover.name
+                                      ? 'border-primary shadow-md'
+                                      : 'border-border hover:border-primary/50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedExtras({ ...selectedExtras, coverOption: cover.name });
+                                    setActiveFeatureCarousel(null);
+                                  }}
+                                >
+                                  <img src={cover.image} alt={cover.name} className="w-full h-16 object-cover rounded" />
+                                  <p className="text-xs font-medium mt-1 truncate">{cover.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    ${cover.price.toLocaleString()}
+                                  </p>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious />
+                          <CarouselNext />
+                        </Carousel>
+                      )}
                     </div>
 
                     {/* Jets */}
@@ -759,41 +897,124 @@ const WonderlandsStudio = () => {
                     )}
 
                     {/* Tiles */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label className="text-sm font-medium">Premium Tiles</Label>
-                        <p className="text-xs text-muted-foreground">Upgrade waterline aesthetics</p>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <Label className="text-sm font-medium">Premium Tiles</Label>
+                          <p className="text-xs text-muted-foreground">Upgrade waterline aesthetics</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={selectedExtras.tiles}
+                            onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, tiles: !!checked })}
+                          />
+                          {selectedExtras.tiles && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setActiveFeatureCarousel(activeFeatureCarousel === 'tiles' ? null : 'tiles')}
+                            >
+                              <ChevronDown className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <Checkbox
-                        checked={selectedExtras.tiles}
-                        onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, tiles: !!checked })}
-                      />
+                      {selectedExtras.tiles && activeFeatureCarousel === 'tiles' && (
+                        <Carousel className="w-full">
+                          <CarouselContent className="-ml-1">
+                            {tileOptions.filter(tile => tile.name !== 'Standard Waterline').map((tile) => (
+                              <CarouselItem key={tile.name} className="pl-1 basis-1/3">
+                                <div
+                                  className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                    selectedExtras.tileOption === tile.name
+                                      ? 'border-primary shadow-md'
+                                      : 'border-border hover:border-primary/50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedExtras({ ...selectedExtras, tileOption: tile.name });
+                                    setActiveFeatureCarousel(null);
+                                  }}
+                                >
+                                  <img src={tile.image} alt={tile.name} className="w-full h-16 object-cover rounded" />
+                                  <p className="text-xs font-medium mt-1 truncate">{tile.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {tile.price > 0 ? `$${tile.price.toLocaleString()}` : 'Included'}
+                                  </p>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious />
+                          <CarouselNext />
+                        </Carousel>
+                      )}
                     </div>
 
                     {/* Pavers */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label className="text-sm font-medium">Deck Pavers</Label>
-                        <p className="text-xs text-muted-foreground">Beautiful hardscape surfaces</p>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <Label className="text-sm font-medium">Deck Pavers</Label>
+                          <p className="text-xs text-muted-foreground">Beautiful hardscape surfaces</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={selectedExtras.pavers}
+                            onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, pavers: !!checked })}
+                          />
+                          {selectedExtras.pavers && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setActiveFeatureCarousel(activeFeatureCarousel === 'pavers' ? null : 'pavers')}
+                            >
+                              <ChevronDown className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <Checkbox
-                        checked={selectedExtras.pavers}
-                        onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, pavers: !!checked })}
-                      />
+                      {selectedExtras.pavers && activeFeatureCarousel === 'pavers' && (
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-sm font-medium">Surface Area (sq ft)</Label>
+                            <Input
+                              type="number"
+                              value={paverSurfaceArea}
+                              onChange={(e) => setPaverSurfaceArea(e.target.value)}
+                              placeholder="Enter area in square feet"
+                              className="mt-1"
+                            />
+                          </div>
+                          <Carousel className="w-full">
+                            <CarouselContent className="-ml-1">
+                              {paverOptions.filter(paver => paver.name !== 'No Pavers').map((paver) => (
+                                <CarouselItem key={paver.name} className="pl-1 basis-1/3">
+                                  <div
+                                    className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                      selectedExtras.paverOption === paver.name
+                                        ? 'border-primary shadow-md'
+                                        : 'border-border hover:border-primary/50'
+                                    }`}
+                                    onClick={() => {
+                                      setSelectedExtras({ ...selectedExtras, paverOption: paver.name });
+                                      setActiveFeatureCarousel(null);
+                                    }}
+                                  >
+                                    <img src={paver.image} alt={paver.name} className="w-full h-16 object-cover rounded" />
+                                    <p className="text-xs font-medium mt-1 truncate">{paver.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      $15/sq ft
+                                    </p>
+                                  </div>
+                                </CarouselItem>
+                              ))}
+                            </CarouselContent>
+                            <CarouselPrevious />
+                            <CarouselNext />
+                          </Carousel>
+                        </div>
+                      )}
                     </div>
-
-                    {selectedExtras.pavers && (
-                      <div>
-                        <Label className="text-sm font-medium">Surface Area (sq ft)</Label>
-                        <Input
-                          type="number"
-                          value={paverSurfaceArea}
-                          onChange={(e) => setPaverSurfaceArea(e.target.value)}
-                          placeholder="Enter area in square feet"
-                          className="mt-1"
-                        />
-                      </div>
-                    )}
 
                     {/* Screen Enclosure */}
                     <div className="flex items-center justify-between">
@@ -834,30 +1055,30 @@ const WonderlandsStudio = () => {
                         onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, concreteConstruction: !!checked })}
                       />
                     </div>
-                  </div>
 
-                  <Separator />
+                    <Separator />
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-3">
-                    <Button onClick={handleQuoteRequest} variant="outline" className="flex-1">
-                      <Download className="h-4 w-4 mr-2" />
-                      Generate Quote
-                    </Button>
-                    <Button onClick={handleAddToCart} variant="outline" className="flex-1">
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      Add to Cart
-                    </Button>
-                    <StripeCheckoutButton 
-                      productId={`${selectedProduct.type}_${selectedProduct.model?.replace(/\s+/g, '_') || selectedProduct.name?.replace(/\s+/g, '_')}`} 
-                      productName={selectedProduct.model || selectedProduct.name || 'Product'} 
-                      price={calculateTotalPrice()} 
-                      variant="default" 
-                      className="flex-1"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
+                      <Button onClick={handleQuoteRequest} variant="outline" className="flex-1">
+                        <Download className="h-4 w-4 mr-2" />
+                        Generate Quote
+                      </Button>
+                      <Button onClick={handleAddToCart} variant="outline" className="flex-1">
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Add to Cart
+                      </Button>
+                      <StripeCheckoutButton 
+                        productId={`${selectedProduct.type}_${selectedProduct.model?.replace(/\s+/g, '_') || selectedProduct.name?.replace(/\s+/g, '_')}`} 
+                        productName={selectedProduct.model || selectedProduct.name || 'Product'} 
+                        price={calculateTotalPrice()} 
+                        variant="default" 
+                        className="flex-1"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             ) : (
               <Card className="h-96 flex items-center justify-center">
                 <div className="text-center text-muted-foreground">
@@ -869,7 +1090,7 @@ const WonderlandsStudio = () => {
           </div>
 
           {/* Right Sidebar - Price Summary */}
-          <div className="lg:col-span-1">
+          <div className="w-80 flex-shrink-0">
             <Card className="sticky top-4">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
