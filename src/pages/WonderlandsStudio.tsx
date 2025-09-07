@@ -709,7 +709,7 @@ const WonderlandsStudio = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setActiveFeatureCarousel(activeFeatureCarousel === 'finish' ? null : 'finish')}
+                          onClick={() => setActiveFeatureCarousel('finish')}
                         >
                           <Settings className="h-4 w-4 mr-2" />
                           {selectedExtras.finish}
@@ -763,7 +763,7 @@ const WonderlandsStudio = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setActiveFeatureCarousel(activeFeatureCarousel === 'heater' ? null : 'heater')}
+                              onClick={() => setActiveFeatureCarousel('heater')}
                             >
                               <ChevronDown className="h-3 w-3" />
                             </Button>
@@ -817,7 +817,7 @@ const WonderlandsStudio = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setActiveFeatureCarousel(activeFeatureCarousel === 'cover' ? null : 'cover')}
+                              onClick={() => setActiveFeatureCarousel('cover')}
                             >
                               <ChevronDown className="h-3 w-3" />
                             </Button>
@@ -912,7 +912,7 @@ const WonderlandsStudio = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setActiveFeatureCarousel(activeFeatureCarousel === 'tiles' ? null : 'tiles')}
+                              onClick={() => setActiveFeatureCarousel('tiles')}
                             >
                               <ChevronDown className="h-3 w-3" />
                             </Button>
@@ -966,7 +966,7 @@ const WonderlandsStudio = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setActiveFeatureCarousel(activeFeatureCarousel === 'pavers' ? null : 'pavers')}
+                              onClick={() => setActiveFeatureCarousel('pavers')}
                             >
                               <ChevronDown className="h-3 w-3" />
                             </Button>
