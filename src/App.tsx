@@ -70,8 +70,6 @@ const App = () => {
                 </ProtectedRoute>
               } 
             />
-            <Route path="/pool/:poolId" element={<WonderlandsStudio />} />
-            <Route path="/belgard-studio" element={<WonderlandsStudio />} />
             <Route path="/wonderlands-studio" element={<WonderlandsStudio />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
