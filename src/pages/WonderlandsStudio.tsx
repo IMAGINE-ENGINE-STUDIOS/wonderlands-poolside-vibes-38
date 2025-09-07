@@ -80,6 +80,9 @@ interface ProductExtras {
   fireplaces: boolean;
   firePitKits: boolean;
   pergolas: boolean;
+  // Quote data
+  extrasBreakdown?: Array<{ name: string; price: number; image: string; }>;
+  extrasTotal?: number;
 }
 
 // Helper function to get discounted price for deluxe pools
@@ -216,6 +219,29 @@ const WonderlandsStudio = () => {
   const [showExtrasDropdown, setShowExtrasDropdown] = useState(false);
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
   const [activeFeatureCarousel, setActiveFeatureCarousel] = useState<string | null>(null);
+  
+  // Handle URL parameters for product search integration
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const model = urlParams.get('model');
+    const price = urlParams.get('price');
+    const category = urlParams.get('category');
+    const image = urlParams.get('image');
+    const dimensions = urlParams.get('dimensions');
+    
+    if (model && price) {
+      const productFromUrl: Product = {
+        model: model,
+        price: parseInt(price),
+        category: category || 'standard',
+        image: image ? decodeURIComponent(image) : undefined,
+        dimensions: dimensions ? decodeURIComponent(dimensions) : undefined,
+        type: 'pool'
+      };
+      setSelectedProduct(productFromUrl);
+      setLeftSidebarCollapsed(true);
+    }
+  }, []);
   
   // Scene rooms from Belgard Studio
   const sceneRooms = [
@@ -494,23 +520,23 @@ const WonderlandsStudio = () => {
       if (linerOption) {
         extrasBreakdown.push({
           name: `${linerOption.name} Liner`,
-          price: 4500,
+          price: linerOption.price || 4500,
           image: linerOption.image
         });
       }
     }
 
     // Add paver surface area cost
-    if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+    if (selectedExtras.pavers && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
       extrasBreakdown.push({
         name: `${selectedExtras.paverOption} (${paverSurfaceArea} sq ft)`,
         price: parseFloat(paverSurfaceArea) * 15,
-        image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
+        image: paverOptions.find(p => p.name === selectedExtras.paverOption)?.image || '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
       });
     }
 
     // Add screen enclosure if area provided
-    if (selectedExtras.screenEnclosureArea > 0) {
+    if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureArea > 0) {
       let pricePerSqFt = 15;
       if (selectedExtras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
       if (selectedExtras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
@@ -534,6 +560,8 @@ const WonderlandsStudio = () => {
 
     const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
     
+    // Store the breakdown for the quote modal
+    setSelectedExtras(prev => ({ ...prev, extrasBreakdown, extrasTotal }));
     setShowQuoteModal(true);
   };
 
@@ -850,7 +878,7 @@ const WonderlandsStudio = () => {
                             </div>
                           </div>
                           {selectedExtras.concreteSlabs && activeFeatureCarousel === 'concreteSlabs' && (
-                            <div className="aspect-video">
+                            <div className="h-24">
                               <Carousel className="w-full h-full">
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.concreteSlabs.map((option) => (
@@ -910,7 +938,7 @@ const WonderlandsStudio = () => {
                             </div>
                           </div>
                           {selectedExtras.outdoorKitchens && activeFeatureCarousel === 'outdoorKitchens' && (
-                            <div className="aspect-video">
+                            <div className="h-24">
                               <Carousel className="w-full h-full">
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.outdoorKitchens.map((option) => (
@@ -970,7 +998,7 @@ const WonderlandsStudio = () => {
                             </div>
                           </div>
                           {selectedExtras.fireplaces && activeFeatureCarousel === 'fireplaces' && (
-                            <div className="aspect-video">
+                            <div className="h-24">
                               <Carousel className="w-full h-full">
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.fireplaces.map((option) => (
@@ -1030,7 +1058,7 @@ const WonderlandsStudio = () => {
                             </div>
                           </div>
                           {selectedExtras.firePitKits && activeFeatureCarousel === 'firePitKits' && (
-                            <div className="aspect-video">
+                            <div className="h-24">
                               <Carousel className="w-full h-full">
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.firePitKits.map((option) => (
@@ -1090,7 +1118,7 @@ const WonderlandsStudio = () => {
                             </div>
                           </div>
                           {selectedExtras.pergolas && activeFeatureCarousel === 'pergolas' && (
-                            <div className="aspect-video">
+                            <div className="h-24">
                               <Carousel className="w-full h-full">
                                 <CarouselContent className="-ml-1 h-full">
                                   {belgardStudioOptions.pergolas.map((option) => (
@@ -1136,35 +1164,33 @@ const WonderlandsStudio = () => {
                         </Button>
                       </div>
                       {activeFeatureCarousel === 'finish' && (
-                        <div className="aspect-video">
-                          <Carousel className="w-full h-full">
-                            <CarouselContent className="-ml-1 h-full">
-                              {finishOptions.map((finish) => (
-                                <CarouselItem key={finish.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
-                                  <div
-                                    className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full ${
-                                      selectedExtras.finish === finish.name
-                                        ? 'border-primary shadow-md'
-                                        : 'border-border hover:border-primary/50'
-                                    }`}
-                                    onClick={() => {
-                                      setSelectedExtras({ ...selectedExtras, finish: finish.name });
-                                      setActiveFeatureCarousel(null);
-                                    }}
-                                  >
-                                    <img src={finish.image} alt={finish.name} className="w-full h-16 object-cover rounded" />
-                                    <p className="text-xs font-medium mt-1 truncate">{finish.name}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {finish.price > 0 ? `+$${finish.price.toLocaleString()}` : 'Included'}
-                                    </p>
-                                  </div>
-                                </CarouselItem>
-                              ))}
-                            </CarouselContent>
-                            <CarouselPrevious />
-                            <CarouselNext />
-                          </Carousel>
-                        </div>
+                        <Carousel className="w-full">
+                          <CarouselContent className="-ml-1">
+                            {finishOptions.map((finish) => (
+                              <CarouselItem key={finish.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
+                                <div
+                                  className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                    selectedExtras.finish === finish.name
+                                      ? 'border-primary shadow-md'
+                                      : 'border-border hover:border-primary/50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedExtras({ ...selectedExtras, finish: finish.name });
+                                    setActiveFeatureCarousel(null);
+                                  }}
+                                >
+                                  <img src={finish.image} alt={finish.name} className="w-full h-16 object-cover rounded" />
+                                  <p className="text-xs font-medium mt-1 truncate">{finish.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {finish.price > 0 ? `+$${finish.price.toLocaleString()}` : 'Included'}
+                                  </p>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious />
+                          <CarouselNext />
+                        </Carousel>
                       )}
                     </div>
 
@@ -1439,7 +1465,7 @@ const WonderlandsStudio = () => {
                         </div>
                       </div>
                       {selectedExtras.pavers && activeFeatureCarousel === 'pavers' && (
-                        <div className="space-y-4">
+                        <div className="space-y-2">
                           <div>
                             <Label className="text-sm font-medium">Surface Area (sq ft)</Label>
                             <Input
@@ -1578,118 +1604,166 @@ const WonderlandsStudio = () => {
                           {selectedExtras.finish !== 'Aquamarine' && (
                             <div className="flex items-center justify-between text-xs">
                               <span>{selectedExtras.finish} Finish</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeExtra('finish')}
-                                className="h-6 w-6 p-0"
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground">
+                                  +${finishOptions.find(f => f.name === selectedExtras.finish)?.price || 0}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeExtra('finish')}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
                           )}
                           {selectedExtras.heater && (
                             <div className="flex items-center justify-between text-xs">
                               <span>Pool Heater</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeExtra('heater')}
-                                className="h-6 w-6 p-0"
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground">
+                                  +${poolHeaters.find(h => h.name === selectedExtras.heaterModel)?.price || 0}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeExtra('heater')}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
                           )}
                           {selectedExtras.cover && selectedExtras.coverOption !== 'NO COVER' && (
                             <div className="flex items-center justify-between text-xs">
                               <span>Safety Cover</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeExtra('cover')}
-                                className="h-6 w-6 p-0"
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground">
+                                  +${coverOptions.find(c => c.name === selectedExtras.coverOption)?.price || 0}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeExtra('cover')}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
                           )}
                           {selectedExtras.jets && (
                             <div className="flex items-center justify-between text-xs">
                               <span>Spa Jets ({selectedExtras.jetQuantity})</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeExtra('jets')}
-                                className="h-6 w-6 p-0"
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground">
+                                  +${(getExtraPrice('jets') * selectedExtras.jetQuantity).toLocaleString()}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeExtra('jets')}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
                           )}
                           {selectedExtras.tiles && (
                             <div className="flex items-center justify-between text-xs">
                               <span>Premium Tiles</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeExtra('tiles')}
-                                className="h-6 w-6 p-0"
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground">
+                                  +${tileOptions.find(t => t.name === selectedExtras.tileOption)?.price || 0}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeExtra('tiles')}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
                           )}
                           {selectedExtras.linerOption !== 'Standard Blue' && (
                             <div className="flex items-center justify-between text-xs">
                               <span>Premium Liner</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeExtra('liner')}
-                                className="h-6 w-6 p-0"
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground">
+                                  +${linerOptions.find(l => l.name === selectedExtras.linerOption)?.price || 4500}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeExtra('liner')}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
                           )}
                           {selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers' && (
                             <div className="flex items-center justify-between text-xs">
                               <span>Deck Pavers</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeExtra('pavers')}
-                                className="h-6 w-6 p-0"
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground">
+                                  +${paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) ? (parseFloat(paverSurfaceArea) * 15).toLocaleString() : '0'}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeExtra('pavers')}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
                           )}
                           {selectedExtras.screenEnclosure && (
                             <div className="flex items-center justify-between text-xs">
                               <span>Screen Enclosure</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeExtra('screen')}
-                                className="h-6 w-6 p-0"
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground">
+                                  +${selectedExtras.screenEnclosureArea > 0 ? 
+                                    (selectedExtras.screenEnclosureArea * 
+                                    (selectedExtras.screenEnclosureQuality === 'premium' ? 28 : 
+                                     selectedExtras.screenEnclosureQuality === 'deluxe' ? 22 : 15)).toLocaleString() : '0'}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeExtra('screen')}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
                           )}
                           {selectedExtras.concreteConstruction && (
                             <div className="flex items-center justify-between text-xs">
                               <span>Concrete Construction</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeExtra('concrete')}
-                                className="h-6 w-6 p-0"
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground">
+                                  +${selectedProduct ? Math.round(getProductPrice(selectedProduct) * 0.2).toLocaleString() : '0'}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeExtra('concrete')}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -1762,8 +1836,8 @@ const WonderlandsStudio = () => {
         onClose={() => setShowQuoteModal(false)}
         extras={{
           ...selectedExtras,
-          extrasBreakdown: [],
-          extrasTotal: 0,
+          extrasBreakdown: selectedExtras.extrasBreakdown || [],
+          extrasTotal: selectedExtras.extrasTotal || 0,
           deliveryTime: selectedExtras.concreteConstruction ? '8-12 weeks+' : '6 weeks'
         }}
       />
