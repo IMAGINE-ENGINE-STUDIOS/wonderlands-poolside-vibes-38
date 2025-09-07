@@ -172,6 +172,9 @@
         window.addEventListener('unhandledrejection', function(e){ var r=e.reason; showError('Unhandled Promise Rejection: '+ (r && r.message ? r.message : r)); });
       })();
     </script>
+    
+    <!-- Model Viewer for 3D visualization -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   </head>
 
   <body>

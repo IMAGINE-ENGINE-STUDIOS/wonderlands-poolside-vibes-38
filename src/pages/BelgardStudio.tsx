@@ -9,10 +9,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart, Search, ChevronDown, Settings, Armchair, Flame, ChefHat, Utensils, Home, Music, Package, Cpu } from "lucide-react";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
-import { useShoppingCart } from "@/components/ShoppingCart";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import SurveyQuoteTool from "@/components/SurveyQuoteTool";
+import SurveyQuoteTool from '@/components/SurveyQuoteTool';
+import { useShoppingCart } from '@/components/ShoppingCartProvider';
+import { Belgard3DVisualizer } from '@/components/Belgard3DVisualizer';
 
 // Helper function to get product price
 const getProductPrice = (product: BelgardProduct) => {
@@ -384,7 +385,9 @@ const BelgardStudio = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <Belgard3DVisualizer />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8">
           {/* Sidebar - Categories */}
           <div className="lg:col-span-1">
             <Card>
