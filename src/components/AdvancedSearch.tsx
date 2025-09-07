@@ -262,9 +262,9 @@ const AdvancedSearch = () => {
               ...(selectedPool.saltSystem !== undefined && { saltSystem: selectedPool.saltSystem.toString() }),
               ...(selectedPool.carbonFiber !== undefined && { carbonFiber: selectedPool.carbonFiber.toString() })
             });
-            navigate(`/pool/${result.id}?${params.toString()}`);
+            navigate(`/wonderlands-studio?${params.toString()}`);
           } else {
-            navigate(`/pool/${result.id}`);
+            navigate(`/wonderlands-studio`);
           }
         });
       }, 500);
