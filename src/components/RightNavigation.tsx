@@ -19,32 +19,40 @@ const RightNavigation = () => {
   const isQuoteOpen = typeof document !== 'undefined' && document.body.dataset.quoteOpen === 'true';
 
   useEffect(() => {
+    let ticking = false;
+    
     const handleScroll = () => {
-      const sections = [
-        "hero",
-        "pools",
-        "spas",
-        "finishes",
-        "liners",
-        "covers",
-        "screen-enclosures",
-        "pavers",
-      ];
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const sections = [
+            "hero",
+            "pools",
+            "spas",
+            "finishes",
+            "liners",
+            "covers",
+            "screen-enclosures",
+            "pavers",
+          ];
 
-      let currentSection = "hero";
-      sections.forEach((sectionId) => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2) {
-            currentSection = sectionId;
-          }
-        }
-      });
-      setActiveSection(currentSection);
+          let currentSection = "hero";
+          sections.forEach((sectionId) => {
+            const element = document.getElementById(sectionId);
+            if (element) {
+              const rect = element.getBoundingClientRect();
+              if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2) {
+                currentSection = sectionId;
+              }
+            }
+          });
+          setActiveSection(currentSection);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll(); // Initial check on mount
 
     return () => window.removeEventListener("scroll", handleScroll);

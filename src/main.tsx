@@ -37,17 +37,53 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
   render() {
     if (this.state.hasError) {
-      return <div style={{ 
-        padding: '20px', 
-        color: 'red', 
-        fontFamily: 'Arial', 
-        fontSize: '16px',
-        background: 'white',
-        minHeight: '100vh'
-      }}>
-        <h1>Something went wrong.</h1>
-        <p>Please refresh the page. If the problem persists, check the console for errors.</p>
-      </div>;
+      return (
+        <div style={{ 
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999,
+          backgroundColor: 'rgba(0,0,0,0.9)',
+          color: 'white',
+          padding: '20px', 
+          fontFamily: 'Arial', 
+          fontSize: '16px',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <div style={{
+            backgroundColor: '#1a1a1a',
+            border: '2px solid #ff4444',
+            borderRadius: '8px',
+            padding: '30px',
+            maxWidth: '600px',
+            width: '100%'
+          }}>
+            <h2 style={{ color: '#ff4444', marginBottom: '15px' }}>Runtime Error Detected</h2>
+            <p style={{ marginBottom: '20px' }}>An error occurred while rendering the page. This debugging overlay helps identify white screen issues.</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              style={{ 
+                marginTop: '10px', 
+                padding: '12px 24px', 
+                backgroundColor: '#007bff', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '6px', 
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      );
     }
 
     return this.props.children;

@@ -15,7 +15,7 @@ const Hero = () => {
     }
   };
   return <>
-    <section className="relative min-h-screen overflow-hidden">
+    <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-primary/20 to-teal/30">
       {/* Animated Landscape Background */}
       <AnimatedLandscape />
       

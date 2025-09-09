@@ -32,7 +32,7 @@ const Index = () => {
       <div id="pools" />
       <PoolCatalog />
       <div id="spas" />
-      <LazySection>
+      <LazySection eager={true}>
         <SpaCatalog />
       </LazySection>
       <LazySection>
