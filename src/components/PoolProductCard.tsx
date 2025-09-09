@@ -659,7 +659,7 @@ const PoolProductCard = ({
         
         {/* Category Badge overlay */}
         <div className="absolute top-4 left-4">
-<Badge className={`${getCategoryColor(pool.category)} text-white capitalize font-medium px-3 py-1`}>
+        <Badge className={`${getCategoryColor(pool.category)} text-white capitalize font-medium px-3 py-1`}>
             {pool.category === 'standard' ? 'Wonderful' : pool.category}
           </Badge>
         </div>
@@ -691,7 +691,7 @@ const PoolProductCard = ({
             </Badge>}
         </div>
         
-{/* Price */}
+      {/* Price */}
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
@@ -701,8 +701,8 @@ const PoolProductCard = ({
             <Badge variant="secondary" className="ml-2 text-[10px] px-2 py-0.5">15% OFF</Badge>
           </div>
           <div className="flex items-center gap-2 pl-6">
-            <span className="text-sm text-muted-foreground line-through">${pool.price.toLocaleString()}</span>
-            <span className="text-base font-semibold text-primary">${Math.round(pool.price * 0.85).toLocaleString()}</span>
+            
+            <span className="text-base font-semibold text-primary mx-[70px]">${Math.round(pool.price * 0.85).toLocaleString()}</span>
           </div>
           {pool.category === 'deluxe' && <div className="flex items-center gap-2">
               
@@ -756,12 +756,7 @@ const PoolProductCard = ({
                   finish: finish.name
                 }))}>
                         <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <OptimizedImage 
-                            src={finish.image} 
-                            alt={finish.name} 
-                            className="w-full h-full object-cover" 
-                            sizeConfig="thumbnail"
-                          />
+                          <OptimizedImage src={finish.image} alt={finish.name} className="w-full h-full object-cover" sizeConfig="thumbnail" />
                         </div>
                         <div className="flex-1 flex flex-col justify-between min-h-0">
                           <p className="text-xs font-medium text-center line-clamp-2">{finish.name}</p>
@@ -833,12 +828,7 @@ const PoolProductCard = ({
                   paverOption: paver.name
                 }))}>
                         <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                          <OptimizedImage 
-                            src={paver.image} 
-                            alt={paver.name} 
-                            className="w-full h-full object-cover" 
-                            sizeConfig="thumbnail"
-                          />
+                          <OptimizedImage src={paver.image} alt={paver.name} className="w-full h-full object-cover" sizeConfig="thumbnail" />
                         </div>
                         <div className="flex-1 flex flex-col justify-between min-h-0">
                           <p className="text-xs font-medium text-center line-clamp-2">{paver.name}</p>
@@ -1088,12 +1078,7 @@ const PoolProductCard = ({
                       tileOption: tile.name
                     }))}>
                                 <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                  <OptimizedImage 
-                                    src={tile.image} 
-                                    alt={tile.name} 
-                                    className="w-full h-full object-cover" 
-                                    sizeConfig="thumbnail"
-                                  />
+                                  <OptimizedImage src={tile.image} alt={tile.name} className="w-full h-full object-cover" sizeConfig="thumbnail" />
                                 </div>
                                 <div className="flex-1 flex flex-col justify-between min-h-0">
                                   <p className="text-xs font-medium text-center line-clamp-2">{tile.name}</p>
