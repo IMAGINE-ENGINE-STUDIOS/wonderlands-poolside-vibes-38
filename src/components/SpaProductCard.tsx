@@ -436,7 +436,12 @@ const SpaProductCard = ({
         {spa.features && spa.features.length > 0 && <div className="space-y-2">
             <h4 className="font-semibold text-sm">Features:</h4>
             <ul className="space-y-1">
-              {spa.features.slice(0, 2).map((feature, idx) => {})}
+              {spa.features.slice(0, 2).map((feature, idx) => (
+                <li key={idx} className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                  <span className="text-xs">{feature}</span>
+                </li>
+              ))}
             </ul>
           </div>}
         

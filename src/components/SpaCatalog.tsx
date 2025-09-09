@@ -33,7 +33,7 @@ const spas: Spa[] = [
     image: "/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.png",
     dimensions: "7' x 7' x 34\"",
     depth: "34\"",
-    features: ["40 Therapeutic Jets", "LED Lighting System", "Digital Controls", "Insulated Shell"],
+    features: ["LED Lighting System", "Digital Controls", "Insulated Shell"],
     galaPoints: 95,
     galaCategory: "Premium Spa Collection",
     installationTimeWeeks: 2,
