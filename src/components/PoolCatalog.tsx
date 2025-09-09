@@ -499,6 +499,19 @@ const pools: Pool[] = [
   heater: false,
   saltSystem: true,
   carbonFiber: true
+}, {
+  model: "Genesis",
+  price: 112600,
+  category: 'premium',
+  image: "/lovable-uploads/2a611c90-6445-41af-aa15-7d223e357e64.png",
+  dimensions: "16′ × 40′ 2″",
+  depth: "3′ 9″ – 8′ 6″",
+  installationTimeWeeks: 7,
+  warrantyYears: "Lifetime",
+  features: ["Salt system included in final price", "Freeform Design", "Large Swimming Area", "15% Discount Applied"],
+  heater: false,
+  saltSystem: true,
+  carbonFiber: true
 }];
 
 // Spa models
