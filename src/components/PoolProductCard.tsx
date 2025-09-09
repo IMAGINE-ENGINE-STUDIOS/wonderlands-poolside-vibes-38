@@ -1275,7 +1275,11 @@ const PoolProductCard = ({
             <div className="mt-4 p-3 bg-gradient-to-r from-primary/10 to-teal/10 rounded-lg border border-primary/30">
               <div className="text-center">
                 <h5 className="text-sm font-medium text-muted-foreground">Total Configuration Price</h5>
-                <div className="text-2xl font-bold text-foreground">${calculateTotalPrice().toLocaleString()}</div>
+                <div className="space-y-1">
+                  <div className="text-sm text-muted-foreground line-through">${Math.round(calculateTotalPrice() / 0.85).toLocaleString()}</div>
+                  <div className="text-2xl font-bold text-foreground">${calculateTotalPrice().toLocaleString()}</div>
+                  <div className="text-sm font-medium text-teal">15% Pool Discount Applied</div>
+                </div>
               </div>
             </div>
 
