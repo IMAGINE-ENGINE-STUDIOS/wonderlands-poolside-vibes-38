@@ -476,6 +476,11 @@ const PoolProductCard = ({
   };
   const calculateTotalPrice = () => {
     let total = getPoolPrice(pool);
+    
+    // Apply 15% discount if pool has "15% Discount Applied" in features
+    if (pool.features?.includes("15% Discount Applied")) {
+      total = total * 0.85;
+    }
 
     // Add 20% markup for concrete construction
     if (extras.concreteConstruction) {
