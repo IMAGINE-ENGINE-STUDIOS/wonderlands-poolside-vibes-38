@@ -104,7 +104,10 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
   return <div className="flex flex-col gap-2 w-full">
       
       
-      {showFinancingOptions}
+      {showFinancingOptions && <Button onClick={handleFinancing} disabled={isFinancingLoading} variant="outline" size={size} className={`${className} ${isFinancingLoading ? 'opacity-50' : ''}`}>
+          <Calculator className="h-4 w-4 mr-2" />
+          {isFinancingLoading ? 'Processing...' : `Finance from $${Math.round(monthlyPayment)}/mo`}
+        </Button>}
     </div>;
 };
 export default StripeCheckoutButton;
