@@ -1431,107 +1431,54 @@ const WonderlandsStudio = () => {
                     </div>
 
                     {/* Pavers */}
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <Label className="text-sm font-medium">Deck Pavers</Label>
-                          <p className="text-xs text-muted-foreground">Beautiful hardscape surfaces</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-sm font-medium">Deck Pavers</Label>
+                        <p className="text-xs text-muted-foreground">Beautiful hardscape surfaces</p>
+                      </div>
+                      <Checkbox
+                        checked={selectedExtras.pavers}
+                        onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, pavers: !!checked })}
+                      />
+                    </div>
+
+                    {selectedExtras.pavers && (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-muted/30 rounded-lg space-y-3">
+                          <h4 className="font-semibold text-sm">Transform Your Pool Area</h4>
+                          <p className="text-xs text-muted-foreground">
+                            Create beautiful hardscape surfaces around your pool with our premium paver collections. 
+                            Choose from Appian, Catalina, or Catalina Grana collections - all featuring multiple styles 
+                            and finishes for the perfect pool deck, patio, or walkway.
+                          </p>
+                          <div className="space-y-2">
+                            <div className="text-xs font-medium">Quick Features:</div>
+                            <ul className="text-xs text-muted-foreground space-y-1">
+                              <li>• Multiple premium collections available</li>
+                              <li>• Slip-resistant surface texture</li>
+                              <li>• Professional installation included</li>
+                              <li>• Uniform pricing: $15/sq ft all styles</li>
+                            </ul>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            checked={selectedExtras.pavers}
-                            onCheckedChange={(checked) => {
-                              const newExtras = { ...selectedExtras, pavers: !!checked };
-                              setSelectedExtras(newExtras);
-                              if (checked) {
-                                setActiveFeatureCarousel('pavers');
-                              } else {
-                                setActiveFeatureCarousel(null);
-                              }
-                            }}
+                        
+                        <div>
+                          <Label className="text-sm font-medium">Surface Area (sq ft)</Label>
+                          <Input
+                            type="number"
+                            value={paverSurfaceArea}
+                            onChange={(e) => setPaverSurfaceArea(e.target.value)}
+                            placeholder="Enter area in square feet"
+                            className="mt-1"
                           />
-                          {selectedExtras.pavers && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                const newCarousel = activeFeatureCarousel === 'pavers' ? null : 'pavers';
-                                setActiveFeatureCarousel(newCarousel);
-                              }}
-                            >
-                              <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'pavers' ? 'rotate-180' : ''}`} />
-                            </Button>
+                          {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
+                            <div className="text-xs text-green-600 font-medium mt-1">
+                              Estimated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()}
+                            </div>
                           )}
                         </div>
                       </div>
-                      {selectedExtras.pavers && activeFeatureCarousel === 'pavers' && (
-                        <div className="space-y-4">
-                          <div className="p-4 bg-muted/30 rounded-lg space-y-3">
-                            <h4 className="font-semibold text-sm">Transform Your Pool Area</h4>
-                            <p className="text-xs text-muted-foreground">
-                              Create beautiful hardscape surfaces around your pool with our premium paver collections. 
-                              Choose from Appian, Catalina, or Catalina Grana collections - all featuring multiple styles 
-                              and finishes for the perfect pool deck, patio, or walkway.
-                            </p>
-                            <div className="space-y-2">
-                              <div className="text-xs font-medium">Quick Features:</div>
-                              <ul className="text-xs text-muted-foreground space-y-1">
-                                <li>• Multiple premium collections available</li>
-                                <li>• Slip-resistant surface texture</li>
-                                <li>• Professional installation included</li>
-                                <li>• Uniform pricing: $15/sq ft all styles</li>
-                              </ul>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <Label className="text-sm font-medium">Surface Area (sq ft)</Label>
-                            <Input
-                              type="number"
-                              value={paverSurfaceArea}
-                              onChange={(e) => setPaverSurfaceArea(e.target.value)}
-                              placeholder="Enter area in square feet"
-                              className="mt-1"
-                            />
-                            {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
-                              <div className="text-xs text-green-600 font-medium mt-1">
-                                Estimated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()}
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div>
-                            <Label className="text-sm font-medium mb-2 block">Paver Collection</Label>
-                            <Carousel className="w-full">
-                              <CarouselContent className="-ml-1">
-                                {paverOptions.filter(paver => paver.name !== 'No Pavers').map((paver) => (
-                                  <CarouselItem key={paver.name} className="pl-1 basis-1/3">
-                                    <div
-                                      className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
-                                        selectedExtras.paverOption === paver.name
-                                          ? 'border-primary shadow-md'
-                                          : 'border-border hover:border-primary/50'
-                                      }`}
-                                      onClick={() => {
-                                        setSelectedExtras({ ...selectedExtras, paverOption: paver.name });
-                                      }}
-                                    >
-                                      <img src={paver.image} alt={paver.name} className="w-full h-16 object-cover rounded" />
-                                      <p className="text-xs font-medium mt-1 truncate">{paver.name}</p>
-                                      <p className="text-xs text-muted-foreground">
-                                        $15/sq ft
-                                      </p>
-                                    </div>
-                                  </CarouselItem>
-                                ))}
-                              </CarouselContent>
-                              <CarouselPrevious />
-                              <CarouselNext />
-                            </Carousel>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    )}
 
                     {/* Screen Enclosure */}
                     <div className="flex items-center justify-between">
