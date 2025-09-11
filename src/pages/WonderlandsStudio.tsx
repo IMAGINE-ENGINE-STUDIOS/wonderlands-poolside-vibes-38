@@ -144,14 +144,23 @@ const tileOptions = [
 
 // Paver options - using consolidated data + existing paverTypes
 const paverOptions = [
-  { name: 'No Pavers', color: '#808080', price: 0, image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png' },
+  { name: 'No Pavers', color: '#808080', price: 0, image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png', collection: 'none' },
   ...paverTypes.map(paver => ({
     name: paver.name,
     color: '#D3D3D3',
     price: 0,
     image: paver.image,
-    collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina') ? 'catalina' : 'standard'
+    collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina-grana') ? 'catalina-grana' : paver.id.includes('catalina') ? 'catalina' : 'standard'
   }))
+];
+
+// Paver categories for dropdown
+const paverCategories = [
+  { value: 'all', label: 'All Collections' },
+  { value: 'appian', label: 'Appian Collection' },
+  { value: 'catalina', label: 'Catalina Collection' },
+  { value: 'catalina-grana', label: 'Catalina Grana Collection' },
+  { value: 'standard', label: 'Standard Collection' }
 ];
 
 const getCategoryColor = (category: string) => {
@@ -216,6 +225,7 @@ const WonderlandsStudio = () => {
     pergolas: false
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
+  const [paverCategory, setPaverCategory] = useState('all');
   const [showExtrasDropdown, setShowExtrasDropdown] = useState(false);
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
   const [activeFeatureCarousel, setActiveFeatureCarousel] = useState<string | null>(null);
@@ -1431,54 +1441,195 @@ const WonderlandsStudio = () => {
                     </div>
 
                     {/* Pavers */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label className="text-sm font-medium">Deck Pavers</Label>
-                        <p className="text-xs text-muted-foreground">Beautiful hardscape surfaces</p>
-                      </div>
-                      <Checkbox
-                        checked={selectedExtras.pavers}
-                        onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, pavers: !!checked })}
-                      />
-                    </div>
-
-                    {selectedExtras.pavers && (
-                      <div className="space-y-4">
-                        <div className="p-4 bg-muted/30 rounded-lg space-y-3">
-                          <h4 className="font-semibold text-sm">Transform Your Pool Area</h4>
-                          <p className="text-xs text-muted-foreground">
-                            Create beautiful hardscape surfaces around your pool with our premium paver collections. 
-                            Choose from Appian, Catalina, or Catalina Grana collections - all featuring multiple styles 
-                            and finishes for the perfect pool deck, patio, or walkway.
-                          </p>
-                          <div className="space-y-2">
-                            <div className="text-xs font-medium">Quick Features:</div>
-                            <ul className="text-xs text-muted-foreground space-y-1">
-                              <li>• Multiple premium collections available</li>
-                              <li>• Slip-resistant surface texture</li>
-                              <li>• Professional installation included</li>
-                              <li>• Uniform pricing: $15/sq ft all styles</li>
-                            </ul>
-                          </div>
-                        </div>
-                        
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
                         <div>
-                          <Label className="text-sm font-medium">Surface Area (sq ft)</Label>
-                          <Input
-                            type="number"
-                            value={paverSurfaceArea}
-                            onChange={(e) => setPaverSurfaceArea(e.target.value)}
-                            placeholder="Enter area in square feet"
-                            className="mt-1"
+                          <Label className="text-sm font-medium">Deck Pavers</Label>
+                          <p className="text-xs text-muted-foreground">Beautiful hardscape surfaces</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={selectedExtras.pavers}
+                            onCheckedChange={(checked) => {
+                              const newExtras = { ...selectedExtras, pavers: !!checked };
+                              setSelectedExtras(newExtras);
+                              if (checked) {
+                                setActiveFeatureCarousel('pavers');
+                              } else {
+                                setActiveFeatureCarousel(null);
+                              }
+                            }}
                           />
-                          {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
-                            <div className="text-xs text-green-600 font-medium mt-1">
-                              Estimated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()}
-                            </div>
+                          {selectedExtras.pavers && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const newCarousel = activeFeatureCarousel === 'pavers' ? null : 'pavers';
+                                setActiveFeatureCarousel(newCarousel);
+                              }}
+                            >
+                              <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'pavers' ? 'rotate-180' : ''}`} />
+                            </Button>
                           )}
                         </div>
                       </div>
-                    )}
+                      {selectedExtras.pavers && activeFeatureCarousel === 'pavers' && (
+                        <div className="space-y-4">
+                          <div className="p-4 bg-muted/30 rounded-lg space-y-3">
+                            <h4 className="font-semibold text-sm">Transform Your Pool Area</h4>
+                            <p className="text-xs text-muted-foreground">
+                              Create beautiful hardscape surfaces around your pool with our premium paver collections. 
+                              Choose from Appian, Catalina, or Catalina Grana collections - all featuring multiple styles 
+                              and finishes for the perfect pool deck, patio, or walkway.
+                            </p>
+                            <div className="space-y-2">
+                              <div className="text-xs font-medium">Quick Features:</div>
+                              <ul className="text-xs text-muted-foreground space-y-1">
+                                <li>• Multiple premium collections available</li>
+                                <li>• Slip-resistant surface texture</li>
+                                <li>• Professional installation included</li>
+                                <li>• Uniform pricing: $15/sq ft all styles</li>
+                              </ul>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <Label className="text-sm font-medium">Surface Area (sq ft)</Label>
+                            <Input
+                              type="number"
+                              value={paverSurfaceArea}
+                              onChange={(e) => setPaverSurfaceArea(e.target.value)}
+                              placeholder="Enter area in square feet"
+                              className="mt-1"
+                            />
+                            {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
+                              <div className="text-xs text-green-600 font-medium mt-1">
+                                Estimated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">Paver Collection</Label>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="w-full justify-between text-sm">
+                                  {paverCategories.find(cat => cat.value === paverCategory)?.label}
+                                  <ChevronDown className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent className="w-full bg-background border border-border">
+                                {paverCategories.map((category) => (
+                                  <div
+                                    key={category.value}
+                                    className="px-2 py-1 text-sm cursor-pointer hover:bg-muted"
+                                    onClick={() => setPaverCategory(category.value)}
+                                  >
+                                    {category.label}
+                                  </div>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                          
+                          <Carousel className="w-full">
+                            <CarouselContent className="-ml-1">
+                              {paverOptions
+                                .filter(paver => paver.name !== 'No Pavers' && (paverCategory === 'all' || paver.collection === paverCategory))
+                                .map((paver) => (
+                                  <CarouselItem key={paver.name} className="pl-1 basis-1/3">
+                                    <div
+                                      className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                        selectedExtras.paverOption === paver.name
+                                          ? 'border-primary shadow-md'
+                                          : 'border-border hover:border-primary/50'
+                                      }`}
+                                      onClick={() => {
+                                        setSelectedExtras({ ...selectedExtras, paverOption: paver.name });
+                                        setActiveFeatureCarousel(null);
+                                      }}
+                                    >
+                                      <img src={paver.image} alt={paver.name} className="w-full h-16 object-cover rounded" />
+                                      <p className="text-xs font-medium mt-1 truncate">{paver.name}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        $15/sq ft
+                                      </p>
+                                    </div>
+                                  </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                            <CarouselPrevious />
+                            <CarouselNext />
+                          </Carousel>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Liners */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <Label className="text-sm font-medium">Premium Liners</Label>
+                          <p className="text-xs text-muted-foreground">Upgrade pool aesthetics</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={selectedExtras.liner}
+                            onCheckedChange={(checked) => {
+                              const newExtras = { ...selectedExtras, liner: !!checked };
+                              setSelectedExtras(newExtras);
+                              if (checked) {
+                                setActiveFeatureCarousel('liners');
+                              } else {
+                                setActiveFeatureCarousel(null);
+                              }
+                            }}
+                          />
+                          {selectedExtras.liner && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const newCarousel = activeFeatureCarousel === 'liners' ? null : 'liners';
+                                setActiveFeatureCarousel(newCarousel);
+                              }}
+                            >
+                              <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'liners' ? 'rotate-180' : ''}`} />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      {selectedExtras.liner && activeFeatureCarousel === 'liners' && (
+                        <Carousel className="w-full">
+                          <CarouselContent className="-ml-1">
+                            {linerOptions.filter(liner => liner.name !== 'Standard Blue').map((liner) => (
+                              <CarouselItem key={liner.name} className="pl-1 basis-1/3">
+                                <div
+                                  className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                    selectedExtras.linerOption === liner.name
+                                      ? 'border-primary shadow-md'
+                                      : 'border-border hover:border-primary/50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedExtras({ ...selectedExtras, linerOption: liner.name });
+                                    setActiveFeatureCarousel(null);
+                                  }}
+                                >
+                                  <img src={liner.image} alt={liner.name} className="w-full h-16 object-cover rounded" />
+                                  <p className="text-xs font-medium mt-1 truncate">{liner.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {liner.price > 0 ? `$${liner.price.toLocaleString()}` : 'Premium'}
+                                  </p>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious />
+                          <CarouselNext />
+                        </Carousel>
+                      )}
+                    </div>
 
                     {/* Screen Enclosure */}
                     <div className="flex items-center justify-between">
