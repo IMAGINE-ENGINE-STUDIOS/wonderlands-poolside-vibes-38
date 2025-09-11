@@ -1266,9 +1266,63 @@ const PoolProductCard = ({
               <div className="text-center">
                 <h5 className="text-sm font-medium text-muted-foreground">Total Configuration Price</h5>
                 <div className="space-y-1">
-                  <div className="text-sm text-muted-foreground line-through">${Math.round(calculateTotalPrice() / 0.85).toLocaleString()}</div>
+                  {pool.features?.includes("15% Discount Applied") && (
+                    <div className="text-sm text-muted-foreground line-through">${(() => {
+                      // Calculate original price before discount
+                      let originalTotal = getPoolPrice(pool);
+                      if (extras.concreteConstruction) originalTotal = originalTotal * 1.2;
+                      
+                      // Add all extras to original price
+                      const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
+                      if (selectedFinish && selectedFinish.price) originalTotal += selectedFinish.price;
+                      
+                      if (extras.heater) {
+                        const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
+                        if (selectedHeater) originalTotal += selectedHeater.price;
+                      }
+                      
+                      if (extras.jets) originalTotal += getExtraPrice('jets') * extras.jetQuantity;
+                      
+                      const linerOption = linerOptions.find(option => option.name === extras.linerOption);
+                      if (linerOption && extras.linerOption !== 'Standard Blue') originalTotal += 4500;
+                      
+                      const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+                      if (tileOption && extras.tiles) originalTotal += tileOption.price;
+                      
+                      const coverOption = coverOptions.find(option => option.name === extras.coverOption);
+                      if (coverOption && extras.cover && coverOption.name !== 'NO COVER') originalTotal += coverOption.price;
+                      
+                      const paverOption = paverOptions.find(option => option.name === extras.paverOption);
+                      if (paverOption) originalTotal += paverOption.price;
+                      
+                      if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+                        originalTotal += parseFloat(paverSurfaceArea) * 15;
+                      }
+                      
+                      if (extras.spa) {
+                        const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
+                        if (selectedSpa) originalTotal += selectedSpa.price;
+                      }
+                      
+                      if (extras.tanningLedge) {
+                        const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
+                        if (selectedLedge) originalTotal += selectedLedge.price;
+                      }
+                      
+                      if (extras.screenEnclosureArea > 0) {
+                        let pricePerSqFt = 15;
+                        if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+                        if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                        originalTotal += extras.screenEnclosureArea * pricePerSqFt;
+                      }
+                      
+                      return Math.round(originalTotal).toLocaleString();
+                    })()}</div>
+                  )}
                   <div className="text-2xl font-bold text-foreground">${calculateTotalPrice().toLocaleString()}</div>
-                  <div className="text-sm font-medium text-teal">15% Pool Discount Applied</div>
+                  {pool.features?.includes("15% Discount Applied") && (
+                    <div className="text-sm font-medium text-teal">15% Pool Discount Applied</div>
+                  )}
                 </div>
               </div>
             </div>
