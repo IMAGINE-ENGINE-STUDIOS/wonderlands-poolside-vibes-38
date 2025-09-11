@@ -25,9 +25,9 @@ import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 
-// Helper function to get pool price (no discounts)
+// Helper function to get pool price with 15% discount applied
 const getPoolPrice = (pool: Pool) => {
-  return pool.price;
+  return Math.round(pool.price * 0.85);
 };
 interface Pool {
   model: string;
@@ -475,12 +475,7 @@ const PoolProductCard = ({
     });
   };
   const calculateTotalPrice = () => {
-    let total = getPoolPrice(pool);
-    
-    // Apply 15% discount if pool has "15% Discount Applied" in features
-    if (pool.features?.includes("15% Discount Applied")) {
-      total = total * 0.85;
-    }
+    let total = getPoolPrice(pool); // Already includes 15% discount
 
     // Add 20% markup for concrete construction
     if (extras.concreteConstruction) {
@@ -700,14 +695,13 @@ const PoolProductCard = ({
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
-            <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
-              ${calculateTotalPrice().toLocaleString()}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-sm text-muted-foreground line-through">${pool.price.toLocaleString()}</span>
+              <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
+                ${getPoolPrice(pool).toLocaleString()}
+              </span>
+            </div>
             <Badge variant="secondary" className="ml-2 text-[10px] px-2 py-0.5">15% OFF</Badge>
-          </div>
-          <div className="flex items-center gap-2 pl-6">
-            
-            <span className="text-base font-semibold text-primary mx-[70px]">${Math.round(pool.price * 0.85).toLocaleString()}</span>
           </div>
           {pool.category === 'deluxe' && <div className="flex items-center gap-2">
               
@@ -1266,63 +1260,59 @@ const PoolProductCard = ({
               <div className="text-center">
                 <h5 className="text-sm font-medium text-muted-foreground">Total Configuration Price</h5>
                 <div className="space-y-1">
-                  {pool.features?.includes("15% Discount Applied") && (
-                    <div className="text-sm text-muted-foreground line-through">${(() => {
-                      // Calculate original price before discount
-                      let originalTotal = getPoolPrice(pool);
-                      if (extras.concreteConstruction) originalTotal = originalTotal * 1.2;
-                      
-                      // Add all extras to original price
-                      const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
-                      if (selectedFinish && selectedFinish.price) originalTotal += selectedFinish.price;
-                      
-                      if (extras.heater) {
-                        const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
-                        if (selectedHeater) originalTotal += selectedHeater.price;
-                      }
-                      
-                      if (extras.jets) originalTotal += getExtraPrice('jets') * extras.jetQuantity;
-                      
-                      const linerOption = linerOptions.find(option => option.name === extras.linerOption);
-                      if (linerOption && extras.linerOption !== 'Standard Blue') originalTotal += 4500;
-                      
-                      const tileOption = tileOptions.find(option => option.name === extras.tileOption);
-                      if (tileOption && extras.tiles) originalTotal += tileOption.price;
-                      
-                      const coverOption = coverOptions.find(option => option.name === extras.coverOption);
-                      if (coverOption && extras.cover && coverOption.name !== 'NO COVER') originalTotal += coverOption.price;
-                      
-                      const paverOption = paverOptions.find(option => option.name === extras.paverOption);
-                      if (paverOption) originalTotal += paverOption.price;
-                      
-                      if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-                        originalTotal += parseFloat(paverSurfaceArea) * 15;
-                      }
-                      
-                      if (extras.spa) {
-                        const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
-                        if (selectedSpa) originalTotal += selectedSpa.price;
-                      }
-                      
-                      if (extras.tanningLedge) {
-                        const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
-                        if (selectedLedge) originalTotal += selectedLedge.price;
-                      }
-                      
-                      if (extras.screenEnclosureArea > 0) {
-                        let pricePerSqFt = 15;
-                        if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
-                        if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
-                        originalTotal += extras.screenEnclosureArea * pricePerSqFt;
-                      }
-                      
-                      return Math.round(originalTotal).toLocaleString();
-                    })()}</div>
-                  )}
+                  <div className="text-sm text-muted-foreground line-through">${(() => {
+                    // Calculate original price before discount
+                    let originalTotal = pool.price; // Original pool price before discount
+                    if (extras.concreteConstruction) originalTotal = originalTotal * 1.2;
+                    
+                    // Add all extras to original price
+                    const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
+                    if (selectedFinish && selectedFinish.price) originalTotal += selectedFinish.price;
+                    
+                    if (extras.heater) {
+                      const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
+                      if (selectedHeater) originalTotal += selectedHeater.price;
+                    }
+                    
+                    if (extras.jets) originalTotal += getExtraPrice('jets') * extras.jetQuantity;
+                    
+                    const linerOption = linerOptions.find(option => option.name === extras.linerOption);
+                    if (linerOption && extras.linerOption !== 'Standard Blue') originalTotal += 4500;
+                    
+                    const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+                    if (tileOption && extras.tiles) originalTotal += tileOption.price;
+                    
+                    const coverOption = coverOptions.find(option => option.name === extras.coverOption);
+                    if (coverOption && extras.cover && coverOption.name !== 'NO COVER') originalTotal += coverOption.price;
+                    
+                    const paverOption = paverOptions.find(option => option.name === extras.paverOption);
+                    if (paverOption) originalTotal += paverOption.price;
+                    
+                    if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+                      originalTotal += parseFloat(paverSurfaceArea) * 15;
+                    }
+                    
+                    if (extras.spa) {
+                      const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
+                      if (selectedSpa) originalTotal += selectedSpa.price;
+                    }
+                    
+                    if (extras.tanningLedge) {
+                      const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
+                      if (selectedLedge) originalTotal += selectedLedge.price;
+                    }
+                    
+                    if (extras.screenEnclosureArea > 0) {
+                      let pricePerSqFt = 15;
+                      if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+                      if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                      originalTotal += extras.screenEnclosureArea * pricePerSqFt;
+                    }
+                    
+                    return Math.round(originalTotal).toLocaleString();
+                  })()}</div>
                   <div className="text-2xl font-bold text-foreground">${calculateTotalPrice().toLocaleString()}</div>
-                  {pool.features?.includes("15% Discount Applied") && (
-                    <div className="text-sm font-medium text-teal">15% Pool Discount Applied</div>
-                  )}
+                  <div className="text-sm font-medium text-teal">15% Pool Discount Applied</div>
                 </div>
               </div>
             </div>
