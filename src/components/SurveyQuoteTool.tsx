@@ -170,6 +170,19 @@ const SurveyQuoteTool = ({
   const calculateQuote = () => {
     if (!pool && !customProduct) return 0;
     let basePrice = pool?.price || customProduct?.price || 0;
+    
+    // Apply pool discounts (15% for all pools, 30% for premium)
+    if (pool?.category === 'premium') {
+      basePrice = Math.round(basePrice * 0.70); // 30% discount
+    } else if (pool) {
+      basePrice = Math.round(basePrice * 0.85); // 15% discount for all pools
+    }
+
+    // Apply No Pavers discount if applicable
+    const hasNoPaversDiscount = extras && (extras as any).paverOption === 'No Pavers';
+    if (hasNoPaversDiscount) {
+      basePrice -= 2000;
+    }
 
     // Add selected options (including screen enclosures with area-based pricing)
     const optionsPrice = selectedOptions.reduce((total, option) => {
