@@ -149,17 +149,7 @@ const SurveyQuoteTool = ({
                 .print-hide { display: none !important; }
                 body { 
                   margin: 0; 
-                  padding: 20px;
-                  background: white !important;
-                  color: black !important;
-                }
-                * { 
-                  -webkit-print-color-adjust: exact !important; 
-                  color-adjust: exact !important;
-                  print-color-adjust: exact !important;
-                  background: white !important;
-                }
-                [data-quote-content] {
+                  padding: 0;
                   background: white !important;
                 }
               }
