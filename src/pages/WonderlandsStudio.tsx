@@ -360,7 +360,13 @@ const WonderlandsStudio = () => {
   const calculateTotalPrice = () => {
     if (!selectedProduct) return 0;
 
+    // Start with discounted pool price
     let total = getProductPrice(selectedProduct);
+
+    // Apply No Pavers discount
+    if (selectedExtras.paverOption === 'No Pavers') {
+      total -= 2000;
+    }
 
     // Add finish cost
     const selectedFinish = finishOptions.find(finish => finish.name === selectedExtras.finish);
@@ -395,8 +401,8 @@ const WonderlandsStudio = () => {
       total += linerOption.price;
     }
 
-    // Add paver surface area cost
-    if (selectedExtras.pavers && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+    // Add paver surface area cost (only if not "No Pavers")
+    if (selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers' && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
       total += parseFloat(paverSurfaceArea) * 15;
     }
 
@@ -408,7 +414,7 @@ const WonderlandsStudio = () => {
       total += selectedExtras.screenEnclosureArea * pricePerSqFt;
     }
 
-    // Add concrete construction cost
+    // Add concrete construction cost (based on discounted pool price)
     if (selectedExtras.concreteConstruction) {
       total += Math.round(getProductPrice(selectedProduct) * 0.2);
     }
@@ -1938,8 +1944,20 @@ const WonderlandsStudio = () => {
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span>Base Price</span>
-                          <span>${getProductPrice(selectedProduct).toLocaleString()}</span>
+                          <span>${selectedProduct.price.toLocaleString()}</span>
                         </div>
+                        {selectedProduct.type === 'pool' && (
+                          <div className="flex justify-between text-sm text-green-600">
+                            <span>Pool Discount ({selectedProduct.category === 'premium' ? '30%' : '15%'} off)</span>
+                            <span>-${(selectedProduct.price - getProductPrice(selectedProduct)).toLocaleString()}</span>
+                          </div>
+                        )}
+                        {selectedExtras.paverOption === 'No Pavers' && (
+                          <div className="flex justify-between text-sm text-green-600">
+                            <span>No Pavers Discount</span>
+                            <span>-$2,000</span>
+                          </div>
+                        )}
                         <Separator />
                       </div>
                       
