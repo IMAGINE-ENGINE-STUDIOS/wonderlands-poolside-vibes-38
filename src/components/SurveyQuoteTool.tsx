@@ -157,6 +157,10 @@ const SurveyQuoteTool = ({
                   -webkit-print-color-adjust: exact !important; 
                   color-adjust: exact !important;
                   print-color-adjust: exact !important;
+                  background: white !important;
+                }
+                [data-quote-content] {
+                  background: white !important;
                 }
               }
             </style>
@@ -632,8 +636,8 @@ const SurveyQuoteTool = ({
               </Button>
             </div>
           </div>) : (/* Professional Quotation Display */
-      <div className="space-y-6" data-quote-content>
-            <div className="bg-white dark:bg-gray-900 border-2 border-orange-400 rounded-lg overflow-hidden">
+      <div className="space-y-6 bg-white p-6" data-quote-content>
+            <div className="bg-white border-2 border-orange-400 rounded-lg overflow-hidden">
               
               {/* Header with Logo */}
               <div className="bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400 p-6 text-white">
