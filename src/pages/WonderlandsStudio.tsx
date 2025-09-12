@@ -424,7 +424,7 @@ const WonderlandsStudio = () => {
     if (selectedExtras.jets) count++;
     if (selectedExtras.tiles) count++;
     if (selectedExtras.linerOption !== 'Standard Blue') count++;
-    if (selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers') count++;
+    if (selectedExtras.paverOption === 'No Pavers' || (selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers')) count++;
     if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureArea > 0) count++;
     if (selectedExtras.concreteConstruction) count++;
     return count;
@@ -537,8 +537,14 @@ const WonderlandsStudio = () => {
       }
     }
 
-    // Add paver surface area cost
-    if (selectedExtras.pavers && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+    // Add paver surface area cost or no pavers discount
+    if (selectedExtras.paverOption === 'No Pavers') {
+      extrasBreakdown.push({
+        name: 'No Pavers (Concrete Deck)',
+        price: -2000,
+        image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+      });
+    } else if (selectedExtras.pavers && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
       extrasBreakdown.push({
         name: `${selectedExtras.paverOption} (${paverSurfaceArea} sq ft)`,
         price: parseFloat(paverSurfaceArea) * 15,
@@ -636,8 +642,13 @@ const WonderlandsStudio = () => {
       });
     }
 
-    // Add paver surface area cost
-    if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+    // Add paver surface area cost or no pavers discount
+    if (selectedExtras.paverOption === 'No Pavers') {
+      extrasArray.push({
+        name: 'No Pavers (Concrete Deck)',
+        price: -2000
+      });
+    } else if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
       extrasArray.push({
         name: `${selectedExtras.paverOption} (${paverSurfaceArea} sq ft)`,
         price: parseFloat(paverSurfaceArea) * 15
@@ -1446,36 +1457,59 @@ const WonderlandsStudio = () => {
                       <div className="flex items-center justify-between mb-2">
                         <div>
                           <Label className="text-sm font-medium">Deck Pavers</Label>
-                          <p className="text-xs text-muted-foreground">Beautiful hardscape surfaces</p>
+                          <p className="text-xs text-muted-foreground">
+                            {selectedExtras.paverOption === 'No Pavers' 
+                              ? 'Standard concrete deck ($2,000 discount applied)' 
+                              : 'Beautiful hardscape surfaces'
+                            }
+                          </p>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            checked={selectedExtras.pavers}
-                            onCheckedChange={(checked) => {
-                              const newExtras = { ...selectedExtras, pavers: !!checked };
-                              setSelectedExtras(newExtras);
-                              if (checked) {
-                                setActiveFeatureCarousel('pavers');
-                              } else {
-                                setActiveFeatureCarousel(null);
-                              }
-                            }}
-                          />
-                          {selectedExtras.pavers && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                const newCarousel = activeFeatureCarousel === 'pavers' ? null : 'pavers';
-                                setActiveFeatureCarousel(newCarousel);
-                              }}
-                            >
-                              <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'pavers' ? 'rotate-180' : ''}`} />
-                            </Button>
-                          )}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <label className="text-xs cursor-pointer flex items-center gap-1">
+                              <input
+                                type="radio"
+                                name="paverChoice"
+                                checked={selectedExtras.paverOption === 'No Pavers'}
+                                onChange={() => {
+                                  setSelectedExtras({ ...selectedExtras, pavers: false, paverOption: 'No Pavers' });
+                                  setActiveFeatureCarousel(null);
+                                }}
+                                className="w-3 h-3"
+                              />
+                              No Pavers (-$2,000)
+                            </label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <label className="text-xs cursor-pointer flex items-center gap-1">
+                              <input
+                                type="radio"
+                                name="paverChoice"
+                                checked={selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers'}
+                                onChange={() => {
+                                  setSelectedExtras({ ...selectedExtras, pavers: true, paverOption: 'Appian Flagstone' });
+                                  setActiveFeatureCarousel('pavers');
+                                }}
+                                className="w-3 h-3"
+                              />
+                              Add Pavers
+                            </label>
+                            {selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  const newCarousel = activeFeatureCarousel === 'pavers' ? null : 'pavers';
+                                  setActiveFeatureCarousel(newCarousel);
+                                }}
+                              >
+                                <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'pavers' ? 'rotate-180' : ''}`} />
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      {selectedExtras.pavers && activeFeatureCarousel === 'pavers' && (
+                      {selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers' && activeFeatureCarousel === 'pavers' && (
                         <div className="space-y-4">
                           <div className="p-4 bg-muted/30 rounded-lg space-y-3">
                             <h4 className="font-semibold text-sm">Transform Your Pool Area</h4>
