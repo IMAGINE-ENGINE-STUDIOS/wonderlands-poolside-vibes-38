@@ -134,32 +134,304 @@ const SurveyQuoteTool = ({
     }
   };
   const handlePrintQuote = () => {
-    const quoteElement = document.querySelector('[data-quote-content]');
-    if (!quoteElement) return;
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
+    if (typeof window !== 'undefined') {
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) return;
+      
+      const currentPoolModel = pool?.model || customProduct?.name || 'Selected Pool';
+      const currentQuote = calculateQuote();
+      
       printWindow.document.write(`
         <!DOCTYPE html>
         <html>
           <head>
-            <title>Pool Configuration Quote</title>
-            <script src="https://cdn.tailwindcss.com"></script>
+            <title>Pool Quote - ${currentPoolModel}</title>
             <style>
+              * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+              }
+              body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: white;
+                color: #333;
+                line-height: 1.4;
+                padding: 20px;
+              }
+              .header {
+                text-align: center;
+                margin-bottom: 30px;
+                border-bottom: 3px solid #f97316;
+                padding-bottom: 20px;
+              }
+              .company-name {
+                font-size: 28px;
+                font-weight: bold;
+                color: #f97316;
+                margin-bottom: 8px;
+              }
+              .quote-title {
+                font-size: 20px;
+                color: #0891b2;
+                margin-bottom: 5px;
+              }
+              .quote-subtitle {
+                color: #666;
+                font-size: 14px;
+              }
+              .content {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+                margin-bottom: 30px;
+              }
+              .section {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 20px;
+                margin-bottom: 20px;
+              }
+              .section-title {
+                font-size: 18px;
+                font-weight: bold;
+                color: #0891b2;
+                margin-bottom: 15px;
+                border-bottom: 2px solid #0891b2;
+                padding-bottom: 5px;
+              }
+              .pool-info {
+                grid-column: 1 / -1;
+                text-align: center;
+                background: linear-gradient(135deg, #0891b2, #f97316);
+                color: white;
+                border: none;
+              }
+              .pool-model {
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 10px;
+              }
+              .pool-details {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                margin-top: 15px;
+              }
+              .detail-item {
+                background: rgba(255,255,255,0.1);
+                padding: 10px;
+                border-radius: 6px;
+                text-align: center;
+              }
+              .detail-label {
+                font-size: 12px;
+                opacity: 0.9;
+                margin-bottom: 5px;
+              }
+              .detail-value {
+                font-weight: bold;
+                font-size: 14px;
+              }
+              .pricing-breakdown {
+                background: white;
+                border: 2px solid #0891b2;
+              }
+              .price-item {
+                display: flex;
+                justify-content: space-between;
+                padding: 8px 0;
+                border-bottom: 1px solid #e2e8f0;
+              }
+              .price-item:last-child {
+                border-bottom: none;
+              }
+              .price-label {
+                font-weight: 500;
+              }
+              .price-value {
+                font-weight: bold;
+                color: #0891b2;
+              }
+              .discount {
+                color: #16a34a !important;
+              }
+              .total-investment {
+                background: linear-gradient(135deg, #f97316, #0891b2);
+                color: white;
+                text-align: center;
+                padding: 25px;
+                border-radius: 8px;
+                margin: 20px 0;
+                grid-column: 1 / -1;
+              }
+              .total-title {
+                font-size: 22px;
+                font-weight: bold;
+                margin-bottom: 10px;
+              }
+              .total-amount {
+                font-size: 36px;
+                font-weight: bold;
+                margin-bottom: 10px;
+              }
+              .total-description {
+                font-size: 14px;
+                opacity: 0.9;
+              }
+              .extras-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                margin-top: 15px;
+              }
+              .extra-item {
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 6px;
+                padding: 12px;
+                text-align: center;
+              }
+              .extra-name {
+                font-weight: bold;
+                font-size: 14px;
+                margin-bottom: 8px;
+                color: #0891b2;
+              }
+              .extra-price {
+                color: #f97316;
+                font-weight: bold;
+              }
+              .included-items {
+                background: #f0f9ff;
+                border: 1px solid #0891b2;
+              }
+              .warranty-info {
+                background: #f0fdf4;
+                border: 1px solid #16a34a;
+              }
+              .footer {
+                text-align: center;
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 2px solid #e2e8f0;
+                color: #666;
+                font-size: 12px;
+              }
+              ul {
+                list-style: none;
+                padding: 0;
+              }
+              li {
+                padding: 4px 0;
+                color: #555;
+              }
               @media print {
-                .print-hide { display: none !important; }
-                body { margin: 0; padding: 20px; }
-                * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+                body { 
+                  background: white !important;
+                  color: black !important;
+                }
+                .section {
+                  break-inside: avoid;
+                }
               }
             </style>
           </head>
           <body>
-            ${quoteElement.outerHTML}
+            <div class="header">
+              <div class="company-name">WONDERLANDS POOLS</div>
+              <div class="quote-title">Personalized Pool Quote</div>
+              <div class="quote-subtitle">Professional Installation & Design Services</div>
+            </div>
+
+            <div class="content">
+              <div class="section pool-info">
+                <div class="pool-model">${currentPoolModel}</div>
+                <div class="pool-details">
+                  ${pool?.dimensions ? `<div class="detail-item"><div class="detail-label">DIMENSIONS</div><div class="detail-value">${pool.dimensions}</div></div>` : ''}
+                  ${pool?.depth ? `<div class="detail-item"><div class="detail-label">DEPTH</div><div class="detail-value">${pool.depth}</div></div>` : ''}
+                  ${pool?.category ? `<div class="detail-item"><div class="detail-label">CATEGORY</div><div class="detail-value">${pool.category.toUpperCase()}</div></div>` : ''}
+                  ${pool?.warrantyYears ? `<div class="detail-item"><div class="detail-label">WARRANTY</div><div class="detail-value">${pool.warrantyYears}</div></div>` : ''}
+                </div>
+              </div>
+
+              <div class="section pricing-breakdown">
+                <div class="section-title">Pricing Breakdown</div>
+                <div class="price-item">
+                  <span class="price-label">Base Pool Price</span>
+                  <span class="price-value">$${(pool?.price || customProduct?.price || 0).toLocaleString()}</span>
+                </div>
+                ${pool ? `<div class="price-item">
+                  <span class="price-label">Pool Discount (${pool.category === 'premium' ? '30%' : '15%'} off)</span>
+                  <span class="price-value discount">-$${((pool.price || 0) - (pool.category === 'premium' ? Math.round((pool.price || 0) * 0.70) : Math.round((pool.price || 0) * 0.85))).toLocaleString()}</span>
+                </div>` : ''}
+                ${extras && (extras as any).paverOption === 'No Pavers' ? `<div class="price-item">
+                  <span class="price-label">No Pavers Discount</span>
+                  <span class="price-value discount">-$2,000</span>
+                </div>` : ''}
+                ${extras?.extrasTotal ? `<div class="price-item">
+                  <span class="price-label">Additional Features</span>
+                  <span class="price-value">+$${extras.extrasTotal.toLocaleString()}</span>
+                </div>` : ''}
+              </div>
+
+              ${extras?.extrasBreakdown && extras.extrasBreakdown.length > 0 ? `<div class="section">
+                <div class="section-title">Selected Features</div>
+                <div class="extras-grid">
+                  ${extras.extrasBreakdown.map((item: any) => `
+                    <div class="extra-item">
+                      <div class="extra-name">${item.name}</div>
+                      <div class="extra-price">+$${item.price.toLocaleString()}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>` : ''}
+
+              <div class="section included-items">
+                <div class="section-title">Included with Every Pool</div>
+                <ul>
+                  <li>• LED lights and water pump</li>
+                  <li>• Waterfall feature</li>
+                  <li>• Salt system</li>
+                  <li>• Professional installation</li>
+                  <li>• Permits and excavation</li>
+                  <li>• ${surveyData.deckWidth || 3}ft paver deck</li>
+                </ul>
+              </div>
+
+              <div class="section warranty-info">
+                <div class="section-title">Warranty Coverage</div>
+                ${extras?.concreteConstruction ? `
+                  <div><strong>Concrete Construction:</strong></div>
+                  <div>• 15 Years Structural Integrity</div>
+                  <div>• 5 Years Finishing</div>
+                ` : `
+                  <div><strong>Pool Structure:</strong> ${pool?.warrantyYears || "Lifetime"}</div>
+                  <div>• Comprehensive structural coverage</div>
+                `}
+                <div style="margin-top: 10px;"><strong>Build Time:</strong> ${extras?.deliveryTime || (extras?.concreteConstruction ? "8-12 weeks+" : "6 weeks")}</div>
+              </div>
+            </div>
+
+            <div class="total-investment">
+              <div class="total-title">Total Investment</div>
+              <div class="total-amount">$${currentQuote.toLocaleString()}</div>
+              <div class="total-description">Complete installation including permits, excavation, and paver deck</div>
+            </div>
+
+            <div class="footer">
+              <div>Contact us: info@wonderlandspools.com | (555) 123-POOL</div>
+              <div>Licensed, Bonded & Insured | Florida Pool Contractor License #PC-12345</div>
+            </div>
+
             <script>
-              window.addEventListener('load', function() {
+              window.onload = function() {
                 setTimeout(function() {
                   window.print();
+                  window.close();
                 }, 500);
-              });
+              };
             </script>
           </body>
         </html>
