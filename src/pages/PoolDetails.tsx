@@ -84,6 +84,11 @@ const poolHeaters = [{
   image: oceanBlueFinish,
   description: 'Professional grade heat pump with advanced controls'
 }, {
+  name: 'Heat/Cool Pump 127K BTU 230V Pentair Ultratemp',
+  price: 8000,
+  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+  description: 'High-capacity heat/cool pump for year-round comfort'
+}, {
   name: 'Gas Heater - Standard',
   price: 3200,
   image: sapphireBlueFinish,

@@ -109,7 +109,8 @@ const poolHeaters = [
   { name: 'Hayward H400FDN Natural Gas', price: 4500, image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png' },
   { name: 'Pentair MasterTemp 400', price: 4200, image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png' },
   { name: 'Raypak 406A Natural Gas', price: 3800, image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png' },
-  { name: 'Jandy JXi 400N', price: 5200, image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png' }
+  { name: 'Jandy JXi 400N', price: 5200, image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png' },
+  { name: 'Heat/Cool Pump 127K BTU 230V Pentair Ultratemp', price: 8000, image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png' }
 ];
 
 // Liner options - using consolidated data
