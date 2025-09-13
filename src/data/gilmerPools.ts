@@ -9,6 +9,7 @@ export const gilmerPools = [
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
-    category: "premium"
+    category: "premium",
+    installationTimeWeeks: 8
   }
 ];

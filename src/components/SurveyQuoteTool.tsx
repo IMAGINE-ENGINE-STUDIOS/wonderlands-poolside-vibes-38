@@ -175,14 +175,14 @@ const SurveyQuoteTool = ({
     if (!pool && !customProduct) return 0;
     let basePrice = pool?.price || customProduct?.price || 0;
     
-    // Apply pool discounts (15% for all pools, 30% for premium)
+    // Apply exact discounts from product configuration (matching product cards)
     if (pool?.category === 'premium') {
       basePrice = Math.round(basePrice * 0.70); // 30% discount
     } else if (pool) {
       basePrice = Math.round(basePrice * 0.85); // 15% discount for all pools
     }
 
-    // Apply No Pavers discount if applicable
+    // Apply No Pavers discount if applicable (matching product cards)
     const hasNoPaversDiscount = extras && (extras as any).paverOption === 'No Pavers';
     if (hasNoPaversDiscount) {
       basePrice -= 2000;
@@ -207,11 +207,9 @@ const SurveyQuoteTool = ({
     }, 0);
     basePrice += optionsPrice;
 
-    // Add extras from product card if provided
+    // Add extras from product card exactly as configured (matching Wonderlands Studio)
     const extrasTotal = (extras as any)?.extrasTotal ? Number((extras as any).extrasTotal) : 0;
     basePrice += extrasTotal;
-
-    // Paver costs are included via extrasTotal only (prevent double counting)
 
     // Florida-specific adjustments
     if (surveyData.soilType === "sand") basePrice *= 0.95; // Easier excavation
@@ -985,11 +983,36 @@ const SurveyQuoteTool = ({
                   <div className="bg-gradient-to-br from-blue-100 to-green-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
                     <h4 className="font-bold text-lg mb-2 text-blue-600">Estimated Build Time</h4>
                     <p className="text-sm">
-                      {extras?.deliveryTime || (extras?.concreteConstruction ? "8-12 weeks+" : "6 weeks")}
+                      {(() => {
+                        // Use accurate build times based on product type
+                        if (extras?.deliveryTime) {
+                          return extras.deliveryTime;
+                        }
+                        
+                        // Concrete construction
+                        if (extras?.concreteConstruction) {
+                          return "18+ weeks";
+                        }
+                        
+                        // Madre Perla (premium concrete pool)
+                        if (pool?.model === "Madre Perla") {
+                          return "18+ weeks";
+                        }
+                        
+                        // Gilmer Glass fiber pools
+                        if (pool?.model === "Extreme 27" || (pool as any)?.brand === "Gilmer Glass") {
+                          return "8+ weeks";
+                        }
+                        
+                        // All other fiber pools, spas, and tanning ledges
+                        return "8+ weeks";
+                      })()}
                     </p>
-                    {extras?.concreteConstruction && <p className="text-xs mt-1 text-muted-foreground">
-                        Extended timeline due to custom concrete construction
-                      </p>}
+                    {(extras?.concreteConstruction || pool?.model === "Madre Perla") && (
+                      <p className="text-xs mt-1 text-muted-foreground">
+                        Extended timeline due to custom concrete construction and engineering requirements
+                      </p>
+                    )}
                   </div>
                 </div>
 
