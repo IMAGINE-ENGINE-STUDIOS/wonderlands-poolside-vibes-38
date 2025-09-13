@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Waves, ArrowLeft } from "lucide-react";
-import { gilmerPools } from "@/components/PoolCatalog";
+import { gilmerPools } from "@/data/gilmerPools";
 import GilmerPoolProductCard from "@/components/GilmerPoolProductCard";
 
 const GilmerPoolsShowcase = () => {

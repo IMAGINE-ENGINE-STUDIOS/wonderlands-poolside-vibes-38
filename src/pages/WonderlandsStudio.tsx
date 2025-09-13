@@ -12,7 +12,8 @@ import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, A
 import { Label } from "@/components/ui/label";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import { useShoppingCart } from "@/components/ShoppingCart";
-import { spas, pools, gilmerPools } from "@/components/PoolCatalog";
+import { spas, pools } from "@/components/PoolCatalog";
+import { gilmerPools } from "@/data/gilmerPools";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
 import { paverTypes } from "@/data/paverData";
 import { 
