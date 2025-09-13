@@ -851,6 +851,9 @@ const WonderlandsStudio = () => {
                               {selectedProduct.dimensions && (
                                 <Badge variant="outline">{selectedProduct.dimensions}</Badge>
                               )}
+                              {selectedProduct.depth && (
+                                <Badge variant="outline">Depth: {selectedProduct.depth}</Badge>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -865,13 +868,7 @@ const WonderlandsStudio = () => {
                         )}
 
                         {/* Pool Specifications */}
-                        <div className="grid grid-cols-2 gap-4">
-                          {selectedProduct.depth && (
-                            <div className="bg-background/50 p-3 rounded-lg border">
-                              <Label className="text-xs font-medium text-muted-foreground">Depth</Label>
-                              <p className="text-sm font-semibold">{selectedProduct.depth}</p>
-                            </div>
-                          )}
+                        <div className="grid grid-cols-1 gap-4">
                           {selectedProduct.warrantyYears && (
                             <div className="bg-background/50 p-3 rounded-lg border">
                               <Label className="text-xs font-medium text-muted-foreground">Warranty</Label>
@@ -884,7 +881,7 @@ const WonderlandsStudio = () => {
                           )}
                         </div>
 
-                        {/* Included Features */}
+                         {/* Included Features */}
                         <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
                           <h3 className="text-sm font-semibold text-green-800 dark:text-green-300 mb-3">
                             ✓ Included at No Extra Cost

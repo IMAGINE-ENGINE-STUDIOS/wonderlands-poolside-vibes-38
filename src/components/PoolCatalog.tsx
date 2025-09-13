@@ -80,7 +80,7 @@ const pools: Pool[] = [
   category: 'premium',
   image: madrePerlaImage,
   dimensions: "20' x 40'",
-  depth: "6'",
+  depth: "3'11 - 9ft",
   installationTimeWeeks: 14,
   warrantyYears: 10,
   features: ["Infinity Edge Design", "Jacuzzi Combo Included", "Premium Finish", "Custom Design"],
