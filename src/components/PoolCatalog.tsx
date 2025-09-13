@@ -73,15 +73,29 @@ const getPoolPrice = (pool: Pool) => {
 const pools: Pool[] = [
 // Most Popular - Standard Series (Special Offers & Best Value)
 {
+  model: "Mother Pearl",
+  price: 102000,
+  category: 'premium',
+  image: "/lovable-uploads/86d04882-f51e-4b4b-9c89-34031c370138.png",
+  dimensions: "20' x 40'",
+  depth: "3'11\" - 9'",
+  installationTimeWeeks: 16,
+  warrantyYears: "10 Years",
+  features: ["Concrete Construction", "Large Swimming Area", "Deep End", "15% Discount Applied", "Premium Quality"],
+  heater: false,
+  saltSystem: false,
+  carbonFiber: false
+},
+{
   model: "Extreme 27",
-  price: 65000,
+  price: 55250,
   category: 'premium',
   image: extremeImage,
   dimensions: "12'6\" x 27'",
   depth: "4'6\"– 5'11\"",
   installationTimeWeeks: 6,
   warrantyYears: "Life Warranty",
-  features: ["Rectangular Design", "Deep End", "Perfect for Swimming Laps", "Modern Aesthetic", "Premium Quality"],
+  features: ["Rectangular Design", "Deep End", "Perfect for Swimming Laps", "Modern Aesthetic", "15% Discount Applied"],
   heater: false,
   saltSystem: false,
   carbonFiber: false

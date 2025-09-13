@@ -26,7 +26,9 @@ const AdvancedSearch = () => {
   // Pool models from PoolCatalog - Complete list in popularity order
   const poolData = [
     // Most Popular - Standard Series (Best Value & Special Offers)
-    { id: 'astoria', name: 'Astoria', category: 'Standard', price: 89999, image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png' },
+    { id: 'mother-pearl', name: 'Mother Pearl', category: 'Premium', price: 102000, image: '/lovable-uploads/86d04882-f51e-4b4b-9c89-34031c370138.png', dimensions: "20' x 40'", depth: "3'11\" - 9'" },
+    { id: 'extreme-27', name: 'Extreme 27', category: 'Premium', price: 55250, image: '/src/assets/pools/extreme-27.jpg', dimensions: "12'6\" x 27'", depth: "4'6\"– 5'11\"" },
+    { id: 'astoria', name: 'Astoria', category: 'Standard', price: 89999, image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png', dimensions: "14' x 35'", depth: "3'-6\" to 6'6\"" },
     { id: 'milan', name: 'Milan', category: 'Standard', price: 45300, image: '/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png' },
     { id: 'jamaica', name: 'Jamaica', category: 'Standard', price: 46100, image: '/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png' },
     { id: 'aruba', name: 'Aruba', category: 'Standard', price: 51300, image: '/lovable-uploads/ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5.png' },
@@ -130,8 +132,32 @@ const AdvancedSearch = () => {
     try {
       const lowerQuery = query.toLowerCase();
       
-      // Pool keywords that should show all pools
-      const poolKeywords = ['pool', 'pools', 'swimming pool', 'swimming pools', 'inground pool', 'fiberglass pool'];
+      // Measurement search - extract dimensions like "16 x 40", "12x28", etc.
+      const measurementMatch = lowerQuery.match(/(\d+)\s*[x×]\s*(\d+)/);
+      let measurementResults = [];
+      
+      if (measurementMatch) {
+        const [, width, length] = measurementMatch;
+        const searchWidth = parseInt(width);
+        const searchLength = parseInt(length);
+        
+        // Find pools with closest dimensions
+        measurementResults = poolData.filter(pool => {
+          if (!pool.dimensions) return false;
+          const dimMatch = pool.dimensions.match(/(\d+)['′]?\s*[x×]\s*(\d+)['′]?/);
+          if (dimMatch) {
+            const [, poolWidth, poolLength] = dimMatch;
+            const poolW = parseInt(poolWidth);
+            const poolL = parseInt(poolLength);
+            // Allow ±2 feet tolerance for matches
+            return Math.abs(poolW - searchWidth) <= 2 && Math.abs(poolL - searchLength) <= 2;
+          }
+          return false;
+        });
+      }
+      
+      // Enhanced pool keywords
+      const poolKeywords = ['pool', 'pools', 'swimming pool', 'swimming pools', 'inground pool', 'fiberglass pool', 'concrete pool', 'big pool', 'large pool', 'small pool', 'medium pool'];
       const showAllPools = poolKeywords.some(keyword => lowerQuery.includes(keyword));
       
       // Search pools - show all if pool keywords match, otherwise filter by name/category
@@ -150,14 +176,15 @@ const AdvancedSearch = () => {
 
       // Enhanced product search with category keywords
       const categoryKeywords = {
-        'finish': ['finish', 'finishes', 'color', 'colors'],
+        'finish': ['finish', 'finishes', 'color', 'colors', 'tiles', 'tile'],
         'liner': ['liner', 'liners'],
-        'tile': ['tile', 'tiles', 'waterline'],
-        'spa': ['spa', 'spas', 'hot tub'],
-        'cover': ['cover', 'covers', 'automatic cover', 'automatic covers', 'pool cover'],
+        'tile': ['tile', 'tiles', 'waterline', 'finishes'],
+        'spa': ['spa', 'spas', 'hot tub', 'jacuzzi', 'with spa'],
+        'cover': ['cover', 'covers', 'automatic cover', 'automatic covers', 'pool cover', 'automatic pool cover'],
         'enclosure': ['screen', 'enclosure', 'screen enclosure'],
-        'paver': ['paver', 'pavers', 'decking'],
-        'ledge': ['tanning ledge', 'ledge', 'sun shelf'],
+        'paver': ['paver', 'pavers', 'decking', 'flooring'],
+        'ledge': ['tanning ledge', 'ledge', 'sun shelf', 'tanning', 'big', 'large', 'small', 'medium'],
+        'heater': ['heater', 'heating', 'pool heater', 'heat pump'],
         'appointment': ['appointment', 'schedule', 'consultation', 'meet']
       };
 
@@ -208,7 +235,24 @@ const AdvancedSearch = () => {
       }));
 
       productResults = [...productResults, ...regularResults];
-      setSearchResults([...poolResults, ...productResults]);
+      // Combine measurement results with regular search results
+      let finalResults = [...poolResults, ...productResults];
+      if (measurementResults.length > 0) {
+        const measurementPoolResults = measurementResults.map(pool => ({
+          id: pool.id,
+          name: `${pool.name} (${pool.dimensions})`,
+          category: pool.category,
+          price: pool.price,
+          image: pool.image,
+          type: 'pool' as const
+        }));
+        // Prioritize measurement matches
+        finalResults = [...measurementPoolResults, ...finalResults.filter(r => 
+          !measurementPoolResults.some(mr => mr.id === r.id)
+        )];
+      }
+      
+      setSearchResults(finalResults);
       setShowResults(true);
     } catch (error) {
       console.error('Search error:', error);
