@@ -530,6 +530,19 @@ const pools: Pool[] = [
   heater: false,
   saltSystem: true,
   carbonFiber: true
+}, {
+  model: "Extreme 27",
+  price: 85000,
+  category: 'premium',
+  image: "/lovable-uploads/gilmer-extreme-27.jpeg",
+  dimensions: "12'6\" x 27'",
+  depth: "4'6\"– 5'11\"",
+  installationTimeWeeks: 6,
+  warrantyYears: "Life Warranty",
+  features: ["Gilmer Glass Fiber Pool", "Life Warranty", "Premium Construction", "Ocean Blue Finish"],
+  heater: false,
+  saltSystem: false,
+  carbonFiber: true
 }];
 
 // Spa models
