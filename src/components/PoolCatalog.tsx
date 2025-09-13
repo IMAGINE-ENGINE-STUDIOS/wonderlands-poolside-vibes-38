@@ -15,6 +15,9 @@ import { Waves, Sparkles, Flame, Plus, Sun } from "lucide-react";
 // Import shared pool data
 import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
 
+// Import Madre Perla pool image
+import madrePerlaImage from "@/assets/pools/madre-perla.jpg";
+
 // Debug logging
 console.log('PoolCatalog - poolTiles:', poolTiles);
 console.log('PoolCatalog - poolLiners:', poolLiners);
@@ -70,6 +73,21 @@ const getPoolPrice = (pool: Pool) => {
   return pool.price;
 };
 const pools: Pool[] = [
+// Premium Infinity Concrete Pool
+{
+  model: "Madre Perla",
+  price: 125000,
+  category: 'premium',
+  image: madrePerlaImage,
+  dimensions: "20' x 40'",
+  depth: "6'",
+  installationTimeWeeks: 8,
+  warrantyYears: 10,
+  features: ["Infinity Edge Design", "Concrete Construction", "All Options Included", "Premium Finish", "Custom Design"],
+  heater: true,
+  saltSystem: true,
+  carbonFiber: true
+},
 // Most Popular - Standard Series (Special Offers & Best Value)
 {
   model: "Astoria",
