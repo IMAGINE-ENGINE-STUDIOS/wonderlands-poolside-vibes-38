@@ -149,9 +149,36 @@ const SurveyQuoteTool = ({
                 .print-hide { display: none !important; }
                 body { 
                   margin: 0; 
-                  padding: 0;
+                  padding: 20px;
                   background: white !important;
+                  font-family: system-ui, -apple-system, sans-serif;
                 }
+                * {
+                  print-color-adjust: exact;
+                  -webkit-print-color-adjust: exact;
+                }
+                .bg-gradient-to-r {
+                  background: linear-gradient(to right, var(--tw-gradient-stops)) !important;
+                }
+                .from-orange-500 { --tw-gradient-from: #f97316; }
+                .via-pink-500 { --tw-gradient-via: #ec4899; }
+                .to-teal-500 { --tw-gradient-to: #14b8a6; }
+                .text-white { color: white !important; }
+                .rounded-lg { border-radius: 0.5rem; }
+                .p-6 { padding: 1.5rem; }
+                .text-center { text-align: center; }
+                .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+                .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+                .font-bold { font-weight: 700; }
+                .mb-2 { margin-bottom: 0.5rem; }
+                .grid { display: grid; }
+                .gap-4 { gap: 1rem; }
+                .border { border: 1px solid #e5e7eb; }
+                .shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+              }
+              @page {
+                margin: 0.5in;
+                size: auto;
               }
             </style>
           </head>
@@ -162,7 +189,7 @@ const SurveyQuoteTool = ({
                 setTimeout(function() {
                   window.print();
                   window.close();
-                }, 500);
+                }, 1000);
               });
             </script>
           </body>
@@ -371,7 +398,7 @@ const SurveyQuoteTool = ({
     }
     
     // Open Calendly scheduling link in new tab
-    const calendlyUrl = "https://calendly.com/wonderlands-pools/consultation"; // Replace with your actual Calendly link
+    const calendlyUrl = "https://calendly.com/wonderlands-pools/consultation";
     window.open(calendlyUrl, '_blank');
   };
   if (!pool && !customProduct) return null;
@@ -999,6 +1026,11 @@ const SurveyQuoteTool = ({
                           return "18+ weeks";
                         }
                         
+                        // Concrete construction for any pool
+                        if (extras?.concreteConstruction) {
+                          return "18+ weeks";
+                        }
+                        
                         // Gilmer Glass fiber pools
                         if (pool?.model === "Extreme 27" || (pool as any)?.brand === "Gilmer Glass") {
                           return "8+ weeks";
@@ -1011,6 +1043,11 @@ const SurveyQuoteTool = ({
                     {(extras?.concreteConstruction || pool?.model === "Madre Perla") && (
                       <p className="text-xs mt-1 text-muted-foreground">
                         Extended timeline due to custom concrete construction and engineering requirements
+                      </p>
+                    )}
+                    {(pool?.model === "Extreme 27" || (pool as any)?.brand === "Gilmer Glass") && !extras?.concreteConstruction && (
+                      <p className="text-xs mt-1 text-muted-foreground">
+                        Fiber pool construction timeline includes delivery and installation
                       </p>
                     )}
                   </div>

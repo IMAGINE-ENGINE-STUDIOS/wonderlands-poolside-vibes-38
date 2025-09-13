@@ -33,6 +33,8 @@ interface GilmerPoolCardProps {
     warranty: string;
     brand: string;
     type: string;
+    installationTimeWeeks?: number;
+    concreteInstallationWeeks?: number;
   };
 }
 
@@ -195,12 +197,20 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
     return total;
   };
 
+  const getInstallationTime = () => {
+    if (extras.concreteConstruction) {
+      return pool.concreteInstallationWeeks || 18;
+    }
+    return pool.installationTimeWeeks || 8;
+  };
+
   const handleAddToCart = () => {
     const extrasTotal = calculateExtrasTotal();
     const totalPrice = pool.price + extrasTotal;
     
     // Convert extras to array format for cart compatibility
     const extrasArray = [];
+    extrasArray.push({ name: `Color: ${extras.colorFinish}`, price: 0 });
     if (extras.pavers) extrasArray.push({ name: `Pavers: ${extras.paverOption}`, price: paverOptions.find(p => p.name === extras.paverOption)?.price || 0 });
     if (extras.screenEnclosure) extrasArray.push({ name: `Screen Enclosure: ${extras.screenEnclosureQuality}`, price: (screenEnclosureQualities.find(q => q.name === extras.screenEnclosureQuality)?.price || 0) * (extras.screenEnclosureArea / 1000) });
     if (extras.poolHeater) extrasArray.push({ name: `Heater: ${extras.heaterModel}`, price: heaterOptions.find(h => h.name === extras.heaterModel)?.price || 0 });
@@ -216,7 +226,9 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
       price: totalPrice,
       image: pool.image,
       category: 'Gilmer Glass Pool',
-      extras: extrasArray
+      extras: extrasArray,
+      installationTimeWeeks: getInstallationTime(),
+      constructionType: extras.concreteConstruction ? 'Concrete' : 'Fiber'
     };
     
     addToCart(productData);
@@ -252,6 +264,10 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
               </Badge>
               <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
                 {pool.type}
+              </Badge>
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                Installation: {getInstallationTime()} weeks
               </Badge>
             </div>
           </div>
@@ -484,7 +500,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
                 />
                 <div className="flex items-center space-x-1">
                   <Home size={16} className="text-gray-600" />
-                  <span className="font-medium">Concrete Construction (+$15,000)</span>
+                  <span className="font-medium">Concrete Construction (+$15,000) - {pool.concreteInstallationWeeks || 18} weeks</span>
                 </div>
               </label>
             </div>

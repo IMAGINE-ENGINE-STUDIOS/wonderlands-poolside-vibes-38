@@ -308,8 +308,15 @@ const AdvancedSearch = () => {
   }, [searchQuery]);
 
   const handleResultClick = (result: SearchResult) => {
-    // All products should navigate to Wonderlands Studio
-    navigate('/wonderlands-studio');
+    // Navigate to Wonderlands Studio with the selected product parameters
+    const params = new URLSearchParams({
+      model: result.name,
+      price: result.price.toString(),
+      category: result.category,
+      ...(result.image && { image: encodeURIComponent(result.image) })
+    });
+    
+    navigate(`/wonderlands-studio?${params.toString()}`);
     setShowResults(false);
     setSearchQuery('');
   };

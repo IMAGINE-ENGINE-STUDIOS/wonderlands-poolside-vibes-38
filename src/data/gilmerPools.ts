@@ -10,6 +10,7 @@ export const gilmerPools = [
     brand: "Gilmer Glass",
     type: "Fiber Pool",
     category: "premium",
-    installationTimeWeeks: 8
+    installationTimeWeeks: 8,
+    concreteInstallationWeeks: 18
   }
 ];

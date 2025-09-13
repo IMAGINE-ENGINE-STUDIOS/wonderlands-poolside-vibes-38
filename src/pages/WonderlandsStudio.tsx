@@ -242,15 +242,51 @@ const WonderlandsStudio = () => {
     const dimensions = urlParams.get('dimensions');
     
     if (model && price) {
-      const productFromUrl: Product = {
-        model: model,
-        price: parseInt(price),
-        category: category || 'standard',
-        image: image ? decodeURIComponent(image) : undefined,
-        dimensions: dimensions ? decodeURIComponent(dimensions) : undefined,
-        type: 'pool'
-      };
-      setSelectedProduct(productFromUrl);
+      // First try to find the product in our existing data
+      let foundProduct: Product | null = null;
+      
+      // Check in pools array
+      const poolMatch = pools.find(p => p.model === model);
+      if (poolMatch) {
+        foundProduct = { ...poolMatch, type: 'pool' as const };
+        setActiveTab('pools');
+      }
+      
+      // Check in Gilmer pools
+      const gilmerMatch = gilmerPools.find(p => p.model === model);
+      if (gilmerMatch) {
+        foundProduct = { ...gilmerMatch, type: 'pool' as const, name: gilmerMatch.model };
+        setActiveTab('pools');
+      }
+      
+      // Check in spas
+      const spaMatch = spas.find(s => s.model === model);
+      if (spaMatch) {
+        foundProduct = { ...spaMatch, type: 'spa' as const, name: spaMatch.model };
+        setActiveTab('spas');
+      }
+      
+      // Check in tanning ledges
+      const ledgeMatch = tanningLedges.find(l => l.name === model);
+      if (ledgeMatch) {
+        foundProduct = { ...ledgeMatch, type: 'tanning-ledge' as const, model: ledgeMatch.name, category: 'premium' };
+        setActiveTab('tanning-ledges');
+      }
+      
+      // If not found in our data, create from URL params
+      if (!foundProduct) {
+        foundProduct = {
+          model: model,
+          price: parseInt(price),
+          category: category || 'standard',
+          image: image ? decodeURIComponent(image) : undefined,
+          dimensions: dimensions ? decodeURIComponent(dimensions) : undefined,
+          type: 'pool'
+        };
+        setActiveTab('pools');
+      }
+      
+      setSelectedProduct(foundProduct);
       setLeftSidebarCollapsed(true);
     }
   }, []);
