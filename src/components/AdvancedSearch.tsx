@@ -307,12 +307,8 @@ const AdvancedSearch = () => {
   }, [searchQuery]);
 
   const handleResultClick = (result: SearchResult) => {
-    if (result.type === 'pool') {
-      navigate(`/pool-details/${result.id}`);
-    } else {
-      // For other products, you might want to show a modal or navigate to a product page
-      console.log('Product clicked:', result);
-    }
+    // All products should navigate to Wonderlands Studio
+    navigate('/wonderlands-studio');
     setShowResults(false);
     setSearchQuery('');
   };
