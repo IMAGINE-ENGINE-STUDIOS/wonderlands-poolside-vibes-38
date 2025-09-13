@@ -173,6 +173,21 @@ const SurveyQuoteTool = ({
   };
   const calculateQuote = () => {
     if (!pool && !customProduct) return 0;
+    
+    // If we have extras from product card, use that total directly (it already includes discounts and all calculations)
+    if (extras && (extras as any).extrasTotal !== undefined) {
+      let total = Number((extras as any).extrasTotal);
+      
+      // Only apply Florida-specific adjustments on top of the already calculated total
+      if (surveyData.soilType === "sand") total *= 0.95; // Easier excavation
+      if (surveyData.soilType === "clay") total *= 1.1; // Harder excavation
+      if (surveyData.accessWidth === "narrow") total *= 1.05; // Access difficulty
+      if (surveyData.yardSize === "large") total *= 1.02; // More landscaping
+      
+      return Math.round(total);
+    }
+    
+    // Fallback for custom products or when no extras are provided
     let basePrice = pool?.price || customProduct?.price || 0;
     
     // Apply pool discounts (15% for all pools, 30% for premium)
@@ -180,12 +195,6 @@ const SurveyQuoteTool = ({
       basePrice = Math.round(basePrice * 0.70); // 30% discount
     } else if (pool) {
       basePrice = Math.round(basePrice * 0.85); // 15% discount for all pools
-    }
-
-    // Apply No Pavers discount if applicable
-    const hasNoPaversDiscount = extras && (extras as any).paverOption === 'No Pavers';
-    if (hasNoPaversDiscount) {
-      basePrice -= 2000;
     }
 
     // Add selected options (including screen enclosures with area-based pricing)
@@ -206,12 +215,6 @@ const SurveyQuoteTool = ({
       return total + option.price;
     }, 0);
     basePrice += optionsPrice;
-
-    // Add extras from product card if provided
-    const extrasTotal = (extras as any)?.extrasTotal ? Number((extras as any).extrasTotal) : 0;
-    basePrice += extrasTotal;
-
-    // Paver costs are included via extrasTotal only (prevent double counting)
 
     // Florida-specific adjustments
     if (surveyData.soilType === "sand") basePrice *= 0.95; // Easier excavation
