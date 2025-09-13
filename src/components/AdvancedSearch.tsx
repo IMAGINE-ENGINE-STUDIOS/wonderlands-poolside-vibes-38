@@ -82,6 +82,8 @@ const AdvancedSearch = () => {
     { id: 'serenity', name: 'Serenity Spa', category: 'Spa', price: 26000, image: '/lovable-uploads/e3bbb69b-9699-4d9e-aca9-8c98b50f2c78.png' },
     { id: 'tranquil', name: 'Tranquil Spa', category: 'Spa', price: 26000, image: '/lovable-uploads/7edc4a89-7438-4f88-81f4-8beea8152f07.png' },
     { id: 'oasis', name: 'Oasis Spa', category: 'Spa', price: 28000, image: '/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.png' },
+    { id: 'celestial', name: 'Celestial Spa', category: 'Spa', price: 30000, image: '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.png' },
+    { id: 'paradise-spa', name: 'Paradise Spa', category: 'Spa', price: 32000, image: '/lovable-uploads/155c5b3a-8bd3-4060-8141-7cf76cb9f153.png' },
     
     // Pool finishes from PoolFinishesSection
     { id: 'sapphire-blue-crystal', name: 'Sapphire Blue Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png' },
@@ -89,6 +91,15 @@ const AdvancedSearch = () => {
     { id: 'night-sky-crystal', name: 'Night Sky Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/90fe0136-31f1-4fa3-b816-56a7a74484fa.png' },
     { id: 'shale-gray-crystal', name: 'Shale Gray Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/15032ed4-f745-4152-ae9b-c26fdb52f68c.png' },
     { id: 'coastal-bronze-crystal', name: 'Coastal Bronze Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/b1abd5c3-af2e-46fa-82be-5db27d20a388.png' },
+    { id: 'aquamarine-crystal', name: 'Aquamarine Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/0c70745d-4bf3-4394-8fb2-da6024bf72b9.png' },
+    { id: 'lagoon-blue-crystal', name: 'Lagoon Blue Crystal', category: 'Finish', price: 3500, image: '/lovable-uploads/805c3cea-4684-4e5b-acae-3405dc854aac.png' },
+    
+    // Pool tiles from PoolTilesSection
+    { id: 'glass-mosaic-azure', name: 'Glass Mosaic Azure Tiles', category: 'Tile', price: 18, image: '/lovable-uploads/d1c1d059-1d8d-4481-9f17-d2a5e2f89ebd.png' },
+    { id: 'ceramic-ocean-wave', name: 'Ceramic Ocean Wave Tiles', category: 'Tile', price: 15, image: '/lovable-uploads/ee0c59a8-87bb-4b74-b6e9-9eeba3633e9f.png' },
+    { id: 'porcelain-tropical', name: 'Porcelain Tropical Tiles', category: 'Tile', price: 22, image: '/lovable-uploads/96a7bfbb-d930-451c-a0cd-1d8297bb7512.png' },
+    { id: 'stone-natural', name: 'Natural Stone Tiles', category: 'Tile', price: 28, image: '/lovable-uploads/86d04882-f51e-4b4b-9c89-34031c370138.png' },
+    { id: 'marble-luxury', name: 'Luxury Marble Tiles', category: 'Tile', price: 35, image: '/lovable-uploads/0eed319b-cfe9-4a44-b1b6-da0171c95beb.png' },
     
     // Pool liners from LinersSection
     { id: 'paradise', name: 'Paradise Glass Liner', category: 'Liner', price: 4500, image: '/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.png' },
@@ -100,12 +111,22 @@ const AdvancedSearch = () => {
     { id: 'appian-collection', name: 'Appian Collection Pavers', category: 'Paver', price: 15, image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png' },
     { id: 'catalina-grana', name: 'Catalina Grana Collection', category: 'Paver', price: 15, image: '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png' },  
     { id: 'catalina-collection', name: 'Catalina Collection Pavers', category: 'Paver', price: 15, image: '/lovable-uploads/9acbe973-a637-476f-bd20-bf7493afcc0c.png' },
+    { id: 'stone-pavers', name: 'Natural Stone Pavers', category: 'Paver', price: 20, image: '/lovable-uploads/6b61d42e-89c2-4405-aa03-4e19c28d811c.png' },
+    { id: 'travertine-pavers', name: 'Travertine Pavers', category: 'Paver', price: 25, image: '/lovable-uploads/a84464cb-7451-4d9f-8ac1-be6bca2a816f.png' },
+    
+    // Pool heaters and equipment
+    { id: 'gas-heater', name: 'Natural Gas Pool Heater', category: 'Heater', price: 3500, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png' },
+    { id: 'electric-heater', name: 'Electric Pool Heater', category: 'Heater', price: 2800, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png' },
+    { id: 'heat-pump', name: 'Heat Pump Pool Heater', category: 'Heater', price: 4200, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png' },
+    { id: 'solar-heater', name: 'Solar Pool Heater', category: 'Heater', price: 5000, image: '/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png' },
     
     // Automatic covers from AutomaticCoversSection
     { id: 'eclipse', name: 'Eclipse Automatic Cover', category: 'Cover', price: 22000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png' },
     { id: 'cs3000', name: 'CS3000 Automatic Cover', category: 'Cover', price: 24000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png' },
     { id: 'infinity-4000', name: 'Infinity 4000 Cover', category: 'Cover', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png' },
     { id: 'atom', name: 'Atom Automatic Cover', category: 'Cover', price: 22000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png' },
+    { id: 'safety-cover', name: 'Safety Pool Cover', category: 'Cover', price: 1800, image: '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png' },
+    { id: 'solar-cover', name: 'Solar Pool Cover', category: 'Cover', price: 800, image: '/lovable-uploads/c5cd2f96-d31a-446b-943b-6dd1620f6521.png' },
     
     // Screen enclosures from ScreenEnclosureSection
     { id: 'standard-screen', name: 'Standard Screen Enclosure', category: 'Screen Enclosure', price: 15, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png' },
@@ -115,7 +136,9 @@ const AdvancedSearch = () => {
     // Tanning ledges from TanningLedgeSection  
     { id: 'genesis', name: 'Genesis Tanning Ledge', category: 'Tanning Ledge', price: 22000, image: '/lovable-uploads/2af253b1-b9be-487f-a998-476d396772c4.png' },
     { id: 'hermosa', name: 'Hermosa Tanning Ledge', category: 'Tanning Ledge', price: 24000, image: '/lovable-uploads/8228c334-6fd7-4b29-afae-98628493480d.png' },
-    { id: 'rectangle', name: 'Rectangle Tanning Ledge', category: 'Tanning Ledge', price: 25000, image: '/lovable-uploads/c6bebb1e-d2ed-4591-b81d-0af558ed3e52.png' }
+    { id: 'rectangle', name: 'Rectangle Tanning Ledge', category: 'Tanning Ledge', price: 25000, image: '/lovable-uploads/c6bebb1e-d2ed-4591-b81d-0af558ed3e52.png' },
+    { id: 'curved-ledge', name: 'Curved Tanning Ledge', category: 'Tanning Ledge', price: 26000, image: '/lovable-uploads/14433817-4167-4a58-adb5-306a9d00c818.png' },
+    { id: 'corner-ledge', name: 'Corner Tanning Ledge', category: 'Tanning Ledge', price: 23000, image: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png' }
   ];
 
   const performSearch = async (query: string) => {
@@ -133,11 +156,12 @@ const AdvancedSearch = () => {
       // Enhanced keywords for better search matching
       const poolKeywords = ['pool', 'pools', 'swimming pool', 'swimming pools', 'inground pool', 'fiberglass pool', 'fiberglass pools', 'big pool', 'large pool', 'medium pool', 'small pool'];
       const spaKeywords = ['spa', 'spas', 'hot tub', 'hot tubs', 'jacuzzi', 'jacuzzis', 'with spa', 'spa combo', 'spa package'];
-      const coverKeywords = ['cover', 'covers', 'pool cover', 'pool covers', 'automatic cover', 'automatic covers', 'automatic pool cover', 'automatic pool covers', 'safety cover', 'safety covers'];
+      const coverKeywords = ['cover', 'covers', 'pool cover', 'pool covers', 'automatic cover', 'automatic covers', 'automatic pool cover', 'automatic pool covers', 'safety cover', 'safety covers', 'solar cover', 'solar covers'];
       const tanningKeywords = ['tanning', 'tanning ledge', 'tanning ledges', 'sun shelf', 'sun shelves', 'beach entry', 'shallow end'];
       const finishKeywords = ['finish', 'finishes', 'color', 'colors', 'surface', 'coating'];
-      const tileKeywords = ['tile', 'tiles', 'waterline', 'waterline tile', 'waterline tiles'];
-      const paverKeywords = ['paver', 'pavers', 'decking', 'flooring', 'pool deck', 'patio', 'stone', 'brick'];
+      const tileKeywords = ['tile', 'tiles', 'waterline', 'waterline tile', 'waterline tiles', 'ceramic', 'porcelain', 'mosaic', 'glass mosaic'];
+      const paverKeywords = ['paver', 'pavers', 'decking', 'flooring', 'pool deck', 'patio', 'stone', 'brick', 'travertine'];
+      const heaterKeywords = ['heater', 'heaters', 'pool heater', 'pool heaters', 'heating', 'heat pump', 'gas heater', 'electric heater', 'solar heater'];
       const sizeKeywords = ['big', 'large', 'huge', 'small', 'compact', 'medium', 'mini', 'tiny'];
       
       // Check for measurements pattern (e.g., "16 x 40", "12x28", "16'x40'", etc.)
@@ -230,6 +254,7 @@ const AdvancedSearch = () => {
         'tile': tileKeywords,
         'spa': spaKeywords,
         'cover': coverKeywords,
+        'heater': heaterKeywords,
         'enclosure': ['screen', 'enclosure', 'screen enclosure', 'cage', 'screen cage'],
         'paver': paverKeywords,
         'ledge': tanningKeywords,
@@ -246,6 +271,7 @@ const AdvancedSearch = () => {
       const showAllPavers = categoryKeywords.paver.some(keyword => lowerQuery.includes(keyword));
       const showAllLedges = categoryKeywords.ledge.some(keyword => lowerQuery.includes(keyword));
       const showAllEnclosures = categoryKeywords.enclosure.some(keyword => lowerQuery.includes(keyword));
+      const showAllHeaters = categoryKeywords.heater.some(keyword => lowerQuery.includes(keyword));
       
       // Add appointment/schedule result
       if (categoryKeywords.appointment.some(keyword => lowerQuery.includes(keyword))) {
@@ -266,8 +292,9 @@ const AdvancedSearch = () => {
         if (showAllCovers && product.category.toLowerCase().includes('cover')) return true;
         if (showAllSpas && product.category.toLowerCase().includes('spa')) return true;
         if (showAllTiles && product.category.toLowerCase().includes('tile')) return true;
+        if (showAllHeaters && product.category.toLowerCase().includes('heater')) return true;
         if (showAllPavers && product.category.toLowerCase().includes('paver')) return true;
-        if (showAllLedges && product.category.toLowerCase().includes('ledge')) return true;
+        if (showAllLedges && (product.category.toLowerCase().includes('ledge') || product.category.toLowerCase().includes('tanning'))) return true;
         if (showAllEnclosures && product.category.toLowerCase().includes('enclosure')) return true;
         
         // Enhanced search - check against all category keywords
