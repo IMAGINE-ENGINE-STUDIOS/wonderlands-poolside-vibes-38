@@ -76,7 +76,7 @@ const pools: Pool[] = [
 // Premium Infinity Concrete Pool
 {
   model: "Madre Perla",
-  price: 125000,
+  price: 160000,
   category: 'premium',
   image: madrePerlaImage,
   dimensions: "20' x 40'",
