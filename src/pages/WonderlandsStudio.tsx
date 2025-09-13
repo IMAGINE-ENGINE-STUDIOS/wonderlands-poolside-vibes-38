@@ -12,7 +12,7 @@ import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, A
 import { Label } from "@/components/ui/label";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import { useShoppingCart } from "@/components/ShoppingCart";
-import { spas, pools } from "@/components/PoolCatalog";
+import { spas, pools, gilmerPools } from "@/components/PoolCatalog";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
 import { paverTypes } from "@/data/paverData";
 import { 
@@ -335,7 +335,7 @@ const WonderlandsStudio = () => {
     
     switch (activeTab) {
       case 'pools':
-        products = pools.map(pool => ({ ...pool, type: 'pool' as const }));
+        products = [...pools.map(pool => ({ ...pool, type: 'pool' as const })), ...gilmerPools.map(pool => ({ ...pool, type: 'pool' as const, model: pool.model, name: pool.model }))];
         break;
       case 'spas':
         products = spas.map(spa => ({ ...spa, type: 'spa' as const, name: spa.model }));

@@ -72,6 +72,7 @@ const AdvancedSearch = () => {
 
       // MISSING POOLS - Add these important models
       { id: 'madre-perla', name: 'Madre Perla', category: 'Pool', price: 78500, image: '/lovable-uploads/9e491420-80df-4bb3-9db1-3933d96846ac.png', keywords: ['pool', 'premium', 'madre', 'perla'] },
+      { id: 'extreme-27-gilmer', name: 'Extreme 27 (Gilmer Glass)', category: 'Pool', price: 85000, image: '/lovable-uploads/gilmer-extreme-27.jpeg', keywords: ['pool', 'extreme', 'gilmer', 'glass', 'fiber', '12x27', '12 x 27'] },
       { id: 'extreme-27', name: 'Extreme 27', category: 'Pool', price: 135000, image: '/lovable-uploads/75602748-6f43-4f81-9cbe-a3e8c81db8d4.png', keywords: ['pool', 'extreme', 'large', 'big', 'huge', '16x40', '16 x 40'] },
       { id: 'apollo-14', name: 'Apollo 14', category: 'Pool', price: 72400, image: '/lovable-uploads/31da0c59-77d4-4fa1-838b-cb525acd404b.png', keywords: ['pool', 'premium', 'apollo'] },
       { id: 'ariel-16', name: 'Ariel 16', category: 'Pool', price: 84600, image: '/lovable-uploads/1412e1fb-72ec-4219-a98f-4fcffbd15095.png', keywords: ['pool', 'premium', 'ariel', 'large'] },
