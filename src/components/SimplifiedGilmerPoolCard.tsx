@@ -1,26 +1,15 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Droplets, 
-  Thermometer, 
-  Shield, 
-  Waves, 
-  Palette, 
-  Home,
-  Zap,
-  ShoppingCart,
-  Clock,
-  Award
-} from "lucide-react";
-import { useShoppingCart } from "@/components/ShoppingCart";
+import { useShoppingCart } from "./ShoppingCart";
 import { useToast } from "@/hooks/use-toast";
+import { OptimizedImage } from "./OptimizedImage";
+import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermometer, Home, Zap, Palette } from 'lucide-react';
 
 interface SimplifiedGilmerPoolCardProps {
   pool: {
@@ -46,10 +35,6 @@ interface GilmerOptions {
   screenEnclosureQuality: string;
   poolHeater: boolean;
   heaterModel: string;
-  spaJets: boolean;
-  jetQuantity: number;
-  poolCover: boolean;
-  coverOption: string;
   concreteConstruction: boolean;
 }
 
@@ -66,10 +51,6 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     screenEnclosureQuality: 'Premium',
     poolHeater: false,
     heaterModel: 'Hayward H400FDN Natural Gas',
-    spaJets: false,
-    jetQuantity: 6,
-    poolCover: false,
-    coverOption: 'ProMesh 2000',
     concreteConstruction: false
   });
 
@@ -107,14 +88,6 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     { name: 'Heat/Cool Pump 127K BTU', price: 8000 }
   ];
 
-  // Pool cover options
-  const coverOptions = [
-    { name: 'ProMesh 2000', price: 16000 },
-    { name: 'CS3000 Safety Cover', price: 24000 },
-    { name: 'Infinity 4000 Smart Cover', price: 32000 },
-    { name: 'Atom Loop-Loc Cover', price: 19000 }
-  ];
-
   const toggleOption = (option: keyof GilmerOptions) => {
     setOptions(prev => ({
       ...prev,
@@ -148,15 +121,6 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
       total += heaterPrice;
     }
     
-    if (options.spaJets) {
-      total += options.jetQuantity * 300;
-    }
-    
-    if (options.poolCover) {
-      const coverPrice = coverOptions.find(c => c.name === options.coverOption)?.price || 0;
-      total += coverPrice;
-    }
-    
     if (options.concreteConstruction) {
       total += 15000;
     }
@@ -171,6 +135,21 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     return pool.installationTimeWeeks || 8;
   };
 
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'premium':
+        return 'bg-gradient-to-r from-coral to-orange';
+      case 'deluxe':
+        return 'bg-gradient-to-r from-primary to-teal';
+      case 'standard':
+        return 'bg-gradient-to-r from-[hsl(var(--golden))] to-[hsl(var(--golden-light))]';
+      case 'compact':
+        return 'bg-gradient-to-r from-teal to-primary';
+      default:
+        return 'bg-gradient-to-r from-primary to-teal';
+    }
+  };
+
   const handleAddToCart = () => {
     const extrasTotal = calculateTotal();
     const totalPrice = pool.price + extrasTotal;
@@ -180,8 +159,6 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     if (options.pavers) extrasArray.push({ name: `Pavers: ${options.paverOption}`, price: paverOptions.find(p => p.name === options.paverOption)?.price || 0 });
     if (options.screenEnclosure) extrasArray.push({ name: `Screen Enclosure: ${options.screenEnclosureQuality}`, price: (screenEnclosureQualities.find(q => q.name === options.screenEnclosureQuality)?.price || 0) * (options.screenEnclosureArea / 1000) });
     if (options.poolHeater) extrasArray.push({ name: `Heater: ${options.heaterModel}`, price: heaterOptions.find(h => h.name === options.heaterModel)?.price || 0 });
-    if (options.spaJets) extrasArray.push({ name: `Spa Jets (${options.jetQuantity})`, price: options.jetQuantity * 300 });
-    if (options.poolCover) extrasArray.push({ name: `Cover: ${options.coverOption}`, price: coverOptions.find(c => c.name === options.coverOption)?.price || 0 });
     if (options.concreteConstruction) extrasArray.push({ name: 'Concrete Construction', price: 15000 });
     
     const productData = {
@@ -205,83 +182,79 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-2xl font-bold flex items-center gap-2">
-              <Waves className="h-6 w-6 text-primary" />
-              {pool.brand} {pool.model}
-            </CardTitle>
-            <div className="flex flex-wrap gap-2 mt-2">
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {pool.dimensions}
-              </Badge>
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Droplets className="h-3 w-3" />
-                Depth: {pool.depth}
-              </Badge>
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Award className="h-3 w-3" />
-                {pool.warranty}
-              </Badge>
-              <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
-                {pool.type}
-              </Badge>
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                Installation: {getInstallationTime()}+ weeks
-              </Badge>
-            </div>
+    <Card className="h-full flex flex-col overflow-hidden hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-background via-background to-muted/20">
+      <CardHeader className="pb-4">
+        <div className="flex justify-between items-start mb-3">
+          <div className="space-y-1">
+            <h3 className="text-xl font-bold text-foreground leading-tight">{pool.model}</h3>
+            <p className="text-sm text-muted-foreground font-medium">{pool.dimensions}</p>
           </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold text-primary">
-              ${(pool.price + calculateTotal()).toLocaleString()}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Base: ${pool.price.toLocaleString()}
-              {calculateTotal() > 0 && (
-                <span> + ${calculateTotal().toLocaleString()} extras</span>
-              )}
-            </div>
-          </div>
+          <Badge className={`${getCategoryColor('premium')} text-white border-0 px-3 py-1 text-xs font-semibold shadow-md`}>
+            {pool.brand}
+          </Badge>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="flex-1 space-y-6 px-6 pb-6">
         {/* Pool Image */}
-        <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
-          <img 
-            src={pool.image} 
-            alt={`${pool.brand} ${pool.model}`}
-            className="w-full h-full object-cover"
-          />
+        <div className="relative group">
+          <div className="aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-primary/5 to-teal/5 ring-1 ring-border/50">
+            <OptimizedImage
+              src={pool.image}
+              alt={pool.model}
+              className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+          </div>
         </div>
+
+        {/* Pool Details */}
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-center gap-2 text-sm bg-muted/30 rounded-lg p-2">
+              <Waves className="h-4 w-4 text-primary flex-shrink-0" />
+              <span className="text-muted-foreground">Depth: {pool.depth}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm bg-muted/30 rounded-lg p-2">
+              <Shield className="h-4 w-4 text-primary flex-shrink-0" />
+              <span className="text-muted-foreground">{pool.warranty}</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 text-sm bg-muted/30 rounded-lg p-2">
+            <Clock className="h-4 w-4 text-primary flex-shrink-0" />
+            <span className="text-muted-foreground">{getInstallationTime()} weeks installation</span>
+          </div>
+          
+          <div className="flex items-center gap-2 text-sm bg-muted/30 rounded-lg p-2">
+            <Award className="h-4 w-4 text-primary flex-shrink-0" />
+            <span className="text-muted-foreground">{pool.type}</span>
+          </div>
+        </div>
+
+        <Separator className="my-4" />
 
         {/* Color Selection */}
         <div className="space-y-3">
-          <Label className="text-base font-semibold flex items-center gap-2">
-            <Palette className="h-4 w-4" />
-            Gelcoat Color (Included)
-          </Label>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="flex items-center gap-2">
+            <Palette className="h-4 w-4 text-primary" />
+            <span className="text-sm font-semibold">Gelcoat Color (Included)</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {colorOptions.map((color) => (
               <label
                 key={color.name}
-                className={`flex items-center space-x-2 cursor-pointer p-3 rounded-lg border transition-all ${
+                className={`flex items-center space-x-2 cursor-pointer p-2 rounded-lg border transition-all text-xs ${
                   options.colorFinish === color.name
                     ? 'border-primary bg-primary/10'
                     : 'border-border hover:border-primary/50'
                 }`}
               >
                 <div 
-                  className="w-6 h-6 rounded-full border-2 border-gray-300"
+                  className="w-4 h-4 rounded-full border-2 border-gray-300 flex-shrink-0"
                   style={{ backgroundColor: color.color }}
                 />
-                <div className="flex-1">
-                  <span className="text-sm font-medium">{color.name}</span>
-                </div>
+                <span className="font-medium truncate">{color.name}</span>
                 <input
                   type="radio"
                   name="colorFinish"
@@ -299,9 +272,9 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
 
         {/* Optional Features */}
         <div className="space-y-4">
-          <Label className="text-base font-semibold">Optional Features</Label>
+          <span className="text-sm font-semibold">Optional Features</span>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-3">
             {/* Pavers */}
             <div className="space-y-2">
               <label className="flex items-center space-x-2 cursor-pointer">
@@ -311,12 +284,12 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 />
                 <div className="flex items-center space-x-1">
                   <Home size={16} className="text-orange-500" />
-                  <span className="font-medium">Premium Pavers</span>
+                  <span className="text-sm font-medium">Premium Pavers</span>
                 </div>
               </label>
               {options.pavers && (
                 <Select value={options.paverOption} onValueChange={(value) => updateOption('paverOption', value)}>
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger className="h-8">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -339,13 +312,13 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 />
                 <div className="flex items-center space-x-1">
                   <Shield size={16} className="text-green-500" />
-                  <span className="font-medium">Screen Enclosure</span>
+                  <span className="text-sm font-medium">Screen Enclosure</span>
                 </div>
               </label>
               {options.screenEnclosure && (
                 <div className="space-y-2">
                   <Select value={options.screenEnclosureQuality} onValueChange={(value) => updateOption('screenEnclosureQuality', value)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-8">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -357,12 +330,12 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                     </SelectContent>
                   </Select>
                   <div className="flex items-center space-x-2">
-                    <Label className="text-xs">Area (sq ft):</Label>
+                    <span className="text-xs">Area (sq ft):</span>
                     <Input
                       type="number"
                       value={options.screenEnclosureArea}
                       onChange={(e) => updateOption('screenEnclosureArea', parseInt(e.target.value) || 1000)}
-                      className="w-20 h-8"
+                      className="w-20 h-6 text-xs"
                       min="500"
                       step="100"
                     />
@@ -380,74 +353,18 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 />
                 <div className="flex items-center space-x-1">
                   <Thermometer size={16} className="text-red-500" />
-                  <span className="font-medium">Pool Heater</span>
+                  <span className="text-sm font-medium">Pool Heater</span>
                 </div>
               </label>
               {options.poolHeater && (
                 <Select value={options.heaterModel} onValueChange={(value) => updateOption('heaterModel', value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-8">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {heaterOptions.map((heater) => (
                       <SelectItem key={heater.name} value={heater.name}>
                         {heater.name} (+${heater.price.toLocaleString()})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-
-            {/* Spa Jets */}
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <Checkbox 
-                  checked={options.spaJets} 
-                  onCheckedChange={() => toggleOption('spaJets')} 
-                />
-                <div className="flex items-center space-x-1">
-                  <Zap size={16} className="text-blue-500" />
-                  <span className="font-medium">Spa Jets</span>
-                </div>
-              </label>
-              {options.spaJets && (
-                <div className="flex items-center space-x-2">
-                  <Label className="text-xs">Quantity:</Label>
-                  <Input
-                    type="number"
-                    value={options.jetQuantity}
-                    onChange={(e) => updateOption('jetQuantity', parseInt(e.target.value) || 6)}
-                    className="w-16 h-8"
-                    min="4"
-                    max="12"
-                  />
-                  <span className="text-xs text-muted-foreground">($300 each)</span>
-                </div>
-              )}
-            </div>
-
-            {/* Pool Cover */}
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <Checkbox 
-                  checked={options.poolCover} 
-                  onCheckedChange={() => toggleOption('poolCover')} 
-                />
-                <div className="flex items-center space-x-1">
-                  <Shield size={16} className="text-gray-500" />
-                  <span className="font-medium">Pool Cover</span>
-                </div>
-              </label>
-              {options.poolCover && (
-                <Select value={options.coverOption} onValueChange={(value) => updateOption('coverOption', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {coverOptions.map((cover) => (
-                      <SelectItem key={cover.name} value={cover.name}>
-                        {cover.name} (+${cover.price.toLocaleString()})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -463,8 +380,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   onCheckedChange={() => toggleOption('concreteConstruction')} 
                 />
                 <div className="flex items-center space-x-1">
-                  <Home size={16} className="text-gray-600" />
-                  <span className="font-medium">Concrete Construction (+$15,000) - {pool.concreteInstallationWeeks || 18}+ weeks</span>
+                  <Shield size={16} className="text-gray-600" />
+                  <span className="text-sm font-medium">Concrete Construction (+$15,000)</span>
                 </div>
               </label>
             </div>
@@ -473,15 +390,41 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
 
         <Separator />
 
-        {/* Add to Cart Button */}
-        <div className="flex justify-center">
+        {/* Pricing Section */}
+        <div className="space-y-4">
+          <div className="bg-gradient-to-r from-primary/5 to-teal/5 rounded-xl p-4 border border-primary/10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-muted-foreground">Pool Base Price</span>
+              <span className="text-lg font-bold text-foreground">${pool.price.toLocaleString()}</span>
+            </div>
+            
+            {calculateTotal() > 0 && (
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-muted-foreground">Selected Options</span>
+                  <span className="text-lg font-bold text-foreground">+${calculateTotal().toLocaleString()}</span>
+                </div>
+                <Separator className="my-2" />
+              </>
+            )}
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4 text-primary" />
+                <span className="text-base font-semibold text-foreground">Total Price</span>
+              </div>
+              <span className="text-2xl font-bold text-primary">
+                ${(pool.price + calculateTotal()).toLocaleString()}
+              </span>
+            </div>
+          </div>
+
           <Button 
             onClick={handleAddToCart}
-            size="lg"
-            className="w-full md:w-auto flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+            className="w-full bg-gradient-to-r from-primary to-teal hover:from-primary/90 hover:to-teal/90 text-white font-semibold py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 group"
           >
-            <ShoppingCart className="h-5 w-5" />
-            Add to Cart - ${(pool.price + calculateTotal()).toLocaleString()}
+            <ShoppingCart className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+            Add to Cart
           </Button>
         </div>
       </CardContent>
