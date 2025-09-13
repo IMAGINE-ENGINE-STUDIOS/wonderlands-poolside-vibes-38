@@ -835,21 +835,79 @@ const WonderlandsStudio = () => {
                       )}
                     </div>
                     <div className="mt-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h1 className="text-2xl font-bold">
-                            {selectedProduct.model || selectedProduct.name}
-                          </h1>
-                          <p className="text-3xl font-bold text-primary mt-2">
-                            ${getProductPrice(selectedProduct).toLocaleString()}
-                          </p>
-                          <div className="flex gap-2 mt-2">
-                            <Badge className={getCategoryColor(selectedProduct.category)}>
-                              {selectedProduct.category}
-                            </Badge>
-                            {selectedProduct.dimensions && (
-                              <Badge variant="outline">{selectedProduct.dimensions}</Badge>
-                            )}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h1 className="text-2xl font-bold">
+                              {selectedProduct.model || selectedProduct.name}
+                            </h1>
+                            <p className="text-3xl font-bold text-primary mt-2">
+                              ${getProductPrice(selectedProduct).toLocaleString()}
+                            </p>
+                            <div className="flex gap-2 mt-2">
+                              <Badge className={getCategoryColor(selectedProduct.category)}>
+                                {selectedProduct.category}
+                              </Badge>
+                              {selectedProduct.dimensions && (
+                                <Badge variant="outline">{selectedProduct.dimensions}</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Product Description */}
+                        {selectedProduct.description && (
+                          <div className="bg-muted/30 p-4 rounded-lg">
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {selectedProduct.description}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Pool Specifications */}
+                        <div className="grid grid-cols-2 gap-4">
+                          {selectedProduct.depth && (
+                            <div className="bg-background/50 p-3 rounded-lg border">
+                              <Label className="text-xs font-medium text-muted-foreground">Depth</Label>
+                              <p className="text-sm font-semibold">{selectedProduct.depth}</p>
+                            </div>
+                          )}
+                          {selectedProduct.warrantyYears && (
+                            <div className="bg-background/50 p-3 rounded-lg border">
+                              <Label className="text-xs font-medium text-muted-foreground">Warranty</Label>
+                              <p className="text-sm font-semibold">
+                                {typeof selectedProduct.warrantyYears === 'string' 
+                                  ? selectedProduct.warrantyYears 
+                                  : `${selectedProduct.warrantyYears} Years`}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Included Features */}
+                        <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+                          <h3 className="text-sm font-semibold text-green-800 dark:text-green-300 mb-3">
+                            ✓ Included at No Extra Cost
+                          </h3>
+                          <div className="grid grid-cols-1 gap-2 text-xs text-green-700 dark:text-green-400">
+                            <div className="flex items-center gap-2">
+                              <span>• 3 ft pavers deck around pool</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span>• Salt water system</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span>• Smart Pentair pool pump & filter</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span>• LED lighting system ({selectedProduct.dimensions && selectedProduct.dimensions.includes('16') || selectedProduct.dimensions && selectedProduct.dimensions.includes('20') ? '4 lights' : '2 lights'})</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span>• Engineering drawings & permits</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span>• Premium coping pavers</span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1696,17 +1754,19 @@ const WonderlandsStudio = () => {
                       </div>
                     )}
 
-                    {/* Concrete Construction */}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label className="text-sm font-medium">Concrete Construction</Label>
-                        <p className="text-xs text-muted-foreground">Premium installation method</p>
+                    {/* Concrete Construction - Hide for Madre Perla as it's already concrete */}
+                    {selectedProduct && (selectedProduct.model !== "Madre Perla" && selectedProduct.name !== "Madre Perla") && (
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-sm font-medium">Concrete Construction</Label>
+                          <p className="text-xs text-muted-foreground">Premium installation method</p>
+                        </div>
+                        <Checkbox
+                          checked={selectedExtras.concreteConstruction}
+                          onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, concreteConstruction: !!checked })}
+                        />
                       </div>
-                      <Checkbox
-                        checked={selectedExtras.concreteConstruction}
-                        onCheckedChange={(checked) => setSelectedExtras({ ...selectedExtras, concreteConstruction: !!checked })}
-                      />
-                    </div>
+                    )}
 
                      <Separator />
 
