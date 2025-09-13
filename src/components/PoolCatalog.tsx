@@ -30,6 +30,7 @@ const capecodImage = "/lovable-uploads/8a2b7716-7656-48a0-b1b1-6d276b4b9e73.png"
 const freeformImage = "/lovable-uploads/9382c72a-0c7d-4981-8f03-878d568dd1b2.png";
 const luxuryImage = "/lovable-uploads/8033278d-a737-4b1d-84bf-fd0ac9126406.png";
 const modernImage = "/lovable-uploads/c5385549-a189-4127-a204-c196c165ac55.png";
+import extremeImage from "@/assets/pools/extreme-27.jpg";
 interface Pool {
   model: string;
   price: number;
@@ -71,6 +72,20 @@ const getPoolPrice = (pool: Pool) => {
 };
 const pools: Pool[] = [
 // Most Popular - Standard Series (Special Offers & Best Value)
+{
+  model: "Extreme 27",
+  price: 65000,
+  category: 'premium',
+  image: extremeImage,
+  dimensions: "12'6\" x 27'",
+  depth: "4'6\"– 5'11\"",
+  installationTimeWeeks: 6,
+  warrantyYears: "Life Warranty",
+  features: ["Rectangular Design", "Deep End", "Perfect for Swimming Laps", "Modern Aesthetic", "Premium Quality"],
+  heater: false,
+  saltSystem: false,
+  carbonFiber: false
+},
 {
   model: "Astoria",
   price: 89999,
