@@ -74,9 +74,9 @@ const pools: Pool[] = [
 // Most Popular - Standard Series (Special Offers & Best Value)
 {
   model: "Mother Pearl",
-  price: 102000,
+  price: 130000,
   category: 'premium',
-  image: "/lovable-uploads/86d04882-f51e-4b4b-9c89-34031c370138.png",
+  image: "/src/assets/pools/mother-pearl.jpg",
   dimensions: "20' x 40'",
   depth: "3'11\" - 9'",
   installationTimeWeeks: 16,
@@ -88,7 +88,7 @@ const pools: Pool[] = [
 },
 {
   model: "Extreme 27",
-  price: 55250,
+  price: 72000,
   category: 'premium',
   image: extremeImage,
   dimensions: "12'6\" x 27'",
