@@ -173,6 +173,42 @@ const SurveyQuoteTool = ({
   };
   const calculateQuote = () => {
     if (!pool && !customProduct) return 0;
+    
+    // If we have extras data from the pool card with extrasTotal, use that directly
+    // This ensures the quote matches exactly what's shown in the pool card
+    if (extras && (extras as any).extrasTotal !== undefined) {
+      let totalFromCard = Number((extras as any).extrasTotal);
+      
+      // Add selected options from survey tool (only those not already in pool card)
+      const optionsPrice = selectedOptions.reduce((total, option) => {
+        if (option.category === 'screen-enclosure') {
+          // Calculate screen enclosure price based on enclosure footprint area
+          const enclosureArea = getEnclosureArea();
+          if (option.id.includes('standard-1-story')) {
+            return total + enclosureArea * 15;
+          } else if (option.id.includes('standard-2-story')) {
+            return total + enclosureArea * 22;
+          } else if (option.id.includes('premium-1-story')) {
+            return total + enclosureArea * 20;
+          } else if (option.id.includes('premium-2-story')) {
+            return total + enclosureArea * 28;
+          }
+        }
+        return total + option.price;
+      }, 0);
+      
+      totalFromCard += optionsPrice;
+
+      // Florida-specific adjustments
+      if (surveyData.soilType === "sand") totalFromCard *= 0.95; // Easier excavation
+      if (surveyData.soilType === "clay") totalFromCard *= 1.1; // Harder excavation
+      if (surveyData.accessWidth === "narrow") totalFromCard *= 1.05; // Access difficulty
+      if (surveyData.yardSize === "large") totalFromCard *= 1.02; // More landscaping
+
+      return Math.round(totalFromCard);
+    }
+    
+    // Fallback calculation for cases without pool card extras
     let basePrice = pool?.price || customProduct?.price || 0;
     
     // Apply pool discounts (15% for all pools, 30% for premium)
@@ -182,16 +218,9 @@ const SurveyQuoteTool = ({
       basePrice = Math.round(basePrice * 0.85); // 15% discount for all pools
     }
 
-    // Apply No Pavers discount if applicable
-    const hasNoPaversDiscount = extras && (extras as any).paverOption === 'No Pavers';
-    if (hasNoPaversDiscount) {
-      basePrice -= 2000;
-    }
-
-    // Add selected options (including screen enclosures with area-based pricing)
+    // Add selected options
     const optionsPrice = selectedOptions.reduce((total, option) => {
       if (option.category === 'screen-enclosure') {
-        // Calculate screen enclosure price based on enclosure footprint area
         const enclosureArea = getEnclosureArea();
         if (option.id.includes('standard-1-story')) {
           return total + enclosureArea * 15;
@@ -206,12 +235,6 @@ const SurveyQuoteTool = ({
       return total + option.price;
     }, 0);
     basePrice += optionsPrice;
-
-    // Add extras from product card if provided
-    const extrasTotal = (extras as any)?.extrasTotal ? Number((extras as any).extrasTotal) : 0;
-    basePrice += extrasTotal;
-
-    // Paver costs are included via extrasTotal only (prevent double counting)
 
     // Florida-specific adjustments
     if (surveyData.soilType === "sand") basePrice *= 0.95; // Easier excavation
