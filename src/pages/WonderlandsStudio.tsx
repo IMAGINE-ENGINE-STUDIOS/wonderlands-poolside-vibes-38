@@ -769,10 +769,6 @@ const WonderlandsStudio = () => {
                         <Sun className="h-4 w-4 mr-2" />
                         Tanning Ledges
                       </TabsTrigger>
-                      <TabsTrigger value="scenes" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        <Camera className="h-4 w-4 mr-2" />
-                        <span className="ml-1">Scenes</span>
-                      </TabsTrigger>
                     </TabsList>
 
                     <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
