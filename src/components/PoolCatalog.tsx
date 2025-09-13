@@ -83,10 +83,10 @@ const pools: Pool[] = [
   depth: "6'",
   installationTimeWeeks: 8,
   warrantyYears: 10,
-  features: ["Infinity Edge Design", "Concrete Construction", "Jacuzzi Combo Included", "All Options Included", "Premium Finish", "Custom Design"],
+  features: ["Infinity Edge Design", "Jacuzzi Combo Included", "Premium Finish", "Custom Design"],
   heater: true,
   saltSystem: true,
-  carbonFiber: true
+  carbonFiber: false
 },
 // Most Popular - Standard Series (Special Offers & Best Value)
 {
