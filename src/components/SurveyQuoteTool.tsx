@@ -174,41 +174,20 @@ const SurveyQuoteTool = ({
   const calculateQuote = () => {
     if (!pool && !customProduct) return 0;
     
-    // If we have extras data from the pool card with extrasTotal, use that directly
-    // This ensures the quote matches exactly what's shown in the pool card
+    // If we have extras from product card, use that total directly (it already includes discounts and all calculations)
     if (extras && (extras as any).extrasTotal !== undefined) {
-      let totalFromCard = Number((extras as any).extrasTotal);
+      let total = Number((extras as any).extrasTotal);
       
-      // Add selected options from survey tool (only those not already in pool card)
-      const optionsPrice = selectedOptions.reduce((total, option) => {
-        if (option.category === 'screen-enclosure') {
-          // Calculate screen enclosure price based on enclosure footprint area
-          const enclosureArea = getEnclosureArea();
-          if (option.id.includes('standard-1-story')) {
-            return total + enclosureArea * 15;
-          } else if (option.id.includes('standard-2-story')) {
-            return total + enclosureArea * 22;
-          } else if (option.id.includes('premium-1-story')) {
-            return total + enclosureArea * 20;
-          } else if (option.id.includes('premium-2-story')) {
-            return total + enclosureArea * 28;
-          }
-        }
-        return total + option.price;
-      }, 0);
+      // Only apply Florida-specific adjustments on top of the already calculated total
+      if (surveyData.soilType === "sand") total *= 0.95; // Easier excavation
+      if (surveyData.soilType === "clay") total *= 1.1; // Harder excavation
+      if (surveyData.accessWidth === "narrow") total *= 1.05; // Access difficulty
+      if (surveyData.yardSize === "large") total *= 1.02; // More landscaping
       
-      totalFromCard += optionsPrice;
-
-      // Florida-specific adjustments
-      if (surveyData.soilType === "sand") totalFromCard *= 0.95; // Easier excavation
-      if (surveyData.soilType === "clay") totalFromCard *= 1.1; // Harder excavation
-      if (surveyData.accessWidth === "narrow") totalFromCard *= 1.05; // Access difficulty
-      if (surveyData.yardSize === "large") totalFromCard *= 1.02; // More landscaping
-
-      return Math.round(totalFromCard);
+      return Math.round(total);
     }
     
-    // Fallback calculation for cases without pool card extras
+    // Fallback for custom products or when no extras are provided
     let basePrice = pool?.price || customProduct?.price || 0;
     
     // Apply pool discounts (15% for all pools, 30% for premium)
@@ -218,9 +197,10 @@ const SurveyQuoteTool = ({
       basePrice = Math.round(basePrice * 0.85); // 15% discount for all pools
     }
 
-    // Add selected options
+    // Add selected options (including screen enclosures with area-based pricing)
     const optionsPrice = selectedOptions.reduce((total, option) => {
       if (option.category === 'screen-enclosure') {
+        // Calculate screen enclosure price based on enclosure footprint area
         const enclosureArea = getEnclosureArea();
         if (option.id.includes('standard-1-story')) {
           return total + enclosureArea * 15;
