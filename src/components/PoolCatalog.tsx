@@ -2,6 +2,7 @@ import { useState } from "react";
 import PoolDetailModal from "./PoolDetailModal";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import PoolProductCard from "./PoolProductCard";
+import SimplifiedGilmerPoolCard from "./SimplifiedGilmerPoolCard";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import TileDetailModal from "./TileDetailModal";
 import { useShoppingCart } from "./ShoppingCart";
@@ -658,7 +659,27 @@ const PoolCatalog = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {paginatedPools.map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
+            {paginatedPools.map(pool => 
+              pool.model === "Extreme 27" ? (
+                <SimplifiedGilmerPoolCard 
+                  key={pool.model} 
+                  pool={{
+                    model: pool.model,
+                    dimensions: pool.dimensions,
+                    depth: pool.depth,
+                    price: pool.price,
+                    image: pool.image,
+                    warranty: typeof pool.warrantyYears === 'string' ? pool.warrantyYears : "Life Warranty",
+                    brand: "Gilmer Glass",
+                    type: "Fiber Pool",
+                    installationTimeWeeks: pool.installationTimeWeeks,
+                    concreteInstallationWeeks: 18
+                  }} 
+                />
+              ) : (
+                <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />
+              )
+            )}
           </div>
 
           {/* Pagination Controls */}
