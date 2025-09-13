@@ -76,14 +76,14 @@ const pools: Pool[] = [
 // Premium Infinity Concrete Pool
 {
   model: "Madre Perla",
-  price: 160000,
+  price: 175000,
   category: 'premium',
   image: madrePerlaImage,
   dimensions: "20' x 40'",
   depth: "6'",
   installationTimeWeeks: 8,
   warrantyYears: 10,
-  features: ["Infinity Edge Design", "Concrete Construction", "All Options Included", "Premium Finish", "Custom Design"],
+  features: ["Infinity Edge Design", "Concrete Construction", "Jacuzzi Combo Included", "All Options Included", "Premium Finish", "Custom Design"],
   heater: true,
   saltSystem: true,
   carbonFiber: true
