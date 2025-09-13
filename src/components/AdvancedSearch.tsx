@@ -130,40 +130,115 @@ const AdvancedSearch = () => {
     try {
       const lowerQuery = query.toLowerCase();
       
-      // Pool keywords that should show all pools
-      const poolKeywords = ['pool', 'pools', 'swimming pool', 'swimming pools', 'inground pool', 'fiberglass pool'];
-      const showAllPools = poolKeywords.some(keyword => lowerQuery.includes(keyword));
+      // Enhanced keywords for better search matching
+      const poolKeywords = ['pool', 'pools', 'swimming pool', 'swimming pools', 'inground pool', 'fiberglass pool', 'fiberglass pools', 'big pool', 'large pool', 'medium pool', 'small pool'];
+      const spaKeywords = ['spa', 'spas', 'hot tub', 'hot tubs', 'jacuzzi', 'jacuzzis', 'with spa', 'spa combo', 'spa package'];
+      const coverKeywords = ['cover', 'covers', 'pool cover', 'pool covers', 'automatic cover', 'automatic covers', 'automatic pool cover', 'automatic pool covers', 'safety cover', 'safety covers'];
+      const tanningKeywords = ['tanning', 'tanning ledge', 'tanning ledges', 'sun shelf', 'sun shelves', 'beach entry', 'shallow end'];
+      const finishKeywords = ['finish', 'finishes', 'color', 'colors', 'surface', 'coating'];
+      const tileKeywords = ['tile', 'tiles', 'waterline', 'waterline tile', 'waterline tiles'];
+      const paverKeywords = ['paver', 'pavers', 'decking', 'flooring', 'pool deck', 'patio', 'stone', 'brick'];
+      const sizeKeywords = ['big', 'large', 'huge', 'small', 'compact', 'medium', 'mini', 'tiny'];
       
-      // Search pools - show all if pool keywords match, otherwise filter by name/category
-      const poolResults = poolData.filter(pool => {
-        if (showAllPools) return true;
-        return pool.name.toLowerCase().includes(lowerQuery) ||
-               pool.category.toLowerCase().includes(lowerQuery);
-      }).map(pool => ({
-        id: pool.id,
-        name: pool.name,
-        category: pool.category,
-        price: pool.price,
-        image: pool.image,
-        type: 'pool' as const
-      }));
+      // Check for measurements pattern (e.g., "16 x 40", "12x28", "16'x40'", etc.)
+      const measurementPattern = /(\d+)[\s]*[x×][\s]*(\d+)/i;
+      const measurementMatch = lowerQuery.match(measurementPattern);
+      
+      let poolResults = [];
+      
+      if (measurementMatch) {
+        // Extract dimensions
+        const width = parseInt(measurementMatch[1]);
+        const length = parseInt(measurementMatch[2]);
+        
+        // Find pools with closest dimensions
+        poolResults = poolData.map(pool => {
+          // Extract dimensions from pool data (assuming format like "12' x 28'")
+          const poolDimensions = pool.name.match(/(\d+)[\s]*[x×]?[\s]*(\d+)/i);
+          let score = 0;
+          
+          if (poolDimensions) {
+            const poolWidth = parseInt(poolDimensions[1]);
+            const poolLength = parseInt(poolDimensions[2]);
+            
+            // Calculate similarity score based on area difference
+            const searchArea = width * length;
+            const poolArea = poolWidth * poolLength;
+            const areaDiff = Math.abs(searchArea - poolArea);
+            score = 1000 - areaDiff; // Higher score for closer matches
+          } else {
+            // Check for dimensions in model name patterns
+            if (pool.name.includes('12')) score += (Math.abs(12 - width) + Math.abs(12 - length)) < 10 ? 500 : 0;
+            if (pool.name.includes('14')) score += (Math.abs(14 - width) + Math.abs(14 - length)) < 10 ? 500 : 0;
+            if (pool.name.includes('16')) score += (Math.abs(16 - width) + Math.abs(16 - length)) < 10 ? 500 : 0;
+            
+            // Size category matching
+            const totalSize = width + length;
+            if (totalSize < 40 && (pool.category === 'Compact' || pool.name.includes('Enchantment'))) score += 300;
+            if (totalSize >= 40 && totalSize < 60 && pool.category === 'Standard') score += 300;
+            if (totalSize >= 60 && (pool.category === 'Deluxe' || pool.category === 'Premium')) score += 300;
+          }
+          
+          return { ...pool, score };
+        })
+        .filter(pool => pool.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 8) // Show top 8 matches
+        .map(pool => ({
+          id: pool.id,
+          name: pool.name,
+          category: pool.category,
+          price: pool.price,
+          image: pool.image,
+          type: 'pool' as const
+        }));
+      } else {
+        // Regular keyword-based search
+        const showAllPools = poolKeywords.some(keyword => lowerQuery.includes(keyword));
+        const showBigPools = ['big', 'large', 'huge'].some(size => lowerQuery.includes(size));
+        const showSmallPools = ['small', 'compact', 'mini', 'tiny'].some(size => lowerQuery.includes(size));
+        const showMediumPools = ['medium'].some(size => lowerQuery.includes(size));
+        const showWithSpa = spaKeywords.some(keyword => lowerQuery.includes(keyword));
+        
+        poolResults = poolData.filter(pool => {
+          if (showAllPools) return true;
+          
+          // Size-based filtering
+          if (showBigPools && (pool.category === 'Premium' || pool.category === 'Deluxe')) return true;
+          if (showSmallPools && (pool.category === 'Compact' || pool.name.includes('Enchantment'))) return true;
+          if (showMediumPools && pool.category === 'Standard') return true;
+          
+          // Spa combo filtering (assuming pools with spa features have higher prices or specific names)
+          if (showWithSpa && (pool.price > 80000 || pool.name.toLowerCase().includes('deluxe'))) return true;
+          
+          return pool.name.toLowerCase().includes(lowerQuery) ||
+                 pool.category.toLowerCase().includes(lowerQuery);
+        }).map(pool => ({
+          id: pool.id,
+          name: pool.name,
+          category: pool.category,
+          price: pool.price,
+          image: pool.image,
+          type: 'pool' as const
+        }));
+      }
 
-      // Enhanced product search with category keywords
+      // Enhanced product search with expanded category keywords
       const categoryKeywords = {
-        'finish': ['finish', 'finishes', 'color', 'colors'],
-        'liner': ['liner', 'liners'],
-        'tile': ['tile', 'tiles', 'waterline'],
-        'spa': ['spa', 'spas', 'hot tub'],
-        'cover': ['cover', 'covers', 'automatic cover', 'automatic covers', 'pool cover'],
-        'enclosure': ['screen', 'enclosure', 'screen enclosure'],
-        'paver': ['paver', 'pavers', 'decking'],
-        'ledge': ['tanning ledge', 'ledge', 'sun shelf'],
-        'appointment': ['appointment', 'schedule', 'consultation', 'meet']
+        'finish': finishKeywords,
+        'liner': ['liner', 'liners', 'vinyl', 'vinyl liner'],
+        'tile': tileKeywords,
+        'spa': spaKeywords,
+        'cover': coverKeywords,
+        'enclosure': ['screen', 'enclosure', 'screen enclosure', 'cage', 'screen cage'],
+        'paver': paverKeywords,
+        'ledge': tanningKeywords,
+        'appointment': ['appointment', 'schedule', 'consultation', 'meet', 'quote', 'estimate']
       };
 
       let productResults = [];
       
-      // Check for category-wide searches
+      // Check for category-wide searches with enhanced keywords
       const showAllFinishes = categoryKeywords.finish.some(keyword => lowerQuery.includes(keyword));
       const showAllCovers = categoryKeywords.cover.some(keyword => lowerQuery.includes(keyword));
       const showAllSpas = categoryKeywords.spa.some(keyword => lowerQuery.includes(keyword));
@@ -195,9 +270,21 @@ const AdvancedSearch = () => {
         if (showAllLedges && product.category.toLowerCase().includes('ledge')) return true;
         if (showAllEnclosures && product.category.toLowerCase().includes('enclosure')) return true;
         
+        // Enhanced search - check against all category keywords
+        const productLower = product.name.toLowerCase();
+        const categoryLower = product.category.toLowerCase();
+        
+        // Check if query matches any keyword for this product's category
+        for (const [category, keywords] of Object.entries(categoryKeywords)) {
+          if (categoryLower.includes(category) || productLower.includes(category)) {
+            if (keywords.some(keyword => lowerQuery.includes(keyword))) {
+              return true;
+            }
+          }
+        }
+        
         // Regular name/category search
-        return product.name.toLowerCase().includes(lowerQuery) ||
-               product.category.toLowerCase().includes(lowerQuery);
+        return productLower.includes(lowerQuery) || categoryLower.includes(lowerQuery);
       }).map(product => ({
         id: product.id,
         name: product.name,
@@ -351,7 +438,7 @@ const AdvancedSearch = () => {
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white w-5 h-5" />
         <Input
           type="text"
-          placeholder="Search pools, spas, finishes, covers & more..."
+          placeholder="Search pools, spas, covers, pavers, finishes, tiles or dimensions (e.g. 16x40)..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-12 pr-4 py-3 text-lg bg-black/10 backdrop-blur text-white placeholder:text-white/70 border-white/20 focus:border-white/50 focus:ring-2 focus:ring-white/20 rounded-xl shadow-lg"
