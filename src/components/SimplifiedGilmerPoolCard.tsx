@@ -213,29 +213,28 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
 
   return (
     <Card className="h-full flex flex-col overflow-hidden hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-background via-background to-muted/20">
-      <CardHeader className="pb-4">
-        <div className="flex justify-between items-start mb-3">
-          <div className="space-y-1">
-            <h3 className="text-xl font-bold text-foreground leading-tight">{pool.model}</h3>
-            <p className="text-sm text-muted-foreground font-medium">{pool.dimensions}</p>
-          </div>
+      {/* Wide Pool Image at top - edge to edge */}
+      <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 overflow-hidden group">
+        <OptimizedImage
+          src={pool.image}
+          alt={pool.model}
+          className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+          loading="lazy"
+        />
+        
+        {/* Category Badge overlay */}
+        <div className="absolute top-4 left-4">
           <Badge className={`${getCategoryColor('premium')} text-white border-0 px-3 py-1 text-xs font-semibold shadow-md`}>
             {pool.brand}
           </Badge>
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent className="flex-1 space-y-6 px-6 pb-6">
-        {/* Pool Image */}
-        <div className="relative group">
-          <div className="aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-br from-primary/5 to-teal/5 ring-1 ring-border/50">
-            <OptimizedImage
-              src={pool.image}
-              alt={pool.model}
-              className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
-          </div>
+      <CardContent className="flex-1 space-y-6 px-6 pb-6 pt-4">
+        {/* Pool Title under image */}
+        <div className="space-y-1">
+          <h3 className="text-xl font-bold text-foreground leading-tight">{pool.model}</h3>
+          <p className="text-sm text-muted-foreground font-medium">{pool.dimensions}</p>
         </div>
 
         {/* Pool Details */}
