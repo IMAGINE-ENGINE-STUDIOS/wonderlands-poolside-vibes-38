@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { poolTiles } from "@/data/poolData";
+import { paverTypes } from "@/data/paverData";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -55,7 +56,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
   const [options, setOptions] = useState<GilmerOptions>({
     colorFinish: 'Ocean Blue',
     pavers: false,
-    paverOption: 'Catalina Grana Blend',
+    paverOption: 'Appian Adobe',
     paverSurfaceArea: '',
     tiles: false,
     tileOption: 'Mountain',
@@ -78,13 +79,16 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     { name: 'Glacier Blue', color: '#0EA5E9', price: 0 }
   ];
 
-  // Paver options
-  const paverOptions = [
-    { name: 'Catalina Grana Blend', price: 12000 },
-    { name: 'Appian Cobble', price: 14000 },
-    { name: 'Catalina Classic', price: 11000 },
-    { name: 'Travertine Look', price: 15000 }
-  ];
+  // Paver options from paverData with $15/sq ft pricing
+  const paverOptions = paverTypes
+    .filter(paver => paver.category === 'paver')
+    .map(paver => ({
+      name: paver.name,
+      price: 0, // Base price for selection, actual cost calculated per sq ft
+      image: paver.image,
+      description: paver.description,
+      pricePerSqFt: paver.basePrice // $15 per sq ft
+    }));
 
   // Screen enclosure options
   const screenEnclosureQualities = [
@@ -125,10 +129,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     let total = 0;
     
     if (options.pavers) {
-      const paverPrice = paverOptions.find(p => p.name === options.paverOption)?.price || 0;
-      total += paverPrice;
-      
-      // Add calculated paver surface area cost
+      // Only calculate paver surface area cost, no base price
       if (options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea))) {
         total += parseFloat(options.paverSurfaceArea) * 15;
       }
@@ -313,7 +314,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               />
               <div className="flex items-center space-x-1">
                 <Home size={16} className="text-coral" />
-                <span className="text-sm">Premium Pavers (+${options.pavers ? (paverOptions.find(p => p.name === options.paverOption)?.price || 0).toLocaleString() : '0'})</span>
+                <span className="text-sm">Premium Pavers (+${options.pavers && options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) ? (parseFloat(options.paverSurfaceArea) * 15).toLocaleString() : '0'})</span>
               </div>
             </label>
             {options.pavers && (
@@ -348,7 +349,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                         >
                           <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
                             <OptimizedImage 
-                              src="/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png" 
+                              src={paver.image} 
                               alt={paver.name} 
                               className="w-full h-full object-cover" 
                               loading="lazy"
@@ -356,11 +357,9 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                           </div>
                           <div className="flex-1 flex flex-col justify-between min-h-0">
                             <p className="text-xs font-medium text-center line-clamp-2">{paver.name}</p>
-                            {paver.price > 0 && (
-                              <p className="text-xs text-primary font-semibold text-center mt-1">
-                                +${paver.price.toLocaleString()}
-                              </p>
-                            )}
+                            <p className="text-xs text-primary font-semibold text-center mt-1">
+                              ${paver.pricePerSqFt}/sq ft
+                            </p>
                           </div>
                         </div>
                       </CarouselItem>
