@@ -667,36 +667,106 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
         }}
         isOpen={showQuoteModal}
         onClose={() => setShowQuoteModal(false)}
-          extras={{
-            colorFinish: options.colorFinish,
-            pavers: options.pavers,
-            paverOption: options.paverOption,
-            paverSurfaceArea: options.paverSurfaceArea,
-            tiles: options.tiles,
-            tileOption: options.tileOption,
-            screenEnclosure: options.screenEnclosure,
-            screenEnclosureArea: options.screenEnclosureArea,
-            screenEnclosureQuality: options.screenEnclosureQuality,
-            poolHeater: options.poolHeater,
-            heaterModel: options.heaterModel,
-            concreteConstruction: options.concreteConstruction,
-            extrasBreakdown: [
-              { name: `Color: ${options.colorFinish}`, price: 0 },
-              ...(options.pavers ? [{ name: `Pavers: ${options.paverOption}`, price: paverOptions.find(p => p.name === options.paverOption)?.price || 0 }] : []),
-              ...(options.pavers && options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) ? [{ name: `Paver Surface Area (${options.paverSurfaceArea} sq ft)`, price: parseFloat(options.paverSurfaceArea) * 15 }] : []),
-              ...(options.tiles ? [{ name: `Tiles: ${options.tileOption}`, price: tileOptions.find(t => t.name === options.tileOption)?.price || 0 }] : []),
-              ...(options.screenEnclosure && options.screenEnclosureArea > 0 ? [{ name: `Screen Enclosure: ${screenEnclosureQualities.find(q => q.key === options.screenEnclosureQuality)?.name} (${options.screenEnclosureArea} sq ft)`, price: (() => {
+        extras={{
+          // Pool Details
+          poolModel: pool.model,
+          poolBrand: pool.brand,
+          poolDimensions: pool.dimensions,
+          poolDepth: pool.depth,
+          poolWarranty: pool.warranty,
+          poolType: pool.type,
+          basePrice: pool.price,
+          
+          // Configuration Options
+          colorFinish: options.colorFinish,
+          pavers: options.pavers,
+          paverOption: options.paverOption,
+          paverSurfaceArea: options.paverSurfaceArea,
+          tiles: options.tiles,
+          tileOption: options.tileOption,
+          screenEnclosure: options.screenEnclosure,
+          screenEnclosureArea: options.screenEnclosureArea,
+          screenEnclosureQuality: options.screenEnclosureQuality,
+          poolHeater: options.poolHeater,
+          heaterModel: options.heaterModel,
+          concreteConstruction: options.concreteConstruction,
+          
+          // Installation Details
+          installationTime: getInstallationTime(),
+          constructionType: options.concreteConstruction ? 'Concrete' : 'Fiber',
+          
+          // Complete Breakdown with All Details
+          extrasBreakdown: [
+            { 
+              name: `Gelcoat Color: ${options.colorFinish}`, 
+              price: 0, 
+              description: 'Included gelcoat finish color',
+              category: 'finish'
+            },
+            ...(options.pavers ? [{ 
+              name: `Premium Pavers: ${options.paverOption}`, 
+              price: paverOptions.find(p => p.name === options.paverOption)?.price || 0,
+              description: `${options.paverOption} paver selection`,
+              category: 'pavers'
+            }] : []),
+            ...(options.pavers && options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) ? [{ 
+              name: `Paver Installation Area: ${options.paverSurfaceArea} sq ft`, 
+              price: parseFloat(options.paverSurfaceArea) * 15,
+              description: `Professional paver installation at $15 per sq ft`,
+              category: 'pavers'
+            }] : []),
+            ...(options.tiles ? [{ 
+              name: `Pool Tiles: ${options.tileOption}`, 
+              price: tileOptions.find(t => t.name === options.tileOption)?.price || 0,
+              description: `Premium waterline tile installation`,
+              category: 'tiles'
+            }] : []),
+            ...(options.screenEnclosure && options.screenEnclosureArea > 0 ? [{ 
+              name: `Screen Enclosure: ${screenEnclosureQualities.find(q => q.key === options.screenEnclosureQuality)?.name}`, 
+              price: (() => {
                 let pricePerSqFt = 15;
                 if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
                 if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
                 return options.screenEnclosureArea * pricePerSqFt;
-              })() }] : []),
-              ...(options.poolHeater ? [{ name: `Heater: ${options.heaterModel}`, price: heaterOptions.find(h => h.name === options.heaterModel)?.price || 0 }] : []),
-              ...(options.concreteConstruction ? [{ name: 'Concrete Construction', price: 15000 }] : [])
-            ],
-            extrasTotal: calculateTotal(),
-            deliveryTime: getInstallationTime() + ' weeks'
-          }}
+              })(),
+              description: `${options.screenEnclosureArea} sq ft at $${(() => {
+                if (options.screenEnclosureQuality === 'deluxe') return '22';
+                if (options.screenEnclosureQuality === 'premium') return '28';
+                return '15';
+              })()} per sq ft`,
+              category: 'enclosure'
+            }] : []),
+            ...(options.poolHeater ? [{ 
+              name: `Pool Heater: ${options.heaterModel}`, 
+              price: heaterOptions.find(h => h.name === options.heaterModel)?.price || 0,
+              description: 'Professional heater installation included',
+              category: 'heating'
+            }] : []),
+            ...(options.concreteConstruction ? [{ 
+              name: 'Premium Concrete Construction', 
+              price: 15000,
+              description: 'Enhanced concrete construction for superior durability and longevity',
+              category: 'construction'
+            }] : [])
+          ],
+          extrasTotal: calculateTotal(),
+          totalPrice: pool.price + calculateTotal(),
+          deliveryTime: getInstallationTime() + ' weeks',
+          
+          // Quote Metadata
+          quoteDate: new Date().toLocaleDateString(),
+          quoteValid: '30 days',
+          paymentTerms: 'Standard payment terms apply',
+          warrantyInfo: pool.warranty,
+          includedServices: [
+            'Professional installation',
+            'Site preparation',
+            'Permits and inspections',
+            'Equipment startup',
+            'Customer training',
+            'Warranty coverage'
+          ]
+        }}
       />
     </Card>
   );
