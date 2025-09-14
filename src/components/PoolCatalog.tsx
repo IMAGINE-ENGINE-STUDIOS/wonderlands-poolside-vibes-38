@@ -23,17 +23,16 @@ import madrePerlaImage from "@/assets/pools/madre-perla.jpg";
 console.log('PoolCatalog - poolTiles:', poolTiles);
 console.log('PoolCatalog - poolLiners:', poolLiners);
 
-// Updated pool model images in order
+// Pool model images - synchronized with Wonderlands Studio
 const astoriaImage = "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png";
-const apolloImage = "/lovable-uploads/9e491420-80df-4bb3-9db1-3933d96846ac.png";
-const coralImage = "/lovable-uploads/1412e1fb-72ec-4219-a98f-4fcffbd15095.png";
-const ariel14Image = "/lovable-uploads/a1b42616-0c25-4010-96e3-3fbeba18aae8.png";
-const capecodImage = "/lovable-uploads/8a2b7716-7656-48a0-b1b1-6d276b4b9e73.png";
-
-// Additional pool images
-const freeformImage = "/lovable-uploads/9382c72a-0c7d-4981-8f03-878d568dd1b2.png";
-const luxuryImage = "/lovable-uploads/8033278d-a737-4b1d-84bf-fd0ac9126406.png";
-const modernImage = "/lovable-uploads/c5385549-a189-4127-a204-c196c165ac55.png";
+const enchantment917Image = "/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png";
+const enchantment921Image = "/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png";
+const enchantment924Image = "/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png";
+const tuscan1120Image = "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png";
+const tuscan1324Image = "/lovable-uploads/2677d17d-ba82-407b-896c-b4b3e238b8d5.png";
+const tuscan1427Image = "/lovable-uploads/de3068d3-0f04-4a3c-a2ed-f52141f36b3e.png";
+const tuscan1430Image = "/lovable-uploads/d1c952c1-8786-444d-b405-903533bc20d1.png";
+const tuscan1440Image = "/lovable-uploads/c1225a37-626d-49a2-9ec4-eb0da0f10060.png";
 interface Pool {
   model: string;
   price: number;
@@ -161,7 +160,7 @@ const pools: Pool[] = [
   model: "Enchantment 9.17",
   price: 47900,
   category: 'compact',
-  image: "/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png",
+  image: enchantment917Image,
   dimensions: "9′ 1″ × 17′ 5″",
   depth: "~4′ 9″",
   installationTimeWeeks: 8,
@@ -174,7 +173,7 @@ const pools: Pool[] = [
   model: "Enchantment 9.21",
   price: 54400,
   category: 'compact',
-  image: "/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png",
+  image: enchantment921Image,
   dimensions: "9′ 1″ × 20′ 7″",
   depth: "~4′ 9″",
   installationTimeWeeks: 8,
@@ -187,7 +186,7 @@ const pools: Pool[] = [
   model: "Enchantment 9.24",
   price: 60800,
   category: 'compact',
-  image: "/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png",
+  image: enchantment924Image,
   dimensions: "9′ 1″ × 23′ 10″",
   depth: "~4′ 9″",
   installationTimeWeeks: 4,
@@ -202,7 +201,7 @@ const pools: Pool[] = [
   model: "Tuscan 11.20",
   price: 59430,
   category: 'deluxe',
-  image: "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png",
+  image: tuscan1120Image,
   dimensions: "11′ 1″ × 20′ 3″",
   depth: "3′ 11″ – 5′ 2″",
   installationTimeWeeks: 5,
@@ -215,7 +214,7 @@ const pools: Pool[] = [
   model: "Tuscan 13.24",
   price: 72870,
   category: 'deluxe',
-  image: "/lovable-uploads/2677d17d-ba82-407b-896c-b4b3e238b8d5.png",
+  image: tuscan1324Image,
   dimensions: "12′ 10″ × 23′ 7″",
   depth: "3′ 11″ – 5′ 5″",
   installationTimeWeeks: 5,
@@ -228,7 +227,7 @@ const pools: Pool[] = [
   model: "Tuscan 14.27",
   price: 84000,
   category: 'deluxe',
-  image: "/lovable-uploads/de3068d3-0f04-4a3c-a2ed-f52141f36b3e.png",
+  image: tuscan1427Image,
   dimensions: "13′ 9″ × 26′ 10″",
   depth: "3′ 11″ – 5′ 9″",
   installationTimeWeeks: 5,
@@ -241,7 +240,7 @@ const pools: Pool[] = [
   model: "Tuscan 14.30",
   price: 92610,
   category: 'deluxe',
-  image: "/lovable-uploads/d1c952c1-8786-444d-b405-903533bc20d1.png",
+  image: tuscan1430Image,
   dimensions: "13′ 9″ × 30′ 1″",
   depth: "3′ 11″ – 5′ 11″",
   installationTimeWeeks: 5,
@@ -254,7 +253,7 @@ const pools: Pool[] = [
   model: "Tuscan 14.40",
   price: 116550,
   category: 'deluxe',
-  image: "/lovable-uploads/c1225a37-626d-49a2-9ec4-eb0da0f10060.png",
+  image: tuscan1440Image,
   dimensions: "13′ 9″ × 39′ 11″",
   depth: "3′ 7″ – 6′ 2″",
   installationTimeWeeks: 8,

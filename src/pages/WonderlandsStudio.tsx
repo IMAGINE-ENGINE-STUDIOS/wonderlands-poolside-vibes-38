@@ -863,7 +863,7 @@ const WonderlandsStudio = () => {
                         <img 
                           src={selectedProduct.image} 
                           alt={selectedProduct.model || selectedProduct.name || 'Product'} 
-                          className="w-full h-full object-contain"
+                          className="w-full h-full object-cover object-[center_4%]"
                         />
                       ) : (
                         <div className="flex items-center justify-center h-full">
@@ -1648,11 +1648,11 @@ const WonderlandsStudio = () => {
                                   <ChevronDown className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent className="w-full bg-background border border-border">
+                              <DropdownMenuContent className="w-full bg-background border border-border z-50">
                                 {paverCategories.map((category) => (
                                   <div
                                     key={category.value}
-                                    className="px-2 py-1 text-sm cursor-pointer hover:bg-muted"
+                                    className="px-2 py-1 text-sm cursor-pointer hover:bg-muted text-foreground"
                                     onClick={() => setPaverCategory(category.value)}
                                   >
                                     {category.label}
