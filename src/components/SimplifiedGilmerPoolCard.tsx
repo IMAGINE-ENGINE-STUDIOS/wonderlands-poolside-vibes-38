@@ -9,7 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import { useShoppingCart } from "./ShoppingCart";
 import { useToast } from "@/hooks/use-toast";
 import { OptimizedImage } from "./OptimizedImage";
-import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermometer, Home, Zap, Palette } from 'lucide-react';
+import StripeCheckoutButton from "./StripeCheckoutButton";
+import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermometer, Home, Zap, Palette, Calculator, CreditCard } from 'lucide-react';
 
 interface SimplifiedGilmerPoolCardProps {
   pool: {
@@ -41,6 +42,8 @@ interface GilmerOptions {
 const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
   const { addToCart } = useShoppingCart();
   const { toast } = useToast();
+  
+  const [showFinancing, setShowFinancing] = useState(false);
   
   const [options, setOptions] = useState<GilmerOptions>({
     colorFinish: 'Ocean Blue',
@@ -443,13 +446,102 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             </div>
           </div>
 
-          <Button 
-            onClick={handleAddToCart}
-            className="w-full bg-gradient-to-r from-primary to-teal hover:from-primary/90 hover:to-teal/90 text-white font-semibold py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 group"
-          >
-            <ShoppingCart className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
-            Add to Cart
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => {
+                const extrasArray = [];
+                extrasArray.push({ name: `Color: ${options.colorFinish}`, price: 0 });
+                if (options.pavers) extrasArray.push({ name: `Pavers: ${options.paverOption}`, price: paverOptions.find(p => p.name === options.paverOption)?.price || 0 });
+                if (options.screenEnclosure) extrasArray.push({ name: `Screen Enclosure: ${options.screenEnclosureQuality}`, price: (screenEnclosureQualities.find(q => q.name === options.screenEnclosureQuality)?.price || 0) * (options.screenEnclosureArea / 1000) });
+                if (options.poolHeater) extrasArray.push({ name: `Heater: ${options.heaterModel}`, price: heaterOptions.find(h => h.name === options.heaterModel)?.price || 0 });
+                if (options.concreteConstruction) extrasArray.push({ name: 'Concrete Construction', price: 15000 });
+                
+                // Open quote request in new window
+                const quoteData = {
+                  poolModel: pool.model,
+                  poolPrice: pool.price,
+                  extras: extrasArray,
+                  totalPrice: pool.price + calculateTotal(),
+                  deliveryTime: getInstallationTime() + ' weeks'
+                };
+                
+                const quoteUrl = `mailto:info@pools.com?subject=Quote Request for ${pool.model}&body=Pool Model: ${pool.model}%0ABase Price: $${pool.price.toLocaleString()}%0AExtras: ${encodeURIComponent(JSON.stringify(extrasArray))}%0ATotal Price: $${(pool.price + calculateTotal()).toLocaleString()}%0AInstallation Time: ${getInstallationTime()} weeks`;
+                window.open(quoteUrl);
+              }}
+              variant="outline" 
+              className="flex-1"
+            >
+              <Calculator className="w-4 h-4 mr-2" />
+              Instant Quote
+            </Button>
+            
+            <Button 
+              onClick={handleAddToCart}
+              variant="outline" 
+              className="flex-1"
+            >
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              Cart
+            </Button>
+          </div>
+
+          <StripeCheckoutButton 
+            productId={`gilmer_${pool.model.toLowerCase().replace(/\s+/g, '_')}`}
+            productName={`${pool.brand} ${pool.model}`}
+            price={pool.price + calculateTotal()}
+            variant="gradient"
+            className="w-full hover:scale-105 transition-all duration-300"
+            showFinancingOptions={false}
+          />
+          
+          {/* Financing Options */}
+          <div className="mt-4 p-4 bg-gradient-to-r from-teal/5 to-primary/5 rounded-lg border border-teal/20">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h5 className="font-semibold text-sm text-foreground">Finance This Purchase</h5>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowFinancing(!showFinancing)} 
+                  className="text-xs"
+                >
+                  <CreditCard className="w-3 h-3 mr-1" />
+                  {showFinancing ? 'Hide' : 'Show'} Options
+                </Button>
+              </div>
+              
+              {showFinancing && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="text-center p-2 bg-white/50 rounded">
+                      <div className="font-semibold">3 Years</div>
+                      <div className="text-teal-600">${Math.round((pool.price + calculateTotal()) / 36).toLocaleString()}/mo</div>
+                    </div>
+                    <div className="text-center p-2 bg-white/50 rounded">
+                      <div className="font-semibold">6 Years</div>
+                      <div className="text-teal-600">${Math.round((pool.price + calculateTotal()) / 72).toLocaleString()}/mo</div>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    size="sm" 
+                    onClick={() => {
+                      const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?amount=${pool.price + calculateTotal()}&product=${encodeURIComponent(pool.model)}&description=${encodeURIComponent(`Complete pool configuration including ${pool.model}`)}&monthly_payment=${Math.round((pool.price + calculateTotal()) * 0.008)}&loan_term=60&project_type=Pool%20Installation`;
+                      window.open(lyonFinancialUrl, '_blank');
+                    }}
+                  >
+                    Apply with Lyon Financial
+                  </Button>
+                  
+                  <div className="text-xs text-muted-foreground text-center">
+                    *Financing subject to credit approval. APR varies.
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
