@@ -61,7 +61,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     tiles: false,
     tileOption: 'Mountain',
     screenEnclosure: false,
-    screenEnclosureArea: 1000,
+    screenEnclosureArea: 0,
     screenEnclosureQuality: 'standard',
     poolHeater: false,
     heaterModel: 'Hayward H400FDN Natural Gas',
