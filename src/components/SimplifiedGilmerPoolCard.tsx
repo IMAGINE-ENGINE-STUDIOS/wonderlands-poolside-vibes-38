@@ -272,119 +272,143 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
 
         {/* Optional Features */}
         <div className="space-y-4">
-          <span className="text-sm font-semibold">Optional Features</span>
+          <h4 className="font-semibold text-foreground">Additional Features</h4>
           
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-3">
             {/* Pavers */}
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <Checkbox 
-                  checked={options.pavers} 
-                  onCheckedChange={() => toggleOption('pavers')} 
-                />
-                <div className="flex items-center space-x-1">
-                  <Home size={16} className="text-orange-500" />
-                  <span className="text-sm font-medium">Premium Pavers</span>
+            <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+              <Checkbox 
+                checked={options.pavers} 
+                onCheckedChange={() => toggleOption('pavers')} 
+                className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
+              />
+              <div className="flex items-center space-x-1">
+                <Home size={16} className="text-coral" />
+                <span className="text-sm">Premium Pavers (+${options.pavers ? (paverOptions.find(p => p.name === options.paverOption)?.price || 0).toLocaleString() : '0'})</span>
+              </div>
+            </label>
+            {options.pavers && (
+              <div className="ml-6 space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Select Paver Option:</label>
+                <div className="grid grid-cols-1 gap-2">
+                  {paverOptions.map((paver) => (
+                    <button
+                      key={paver.name}
+                      onClick={() => updateOption('paverOption', paver.name)}
+                      className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
+                        options.paverOption === paver.name 
+                          ? 'border-coral bg-coral/10 text-coral' 
+                          : 'border-border hover:border-coral/50'
+                      }`}
+                    >
+                      <div className="flex-1 text-left">
+                        <div>{paver.name}</div>
+                        <div className="text-xs text-muted-foreground">${paver.price.toLocaleString()}</div>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              </label>
-              {options.pavers && (
-                <Select value={options.paverOption} onValueChange={(value) => updateOption('paverOption', value)}>
-                  <SelectTrigger className="h-8">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {paverOptions.map((paver) => (
-                      <SelectItem key={paver.name} value={paver.name}>
-                        {paver.name} (+${paver.price.toLocaleString()})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Screen Enclosure */}
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <Checkbox 
-                  checked={options.screenEnclosure} 
-                  onCheckedChange={() => toggleOption('screenEnclosure')} 
-                />
-                <div className="flex items-center space-x-1">
-                  <Shield size={16} className="text-green-500" />
-                  <span className="text-sm font-medium">Screen Enclosure</span>
+            <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+              <Checkbox 
+                checked={options.screenEnclosure} 
+                onCheckedChange={() => toggleOption('screenEnclosure')} 
+                className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+              />
+              <div className="flex items-center space-x-1">
+                <Shield size={16} className="text-primary" />
+                <span className="text-sm">Screen Enclosure (+${options.screenEnclosure ? ((screenEnclosureQualities.find(q => q.name === options.screenEnclosureQuality)?.price || 0) * (options.screenEnclosureArea / 1000)).toLocaleString() : '0'})</span>
+              </div>
+            </label>
+            {options.screenEnclosure && (
+              <div className="ml-6 space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Select Quality & Area:</label>
+                <div className="grid grid-cols-1 gap-2">
+                  {screenEnclosureQualities.map((quality) => (
+                    <button
+                      key={quality.name}
+                      onClick={() => updateOption('screenEnclosureQuality', quality.name)}
+                      className={`p-2 text-xs rounded-md border transition-all ${
+                        options.screenEnclosureQuality === quality.name 
+                          ? 'border-primary bg-primary/10 text-primary' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="text-left">
+                        <div>{quality.name}</div>
+                        <div className="text-xs text-muted-foreground">${quality.price.toLocaleString()}/1000 sq ft</div>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              </label>
-              {options.screenEnclosure && (
-                <div className="space-y-2">
-                  <Select value={options.screenEnclosureQuality} onValueChange={(value) => updateOption('screenEnclosureQuality', value)}>
-                    <SelectTrigger className="h-8">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {screenEnclosureQualities.map((quality) => (
-                        <SelectItem key={quality.name} value={quality.name}>
-                          {quality.name} (${quality.price.toLocaleString()}/1000 sq ft)
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs">Area (sq ft):</span>
-                    <Input
-                      type="number"
-                      value={options.screenEnclosureArea}
-                      onChange={(e) => updateOption('screenEnclosureArea', parseInt(e.target.value) || 1000)}
-                      className="w-20 h-6 text-xs"
-                      min="500"
-                      step="100"
-                    />
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs">Area (sq ft):</span>
+                  <Input
+                    type="number"
+                    value={options.screenEnclosureArea}
+                    onChange={(e) => updateOption('screenEnclosureArea', parseInt(e.target.value) || 1000)}
+                    className="w-20 h-6 text-xs"
+                    min="500"
+                    step="100"
+                  />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Pool Heater */}
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <Checkbox 
-                  checked={options.poolHeater} 
-                  onCheckedChange={() => toggleOption('poolHeater')} 
-                />
-                <div className="flex items-center space-x-1">
-                  <Thermometer size={16} className="text-red-500" />
-                  <span className="text-sm font-medium">Pool Heater</span>
+            <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+              <Checkbox 
+                checked={options.poolHeater} 
+                onCheckedChange={() => toggleOption('poolHeater')} 
+                className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
+              />
+              <div className="flex items-center space-x-1">
+                <Thermometer size={16} className="text-coral" />
+                <span className="text-sm">Add Pool Heater (+${options.poolHeater ? (heaterOptions.find(h => h.name === options.heaterModel)?.price || 0).toLocaleString() : '0'})</span>
+              </div>
+            </label>
+            {options.poolHeater && (
+              <div className="ml-6 space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Select Heater Model:</label>
+                <div className="grid grid-cols-1 gap-2">
+                  {heaterOptions.map((heater) => (
+                    <button
+                      key={heater.name}
+                      onClick={() => updateOption('heaterModel', heater.name)}
+                      className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
+                        options.heaterModel === heater.name 
+                          ? 'border-coral bg-coral/10 text-coral' 
+                          : 'border-border hover:border-coral/50'
+                      }`}
+                    >
+                      <div className="flex-1 text-left">
+                        <div>{heater.name}</div>
+                        <div className="text-xs text-muted-foreground">${heater.price.toLocaleString()}</div>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              </label>
-              {options.poolHeater && (
-                <Select value={options.heaterModel} onValueChange={(value) => updateOption('heaterModel', value)}>
-                  <SelectTrigger className="h-8">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {heaterOptions.map((heater) => (
-                      <SelectItem key={heater.name} value={heater.name}>
-                        {heater.name} (+${heater.price.toLocaleString()})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Concrete Construction */}
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <Checkbox 
-                  checked={options.concreteConstruction} 
-                  onCheckedChange={() => toggleOption('concreteConstruction')} 
-                />
-                <div className="flex items-center space-x-1">
-                  <Shield size={16} className="text-gray-600" />
-                  <span className="text-sm font-medium">Concrete Construction (+$15,000)</span>
-                </div>
-              </label>
-            </div>
+            <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+              <Checkbox 
+                checked={options.concreteConstruction} 
+                onCheckedChange={() => toggleOption('concreteConstruction')} 
+                className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
+              />
+              <div className="flex items-center space-x-1">
+                <Shield size={16} className="text-coral" />
+                <span className="text-sm">Make it on Concrete (+$15,000)</span>
+              </div>
+            </label>
+            {options.concreteConstruction && (
+              <p className="text-xs text-muted-foreground ml-6 mt-1">Premium concrete construction for enhanced durability and longevity.</p>
+            )}
           </div>
         </div>
 
