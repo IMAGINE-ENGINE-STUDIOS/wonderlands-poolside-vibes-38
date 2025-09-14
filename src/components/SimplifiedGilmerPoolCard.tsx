@@ -61,7 +61,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     tiles: false,
     tileOption: 'Mountain',
     screenEnclosure: false,
-    screenEnclosureArea: 0,
+    screenEnclosureArea: 1000,
     screenEnclosureQuality: 'standard',
     poolHeater: false,
     heaterModel: 'Hayward H400FDN Natural Gas',
@@ -252,7 +252,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
             <div className="flex flex-col">
               <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
-                $65,500
+                ${(pool.price + calculateTotal()).toLocaleString()}
               </span>
             </div>
           </div>
@@ -564,7 +564,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               <div className="bg-gradient-to-r from-primary/5 to-teal/5 rounded-xl p-4 border border-primary/10">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-muted-foreground">Pool Base Price</span>
-                  <span className="text-lg font-bold text-foreground">$65,500</span>
+                  <span className="text-lg font-bold text-foreground">${pool.price.toLocaleString()}</span>
                 </div>
                 
                 {calculateTotal() > 0 && (
@@ -583,7 +583,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                     <span className="text-base font-semibold text-foreground">Total Price</span>
                   </div>
                   <span className="text-2xl font-bold text-primary">
-                    $65,500
+                    ${(pool.price + calculateTotal()).toLocaleString()}
                   </span>
                 </div>
               </div>
