@@ -54,6 +54,7 @@ interface ProductExtras {
   finish: string;
   linerOption: string;
   coverOption: string;
+  meshColor: string;
   tiles: boolean;
   tileOption: string;
   heaterModel: string;
@@ -144,30 +145,38 @@ const coverOptions = [{
   image: shaleGrayFinish,
   category: 'none'
 }, {
-  name: 'ProMesh 2000',
+  name: 'Eclipse',
   color: '#2F4F4F',
-  price: 16000,
-  image: nightSkyFinish,
+  price: 22000,
+  image: "/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png",
   category: 'cover'
 }, {
-  name: 'CS3000 Safety Cover',
+  name: 'CS3000',
   color: '#2F4F4F',
   price: 24000,
-  image: shaleGrayFinish,
+  image: "/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png",
   category: 'cover'
 }, {
-  name: 'Infinity 4000 Smart Cover',
+  name: 'Infinity 4000',
   color: '#2F4F4F',
   price: 32000,
-  image: coastalBronzeFinish,
+  image: "/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png",
   category: 'cover'
 }, {
-  name: 'Atom Loop-Loc Cover',
+  name: 'Atom',
   color: '#2F4F4F',
-  price: 19000,
-  image: aquamarineFinish,
+  price: 22000,
+  image: "/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png",
   category: 'cover'
 }];
+
+const meshColorOptions = [
+  { name: 'Green', color: '#2F5D32', hex: '#2F5D32' },
+  { name: 'Blue', color: '#1E3A8A', hex: '#1E3A8A' },
+  { name: 'Tan', color: '#D2B48C', hex: '#D2B48C' },
+  { name: 'Black', color: '#1F2937', hex: '#1F2937' },
+  { name: 'Gray', color: '#6B7280', hex: '#6B7280' }
+];
 
 // Tile options - using consolidated data
 const tileOptions = [{
@@ -256,6 +265,7 @@ const WonderlandsStudio = () => {
     finish: 'Aquamarine',
     linerOption: 'Standard Blue',
     coverOption: 'NO COVER',
+    meshColor: 'Green',
     tiles: false,
     tileOption: 'Standard Waterline',
     heaterModel: 'Hayward H400FDN Natural Gas',
@@ -1358,27 +1368,43 @@ const WonderlandsStudio = () => {
                             </Button>}
                         </div>
                       </div>
-                      {selectedExtras.cover && activeFeatureCarousel === 'cover' && <Carousel className="w-full">
-                          <CarouselContent className="-ml-1">
-                            {coverOptions.filter(cover => cover.name !== 'NO COVER').map(cover => <CarouselItem key={cover.name} className="pl-1 basis-1/2">
-                                <div className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${selectedExtras.coverOption === cover.name ? 'border-primary shadow-md' : 'border-border hover:border-primary/50'}`} onClick={() => {
-                            setSelectedExtras({
+                      {selectedExtras.cover && activeFeatureCarousel === 'cover' && <div className="space-y-4">
+                          <Carousel className="w-full">
+                            <CarouselContent className="-ml-1">
+                              {coverOptions.filter(cover => cover.name !== 'NO COVER').map(cover => <CarouselItem key={cover.name} className="pl-1 basis-1/2">
+                                  <div className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${selectedExtras.coverOption === cover.name ? 'border-primary shadow-md' : 'border-border hover:border-primary/50'}`} onClick={() => {
+                              setSelectedExtras({
+                                ...selectedExtras,
+                                coverOption: cover.name
+                              });
+                            }}>
+                                    <img src={cover.image} alt={cover.name} className="w-full h-16 object-cover rounded" />
+                                    <p className="text-xs font-medium mt-1 truncate">{cover.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      ${cover.price.toLocaleString()}
+                                    </p>
+                                  </div>
+                                </CarouselItem>)}
+                            </CarouselContent>
+                            <CarouselPrevious />
+                            <CarouselNext />
+                          </Carousel>
+                          
+                          {selectedExtras.coverOption !== 'NO COVER' && <div>
+                              <Label className="text-sm font-medium mb-2 block">Mesh Color</Label>
+                              <div className="grid grid-cols-5 gap-2">
+                                {meshColorOptions.map(colorOption => <div key={colorOption.name} className={`cursor-pointer rounded-lg border-2 p-2 transition-all duration-200 ${selectedExtras.meshColor === colorOption.name ? 'border-primary shadow-md' : 'border-border hover:border-primary/50'}`} onClick={() => setSelectedExtras({
                               ...selectedExtras,
-                              coverOption: cover.name
-                            });
-                            setActiveFeatureCarousel(null);
-                          }}>
-                                  <img src={cover.image} alt={cover.name} className="w-full h-16 object-cover rounded" />
-                                  <p className="text-xs font-medium mt-1 truncate">{cover.name}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    ${cover.price.toLocaleString()}
-                                  </p>
-                                </div>
-                              </CarouselItem>)}
-                          </CarouselContent>
-                          <CarouselPrevious />
-                          <CarouselNext />
-                        </Carousel>}
+                              meshColor: colorOption.name
+                            })}>
+                                    <div className="w-8 h-8 rounded" style={{
+                              backgroundColor: colorOption.hex
+                            }}></div>
+                                    <p className="text-xs font-medium mt-1 text-center">{colorOption.name}</p>
+                                  </div>)}
+                              </div>
+                            </div>}
+                        </div>}
                     </div>
 
                     {/* Jets */}
