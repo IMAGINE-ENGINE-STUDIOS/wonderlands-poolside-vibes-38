@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useShoppingCart } from "./ShoppingCart";
 import { useToast } from "@/hooks/use-toast";
 import { OptimizedImage } from "./OptimizedImage";
+import SurveyQuoteTool from "./SurveyQuoteTool";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermometer, Home, Zap, Palette, Calculator, CreditCard } from 'lucide-react';
 
@@ -45,6 +46,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
   const { toast } = useToast();
   
   const [showFinancing, setShowFinancing] = useState(false);
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
   
   const [options, setOptions] = useState<GilmerOptions>({
     colorFinish: 'Ocean Blue',
@@ -474,29 +476,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
           <div className="flex gap-2">
             <Button 
               onClick={() => {
-                const extrasArray = [];
-                extrasArray.push({ name: `Color: ${options.colorFinish}`, price: 0 });
-                if (options.pavers) {
-                  extrasArray.push({ name: `Pavers: ${options.paverOption}`, price: paverOptions.find(p => p.name === options.paverOption)?.price || 0 });
-                  if (options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea))) {
-                    extrasArray.push({ name: `Paver Surface Area (${options.paverSurfaceArea} sq ft)`, price: parseFloat(options.paverSurfaceArea) * 15 });
-                  }
-                }
-                if (options.screenEnclosure) extrasArray.push({ name: `Screen Enclosure: ${options.screenEnclosureQuality}`, price: (screenEnclosureQualities.find(q => q.name === options.screenEnclosureQuality)?.price || 0) * (options.screenEnclosureArea / 1000) });
-                if (options.poolHeater) extrasArray.push({ name: `Heater: ${options.heaterModel}`, price: heaterOptions.find(h => h.name === options.heaterModel)?.price || 0 });
-                if (options.concreteConstruction) extrasArray.push({ name: 'Concrete Construction', price: 15000 });
-                
-                // Open quote request in new window
-                const quoteData = {
-                  poolModel: pool.model,
-                  poolPrice: pool.price,
-                  extras: extrasArray,
-                  totalPrice: pool.price + calculateTotal(),
-                  deliveryTime: getInstallationTime() + ' weeks'
-                };
-                
-                const quoteUrl = `mailto:info@pools.com?subject=Quote Request for ${pool.model}&body=Pool Model: ${pool.model}%0ABase Price: $${pool.price.toLocaleString()}%0AExtras: ${encodeURIComponent(JSON.stringify(extrasArray))}%0ATotal Price: $${(pool.price + calculateTotal()).toLocaleString()}%0AInstallation Time: ${getInstallationTime()} weeks`;
-                window.open(quoteUrl);
+                setShowQuoteModal(true);
               }}
               variant="outline" 
               className="flex-1"
@@ -574,6 +554,42 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
           </div>
         </div>
       </CardContent>
+      
+      {/* Survey Quote Tool Modal */}
+      <SurveyQuoteTool 
+        pool={{
+          model: pool.model,
+          price: pool.price + calculateTotal(),
+          category: 'premium' as const,
+          dimensions: pool.dimensions,
+          depth: pool.depth,
+          image: pool.image
+        }}
+        isOpen={showQuoteModal}
+        onClose={() => setShowQuoteModal(false)}
+        extras={{
+          colorFinish: options.colorFinish,
+          pavers: options.pavers,
+          paverOption: options.paverOption,
+          paverSurfaceArea: options.paverSurfaceArea,
+          screenEnclosure: options.screenEnclosure,
+          screenEnclosureArea: options.screenEnclosureArea,
+          screenEnclosureQuality: options.screenEnclosureQuality,
+          poolHeater: options.poolHeater,
+          heaterModel: options.heaterModel,
+          concreteConstruction: options.concreteConstruction,
+          extrasBreakdown: [
+            { name: `Color: ${options.colorFinish}`, price: 0 },
+            ...(options.pavers ? [{ name: `Pavers: ${options.paverOption}`, price: paverOptions.find(p => p.name === options.paverOption)?.price || 0 }] : []),
+            ...(options.pavers && options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) ? [{ name: `Paver Surface Area (${options.paverSurfaceArea} sq ft)`, price: parseFloat(options.paverSurfaceArea) * 15 }] : []),
+            ...(options.screenEnclosure ? [{ name: `Screen Enclosure: ${options.screenEnclosureQuality}`, price: (screenEnclosureQualities.find(q => q.name === options.screenEnclosureQuality)?.price || 0) * (options.screenEnclosureArea / 1000) }] : []),
+            ...(options.poolHeater ? [{ name: `Heater: ${options.heaterModel}`, price: heaterOptions.find(h => h.name === options.heaterModel)?.price || 0 }] : []),
+            ...(options.concreteConstruction ? [{ name: 'Concrete Construction', price: 15000 }] : [])
+          ],
+          extrasTotal: calculateTotal(),
+          deliveryTime: getInstallationTime() + ' weeks'
+        }}
+      />
     </Card>
   );
 };
