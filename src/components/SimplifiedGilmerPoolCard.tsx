@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { poolTiles } from "@/data/poolData";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { OptimizedImage } from "./OptimizedImage";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import StripeCheckoutButton from "./StripeCheckoutButton";
-import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermometer, Home, Zap, Palette, Calculator, CreditCard } from 'lucide-react';
+import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermometer, Home, Zap, Palette, Calculator, CreditCard, Cpu } from 'lucide-react';
 
 interface SimplifiedGilmerPoolCardProps {
   pool: {
@@ -34,6 +35,8 @@ interface GilmerOptions {
   pavers: boolean;
   paverOption: string;
   paverSurfaceArea: string;
+  tiles: boolean;
+  tileOption: string;
   screenEnclosure: boolean;
   screenEnclosureArea: number;
   screenEnclosureQuality: string;
@@ -54,6 +57,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     pavers: false,
     paverOption: 'Catalina Grana Blend',
     paverSurfaceArea: '',
+    tiles: false,
+    tileOption: 'Mountain',
     screenEnclosure: false,
     screenEnclosureArea: 1000,
     screenEnclosureQuality: 'Premium',
@@ -86,6 +91,12 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     { name: 'Standard', price: 15000 },
     { name: 'Premium', price: 22000 },
     { name: 'Ultra Premium', price: 35000 }
+  ];
+
+  // Pool tile options
+  const tileOptions = [
+    { name: 'Standard Waterline', price: 0, image: '/lovable-uploads/c5cd2f96-d31a-446b-943b-6dd1620f6521.png' },
+    ...poolTiles.map(tile => ({ name: tile.name, price: tile.price, image: tile.image }))
   ];
 
   // Pool heater options
@@ -121,6 +132,11 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
       if (options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea))) {
         total += parseFloat(options.paverSurfaceArea) * 15;
       }
+    }
+    
+    if (options.tiles) {
+      const tilePrice = tileOptions.find(t => t.name === options.tileOption)?.price || 0;
+      total += tilePrice;
     }
     
     if (options.screenEnclosure) {
@@ -403,6 +419,58 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               </div>
             )}
 
+            
+            {/* Pool Tiles */}
+            <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+              <Checkbox 
+                checked={options.tiles} 
+                onCheckedChange={() => toggleOption('tiles')} 
+                className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+              />
+              <div className="flex items-center space-x-1">
+                <Cpu size={16} className="text-primary" />
+                <span className="text-sm">Add Pool Tiles (+${options.tiles ? (tileOptions.find(t => t.name === options.tileOption)?.price || 0).toLocaleString() : '0'})</span>
+              </div>
+            </label>
+            {options.tiles && (
+              <div className="ml-6 space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">Select Tile Option:</label>
+                <Carousel className="w-full">
+                  <CarouselContent className="-ml-1">
+                    {tileOptions.map((tile) => (
+                      <CarouselItem key={tile.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                        <div 
+                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                            options.tileOption === tile.name ? 'border-primary bg-primary/10' : 'border-border'
+                          }`} 
+                          onClick={() => updateOption('tileOption', tile.name)}
+                        >
+                          <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                            <OptimizedImage 
+                              src={tile.image} 
+                              alt={tile.name} 
+                              className="w-full h-full object-cover" 
+                              loading="lazy"
+                            />
+                          </div>
+                          <div className="flex-1 flex flex-col justify-between min-h-0">
+                            <p className="text-xs font-medium text-center line-clamp-2">{tile.name}</p>
+                            {tile.price > 0 && (
+                              <p className="text-xs text-primary font-semibold text-center mt-1">
+                                +${tile.price.toLocaleString()}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="left-0" />
+                  <CarouselNext className="right-0" />
+                </Carousel>
+              </div>
+            )}
+
             {/* Pool Heater */}
             <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
               <Checkbox 
@@ -582,28 +650,31 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
         }}
         isOpen={showQuoteModal}
         onClose={() => setShowQuoteModal(false)}
-        extras={{
-          colorFinish: options.colorFinish,
-          pavers: options.pavers,
-          paverOption: options.paverOption,
-          paverSurfaceArea: options.paverSurfaceArea,
-          screenEnclosure: options.screenEnclosure,
-          screenEnclosureArea: options.screenEnclosureArea,
-          screenEnclosureQuality: options.screenEnclosureQuality,
-          poolHeater: options.poolHeater,
-          heaterModel: options.heaterModel,
-          concreteConstruction: options.concreteConstruction,
-          extrasBreakdown: [
-            { name: `Color: ${options.colorFinish}`, price: 0 },
-            ...(options.pavers ? [{ name: `Pavers: ${options.paverOption}`, price: paverOptions.find(p => p.name === options.paverOption)?.price || 0 }] : []),
-            ...(options.pavers && options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) ? [{ name: `Paver Surface Area (${options.paverSurfaceArea} sq ft)`, price: parseFloat(options.paverSurfaceArea) * 15 }] : []),
-            ...(options.screenEnclosure ? [{ name: `Screen Enclosure: ${options.screenEnclosureQuality}`, price: (screenEnclosureQualities.find(q => q.name === options.screenEnclosureQuality)?.price || 0) * (options.screenEnclosureArea / 1000) }] : []),
-            ...(options.poolHeater ? [{ name: `Heater: ${options.heaterModel}`, price: heaterOptions.find(h => h.name === options.heaterModel)?.price || 0 }] : []),
-            ...(options.concreteConstruction ? [{ name: 'Concrete Construction', price: 15000 }] : [])
-          ],
-          extrasTotal: calculateTotal(),
-          deliveryTime: getInstallationTime() + ' weeks'
-        }}
+          extras={{
+            colorFinish: options.colorFinish,
+            pavers: options.pavers,
+            paverOption: options.paverOption,
+            paverSurfaceArea: options.paverSurfaceArea,
+            tiles: options.tiles,
+            tileOption: options.tileOption,
+            screenEnclosure: options.screenEnclosure,
+            screenEnclosureArea: options.screenEnclosureArea,
+            screenEnclosureQuality: options.screenEnclosureQuality,
+            poolHeater: options.poolHeater,
+            heaterModel: options.heaterModel,
+            concreteConstruction: options.concreteConstruction,
+            extrasBreakdown: [
+              { name: `Color: ${options.colorFinish}`, price: 0 },
+              ...(options.pavers ? [{ name: `Pavers: ${options.paverOption}`, price: paverOptions.find(p => p.name === options.paverOption)?.price || 0 }] : []),
+              ...(options.pavers && options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) ? [{ name: `Paver Surface Area (${options.paverSurfaceArea} sq ft)`, price: parseFloat(options.paverSurfaceArea) * 15 }] : []),
+              ...(options.tiles ? [{ name: `Tiles: ${options.tileOption}`, price: tileOptions.find(t => t.name === options.tileOption)?.price || 0 }] : []),
+              ...(options.screenEnclosure ? [{ name: `Screen Enclosure: ${options.screenEnclosureQuality}`, price: (screenEnclosureQualities.find(q => q.name === options.screenEnclosureQuality)?.price || 0) * (options.screenEnclosureArea / 1000) }] : []),
+              ...(options.poolHeater ? [{ name: `Heater: ${options.heaterModel}`, price: heaterOptions.find(h => h.name === options.heaterModel)?.price || 0 }] : []),
+              ...(options.concreteConstruction ? [{ name: 'Concrete Construction', price: 15000 }] : [])
+            ],
+            extrasTotal: calculateTotal(),
+            deliveryTime: getInstallationTime() + ' weeks'
+          }}
       />
     </Card>
   );
