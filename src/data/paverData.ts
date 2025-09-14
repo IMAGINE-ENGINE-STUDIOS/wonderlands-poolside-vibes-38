@@ -204,7 +204,7 @@ export const copingTypes: PaverType[] = [
     description: 'Premium natural stone pool edge coping',
     basePrice: 28,
     category: 'coping',
-    image: '/src/assets/pools/enchantment-new.png',
+    image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png',
     colors: [
       { name: 'Bluestone', hex: '#4682B4', priceModifier: 1.0 },
       { name: 'Limestone', hex: '#E5E4E2', priceModifier: 1.05 },
