@@ -68,9 +68,9 @@ interface Spa {
 // Pool finish options
 export const poolFinishes = ["Nantuke", "Esagoni", "Whitehaven", "Island Wave", "Durango Gray", "Vintage Blue", "Royal Blue", "Gulf Coast", "Hamper", "Indigo", "Cayman", "Mountain", "Carnegie", "Panama", "Corolla", "Summerwave", "Legends", "Z terrazzo", "Tullism", "Courtstone Gray", "Courtstone Blue"];
 
-// Helper function to get pool price (no discounts)
+// Helper function to get pool price with 10% discount applied
 const getPoolPrice = (pool: Pool) => {
-  return pool.price;
+  return Math.round(pool.price * 0.90); // 10% discount for all pools
 };
 const pools: Pool[] = [
 // Premium Infinity Concrete Pool
@@ -526,22 +526,9 @@ const pools: Pool[] = [
   depth: "3′ 9″ – 8′ 6″",
   installationTimeWeeks: 7,
   warrantyYears: "Lifetime",
-  features: ["Salt system included in final price", "Freeform Design", "Large Swimming Area", "15% Discount Applied"],
+  features: ["Salt system included in final price", "Freeform Design", "Large Swimming Area", "10% Discount Applied"],
   heater: false,
   saltSystem: true,
-  carbonFiber: true
-}, {
-  model: "Extreme 27",
-  price: 65000,
-  category: 'premium',
-  image: "/lovable-uploads/gilmer-extreme-27.jpeg",
-  dimensions: "12'6\" x 27'",
-  depth: "4'6\"– 5'11\"",
-  installationTimeWeeks: 8,
-  warrantyYears: "Life Warranty",
-  features: ["Gilmer Glass Fiber Pool", "Life Warranty", "Premium Construction", "Ocean Blue Finish"],
-  heater: false,
-  saltSystem: false,
   carbonFiber: true
 }];
 
@@ -658,27 +645,9 @@ const PoolCatalog = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {paginatedPools.map(pool => 
-              pool.model === "Extreme 27" ? (
-                <SimplifiedGilmerPoolCard 
-                  key={pool.model} 
-                  pool={{
-                    model: pool.model,
-                    dimensions: pool.dimensions,
-                    depth: pool.depth,
-                    price: pool.price,
-                    image: pool.image,
-                    warranty: typeof pool.warrantyYears === 'string' ? pool.warrantyYears : "Life Warranty",
-                    brand: "Gilmer Glass",
-                    type: "Fiber Pool",
-                    installationTimeWeeks: pool.installationTimeWeeks,
-                    concreteInstallationWeeks: 18
-                  }} 
-                />
-              ) : (
-                <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />
-              )
-            )}
+            {paginatedPools.map(pool => (
+              <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />
+            ))}
           </div>
 
           {/* Pagination Controls */}

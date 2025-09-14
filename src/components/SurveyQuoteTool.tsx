@@ -202,11 +202,9 @@ const SurveyQuoteTool = ({
     if (!pool && !customProduct) return 0;
     let basePrice = pool?.price || customProduct?.price || 0;
     
-    // Apply exact discounts from product configuration (matching product cards)
-    if (pool?.category === 'premium') {
-      basePrice = Math.round(basePrice * 0.70); // 30% discount
-    } else if (pool) {
-      basePrice = Math.round(basePrice * 0.85); // 15% discount for all pools
+    // Apply 10% discount to all pools
+    if (pool) {
+      basePrice = Math.round(basePrice * 0.90); // 10% discount for all pools
     }
 
     // Apply No Pavers discount if applicable (matching product cards)

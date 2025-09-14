@@ -25,9 +25,9 @@ import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 
-// Helper function to get pool price with 15% discount applied
+// Helper function to get pool price with 10% discount applied
 const getPoolPrice = (pool: Pool) => {
-  return Math.round(pool.price * 0.85);
+  return Math.round(pool.price * 0.90); // 10% discount for all pools
 };
 interface Pool {
   model: string;
@@ -480,7 +480,7 @@ const PoolProductCard = ({
     });
   };
   const calculateTotalPrice = () => {
-    let total = getPoolPrice(pool); // Already includes 15% discount
+    let total = getPoolPrice(pool); // Already includes 10% discount
 
     // Add 20% markup for concrete construction
     if (extras.concreteConstruction) {
@@ -706,7 +706,7 @@ const PoolProductCard = ({
                 ${getPoolPrice(pool).toLocaleString()}
               </span>
             </div>
-            <Badge variant="secondary" className="ml-2 text-[10px] px-2 py-0.5">15% OFF</Badge>
+            <Badge variant="secondary" className="ml-2 text-[10px] px-2 py-0.5">10% OFF</Badge>
           </div>
           {pool.category === 'deluxe' && <div className="flex items-center gap-2">
               
@@ -1321,7 +1321,7 @@ const PoolProductCard = ({
                     return Math.round(originalTotal).toLocaleString();
                   })()}</div>
                   <div className="text-2xl font-bold text-foreground">${calculateTotalPrice().toLocaleString()}</div>
-                  <div className="text-sm font-medium text-teal">15% Pool Discount Applied</div>
+                  <div className="text-sm font-medium text-teal">10% Pool Discount Applied</div>
                 </div>
               </div>
             </div>
