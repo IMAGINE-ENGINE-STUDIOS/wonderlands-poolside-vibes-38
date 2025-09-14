@@ -1,4 +1,4 @@
-// Gilmer Glass Pools Data
+// Gilmer Glass Pools Data - Updated Price
 export const gilmerPools = [
   {
     model: "Extreme 27",
