@@ -1250,7 +1250,7 @@ const PoolProductCard = ({
                 ...extras,
                 extrasBreakdown,
                 extrasTotal,
-                deliveryTime: extras.concreteConstruction ? '8-12 weeks+' : '6 weeks' // Add delivery time based on concrete construction
+                deliveryTime: extras.concreteConstruction ? '18+ weeks' : '8+ weeks' // Add delivery time based on concrete construction
               });
             }} variant="outline" className="flex-1" size="sm">Instant Quote</Button>
               </div>
@@ -1490,7 +1490,7 @@ const PoolProductCard = ({
             ...extras,
             extrasBreakdown,
             extrasTotal,
-            deliveryTime: extras.concreteConstruction ? '8-12 weeks+' : '6 weeks'
+            deliveryTime: extras.concreteConstruction ? '18+ weeks' : '8+ weeks'
           });
         }} variant="outline" className="w-full" size="sm">
               Instant Quote

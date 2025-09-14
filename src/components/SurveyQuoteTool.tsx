@@ -1007,14 +1007,9 @@ const SurveyQuoteTool = ({
                 <div className="mb-6">
                   <div className="bg-gradient-to-br from-blue-100 to-green-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
                     <h4 className="font-bold text-lg mb-2 text-blue-600">Estimated Build Time</h4>
-                    <p className="text-sm">
+                     <p className="text-sm">
                       {(() => {
-                        // Use accurate build times based on product type
-                        if (extras?.deliveryTime) {
-                          return extras.deliveryTime;
-                        }
-                        
-                        // Concrete construction
+                        // Concrete construction always takes 18+ weeks
                         if (extras?.concreteConstruction) {
                           return "18+ weeks";
                         }
@@ -1024,17 +1019,7 @@ const SurveyQuoteTool = ({
                           return "18+ weeks";
                         }
                         
-                        // Concrete construction for any pool
-                        if (extras?.concreteConstruction) {
-                          return "18+ weeks";
-                        }
-                        
-                        // Gilmer Glass fiber pools
-                        if (pool?.model === "Extreme 27" || (pool as any)?.brand === "Gilmer Glass") {
-                          return "8+ weeks";
-                        }
-                        
-                        // All other fiber pools, spas, and tanning ledges
+                        // All pools, spas, and tanning ledges (fiber construction): 8+ weeks
                         return "8+ weeks";
                       })()}
                     </p>

@@ -2102,7 +2102,7 @@ const WonderlandsStudio = () => {
           ...selectedExtras,
           extrasBreakdown: selectedExtras.extrasBreakdown || [],
           extrasTotal: selectedExtras.extrasTotal || 0,
-          deliveryTime: selectedExtras.concreteConstruction ? '8-12 weeks+' : '6 weeks'
+          deliveryTime: selectedExtras.concreteConstruction ? '18+ weeks' : '8+ weeks'
         }}
       />
     </div>
