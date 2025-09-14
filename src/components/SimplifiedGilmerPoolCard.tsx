@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useShoppingCart } from "./ShoppingCart";
 import { useToast } from "@/hooks/use-toast";
 import { OptimizedImage } from "./OptimizedImage";
@@ -319,25 +320,39 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                     </div>
                   )}
                 </div>
-                <label className="text-xs font-medium text-muted-foreground">Select Paver Option:</label>
-                <div className="grid grid-cols-1 gap-2">
-                  {paverOptions.map((paver) => (
-                    <button
-                      key={paver.name}
-                      onClick={() => updateOption('paverOption', paver.name)}
-                      className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${
-                        options.paverOption === paver.name 
-                          ? 'border-coral bg-coral/10 text-coral' 
-                          : 'border-border hover:border-coral/50'
-                      }`}
-                    >
-                      <div className="flex-1 text-left">
-                        <div>{paver.name}</div>
-                        <div className="text-xs text-muted-foreground">${paver.price.toLocaleString()}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                <Carousel className="w-full">
+                  <CarouselContent className="-ml-1">
+                    {paverOptions.map((paver) => (
+                      <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                        <div 
+                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                            options.paverOption === paver.name ? 'border-primary bg-primary/10' : 'border-border'
+                          }`} 
+                          onClick={() => updateOption('paverOption', paver.name)}
+                        >
+                          <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                            <OptimizedImage 
+                              src="/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png" 
+                              alt={paver.name} 
+                              className="w-full h-full object-cover" 
+                              loading="lazy"
+                            />
+                          </div>
+                          <div className="flex-1 flex flex-col justify-between min-h-0">
+                            <p className="text-xs font-medium text-center line-clamp-2">{paver.name}</p>
+                            {paver.price > 0 && (
+                              <p className="text-xs text-primary font-semibold text-center mt-1">
+                                +${paver.price.toLocaleString()}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="left-0" />
+                  <CarouselNext className="right-0" />
+                </Carousel>
               </div>
             )}
 
