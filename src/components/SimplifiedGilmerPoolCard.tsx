@@ -198,7 +198,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
       <CardContent className="flex-1 space-y-6 px-6 pb-6">
         {/* Pool Image */}
         <div className="relative group">
-          <div className="aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-primary/5 to-teal/5 ring-1 ring-border/50">
+          <div className="aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-br from-primary/5 to-teal/5 ring-1 ring-border/50">
             <OptimizedImage
               src={pool.image}
               alt={pool.model}
