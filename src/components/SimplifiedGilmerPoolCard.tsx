@@ -252,7 +252,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
             <div className="flex flex-col">
               <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
-                ${(pool.price + calculateTotal()).toLocaleString()}
+                $65,500
               </span>
             </div>
           </div>
@@ -296,6 +296,10 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                         : 'border-border hover:border-primary/50'
                     }`}
                   >
+                    <div 
+                      className="w-4 h-4 rounded-full border-2 border-gray-300 flex-shrink-0"
+                      style={{ backgroundColor: color.color }}
+                    />
                     <span className="font-medium truncate">{color.name}</span>
                     <input
                       type="radio"
@@ -560,7 +564,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               <div className="bg-gradient-to-r from-primary/5 to-teal/5 rounded-xl p-4 border border-primary/10">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-muted-foreground">Pool Base Price</span>
-                  <span className="text-lg font-bold text-foreground">${pool.price.toLocaleString()}</span>
+                  <span className="text-lg font-bold text-foreground">$65,500</span>
                 </div>
                 
                 {calculateTotal() > 0 && (
@@ -579,7 +583,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                     <span className="text-base font-semibold text-foreground">Total Price</span>
                   </div>
                   <span className="text-2xl font-bold text-primary">
-                    ${(pool.price + calculateTotal()).toLocaleString()}
+                    $65,500
                   </span>
                 </div>
               </div>
