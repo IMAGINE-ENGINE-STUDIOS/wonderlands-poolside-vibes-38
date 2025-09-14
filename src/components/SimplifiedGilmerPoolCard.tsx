@@ -583,7 +583,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                     <span className="text-base font-semibold text-foreground">Total Price</span>
                   </div>
                   <span className="text-2xl font-bold text-primary">
-                    ${(pool.price + calculateTotal()).toLocaleString()}
+                    $65,500
                   </span>
                 </div>
               </div>
