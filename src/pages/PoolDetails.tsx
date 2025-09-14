@@ -325,7 +325,7 @@ const copingPaverOptions = [{
   name: 'Natural Stone Coping',
   color: '#4682B4',
   price: 28,
-  image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png',
+  image: '/src/assets/pools/enchantment-new.png',
   description: 'Premium natural stone pool edge coping'
 }, {
   name: 'Tile Coping',
