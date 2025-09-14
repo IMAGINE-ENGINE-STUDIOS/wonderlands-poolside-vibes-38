@@ -31,6 +31,7 @@ interface GilmerOptions {
   colorFinish: string;
   pavers: boolean;
   paverOption: string;
+  paverSurfaceArea: string;
   screenEnclosure: boolean;
   screenEnclosureArea: number;
   screenEnclosureQuality: string;
@@ -49,6 +50,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     colorFinish: 'Ocean Blue',
     pavers: false,
     paverOption: 'Catalina Grana Blend',
+    paverSurfaceArea: '',
     screenEnclosure: false,
     screenEnclosureArea: 1000,
     screenEnclosureQuality: 'Premium',
@@ -111,6 +113,11 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     if (options.pavers) {
       const paverPrice = paverOptions.find(p => p.name === options.paverOption)?.price || 0;
       total += paverPrice;
+      
+      // Add calculated paver surface area cost
+      if (options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea))) {
+        total += parseFloat(options.paverSurfaceArea) * 15;
+      }
     }
     
     if (options.screenEnclosure) {
@@ -292,6 +299,24 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             </label>
             {options.pavers && (
               <div className="ml-6 space-y-2">
+                <h4 className="font-semibold text-foreground">Pavers Surface Area Calculator</h4>
+                <div className="mb-3">
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                    Paver Surface Area (sq ft)
+                  </label>
+                  <Input 
+                    type="number" 
+                    placeholder="Enter surface area for pavers" 
+                    value={options.paverSurfaceArea} 
+                    onChange={(e) => updateOption('paverSurfaceArea', e.target.value)} 
+                    className="mb-2" 
+                  />
+                  {options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) && (
+                    <div className="text-xs text-green-600 font-medium">
+                      Calculated Cost: ${(parseFloat(options.paverSurfaceArea) * 15).toLocaleString()} (${options.paverSurfaceArea} sq ft × $15/sq ft)
+                    </div>
+                  )}
+                </div>
                 <label className="text-xs font-medium text-muted-foreground">Select Paver Option:</label>
                 <div className="grid grid-cols-1 gap-2">
                   {paverOptions.map((paver) => (
@@ -451,7 +476,12 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               onClick={() => {
                 const extrasArray = [];
                 extrasArray.push({ name: `Color: ${options.colorFinish}`, price: 0 });
-                if (options.pavers) extrasArray.push({ name: `Pavers: ${options.paverOption}`, price: paverOptions.find(p => p.name === options.paverOption)?.price || 0 });
+                if (options.pavers) {
+                  extrasArray.push({ name: `Pavers: ${options.paverOption}`, price: paverOptions.find(p => p.name === options.paverOption)?.price || 0 });
+                  if (options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea))) {
+                    extrasArray.push({ name: `Paver Surface Area (${options.paverSurfaceArea} sq ft)`, price: parseFloat(options.paverSurfaceArea) * 15 });
+                  }
+                }
                 if (options.screenEnclosure) extrasArray.push({ name: `Screen Enclosure: ${options.screenEnclosureQuality}`, price: (screenEnclosureQualities.find(q => q.name === options.screenEnclosureQuality)?.price || 0) * (options.screenEnclosureArea / 1000) });
                 if (options.poolHeater) extrasArray.push({ name: `Heater: ${options.heaterModel}`, price: heaterOptions.find(h => h.name === options.heaterModel)?.price || 0 });
                 if (options.concreteConstruction) extrasArray.push({ name: 'Concrete Construction', price: 15000 });
