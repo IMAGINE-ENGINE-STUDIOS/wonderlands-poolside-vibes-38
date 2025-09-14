@@ -533,7 +533,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Extreme 27",
-  price: 65000,
+  price: 85000,
   category: 'premium',
   image: "/lovable-uploads/gilmer-extreme-27.jpeg",
   dimensions: "12'6\" x 27'",
