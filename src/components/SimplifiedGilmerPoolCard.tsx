@@ -62,7 +62,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     tileOption: 'Mountain',
     screenEnclosure: false,
     screenEnclosureArea: 1000,
-    screenEnclosureQuality: 'Premium',
+    screenEnclosureQuality: 'standard',
     poolHeater: false,
     heaterModel: 'Hayward H400FDN Natural Gas',
     concreteConstruction: false
@@ -90,11 +90,11 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
       pricePerSqFt: paver.basePrice // $15 per sq ft
     }));
 
-  // Screen enclosure options
+  // Screen enclosure options with proper quality names and pricing
   const screenEnclosureQualities = [
-    { name: 'Standard', price: 15000 },
-    { name: 'Premium', price: 22000 },
-    { name: 'Ultra Premium', price: 35000 }
+    { key: 'standard', name: 'Wonder Cage', price: 15 },
+    { key: 'deluxe', name: 'Deluxe', price: 22 },
+    { key: 'premium', name: '2 stories', price: 28 }
   ];
 
   // Pool tile options
@@ -141,9 +141,10 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     }
     
     if (options.screenEnclosure) {
-      const enclosurePrice = screenEnclosureQualities.find(q => q.name === options.screenEnclosureQuality)?.price || 0;
-      const areaMultiplier = options.screenEnclosureArea / 1000;
-      total += enclosurePrice * areaMultiplier;
+      let pricePerSqFt = 15;
+      if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+      if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+      total += options.screenEnclosureArea * pricePerSqFt;
     }
     
     if (options.poolHeater) {
@@ -379,40 +380,58 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               />
               <div className="flex items-center space-x-1">
                 <Shield size={16} className="text-primary" />
-                <span className="text-sm">Screen Enclosure (+${options.screenEnclosure ? ((screenEnclosureQualities.find(q => q.name === options.screenEnclosureQuality)?.price || 0) * (options.screenEnclosureArea / 1000)).toLocaleString() : '0'})</span>
+                <span className="text-sm">Screen Enclosure (+${options.screenEnclosure && options.screenEnclosureArea > 0 ? (() => {
+                  let pricePerSqFt = 15;
+                  if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+                  if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                  return (options.screenEnclosureArea * pricePerSqFt).toLocaleString();
+                })() : '0'})</span>
               </div>
             </label>
             {options.screenEnclosure && (
               <div className="ml-6 space-y-2">
-                <label className="text-xs font-medium text-muted-foreground">Select Quality & Area:</label>
-                <div className="grid grid-cols-1 gap-2">
-                  {screenEnclosureQualities.map((quality) => (
-                    <button
-                      key={quality.name}
-                      onClick={() => updateOption('screenEnclosureQuality', quality.name)}
-                      className={`p-2 text-xs rounded-md border transition-all ${
-                        options.screenEnclosureQuality === quality.name 
-                          ? 'border-primary bg-primary/10 text-primary' 
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <div className="text-left">
-                        <div>{quality.name}</div>
-                        <div className="text-xs text-muted-foreground">${quality.price.toLocaleString()}/1000 sq ft</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs">Area (sq ft):</span>
+                <h4 className="font-semibold text-foreground">Screen Enclosure Surface Area Calculator</h4>
+                <div className="mb-3">
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                    Screen Enclosure Area (sq ft)
+                  </label>
                   <Input
                     type="number"
-                    value={options.screenEnclosureArea}
-                    onChange={(e) => updateOption('screenEnclosureArea', parseInt(e.target.value) || 1000)}
-                    className="w-20 h-6 text-xs"
-                    min="500"
-                    step="100"
+                    placeholder="Enter surface area for screen enclosure"
+                    value={options.screenEnclosureArea || ''}
+                    onChange={(e) => updateOption('screenEnclosureArea', parseFloat(e.target.value) || 0)}
+                    className="mb-2"
                   />
+                  {options.screenEnclosureArea > 0 && (
+                    <div className="text-xs text-green-600 font-medium">
+                      Calculated Cost: ${(() => {
+                        let pricePerSqFt = 15;
+                        if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+                        if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                        return (options.screenEnclosureArea * pricePerSqFt).toLocaleString();
+                      })()} (${options.screenEnclosureArea} sq ft × ${(() => {
+                        if (options.screenEnclosureQuality === 'deluxe') return '$22';
+                        if (options.screenEnclosureQuality === 'premium') return '$28';
+                        return '$15';
+                      })()}/sq ft)
+                    </div>
+                  )}
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {screenEnclosureQualities.map((quality) => (
+                    <div
+                      key={quality.key}
+                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md text-center ${
+                        options.screenEnclosureQuality === quality.key ? 'border-primary bg-primary/10' : 'border-border'
+                      }`}
+                      onClick={() => updateOption('screenEnclosureQuality', quality.key)}
+                    >
+                      <p className="text-sm font-medium">{quality.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        ${quality.price}/sq ft
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -666,7 +685,12 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               ...(options.pavers ? [{ name: `Pavers: ${options.paverOption}`, price: paverOptions.find(p => p.name === options.paverOption)?.price || 0 }] : []),
               ...(options.pavers && options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) ? [{ name: `Paver Surface Area (${options.paverSurfaceArea} sq ft)`, price: parseFloat(options.paverSurfaceArea) * 15 }] : []),
               ...(options.tiles ? [{ name: `Tiles: ${options.tileOption}`, price: tileOptions.find(t => t.name === options.tileOption)?.price || 0 }] : []),
-              ...(options.screenEnclosure ? [{ name: `Screen Enclosure: ${options.screenEnclosureQuality}`, price: (screenEnclosureQualities.find(q => q.name === options.screenEnclosureQuality)?.price || 0) * (options.screenEnclosureArea / 1000) }] : []),
+              ...(options.screenEnclosure && options.screenEnclosureArea > 0 ? [{ name: `Screen Enclosure: ${screenEnclosureQualities.find(q => q.key === options.screenEnclosureQuality)?.name} (${options.screenEnclosureArea} sq ft)`, price: (() => {
+                let pricePerSqFt = 15;
+                if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+                if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                return options.screenEnclosureArea * pricePerSqFt;
+              })() }] : []),
               ...(options.poolHeater ? [{ name: `Heater: ${options.heaterModel}`, price: heaterOptions.find(h => h.name === options.heaterModel)?.price || 0 }] : []),
               ...(options.concreteConstruction ? [{ name: 'Concrete Construction', price: 15000 }] : [])
             ],
