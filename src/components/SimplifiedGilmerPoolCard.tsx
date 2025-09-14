@@ -252,7 +252,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
             <div className="flex flex-col">
               <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
-                $72,000
+                ${(pool.price + calculateTotal()).toLocaleString()}
               </span>
             </div>
           </div>
