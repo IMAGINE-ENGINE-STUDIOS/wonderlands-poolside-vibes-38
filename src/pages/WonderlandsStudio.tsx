@@ -84,14 +84,11 @@ interface ProductExtras {
   extrasTotal?: number;
 }
 
-// Helper function to get discounted price for deluxe pools
+// Helper function to get pool price with 10% discount applied (matching main page)
 const getProductPrice = (product: Product) => {
-  if (product.category === 'premium') {
-    return Math.round(product.price * 0.70); // 30% discount
-  }
-  // Apply 15% discount to all pools
+  // Apply 10% discount to all pools to match main page pricing
   if (product.type === 'pool') {
-    return Math.round(product.price * 0.85); // 15% discount for pools
+    return Math.round(product.price * 0.90); // 10% discount for all pools
   }
   return product.price;
 };
@@ -1831,10 +1828,10 @@ const WonderlandsStudio = () => {
                           <span>Base Price</span>
                           <span>${selectedProduct.price.toLocaleString()}</span>
                         </div>
-                        {selectedProduct.type === 'pool' && <div className="flex justify-between text-sm text-green-600">
-                            <span>Pool Discount ({selectedProduct.category === 'premium' ? '30%' : '15%'} off)</span>
-                            <span>-${(selectedProduct.price - getProductPrice(selectedProduct)).toLocaleString()}</span>
-                          </div>}
+        {selectedProduct.type === 'pool' && <div className="flex justify-between text-sm text-green-600">
+            <span>Pool Discount (10% off)</span>
+            <span>-${(selectedProduct.price - getProductPrice(selectedProduct)).toLocaleString()}</span>
+          </div>}
                         {selectedExtras.paverOption === 'No Pavers' && <div className="flex justify-between text-sm text-green-600">
                             <span>No Pavers Discount</span>
                             <span>-$2,000</span>
