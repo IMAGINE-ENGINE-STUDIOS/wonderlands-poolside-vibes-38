@@ -564,7 +564,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               <div className="bg-gradient-to-r from-primary/5 to-teal/5 rounded-xl p-4 border border-primary/10">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-muted-foreground">Pool Base Price</span>
-                  <span className="text-lg font-bold text-foreground">${pool.price.toLocaleString()}</span>
+                  <span className="text-lg font-bold text-foreground">$65,500</span>
                 </div>
                 
                 {calculateTotal() > 0 && (
