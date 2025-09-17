@@ -19,6 +19,7 @@ const ProcurementSystem = lazy(() => import("./pages/ProcurementSystem"));
 const WonderlandsStudio = lazy(() => import("./pages/WonderlandsStudio"));
 const ContentEditor = lazy(() => import("./pages/ContentEditor"));
 const ReferralPortal = lazy(() => import("./pages/ReferralPortal"));
+const QuoteDetailPage = lazy(() => import("./pages/QuoteDetailPage"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -52,8 +53,16 @@ const App = () => {
                 <ProtectedRoute requireAuth={true}>
                   <AdminDashboard />
                 </ProtectedRoute>
-              } 
-            />
+               } 
+             />
+             <Route 
+               path="/admin/quotes/:quoteId" 
+               element={
+                 <ProtectedRoute requireAuth={true}>
+                   <QuoteDetailPage />
+                 </ProtectedRoute>
+               } 
+             />
             <Route 
               path="/content-editor" 
               element={

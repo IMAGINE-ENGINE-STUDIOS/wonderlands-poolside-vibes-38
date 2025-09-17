@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Search, Eye, Mail, Phone, MapPin, Calendar, DollarSign } from 'lucide-react';
+import { Search, Eye, Mail, Phone, MapPin, Calendar, DollarSign, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -31,6 +32,7 @@ interface UserQuotation {
 }
 
 const AdminQuotesManager = () => {
+  const navigate = useNavigate();
   const [quotes, setQuotes] = useState<UserQuotation[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -163,7 +165,12 @@ const AdminQuotesManager = () => {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Pool Quotes Management</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>Pool Quotes Management</span>
+            <div className="text-sm text-muted-foreground">
+              Click "View Quote" to see the complete quote with all images
+            </div>
+          </CardTitle>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -197,7 +204,7 @@ const AdminQuotesManager = () => {
                 <TableHead>Quote Amount</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -227,13 +234,26 @@ const AdminQuotesManager = () => {
                     {new Date(quote.created_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleViewQuote(quote)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-2 justify-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewQuote(quote)}
+                        title="Quick Preview"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/admin/quotes/${quote.id}`)}
+                        title="View Complete Quote with Images"
+                        className="text-xs"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        Full Quote
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
