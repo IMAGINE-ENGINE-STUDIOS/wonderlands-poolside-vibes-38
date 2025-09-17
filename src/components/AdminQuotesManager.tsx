@@ -18,6 +18,7 @@ interface UserQuotation {
   address: string;
   pool_model: string;
   pool_category: string;
+  pool_price?: number;
   total_quote_amount: number;
   status: string;
   created_at: string;
@@ -254,111 +255,156 @@ const AdminQuotesManager = () => {
             <DialogTitle>Quote Details</DialogTitle>
           </DialogHeader>
           {selectedQuote && (
-            <div className="space-y-6">
-              {/* Customer Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Mail className="h-5 w-5" />
-                    Customer Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Name</p>
-                      <p className="font-medium">{selectedQuote.name}</p>
+            <div className="space-y-6 bg-white p-6" data-quote-content>
+              <div className="bg-white border-2 border-orange-400 rounded-lg overflow-hidden">
+                
+                {/* Header with Logo */}
+                <div className="bg-gradient-to-r from-orange-400 via-pink-400 to-teal-400 p-6 text-white">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="h-16 w-16 bg-white rounded-lg flex items-center justify-center">
+                        <span className="text-orange-400 font-bold text-sm">LOGO</span>
+                      </div>
+                      <div>
+                        <h1 className="text-2xl font-bold">POOL QUOTATION</h1>
+                        <p className="text-orange-100">Your Dream Pool Awaits</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="font-medium">{selectedQuote.email}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Phone</p>
-                      <p className="font-medium">{selectedQuote.phone || 'Not provided'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Address</p>
-                      <p className="font-medium">{selectedQuote.address}</p>
+                    <div className="text-right">
+                      <p className="text-sm">Quote Date: {new Date(selectedQuote.created_at).toLocaleDateString()}</p>
+                      <p className="text-sm">Valid for 30 days</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              {/* Quote Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
-                    Quote Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Customer Information */}
+                <div className="p-6 bg-gradient-to-r from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <p className="text-sm text-muted-foreground">Pool Model</p>
-                      <p className="font-medium">{selectedQuote.pool_model || 'N/A'}</p>
+                      <h3 className="font-bold text-lg mb-3 text-orange-600">Customer Information</h3>
+                      <div className="space-y-2 text-sm">
+                        <p><span className="font-medium">Name:</span> {selectedQuote.name}</p>
+                        <p><span className="font-medium">Email:</span> {selectedQuote.email}</p>
+                        <p><span className="font-medium">Phone:</span> {selectedQuote.phone || 'Not provided'}</p>
+                        <p><span className="font-medium">Property Address:</span> {selectedQuote.address}</p>
+                      </div>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Category</p>
-                      <p className="font-medium">{selectedQuote.pool_category || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Quote Amount</p>
-                      <p className="font-medium text-primary text-xl">
-                        ${selectedQuote.total_quote_amount?.toLocaleString() || '0'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Status</p>
-                      <Badge className={getStatusColor(selectedQuote.status)}>
-                        {selectedQuote.status}
-                      </Badge>
+                      <h3 className="font-bold text-lg mb-3 text-teal-600">Contact Information</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-orange-500" />
+                          <span>(407) 760-4873</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-teal-500" />
+                          <span>sales@wonderlandsworld.com</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Business Hours: Mon-Fri 8AM-6PM, Sat 9AM-4PM
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              {/* Project Details */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Project Details</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Yard Size</p>
-                      <p className="font-medium">{selectedQuote.yard_size || 'Not specified'}</p>
+                {/* Pool Details */}
+                <div className="p-6">
+                  <h3 className="font-bold text-xl mb-4 text-orange-600">Pool Specifications</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div className="space-y-4">
+                      <div className="bg-gradient-to-br from-orange-100 to-teal-100 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg">
+                        <h4 className="font-semibold mb-2">Pool Model: {selectedQuote.pool_model || 'N/A'}</h4>
+                        <p className="text-sm">Category: {selectedQuote.pool_category || 'N/A'}</p>
+                        <div className="flex justify-between mt-2 pt-2 border-t border-orange-200 dark:border-gray-600">
+                          <span>Base Pool Price:</span>
+                          <span className="font-semibold">${(selectedQuote.pool_price || 0).toLocaleString()}</span>
+                        </div>
+                      </div>
+
+                      {/* Project Details */}
+                      <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
+                        <h4 className="font-semibold mb-2">Project Details</h4>
+                        <div className="space-y-2 text-sm">
+                          <p><span className="font-medium">Yard Size:</span> {selectedQuote.yard_size || 'Not specified'}</p>
+                          <p><span className="font-medium">Budget:</span> {selectedQuote.budget || 'Not specified'}</p>
+                          <p><span className="font-medium">Timeline:</span> {selectedQuote.timeline || 'Not specified'}</p>
+                        </div>
+                      </div>
                     </div>
+                    
                     <div>
-                      <p className="text-sm text-muted-foreground">Budget</p>
-                      <p className="font-medium">{selectedQuote.budget || 'Not specified'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Timeline</p>
-                      <p className="font-medium">{selectedQuote.timeline || 'Not specified'}</p>
+                      <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg h-48 flex items-center justify-center">
+                        <span className="text-gray-500">Pool Image</span>
+                      </div>
                     </div>
                   </div>
-                  
-                  {selectedQuote.special_requests && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Special Requests</p>
-                      <p className="font-medium">{selectedQuote.special_requests}</p>
-                    </div>
-                  )}
 
-                  {selectedQuote.recommendations && selectedQuote.recommendations.length > 0 && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Recommendations</p>
-                      <ul className="list-disc list-inside space-y-1">
-                        {selectedQuote.recommendations.map((rec, index) => (
-                          <li key={index} className="text-sm">{rec}</li>
+                  {/* Selected Options */}
+                  {selectedQuote.selected_options && Array.isArray(selectedQuote.selected_options) && selectedQuote.selected_options.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="font-bold text-lg mb-3 text-teal-600">Selected Features</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {selectedQuote.selected_options.map((option: any, index: number) => (
+                          <div key={index} className="border border-orange-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
+                            <h5 className="font-semibold text-sm">{option.name}</h5>
+                            <p className="text-xs text-muted-foreground mb-2">{option.description}</p>
+                            <div className="flex justify-between text-sm">
+                              <span>Price:</span>
+                              <span className="font-semibold text-teal-600">+${option.price?.toLocaleString() || '0'}</span>
+                            </div>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+
+                  {/* Special Requests */}
+                  {selectedQuote.special_requests && (
+                    <div className="mb-6">
+                      <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-blue-200">
+                        <h4 className="font-bold text-lg mb-2 text-blue-600">Special Requests</h4>
+                        <p className="text-sm">{selectedQuote.special_requests}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Items Included */}
+                  {selectedQuote.recommendations && selectedQuote.recommendations.length > 0 && (
+                    <div className="mb-6">
+                      <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg">
+                        <h4 className="font-bold text-lg mb-3 text-orange-600">ALL POOLS INCLUDE</h4>
+                        <p className="text-sm">
+                          {selectedQuote.recommendations.filter((item: string) => !item.startsWith("FREE")).join(", ")}
+                        </p>
+                        <p className="text-xs mt-2 opacity-80">Architectural Design, Construction and permiting is included in all products, unless project scope is modified.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quote Status */}
+                  <div className="mb-6">
+                    <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200">
+                      <h4 className="font-bold text-lg mb-2 text-green-600">Quote Status</h4>
+                      <div className="flex items-center gap-2">
+                        <Badge className={getStatusColor(selectedQuote.status)}>
+                          {selectedQuote.status}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">
+                          Created on {new Date(selectedQuote.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Total Investment */}
+                  <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center">
+                    <h3 className="text-2xl font-bold mb-2">Total Investment</h3>
+                    <div className="text-4xl font-bold mb-2">${selectedQuote.total_quote_amount?.toLocaleString() || '0'}</div>
+                    <p className="text-orange-100">Complete installation including permits, excavation, and paver deck</p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </DialogContent>
