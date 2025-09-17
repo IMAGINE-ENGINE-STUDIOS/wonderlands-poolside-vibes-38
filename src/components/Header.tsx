@@ -43,21 +43,13 @@ const Header = () => {
       <header className={`fixed top-0 left-0 right-0 p-2 sm:p-4 ${isContentEditor ? 'z-30 pointer-events-none' : 'z-50'}`}>
         <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* Company Logo - Left Corner, 20% Larger */}
-          <OptimizedImage 
-            src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png" 
-            alt="Wonderlands Professional Logo" 
-            className={`${isContentEditor ? 'w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28' : 'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24'} transition-all duration-300`}
-            sizeConfig="logoLarge"
-            priority={true}
-          />
+          <OptimizedImage src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png" alt="Wonderlands Professional Logo" className={`${isContentEditor ? 'w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28' : 'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24'} transition-all duration-300`} sizeConfig="logoLarge" priority={true} />
           
           {/* Header Controls */}
           <div className="flex items-center gap-2">
             {/* Simplified Auth - Only when not logged in and not in content editor */}
             {!isContentEditor && !user && <Link to="/auth">
-                <Button variant="default" size="sm" title="Sign in to your account" className="transition-all duration-300 hover:scale-105 mx-[50px] my-0">
-                  Sign In
-                </Button>
+                
               </Link>}
           </div>
         </div>
