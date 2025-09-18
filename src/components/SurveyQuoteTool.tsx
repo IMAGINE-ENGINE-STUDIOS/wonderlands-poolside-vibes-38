@@ -395,9 +395,15 @@ const SurveyQuoteTool = ({
       return;
     }
     
-    // Open Calendly scheduling link in new tab
+    // Open external quotation tool in new tab
+    const quotationToolUrl = "https://app.ultimo.com/pool-configurator";
+    window.open(quotationToolUrl, '_blank');
+    
+    // Also open Calendly scheduling link in new tab
     const calendlyUrl = "https://calendly.com/wonderlands-pools/consultation";
-    window.open(calendlyUrl, '_blank');
+    setTimeout(() => {
+      window.open(calendlyUrl, '_blank');
+    }, 1000);
   };
   if (!pool && !customProduct) return null;
   return <Dialog open={isOpen} onOpenChange={onClose}>

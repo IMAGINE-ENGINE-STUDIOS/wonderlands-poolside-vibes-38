@@ -7,7 +7,6 @@ import RightNavigation from "@/components/RightNavigation";
 
 // Eager load critical components
 import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Lazy load non-critical route components
@@ -20,6 +19,8 @@ const WonderlandsStudio = lazy(() => import("./pages/WonderlandsStudio"));
 const ContentEditor = lazy(() => import("./pages/ContentEditor"));
 const ReferralPortal = lazy(() => import("./pages/ReferralPortal"));
 const QuoteDetailPage = lazy(() => import("./pages/QuoteDetailPage"));
+const QuotationTool = lazy(() => import("./pages/QuotationTool"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -79,6 +80,7 @@ const App = () => {
                 </ProtectedRoute>
               } 
             />
+            <Route path="/quotation-tool" element={<QuotationTool />} />
             <Route path="/wonderlands-studio" element={<WonderlandsStudio />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
