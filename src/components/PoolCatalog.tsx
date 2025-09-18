@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Waves, Sparkles, Flame, Plus, Sun } from "lucide-react";
+import { Waves, Sparkles, Flame, Plus, Sun, Calendar } from "lucide-react";
 
 // Import shared pool data
 import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
@@ -639,6 +639,19 @@ const PoolCatalog = () => {
       {/* Pool Collection Section */}
       <section id="pool-catalog" className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden">
         <div className="max-w-7xl mx-auto">
+          {/* Prominent Calendar Button */}
+          <div className="text-center mb-6 sm:mb-8">
+            <Button 
+              size="lg" 
+              className="bg-gradient-to-r from-primary to-coral hover:from-primary/90 hover:to-coral/90 text-primary-foreground font-semibold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              onClick={() => window.open('https://calendly.com/wonderlandspools', '_blank')}
+            >
+              <Calendar className="mr-3 h-6 w-6" />
+              Schedule Pool Consultation
+            </Button>
+            <p className="text-sm text-muted-foreground mt-2">Book your free consultation with our pool experts</p>
+          </div>
+
           <div className="text-center mb-8 sm:mb-12 lg:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">Wonderland's Pool Collection</h2>
             <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">Discover our wonderful Carbon Fiber and Concrete Pools with lifetime warranty in the carbon fiber technology or make it solid as a rock!</p>
