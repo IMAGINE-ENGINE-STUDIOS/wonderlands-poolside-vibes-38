@@ -43,6 +43,12 @@ const Footer = () => {
                 <Mail className="w-4 h-4 text-teal" />
                 <span className="text-muted-foreground">sales@wonderlandsworld.com</span>
               </div>
+              <div className="flex items-start gap-3 text-sm">
+                <MapPin className="w-4 h-4 text-coral mt-0.5 flex-shrink-0" />
+                <span className="text-muted-foreground">
+                  6900 Tavistock Lakes Boulevard Southeast Orlando, Suite 400, Lake Nona Center, Orlando, FL 32827
+                </span>
+              </div>
               
               <div className="flex items-center gap-3 text-sm">
                 <Clock className="w-4 h-4 text-orange" />
