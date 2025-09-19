@@ -46,17 +46,25 @@ const Header = () => {
           <OptimizedImage src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png" alt="Wonderlands Professional Logo" className={`${isContentEditor ? 'w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28' : 'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24'} transition-all duration-300`} sizeConfig="logoLarge" priority={true} />
           
           {/* Navigation Menu */}
-          {!isContentEditor && <nav className="hidden md:flex items-center gap-6">
-              
-              
+          {!isContentEditor && (
+            <nav className="hidden md:flex items-center gap-6">
+              <a href="#pools" className="text-foreground hover:text-primary transition-colors">
+                Pools
+              </a>
+              <a href="#spas" className="text-foreground hover:text-primary transition-colors">
+                Spas
+              </a>
               <Link to="/quotation-tool" className="text-foreground hover:text-primary transition-colors font-medium">
                 Quote Tool
               </Link>
-              
+              <a href="#finishes" className="text-foreground hover:text-primary transition-colors">
+                Finishes
+              </a>
               <Link to="/wonderlands-studio" className="text-foreground hover:text-primary transition-colors">
                 Studio
               </Link>
-            </nav>}
+            </nav>
+          )}
           
           {/* Header Controls */}
           <div className="flex items-center gap-2">
