@@ -814,7 +814,7 @@ const PoolProductCard = ({
 
             {/* Pavers Options */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Pavers Surface Area Calculator</h4>
+              <h4 className="font-semibold text-foreground">Pavers Surface Area - Calculator</h4>
               <div className="mb-3">
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">
                   Paver Surface Area (sq ft)
@@ -848,7 +848,7 @@ const PoolProductCard = ({
 
             {/* Screen Enclosure Options */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Screen Enclosure Surface Area Calculator</h4>
+              <h4 className="font-semibold text-foreground">Screen Enclosure Surface Area - Calculator</h4>
               <div className="mb-3">
                 <label className="text-xs font-medium text-muted-foreground mb-1 block">
                   Screen Enclosure Area (sq ft)
@@ -1308,7 +1308,7 @@ const PoolProductCard = ({
                   return Math.round(originalTotal).toLocaleString();
                 })()}</div>
                   <div className="text-2xl font-bold text-foreground">${calculateTotalPrice().toLocaleString()}</div>
-                  <div className="text-sm font-medium text-teal">10% Pool Discount Applied</div>
+                  
                 </div>
               </div>
             </div>
@@ -1482,8 +1482,7 @@ const PoolProductCard = ({
         }} variant="outline" className="w-full" size="sm">
               Instant Quote
             </Button>
-            <Button onClick={handleImageClick} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">Customize Iit in Realtime
-        </Button>
+            <Button onClick={handleImageClick} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">Customize Pool</Button>
           </div>}
       </CardContent>
       

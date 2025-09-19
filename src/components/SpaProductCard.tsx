@@ -436,12 +436,10 @@ const SpaProductCard = ({
         {spa.features && spa.features.length > 0 && <div className="space-y-2">
             <h4 className="font-semibold text-sm">Features:</h4>
             <ul className="space-y-1">
-              {spa.features.slice(0, 2).map((feature, idx) => (
-                <li key={idx} className="flex items-center gap-2">
+              {spa.features.slice(0, 2).map((feature, idx) => <li key={idx} className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                   <span className="text-xs">{feature}</span>
-                </li>
-              ))}
+                </li>)}
             </ul>
           </div>}
         
@@ -653,9 +651,7 @@ const SpaProductCard = ({
         {/* Action Buttons */}
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="outline" size="sm" onClick={() => onViewDetails(spa)} className="text-xs">
-              View Details
-            </Button>
+            <Button variant="outline" size="sm" onClick={() => onViewDetails(spa)} className="text-xs">Customize Spa</Button>
             <Button variant="outline" size="sm" onClick={() => {
             // Create detailed extras breakdown for quote tool
             const extrasBreakdown = [] as Array<{
@@ -724,9 +720,7 @@ const SpaProductCard = ({
               extrasBreakdown,
               extrasTotal
             });
-          }} className="text-xs">
-              Get Quote
-            </Button>
+          }} className="text-xs">Instant Quote</Button>
           </div>
           
           <Button onClick={handleAddToCart} className="w-full bg-gradient-to-r from-primary to-teal hover:from-primary/90 hover:to-teal/90" size="sm">
