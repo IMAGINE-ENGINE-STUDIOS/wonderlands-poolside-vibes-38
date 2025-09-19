@@ -1492,49 +1492,69 @@ const WonderlandsStudio = () => {
                         <div>
                           <Label className="text-sm font-medium">Deck Pavers</Label>
                           <p className="text-xs text-muted-foreground">
-                            {selectedExtras.paverOption === 'No Pavers' ? 'Standard concrete deck ($2,000 discount applied)' : 'Beautiful hardscape surfaces'}
+                            {selectedExtras.pavers ? 'Beautiful hardscape surfaces' : 'Standard concrete deck ($2,000 discount applied)'}
                           </p>
                         </div>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <label className="text-xs cursor-pointer flex items-center gap-1">
-                              <input type="radio" name="paverChoice" checked={selectedExtras.paverOption === 'No Pavers'} onChange={() => {
-                              setSelectedExtras({
-                                ...selectedExtras,
-                                pavers: false,
-                                paverOption: 'No Pavers'
-                              });
-                              setActiveFeatureCarousel(null);
-                            }} className="w-3 h-3" />
-                              No Pavers (-$2,000)
-                            </label>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <label className="text-xs cursor-pointer flex items-center gap-1">
-                              <input type="radio" name="paverChoice" checked={selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers'} onChange={() => {
-                              setSelectedExtras({
-                                ...selectedExtras,
-                                pavers: true,
-                                paverOption: 'Appian Flagstone'
-                              });
-                              setActiveFeatureCarousel('pavers');
-                            }} className="w-3 h-3" />
-                              Add Pavers
-                            </label>
-                            {selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers' && <Button variant="ghost" size="sm" onClick={() => {
-                            const newCarousel = activeFeatureCarousel === 'pavers' ? null : 'pavers';
-                            setActiveFeatureCarousel(newCarousel);
-                          }}>
-                                <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'pavers' ? 'rotate-180' : ''}`} />
-                              </Button>}
-                          </div>
-                        </div>
+                        <Checkbox checked={selectedExtras.pavers} onCheckedChange={checked => {
+                          const isChecked = checked === true;
+                          const newExtras = {
+                            ...selectedExtras,
+                            pavers: isChecked,
+                            paverOption: isChecked ? paverOptions.filter(p => p.name !== 'No Pavers')[0]?.name || 'Appian Flagstone' : 'No Pavers'
+                          };
+                          setSelectedExtras(newExtras);
+                          if (isChecked) {
+                            setActiveFeatureCarousel('pavers');
+                          } else {
+                            setActiveFeatureCarousel(null);
+                          }
+                        }} />
+                          {selectedExtras.pavers && <Button variant="ghost" size="sm" onClick={() => {
+                          const newCarousel = activeFeatureCarousel === 'pavers' ? null : 'pavers';
+                          setActiveFeatureCarousel(newCarousel);
+                        }}>
+                              <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'pavers' ? 'rotate-180' : ''}`} />
+                            </Button>}
                       </div>
-                       {selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers' && activeFeatureCarousel === 'pavers' && <div className="h-24">
-                          <Carousel className="w-full h-full">
-                            <CarouselContent className="-ml-1 h-full">
-                              {paverOptions.filter(paver => paver.name !== 'No Pavers').map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
-                                    <div className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full ${selectedExtras.paverOption === paver.name ? 'border-primary shadow-md' : 'border-border hover:border-primary/50'}`} onClick={() => {
+                      {selectedExtras.pavers && activeFeatureCarousel === 'pavers' && <div className="space-y-4">
+                          <div className="p-4 bg-muted/30 rounded-lg space-y-3">
+                            <h4 className="font-semibold text-sm">Transform Your Pool Area</h4>
+                            <p className="text-xs text-muted-foreground">
+                              Create beautiful hardscape surfaces around your pool with our premium paver collections. 
+                              Choose from Appian, Catalina, or Catalina Grana collections - all featuring multiple styles 
+                              and finishes for the perfect pool deck, patio, or walkway.
+                            </p>
+                          </div>
+                          
+                          <div>
+                            <Label className="text-sm font-medium">Surface Area (sq ft)</Label>
+                            <Input type="number" value={paverSurfaceArea} onChange={e => setPaverSurfaceArea(e.target.value)} placeholder="Enter area in square feet" className="mt-1" />
+                            {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && <div className="text-xs text-green-600 font-medium mt-1">
+                                Estimated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()}
+                              </div>}
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">Paver Collection</Label>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="w-full justify-between text-sm">
+                                  {paverCategories.find(cat => cat.value === paverCategory)?.label}
+                                  <ChevronDown className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent className="w-full bg-background border border-border z-50">
+                                {paverCategories.map(category => <div key={category.value} className="px-2 py-1 text-sm cursor-pointer hover:bg-muted text-foreground" onClick={() => setPaverCategory(category.value)}>
+                                    {category.label}
+                                  </div>)}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                          
+                          <Carousel className="w-full">
+                            <CarouselContent className="-ml-1">
+                              {paverOptions.filter(paver => paver.name !== 'No Pavers' && (paverCategory === 'all' || paver.collection === paverCategory)).map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
+                                    <div className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${selectedExtras.paverOption === paver.name ? 'border-primary shadow-md' : 'border-border hover:border-primary/50'}`} onClick={() => {
                               setSelectedExtras({
                                 ...selectedExtras,
                                 paverOption: paver.name
