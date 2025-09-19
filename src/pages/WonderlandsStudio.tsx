@@ -1553,7 +1553,7 @@ const WonderlandsStudio = () => {
                           
                           <Carousel className="w-full">
                             <CarouselContent className="-ml-1">
-                              {paverOptions.filter(paver => paver.name !== 'No Pavers' && (paverCategory === 'all' || paver.collection === paverCategory)).map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
+                              {paverOptions.filter(paver => paver.name !== 'No Pavers' && (paverCategory === 'all' || paver.collection === paverCategory)).map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/3">
                                     <div className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${selectedExtras.paverOption === paver.name ? 'border-primary shadow-md' : 'border-border hover:border-primary/50'}`} onClick={() => {
                               setSelectedExtras({
                                 ...selectedExtras,
