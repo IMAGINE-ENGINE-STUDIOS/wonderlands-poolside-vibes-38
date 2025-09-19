@@ -1530,64 +1530,27 @@ const WonderlandsStudio = () => {
                           </div>
                         </div>
                       </div>
-                      {selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers' && activeFeatureCarousel === 'pavers' && <div className="space-y-4">
-                          <div className="p-4 bg-muted/30 rounded-lg space-y-3">
-                            <h4 className="font-semibold text-sm">Transform Your Pool Area</h4>
-                            <p className="text-xs text-muted-foreground">
-                              Create beautiful hardscape surfaces around your pool with our premium paver collections. 
-                              Choose from Appian, Catalina, or Catalina Grana collections - all featuring multiple styles 
-                              and finishes for the perfect pool deck, patio, or walkway.
-                            </p>
-                            
-                          </div>
-                          
-                          <div>
-                            <Label className="text-sm font-medium">Surface Area (sq ft)</Label>
-                            <Input type="number" value={paverSurfaceArea} onChange={e => setPaverSurfaceArea(e.target.value)} placeholder="Enter area in square feet" className="mt-1" />
-                            {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && <div className="text-xs text-green-600 font-medium mt-1">
-                                Estimated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()}
-                              </div>}
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium">Paver Collection</Label>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="w-full justify-between text-sm">
-                                  {paverCategories.find(cat => cat.value === paverCategory)?.label}
-                                  <ChevronDown className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent className="w-full bg-background border border-border z-50">
-                                {paverCategories.map(category => <div key={category.value} className="px-2 py-1 text-sm cursor-pointer hover:bg-muted text-foreground" onClick={() => setPaverCategory(category.value)}>
-                                    {category.label}
-                                  </div>)}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                          
-                          <Carousel className="w-full">
-                            <CarouselContent className="-ml-1">
-                              {paverOptions.filter(paver => paver.name !== 'No Pavers' && (paverCategory === 'all' || paver.collection === paverCategory)).map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/3">
-                                    <div className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${selectedExtras.paverOption === paver.name ? 'border-primary shadow-md' : 'border-border hover:border-primary/50'}`} onClick={() => {
-                              setSelectedExtras({
-                                ...selectedExtras,
-                                paverOption: paver.name
-                              });
-                              setActiveFeatureCarousel(null);
-                            }}>
-                                      <img src={paver.image} alt={paver.name} className="w-full h-16 object-cover rounded" />
-                                      <p className="text-xs font-medium mt-1 truncate">{paver.name}</p>
-                                      <p className="text-xs text-muted-foreground">
-                                        $15/sq ft
-                                      </p>
-                                    </div>
-                                  </CarouselItem>)}
-                            </CarouselContent>
-                            <CarouselPrevious />
-                            <CarouselNext />
-                          </Carousel>
-                        </div>}
+                      {selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers' && activeFeatureCarousel === 'pavers' && <Carousel className="w-full">
+                          <CarouselContent className="-ml-1">
+                            {paverOptions.filter(paver => paver.name !== 'No Pavers' && (paverCategory === 'all' || paver.collection === paverCategory)).map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/3">
+                                <div className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${selectedExtras.paverOption === paver.name ? 'border-primary shadow-md' : 'border-border hover:border-primary/50'}`} onClick={() => {
+                            setSelectedExtras({
+                              ...selectedExtras,
+                              paverOption: paver.name
+                            });
+                            setActiveFeatureCarousel(null);
+                          }}>
+                                  <img src={paver.image} alt={paver.name} className="w-full h-16 object-cover rounded" />
+                                  <p className="text-xs font-medium mt-1 truncate">{paver.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    From $15/sq ft
+                                  </p>
+                                </div>
+                              </CarouselItem>)}
+                          </CarouselContent>
+                          <CarouselPrevious />
+                          <CarouselNext />
+                        </Carousel>}
                     </div>
 
                     {/* Liners */}
