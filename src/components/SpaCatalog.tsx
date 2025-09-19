@@ -130,6 +130,24 @@ const SpaCatalog = () => {
 
   return (
     <>
+      {/* Wonderlands Studio CTA Section */}
+      <section className="py-12 px-4 bg-gradient-to-r from-primary/10 to-coral/10">
+        <div className="max-w-4xl mx-auto text-center">
+          <h3 className="text-2xl font-bold mb-4 text-foreground">
+            Design Your Perfect Spa Experience
+          </h3>
+          <p className="text-foreground/80 mb-6 max-w-2xl mx-auto">
+            Use our interactive studio to customize your spa with premium finishes, advanced features, and personalized options.
+          </p>
+          <a href="/wonderlands-studio" className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-primary to-coral text-primary-foreground font-semibold rounded-full hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+            <span>Open Wonderlands Studio</span>
+            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+      </section>
+
       <section className="py-20 px-4 bg-gradient-to-br from-background to-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
