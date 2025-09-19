@@ -181,19 +181,10 @@ const PaversSection = () => {
 
                 {/* Action Buttons */}
                 <div className="space-y-3">
-                  <Button onClick={() => {
-                  setSelectedCollection('appian');
-                  setSelectedPaverType(appianPavers[0]);
-                  setShowOptionsModal(true);
-                }} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="lg">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Customize & Configure
-                  </Button>
+                  
                   
                   <div className="grid grid-cols-2 gap-3">
-                    <Button onClick={handleRequestQuote} variant="outline" size="sm">
-                      Get Quote
-                    </Button>
+                    <Button onClick={handleRequestQuote} variant="outline" size="sm">Instant Quote</Button>
                     <Button onClick={() => {
                     setSelectedCollection('appian');
                     setSelectedPaverType(appianPavers[0]);
@@ -307,19 +298,10 @@ const PaversSection = () => {
 
                 {/* Action Buttons */}
                 <div className="space-y-3">
-                  <Button onClick={() => {
-                  setSelectedCollection('catalina-grana');
-                  setSelectedPaverType(catalinaGranaPavers[0]);
-                  setShowOptionsModal(true);
-                }} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="lg">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Customize & Configure
-                  </Button>
+                  
                   
                   <div className="grid grid-cols-2 gap-3">
-                    <Button onClick={handleRequestQuote} variant="outline" size="sm">
-                      Get Quote
-                    </Button>
+                    <Button onClick={handleRequestQuote} variant="outline" size="sm">Instant Quote</Button>
                     <Button onClick={() => {
                     setSelectedCollection('catalina-grana');
                     setSelectedPaverType(catalinaGranaPavers[0]);
@@ -430,14 +412,7 @@ const PaversSection = () => {
 
                 {/* Action Buttons */}
                 <div className="space-y-3">
-                  <Button onClick={() => {
-                  setSelectedCollection('catalina');
-                  setSelectedPaverType(catalinaPavers[0]);
-                  setShowOptionsModal(true);
-                }} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="lg">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Customize & Configure
-                  </Button>
+                  
                   
                   <div className="grid grid-cols-2 gap-3">
                     <Button onClick={handleRequestQuote} variant="outline" size="sm">

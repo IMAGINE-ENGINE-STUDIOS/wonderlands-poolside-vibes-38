@@ -101,19 +101,19 @@ const AutomaticCoversSection = () => {
   // Listen for search events to open specific covers
   React.useEffect(() => {
     const handleOpenProduct = (event: CustomEvent) => {
-      const { type, id, name } = event.detail;
+      const {
+        type,
+        id,
+        name
+      } = event.detail;
       if (type === 'cover' || type === 'automatic' || name?.toLowerCase().includes('cover')) {
-        const cover = covers.find(c => 
-          c.name.toLowerCase() === name?.toLowerCase() ||
-          c.name.toLowerCase().includes(name?.toLowerCase())
-        );
+        const cover = covers.find(c => c.name.toLowerCase() === name?.toLowerCase() || c.name.toLowerCase().includes(name?.toLowerCase()));
         if (cover) {
           setSelectedCover(cover);
           setShowQuoteModal(true);
         }
       }
     };
-
     window.addEventListener('open-product', handleOpenProduct as EventListener);
     return () => window.removeEventListener('open-product', handleOpenProduct as EventListener);
   }, []);
@@ -209,9 +209,7 @@ const AutomaticCoversSection = () => {
                   </div>
                   
                   {/* Action Button */}
-                  <Button onClick={() => handleRequestQuote(cover)} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="lg">
-                    Get Quote & Installation
-                  </Button>
+                  <Button onClick={() => handleRequestQuote(cover)} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="lg">Instant Quote with Installation</Button>
                 </CardContent>
               </Card>)}
           </div>

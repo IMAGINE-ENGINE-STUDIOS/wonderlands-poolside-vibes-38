@@ -613,9 +613,7 @@ const TanningLedgeProductCard = ({
         }} variant="outline" className="w-full" size="sm">
               Instant Quote
             </Button>
-            <Button onClick={handleImageClick} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">
-              View Details
-            </Button>
+            <Button onClick={handleImageClick} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">Customize Tanning Ledge</Button>
           </div>}
       </CardContent>
       
