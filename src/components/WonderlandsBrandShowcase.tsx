@@ -156,7 +156,7 @@ const WonderlandsBrandShowcase = () => {
                   variant="gradient" 
                   size="lg" 
                   className="group"
-                  onClick={() => window.open('https://calendly.com/wonderlandsworlds/30min', '_blank')}
+                  onClick={() => window.open('https://calendly.com/wonderlands-pools/consultation', '_blank')}
                 >
                   Schedule Consultation
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
