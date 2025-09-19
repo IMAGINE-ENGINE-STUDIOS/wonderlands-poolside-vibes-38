@@ -998,8 +998,7 @@ const PoolProductCard = ({
               })()}
                        </div>}
 
-                    {pool.model !== "Madre Perla" && (
-                      <>
+                    {pool.model !== "Madre Perla" && <>
                         <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                           <Checkbox checked={extras.concreteConstruction} onCheckedChange={() => toggleExtra('concreteConstruction')} className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" />
                           <div className="flex items-center space-x-1">
@@ -1008,8 +1007,7 @@ const PoolProductCard = ({
                           </div>
                         </label>
                         {extras.concreteConstruction && <p className="text-xs text-muted-foreground ml-6 mt-1">Premium concrete construction for enhanced durability and longevity.</p>}
-                      </>
-                    )}
+                      </>}
 
                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                      <Checkbox checked={extras.spa} onCheckedChange={() => toggleExtra('spa')} />
@@ -1270,56 +1268,45 @@ const PoolProductCard = ({
                 <h5 className="text-sm font-medium text-muted-foreground">Total Configuration Price</h5>
                 <div className="space-y-1">
                   <div className="text-sm text-muted-foreground line-through">${(() => {
-                    // Calculate original price before discount
-                    let originalTotal = pool.price; // Original pool price before discount
-                    if (extras.concreteConstruction) originalTotal = originalTotal * 1.2;
-                    
-                    // Add all extras to original price
-                    const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
-                    if (selectedFinish && selectedFinish.price) originalTotal += selectedFinish.price;
-                    
-                    if (extras.heater) {
-                      const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
-                      if (selectedHeater) originalTotal += selectedHeater.price;
-                    }
-                    
-                    if (extras.jets) originalTotal += getExtraPrice('jets') * extras.jetQuantity;
-                    
-                    const linerOption = linerOptions.find(option => option.name === extras.linerOption);
-                    if (linerOption && extras.linerOption !== 'Standard Blue') originalTotal += 4500;
-                    
-                    const tileOption = tileOptions.find(option => option.name === extras.tileOption);
-                    if (tileOption && extras.tiles) originalTotal += tileOption.price;
-                    
-                    const coverOption = coverOptions.find(option => option.name === extras.coverOption);
-                    if (coverOption && extras.cover && coverOption.name !== 'NO COVER') originalTotal += coverOption.price;
-                    
-                    const paverOption = paverOptions.find(option => option.name === extras.paverOption);
-                    if (paverOption) originalTotal += paverOption.price;
-                    
-                    if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-                      originalTotal += parseFloat(paverSurfaceArea) * 15;
-                    }
-                    
-                    if (extras.spa) {
-                      const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
-                      if (selectedSpa) originalTotal += selectedSpa.price;
-                    }
-                    
-                    if (extras.tanningLedge) {
-                      const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
-                      if (selectedLedge) originalTotal += selectedLedge.price;
-                    }
-                    
-                    if (extras.screenEnclosureArea > 0) {
-                      let pricePerSqFt = 15;
-                      if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
-                      if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
-                      originalTotal += extras.screenEnclosureArea * pricePerSqFt;
-                    }
-                    
-                    return Math.round(originalTotal).toLocaleString();
-                  })()}</div>
+                  // Calculate original price before discount
+                  let originalTotal = pool.price; // Original pool price before discount
+                  if (extras.concreteConstruction) originalTotal = originalTotal * 1.2;
+
+                  // Add all extras to original price
+                  const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
+                  if (selectedFinish && selectedFinish.price) originalTotal += selectedFinish.price;
+                  if (extras.heater) {
+                    const selectedHeater = poolHeaters.find(heater => heater.name === extras.heaterModel);
+                    if (selectedHeater) originalTotal += selectedHeater.price;
+                  }
+                  if (extras.jets) originalTotal += getExtraPrice('jets') * extras.jetQuantity;
+                  const linerOption = linerOptions.find(option => option.name === extras.linerOption);
+                  if (linerOption && extras.linerOption !== 'Standard Blue') originalTotal += 4500;
+                  const tileOption = tileOptions.find(option => option.name === extras.tileOption);
+                  if (tileOption && extras.tiles) originalTotal += tileOption.price;
+                  const coverOption = coverOptions.find(option => option.name === extras.coverOption);
+                  if (coverOption && extras.cover && coverOption.name !== 'NO COVER') originalTotal += coverOption.price;
+                  const paverOption = paverOptions.find(option => option.name === extras.paverOption);
+                  if (paverOption) originalTotal += paverOption.price;
+                  if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+                    originalTotal += parseFloat(paverSurfaceArea) * 15;
+                  }
+                  if (extras.spa) {
+                    const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
+                    if (selectedSpa) originalTotal += selectedSpa.price;
+                  }
+                  if (extras.tanningLedge) {
+                    const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
+                    if (selectedLedge) originalTotal += selectedLedge.price;
+                  }
+                  if (extras.screenEnclosureArea > 0) {
+                    let pricePerSqFt = 15;
+                    if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
+                    if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                    originalTotal += extras.screenEnclosureArea * pricePerSqFt;
+                  }
+                  return Math.round(originalTotal).toLocaleString();
+                })()}</div>
                   <div className="text-2xl font-bold text-foreground">${calculateTotalPrice().toLocaleString()}</div>
                   <div className="text-sm font-medium text-teal">10% Pool Discount Applied</div>
                 </div>
@@ -1495,9 +1482,8 @@ const PoolProductCard = ({
         }} variant="outline" className="w-full" size="sm">
               Instant Quote
             </Button>
-            <Button onClick={handleImageClick} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">
-              View Details
-            </Button>
+            <Button onClick={handleImageClick} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">Customize Iit in Realtime
+        </Button>
           </div>}
       </CardContent>
       
