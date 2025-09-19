@@ -644,7 +644,7 @@ const PoolCatalog = () => {
             <Button 
               size="lg" 
               className="bg-gradient-to-r from-primary to-coral hover:from-primary/90 hover:to-coral/90 text-primary-foreground font-semibold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-              onClick={() => window.open('https://calendly.com/wonderlandspools', '_blank')}
+              onClick={() => window.open('https://calendly.com/wonderlandsworlds/30min', '_blank')}
             >
               <Calendar className="mr-3 h-6 w-6" />
               Schedule Pool Consultation
