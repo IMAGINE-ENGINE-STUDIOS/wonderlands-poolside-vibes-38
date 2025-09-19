@@ -49,6 +49,7 @@ import { DragDropEditor } from '@/components/DragDropEditor';
 import ApiKeyManager from '@/components/ApiKeyManager';
 import SampleDataSetup from '@/components/SampleDataSetup';
 import SetupDemoUsers from '@/components/SetupDemoUsers';
+import AdminQuoteTool from '@/components/AdminQuoteTool';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -215,6 +216,11 @@ const AdminDashboard = () => {
                     <span className="hidden sm:inline">Quotes</span>
                   </TabsTrigger>
                   
+                  <TabsTrigger value="quote-tool" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Quote Tool</span>
+                  </TabsTrigger>
+                  
                   <TabsTrigger value="orders" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                     <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="hidden sm:inline">Orders</span>
@@ -322,6 +328,24 @@ const AdminDashboard = () => {
           {/* Quotes Tab */}
           <TabsContent value="quotes" className="space-y-6">
             <AdminQuotesManager />
+          </TabsContent>
+
+          {/* Quote Tool Tab */}
+          <TabsContent value="quote-tool" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-primary" />
+                  Quote Tool
+                </CardTitle>
+                <CardDescription>
+                  Generate pool installation quotes for customers
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AdminQuoteTool />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Referrals Tab */}

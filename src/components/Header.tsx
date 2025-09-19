@@ -47,12 +47,6 @@ const Header = () => {
           
           {/* Navigation Menu */}
           {!isContentEditor && <nav className="hidden md:flex items-center gap-6">
-              
-              
-              <Link to="/quotation-tool" className="text-foreground hover:text-primary transition-colors font-medium">
-                Quote Tool
-              </Link>
-              
               <Link to="/wonderlands-studio" className="text-foreground hover:text-primary transition-colors">
                 Studio
               </Link>

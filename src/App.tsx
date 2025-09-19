@@ -80,7 +80,7 @@ const App = () => {
                 </ProtectedRoute>
               } 
             />
-            <Route path="/quotation-tool" element={<QuotationTool />} />
+            
             <Route path="/wonderlands-studio" element={<WonderlandsStudio />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
