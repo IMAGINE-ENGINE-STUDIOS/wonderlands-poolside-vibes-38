@@ -1518,6 +1518,7 @@ const WonderlandsStudio = () => {
                                 paverOption: 'Appian Flagstone'
                               });
                               setActiveFeatureCarousel('pavers');
+                              console.log('Pavers clicked, activeFeatureCarousel set to pavers');
                             }} className="w-3 h-3" />
                               Add Pavers
                             </label>
@@ -1532,7 +1533,7 @@ const WonderlandsStudio = () => {
                       </div>
                       {selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers' && activeFeatureCarousel === 'pavers' && <Carousel className="w-full">
                           <CarouselContent className="-ml-1">
-                            {paverOptions.filter(paver => paver.name !== 'No Pavers' && (paverCategory === 'all' || paver.collection === paverCategory)).map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/3">
+                            {paverOptions.filter(paver => paver.name !== 'No Pavers').map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/3">
                                 <div className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${selectedExtras.paverOption === paver.name ? 'border-primary shadow-md' : 'border-border hover:border-primary/50'}`} onClick={() => {
                             setSelectedExtras({
                               ...selectedExtras,
