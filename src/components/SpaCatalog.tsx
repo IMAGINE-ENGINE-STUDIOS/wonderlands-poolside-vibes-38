@@ -120,7 +120,7 @@ const SpaCatalog = () => {
       {/* Wonderlands Studio CTA Section */}
       <section className="py-12 px-4 bg-gradient-to-r from-primary/10 to-coral/10">
         <div className="max-w-4xl mx-auto text-center">
-          <h3 className="text-2xl font-bold mb-4 text-foreground">Design Your Perfect Outdoor Experience</h3>
+          <h3 className="text-2xl font-bold mb-4 text-foreground">Create a Wonderful Outdoor Experience</h3>
           <p className="text-foreground/80 mb-6 max-w-2xl mx-auto">Use our interactive studio to customize your Pool, Spa or Tanning Ledge with premium finishes, advanced features, and personalized options in a private suit.</p>
           <a href="/wonderlands-studio" className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-primary to-coral text-primary-foreground font-semibold rounded-full hover:shadow-lg transition-all duration-300 transform hover:scale-105">
             <span>Open Wonderlands Studio</span>
