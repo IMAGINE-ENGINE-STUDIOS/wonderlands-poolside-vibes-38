@@ -640,27 +640,15 @@ const PoolCatalog = () => {
       <section id="pool-catalog" className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden">
         <div className="max-w-7xl mx-auto">
           {/* Prominent Calendar Button */}
-          <div className="text-center mb-6 sm:mb-8">
-            <Button 
-              size="lg" 
-              className="bg-gradient-to-r from-primary to-coral hover:from-primary/90 hover:to-coral/90 text-primary-foreground font-semibold px-8 py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-              onClick={() => window.open('https://calendly.com/wonderlands-pools/consultation', '_blank')}
-            >
-              <Calendar className="mr-3 h-6 w-6" />
-              Schedule Pool Consultation
-            </Button>
-            <p className="text-sm text-muted-foreground mt-2">Book your free consultation with our pool experts</p>
-          </div>
+          
 
           <div className="text-center mb-8 sm:mb-12 lg:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">Wonderland's Pool Collection</h2>
-            <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">Discover our wonderful Carbon Fiber and Concrete Pools with lifetime warranty in the carbon fiber technology or make it solid as a rock!</p>
+            <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">The "One Stop" for Outdoors, Lifestyle, and Home Entertainment</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {paginatedPools.map(pool => (
-              <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />
-            ))}
+            {paginatedPools.map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
           </div>
 
           {/* Pagination Controls */}
@@ -700,6 +688,5 @@ const PoolCatalog = () => {
       <TileDetailModal tile={selectedTile} isOpen={showTileModal} onClose={() => setShowTileModal(false)} />
     </>;
 };
-
 export { spas, pools };
 export default PoolCatalog;
