@@ -400,7 +400,7 @@ const SurveyQuoteTool = ({
     window.open(quotationToolUrl, '_blank');
     
     // Also open Calendly scheduling link in new tab
-    const calendlyUrl = "https://calendly.com/wonderlands-pools/consultation";
+    const calendlyUrl = "https://calendly.com/wonderlandsworlds/30min";
     setTimeout(() => {
       window.open(calendlyUrl, '_blank');
     }, 1000);

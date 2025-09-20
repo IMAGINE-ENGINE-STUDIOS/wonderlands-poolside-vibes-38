@@ -115,7 +115,7 @@ const QuotationTool = () => {
   };
 
   const scheduleConsultation = () => {
-    window.open("https://calendly.com/wonderlands-pools/consultation", "_blank");
+    window.open("https://calendly.com/wonderlandsworlds/30min", "_blank");
   };
 
   return (
