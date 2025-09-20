@@ -122,14 +122,16 @@ const QuotationTool = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 border-t-4 border-gradient-to-r from-primary via-coral to-teal">
         <div className="text-center mb-8">
+          <div className="border-t-8 border-gradient-to-r from-primary via-coral to-teal w-32 mx-auto mb-6"></div>
           <h1 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
             Pool Quotation Tool
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Get an instant estimate for your dream pool with our advanced quotation calculator
           </p>
+          <div className="border-t-8 border-gradient-to-r from-teal via-coral to-primary w-32 mx-auto mt-6"></div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

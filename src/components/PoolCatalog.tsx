@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Waves, Sparkles, Flame, Plus, Sun, Calendar } from "lucide-react";
+import { Waves, Sparkles, Flame, Plus, Sun, Calendar, ArrowRight } from "lucide-react";
 
 // Import shared pool data
 import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
@@ -637,12 +637,23 @@ const PoolCatalog = () => {
   };
   return <>
       {/* Pool Collection Section */}
-      <section id="pool-catalog" className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden">
+      <section id="pool-catalog" className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden border-t-4 border-gradient-to-r from-primary via-coral to-teal">
         <div className="max-w-7xl mx-auto">
-          {/* Prominent Calendar Button */}
-          <div className="text-center mb-6 sm:mb-8">
-            
-            <p className="text-sm text-muted-foreground mt-2">Book your free consultation with our pool experts</p>
+          {/* Prominent Appointment Button with Railing */}
+          <div className="text-center mb-8 sm:mb-12">
+            <div className="border-t-8 border-gradient-to-r from-primary via-coral to-teal w-32 mx-auto mb-6"></div>
+            <Button 
+              variant="gradient" 
+              size="lg" 
+              className="group shadow-xl hover:shadow-2xl transition-all duration-300"
+              onClick={() => window.open('https://calendly.com/wonderlandsworlds/30min', '_blank')}
+            >
+              <Calendar className="mr-2 h-5 w-5" />
+              Make an Appointment
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
+            <p className="text-sm text-muted-foreground mt-3">Book your free consultation with our pool experts</p>
+            <div className="border-t-8 border-gradient-to-r from-teal via-coral to-primary w-32 mx-auto mt-6"></div>
           </div>
 
           <div className="text-center mb-8 sm:mb-12 lg:mb-16">
