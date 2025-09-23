@@ -670,7 +670,10 @@ const PoolProductCard = ({
           </Badge>
         </div>
         
-        <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+        <div 
+          className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors duration-300 flex items-center justify-center cursor-pointer"
+          onClick={() => window.location.href = '/wonderlands-studio'}
+        >
           <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 text-white font-medium">
             Click for Details
           </div>

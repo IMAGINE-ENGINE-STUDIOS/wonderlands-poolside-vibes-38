@@ -42,6 +42,7 @@ interface Pool {
   dimensions?: string;
   depth?: string;
   features?: string[];
+  description?: string;
   galaPoints?: number;
   galaCategory?: string;
   installationTimeWeeks?: number;
@@ -85,6 +86,7 @@ const pools: Pool[] = [
   installationTimeWeeks: 18,
   warrantyYears: 10,
   features: ["Infinity Edge Design", "Jacuzzi Combo Included", "Premium Finish", "Custom Design"],
+  description: "Our flagship infinity concrete pool with integrated spa and luxury waterfall features. INCLUDES SPA - includes everything in the image. Perfect for entertaining and creating a resort-like experience in your backyard.",
   heater: true,
   saltSystem: true,
   carbonFiber: false
