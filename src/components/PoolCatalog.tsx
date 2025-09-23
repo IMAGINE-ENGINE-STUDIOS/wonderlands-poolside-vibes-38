@@ -656,19 +656,14 @@ const PoolCatalog = () => {
         <div className="max-w-7xl mx-auto">
           {/* Prominent Appointment Button with Railing */}
           <div className="text-center mb-8 sm:mb-12">
-            <div className="border-t-8 border-gradient-to-r from-primary via-coral to-teal w-32 mx-auto mb-6"></div>
-            <Button 
-              variant="gradient" 
-              size="lg" 
-              className="group shadow-xl hover:shadow-2xl transition-all duration-300"
-              onClick={() => window.open('https://calendly.com/wonderlandsworlds/30min', '_blank')}
-            >
+            
+            <Button variant="gradient" size="lg" className="group shadow-xl hover:shadow-2xl transition-all duration-300" onClick={() => window.open('https://calendly.com/wonderlandsworlds/30min', '_blank')}>
               <Calendar className="mr-2 h-5 w-5" />
               Make an Appointment
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             <p className="text-sm text-muted-foreground mt-3">Book your free consultation with our pool experts</p>
-            <div className="border-t-8 border-gradient-to-r from-teal via-coral to-primary w-32 mx-auto mt-6"></div>
+            
           </div>
 
           <div className="text-center mb-8 sm:mb-12 lg:mb-16">
