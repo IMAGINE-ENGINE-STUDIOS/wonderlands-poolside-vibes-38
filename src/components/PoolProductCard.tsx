@@ -82,6 +82,7 @@ interface PoolExtras {
     price: number;
   }>;
   extrasTotal?: number;
+  concretePoolDescription?: string;
 }
 const getCategoryColor = (category: string) => {
   switch (category) {
@@ -998,7 +999,7 @@ const PoolProductCard = ({
               })()}
                        </div>}
 
-                    {pool.model !== "Madre Perla" && <>
+                    {pool.model !== "Madre Perla" && pool.model !== "Pacific Ridge" && <>
                         <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                           <Checkbox checked={extras.concreteConstruction} onCheckedChange={() => toggleExtra('concreteConstruction')} className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" />
                           <div className="flex items-center space-x-1">
@@ -1248,7 +1249,8 @@ const PoolProductCard = ({
                 ...extras,
                 extrasBreakdown,
                 extrasTotal,
-                deliveryTime: extras.concreteConstruction ? '18+ weeks' : '8+ weeks' // Add delivery time based on concrete construction
+                deliveryTime: extras.concreteConstruction ? '18+ weeks' : '8+ weeks', // Add delivery time based on concrete construction
+                concretePoolDescription: pool.model === 'Pacific Ridge' ? 'This is a premium concrete pool featuring reinforced construction, superior durability, and custom design flexibility.' : undefined
               });
             }} variant="outline" className="flex-1" size="sm">Instant Quote</Button>
               </div>
