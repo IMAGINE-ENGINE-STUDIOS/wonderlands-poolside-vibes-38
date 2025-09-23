@@ -670,10 +670,7 @@ const PoolProductCard = ({
           </Badge>
         </div>
         
-        <div 
-          className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors duration-300 flex items-center justify-center cursor-pointer"
-          onClick={() => window.location.href = '/wonderlands-studio'}
-        >
+        <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors duration-300 flex items-center justify-center cursor-pointer" onClick={() => window.location.href = '/wonderlands-studio'}>
           <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 text-white font-medium">
             Click for Details
           </div>
@@ -688,14 +685,11 @@ const PoolProductCard = ({
           </Button>}
       </div>
       
-      <CardContent 
-        className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 cursor-pointer" 
-        onClick={() => {
-          const params = new URLSearchParams();
-          params.set('product', pool.model);
-          window.location.href = `/wonderlands-studio?${params.toString()}`;
-        }}
-      >
+      <CardContent className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 cursor-pointer" onClick={() => {
+      const params = new URLSearchParams();
+      params.set('product', pool.model);
+      window.location.href = `/wonderlands-studio?${params.toString()}`;
+    }}>
         
         {/* Pool Name & Collection */}
         <div className="space-y-2">
@@ -742,11 +736,7 @@ const PoolProductCard = ({
         <div className="text-sm text-muted-foreground space-y-1">
           {pool.dimensions && <p>Dimensions: {pool.dimensions}</p>}
           {pool.depth && <p>Depth: {pool.depth}</p>}
-          {pool.model === "Madre Perla" ? (
-            <p className="text-primary font-medium">INCLUDES SPA - includes everything in the image. Premium infinity concrete pool with integrated spa and luxury waterfall features.</p>
-          ) : (
-            <p>Includes: 3 ft perimeter pavers around pool area</p>
-          )}
+          {pool.model === "Madre Perla" ? <p className="text-primary font-medium">Includes Spa and Dry Bar</p> : <p>Includes: 3 ft perimeter pavers around pool area</p>}
           {pool.installationTimeWeeks && <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
               <span>Installation: {pool.installationTimeWeeks} weeks</span>
@@ -1263,7 +1253,8 @@ const PoolProductCard = ({
                 ...extras,
                 extrasBreakdown,
                 extrasTotal,
-                deliveryTime: extras.concreteConstruction ? '18+ weeks' : '8+ weeks', // Add delivery time based on concrete construction
+                deliveryTime: extras.concreteConstruction ? '18+ weeks' : '8+ weeks',
+                // Add delivery time based on concrete construction
                 concretePoolDescription: pool.model === 'Pacific Ridge' ? 'This is a premium concrete pool featuring reinforced construction, superior durability, and custom design flexibility.' : undefined
               });
             }} variant="outline" className="flex-1" size="sm">Instant Quote</Button>
