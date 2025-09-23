@@ -88,6 +88,21 @@ const pools: Pool[] = [
   saltSystem: true,
   carbonFiber: false
 },
+// Pacific Ridge Concrete Pool
+{
+  model: "Pacific Ridge",
+  price: 87000,
+  category: 'premium',
+  image: "/src/assets/pools/pacific-ridge.jpg",
+  dimensions: "14' x 32'",
+  depth: "3'6\" - 6'",
+  installationTimeWeeks: 18,
+  warrantyYears: 10,
+  features: ["Concrete Construction", "Rectangular Design", "Variable Depth", "Premium Finish"],
+  heater: false,
+  saltSystem: false,
+  carbonFiber: false
+},
 // Most Popular - Standard Series (Special Offers & Best Value)
 {
   model: "Astoria",
