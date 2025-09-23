@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -379,6 +380,7 @@ const PoolProductCard = ({
   onRequestQuote,
   isAdmin = false
 }: PoolProductCardProps) => {
+  const navigate = useNavigate();
   const [showDetails, setShowDetails] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [currentPoolImage, setCurrentPoolImage] = useState(pool.image);
@@ -417,7 +419,15 @@ const PoolProductCard = ({
   // No need to fetch from database - using static paver data with $15/sq ft pricing
 
   const handleImageClick = () => {
-    setShowDetails(!showDetails);
+    // Navigate to Wonderlands Studio with the selected product
+    const params = new URLSearchParams({
+      model: pool.model,
+      price: pool.price.toString(),
+      category: pool.category,
+      ...(currentPoolImage && { image: encodeURIComponent(currentPoolImage) })
+    });
+    
+    navigate(`/wonderlands-studio?${params.toString()}`);
   };
   const handleImageHover = (isHovering: boolean) => {
     if (isHovering && !showDetails) {
@@ -658,7 +668,7 @@ const PoolProductCard = ({
   };
   return <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
       {/* Edge-to-edge Pool Image at top */}
-      <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image" onClick={handleImageClick} onMouseEnter={() => handleImageHover(true)} onMouseLeave={() => handleImageHover(false)}>
+      <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 cursor-pointer overflow-hidden group/image" onClick={handleImageClick}>
         {currentPoolImage ? <OptimizedImage src={currentPoolImage} alt={pool.model} className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105" sizeConfig="poolCard" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">
             <Waves size={48} className="text-primary/60" />
           </div>}
@@ -672,7 +682,7 @@ const PoolProductCard = ({
         
         <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors duration-300 flex items-center justify-center">
           <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 text-white font-medium">
-            Click for Details
+            Open in Studio
           </div>
         </div>
         
@@ -1484,7 +1494,7 @@ const PoolProductCard = ({
         }} variant="outline" className="w-full" size="sm">
               Instant Quote
             </Button>
-            <Button onClick={handleImageClick} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">Customize Pool</Button>
+            <Button onClick={() => setShowDetails(!showDetails)} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">Customize Pool</Button>
           </div>}
       </CardContent>
       
