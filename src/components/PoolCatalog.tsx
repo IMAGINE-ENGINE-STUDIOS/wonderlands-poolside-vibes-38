@@ -18,6 +18,7 @@ import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
 
 // Import Madre Perla pool image
 import madrePerlaImage from "@/assets/pools/madre-perla.jpg";
+import pacificRidgeImage from "@/assets/pools/pacific-ridge.jpg";
 
 // Debug logging
 console.log('PoolCatalog - poolTiles:', poolTiles);
@@ -93,7 +94,7 @@ const pools: Pool[] = [
   model: "Pacific Ridge",
   price: 79000,
   category: 'premium',
-  image: "/src/assets/pools/pacific-ridge.jpg",
+  image: pacificRidgeImage,
   dimensions: "14' x 32'",
   depth: "3'6\" - 6'",
   installationTimeWeeks: 18,
