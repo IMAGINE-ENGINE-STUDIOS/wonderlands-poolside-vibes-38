@@ -91,14 +91,14 @@ const pools: Pool[] = [
 // Pacific Ridge Concrete Pool
 {
   model: "Pacific Ridge",
-  price: 87000,
+  price: 79000,
   category: 'premium',
   image: "/src/assets/pools/pacific-ridge.jpg",
   dimensions: "14' x 32'",
   depth: "3'6\" - 6'",
   installationTimeWeeks: 18,
   warrantyYears: 10,
-  features: ["Concrete Construction", "Rectangular Design", "Variable Depth", "Premium Finish"],
+  features: ["Rectangular Design", "Variable Depth", "Premium Finish"],
   heater: false,
   saltSystem: false,
   carbonFiber: false
