@@ -417,7 +417,17 @@ const PoolProductCard = ({
   // No need to fetch from database - using static paver data with $15/sq ft pricing
 
   const handleImageClick = () => {
-    setShowDetails(!showDetails);
+    // Navigate to Wonderlands Studio with selected product
+    const productData = {
+      name: pool.model,
+      image: pool.image,
+      category: pool.category,
+      price: pool.price,
+      dimensions: pool.dimensions,
+      features: pool.features
+    };
+    
+    window.location.href = `/wonderlands-studio?product=${encodeURIComponent(JSON.stringify(productData))}`;
   };
   const handleImageHover = (isHovering: boolean) => {
     if (isHovering && !showDetails) {
