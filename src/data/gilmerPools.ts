@@ -12,5 +12,18 @@ export const gilmerPools = [
     category: "premium",
     installationTimeWeeks: 8,
     concreteInstallationWeeks: 18
+  },
+  {
+    model: "Tortola",
+    dimensions: "14' x 30'",
+    depth: "4'– 6'2\"",
+    price: 63500,
+    image: "/lovable-uploads/gilmer-tortola.jpeg",
+    warranty: "Life Warranty",
+    brand: "Gilmer Glass",
+    type: "Fiber Pool",
+    category: "premium",
+    installationTimeWeeks: 8,
+    concreteInstallationWeeks: 18
   }
 ];
