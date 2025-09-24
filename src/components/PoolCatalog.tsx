@@ -15,6 +15,7 @@ import { Waves, Sparkles, Flame, Plus, Sun, Calendar, ArrowRight } from "lucide-
 
 // Import shared pool data
 import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
+import { gilmerPools } from "@/data/gilmerPools";
 
 // Import Madre Perla pool image
 import madrePerlaImage from "@/assets/pools/madre-perla.jpg";
@@ -546,7 +547,19 @@ const pools: Pool[] = [
   heater: false,
   saltSystem: true,
   carbonFiber: true
-}];
+},
+// Gilmer Glass Fiber Pools
+...gilmerPools.map(gilmer => ({
+  ...gilmer,
+  category: gilmer.category as 'premium' | 'deluxe' | 'standard',
+  features: ["Life Warranty", "Fiber Pool", "Quick Installation", "Low Maintenance"],
+  heater: false,
+  saltSystem: false,
+  carbonFiber: false,
+  warrantyYears: gilmer.warranty,
+  installationTimeWeeks: gilmer.installationTimeWeeks
+}))
+];
 
 // Spa models
 const spas: Spa[] = [{
