@@ -240,7 +240,7 @@ const SurveyQuoteTool = ({
 
     // Add sauna if selected (exclusive offer for eligible pools)
     if (saunaSelected) {
-      const eligibleModels = ["Astoria", "Genesis", "Claremont"];
+      const eligibleModels = ["Astoria", "Genesis", "Claremont", "Extreme 38"];
       const poolModel = pool?.model || "";
       const poolPrice = pool?.price || 0;
       const isEligible = eligibleModels.includes(poolModel) && poolPrice >= 70000;
@@ -656,6 +656,15 @@ const SurveyQuoteTool = ({
       <div className="space-y-6">
             <PoolCustomizationOptions onSelectionChange={options => setSelectedOptions(options)} />
             
+            {/* Exclusive Sauna Offer for eligible pools */}
+            {pool && (
+              <ExclusiveSaunaOffer 
+                poolModel={pool.model} 
+                poolPrice={pool.price} 
+                onAddToQuote={() => setSaunaSelected(!saunaSelected)}
+              />
+            )}
+            
             <div className="flex gap-3">
               <Button onClick={() => setCurrentStep('survey')} variant="outline" size="lg" className="flex-1">
                 Back to Survey
@@ -1005,7 +1014,7 @@ const SurveyQuoteTool = ({
 
                 {/* Sauna Selection */}
                 {saunaSelected && (() => {
-                  const eligibleModels = ["Astoria", "Genesis", "Claremont"];
+                  const eligibleModels = ["Astoria", "Genesis", "Claremont", "Extreme 38"];
                   const poolModel = pool?.model || "";
                   const poolPrice = pool?.price || 0;
                   const isEligible = eligibleModels.includes(poolModel) && poolPrice >= 70000;
