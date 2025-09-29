@@ -7,9 +7,10 @@ import { Thermometer, Users, Zap, CheckCircle } from "lucide-react";
 interface ExclusiveSaunaOfferProps {
   poolModel: string;
   poolPrice: number;
+  onAddToQuote?: () => void;
 }
 
-const ExclusiveSaunaOffer: React.FC<ExclusiveSaunaOfferProps> = ({ poolModel, poolPrice }) => {
+const ExclusiveSaunaOffer: React.FC<ExclusiveSaunaOfferProps> = ({ poolModel, poolPrice, onAddToQuote }) => {
   const eligibleModels = ["Astoria", "Genesis", "Claremont"];
   const isEligible = eligibleModels.includes(poolModel) && poolPrice >= 70000;
 
@@ -98,7 +99,11 @@ const ExclusiveSaunaOffer: React.FC<ExclusiveSaunaOfferProps> = ({ poolModel, po
         </div>
         
         <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border">
-          <Button className="flex-1" size="lg">
+          <Button 
+            className="flex-1" 
+            size="lg"
+            onClick={onAddToQuote}
+          >
             Add Sauna to Quote
           </Button>
           <Button variant="outline" size="lg">

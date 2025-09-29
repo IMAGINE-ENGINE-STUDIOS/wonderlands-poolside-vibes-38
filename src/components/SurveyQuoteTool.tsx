@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
 import { OptimizedImage } from "./OptimizedImage";
 import ImageCard from "./ImageCard";
+import ExclusiveSaunaOffer from "./ExclusiveSaunaOffer";
 const poolHeaterImg = "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png";
 // Jets intentionally have no image in the quote
 interface Pool {
@@ -92,6 +93,7 @@ const SurveyQuoteTool = ({
   const [currentStep, setCurrentStep] = useState<'survey' | 'options' | 'quote'>('survey');
   const [isSaving, setIsSaving] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [saunaSelected, setSaunaSelected] = useState(false);
   const {
     toast
   } = useToast();
@@ -235,6 +237,17 @@ const SurveyQuoteTool = ({
     // Add extras from product card exactly as configured (matching Wonderlands Studio)
     const extrasTotal = (extras as any)?.extrasTotal ? Number((extras as any).extrasTotal) : 0;
     basePrice += extrasTotal;
+
+    // Add sauna if selected (exclusive offer for eligible pools)
+    if (saunaSelected) {
+      const eligibleModels = ["Astoria", "Genesis", "Claremont"];
+      const poolModel = pool?.model || "";
+      const poolPrice = pool?.price || 0;
+      const isEligible = eligibleModels.includes(poolModel) && poolPrice >= 70000;
+      if (isEligible) {
+        basePrice += 15000; // Sauna price
+      }
+    }
 
     // Florida-specific adjustments
     if (surveyData.soilType === "sand") basePrice *= 0.95; // Easier excavation
@@ -820,6 +833,34 @@ const SurveyQuoteTool = ({
                   </div>
                 </div>
 
+                {/* Exclusive Sauna Offer for Eligible Pools */}
+                {(() => {
+                  const eligibleModels = ["Astoria", "Genesis", "Claremont"];
+                  const poolModel = pool?.model || "";
+                  const poolPrice = pool?.price || 0;
+                  const isEligible = eligibleModels.includes(poolModel) && poolPrice >= 70000;
+                  
+                  if (!isEligible) return null;
+                  
+                  const handleAddSaunaToQuote = () => {
+                    setSaunaSelected(true);
+                    toast({
+                      title: "Sauna Added",
+                      description: "Barrel Sauna has been added to your quote.",
+                    });
+                  };
+                  
+                  return (
+                    <div className="mb-6">
+                      <ExclusiveSaunaOffer 
+                        poolModel={poolModel} 
+                        poolPrice={poolPrice} 
+                        onAddToQuote={handleAddSaunaToQuote}
+                      />
+                    </div>
+                  );
+                })()}
+
                 {/* Selected Options with Images */}
                 {selectedOptions.length > 0 && <div className="mb-6">
                     <h4 className="font-bold text-lg mb-3 text-teal-600">Selected Features</h4>
@@ -894,6 +935,8 @@ const SurveyQuoteTool = ({
                       itemImage = '/lovable-uploads/46c5f140-bd7e-4a4d-9a19-1f15b078b899.png';
                     } else if (item.name.includes('Tanning Ledge')) {
                       itemImage = '/lovable-uploads/2af253b1-b9be-487f-a998-476d396772c4.png';
+                    } else if (item.name.includes('Barrel Sauna') || item.name.includes('Sauna')) {
+                      itemImage = '/lovable-uploads/barrel-sauna.webp';
                     } else if (item.name.includes('Liner')) {
                       itemImage = '/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.png';
                     } else if (item.name.includes('Jets')) {
@@ -959,6 +1002,50 @@ const SurveyQuoteTool = ({
                       </div>
                     </div>
                   </div>}
+
+                {/* Sauna Selection */}
+                {saunaSelected && (() => {
+                  const eligibleModels = ["Astoria", "Genesis", "Claremont"];
+                  const poolModel = pool?.model || "";
+                  const poolPrice = pool?.price || 0;
+                  const isEligible = eligibleModels.includes(poolModel) && poolPrice >= 70000;
+                  
+                  if (!isEligible) return null;
+                  
+                  return (
+                    <div className="mb-6">
+                      <h4 className="font-bold text-lg mb-3 text-amber-600">🔥 Exclusive Sauna Add-On</h4>
+                      <div className="border border-amber-200 dark:border-gray-600 rounded-lg p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
+                        <div className="flex items-center gap-4">
+                          <div className="w-20 h-20 rounded-md overflow-hidden border">
+                            <ImageCard 
+                              src="/lovable-uploads/barrel-sauna.webp" 
+                              alt="Barrel Sauna" 
+                              className="w-full h-full object-cover"
+                              enableZoom={false}
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <h5 className="font-semibold text-lg">Barrel Sauna</h5>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              Premium 4-person barrel sauna with 6kW heater, LED lighting, and all accessories included
+                            </p>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <span>• Ball-and-socket lumber</span>
+                              <span>• Tempered glass features</span>
+                              <span>• Stainless steel hardware</span>
+                              <span>• Interior LED lighting</span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-amber-600">+$15,000</div>
+                            <div className="text-xs text-muted-foreground">Exclusive Offer</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Items Included */}
                 <div className="mb-6">
