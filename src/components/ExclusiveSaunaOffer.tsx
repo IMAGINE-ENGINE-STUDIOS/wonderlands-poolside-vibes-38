@@ -11,7 +11,7 @@ interface ExclusiveSaunaOfferProps {
 }
 
 const ExclusiveSaunaOffer: React.FC<ExclusiveSaunaOfferProps> = ({ poolModel, poolPrice, onAddToQuote }) => {
-  const eligibleModels = ["Astoria", "Genesis", "Claremont"];
+  const eligibleModels = ["Astoria", "Genesis", "Claremont", "Extreme 38"];
   const isEligible = eligibleModels.includes(poolModel) && poolPrice >= 70000;
 
   if (!isEligible) return null;

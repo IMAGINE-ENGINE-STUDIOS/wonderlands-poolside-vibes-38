@@ -25,5 +25,18 @@ export const gilmerPools = [
     category: "premium",
     installationTimeWeeks: 8,
     concreteInstallationWeeks: 18
+  },
+  {
+    model: "Extreme 38",
+    dimensions: "15'6\" x 38'",
+    depth: "4'6\"– 7'",
+    price: 79500,
+    image: "/lovable-uploads/gilmer-extreme-38.jpeg",
+    warranty: "Life Warranty",
+    brand: "Gilmer Glass",
+    type: "Fiber Pool",
+    category: "premium",
+    installationTimeWeeks: 8,
+    concreteInstallationWeeks: 18
   }
 ];
