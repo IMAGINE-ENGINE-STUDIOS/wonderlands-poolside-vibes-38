@@ -30,7 +30,7 @@ export const gilmerPools = [
     model: "Extreme 38",
     dimensions: "15'6\" x 38'",
     depth: "4'6\"– 7'",
-    price: 79500,
+    price: 88500,
     image: "/lovable-uploads/gilmer-extreme-38.jpeg",
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
