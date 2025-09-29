@@ -12,6 +12,7 @@ import ImageEditor from "./ImageEditor";
 import { OptimizedImage } from "./OptimizedImage";
 import { useShoppingCart } from "./ShoppingCart";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import ExclusiveSaunaOffer from "./ExclusiveSaunaOffer";
 import { spas } from "./PoolCatalog";
 import { tanningLedges } from "@/data/poolData";
 import { paverTypes, copingTypes } from "@/data/paverData";
@@ -1129,6 +1130,9 @@ const PoolProductCard = ({
                   <li>• Lifetime structural warranty</li>
                 </ul>
               </div>}
+              
+            {/* Exclusive Sauna Offer */}
+            <ExclusiveSaunaOffer poolModel={pool.model} poolPrice={pool.price} />
             
             {/* Action Buttons */}
             <div className="space-y-2">
