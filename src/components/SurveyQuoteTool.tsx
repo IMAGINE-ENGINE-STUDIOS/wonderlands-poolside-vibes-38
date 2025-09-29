@@ -662,6 +662,7 @@ const SurveyQuoteTool = ({
                 poolModel={pool.model} 
                 poolPrice={pool.price} 
                 onAddToQuote={() => setSaunaSelected(!saunaSelected)}
+                isSelected={saunaSelected}
               />
             )}
             

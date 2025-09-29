@@ -8,9 +8,10 @@ interface ExclusiveSaunaOfferProps {
   poolModel: string;
   poolPrice: number;
   onAddToQuote?: () => void;
+  isSelected?: boolean;
 }
 
-const ExclusiveSaunaOffer: React.FC<ExclusiveSaunaOfferProps> = ({ poolModel, poolPrice, onAddToQuote }) => {
+const ExclusiveSaunaOffer: React.FC<ExclusiveSaunaOfferProps> = ({ poolModel, poolPrice, onAddToQuote, isSelected = false }) => {
   const eligibleModels = ["Astoria", "Genesis", "Claremont", "Extreme 38"];
   const isEligible = eligibleModels.includes(poolModel) && poolPrice >= 70000;
 
@@ -33,22 +34,27 @@ const ExclusiveSaunaOffer: React.FC<ExclusiveSaunaOfferProps> = ({ poolModel, po
   ];
 
   return (
-    <div className="mt-4 p-4 border border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg">
+    <div className={`mt-4 p-4 border rounded-lg transition-all ${
+      isSelected 
+        ? 'border-primary bg-gradient-to-br from-primary/10 to-accent/10 ring-2 ring-primary/20' 
+        : 'border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5'
+    }`}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-lg">🔥</span>
           <div>
             <h4 className="font-semibold text-sm text-primary">Exclusive Sauna Offer</h4>
             <p className="text-xs text-muted-foreground">Available with {poolModel} $70,000+</p>
+            {isSelected && <p className="text-xs text-primary font-medium">✓ Added to Quote</p>}
           </div>
         </div>
         <Button 
           size="sm" 
-          variant="outline" 
-          className="h-8 w-8 p-0 shrink-0"
+          variant={isSelected ? "default" : "outline"}
+          className={`h-8 w-8 p-0 shrink-0 ${isSelected ? 'bg-primary text-primary-foreground' : ''}`}
           onClick={onAddToQuote}
         >
-          <Plus className="h-4 w-4" />
+          {isSelected ? <CheckCircle className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
         </Button>
       </div>
       
