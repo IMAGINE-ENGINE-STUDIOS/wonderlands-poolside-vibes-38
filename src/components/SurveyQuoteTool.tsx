@@ -244,8 +244,13 @@ const SurveyQuoteTool = ({
       const poolModel = pool?.model || "";
       const poolPrice = pool?.price || 0;
       const isEligible = eligibleModels.includes(poolModel) && poolPrice >= 70000;
-      if (isEligible) {
-        basePrice += 15000; // Sauna price
+      
+      // For Extreme 38 and Astoria, sauna is included in base price
+      const saunaIncludedModels = ["Extreme 38", "Astoria"];
+      const isSaunaIncluded = saunaIncludedModels.includes(poolModel);
+      
+      if (isEligible && !isSaunaIncluded) {
+        basePrice += 15000; // Sauna price for other models
       }
     }
 
@@ -1048,8 +1053,17 @@ const SurveyQuoteTool = ({
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-lg font-bold text-amber-600">+$15,000</div>
-                            <div className="text-xs text-muted-foreground">Exclusive Offer</div>
+                            {poolModel === "Extreme 38" || poolModel === "Astoria" ? (
+                              <>
+                                <div className="text-lg font-bold text-green-600">INCLUDED</div>
+                                <div className="text-xs text-muted-foreground">No Additional Cost</div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="text-lg font-bold text-amber-600">+$15,000</div>
+                                <div className="text-xs text-muted-foreground">Exclusive Offer</div>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
