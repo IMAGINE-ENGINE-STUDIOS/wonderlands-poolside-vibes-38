@@ -23,6 +23,11 @@ import {
 import { useShoppingCart } from "@/components/ShoppingCart";
 import { useToast } from "@/hooks/use-toast";
 
+// Helper function to get pool price with 10% discount applied
+const getPoolPrice = (pool: { price: number }) => {
+  return Math.round(pool.price * 0.90); // 10% discount for all pools
+};
+
 interface GilmerPoolCardProps {
   pool: {
     model: string;
@@ -273,10 +278,13 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
           </div>
           <div className="text-right">
             <div className="text-3xl font-bold text-primary">
-              ${(pool.price + calculateExtrasTotal()).toLocaleString()}
+              ${(getPoolPrice(pool) + calculateExtrasTotal()).toLocaleString()}
             </div>
             <div className="text-sm text-muted-foreground">
-              Base: ${pool.price.toLocaleString()} (No Discount Applied)
+              <span className="line-through">${pool.price.toLocaleString()}</span> 
+              <span className="text-green-600 font-medium ml-2">
+                ${getPoolPrice(pool).toLocaleString()} (10% OFF)
+              </span>
               {calculateExtrasTotal() > 0 && (
                 <span> + ${calculateExtrasTotal().toLocaleString()} extras</span>
               )}
