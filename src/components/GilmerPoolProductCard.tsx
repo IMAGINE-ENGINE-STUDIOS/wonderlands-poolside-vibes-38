@@ -276,7 +276,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
               ${(pool.price + calculateExtrasTotal()).toLocaleString()}
             </div>
             <div className="text-sm text-muted-foreground">
-              Base: ${pool.price.toLocaleString()}
+              Base: ${pool.price.toLocaleString()} (No Discount Applied)
               {calculateExtrasTotal() > 0 && (
                 <span> + ${calculateExtrasTotal().toLocaleString()} extras</span>
               )}
