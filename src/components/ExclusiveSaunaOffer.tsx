@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Thermometer, Users, Zap, CheckCircle } from "lucide-react";
+import { Thermometer, Users, Zap, CheckCircle, Plus } from "lucide-react";
 
 interface ExclusiveSaunaOfferProps {
   poolModel: string;
@@ -33,85 +33,52 @@ const ExclusiveSaunaOffer: React.FC<ExclusiveSaunaOfferProps> = ({ poolModel, po
   ];
 
   return (
-    <Card className="mt-6 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
-      <CardHeader>
-        <div className="flex items-center justify-between">
+    <div className="mt-4 p-4 border border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">🔥</span>
           <div>
-            <CardTitle className="text-xl font-bold text-primary">
-              🔥 Exclusive Sauna Offer
-            </CardTitle>
-            <CardDescription className="text-base">
-              Available with select fiberglass pool models $70,000+
-            </CardDescription>
+            <h4 className="font-semibold text-sm text-primary">Exclusive Sauna Offer</h4>
+            <p className="text-xs text-muted-foreground">Available with {poolModel} $70,000+</p>
           </div>
-          <Badge variant="secondary" className="bg-primary/10 text-primary">
-            {poolModel} Eligible
-          </Badge>
         </div>
-      </CardHeader>
+        <Button 
+          size="sm" 
+          variant="outline" 
+          className="h-8 w-8 p-0 shrink-0"
+          onClick={onAddToQuote}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
       
-      <CardContent className="space-y-6">
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Sauna Image */}
-          <div className="space-y-4">
-            <img 
-              src="/lovable-uploads/barrel-sauna.webp" 
-              alt="Barrel Sauna" 
-              className="w-full h-48 object-cover rounded-lg"
-            />
-            
-            {/* Key Features */}
-            <div className="grid grid-cols-2 gap-3">
-              {features.map((feature, index) => (
-                <div key={index} className="flex items-center gap-2 text-sm">
-                  <span className="text-primary">{feature.icon}</span>
-                  <span className="text-muted-foreground">{feature.text}</span>
-                </div>
-              ))}
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <img 
+          src="/lovable-uploads/barrel-sauna.webp" 
+          alt="Barrel Sauna" 
+          className="w-full h-20 object-cover rounded"
+        />
+        <div className="space-y-1">
+          {features.slice(0, 2).map((feature, index) => (
+            <div key={index} className="flex items-center gap-1 text-xs">
+              <span className="text-primary text-[10px]">{feature.icon}</span>
+              <span className="text-muted-foreground">{feature.text}</span>
             </div>
-          </div>
-          
-          {/* Specifications */}
-          <div className="space-y-4">
-            <h4 className="font-semibold text-foreground">Sauna Specifications</h4>
-            <div className="space-y-2">
-              {specifications.map((spec, index) => (
-                <div key={index} className="flex justify-between text-sm">
-                  <span className="font-medium text-muted-foreground">{spec.label}:</span>
-                  <span className="text-foreground text-right max-w-[60%]">{spec.value}</span>
-                </div>
-              ))}
-            </div>
-            
-            <div className="pt-4 border-t border-border">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-muted-foreground">Heater Electrical:</span>
-                  <span className="text-sm text-foreground">240V, 30-amp, hardwire</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-muted-foreground">Lighting Electrical:</span>
-                  <span className="text-sm text-foreground">110V, 15-amp, plug-in</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
-        
-        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border">
-          <Button 
-            className="flex-1" 
-            size="lg"
-            onClick={onAddToQuote}
-          >
-            Add Sauna to Quote
-          </Button>
-          <Button variant="outline" size="lg">
-            Learn More
-          </Button>
+      </div>
+      
+      <div className="text-xs text-muted-foreground">
+        <div className="flex justify-between">
+          <span>Size:</span>
+          <span>72″W × 71″D × 75⅜″H</span>
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex justify-between">
+          <span>Interior:</span>
+          <span>69¼″W × 63¼″D × 69¼″H</span>
+        </div>
+      </div>
+    </div>
   );
 };
 
