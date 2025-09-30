@@ -40,9 +40,9 @@ export const gilmerPools = [
     concreteInstallationWeeks: 18
   },
   {
-    model: "Gold Coast",
-    dimensions: "16' x 40'",
-    depth: "4'– 6'6\"",
+    model: "Gold Coast w/ built-in Spa",
+    dimensions: "14' x 28'",
+    depth: "5'8\"",
     price: 75250,
     image: "/lovable-uploads/gilmer-gold-coast.png",
     warranty: "Life Warranty",
@@ -54,8 +54,8 @@ export const gilmerPools = [
   },
   {
     model: "Serafina",
-    dimensions: "12' x 24'",
-    depth: "4'– 5'6\"",
+    dimensions: "8'6\" x 14'",
+    depth: "4'",
     price: 40940,
     image: "/lovable-uploads/gilmer-serafina.png",
     warranty: "Life Warranty",
@@ -68,7 +68,7 @@ export const gilmerPools = [
   {
     model: "Regal Plunge",
     dimensions: "10' x 16'",
-    depth: "4'– 5'",
+    depth: "5'5\"",
     price: 43100,
     image: "/lovable-uploads/gilmer-regal-plunge.png",
     warranty: "Life Warranty",
