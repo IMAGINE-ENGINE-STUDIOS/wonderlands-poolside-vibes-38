@@ -38,5 +38,18 @@ export const gilmerPools = [
     category: "premium",
     installationTimeWeeks: 8,
     concreteInstallationWeeks: 18
+  },
+  {
+    model: "Gold Coast",
+    dimensions: "16' x 40'",
+    depth: "4'– 6'6\"",
+    price: 75250,
+    image: "/lovable-uploads/gilmer-gold-coast.png",
+    warranty: "Life Warranty",
+    brand: "Gilmer Glass",
+    type: "Fiber Pool",
+    category: "premium",
+    installationTimeWeeks: 8,
+    concreteInstallationWeeks: 18
   }
 ];
