@@ -24,6 +24,8 @@ import pacificRidgeImage from "@/assets/pools/pacific-ridge.jpg";
 // Debug logging
 console.log('PoolCatalog - poolTiles:', poolTiles);
 console.log('PoolCatalog - poolLiners:', poolLiners);
+console.log('PoolCatalog - Total gilmerPools:', gilmerPools.length);
+console.log('PoolCatalog - Gilmer pools:', gilmerPools.map(p => p.model));
 
 // Pool model images - synchronized with Wonderlands Studio
 const astoriaImage = "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png";
