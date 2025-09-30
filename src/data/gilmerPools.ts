@@ -64,5 +64,18 @@ export const gilmerPools = [
     category: "premium",
     installationTimeWeeks: 8,
     concreteInstallationWeeks: 18
+  },
+  {
+    model: "Regal Plunge",
+    dimensions: "10' x 16'",
+    depth: "4'– 5'",
+    price: 43100,
+    image: "/lovable-uploads/gilmer-regal-plunge.png",
+    warranty: "Life Warranty",
+    brand: "Gilmer Glass",
+    type: "Fiber Pool",
+    category: "premium",
+    installationTimeWeeks: 8,
+    concreteInstallationWeeks: 18
   }
 ];
