@@ -51,5 +51,18 @@ export const gilmerPools = [
     category: "premium",
     installationTimeWeeks: 8,
     concreteInstallationWeeks: 18
+  },
+  {
+    model: "Serafina",
+    dimensions: "12' x 24'",
+    depth: "4'– 5'6\"",
+    price: 40940,
+    image: "/lovable-uploads/gilmer-serafina.png",
+    warranty: "Life Warranty",
+    brand: "Gilmer Glass",
+    type: "Fiber Pool",
+    category: "premium",
+    installationTimeWeeks: 8,
+    concreteInstallationWeeks: 18
   }
 ];
