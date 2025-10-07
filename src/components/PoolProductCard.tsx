@@ -427,9 +427,10 @@ const PoolProductCard = ({
       model: pool.model,
       price: pool.price.toString(),
       category: pool.category,
-      ...(currentPoolImage && { image: encodeURIComponent(currentPoolImage) })
+      ...(currentPoolImage && {
+        image: encodeURIComponent(currentPoolImage)
+      })
     });
-    
     navigate(`/wonderlands-studio?${params.toString()}`);
   };
   const handleImageHover = (isHovering: boolean) => {
@@ -1265,7 +1266,8 @@ const PoolProductCard = ({
                 ...extras,
                 extrasBreakdown,
                 extrasTotal,
-                deliveryTime: extras.concreteConstruction ? '18+ weeks' : '8+ weeks', // Add delivery time based on concrete construction
+                deliveryTime: extras.concreteConstruction ? '18+ weeks' : '8+ weeks',
+                // Add delivery time based on concrete construction
                 concretePoolDescription: pool.model === 'Pacific Ridge' ? 'This is a premium concrete pool featuring reinforced construction, superior durability, and custom design flexibility.' : undefined
               });
             }} variant="outline" className="flex-1" size="sm">Instant Quote</Button>
@@ -1501,10 +1503,7 @@ const PoolProductCard = ({
               Instant Quote
             </Button>
             <Button onClick={() => setShowDetails(!showDetails)} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">Customize Pool</Button>
-            <Button onClick={() => setShowQuoteTool(true)} variant="secondary" className="w-full gap-2" size="sm">
-              <FileText className="h-4 w-4" />
-              Instant Quote
-            </Button>
+            
           </div>}
       </CardContent>
       
@@ -1512,12 +1511,7 @@ const PoolProductCard = ({
       <ImageEditor isOpen={showImageEditor} onClose={() => setShowImageEditor(false)} onImageSave={handleImageSave} currentImage={currentPoolImage} />
       
       {/* Quote Tool Modal */}
-      <SurveyQuoteTool 
-        pool={pool} 
-        isOpen={showQuoteTool} 
-        onClose={() => setShowQuoteTool(false)}
-        extras={extras}
-      />
+      <SurveyQuoteTool pool={pool} isOpen={showQuoteTool} onClose={() => setShowQuoteTool(false)} extras={extras} />
     </Card>;
 };
 export default PoolProductCard;
