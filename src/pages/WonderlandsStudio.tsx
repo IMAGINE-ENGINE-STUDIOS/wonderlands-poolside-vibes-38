@@ -76,6 +76,8 @@ interface ProductExtras {
   fireplaces: boolean;
   firePitKits: boolean;
   pergolas: boolean;
+  // Sauna-specific options
+  spa: boolean;
   // Quote data
   extrasBreakdown?: Array<{
     name: string;
@@ -283,7 +285,9 @@ const WonderlandsStudio = () => {
     outdoorKitchens: false,
     fireplaces: false,
     firePitKits: false,
-    pergolas: false
+    pergolas: false,
+    // Sauna-specific options
+    spa: false
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
   const [paverCategory, setPaverCategory] = useState('all');
@@ -1261,6 +1265,299 @@ const WonderlandsStudio = () => {
                             </div>}
                         </div>
                       </> :
+                selectedProduct.type === 'sauna' ?
+                // Sauna-specific features
+                <>
+                    {/* Add Spa */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <Label className="text-sm font-medium">Add a Spa</Label>
+                          <p className="text-xs text-muted-foreground">Include a spa with your sauna</p>
+                        </div>
+                        <Checkbox 
+                          checked={selectedExtras.spa} 
+                          onCheckedChange={(checked) => {
+                            setSelectedExtras({
+                              ...selectedExtras,
+                              spa: !!checked,
+                              heater: !!checked ? selectedExtras.heater : false,
+                              cover: !!checked ? selectedExtras.cover : false,
+                              tiles: !!checked ? selectedExtras.tiles : false
+                            });
+                          }} 
+                        />
+                      </div>
+
+                      {/* Show spa sub-options when spa is selected */}
+                      {selectedExtras.spa && (
+                        <div className="ml-4 space-y-6 mt-4 p-4 bg-muted/30 rounded-lg border border-border">
+                          {/* Spa Heater */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <Label className="text-sm font-medium">Spa Heater</Label>
+                                <p className="text-xs text-muted-foreground">Keep your spa warm</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Checkbox 
+                                  checked={selectedExtras.heater} 
+                                  onCheckedChange={(checked) => {
+                                    const newExtras = {
+                                      ...selectedExtras,
+                                      heater: !!checked
+                                    };
+                                    setSelectedExtras(newExtras);
+                                    if (checked) {
+                                      setActiveFeatureCarousel('heater');
+                                    } else {
+                                      setActiveFeatureCarousel(null);
+                                    }
+                                  }} 
+                                />
+                                {selectedExtras.heater && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => {
+                                      const newCarousel = activeFeatureCarousel === 'heater' ? null : 'heater';
+                                      setActiveFeatureCarousel(newCarousel);
+                                    }}
+                                  >
+                                    <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'heater' ? 'rotate-180' : ''}`} />
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                            {selectedExtras.heater && activeFeatureCarousel === 'heater' && (
+                              <Carousel className="w-full">
+                                <CarouselContent className="-ml-1">
+                                  {poolHeaters.map((heater) => (
+                                    <CarouselItem key={heater.name} className="pl-1 basis-1/2">
+                                      <div 
+                                        className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                          selectedExtras.heaterModel === heater.name 
+                                            ? 'border-primary shadow-md' 
+                                            : 'border-border hover:border-primary/50'
+                                        }`}
+                                        onClick={() => {
+                                          setSelectedExtras({
+                                            ...selectedExtras,
+                                            heaterModel: heater.name
+                                          });
+                                          setActiveFeatureCarousel(null);
+                                        }}
+                                      >
+                                        <img src={heater.image} alt={heater.name} className="w-full h-16 object-cover rounded" />
+                                        <p className="text-xs font-medium mt-1 truncate">{heater.name}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                          ${heater.price.toLocaleString()}
+                                        </p>
+                                      </div>
+                                    </CarouselItem>
+                                  ))}
+                                </CarouselContent>
+                                <CarouselPrevious />
+                                <CarouselNext />
+                              </Carousel>
+                            )}
+                          </div>
+
+                          {/* Waterline Tiles */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <Label className="text-sm font-medium">Waterline Tiles</Label>
+                                <p className="text-xs text-muted-foreground">Premium spa tiles</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Checkbox 
+                                  checked={selectedExtras.tiles} 
+                                  onCheckedChange={(checked) => {
+                                    const newExtras = {
+                                      ...selectedExtras,
+                                      tiles: !!checked
+                                    };
+                                    setSelectedExtras(newExtras);
+                                    if (checked) {
+                                      setActiveFeatureCarousel('tiles');
+                                    } else {
+                                      setActiveFeatureCarousel(null);
+                                    }
+                                  }} 
+                                />
+                                {selectedExtras.tiles && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => {
+                                      const newCarousel = activeFeatureCarousel === 'tiles' ? null : 'tiles';
+                                      setActiveFeatureCarousel(newCarousel);
+                                    }}
+                                  >
+                                    <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'tiles' ? 'rotate-180' : ''}`} />
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                            {selectedExtras.tiles && activeFeatureCarousel === 'tiles' && (
+                              <Carousel className="w-full">
+                                <CarouselContent className="-ml-1">
+                                  {tileOptions.filter(tile => tile.name !== 'Standard Waterline').map((tile) => (
+                                    <CarouselItem key={tile.name} className="pl-1 basis-1/3">
+                                      <div 
+                                        className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                          selectedExtras.tileOption === tile.name 
+                                            ? 'border-primary shadow-md' 
+                                            : 'border-border hover:border-primary/50'
+                                        }`}
+                                        onClick={() => {
+                                          setSelectedExtras({
+                                            ...selectedExtras,
+                                            tileOption: tile.name
+                                          });
+                                          setActiveFeatureCarousel(null);
+                                        }}
+                                      >
+                                        <img src={tile.image} alt={tile.name} className="w-full h-16 object-cover rounded" />
+                                        <p className="text-xs font-medium mt-1 truncate">{tile.name}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                          {tile.price > 0 ? `$${tile.price.toLocaleString()}` : 'Included'}
+                                        </p>
+                                      </div>
+                                    </CarouselItem>
+                                  ))}
+                                </CarouselContent>
+                                <CarouselPrevious />
+                                <CarouselNext />
+                              </Carousel>
+                            )}
+                          </div>
+
+                          {/* Safety Cover */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <Label className="text-sm font-medium">Safety Cover</Label>
+                                <p className="text-xs text-muted-foreground">Protect your spa</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Checkbox 
+                                  checked={selectedExtras.cover} 
+                                  onCheckedChange={(checked) => {
+                                    const newExtras = {
+                                      ...selectedExtras,
+                                      cover: !!checked
+                                    };
+                                    setSelectedExtras(newExtras);
+                                    if (checked) {
+                                      setActiveFeatureCarousel('cover');
+                                    } else {
+                                      setActiveFeatureCarousel(null);
+                                    }
+                                  }} 
+                                />
+                                {selectedExtras.cover && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => {
+                                      const newCarousel = activeFeatureCarousel === 'cover' ? null : 'cover';
+                                      setActiveFeatureCarousel(newCarousel);
+                                    }}
+                                  >
+                                    <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'cover' ? 'rotate-180' : ''}`} />
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                            {selectedExtras.cover && activeFeatureCarousel === 'cover' && (
+                              <div className="space-y-4">
+                                <Carousel className="w-full">
+                                  <CarouselContent className="-ml-1">
+                                    {coverOptions.filter(cover => cover.name !== 'NO COVER').map((cover) => (
+                                      <CarouselItem key={cover.name} className="pl-1 basis-1/2">
+                                        <div 
+                                          className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                            selectedExtras.coverOption === cover.name 
+                                              ? 'border-primary shadow-md' 
+                                              : 'border-border hover:border-primary/50'
+                                          }`}
+                                          onClick={() => {
+                                            setSelectedExtras({
+                                              ...selectedExtras,
+                                              coverOption: cover.name
+                                            });
+                                          }}
+                                        >
+                                          <img src={cover.image} alt={cover.name} className="w-full h-16 object-cover rounded" />
+                                          <p className="text-xs font-medium mt-1 truncate">{cover.name}</p>
+                                          <p className="text-xs text-muted-foreground">
+                                            ${cover.price.toLocaleString()}
+                                          </p>
+                                        </div>
+                                      </CarouselItem>
+                                    ))}
+                                  </CarouselContent>
+                                  <CarouselPrevious />
+                                  <CarouselNext />
+                                </Carousel>
+                                
+                                {selectedExtras.coverOption !== 'NO COVER' && (
+                                  <div>
+                                    <Label className="text-sm font-medium mb-2 block">Mesh Color</Label>
+                                    <div className="grid grid-cols-5 gap-2">
+                                      {meshColorOptions.map((colorOption) => (
+                                        <div 
+                                          key={colorOption.name}
+                                          className={`cursor-pointer rounded-lg border-2 p-2 transition-all duration-200 ${
+                                            selectedExtras.meshColor === colorOption.name 
+                                              ? 'border-primary shadow-md' 
+                                              : 'border-border hover:border-primary/50'
+                                          }`}
+                                          onClick={() => setSelectedExtras({
+                                            ...selectedExtras,
+                                            meshColor: colorOption.name
+                                          })}
+                                        >
+                                          <div 
+                                            className="w-8 h-8 rounded" 
+                                            style={{ backgroundColor: colorOption.hex }}
+                                          ></div>
+                                          <p className="text-xs font-medium mt-1 text-center">{colorOption.name}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <Separator />
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
+                      <Button onClick={handleQuoteRequest} variant="outline" className="flex-1">
+                        <Download className="h-4 w-4 mr-2" />
+                        Generate Quote
+                      </Button>
+                      <Button onClick={handleAddToCart} variant="outline" className="flex-1">
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Add to Cart
+                      </Button>
+                      <StripeCheckoutButton 
+                        productId={`${selectedProduct.type}_${selectedProduct.model?.replace(/\s+/g, '_') || selectedProduct.name?.replace(/\s+/g, '_')}`} 
+                        productName={selectedProduct.model || selectedProduct.name || 'Product'} 
+                        price={calculateTotalPrice()} 
+                        variant="default" 
+                        className="flex-1" 
+                      />
+                    </div>
+                </> :
                 // Regular pool/spa features
                 <>
                     {/* Pool Finish */}
