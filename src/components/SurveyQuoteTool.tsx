@@ -483,21 +483,21 @@ const SurveyQuoteTool = ({
                   <Input id="name" placeholder="John Smith" value={surveyData.name} onChange={e => setSurveyData({
                 ...surveyData,
                 name: e.target.value
-              })} className="focus:border-primary" />
+              })} className="focus:border-primary" autoComplete="name" />
                 </div>
                 <div>
                   <Label htmlFor="email">Email Address *</Label>
                   <Input id="email" type="email" placeholder="john@example.com" value={surveyData.email} onChange={e => setSurveyData({
                 ...surveyData,
                 email: e.target.value
-              })} className="focus:border-primary" />
+              })} className="focus:border-primary" autoComplete="email" />
                 </div>
                 <div>
                   <Label htmlFor="phone">Phone Number</Label>
                   <Input id="phone" placeholder="(555) 123-4567" value={surveyData.phone} onChange={e => setSurveyData({
                 ...surveyData,
                 phone: e.target.value
-              })} className="focus:border-primary" />
+              })} className="focus:border-primary" autoComplete="tel" />
                 </div>
               </CardContent>
             </Card>
@@ -523,7 +523,7 @@ const SurveyQuoteTool = ({
                     <Input id="address" placeholder="123 Main St, Miami, FL 33101" value={surveyData.address} onChange={e => setSurveyData({
                   ...surveyData,
                   address: e.target.value
-                })} className="focus:border-coral" />
+                })} className="focus:border-coral" autoComplete="street-address" />
                   </div>
 
                   <div>
