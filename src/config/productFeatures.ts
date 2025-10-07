@@ -362,6 +362,17 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       basePrice: 2000
     },
     {
+      id: 'benchEnclosure',
+      label: 'Bench Enclosure',
+      type: 'selection',
+      icon: 'Box',
+      options: [
+        { name: 'None', price: 0 },
+        { name: 'Wood Bench Enclosure', price: 3000 },
+        { name: 'Concrete Bench Enclosure', price: 5500 }
+      ]
+    },
+    {
       id: 'warranty',
       label: 'Extended Warranty',
       type: 'selection',
