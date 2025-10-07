@@ -1277,7 +1277,7 @@ const WonderlandsStudio = () => {
                         </div>
                       </> :
                 selectedProduct.type === 'sauna' ?
-                // Sauna-specific features
+                // Sauna-specific features: Add a Spa (with Spa Heater + Waterline), Deck Pavers, Screen Enclosure
                 <>
                     {/* Add Spa */}
                     <div>
