@@ -81,6 +81,7 @@ interface ProductExtras {
   pergolas: boolean;
   // Sauna-specific options
   spa: boolean;
+  selectedSpaModel: string;
   // Quote data
   extrasBreakdown?: Array<{
     name: string;
@@ -290,7 +291,8 @@ const WonderlandsStudio = () => {
     firePitKits: false,
     pergolas: false,
     // Sauna-specific options
-    spa: false
+    spa: false,
+    selectedSpaModel: ''
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
   const [paverCategory, setPaverCategory] = useState('all');
@@ -530,6 +532,14 @@ const WonderlandsStudio = () => {
       total -= 2000;
     }
 
+    // Add spa cost (for saunas with spa option)
+    if (selectedExtras.spa && selectedExtras.selectedSpaModel) {
+      const selectedSpa = spas.find(spa => spa.model === selectedExtras.selectedSpaModel);
+      if (selectedSpa) {
+        total += selectedSpa.price;
+      }
+    }
+
     // Add finish cost
     const selectedFinish = finishOptions.find(finish => finish.name === selectedExtras.finish);
     if (selectedFinish) total += selectedFinish.price;
@@ -584,6 +594,7 @@ const WonderlandsStudio = () => {
   };
   const getSelectedExtrasCount = () => {
     let count = 0;
+    if (selectedExtras.spa) count++;
     if (selectedExtras.finish !== 'Aquamarine') count++;
     if (selectedExtras.heater) count++;
     if (selectedExtras.cover && selectedExtras.coverOption !== 'NO COVER') count++;
@@ -600,6 +611,10 @@ const WonderlandsStudio = () => {
       ...selectedExtras
     };
     switch (extraType) {
+      case 'spa':
+        newExtras.spa = false;
+        newExtras.selectedSpaModel = '';
+        break;
       case 'finish':
         newExtras.finish = 'Aquamarine';
         break;
@@ -1286,19 +1301,81 @@ const WonderlandsStudio = () => {
                           <Label className="text-sm font-medium">Add a Spa</Label>
                           <p className="text-xs text-muted-foreground">Include a spa with your sauna</p>
                         </div>
-                        <Checkbox 
-                          checked={selectedExtras.spa} 
-                          onCheckedChange={(checked) => {
-                            setSelectedExtras({
-                              ...selectedExtras,
-                              spa: !!checked,
-                              heater: !!checked ? selectedExtras.heater : false,
-                              cover: !!checked ? selectedExtras.cover : false,
-                              tiles: !!checked ? selectedExtras.tiles : false
-                            });
-                          }} 
-                        />
+                        <div className="flex items-center gap-2">
+                          <Checkbox 
+                            checked={selectedExtras.spa} 
+                            onCheckedChange={(checked) => {
+                              setSelectedExtras({
+                                ...selectedExtras,
+                                spa: !!checked,
+                                selectedSpaModel: !!checked ? selectedExtras.selectedSpaModel || spas[0]?.model || '' : '',
+                                heater: !!checked ? selectedExtras.heater : false,
+                                cover: !!checked ? selectedExtras.cover : false,
+                                liner: !!checked ? selectedExtras.liner : false
+                              });
+                              if (checked) {
+                                setActiveFeatureCarousel('spa');
+                              } else {
+                                setActiveFeatureCarousel(null);
+                              }
+                            }} 
+                          />
+                          {selectedExtras.spa && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => {
+                                const newCarousel = activeFeatureCarousel === 'spa' ? null : 'spa';
+                                setActiveFeatureCarousel(newCarousel);
+                              }}
+                            >
+                              <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'spa' ? 'rotate-180' : ''}`} />
+                            </Button>
+                          )}
+                        </div>
                       </div>
+
+                      {/* Show spa selection carousel when spa is checked */}
+                      {selectedExtras.spa && activeFeatureCarousel === 'spa' && (
+                        <Carousel className="w-full mb-4">
+                          <CarouselContent className="-ml-1">
+                            {spas.map((spa) => (
+                              <CarouselItem key={spa.model} className="pl-1 basis-1/2">
+                                <div 
+                                  className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-3 ${
+                                    selectedExtras.selectedSpaModel === spa.model 
+                                      ? 'border-primary shadow-md' 
+                                      : 'border-border hover:border-primary/50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedExtras({
+                                      ...selectedExtras,
+                                      selectedSpaModel: spa.model
+                                    });
+                                    setActiveFeatureCarousel(null);
+                                  }}
+                                >
+                                  <img src={spa.image} alt={spa.model} className="w-full h-20 object-cover rounded mb-2" />
+                                  <p className="text-sm font-semibold mb-1">{spa.model}</p>
+                                  <p className="text-xs text-muted-foreground mb-1">{spa.dimensions}</p>
+                                  <p className="text-sm font-bold text-primary">
+                                    ${spa.price.toLocaleString()}
+                                  </p>
+                                  <div className="flex flex-wrap gap-1 mt-2">
+                                    {spa.features?.slice(0, 2).map((feature, idx) => (
+                                      <Badge key={idx} variant="secondary" className="text-xs">
+                                        {feature}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious />
+                          <CarouselNext />
+                        </Carousel>
+                      )}
 
                       {/* Show spa sub-options when spa is selected */}
                       {selectedExtras.spa && (
@@ -2212,6 +2289,17 @@ const WonderlandsStudio = () => {
                       <DropdownMenuContent align="end" className="w-64 p-2">
                         <div className="space-y-2">
                           <p className="text-sm font-medium mb-2">Selected Features:</p>
+                          {selectedExtras.spa && selectedExtras.selectedSpaModel && <div className="flex items-center justify-between text-xs">
+                              <span>{selectedExtras.selectedSpaModel} Spa</span>
+                              <div className="flex items-center gap-1">
+                                <span className="text-muted-foreground">
+                                  +${spas.find(s => s.model === selectedExtras.selectedSpaModel)?.price.toLocaleString() || 0}
+                                </span>
+                                <Button variant="ghost" size="sm" onClick={() => removeExtra('spa')} className="h-6 w-6 p-0">
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>}
                           {selectedExtras.finish !== 'Aquamarine' && <div className="flex items-center justify-between text-xs">
                               <span>{selectedExtras.finish} Finish</span>
                               <div className="flex items-center gap-1">
