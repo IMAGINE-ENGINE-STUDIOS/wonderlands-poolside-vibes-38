@@ -7,6 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import { allProducts, getProductsByCategory } from '@/data/consolidatedProducts';
 import { poolLiners, poolTiles, tanningLedges } from '@/data/poolData';
 import { paverTypes, copingTypes } from '@/data/paverData';
+import { saunas } from '@/data/saunaData';
+import { drivewayGates } from '@/data/drivewayGates';
+import { gilmerPools } from '@/data/gilmerPools';
 
 interface SearchResult {
   id: string;
@@ -179,9 +182,40 @@ const AdvancedSearch = () => {
       { id: 'premium-screen', name: 'Premium Screen Enclosure', category: 'Screen Enclosure', price: 28, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'premium'] }
     ];
 
+    // Saunas from saunaData
+    const saunaData = saunas.map(sauna => ({
+      id: sauna.id,
+      name: sauna.name,
+      category: 'Sauna',
+      price: sauna.price,
+      image: sauna.image,
+      keywords: ['sauna', 'saunas', 'barrel sauna', 'infrared', 'traditional', sauna.name.toLowerCase(), sauna.capacity?.toLowerCase() || '']
+    }));
+
+    // Driveway Gates
+    const gateData = drivewayGates.map(gate => ({
+      id: `gate-${gate.baseDimensions?.replace(/\s+/g, '-')}`,
+      name: `${gate.model} ${gate.baseDimensions}`,
+      category: 'Driveway Gate',
+      price: gate.basePrice,
+      image: gate.image,
+      keywords: ['gate', 'gates', 'driveway gate', 'fence gate', 'prague', 'aleko', gate.baseDimensions?.toLowerCase() || '']
+    }));
+
+    // Gilmer Glass Pools
+    const gilmerPoolData = gilmerPools.map(pool => ({
+      id: `gilmer-${pool.model.toLowerCase().replace(/\s+/g, '-')}`,
+      name: pool.model,
+      category: 'Pool',
+      price: pool.price,
+      image: pool.image,
+      keywords: ['pool', 'gilmer', 'glass', 'fiber', 'fiberglass', pool.category, pool.model.toLowerCase(), pool.dimensions?.toLowerCase().replace(/'/g, '') || '']
+    }));
+
     // Combine all product data
     return [
       ...poolData,
+      ...gilmerPoolData,
       ...spaData,
       ...finishData,
       ...tileData,
@@ -191,7 +225,9 @@ const AdvancedSearch = () => {
       ...copingData,
       ...equipmentData,
       ...coverData,
-      ...screenData
+      ...screenData,
+      ...saunaData,
+      ...gateData
     ];
   };
 
