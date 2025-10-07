@@ -527,10 +527,6 @@ const WonderlandsStudio = () => {
     // Start with discounted pool price
     let total = getProductPrice(selectedProduct);
 
-    // Apply No Pavers discount
-    if (selectedExtras.paverOption === 'No Pavers') {
-      total -= 2000;
-    }
 
     // Add spa cost (for saunas with spa option)
     if (selectedExtras.spa && selectedExtras.selectedSpaModel) {
@@ -718,14 +714,8 @@ const WonderlandsStudio = () => {
       }
     }
 
-    // Add paver surface area cost or no pavers discount
-    if (selectedExtras.paverOption === 'No Pavers') {
-      extrasBreakdown.push({
-        name: 'No Pavers (Concrete Deck)',
-        price: -2000,
-        image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
-      });
-    } else if (selectedExtras.pavers && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+    // Add paver surface area cost
+    if (selectedExtras.pavers && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
       extrasBreakdown.push({
         name: `${selectedExtras.paverOption} (${paverSurfaceArea} sq ft)`,
         price: parseFloat(paverSurfaceArea) * 15,
@@ -825,13 +815,8 @@ const WonderlandsStudio = () => {
       });
     }
 
-    // Add paver surface area cost or no pavers discount
-    if (selectedExtras.paverOption === 'No Pavers') {
-      extrasArray.push({
-        name: 'No Pavers (Concrete Deck)',
-        price: -2000
-      });
-    } else if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+    // Add paver surface area cost
+    if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
       extrasArray.push({
         name: `${selectedExtras.paverOption} (${paverSurfaceArea} sq ft)`,
         price: parseFloat(paverSurfaceArea) * 15
@@ -2316,10 +2301,6 @@ const WonderlandsStudio = () => {
             <span>Pool Discount (10% off)</span>
             <span>-${(selectedProduct.price - getProductPrice(selectedProduct)).toLocaleString()}</span>
           </div>}
-                        {selectedExtras.paverOption === 'No Pavers' && selectedProduct.type !== 'sauna' && <div className="flex justify-between text-sm text-green-600">
-                            <span>No Pavers Discount</span>
-                            <span>-$2,000</span>
-                          </div>}
                         <Separator />
                       </div>
                       
