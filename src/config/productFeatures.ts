@@ -128,14 +128,31 @@ const coverOptions: FeatureOption[] = [
 ];
 
 const paverOptions: FeatureOption[] = [
-  { name: 'No Pavers', price: 0, image: azureBlueFinish },
-  ...paverTypes.map(paver => ({
-    name: paver.name,
-    price: 0,
-    image: paver.image || azureBlueFinish,
-    description: paver.description,
-    collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina') ? 'catalina' : 'standard'
-  }))
+  { name: 'No Pavers', price: 0, image: azureBlueFinish, collection: 'none' },
+  
+  // Appian Collection - $15/sq ft
+  { name: 'Appian Adobe', price: 15, image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png', collection: 'Appian Collection' },
+  { name: 'Appian Amaretto', price: 15, image: '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png', collection: 'Appian Collection' },
+  { name: 'Appian Harvest Blend', price: 15, image: '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png', collection: 'Appian Collection' },
+  { name: 'Appian Knightsbridge', price: 15, image: '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png', collection: 'Appian Collection' },
+  { name: 'Appian Napoli', price: 15, image: '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.png', collection: 'Appian Collection' },
+  { name: 'Appian Rio', price: 15, image: '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.png', collection: 'Appian Collection' },
+  { name: 'Appian Slate', price: 15, image: '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.png', collection: 'Appian Collection' },
+  { name: 'Appian Titanium', price: 15, image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png', collection: 'Appian Collection' },
+  { name: 'Appian Charco', price: 15, image: '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.png', collection: 'Appian Collection' },
+  
+  // Catalina Grana Collection - $15/sq ft
+  { name: 'Catalina Grana Amaretto', price: 15, image: '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png', collection: 'Catalina Grana Collection' },
+  { name: 'Catalina Grana Napoli', price: 15, image: '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.png', collection: 'Catalina Grana Collection' },
+  { name: 'Catalina Grana Rio', price: 15, image: '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.png', collection: 'Catalina Grana Collection' },
+  { name: 'Catalina Grana Scandina Gray', price: 15, image: '/lovable-uploads/638972ac-6a43-41e7-ae3c-bce58ab9417b.png', collection: 'Catalina Grana Collection' },
+  { name: 'Catalina Grana Slate', price: 15, image: '/lovable-uploads/d85c2bf0-0a66-4aa0-9f64-5e76b511b428.png', collection: 'Catalina Grana Collection' },
+  { name: 'Catalina Grana Titanium', price: 15, image: '/lovable-uploads/6aefa246-2c01-43a1-8a58-e195ec3355dc.png', collection: 'Catalina Grana Collection' },
+  
+  // Catalina Collection - $15/sq ft
+  { name: 'Catalina Napoli', price: 15, image: '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.png', collection: 'Catalina Collection' },
+  { name: 'Catalina Slate', price: 15, image: '/lovable-uploads/3f98fbbb-b09a-4dbc-82f5-5d811564b9f4.png', collection: 'Catalina Collection' },
+  { name: 'Catalina Titanium', price: 15, image: '/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.png', collection: 'Catalina Collection' }
 ];
 
 const tanningLedgeOptions: FeatureOption[] = tanningLedges.map(ledge => ({
@@ -445,9 +462,9 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       type: 'selection',
       icon: 'Star',
       options: [
-        { name: 'standard', price: 15 },
-        { name: 'deluxe', price: 22 },
-        { name: 'premium', price: 28 }
+        { name: 'Standard ($15/sq ft)', price: 15 },
+        { name: 'Deluxe ($22/sq ft)', price: 22 },
+        { name: 'Premium ($28/sq ft)', price: 28 }
       ]
     },
     {

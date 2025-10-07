@@ -135,9 +135,10 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
               <Input
                 type="number"
                 min={0}
-                value={selectedExtras[feature.id] || 0}
+                value={selectedExtras[feature.id] ?? ''}
+                placeholder="0"
                 onChange={(e) => {
-                  const value = parseInt(e.target.value) || 0;
+                  const value = e.target.value === '' ? undefined : parseInt(e.target.value);
                   onExtrasChange({
                     ...selectedExtras,
                     [feature.id]: value
@@ -163,16 +164,16 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
                 <Input
                   type="number"
                   min={0}
-                  value={selectedExtras[feature.id] || 0}
+                  value={selectedExtras[feature.id] ?? ''}
+                  placeholder="0"
                   onChange={(e) => {
-                    const value = parseInt(e.target.value) || 0;
+                    const value = e.target.value === '' ? undefined : parseInt(e.target.value);
                     onExtrasChange({
                       ...selectedExtras,
                       [feature.id]: value
                     });
                   }}
                   className="w-24"
-                  placeholder="sq ft"
                 />
                 <span className="text-xs text-muted-foreground">sq ft</span>
               </div>
