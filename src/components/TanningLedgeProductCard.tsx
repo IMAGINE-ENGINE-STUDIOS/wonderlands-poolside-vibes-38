@@ -616,10 +616,7 @@ const TanningLedgeProductCard = ({
               Instant Quote
             </Button>
             <Button onClick={handleImageClick} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">Customize Tanning Ledge</Button>
-            <Button onClick={() => setShowQuoteTool(true)} variant="secondary" className="w-full gap-2" size="sm">
-              <FileText className="h-4 w-4" />
-              Instant Quote
-            </Button>
+            
           </div>}
       </CardContent>
       
@@ -627,18 +624,12 @@ const TanningLedgeProductCard = ({
       <ImageEditor isOpen={showImageEditor} onClose={() => setShowImageEditor(false)} onImageSave={handleImageSave} currentImage={currentLedgeImage} />
       
       {/* Quote Tool Modal */}
-      <SurveyQuoteTool 
-        pool={null}
-        isOpen={showQuoteTool} 
-        onClose={() => setShowQuoteTool(false)}
-        customProduct={{
-          name: ledge.name,
-          price: ledge.price,
-          type: 'Tanning Ledge',
-          image: currentLedgeImage
-        }}
-        extras={extras}
-      />
+      <SurveyQuoteTool pool={null} isOpen={showQuoteTool} onClose={() => setShowQuoteTool(false)} customProduct={{
+      name: ledge.name,
+      price: ledge.price,
+      type: 'Tanning Ledge',
+      image: currentLedgeImage
+    }} extras={extras} />
     </Card>;
 };
 export default TanningLedgeProductCard;

@@ -732,10 +732,7 @@ const SpaProductCard = ({
           
           <StripeCheckoutButton productId={`spa_${spa.model.replace(/\s+/g, '_')}`} productName={`${spa.model} Spa`} price={calculateTotalPrice()} size="sm" className="w-full text-xs" />
           
-          <Button onClick={() => setShowQuoteTool(true)} variant="secondary" className="w-full gap-2" size="sm">
-            <FileText className="h-4 w-4" />
-            Instant Quote
-          </Button>
+          
         </div>
       </CardContent>
       
@@ -743,12 +740,7 @@ const SpaProductCard = ({
       {showImageEditor && <ImageEditor isOpen={showImageEditor} onClose={() => setShowImageEditor(false)} onImageSave={handleImageSave} currentImage={currentPoolImage} />}
       
       {/* Quote Tool Modal */}
-      <SurveyQuoteTool 
-        pool={spa} 
-        isOpen={showQuoteTool} 
-        onClose={() => setShowQuoteTool(false)}
-        extras={extras}
-      />
+      <SurveyQuoteTool pool={spa} isOpen={showQuoteTool} onClose={() => setShowQuoteTool(false)} extras={extras} />
     </Card>;
 };
 export default SpaProductCard;
