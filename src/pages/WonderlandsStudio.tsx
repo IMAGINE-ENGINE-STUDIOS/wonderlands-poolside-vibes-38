@@ -356,17 +356,42 @@ const WonderlandsStudio = () => {
         setActiveTab('tanning-ledges');
       }
 
-      // If not found in our data, create from URL params
+      // Check in saunas
+      const saunaMatch = saunas.find(s => s.name === model || s.model === model);
+      if (saunaMatch) {
+        foundProduct = {
+          ...saunaMatch,
+          type: 'sauna' as const,
+          model: saunaMatch.model || saunaMatch.name
+        };
+        setActiveTab('saunas');
+      }
+
+      // If not found in our data, create from URL params and use category to determine type
       if (!foundProduct) {
+        const productType = category === 'Sauna' ? 'sauna' : 
+                           category === 'Spa' ? 'spa' : 
+                           category === 'Tanning Ledge' ? 'tanning-ledge' : 
+                           'pool';
+        
         foundProduct = {
           model: model,
           price: parseInt(price),
           category: category || 'standard',
           image: image ? decodeURIComponent(image) : undefined,
           dimensions: dimensions ? decodeURIComponent(dimensions) : undefined,
-          type: 'pool'
+          type: productType as 'pool' | 'spa' | 'tanning-ledge' | 'sauna'
         };
-        setActiveTab('pools');
+        
+        if (productType === 'sauna') {
+          setActiveTab('saunas');
+        } else if (productType === 'spa') {
+          setActiveTab('spas');
+        } else if (productType === 'tanning-ledge') {
+          setActiveTab('tanning-ledges');
+        } else {
+          setActiveTab('pools');
+        }
       }
       setSelectedProduct(foundProduct);
       setLeftSidebarCollapsed(true);
