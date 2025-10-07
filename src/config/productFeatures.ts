@@ -372,17 +372,6 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
         { name: 'Wood Bench Enclosure', price: 3000 },
         { name: 'Concrete Bench Enclosure', price: 5500 }
       ]
-    },
-    {
-      id: 'warranty',
-      label: 'Extended Warranty',
-      type: 'selection',
-      icon: 'ShieldCheck',
-      options: [
-        { name: 'Standard (Included)', price: 0 },
-        { name: '5-Year Extended', price: 1500 },
-        { name: '10-Year Extended', price: 2500 }
-      ]
     }
   ],
   'paver': [
