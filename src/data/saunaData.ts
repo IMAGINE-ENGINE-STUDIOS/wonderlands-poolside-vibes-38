@@ -6,6 +6,12 @@ export const saunas = [
     price: 15000,
     category: 'premium',
     image: '/lovable-uploads/barrel-sauna.webp',
+    // New: Multiple images gallery
+    media: [
+      { type: 'image' as const, url: '/lovable-uploads/barrel-sauna.webp', alt: 'Barrel Sauna exterior' },
+      { type: 'image' as const, url: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png', alt: 'Barrel Sauna interior' },
+      { type: 'image' as const, url: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png', alt: 'Barrel Sauna in backyard' }
+    ],
     capacity: '4 persons',
     heaterPower: '6kW',
     description: 'Premium 4-person barrel sauna with 6kW heater, LED lighting, and all accessories included',

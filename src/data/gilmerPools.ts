@@ -6,6 +6,12 @@ export const gilmerPools = [
     depth: "4'6\"– 5'11\"",
     price: 72222,
     image: "/lovable-uploads/gilmer-extreme-27.jpeg",
+    // New: Multiple images gallery
+    media: [
+      { type: 'image' as const, url: "/lovable-uploads/gilmer-extreme-27.jpeg", alt: "Extreme 27 main view" },
+      { type: 'image' as const, url: "/lovable-uploads/gilmer-extreme-38.jpeg", alt: "Extreme 27 side view" },
+      { type: 'image' as const, url: "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png", alt: "Extreme 27 installed" }
+    ],
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",

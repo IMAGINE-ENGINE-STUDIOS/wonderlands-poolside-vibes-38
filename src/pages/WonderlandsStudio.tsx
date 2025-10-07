@@ -30,12 +30,15 @@ import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
 import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
+import ProductMediaGallery, { MediaItem } from '@/components/ProductMediaGallery';
+
 interface Product {
   model?: string;
   name?: string;
   price: number;
   category: string;
   image?: string;
+  media?: MediaItem[]; // New: support for multiple images/videos
   dimensions?: string;
   depth?: string;
   installationTimeWeeks?: number;
@@ -939,13 +942,21 @@ const WonderlandsStudio = () => {
           {/* Main Content - Product Details & Configuration */}
           <div className="flex-1">
             {selectedProduct ? <div className="space-y-6">
-                {/* Large Product Image */}
+                {/* Large Product Media Gallery */}
                 <Card>
                   <CardContent className="p-6">
                     <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
-                      {selectedProduct.image ? <img src={selectedProduct.image} alt={selectedProduct.model || selectedProduct.name || 'Product'} className="w-full h-full object-cover object-[center_4%]" /> : <div className="flex items-center justify-center h-full">
+                      {(selectedProduct.media || selectedProduct.image) ? (
+                        <ProductMediaGallery 
+                          media={selectedProduct.media || selectedProduct.image || ''} 
+                          productName={selectedProduct.model || selectedProduct.name || 'Product'}
+                          className="w-full h-full"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
                           <Package className="h-16 w-16 text-muted-foreground" />
-                        </div>}
+                        </div>
+                      )}
                     </div>
                     <div className="mt-4">
                       <div className="space-y-4">
