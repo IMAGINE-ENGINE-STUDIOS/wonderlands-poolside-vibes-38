@@ -73,6 +73,10 @@ interface SaunaProductCardProps {
 }
 
 interface SaunaExtras {
+  spa: boolean;
+  selectedSpaModel: string;
+  heater: boolean;
+  heaterModel: string;
   waterline: boolean;
   waterlineOption: string;
   deckPavers: boolean;
@@ -81,16 +85,24 @@ interface SaunaExtras {
   screenEnclosure: boolean;
   screenEnclosureArea: number;
   screenEnclosureQuality: string;
-  spa: boolean;
-  selectedSpaModel: string;
-  tanningLedge: boolean;
-  selectedTanningLedgeName: string;
 }
+
+// Pool heater options
+const poolHeaters = [
+  { name: "Heat Pump - Standard", price: 3500, image: "/lovable-uploads/pool-heater.png" },
+  { name: "Heat Pump - Premium", price: 4500, image: "/lovable-uploads/pool-heater.png" },
+  { name: "Gas Heater - Propane", price: 2800, image: "/lovable-uploads/pool-heater.png" },
+  { name: "Solar Heater System", price: 5000, image: "/lovable-uploads/pool-heater.png" },
+];
 
 const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
   const [showQuote, setShowQuote] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [extras, setExtras] = useState<SaunaExtras>({
+    spa: false,
+    selectedSpaModel: spas[0].model,
+    heater: false,
+    heaterModel: poolHeaters[0].name,
     waterline: false,
     waterlineOption: poolLiners[0].name,
     deckPavers: false,
@@ -99,10 +111,6 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
     screenEnclosure: false,
     screenEnclosureArea: 0,
     screenEnclosureQuality: 'standard',
-    spa: false,
-    selectedSpaModel: spas[0].model,
-    tanningLedge: false,
-    selectedTanningLedgeName: tanningLedges[0].name,
   });
 
   const toggleExtra = (extra: keyof SaunaExtras) => {
@@ -116,30 +124,30 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
   const calculateExtrasTotal = () => {
     let total = 0;
     
-    if (extras.waterline) {
-      const liner = poolLiners.find(l => l.name === extras.waterlineOption);
-      total += liner?.price || 0;
-    }
-    
-    if (extras.deckPavers && extras.deckPaversArea > 0) {
-      const collection = paverCollections.find(c => c.name === extras.paverCollection);
-      total += (collection?.pricePerSqFt || 0) * extras.deckPaversArea;
-    }
-    
-    if (extras.screenEnclosure && extras.screenEnclosureArea > 0) {
-      let pricePerSqFt = 15;
-      if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
-      total += extras.screenEnclosureArea * pricePerSqFt;
-    }
-    
     if (extras.spa) {
       const spa = spas.find(s => s.model === extras.selectedSpaModel);
       total += spa?.price || 0;
-    }
-    
-    if (extras.tanningLedge) {
-      const ledge = tanningLedges.find(t => t.name === extras.selectedTanningLedgeName);
-      total += ledge?.price || 0;
+      
+      if (extras.heater) {
+        const heater = poolHeaters.find(h => h.name === extras.heaterModel);
+        total += heater?.price || 0;
+      }
+      
+      if (extras.waterline) {
+        const liner = poolLiners.find(l => l.name === extras.waterlineOption);
+        total += liner?.price || 0;
+      }
+      
+      if (extras.deckPavers && extras.deckPaversArea > 0) {
+        const collection = paverCollections.find(c => c.name === extras.paverCollection);
+        total += (collection?.pricePerSqFt || 0) * extras.deckPaversArea;
+      }
+      
+      if (extras.screenEnclosure && extras.screenEnclosureArea > 0) {
+        let pricePerSqFt = 15;
+        if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+        total += extras.screenEnclosureArea * pricePerSqFt;
+      }
     }
     
     return total;
@@ -449,50 +457,6 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
               )}
 
               {/* Tanning Ledge */}
-              <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                <Checkbox 
-                  checked={extras.tanningLedge} 
-                  onCheckedChange={() => toggleExtra('tanningLedge')} 
-                  className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                />
-                <div className="flex items-center space-x-1">
-                  <Flame size={16} className="text-primary" />
-                  <span className="text-sm">Add Tanning Ledge (+${extras.tanningLedge ? (tanningLedges.find(t => t.name === extras.selectedTanningLedgeName)?.price || 0).toLocaleString() : '0'})</span>
-                </div>
-              </label>
-              {extras.tanningLedge && (
-                <div className="ml-6 space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground">Select Tanning Ledge:</label>
-                  <Carousel className="w-full">
-                    <CarouselContent className="-ml-1">
-                      {tanningLedges.map((ledge) => (
-                        <CarouselItem key={ledge.name} className="pl-1 basis-1/2 sm:basis-1/3">
-                          <div 
-                            className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                              extras.selectedTanningLedgeName === ledge.name ? 'border-primary bg-primary/10' : 'border-border'
-                            }`} 
-                            onClick={() => updateExtra('selectedTanningLedgeName', ledge.name)}
-                          >
-                            <div className="w-full h-20 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                              <OptimizedImage 
-                                src={ledge.image} 
-                                alt={ledge.name} 
-                                className="w-full h-full object-cover" 
-                                loading="lazy"
-                              />
-                            </div>
-                            <p className="text-xs font-medium text-center">{ledge.name}</p>
-                            <p className="text-xs text-muted-foreground text-center">{ledge.dimensions}</p>
-                            <p className="text-xs text-primary font-semibold text-center">+${ledge.price.toLocaleString()}</p>
-                          </div>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                    <CarouselPrevious className="left-0" />
-                    <CarouselNext className="right-0" />
-                  </Carousel>
-                </div>
-              )}
             </div>
           )}
         </CardContent>
