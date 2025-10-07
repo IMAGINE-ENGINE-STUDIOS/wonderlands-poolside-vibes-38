@@ -169,74 +169,103 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
 
   return (
     <>
-      <Card className="group hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 hover:border-amber-500/50">
-        <CardHeader className="p-0 relative">
-          <div className="relative h-64 overflow-hidden">
-            <OptimizedImage
-              src={sauna.image}
-              alt={sauna.name}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              sizeConfig="hero"
-            />
-            <div className="absolute top-4 left-4 z-10">
-              <Badge className={`${getCategoryColor(sauna.category)} text-white px-4 py-1`}>
-                {sauna.category.toUpperCase()}
-              </Badge>
+      <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-background via-background to-amber-50/20 dark:to-amber-950/10 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-500">
+        {/* Animated gradient border effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        
+        <div className="relative">
+          <CardHeader className="p-0 relative overflow-hidden">
+            <div className="relative h-72 overflow-hidden">
+              <OptimizedImage
+                src={sauna.image}
+                alt={sauna.name}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                sizeConfig="hero"
+              />
+              {/* Overlay gradients */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 via-transparent to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              {/* Category badge */}
+              <div className="absolute top-4 left-4 z-10">
+                <Badge className={`${getCategoryColor(sauna.category)} text-white px-4 py-1.5 shadow-lg backdrop-blur-sm`}>
+                  <Flame className="w-3 h-3 mr-1 inline" />
+                  {sauna.category.toUpperCase()}
+                </Badge>
+              </div>
+              
+              {/* Price badge - top right */}
+              <div className="absolute top-4 right-4 z-10">
+                <div className="bg-white/95 dark:bg-black/95 backdrop-blur-sm px-4 py-2 rounded-lg shadow-xl border border-amber-200 dark:border-amber-800">
+                  <div className="text-xs text-muted-foreground">From</div>
+                  <div className="text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                    ${sauna.price.toLocaleString()}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Bottom info overlay */}
+              <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
+                <h3 className="text-2xl md:text-3xl font-bold mb-2 text-white drop-shadow-lg">
+                  {sauna.name}
+                </h3>
+                <div className="flex items-center gap-4 text-white/90 text-sm">
+                  <div className="flex items-center gap-1.5">
+                    <Users className="h-4 w-4" />
+                    <span>{sauna.capacity}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Zap className="h-4 w-4" />
+                    <span>{sauna.heaterPower}</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          </div>
-        </CardHeader>
+          </CardHeader>
 
-        <CardContent className="p-6 space-y-4">
-          <div>
-            <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-              {sauna.name}
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">{sauna.description}</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-2 text-sm">
-              <Users className="h-4 w-4 text-amber-600" />
-              <span className="text-muted-foreground">{sauna.capacity}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Zap className="h-4 w-4 text-orange-600" />
-              <span className="text-muted-foreground">{sauna.heaterPower}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Clock className="h-4 w-4 text-amber-600" />
-              <span className="text-muted-foreground text-xs">{sauna.installationTime}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <ShieldCheck className="h-4 w-4 text-orange-600" />
-              <span className="text-muted-foreground text-xs">{sauna.warranty}</span>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t">
-            <div className="text-3xl font-bold text-center bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-              ${(sauna.price + calculateExtrasTotal()).toLocaleString()}
-            </div>
-            <p className="text-center text-sm text-muted-foreground mt-1">
-              {calculateExtrasTotal() > 0 ? 'Base + Extras included' : 'Complete installation included'}
+          <CardContent className="p-6 space-y-5 relative z-10">
+            {/* Description */}
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {sauna.description}
             </p>
-          </div>
 
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-amber-600">Key Features:</p>
-            <ul className="text-xs text-muted-foreground space-y-1">
-              {sauna.features.slice(0, 4).map((feature, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <Flame className="h-3 w-3 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+            {/* Key specs grid */}
+            <div className="grid grid-cols-2 gap-3 p-4 bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg border border-amber-200/50 dark:border-amber-800/50">
+              <div className="flex items-start gap-2">
+                <Clock className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <div className="text-xs text-muted-foreground">Installation</div>
+                  <div className="text-xs font-medium">{sauna.installationTime}</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <ShieldCheck className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <div className="text-xs text-muted-foreground">Warranty</div>
+                  <div className="text-xs font-medium">{sauna.warranty}</div>
+                </div>
+              </div>
+            </div>
 
-          {/* Additional Features Toggle */}
-          <div className="pt-4 border-t">
+            {/* Features showcase */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-300 to-transparent" />
+                <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide">Premium Features</p>
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-300 to-transparent" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {sauna.features.slice(0, 6).map((feature, index) => (
+                  <div key={index} className="flex items-start gap-2 p-2 rounded-md bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <Flame className="h-3.5 w-3.5 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-xs text-foreground/80 leading-tight">{feature}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Additional Features Toggle */}
+            <div className="pt-4 border-t">
             <Button
               variant="outline"
               onClick={() => setShowDetails(!showDetails)}
@@ -505,16 +534,17 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
               )}
             </div>
           )}
-        </CardContent>
+          </CardContent>
 
-        <CardFooter className="p-6 pt-0 flex gap-2">
-          <Button
-            onClick={() => setShowQuote(true)}
-            className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
-          >
-            Get Instant Quote
-          </Button>
-        </CardFooter>
+          <CardFooter className="p-6 pt-0 flex gap-2">
+            <Button
+              onClick={() => setShowQuote(true)}
+              className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+            >
+              Get Instant Quote
+            </Button>
+          </CardFooter>
+        </div>
       </Card>
 
       <SurveyQuoteTool
