@@ -5,7 +5,7 @@ import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 
 // Product type definitions
-export type ProductType = 'pool' | 'spa' | 'sauna' | 'tanning-ledge';
+export type ProductType = 'pool' | 'spa' | 'sauna' | 'tanning-ledge' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate';
 
 // Feature type definitions
 export type FeatureType = 'boolean' | 'selection' | 'quantity' | 'nested' | 'area';
@@ -351,6 +351,166 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       icon: 'Grid3x3',
       pricePerUnit: 15,
       options: paverOptions
+    }
+  ],
+  'cover': [
+    {
+      id: 'installation',
+      label: 'Professional Installation',
+      type: 'boolean',
+      icon: 'Wrench',
+      basePrice: 2000
+    },
+    {
+      id: 'warranty',
+      label: 'Extended Warranty',
+      type: 'selection',
+      icon: 'ShieldCheck',
+      options: [
+        { name: 'Standard (Included)', price: 0 },
+        { name: '5-Year Extended', price: 1500 },
+        { name: '10-Year Extended', price: 2500 }
+      ]
+    }
+  ],
+  'paver': [
+    {
+      id: 'area',
+      label: 'Installation Area',
+      description: 'Total square footage to be paved',
+      type: 'area',
+      icon: 'Grid3x3',
+      pricePerUnit: 15
+    },
+    {
+      id: 'installation',
+      label: 'Professional Installation',
+      type: 'boolean',
+      icon: 'Wrench',
+      basePrice: 3000
+    },
+    {
+      id: 'baseMaterial',
+      label: 'Base Material',
+      type: 'selection',
+      icon: 'Layers',
+      options: [
+        { name: 'Standard Gravel', price: 0 },
+        { name: 'Premium Crushed Stone', price: 1500 },
+        { name: 'Concrete Base', price: 3000 }
+      ]
+    }
+  ],
+  'heater': [
+    {
+      id: 'installation',
+      label: 'Professional Installation',
+      description: 'Includes electrical/gas hookup and testing',
+      type: 'boolean',
+      icon: 'Wrench',
+      basePrice: 2000
+    },
+    {
+      id: 'warranty',
+      label: 'Extended Warranty',
+      type: 'selection',
+      icon: 'ShieldCheck',
+      options: [
+        { name: 'Standard (Included)', price: 0 },
+        { name: '3-Year Extended', price: 800 },
+        { name: '5-Year Extended', price: 1500 }
+      ]
+    },
+    {
+      id: 'maintenancePlan',
+      label: 'Annual Maintenance Plan',
+      type: 'boolean',
+      icon: 'CalendarCheck',
+      basePrice: 500
+    }
+  ],
+  'screen-enclosure': [
+    {
+      id: 'area',
+      label: 'Enclosure Area',
+      description: 'Total square footage to be enclosed',
+      type: 'area',
+      icon: 'Home',
+      pricePerUnit: 15
+    },
+    {
+      id: 'quality',
+      label: 'Quality Level',
+      type: 'selection',
+      icon: 'Star',
+      options: [
+        { name: 'standard', price: 15 },
+        { name: 'deluxe', price: 22 },
+        { name: 'premium', price: 28 }
+      ]
+    },
+    {
+      id: 'doorType',
+      label: 'Door Type',
+      type: 'selection',
+      icon: 'DoorOpen',
+      options: [
+        { name: 'Single Sliding Door', price: 0 },
+        { name: 'Double Sliding Door', price: 800 },
+        { name: 'French Doors', price: 1500 }
+      ]
+    },
+    {
+      id: 'roofStyle',
+      label: 'Roof Style',
+      type: 'selection',
+      icon: 'Triangle',
+      options: [
+        { name: 'Flat Roof', price: 0 },
+        { name: 'Gable Roof', price: 2000 },
+        { name: 'Hip Roof', price: 3000 }
+      ]
+    }
+  ],
+  'driveway-gate': [
+    {
+      id: 'automation',
+      label: 'Automatic Gate Opener',
+      description: 'Automated gate opening system for convenient access',
+      type: 'boolean',
+      icon: 'Zap',
+      basePrice: 2000
+    },
+    {
+      id: 'installation',
+      label: 'Professional Installation',
+      type: 'boolean',
+      icon: 'Wrench',
+      basePrice: 1500
+    },
+    {
+      id: 'accessControl',
+      label: 'Access Control System',
+      type: 'selection',
+      icon: 'Smartphone',
+      options: [
+        { name: 'None', price: 0 },
+        { name: 'Keypad Entry', price: 500 },
+        { name: 'Remote Control (2 remotes)', price: 300 },
+        { name: 'Smart Phone App Control', price: 800 },
+        { name: 'Full System (Keypad + App + 4 remotes)', price: 1500 }
+      ]
+    },
+    {
+      id: 'intercom',
+      label: 'Intercom System',
+      type: 'selection',
+      icon: 'Phone',
+      options: [
+        { name: 'None', price: 0 },
+        { name: 'Audio Intercom', price: 600 },
+        { name: 'Video Intercom', price: 1200 }
+      ]
     }
   ]
 };

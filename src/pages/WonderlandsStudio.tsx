@@ -46,7 +46,7 @@ interface Product {
   warrantyYears?: number | string;
   saltSystem?: boolean;
   carbonFiber?: boolean;
-  type?: 'pool' | 'spa' | 'tanning-ledge' | 'sauna' | 'scene';
+  type?: 'pool' | 'spa' | 'tanning-ledge' | 'sauna' | 'scene' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate';
   id?: string;
   description?: string;
 }
@@ -103,6 +103,11 @@ interface ProductExtras {
  * - SPAS: Finish, Waterline, Tiles, Heater, Jets, Pavers
  * - SAUNAS: Add a Spa (with Spa Heater + Waterline sub-options), Deck Pavers, Screen Enclosure
  * - TANNING LEDGES: Finish, Heater, Jets, Pavers
+ * - COVERS: Installation, Extended Warranty
+ * - PAVERS: Installation Area, Professional Installation, Base Material
+ * - HEATERS/CHILLERS: Professional Installation ($2000), Extended Warranty, Annual Maintenance Plan
+ * - SCREEN ENCLOSURES: Enclosure Area, Quality Level, Door Type, Roof Style
+ * - DRIVEWAY GATES: Automatic Gate Opener ($2000), Professional Installation, Access Control System, Intercom System
  * 
  * IMPORTANT: When adding new categories, update src/config/productFeatures.ts
  * The centralized config ensures type safety and prevents mismatched features.
@@ -388,7 +393,7 @@ const WonderlandsStudio = () => {
       // If not found in our data, create from URL params and use category to determine type
       if (!foundProduct) {
         // Determine product type from category parameter
-        let productType: 'pool' | 'spa' | 'tanning-ledge' | 'sauna' = 'pool';
+        let productType: 'pool' | 'spa' | 'tanning-ledge' | 'sauna' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate' = 'pool';
         
         if (category) {
           const categoryLower = category.toLowerCase();
@@ -398,6 +403,16 @@ const WonderlandsStudio = () => {
             productType = 'spa';
           } else if (categoryLower.includes('tanning') || categoryLower.includes('ledge')) {
             productType = 'tanning-ledge';
+          } else if (categoryLower.includes('cover') || categoryLower.includes('safety')) {
+            productType = 'cover';
+          } else if (categoryLower.includes('paver') || categoryLower.includes('deck')) {
+            productType = 'paver';
+          } else if (categoryLower.includes('heater') || categoryLower.includes('chiller')) {
+            productType = 'heater';
+          } else if (categoryLower.includes('screen') || categoryLower.includes('enclosure')) {
+            productType = 'screen-enclosure';
+          } else if (categoryLower.includes('gate') || categoryLower.includes('driveway')) {
+            productType = 'driveway-gate';
           } else {
             productType = 'pool';
           }
