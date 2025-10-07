@@ -734,119 +734,158 @@ const SurveyQuoteTool = ({
                 </div>
               </div>
 
-              {/* Pool Details with Images */}
+              {/* Product Details with Images */}
               <div className="p-6">
-                <h3 className="font-bold text-xl mb-4 text-orange-600">Pool Specifications</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <div className="space-y-4">
-                    <div className="bg-gradient-to-br from-orange-100 to-teal-100 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg">
-                      <h4 className="font-semibold mb-2">Pool Model: {pool?.model || customProduct?.name}</h4>
-                      {pool?.dimensions && <p className="text-sm">Dimensions: {pool.dimensions}</p>}
-                      {pool?.depth && <p className="text-sm">Depth: {pool.depth}</p>}
-                      <div className="flex justify-between mt-2 pt-2 border-t border-orange-200 dark:border-gray-600">
-                        <span>Base Pool Price:</span>
-                        <span className="font-semibold">${(pool?.price || customProduct?.price || 0).toLocaleString()}</span>
-                      </div>
-                    </div>
-                    
-                    {/* Pavers Calculation with Image */}
-                    <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
-                      <h4 className="font-semibold mb-2">Paver Deck ({surveyData.deckWidth || 3}ft Width)</h4>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {(() => {
-                      const hasPavers = extras?.extrasBreakdown?.some((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
-                      return hasPavers ? "Custom paver selection with chargeable area" : "Standard 3-foot paver deck included in base price";
-                    })()}
-                      </p>
-                      {pool?.dimensions && (() => {
-                    const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
-                    const poolLength = dims[0] || 0;
-                    const poolWidth = dims[1] || 0;
-                    const deckWidth = parseInt(surveyData.deckWidth || "3");
-                    const poolArea = poolLength * poolWidth;
-                    const totalArea = (poolLength + 2 * deckWidth) * (poolWidth + 2 * deckWidth);
-                    const freeArea = (poolLength + 6) * (poolWidth + 6) - poolArea; // 3ft perimeter free area
-                    const chargeableArea = totalArea - poolArea - freeArea;
-                    return <div className="text-xs space-y-1 bg-teal-50 dark:bg-gray-700 p-2 rounded border mb-2">
-                            <p className="font-medium">Area Calculation:</p>
-                            <p>• Pool area: {poolArea} sq ft</p>
-                            <p>• Total deck area: {totalArea - poolArea} sq ft</p>
-                            <p>• Free 3ft perimeter: {freeArea} sq ft</p>
-                            <p>• Chargeable area: {Math.max(0, chargeableArea)} sq ft</p>
-                          </div>;
-                  })()}
-                      
-                      {/* Show selected paver image and details from extras */}
-                      {extras?.extrasBreakdown && (() => {
-                    const paverItem = extras.extrasBreakdown.find((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
-                    if (paverItem) {
-                      // Find the paver image from paverTypes - extract correct paver name
-                      const selectedPaverName = paverItem.name.split(' (')[0];
-
-                      // Comprehensive paver image mapping based on paverData.ts
-                      const paverImages = {
-                        // Appian Collection
-                        'Appian Adobe': '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
-                        'Appian Amaretto': '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png',
-                        'Appian Harvest Blend': '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png',
-                        'Appian Knightsbridge': '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png',
-                        'Appian Napoli': '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.png',
-                        'Appian Rio': '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.png',
-                        'Appian Slate': '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.png',
-                        'Appian Titanium': '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
-                        'Appian Charco': '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.png',
-                        // Catalina Grana Collection
-                        'Catalina Grana Amaretto': '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png',
-                        'Catalina Grana Napoli': '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.png',
-                        'Catalina Grana Rio': '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.png',
-                        'Catalina Grana Scandina Gray': '/lovable-uploads/638972ac-6a43-41e7-ae3c-bce58ab9417b.png',
-                        'Catalina Grana Slate': '/lovable-uploads/d85c2bf0-0a66-4aa0-9f64-5e76b511b428.png',
-                        'Catalina Grana Titanium': '/lovable-uploads/6aefa246-2c01-43a1-8a58-e195ec3355dc.png',
-                        // Catalina Collection
-                        'Catalina Napoli': '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.png',
-                        'Catalina Slate': '/lovable-uploads/3f98fbbb-b09a-4dbc-82f5-5d811564b9f4.png',
-                        'Catalina Titanium': '/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.png',
-                        // Fallback brands
-                        'Premier Pavers': '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
-                        'Belgard Pavers': '/lovable-uploads/46d142d3-b106-406d-9867-9bf7b63fd469.png',
-                        'Tremron Pavers': '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png',
-                        'Cambridge Pavers': '/lovable-uploads/8033278d-a737-4b1d-84bf-fd0ac9126406.png'
-                      };
-                      const paverImage = paverImages[selectedPaverName] || paverImages['Premier Pavers'];
-                      return <div className="mb-3 p-2 border border-teal-200 rounded-md">
-                              <div className="flex items-center gap-3">
-                                <div className="w-16 h-16 rounded-md overflow-hidden border">
-                                  <OptimizedImage 
-                                    src={paverImage} 
-                                    alt={selectedPaverName} 
-                                    className="w-full h-full object-cover"
-                                    sizeConfig="thumbnail"
-                                  />
-                                </div>
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium">{selectedPaverName}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {paverItem.name.match(/\((.*?)\)/)?.[1] || 'Custom area'}
-                                  </p>
-                                  <p className="text-xs text-teal-600 font-semibold">
-                                    ${paverItem.price.toLocaleString()}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>;
-                    }
-                    return null;
-                  })()}
-                    </div>
-                  </div>
+                {(() => {
+                  const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
                   
-                  <div>
-                    {(pool?.image || customProduct?.image) && <div className="mb-4">
-                        <ImageCard src={pool?.image || customProduct?.image} alt={pool?.model || customProduct?.name} className="w-full h-48 rounded-lg border border-orange-200" objectFit="cover" enableZoom={true} />
-                        <p className="text-xs text-center mt-1 text-muted-foreground">{pool?.model || customProduct?.name}</p>
-                      </div>}
-                  </div>
-                </div>
+                  return (
+                    <>
+                      <h3 className="font-bold text-xl mb-4 text-orange-600">
+                        {isPoolProduct ? 'Pool Specifications' : 'Product Details'}
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="space-y-4">
+                          <div className="bg-gradient-to-br from-orange-100 to-teal-100 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2">
+                              {isPoolProduct ? 'Pool Model' : 'Product'}: {pool?.model || customProduct?.name}
+                            </h4>
+                            {pool?.dimensions && <p className="text-sm">Dimensions: {pool.dimensions}</p>}
+                            {pool?.depth && <p className="text-sm">Depth: {pool.depth}</p>}
+                            {customProduct && !isPoolProduct && customProduct.type && (
+                              <p className="text-sm">Type: {customProduct.type}</p>
+                            )}
+                            <div className="flex justify-between mt-2 pt-2 border-t border-orange-200 dark:border-gray-600">
+                              <span>Base Price:</span>
+                              <span className="font-semibold">${(pool?.price || customProduct?.price || 0).toLocaleString()}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Delivery & Installation - Only for non-pool products */}
+                          {!isPoolProduct && (
+                            <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
+                              <h4 className="font-semibold mb-2 text-teal-600">Delivery & Installation</h4>
+                              <div className="space-y-2 text-sm">
+                                <p className="flex items-center gap-2">
+                                  <span className="font-medium">Arrives:</span>
+                                  <span className="text-teal-600">October 24, 2025</span>
+                                </p>
+                                <p className="flex items-center gap-2">
+                                  <span className="font-medium">Installation:</span>
+                                  <span className="text-teal-600">Same day</span>
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  Includes delivery and professional installation
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Pavers Calculation with Image - Only for pool products */}
+                          {isPoolProduct && (
+                            <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
+                              <h4 className="font-semibold mb-2">Paver Deck ({surveyData.deckWidth || 3}ft Width)</h4>
+                              <p className="text-sm text-muted-foreground mb-2">
+                                {(() => {
+                              const hasPavers = extras?.extrasBreakdown?.some((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
+                              return hasPavers ? "Custom paver selection with chargeable area" : "Standard 3-foot paver deck included in base price";
+                            })()}
+                              </p>
+                              {pool?.dimensions && (() => {
+                            const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+                            const poolLength = dims[0] || 0;
+                            const poolWidth = dims[1] || 0;
+                            const deckWidth = parseInt(surveyData.deckWidth || "3");
+                            const poolArea = poolLength * poolWidth;
+                            const totalArea = (poolLength + 2 * deckWidth) * (poolWidth + 2 * deckWidth);
+                            const freeArea = (poolLength + 6) * (poolWidth + 6) - poolArea;
+                            const chargeableArea = totalArea - poolArea - freeArea;
+                            return <div className="text-xs space-y-1 bg-teal-50 dark:bg-gray-700 p-2 rounded border mb-2">
+                                    <p className="font-medium">Area Calculation:</p>
+                                    <p>• Pool area: {poolArea} sq ft</p>
+                                    <p>• Total deck area: {totalArea - poolArea} sq ft</p>
+                                    <p>• Free 3ft perimeter: {freeArea} sq ft</p>
+                                    <p>• Chargeable area: {Math.max(0, chargeableArea)} sq ft</p>
+                                  </div>;
+                          })()}
+                              
+                              {extras?.extrasBreakdown && (() => {
+                            const paverItem = extras.extrasBreakdown.find((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
+                            if (paverItem) {
+                              const selectedPaverName = paverItem.name.split(' (')[0];
+                              const paverImages = {
+                                'Appian Adobe': '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
+                                'Appian Amaretto': '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png',
+                                'Appian Harvest Blend': '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png',
+                                'Appian Knightsbridge': '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png',
+                                'Appian Napoli': '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.png',
+                                'Appian Rio': '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.png',
+                                'Appian Slate': '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.png',
+                                'Appian Titanium': '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
+                                'Appian Charco': '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.png',
+                                'Catalina Grana Amaretto': '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png',
+                                'Catalina Grana Napoli': '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.png',
+                                'Catalina Grana Rio': '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.png',
+                                'Catalina Grana Scandina Gray': '/lovable-uploads/638972ac-6a43-41e7-ae3c-bce58ab9417b.png',
+                                'Catalina Grana Slate': '/lovable-uploads/d85c2bf0-0a66-4aa0-9f64-5e76b511b428.png',
+                                'Catalina Grana Titanium': '/lovable-uploads/6aefa246-2c01-43a1-8a58-e195ec3355dc.png',
+                                'Catalina Napoli': '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.png',
+                                'Catalina Slate': '/lovable-uploads/3f98fbbb-b09a-4dbc-82f5-5d811564b9f4.png',
+                                'Catalina Titanium': '/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.png',
+                                'Premier Pavers': '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
+                                'Belgard Pavers': '/lovable-uploads/46d142d3-b106-406d-9867-9bf7b63fd469.png',
+                                'Tremron Pavers': '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png',
+                                'Cambridge Pavers': '/lovable-uploads/8033278d-a737-4b1d-84bf-fd0ac9126406.png'
+                              };
+                              const paverImage = paverImages[selectedPaverName] || paverImages['Premier Pavers'];
+                              return <div className="mb-3 p-2 border border-teal-200 rounded-md">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-16 h-16 rounded-md overflow-hidden border">
+                                          <OptimizedImage 
+                                            src={paverImage} 
+                                            alt={selectedPaverName} 
+                                            className="w-full h-full object-cover"
+                                            sizeConfig="thumbnail"
+                                          />
+                                        </div>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-medium">{selectedPaverName}</p>
+                                          <p className="text-xs text-muted-foreground">
+                                            {paverItem.name.match(/\((.*?)\)/)?.[1] || 'Custom area'}
+                                          </p>
+                                          <p className="text-xs text-teal-600 font-semibold">
+                                            ${paverItem.price.toLocaleString()}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>;
+                            }
+                            return null;
+                          })()}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Product Image - ALWAYS DISPLAY */}
+                        <div>
+                          <div className="mb-4">
+                            <ImageCard 
+                              src={pool?.image || customProduct?.image || ''} 
+                              alt={pool?.model || customProduct?.name || 'Product'} 
+                              className="w-full h-48 rounded-lg border border-orange-200" 
+                              objectFit="cover" 
+                              enableZoom={true} 
+                            />
+                            <p className="text-xs text-center mt-1 text-muted-foreground">
+                              {pool?.model || customProduct?.name}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
 
                 {/* Exclusive Sauna Offer for Eligible Pools */}
                 {(() => {
@@ -1071,92 +1110,146 @@ const SurveyQuoteTool = ({
                   );
                 })()}
 
-                {/* Items Included */}
-                <div className="mb-6">
-                  <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg">
-                    <h4 className="font-bold text-lg mb-3 text-orange-600">ALL POOLS INCLUDE</h4>
-                    <p className="text-sm">
-                      {getIncludedItems().filter(item => !item.startsWith("FREE")).join(", ")}
-                    </p>
-                    <p className="text-xs mt-2 opacity-80">Architectural Design, Construction and permiting is included in all products, unless project scope is modified.</p>
-                  </div>
-                </div>
-
-                {/* Pool Construction Details */}
-                {extras?.concreteConstruction && <div className="mb-6">
-                    <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-blue-200">
-                      <h4 className="font-bold text-lg mb-2 text-blue-600">Pool Construction</h4>
-                      <p className="text-sm mb-2">
-                        Selected concrete construction: reinforced concrete with steel rebar and a high-quality interior finish. It offers full design flexibility for shapes, steps, benches, and features. Like all pools, it performs best with proper maintenance and balanced water chemistry.
-                      </p>
-                      <ul className="text-xs text-muted-foreground space-y-1">
-                        <li>• Reinforced concrete shell with rebar</li>
-                        <li>• Customizable design, steps, benches, and features</li>
-                        <li>• Built to meet local codes and engineering specifications</li>
-                        <li>• <span className="font-semibold text-amber-600">15 Years Structural Integrity, 5 Years Finishing Warranty</span> for concrete construction</li>
-                      </ul>
+                {/* Items Included - Only for pool products */}
+                {(() => {
+                  const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                  
+                  if (!isPoolProduct) return null;
+                  
+                  return (
+                    <div className="mb-6">
+                      <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg">
+                        <h4 className="font-bold text-lg mb-3 text-orange-600">ALL POOLS INCLUDE</h4>
+                        <p className="text-sm">
+                          {getIncludedItems().filter(item => !item.startsWith("FREE")).join(", ")}
+                        </p>
+                        <p className="text-xs mt-2 opacity-80">Architectural Design, Construction and permiting is included in all products, unless project scope is modified.</p>
+                      </div>
                     </div>
-                  </div>}
+                  );
+                })()}
 
-                {/* Warranty Information */}
-                <div className="mb-6">
-                  <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200">
-                    
-                    <div className="text-sm space-y-2">
-                      {extras?.concreteConstruction ? <div>
-                          <p className="font-semibold">Concrete Pool Construction:</p>
-                          <p className="text-sm"><span className="text-amber-600 font-semibold">15 Years Structural Integrity</span></p>
-                          <p className="text-sm"><span className="text-amber-600 font-semibold">5 Years Finishing</span></p>
-                          <p className="text-xs text-muted-foreground">
-                            Comprehensive warranty covering structural integrity and finishing for concrete construction
-                          </p>
-                        </div> : <div>
-                          <p className="font-semibold">Pool Structure: <span className="text-green-600">{pool?.warrantyYears || "Lifetime"}</span></p>
-                          <p className="text-xs text-muted-foreground">
-                            {pool?.model === "Astoria" ? "Life Warranty - Special Offer" : "Standard structural warranty coverage"}
-                          </p>
-                        </div>}
+                {/* Pool Construction Details - Only for pool products */}
+                {(() => {
+                  const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                  
+                  if (!isPoolProduct || !extras?.concreteConstruction) return null;
+                  
+                  return (
+                    <div className="mb-6">
+                      <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-blue-200">
+                        <h4 className="font-bold text-lg mb-2 text-blue-600">Pool Construction</h4>
+                        <p className="text-sm mb-2">
+                          Selected concrete construction: reinforced concrete with steel rebar and a high-quality interior finish. It offers full design flexibility for shapes, steps, benches, and features. Like all pools, it performs best with proper maintenance and balanced water chemistry.
+                        </p>
+                        <ul className="text-xs text-muted-foreground space-y-1">
+                          <li>• Reinforced concrete shell with rebar</li>
+                          <li>• Customizable design, steps, benches, and features</li>
+                          <li>• Built to meet local codes and engineering specifications</li>
+                          <li>• <span className="font-semibold text-amber-600">15 Years Structural Integrity, 5 Years Finishing Warranty</span> for concrete construction</li>
+                        </ul>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  );
+                })()}
 
-                {/* Estimated Build Time */}
+                {/* Warranty Information - Only for pool products */}
+                {(() => {
+                  const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                  
+                  if (!isPoolProduct) return null;
+                  
+                  return (
+                    <div className="mb-6">
+                      <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200">
+                        <div className="text-sm space-y-2">
+                          {extras?.concreteConstruction ? <div>
+                              <p className="font-semibold">Concrete Pool Construction:</p>
+                              <p className="text-sm"><span className="text-amber-600 font-semibold">15 Years Structural Integrity</span></p>
+                              <p className="text-sm"><span className="text-amber-600 font-semibold">5 Years Finishing</span></p>
+                              <p className="text-xs text-muted-foreground">
+                                Comprehensive warranty covering structural integrity and finishing for concrete construction
+                              </p>
+                            </div> : <div>
+                              <p className="font-semibold">Pool Structure: <span className="text-green-600">{pool?.warrantyYears || "Lifetime"}</span></p>
+                              <p className="text-xs text-muted-foreground">
+                                {pool?.model === "Astoria" ? "Life Warranty - Special Offer" : "Standard structural warranty coverage"}
+                              </p>
+                            </div>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Estimated Build/Installation Time */}
                 <div className="mb-6">
                   <div className="bg-gradient-to-br from-blue-100 to-green-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
-                    <h4 className="font-bold text-lg mb-2 text-blue-600">Estimated Build Time</h4>
-                     <p className="text-sm">
+                    <h4 className="font-bold text-lg mb-2 text-blue-600">
                       {(() => {
-                        // Concrete construction always takes 18+ weeks
+                        const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                        return isPoolProduct ? 'Estimated Build Time' : 'Installation Time';
+                      })()}
+                    </h4>
+                    <p className="text-sm">
+                      {(() => {
+                        const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                        
+                        if (!isPoolProduct) {
+                          return "Arrives October 24, 2025 • Installation same day";
+                        }
+                        
+                        // Pool product logic
                         if (extras?.concreteConstruction) {
                           return "18+ weeks";
                         }
                         
-                        // Madre Perla (premium concrete pool)
                         if (pool?.model === "Madre Perla") {
                           return "18+ weeks";
                         }
                         
-                        // All pools, spas, and tanning ledges (fiber construction): 8+ weeks
                         return "8+ weeks";
                       })()}
                     </p>
-                    {(extras?.concreteConstruction || pool?.model === "Madre Perla") && (
-                      <p className="text-xs mt-1 text-muted-foreground">
-                        Extended timeline due to custom concrete construction and engineering requirements
-                      </p>
-                    )}
-                    {(pool?.model === "Extreme 27" || (pool as any)?.brand === "Gilmer Glass") && !extras?.concreteConstruction && (
-                      <p className="text-xs mt-1 text-muted-foreground">
-                        Fiber pool construction timeline includes delivery and installation
-                      </p>
-                    )}
+                    {(() => {
+                      const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                      
+                      if (!isPoolProduct) return null;
+                      
+                      if (extras?.concreteConstruction || pool?.model === "Madre Perla") {
+                        return (
+                          <p className="text-xs mt-1 text-muted-foreground">
+                            Extended timeline due to custom concrete construction and engineering requirements
+                          </p>
+                        );
+                      }
+                      
+                      if (pool?.model === "Extreme 27" || (pool as any)?.brand === "Gilmer Glass") {
+                        if (!extras?.concreteConstruction) {
+                          return (
+                            <p className="text-xs mt-1 text-muted-foreground">
+                              Fiber pool construction timeline includes delivery and installation
+                            </p>
+                          );
+                        }
+                      }
+                      
+                      return null;
+                    })()}
                   </div>
                 </div>
 
                  <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center">
                    <h3 className="text-2xl font-bold mb-2">Total Investment</h3>
                    <div className="text-4xl font-bold mb-2">${calculateQuote().toLocaleString()}</div>
-                   <p className="text-orange-100">Complete installation including permits, excavation, and {surveyData.deckWidth || 3}ft paver deck</p>
+                   <p className="text-orange-100">
+                     {(() => {
+                       const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                       return isPoolProduct 
+                         ? `Complete installation including permits, excavation, and ${surveyData.deckWidth || 3}ft paver deck`
+                         : 'Complete installation including delivery and professional setup';
+                     })()}
+                   </p>
                  </div>
 
                 {/* Action Buttons */}
