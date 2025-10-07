@@ -1374,66 +1374,66 @@ const WonderlandsStudio = () => {
                             )}
                           </div>
 
-                          {/* Waterline Tiles */}
+                          {/* Waterline (Liners) */}
                           <div>
                             <div className="flex items-center justify-between mb-2">
                               <div>
-                                <Label className="text-sm font-medium">Waterline Tiles</Label>
-                                <p className="text-xs text-muted-foreground">Premium spa tiles</p>
+                                <Label className="text-sm font-medium">Waterline</Label>
+                                <p className="text-xs text-muted-foreground">Premium spa waterline finishes</p>
                               </div>
                               <div className="flex items-center gap-2">
                                 <Checkbox 
-                                  checked={selectedExtras.tiles} 
+                                  checked={selectedExtras.liner} 
                                   onCheckedChange={(checked) => {
                                     const newExtras = {
                                       ...selectedExtras,
-                                      tiles: !!checked
+                                      liner: !!checked
                                     };
                                     setSelectedExtras(newExtras);
                                     if (checked) {
-                                      setActiveFeatureCarousel('tiles');
+                                      setActiveFeatureCarousel('liners');
                                     } else {
                                       setActiveFeatureCarousel(null);
                                     }
                                   }} 
                                 />
-                                {selectedExtras.tiles && (
+                                {selectedExtras.liner && (
                                   <Button 
                                     variant="ghost" 
                                     size="sm" 
                                     onClick={() => {
-                                      const newCarousel = activeFeatureCarousel === 'tiles' ? null : 'tiles';
+                                      const newCarousel = activeFeatureCarousel === 'liners' ? null : 'liners';
                                       setActiveFeatureCarousel(newCarousel);
                                     }}
                                   >
-                                    <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'tiles' ? 'rotate-180' : ''}`} />
+                                    <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'liners' ? 'rotate-180' : ''}`} />
                                   </Button>
                                 )}
                               </div>
                             </div>
-                            {selectedExtras.tiles && activeFeatureCarousel === 'tiles' && (
+                            {selectedExtras.liner && activeFeatureCarousel === 'liners' && (
                               <Carousel className="w-full">
                                 <CarouselContent className="-ml-1">
-                                  {tileOptions.filter(tile => tile.name !== 'Standard Waterline').map((tile) => (
-                                    <CarouselItem key={tile.name} className="pl-1 basis-1/3">
+                                  {linerOptions.filter(liner => liner.name !== 'Standard Blue').map((liner) => (
+                                    <CarouselItem key={liner.name} className="pl-1 basis-1/3">
                                       <div 
                                         className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
-                                          selectedExtras.tileOption === tile.name 
+                                          selectedExtras.linerOption === liner.name 
                                             ? 'border-primary shadow-md' 
                                             : 'border-border hover:border-primary/50'
                                         }`}
                                         onClick={() => {
                                           setSelectedExtras({
                                             ...selectedExtras,
-                                            tileOption: tile.name
+                                            linerOption: liner.name
                                           });
                                           setActiveFeatureCarousel(null);
                                         }}
                                       >
-                                        <img src={tile.image} alt={tile.name} className="w-full h-16 object-cover rounded" />
-                                        <p className="text-xs font-medium mt-1 truncate">{tile.name}</p>
+                                        <img src={liner.image} alt={liner.name} className="w-full h-16 object-cover rounded" />
+                                        <p className="text-xs font-medium mt-1 truncate">{liner.name}</p>
                                         <p className="text-xs text-muted-foreground">
-                                          {tile.price > 0 ? `$${tile.price.toLocaleString()}` : 'Included'}
+                                          {liner.price > 0 ? `$${liner.price.toLocaleString()}` : 'Premium'}
                                         </p>
                                       </div>
                                     </CarouselItem>
@@ -1442,6 +1442,196 @@ const WonderlandsStudio = () => {
                                 <CarouselPrevious />
                                 <CarouselNext />
                               </Carousel>
+                            )}
+                          </div>
+
+                          {/* Deck Pavers */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <Label className="text-sm font-medium">Deck Pavers</Label>
+                                <p className="text-xs text-muted-foreground">Beautiful hardscape surfaces</p>
+                              </div>
+                              <Checkbox 
+                                checked={selectedExtras.pavers} 
+                                onCheckedChange={(checked) => {
+                                  const isChecked = checked === true;
+                                  const newExtras = {
+                                    ...selectedExtras,
+                                    pavers: isChecked,
+                                    paverOption: isChecked ? paverOptions.filter(p => p.name !== 'No Pavers')[0]?.name || 'Appian Flagstone' : 'No Pavers'
+                                  };
+                                  setSelectedExtras(newExtras);
+                                  if (isChecked) {
+                                    setActiveFeatureCarousel('pavers');
+                                  } else {
+                                    setActiveFeatureCarousel(null);
+                                  }
+                                }} 
+                              />
+                              {selectedExtras.pavers && (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => {
+                                    const newCarousel = activeFeatureCarousel === 'pavers' ? null : 'pavers';
+                                    setActiveFeatureCarousel(newCarousel);
+                                  }}
+                                >
+                                  <ChevronDown className={`h-3 w-3 transition-transform ${activeFeatureCarousel === 'pavers' ? 'rotate-180' : ''}`} />
+                                </Button>
+                              )}
+                            </div>
+                            {selectedExtras.pavers && activeFeatureCarousel === 'pavers' && (
+                              <div className="space-y-4">
+                                <div className="p-4 bg-muted/30 rounded-lg space-y-3">
+                                  <h4 className="font-semibold text-sm">Transform Your Outdoor Space</h4>
+                                  <p className="text-xs text-muted-foreground">
+                                    Create beautiful hardscape surfaces around your sauna with our premium paver collections.
+                                  </p>
+                                </div>
+                                
+                                <div>
+                                  <Label className="text-sm font-medium">Surface Area (sq ft)</Label>
+                                  <Input 
+                                    type="number" 
+                                    value={paverSurfaceArea} 
+                                    onChange={(e) => setPaverSurfaceArea(e.target.value)} 
+                                    placeholder="Enter area in square feet" 
+                                    className="mt-1" 
+                                  />
+                                  {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
+                                    <div className="text-xs text-green-600 font-medium mt-1">
+                                      Estimated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()}
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-medium">Paver Collection</Label>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="outline" className="w-full justify-between text-sm">
+                                        {paverCategories.find(cat => cat.value === paverCategory)?.label}
+                                        <ChevronDown className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-full bg-background border border-border z-50">
+                                      {paverCategories.map(category => (
+                                        <div 
+                                          key={category.value} 
+                                          className="px-2 py-1 text-sm cursor-pointer hover:bg-muted text-foreground" 
+                                          onClick={() => setPaverCategory(category.value)}
+                                        >
+                                          {category.label}
+                                        </div>
+                                      ))}
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                                
+                                <Carousel className="w-full">
+                                  <CarouselContent className="-ml-1">
+                                    {paverOptions
+                                      .filter(paver => paver.name !== 'No Pavers' && (paverCategory === 'all' || paver.collection === paverCategory))
+                                      .map(paver => (
+                                        <CarouselItem key={paver.name} className="pl-1 basis-1/3">
+                                          <div 
+                                            className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 ${
+                                              selectedExtras.paverOption === paver.name 
+                                                ? 'border-primary shadow-md' 
+                                                : 'border-border hover:border-primary/50'
+                                            }`}
+                                            onClick={() => {
+                                              setSelectedExtras({
+                                                ...selectedExtras,
+                                                paverOption: paver.name
+                                              });
+                                              setActiveFeatureCarousel(null);
+                                            }}
+                                          >
+                                            <img src={paver.image} alt={paver.name} className="w-full h-16 object-cover rounded" />
+                                            <p className="text-xs font-medium mt-1 truncate">{paver.name}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                              $15/sq ft
+                                            </p>
+                                          </div>
+                                        </CarouselItem>
+                                      ))}
+                                  </CarouselContent>
+                                  <CarouselPrevious />
+                                  <CarouselNext />
+                                </Carousel>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Screen Enclosure */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <Label className="text-sm font-medium">Screen Enclosure</Label>
+                                <p className="text-xs text-muted-foreground">Year-round protection</p>
+                              </div>
+                              <Checkbox 
+                                checked={selectedExtras.screenEnclosure} 
+                                onCheckedChange={(checked) => setSelectedExtras({
+                                  ...selectedExtras,
+                                  screenEnclosure: !!checked
+                                })} 
+                              />
+                            </div>
+                            {selectedExtras.screenEnclosure && (
+                              <div className="space-y-3 ml-4 p-3 bg-muted/30 rounded-lg border border-border">
+                                <div>
+                                  <Label className="text-sm font-medium">Enclosure Area (sq ft)</Label>
+                                  <Input 
+                                    type="number" 
+                                    value={selectedExtras.screenEnclosureArea} 
+                                    onChange={(e) => setSelectedExtras({
+                                      ...selectedExtras,
+                                      screenEnclosureArea: parseInt(e.target.value) || 0
+                                    })} 
+                                    placeholder="Enter area in square feet" 
+                                    className="mt-1" 
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <Label className="text-sm font-medium">Quality Level</Label>
+                                  <div className="grid grid-cols-2 gap-2 mt-2">
+                                    <Button
+                                      type="button"
+                                      variant={selectedExtras.screenEnclosureQuality === 'standard' ? 'default' : 'outline'}
+                                      size="sm"
+                                      className="w-full"
+                                      onClick={() => setSelectedExtras({
+                                        ...selectedExtras,
+                                        screenEnclosureQuality: 'standard'
+                                      })}
+                                    >
+                                      Standard ($15/sq ft)
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant={selectedExtras.screenEnclosureQuality === 'premium' ? 'default' : 'outline'}
+                                      size="sm"
+                                      className="w-full"
+                                      onClick={() => setSelectedExtras({
+                                        ...selectedExtras,
+                                        screenEnclosureQuality: 'premium'
+                                      })}
+                                    >
+                                      Premium ($28/sq ft)
+                                    </Button>
+                                  </div>
+                                  {selectedExtras.screenEnclosureArea > 0 && (
+                                    <div className="text-xs text-green-600 font-medium mt-2">
+                                      Estimated Cost: ${(selectedExtras.screenEnclosureArea * (selectedExtras.screenEnclosureQuality === 'premium' ? 28 : 15)).toLocaleString()}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             )}
                           </div>
 
