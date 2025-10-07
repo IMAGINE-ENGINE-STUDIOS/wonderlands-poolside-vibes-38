@@ -443,6 +443,13 @@ const WonderlandsStudio = () => {
             setActiveTab('pools');
         }
       }
+      
+      // Reset all extras to unselected state when loading from search
+      if (foundProduct?.type) {
+        const defaultExtras = getDefaultExtras(foundProduct.type as ProductType);
+        setSelectedExtras(defaultExtras);
+      }
+      
       setSelectedProduct(foundProduct);
       setLeftSidebarCollapsed(true);
     }

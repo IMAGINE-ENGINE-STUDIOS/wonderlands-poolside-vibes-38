@@ -84,11 +84,11 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
               </div>
             </div>
             {selectedExtras[feature.id] && selectedExtras[feature.id] !== 'None' && activeFeatureCarousel === feature.id && feature.options && (
-              <div className="h-24 mb-4">
-                <Carousel className="w-full h-full">
-                  <CarouselContent className="-ml-1 h-full">
+              <div className="mb-4 border rounded-lg p-2 bg-background overflow-hidden">
+                <Carousel className="w-full">
+                  <CarouselContent className="h-24">
                     {feature.options.filter(opt => opt.name !== 'None').map((option) => (
-                      <CarouselItem key={option.name} className="pl-1 basis-1/3 md:basis-1/4 lg:basis-1/5">
+                      <CarouselItem key={option.name} className="basis-1/3 md:basis-1/4 lg:basis-1/5 pl-2">
                         <div
                           className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full ${
                             selectedExtras[feature.id] === option.name
@@ -104,9 +104,9 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
                           }}
                         >
                           {option.image && (
-                            <img src={option.image} alt={option.name} className="w-full h-16 object-cover rounded" />
+                            <img src={option.image} alt={option.name} className="w-full h-12 object-cover rounded mb-1" />
                           )}
-                          <p className="text-xs font-medium mt-1 truncate">{option.name}</p>
+                          <p className="text-xs font-medium truncate">{option.name}</p>
                           <p className="text-xs text-muted-foreground">
                             {option.price > 0 ? `+$${option.price.toLocaleString()}` : 'Included'}
                           </p>
@@ -114,8 +114,8 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  <CarouselPrevious />
-                  <CarouselNext />
+                  <CarouselPrevious className="left-0" />
+                  <CarouselNext className="right-0" />
                 </Carousel>
               </div>
             )}
