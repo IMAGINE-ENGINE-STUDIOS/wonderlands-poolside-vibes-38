@@ -71,19 +71,37 @@ const SurveyQuoteTool = ({
   const {
     user
   } = useAuth();
-  const [surveyData, setSurveyData] = useState<SurveyData>({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-    yardSize: "",
-    soilType: "",
-    accessWidth: "",
-    utilityLines: "",
-    specialRequests: "",
-    timeline: "",
-    budget: "",
-    deckWidth: "3"
+  
+  // Load cached form data on mount
+  const loadCachedData = (): Partial<SurveyData> => {
+    try {
+      const cacheKey = user?.id ? `quote_form_${user.id}` : 'quote_form_guest';
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch (error) {
+      console.error('Error loading cached form data:', error);
+    }
+    return {};
+  };
+
+  const [surveyData, setSurveyData] = useState<SurveyData>(() => {
+    const cached = loadCachedData();
+    return {
+      name: cached.name || "",
+      email: cached.email || user?.email || "",
+      phone: cached.phone || "",
+      address: cached.address || "",
+      yardSize: cached.yardSize || "",
+      soilType: cached.soilType || "",
+      accessWidth: cached.accessWidth || "",
+      utilityLines: cached.utilityLines || "",
+      specialRequests: cached.specialRequests || "",
+      timeline: cached.timeline || "",
+      budget: cached.budget || "",
+      deckWidth: cached.deckWidth || "3"
+    };
   });
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
@@ -98,6 +116,18 @@ const SurveyQuoteTool = ({
     toast
   } = useToast();
   // Removed GALA-GOODS integration
+
+  // Cache form data whenever it changes
+  useEffect(() => {
+    if (isOpen && (surveyData.name || surveyData.email || surveyData.address)) {
+      try {
+        const cacheKey = user?.id ? `quote_form_${user.id}` : 'quote_form_guest';
+        localStorage.setItem(cacheKey, JSON.stringify(surveyData));
+      } catch (error) {
+        console.error('Error caching form data:', error);
+      }
+    }
+  }, [surveyData, user, isOpen]);
 
   // Toggle a global flag so other components (e.g., RightNavigation) can react when the quote dialog is open
   useEffect(() => {
