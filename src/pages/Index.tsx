@@ -9,6 +9,7 @@ import LinersSection from "@/components/LinersSection";
 import AutomaticCoversSection from "@/components/AutomaticCoversSection";
 import ScreenEnclosureSection from "@/components/ScreenEnclosureSection";
 import PaversSection from "@/components/PaversSection";
+import DrivewayGateSection from "@/components/DrivewayGateSection";
 import Footer from "@/components/Footer";
 import LazySection from "@/components/LazySection";
 const Index = () => {
@@ -57,6 +58,10 @@ const Index = () => {
       <div id="covers" />
       <LazySection>
         <AutomaticCoversSection />
+      </LazySection>
+      <div id="driveway-gates" />
+      <LazySection>
+        <DrivewayGateSection />
       </LazySection>
       <Footer />
     </div>;
