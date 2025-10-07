@@ -5,7 +5,7 @@ import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 
 // Product type definitions
-export type ProductType = 'pool' | 'spa' | 'sauna' | 'tanning-ledge' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate';
+export type ProductType = 'pool' | 'spa' | 'sauna' | 'tanning-ledge' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate' | 'scene';
 
 // Feature type definitions
 export type FeatureType = 'boolean' | 'selection' | 'quantity' | 'nested' | 'area';
@@ -147,6 +147,7 @@ const tanningLedgeOptions: FeatureOption[] = tanningLedges.map(ledge => ({
 
 // Centralized product features configuration
 export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
+  'scene': [], // Scene products use hardcoded Belgard Studio UI
   'pool': [
     {
       id: 'finish',
