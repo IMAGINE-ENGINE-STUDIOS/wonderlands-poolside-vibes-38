@@ -48,10 +48,11 @@ const spas: Spa[] = [
   }
 ];
 
-// Simplified paver collections
+// Simplified paver collections with images from paverTypes
 const paverCollections = paverTypes.slice(0, 8).map(p => ({
   name: p.name,
-  pricePerSqFt: p.basePrice
+  pricePerSqFt: p.basePrice,
+  image: p.image
 }));
 
 interface SaunaProductCardProps {
@@ -416,13 +417,21 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
                       {paverCollections.map((collection) => (
                         <CarouselItem key={collection.name} className="pl-1 basis-1/2 sm:basis-1/3">
                           <div 
-                            className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                            className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                               extras.paverCollection === collection.name ? 'border-primary bg-primary/10' : 'border-border'
                             }`} 
                             onClick={() => updateExtra('paverCollection', collection.name)}
                           >
-                            <p className="text-xs font-medium">{collection.name}</p>
-                            <p className="text-xs text-primary">${collection.pricePerSqFt}/sq ft</p>
+                            <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <OptimizedImage 
+                                src={collection.image} 
+                                alt={collection.name} 
+                                className="w-full h-full object-cover" 
+                                loading="lazy"
+                              />
+                            </div>
+                            <p className="text-xs font-medium text-center">{collection.name}</p>
+                            <p className="text-xs text-primary text-center">${collection.pricePerSqFt}/sq ft</p>
                           </div>
                         </CarouselItem>
                       ))}
