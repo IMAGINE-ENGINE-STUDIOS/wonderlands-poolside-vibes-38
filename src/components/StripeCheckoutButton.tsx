@@ -132,15 +132,10 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
                   Finance from ${Math.round(monthlyPayment)}/mo
                 </>}
             </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              60 months @ 7.99% APR*
-            </p>
+            
           </div>}
 
-        <Button onClick={() => setShowQuoteTool(true)} variant="secondary" size={size} className={`${className} gap-2 w-full`}>
-          <FileText className="h-4 w-4" />
-          Create Instant Quote
-        </Button>
+        
       </div>
 
       <SurveyQuoteTool pool={null} isOpen={showQuoteTool} onClose={() => setShowQuoteTool(false)} customProduct={{
