@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu, Edit, ShoppingCart, Sun, Ruler } from "lucide-react";
+import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu, Edit, ShoppingCart, Sun, Ruler, FileText } from "lucide-react";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import ImageEditor from "./ImageEditor";
 import { useShoppingCart } from "./ShoppingCart";
+import SurveyQuoteTool from "./SurveyQuoteTool";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { paverTypes } from "@/data/paverData";
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
@@ -135,6 +136,7 @@ const TanningLedgeProductCard = ({
 }: TanningLedgeProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
+  const [showQuoteTool, setShowQuoteTool] = useState(false);
   const [currentLedgeImage, setCurrentLedgeImage] = useState(ledge.image);
   const [isEditable, setIsEditable] = useState(isAdmin);
   const [extras, setExtras] = useState<TanningLedgeExtras>({
@@ -614,11 +616,29 @@ const TanningLedgeProductCard = ({
               Instant Quote
             </Button>
             <Button onClick={handleImageClick} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">Customize Tanning Ledge</Button>
+            <Button onClick={() => setShowQuoteTool(true)} variant="secondary" className="w-full gap-2" size="sm">
+              <FileText className="h-4 w-4" />
+              Instant Quote
+            </Button>
           </div>}
       </CardContent>
       
       {/* Image Editor Modal */}
       <ImageEditor isOpen={showImageEditor} onClose={() => setShowImageEditor(false)} onImageSave={handleImageSave} currentImage={currentLedgeImage} />
+      
+      {/* Quote Tool Modal */}
+      <SurveyQuoteTool 
+        pool={null}
+        isOpen={showQuoteTool} 
+        onClose={() => setShowQuoteTool(false)}
+        customProduct={{
+          name: ledge.name,
+          price: ledge.price,
+          type: 'Tanning Ledge',
+          image: currentLedgeImage
+        }}
+        extras={extras}
+      />
     </Card>;
 };
 export default TanningLedgeProductCard;

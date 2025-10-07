@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu, Edit, ShoppingCart, Sun } from "lucide-react";
+import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu, Edit, ShoppingCart, Sun, FileText } from "lucide-react";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import ImageEditor from "./ImageEditor";
 import { OptimizedImage } from "./OptimizedImage";
 import { useShoppingCart } from "./ShoppingCart";
+import SurveyQuoteTool from "./SurveyQuoteTool";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ExclusiveSaunaOffer from "./ExclusiveSaunaOffer";
 import { spas } from "./PoolCatalog";
@@ -384,6 +385,7 @@ const PoolProductCard = ({
   const navigate = useNavigate();
   const [showDetails, setShowDetails] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
+  const [showQuoteTool, setShowQuoteTool] = useState(false);
   const [currentPoolImage, setCurrentPoolImage] = useState(pool.image);
   const [isEditable, setIsEditable] = useState(isAdmin);
   const [extras, setExtras] = useState<PoolExtras>({
@@ -1499,11 +1501,23 @@ const PoolProductCard = ({
               Instant Quote
             </Button>
             <Button onClick={() => setShowDetails(!showDetails)} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">Customize Pool</Button>
+            <Button onClick={() => setShowQuoteTool(true)} variant="secondary" className="w-full gap-2" size="sm">
+              <FileText className="h-4 w-4" />
+              Instant Quote
+            </Button>
           </div>}
       </CardContent>
       
       {/* Image Editor Modal */}
       <ImageEditor isOpen={showImageEditor} onClose={() => setShowImageEditor(false)} onImageSave={handleImageSave} currentImage={currentPoolImage} />
+      
+      {/* Quote Tool Modal */}
+      <SurveyQuoteTool 
+        pool={pool} 
+        isOpen={showQuoteTool} 
+        onClose={() => setShowQuoteTool(false)}
+        extras={extras}
+      />
     </Card>;
 };
 export default PoolProductCard;

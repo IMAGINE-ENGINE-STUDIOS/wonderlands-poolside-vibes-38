@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu, Edit, ShoppingCart, Sun } from "lucide-react";
+import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu, Edit, ShoppingCart, Sun, FileText } from "lucide-react";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import ImageEditor from "./ImageEditor";
 import { useShoppingCart } from "./ShoppingCart";
+import SurveyQuoteTool from "./SurveyQuoteTool";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { tanningLedges } from "@/data/poolData";
 import { paverTypes, copingTypes } from "@/data/paverData";
@@ -208,6 +209,7 @@ const SpaProductCard = ({
 }: SpaProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
+  const [showQuoteTool, setShowQuoteTool] = useState(false);
   const [currentPoolImage, setCurrentPoolImage] = useState(spa.image);
   const [isEditable, setIsEditable] = useState(isAdmin);
   const [extras, setExtras] = useState<PoolExtras>({
@@ -729,11 +731,24 @@ const SpaProductCard = ({
           </Button>
           
           <StripeCheckoutButton productId={`spa_${spa.model.replace(/\s+/g, '_')}`} productName={`${spa.model} Spa`} price={calculateTotalPrice()} size="sm" className="w-full text-xs" />
+          
+          <Button onClick={() => setShowQuoteTool(true)} variant="secondary" className="w-full gap-2" size="sm">
+            <FileText className="h-4 w-4" />
+            Instant Quote
+          </Button>
         </div>
       </CardContent>
       
       {/* Image Editor Modal */}
       {showImageEditor && <ImageEditor isOpen={showImageEditor} onClose={() => setShowImageEditor(false)} onImageSave={handleImageSave} currentImage={currentPoolImage} />}
+      
+      {/* Quote Tool Modal */}
+      <SurveyQuoteTool 
+        pool={spa} 
+        isOpen={showQuoteTool} 
+        onClose={() => setShowQuoteTool(false)}
+        extras={extras}
+      />
     </Card>;
 };
 export default SpaProductCard;

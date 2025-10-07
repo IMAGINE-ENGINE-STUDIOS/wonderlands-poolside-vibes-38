@@ -18,8 +18,10 @@ import {
   Zap,
   ShoppingCart,
   Clock,
-  Award
+  Award,
+  FileText
 } from "lucide-react";
+import SurveyQuoteTool from "./SurveyQuoteTool";
 import { useShoppingCart } from "@/components/ShoppingCart";
 import { useToast } from "@/hooks/use-toast";
 
@@ -66,6 +68,7 @@ interface GilmerExtras {
 const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
   const { addToCart } = useShoppingCart();
   const { toast } = useToast();
+  const [showQuoteTool, setShowQuoteTool] = useState(false);
   
   const [extras, setExtras] = useState<GilmerExtras>({
     colorFinish: 'Ocean Blue',
@@ -574,17 +577,40 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
         <Separator />
 
         {/* Add to Cart Button */}
-        <div className="flex justify-center">
+        <div className="flex flex-col gap-2">
           <Button 
             onClick={handleAddToCart}
             size="lg"
-            className="w-full md:w-auto flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+            className="w-full flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
           >
             <ShoppingCart className="h-5 w-5" />
             Add to Cart - ${(pool.price + calculateExtrasTotal()).toLocaleString()}
           </Button>
+          
+          <Button 
+            onClick={() => setShowQuoteTool(true)} 
+            variant="secondary" 
+            size="lg"
+            className="w-full gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            Create Instant Quote
+          </Button>
         </div>
       </CardContent>
+      
+      <SurveyQuoteTool
+        pool={{
+          model: pool.model,
+          price: pool.price,
+          category: 'premium',
+          dimensions: pool.dimensions,
+          depth: pool.depth,
+          image: pool.image
+        }}
+        isOpen={showQuoteTool}
+        onClose={() => setShowQuoteTool(false)}
+      />
     </Card>
   );
 };

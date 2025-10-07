@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { toast } from "sonner";
+import SurveyQuoteTool from "./SurveyQuoteTool";
+import { FileText } from "lucide-react";
 
 interface DrivewayGateProps {
   model: string;
@@ -25,6 +27,7 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [selectedSize, setSelectedSize] = useState(gate.sizes[1]); // Default to 14ft
   const [includeOpener, setIncludeOpener] = useState(false);
+  const [showQuoteTool, setShowQuoteTool] = useState(false);
   const { addToCart } = useShoppingCart();
 
   const totalPrice = selectedSize.price + (includeOpener ? gate.addons[0].price : 0);
@@ -80,19 +83,29 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
           </div>
         </CardContent>
 
-        <CardFooter className="p-6 pt-0 gap-2">
+        <CardFooter className="p-6 pt-0 gap-2 flex-col">
+          <div className="flex gap-2 w-full">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setShowDetails(true)}
+            >
+              View Details
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={() => setShowDetails(true)}
+            >
+              Configure & Order
+            </Button>
+          </div>
           <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => setShowDetails(true)}
+            variant="secondary"
+            className="w-full gap-2"
+            onClick={() => setShowQuoteTool(true)}
           >
-            View Details
-          </Button>
-          <Button
-            className="flex-1"
-            onClick={() => setShowDetails(true)}
-          >
-            Configure & Order
+            <FileText className="h-4 w-4" />
+            Create Instant Quote
           </Button>
         </CardFooter>
       </Card>
@@ -190,6 +203,18 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <SurveyQuoteTool
+        pool={null}
+        isOpen={showQuoteTool}
+        onClose={() => setShowQuoteTool(false)}
+        customProduct={{
+          name: `${gate.model} - ${selectedSize.dimensions}${includeOpener ? ' with Automatic Opener' : ''}`,
+          price: totalPrice,
+          type: 'Driveway Gate',
+          image: gate.image
+        }}
+      />
     </>
   );
 };

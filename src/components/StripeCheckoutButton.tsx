@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { CreditCard, Calculator, DollarSign } from 'lucide-react';
+import { CreditCard, Calculator, DollarSign, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import SurveyQuoteTool from './SurveyQuoteTool';
 interface StripeCheckoutButtonProps {
   productId: string;
   productName: string;
@@ -27,6 +28,7 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isFinancingLoading, setIsFinancingLoading] = useState(false);
+  const [showQuoteTool, setShowQuoteTool] = useState(false);
   const {
     toast
   } = useToast();
@@ -100,11 +102,53 @@ const StripeCheckoutButton: React.FC<StripeCheckoutButtonProps> = ({
   const totalAmount = price * quantity;
   const monthlyPayment = calculateMonthlyPayment(totalAmount);
 
+  // Prepare cart items data for quote
+  const quoteCartItems = cartItems || [{
+    name: productName,
+    price: price,
+    quantity: quantity
+  }];
+
   // Show both Stripe checkout and Lyon Financial options
-  return <div className="flex flex-col gap-2 w-full">
-      
-      
-      {showFinancingOptions}
-    </div>;
+  return <>
+      <div className="flex flex-col gap-2 w-full">
+        <Button onClick={handleCheckout} disabled={isLoading} variant={variant} size={size} className={`${className} gap-2`}>
+          {isLoading ? <>
+              <Calculator className="h-4 w-4 animate-spin" />
+              Processing...
+            </> : <>
+              <CreditCard className="h-4 w-4" />
+              Checkout ${totalAmount.toLocaleString()}
+            </>}
+        </Button>
+
+        {showFinancingOptions && <div className="space-y-2">
+            <Button onClick={handleFinancing} disabled={isFinancingLoading} variant="outline" size={size} className={`${className} gap-2 w-full`}>
+              {isFinancingLoading ? <>
+                  <Calculator className="h-4 w-4 animate-spin" />
+                  Opening...
+                </> : <>
+                  <DollarSign className="h-4 w-4" />
+                  Finance from ${Math.round(monthlyPayment)}/mo
+                </>}
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              60 months @ 7.99% APR*
+            </p>
+          </div>}
+
+        <Button onClick={() => setShowQuoteTool(true)} variant="secondary" size={size} className={`${className} gap-2 w-full`}>
+          <FileText className="h-4 w-4" />
+          Create Instant Quote
+        </Button>
+      </div>
+
+      <SurveyQuoteTool pool={null} isOpen={showQuoteTool} onClose={() => setShowQuoteTool(false)} customProduct={{
+      name: cartItems ? `Cart Items (${cartItems.length})` : productName,
+      price: totalAmount,
+      type: 'product',
+      image: undefined
+    }} />
+    </>;
 };
 export default StripeCheckoutButton;

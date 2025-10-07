@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import ProductOptionsManager, { ProductCategory } from './ProductOptionsManager';
-import { Edit, ShoppingCart, DollarSign, Waves, Eye } from 'lucide-react';
+import { Edit, ShoppingCart, DollarSign, Waves, Eye, ExternalLink, FileText } from 'lucide-react';
 import { useShoppingCart } from './ShoppingCart';
+import SurveyQuoteTool from './SurveyQuoteTool';
 
 interface SmartProductCardProps {
   id: string;
@@ -85,6 +86,7 @@ const SmartProductCard = ({
   onEdit 
 }: SmartProductCardProps) => {
   const [showOptions, setShowOptions] = useState(false);
+  const [showQuoteTool, setShowQuoteTool] = useState(false);
   const [primaryOptions, setPrimaryOptions] = useState<any>({});
   const [screenOptions, setScreenOptions] = useState<any | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<any>({});
@@ -245,24 +247,33 @@ const SmartProductCard = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2 pt-2 flex-wrap">
             <Button 
               onClick={() => setShowOptions(true)}
               variant="outline"
-              className="flex-1"
+              className="flex-1 min-w-[120px]"
               size="sm"
             >
-              <Eye className="h-4 w-4 mr-1" />
+              <ExternalLink className="h-4 w-4 mr-1" />
               Visualizer
             </Button>
             <Button 
               onClick={handleAddToCart}
               variant="default"
-              className="flex-1"
+              className="flex-1 min-w-[120px]"
               size="sm"
             >
               <ShoppingCart className="h-4 w-4 mr-1" />
               Add to Cart
+            </Button>
+            <Button 
+              onClick={() => setShowQuoteTool(true)}
+              variant="secondary"
+              className="w-full gap-2"
+              size="sm"
+            >
+              <FileText className="h-4 w-4" />
+              Instant Quote
             </Button>
           </div>
         </CardContent>
@@ -343,6 +354,18 @@ const SmartProductCard = ({
           </div>
         </DialogContent>
       </Dialog>
+      
+      <SurveyQuoteTool
+        pool={null}
+        isOpen={showQuoteTool}
+        onClose={() => setShowQuoteTool(false)}
+        customProduct={{
+          name: name,
+          price: totalPrice,
+          type: category,
+          image: image
+        }}
+      />
     </>
   );
 };
