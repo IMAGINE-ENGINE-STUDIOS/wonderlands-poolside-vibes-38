@@ -25,7 +25,9 @@ interface DrivewayGateProps {
 
 const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
   const [showDetails, setShowDetails] = useState(false);
-  const [selectedSize, setSelectedSize] = useState(gate.sizes[1]); // Default to 14ft
+  // Set initial selected size to match the card's base size
+  const initialSize = gate.sizes.find(s => s.dimensions === gate.baseDimensions) || gate.sizes[0];
+  const [selectedSize, setSelectedSize] = useState(initialSize);
   const [includeOpener, setIncludeOpener] = useState(false);
   const [showQuoteTool, setShowQuoteTool] = useState(false);
   const { addToCart } = useShoppingCart();
@@ -68,8 +70,8 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
         <CardContent className="p-6">
           <div className="space-y-2">
             <h3 className="text-xl font-semibold">{gate.model}</h3>
-            <p className="text-sm text-muted-foreground">
-              Base Size: {gate.baseDimensions}
+            <p className="text-sm text-muted-foreground font-medium">
+              {gate.baseDimensions}
             </p>
             <p className="text-sm line-clamp-2">{gate.description}</p>
             <div className="flex items-baseline gap-2 pt-2">
