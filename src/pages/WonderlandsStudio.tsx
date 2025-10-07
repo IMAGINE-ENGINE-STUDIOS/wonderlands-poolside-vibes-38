@@ -16,6 +16,7 @@ import { spas, pools } from "@/components/PoolCatalog";
 import { gilmerPools } from "@/data/gilmerPools";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
 import { paverTypes } from "@/data/paverData";
+import { saunas } from "@/data/saunaData";
 import { poolFinishes as poolFinishesData, poolLiners as poolLinersData, poolTiles as poolTilesData, tanningLedges as tanningLedgesData } from "@/data/consolidatedProducts";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,7 +42,7 @@ interface Product {
   warrantyYears?: number | string;
   saltSystem?: boolean;
   carbonFiber?: boolean;
-  type?: 'pool' | 'spa' | 'tanning-ledge' | 'scene';
+  type?: 'pool' | 'spa' | 'tanning-ledge' | 'sauna' | 'scene';
   id?: string;
   description?: string;
 }
@@ -249,7 +250,7 @@ const WonderlandsStudio = () => {
   const {
     toast
   } = useToast();
-  const [activeTab, setActiveTab] = useState<'pools' | 'spas' | 'tanning-ledges' | 'scenes'>('pools');
+  const [activeTab, setActiveTab] = useState<'pools' | 'spas' | 'tanning-ledges' | 'saunas' | 'scenes'>('pools');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -488,6 +489,14 @@ const WonderlandsStudio = () => {
           type: 'tanning-ledge' as const,
           model: ledge.name,
           category: 'premium'
+        }));
+        break;
+      case 'saunas':
+        products = saunas.map(sauna => ({
+          ...sauna,
+          type: 'sauna' as const,
+          model: sauna.model,
+          name: sauna.name
         }));
         break;
       case 'scenes':
@@ -890,6 +899,10 @@ const WonderlandsStudio = () => {
                       <TabsTrigger value="tanning-ledges" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                         <Sun className="h-4 w-4 mr-2" />
                         Tanning Ledges
+                      </TabsTrigger>
+                      <TabsTrigger value="saunas" className="justify-start data-[state=active]:bg-amber-600 data-[state=active]:text-white">
+                        <Thermometer className="h-4 w-4 mr-2" />
+                        Saunas
                       </TabsTrigger>
                     </TabsList>
 
