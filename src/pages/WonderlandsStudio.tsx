@@ -31,6 +31,7 @@ import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 import ProductMediaGallery, { MediaItem } from '@/components/ProductMediaGallery';
+import { getProductFeatures, getDefaultExtras, type ProductType } from '@/config/productFeatures';
 
 interface Product {
   model?: string;
@@ -91,9 +92,26 @@ interface ProductExtras {
   extrasTotal?: number;
 }
 
+/**
+ * Universal Product Features System
+ * 
+ * This system uses centralized feature configuration from src/config/productFeatures.ts
+ * to ensure consistency across all product types and prevent feature mismatches.
+ * 
+ * Product Type Features:
+ * - POOLS: Finish, Liner, Tiles, Heater, Cover, Jets, Spa, Tanning Ledge, Pavers, Screen Enclosure, Concrete Construction
+ * - SPAS: Finish, Waterline, Tiles, Heater, Jets, Pavers
+ * - SAUNAS: Add a Spa (with Spa Heater + Waterline sub-options), Deck Pavers, Screen Enclosure
+ * - TANNING LEDGES: Finish, Heater, Jets, Pavers
+ * 
+ * IMPORTANT: When adding new categories, update src/config/productFeatures.ts
+ * The centralized config ensures type safety and prevents mismatched features.
+ */
+
 // Helper function to get pool price with 10% discount applied (matching main page)
 const getProductPrice = (product: Product) => {
   // Apply 10% discount to all pools to match main page pricing
+  // SAUNAS, SPAS, AND TANNING LEDGES DO NOT GET POOL DISCOUNT
   if (product.type === 'pool') {
     return Math.round(product.price * 0.90); // 10% discount for all pools
   }
@@ -369,10 +387,21 @@ const WonderlandsStudio = () => {
 
       // If not found in our data, create from URL params and use category to determine type
       if (!foundProduct) {
-        const productType = category === 'Sauna' ? 'sauna' : 
-                           category === 'Spa' ? 'spa' : 
-                           category === 'Tanning Ledge' ? 'tanning-ledge' : 
-                           'pool';
+        // Determine product type from category parameter
+        let productType: 'pool' | 'spa' | 'tanning-ledge' | 'sauna' = 'pool';
+        
+        if (category) {
+          const categoryLower = category.toLowerCase();
+          if (categoryLower.includes('sauna') || categoryLower === 'sauna') {
+            productType = 'sauna';
+          } else if (categoryLower.includes('spa') || categoryLower === 'spa') {
+            productType = 'spa';
+          } else if (categoryLower.includes('tanning') || categoryLower.includes('ledge')) {
+            productType = 'tanning-ledge';
+          } else {
+            productType = 'pool';
+          }
+        }
         
         foundProduct = {
           model: model,
@@ -380,17 +409,22 @@ const WonderlandsStudio = () => {
           category: category || 'standard',
           image: image ? decodeURIComponent(image) : undefined,
           dimensions: dimensions ? decodeURIComponent(dimensions) : undefined,
-          type: productType as 'pool' | 'spa' | 'tanning-ledge' | 'sauna'
+          type: productType
         };
         
-        if (productType === 'sauna') {
-          setActiveTab('saunas');
-        } else if (productType === 'spa') {
-          setActiveTab('spas');
-        } else if (productType === 'tanning-ledge') {
-          setActiveTab('tanning-ledges');
-        } else {
-          setActiveTab('pools');
+        // Set the correct tab based on product type
+        switch (productType) {
+          case 'sauna':
+            setActiveTab('saunas');
+            break;
+          case 'spa':
+            setActiveTab('spas');
+            break;
+          case 'tanning-ledge':
+            setActiveTab('tanning-ledges');
+            break;
+          default:
+            setActiveTab('pools');
         }
       }
       setSelectedProduct(foundProduct);
