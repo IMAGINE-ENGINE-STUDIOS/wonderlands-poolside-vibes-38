@@ -2,7 +2,6 @@ import { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Grid, PerspectiveCamera, Line } from '@react-three/drei';
 import * as THREE from 'three';
-import { SUBTRACTION, Brush, Evaluator } from 'three-bvh-csg';
 
 interface Point {
   x: number;
@@ -327,7 +326,7 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape, linerTextureUrl }: Po
 // Deck component with proper thickness, texture, and CSG hole cutting
 const DeckMesh = ({ 
   hardscapePoints, 
-  poolPoints,
+  poolPoints, 
   poolCenterX, 
   poolCenterY, 
   scale,
@@ -343,7 +342,6 @@ const DeckMesh = ({
   features?: PoolFeature[]
 }) => {
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
-  const evaluator = useMemo(() => new Evaluator(), []);
   
   useEffect(() => {
     if (paverTextureUrl) {
@@ -377,7 +375,37 @@ const DeckMesh = ({
     });
     deckShape.closePath();
     
-    // Create extruded deck geometry
+    // Add pool hole as a hole in the deck shape
+    if (poolPoints.length >= 3) {
+      const poolHole = new THREE.Path();
+      poolPoints.forEach((p, i) => {
+        const x = (p.x - poolCenterX) / scale;
+        const z = (p.y - poolCenterY) / scale;
+        
+        if (i === 0) {
+          poolHole.moveTo(x, z);
+        } else {
+          poolHole.lineTo(x, z);
+        }
+      });
+      poolHole.closePath();
+      deckShape.holes.push(poolHole);
+    }
+    
+    // Add feature holes
+    features.forEach(feature => {
+      if (feature.type === 'fountain' || feature.type === 'light') {
+        const featureX = (feature.x - poolCenterX) / scale;
+        const featureZ = (feature.y - poolCenterY) / scale;
+        const holeRadius = feature.type === 'fountain' ? 0.8 : 0.4;
+        
+        const featureHole = new THREE.Path();
+        featureHole.absarc(featureX, featureZ, holeRadius, 0, Math.PI * 2, false);
+        deckShape.holes.push(featureHole);
+      }
+    });
+    
+    // Create extruded deck geometry with holes
     const extrudeSettings = {
       depth: deckThickness,
       bevelEnabled: false
@@ -389,81 +417,8 @@ const DeckMesh = ({
     deckGeometry.rotateX(-Math.PI / 2);
     deckGeometry.translate(0, deckY, 0);
     
-    // Create deck brush for CSG
-    const deckBrush = new Brush(deckGeometry);
-    deckBrush.updateMatrixWorld();
-    
-    // Create pool hole shape
-    if (poolPoints.length >= 3) {
-      const poolShape = new THREE.Shape();
-      poolPoints.forEach((p, i) => {
-        const x = (p.x - poolCenterX) / scale;
-        const z = (p.y - poolCenterY) / scale;
-        
-        if (i === 0) {
-          poolShape.moveTo(x, z);
-        } else {
-          poolShape.lineTo(x, z);
-        }
-      });
-      poolShape.closePath();
-      
-      // Extrude pool hole slightly taller than deck to ensure clean cut
-      const poolHoleGeometry = new THREE.ExtrudeGeometry(poolShape, {
-        depth: deckThickness + 0.2,
-        bevelEnabled: false
-      });
-      
-      poolHoleGeometry.rotateX(-Math.PI / 2);
-      poolHoleGeometry.translate(0, deckY - 0.1, 0);
-      
-      const poolBrush = new Brush(poolHoleGeometry);
-      poolBrush.updateMatrixWorld();
-      
-      // Subtract pool from deck
-      const resultWithPool = evaluator.evaluate(deckBrush, poolBrush, SUBTRACTION);
-      deckBrush.geometry.dispose();
-      poolBrush.geometry.dispose();
-      
-      // Update deckBrush with the result
-      deckBrush.geometry = resultWithPool.geometry;
-      deckBrush.updateMatrixWorld();
-    }
-    
-    // Cut holes for features (spas, water features, etc.)
-    features.forEach(feature => {
-      // Only cut holes for features that should intersect the deck
-      if (feature.type === 'fountain' || feature.type === 'light') {
-        const featureX = (feature.x - poolCenterX) / scale;
-        const featureZ = (feature.y - poolCenterY) / scale;
-        const holeRadius = feature.type === 'fountain' ? 0.8 : 0.4;
-        
-        // Create circular hole
-        const holeShape = new THREE.Shape();
-        holeShape.absarc(featureX, featureZ, holeRadius, 0, Math.PI * 2, false);
-        
-        const holeGeometry = new THREE.ExtrudeGeometry(holeShape, {
-          depth: deckThickness + 0.2,
-          bevelEnabled: false
-        });
-        
-        holeGeometry.rotateX(-Math.PI / 2);
-        holeGeometry.translate(0, deckY - 0.1, 0);
-        
-        const holeBrush = new Brush(holeGeometry);
-        holeBrush.updateMatrixWorld();
-        
-        const resultWithHole = evaluator.evaluate(deckBrush, holeBrush, SUBTRACTION);
-        deckBrush.geometry.dispose();
-        holeBrush.geometry.dispose();
-        
-        deckBrush.geometry = resultWithHole.geometry;
-        deckBrush.updateMatrixWorld();
-      }
-    });
-    
-    return deckBrush.geometry;
-  }, [hardscapePoints, poolPoints, poolCenterX, poolCenterY, scale, features, evaluator]);
+    return deckGeometry;
+  }, [hardscapePoints, poolPoints, poolCenterX, poolCenterY, scale, features]);
 
   if (!deckWithHoles) return null;
 
