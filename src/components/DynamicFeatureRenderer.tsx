@@ -55,21 +55,30 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox
-                  checked={selectedExtras[feature.id] !== undefined && selectedExtras[feature.id] !== 'None'}
+                  checked={selectedExtras[feature.id] !== undefined && selectedExtras[feature.id] !== 'None' && selectedExtras[feature.id] !== ''}
                   onCheckedChange={(checked) => {
-                    const newExtras = {
-                      ...selectedExtras,
-                      [feature.id]: checked ? '' : 'None'
-                    };
-                    onExtrasChange(newExtras);
                     if (checked) {
+                      // Open carousel to let user select an option
                       setActiveFeatureCarousel(feature.id);
+                      // Set to first valid option if available
+                      const firstOption = feature.options?.find(opt => opt.name !== 'None');
+                      const newExtras = {
+                        ...selectedExtras,
+                        [feature.id]: firstOption?.name || ''
+                      };
+                      onExtrasChange(newExtras);
                     } else {
+                      // Uncheck - set back to None
+                      const newExtras = {
+                        ...selectedExtras,
+                        [feature.id]: 'None'
+                      };
+                      onExtrasChange(newExtras);
                       setActiveFeatureCarousel(null);
                     }
                   }}
                 />
-                {selectedExtras[feature.id] && selectedExtras[feature.id] !== 'None' && (
+                {selectedExtras[feature.id] && selectedExtras[feature.id] !== 'None' && selectedExtras[feature.id] !== '' && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -83,7 +92,7 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
                 )}
               </div>
             </div>
-            {selectedExtras[feature.id] && selectedExtras[feature.id] !== 'None' && activeFeatureCarousel === feature.id && feature.options && (
+            {selectedExtras[feature.id] && selectedExtras[feature.id] !== 'None' && selectedExtras[feature.id] !== '' && activeFeatureCarousel === feature.id && feature.options && (
               <div className="mb-4 border rounded-lg p-2 bg-background overflow-hidden w-full">
                 <Carousel className="w-full">
                   <CarouselContent className="h-20 sm:h-24">

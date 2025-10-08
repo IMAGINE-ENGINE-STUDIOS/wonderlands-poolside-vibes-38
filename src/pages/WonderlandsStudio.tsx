@@ -285,7 +285,7 @@ const WonderlandsStudio = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showQuoteModal, setShowQuoteModal] = useState(false);
-  const [selectedExtras, setSelectedExtras] = useState<ProductExtras>({
+  const [selectedExtras, setSelectedExtras] = useState<any>({
     liner: false,
     heater: false,
     cover: false,
@@ -965,6 +965,11 @@ const WonderlandsStudio = () => {
                     <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
                       {getFilteredProducts().map((product, index) => <div key={index} className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${selectedProduct?.model === product.model || selectedProduct?.name === product.name ? 'border-primary bg-primary/10 shadow-sm' : 'border-border hover:border-primary/50'}`} onClick={() => {
                     setSelectedProduct(product);
+                    // Reset extras to default for this product type
+                    if (product.type) {
+                      const defaultExtras = getDefaultExtras(product.type as ProductType);
+                      setSelectedExtras(defaultExtras);
+                    }
                     setLeftSidebarCollapsed(true);
                   }}>
                           <div className="flex items-center gap-3">
