@@ -374,7 +374,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   };
 
   // Calculate hardscape area
-  const calculateHardscapeArea = () => {
+  const calculateHardscapeArea = useCallback(() => {
     if (hardscapePoints.length < 3) return 0;
     let area = 0;
     for (let i = 0; i < hardscapePoints.length; i++) {
@@ -386,7 +386,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const hardscapeAreaSqFt = sqPixels / (scale * scale);
     const poolAreaSqFt = parseFloat(calculateArea());
     return Math.max(0, hardscapeAreaSqFt - poolAreaSqFt);
-  };
+  }, [hardscapePoints, scale, points]);
 
   // Find nearest point on pool perimeter
   const findNearestWallPoint = (x: number, y: number) => {
