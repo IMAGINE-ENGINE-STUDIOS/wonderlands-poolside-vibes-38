@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -1176,17 +1176,23 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.restore();
     }
 
-    // Notify parent of changes only when pool structure changes
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, lightHue, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, waterAnimationTime]);
+
+  // Memoize perimeter and area calculations
+  const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
+  const poolArea = useMemo(() => parseFloat(calculateArea()), [points]);
+
+  // Notify parent of pool data changes (separate from drawing)
+  useEffect(() => {
     if (onPoolDataChange) {
       onPoolDataChange({
         points,
         features,
-        perimeter: parseFloat(calculatePerimeter()),
-        area: parseFloat(calculateArea())
+        perimeter: poolPerimeter,
+        area: poolArea
       });
     }
-    
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, lightHue, selectedPaverId, selectedCopingId, selectedFinishId, poolShape]);
+  }, [points, features, poolPerimeter, poolArea, onPoolDataChange]);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
