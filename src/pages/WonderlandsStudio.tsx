@@ -1571,8 +1571,13 @@ const WonderlandsStudio = () => {
                       )}
                       
                       <div className="text-center p-3 sm:p-4 bg-gradient-to-r from-primary/10 to-teal/10 rounded-lg">
-                        <div className="text-xl sm:text-2xl font-bold text-primary">
-                          ${poolBuilderData.breakdown?.total.toLocaleString()}
+                        <div className="text-xl sm:text-2xl font-bold">
+                          <span className="text-primary">
+                            ${Math.floor(poolBuilderData.breakdown?.total || 0).toLocaleString()}
+                          </span>
+                          <span className="text-black">
+                            {((poolBuilderData.breakdown?.total || 0) % 1).toFixed(2).substring(1)}
+                          </span>
                         </div>
                         <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                           Total Configuration Price
@@ -1607,8 +1612,13 @@ const WonderlandsStudio = () => {
                       </div>
                       
                       <div className="text-center p-3 sm:p-4 bg-gradient-to-r from-primary/10 to-teal/10 rounded-lg">
-                        <div className="text-xl sm:text-2xl font-bold text-primary">
-                          ${calculateTotalPrice().toLocaleString()}
+                        <div className="text-xl sm:text-2xl font-bold">
+                          <span className="text-primary">
+                            ${Math.floor(calculateTotalPrice()).toLocaleString()}
+                          </span>
+                          <span className="text-black">
+                            {(calculateTotalPrice() % 1).toFixed(2).substring(1)}
+                          </span>
                         </div>
                         <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                           Total Configuration Price
