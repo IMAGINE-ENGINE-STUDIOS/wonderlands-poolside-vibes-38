@@ -1015,20 +1015,10 @@ const WonderlandsStudio = () => {
           {/* Main Content - Product Details & Configuration */}
           <div className="flex-1 min-w-0">
             {activeTab === 'build-a-pool' ? (
-              <div className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Build Your Custom Pool</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Design your perfect pool shape by dragging points and adding features
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <PoolBuilder onPoolDataChange={(data) => {
-                      setPoolBuilderData(data as any);
-                    }} />
-                  </CardContent>
-                </Card>
+              <div className="fixed inset-0 z-50 bg-background">
+                <PoolBuilder onPoolDataChange={(data) => {
+                  setPoolBuilderData(data as any);
+                }} />
               </div>
             ) : selectedProduct ? <div className="space-y-4 sm:space-y-6">
                 {/* Large Product Media Gallery */}

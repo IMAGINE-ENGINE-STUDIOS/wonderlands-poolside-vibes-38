@@ -136,8 +136,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [scale, setScale] = useState(10); // pixels per foot - reduced for larger canvas
   const [canvasSize, setCanvasSize] = useState({ 
-    width: window.innerWidth - 100, 
-    height: window.innerHeight - 150 
+    width: window.innerWidth - 20, 
+    height: window.innerHeight - 100 
   });
   const [showControls, setShowControls] = useState(true);
   const [editingDimension, setEditingDimension] = useState<string | null>(null);
@@ -259,8 +259,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   // Update canvas size to maximize screen space
   useEffect(() => {
     const updateCanvasSize = () => {
-      const width = window.innerWidth - 100;
-      const height = window.innerHeight - 150;
+      const width = window.innerWidth - 20;
+      const height = window.innerHeight - 100;
       setCanvasSize({ width, height });
     };
 
@@ -2412,8 +2412,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           />
         </div>
 
-        {/* Legend Panel */}
-        <Card className="w-64 h-fit max-h-[calc(100vh-200px)] overflow-y-auto">
+        {/* Legend Panel - Floating */}
+        <Card className="absolute top-4 right-4 w-64 h-fit max-h-[calc(100vh-120px)] overflow-y-auto shadow-lg z-10">
           <div className="p-4 border-b bg-muted/30">
             <h3 className="font-semibold text-sm uppercase tracking-wide">Legend</h3>
           </div>
