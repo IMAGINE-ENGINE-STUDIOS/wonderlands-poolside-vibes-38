@@ -34,6 +34,8 @@ import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 import ProductMediaGallery, { MediaItem } from '@/components/ProductMediaGallery';
 import { getProductFeatures, getDefaultExtras, calculateFeaturePrice, type ProductType } from '@/config/productFeatures';
+import { ProductViewer3D } from '@/components/ProductViewer3D';
+import { Box } from 'lucide-react';
 
 interface Product {
   model?: string;
@@ -339,6 +341,7 @@ const WonderlandsStudio = () => {
   const [showExtrasDropdown, setShowExtrasDropdown] = useState(false);
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
   const [activeFeatureCarousel, setActiveFeatureCarousel] = useState<string | null>(null);
+  const [show3DView, setShow3DView] = useState(false);
 
   // Handle URL parameters for product search integration
   useEffect(() => {
@@ -1024,8 +1027,42 @@ const WonderlandsStudio = () => {
                 {/* Large Product Media Gallery */}
                 <Card>
                   <CardContent className="p-3 sm:p-6">
+                    {/* 3D/2D View Toggle */}
+                    {(selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && (
+                      <div className="flex justify-end mb-3">
+                        <div className="inline-flex rounded-lg border border-border p-1 bg-muted/50">
+                          <Button
+                            variant={!show3DView ? "secondary" : "ghost"}
+                            size="sm"
+                            onClick={() => setShow3DView(false)}
+                            className="h-7 text-xs"
+                          >
+                            <Camera className="h-3 w-3 mr-1" />
+                            2D View
+                          </Button>
+                          <Button
+                            variant={show3DView ? "secondary" : "ghost"}
+                            size="sm"
+                            onClick={() => setShow3DView(true)}
+                            className="h-7 text-xs"
+                          >
+                            <Box className="h-3 w-3 mr-1" />
+                            3D View
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
-                      {(selectedProduct.media || selectedProduct.image) ? (
+                      {show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') ? (
+                        <ProductViewer3D
+                          product={selectedProduct}
+                          selectedExtras={selectedExtras}
+                          paverTypes={paverTypes}
+                          finishOptions={finishOptions}
+                          linerOptions={linerOptions}
+                        />
+                      ) : (selectedProduct.media || selectedProduct.image) ? (
                         <ProductMediaGallery 
                           media={selectedProduct.media || selectedProduct.image || ''} 
                           productName={selectedProduct.model || selectedProduct.name || 'Product'}
