@@ -131,11 +131,14 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   };
 
   // Generate hardscape points that follow pool outline with offset on ALL sides
-  // Offset should include coping thickness + deck distance
+  // Offset should start from the OUTER edge of coping + deck distance
   const generateHardscapeFromPool = (poolPoints: Point[], deckDistanceInFeet: number = 3): HardscapePoint[] => {
-    // Total offset = coping thickness + deck distance (both in feet, then convert to pixels)
-    const copingThicknessFeet = copingThickness / scale; // Convert pixels back to feet
-    const totalOffsetFeet = copingThicknessFeet + deckDistanceInFeet;
+    // Calculate coping outer edge offset
+    // Coping is drawn with lineWidth = paverSizeInPixels, so outer edge is paverSizeInPixels/2 from pool edge
+    const paverSizeInFeet = paverSize / 12;
+    const copingHalfWidthFeet = paverSizeInFeet / 2;
+    // Total offset = coping half-width (to outer edge) + deck distance
+    const totalOffsetFeet = copingHalfWidthFeet + deckDistanceInFeet;
     const offsetPixels = totalOffsetFeet * scale;
     const hardscapePoints: HardscapePoint[] = [];
     
@@ -445,9 +448,10 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
 
     // Draw hardscape/paver deck with custom shape
-
+    // Apply zoom level to texture detail
+    const effectiveScale = scale * zoomLevel;
     const paverSizeInFeet = paverSize / 12;
-    const paverSizeInPixels = paverSizeInFeet * scale;
+    const paverSizeInPixels = paverSizeInFeet * effectiveScale;
 
     // Draw hardscape deck area with editable corners (squared or smooth)
     if (paverTextureRef.current && hardscapePoints.length >= 3) {
@@ -1603,7 +1607,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.restore();
     }
 
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel]);
 
   // Memoize perimeter and area calculations
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
