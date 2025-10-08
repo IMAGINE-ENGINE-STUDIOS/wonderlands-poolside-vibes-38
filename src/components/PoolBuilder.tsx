@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler } from 'lucide-react';
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
+import { paverTypes } from '@/data/paverData';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Point {
   x: number;
@@ -39,16 +41,16 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const paverTextureRef = useRef<HTMLImageElement | null>(null);
   const linerTextureRef = useRef<HTMLImageElement | null>(null);
   const [points, setPoints] = useState<Point[]>([
-    { x: 100, y: 100, id: '1' },
-    { x: 300, y: 100, id: '2' },
-    { x: 300, y: 250, id: '3' },
-    { x: 100, y: 250, id: '4' },
+    { x: 250, y: 150, id: '1' },
+    { x: 450, y: 150, id: '2' },
+    { x: 450, y: 300, id: '3' },
+    { x: 250, y: 300, id: '4' },
   ]);
   const [features, setFeatures] = useState<PoolFeature[]>([]);
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [scale, setScale] = useState(10); // pixels per foot
-  const [canvasSize, setCanvasSize] = useState({ width: 600, height: 400 });
+  const [canvasSize, setCanvasSize] = useState({ width: 700, height: 500 });
   const [editingDimension, setEditingDimension] = useState<string | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<string | null>(null);
   const [pendingFeature, setPendingFeature] = useState<'jet' | null>(null);
@@ -56,21 +58,18 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
   const [draggingFeature, setDraggingFeature] = useState(false);
   const [texturesLoaded, setTexturesLoaded] = useState(false);
+  const [selectedPaverId, setSelectedPaverId] = useState('appian-adobe');
+  const [paverSize] = useState(16); // Standard paver size in inches
 
   // Load textures
   useEffect(() => {
     const paverImg = new Image();
     const linerImg = new Image();
     
-    // Random paver from available options
-    const paverImages = [
-      '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
-      '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png',
-      '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png',
-    ];
-    const randomPaver = paverImages[Math.floor(Math.random() * paverImages.length)];
+    const selectedPaver = paverTypes.find(p => p.id === selectedPaverId);
+    const paverImage = selectedPaver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
     
-    paverImg.src = randomPaver;
+    paverImg.src = paverImage;
     linerImg.src = aquamarineFinish;
     
     let loadedCount = 0;
@@ -87,14 +86,14 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     linerImg.onload = checkLoaded;
     paverImg.onerror = checkLoaded;
     linerImg.onerror = checkLoaded;
-  }, []);
+  }, [selectedPaverId]);
 
   // Update canvas size based on container
   useEffect(() => {
     const updateCanvasSize = () => {
       if (containerRef.current) {
-        const width = Math.min(containerRef.current.offsetWidth - 32, 800);
-        const height = Math.min(width * 0.75, 500);
+        const width = Math.min(containerRef.current.offsetWidth - 32, 900);
+        const height = Math.min(width * 0.71, 600);
         setCanvasSize({ width, height });
       }
     };
@@ -187,12 +186,28 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     // Clear canvas
     ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
 
-    // Draw paver texture as background
+    // Calculate paver size in pixels (16 inches = 1.33 feet)
+    const paverSizeInFeet = paverSize / 12;
+    const paverSizeInPixels = paverSizeInFeet * scale;
+
+    // Draw paver texture as background at scale
     if (paverTextureRef.current) {
-      const pattern = ctx.createPattern(paverTextureRef.current, 'repeat');
-      if (pattern) {
-        ctx.fillStyle = pattern;
-        ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
+      const img = paverTextureRef.current;
+      
+      // Calculate how many pavers fit
+      const numPaversX = Math.ceil(canvasSize.width / paverSizeInPixels);
+      const numPaversY = Math.ceil(canvasSize.height / paverSizeInPixels);
+      
+      for (let i = 0; i <= numPaversX; i++) {
+        for (let j = 0; j <= numPaversY; j++) {
+          ctx.drawImage(
+            img,
+            i * paverSizeInPixels,
+            j * paverSizeInPixels,
+            paverSizeInPixels,
+            paverSizeInPixels
+          );
+        }
       }
     } else {
       // Fallback solid color
@@ -492,7 +507,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         area: parseFloat(calculateArea())
       });
     }
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize]);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -757,6 +772,42 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
             onMouseUp={handleCanvasMouseUp}
             onMouseLeave={handleCanvasMouseUp}
           />
+        </div>
+
+
+        {/* Paver Selector */}
+        <div className="mt-6 p-4 bg-muted/30 rounded-lg border">
+          <Label className="text-sm font-semibold mb-3 block">Deck Paver Selection</Label>
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="flex-1 w-full sm:w-auto">
+              <Select value={selectedPaverId} onValueChange={setSelectedPaverId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select paver type" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px] bg-background">
+                  {paverTypes.filter(p => p.category === 'paver').map((paver) => (
+                    <SelectItem key={paver.id} value={paver.id}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-6 h-6 rounded border border-border bg-cover bg-center"
+                          style={{ backgroundImage: `url(${paver.image})` }}
+                        />
+                        <span>{paver.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs">
+                {paverSize}" x {paverSize}" pavers
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                ${paverTypes.find(p => p.id === selectedPaverId)?.basePrice || 15}/sq ft
+              </Badge>
+            </div>
+          </div>
         </div>
 
         {/* Editable Dimensions */}
