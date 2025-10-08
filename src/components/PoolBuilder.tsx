@@ -1907,6 +1907,12 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
               <TabsTrigger value="features" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
                 Features
               </TabsTrigger>
+              <TabsTrigger value="shape" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
+                Shape
+              </TabsTrigger>
+              <TabsTrigger value="depth" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
+                Depth
+              </TabsTrigger>
               <TabsTrigger value="landscape" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
                 Landscape
               </TabsTrigger>
@@ -1915,6 +1921,60 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
             {/* Pool Design Tab */}
             <TabsContent value="pool" className="mt-0 p-3 space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Pool Corners</Label>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={addPoint} className="flex-1">
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Corner
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      onClick={removePoint} 
+                      variant="outline"
+                      disabled={!selectedPoint || points.length <= 3}
+                      className="flex-1"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Precision Tools</Label>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      onClick={() => setGridSnap(!gridSnap)}
+                      variant={gridSnap ? "default" : "outline"}
+                      className="flex-1"
+                    >
+                      <Ruler className="h-4 w-4 mr-1" />
+                      Grid Snap {gridSnap ? 'ON' : 'OFF'}
+                    </Button>
+                  </div>
+                </div>
+
+                {gridSnap && (
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs">Snap: {snapSize}"</Label>
+                    <Input
+                      type="number"
+                      value={snapSize}
+                      onChange={(e) => setSnapSize(Math.max(1, parseInt(e.target.value) || 6))}
+                      className="h-7 w-20"
+                      min="1"
+                      max="12"
+                    />
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Shape Tab */}
+            <TabsContent value="shape" className="mt-0 p-3 space-y-3">
+              <div className="space-y-3">
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">Pool Shape</Label>
                   <div className="flex gap-2">
@@ -1956,64 +2016,18 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                     </Button>
                   </div>
                 </div>
+              </div>
+            </TabsContent>
 
+            {/* Depth Tab */}
+            <TabsContent value="depth" className="mt-0 p-3 space-y-3">
+              <div className="space-y-3">
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">Pool Corners</Label>
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={addPoint} className="flex-1">
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Corner
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      onClick={removePoint} 
-                      variant="outline"
-                      disabled={!selectedPoint || points.length <= 3}
-                      className="flex-1"
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Remove
-                    </Button>
-                  </div>
+                  <Label className="text-xs font-medium">Depth Profile</Label>
+                  <p className="text-xs text-muted-foreground">Click on depth points in the pool to edit them</p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Precision Tools</Label>
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
-                      onClick={() => setGridSnap(!gridSnap)}
-                      variant={gridSnap ? "default" : "outline"}
-                      className="flex-1"
-                    >
-                      <Ruler className="h-4 w-4 mr-1" />
-                      Grid Snap {gridSnap ? 'ON' : 'OFF'}
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      onClick={() => setShowDepthEditor(!showDepthEditor)}
-                      variant={showDepthEditor ? "default" : "outline"}
-                      className="flex-1"
-                    >
-                      Depth Profile
-                    </Button>
-                  </div>
-                  {gridSnap && (
-                    <div className="flex items-center gap-2">
-                      <Label className="text-xs">Snap: {snapSize}"</Label>
-                      <Input
-                        type="number"
-                        value={snapSize}
-                        onChange={(e) => setSnapSize(Math.max(1, parseInt(e.target.value) || 6))}
-                        className="h-7 w-20"
-                        min="1"
-                        max="12"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {showDepthEditor && selectedDepthPoint && (
+                {selectedDepthPoint && (
                   <div className="p-3 bg-muted/50 rounded-lg space-y-2">
                     <Label className="text-xs font-medium">Depth Point Editor</Label>
                     {depthPoints.filter(dp => dp.id === selectedDepthPoint).map(dp => (
