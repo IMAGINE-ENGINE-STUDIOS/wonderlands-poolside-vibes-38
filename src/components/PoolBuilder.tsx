@@ -1887,19 +1887,113 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         </div>
       )}
 
-      {/* Canvas - Almost Full Screen */}
-      <div className="flex-1 flex items-center justify-center p-2 overflow-hidden">
-        <canvas
-          ref={canvasRef}
-          width={canvasSize.width}
-          height={canvasSize.height}
-          className="border border-border rounded-lg shadow-2xl touch-none bg-gradient-to-br from-amber-50 to-stone-100"
-          onClick={handleCanvasClick}
-          onMouseDown={handleCanvasMouseDown}
-          onMouseMove={handleCanvasMouseMove}
-          onMouseUp={handleCanvasMouseUp}
-          onMouseLeave={handleCanvasMouseUp}
-        />
+      {/* Canvas with Legend */}
+      <div className="flex-1 flex gap-4 p-4 overflow-hidden">
+        {/* Main Canvas */}
+        <div className="flex-1 flex items-center justify-center">
+          <canvas
+            ref={canvasRef}
+            width={canvasSize.width}
+            height={canvasSize.height}
+            onClick={handleCanvasClick}
+            onMouseDown={handleCanvasMouseDown}
+            onMouseMove={handleCanvasMouseMove}
+            onMouseUp={handleCanvasMouseUp}
+            onMouseLeave={handleCanvasMouseUp}
+            className="border-2 border-border rounded-lg shadow-2xl touch-none bg-gradient-to-br from-background to-muted/10"
+            style={{ cursor: pendingFeature === 'jet' ? 'crosshair' : 'default' }}
+          />
+        </div>
+
+        {/* Legend Panel */}
+        <Card className="w-64 h-fit max-h-[calc(100vh-200px)] overflow-y-auto">
+          <div className="p-4 border-b bg-muted/30">
+            <h3 className="font-semibold text-sm uppercase tracking-wide">Legend</h3>
+          </div>
+          <div className="p-4 space-y-4">
+            {/* Pool Elements */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase">Pool Elements</h4>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-sm bg-[#5BC5D9] border border-border" />
+                  <span>Pool Water</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-sm bg-[#8B7355] border border-border" />
+                  <span>Coping Edge</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Features */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase">Features</h4>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center gap-2">
+                  <Move className="h-4 w-4 text-primary" />
+                  <span>Pool Stairs</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4 text-yellow-500" />
+                  <span>LED Lighting</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Waves className="h-4 w-4 text-blue-500" />
+                  <span>Water Jets</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Droplets className="h-4 w-4 text-cyan-500" />
+                  <span>Fountain</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Hardscape */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase">Hardscape</h4>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-sm border border-border bg-gradient-to-br from-stone-300 to-stone-400" />
+                  <span>Paver Deck</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Landscape */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase">Landscape</h4>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-sm bg-[#4A7C3C] border border-border" />
+                  <span>Grass Area</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Trees className="h-4 w-4 text-green-700" />
+                  <span>Trees</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Home className="h-4 w-4 text-stone-600" />
+                  <span>Building</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Scale Info */}
+            <div className="pt-3 border-t space-y-1.5">
+              <div className="flex items-center gap-2 text-xs">
+                <Ruler className="h-4 w-4 text-muted-foreground" />
+                <span className="text-muted-foreground">Scale: {scale} px/ft</span>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Drag corners to reshape pool
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Drag features to reposition
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );
