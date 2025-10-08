@@ -603,24 +603,27 @@ export const getDefaultExtras = (productType: ProductType): any => {
         defaults[feature.id] = false;
         break;
       case 'selection':
-        defaults[feature.id] = false;
-        defaults[`${feature.id}Option`] = feature.options?.[0]?.name || '';
+        defaults[feature.id] = 'None';
         break;
       case 'quantity':
-        defaults[feature.id] = false;
-        defaults[`${feature.id}Quantity`] = 1;
+        defaults[feature.id] = 0;
         break;
       case 'area':
-        defaults[feature.id] = false;
-        defaults[`${feature.id}Area`] = 0;
-        defaults[`${feature.id}Option`] = feature.options?.[0]?.name || '';
+        defaults[feature.id] = 0;
         break;
       case 'nested':
         defaults[feature.id] = false;
-        defaults[`${feature.id}Model`] = feature.options?.[0]?.name || feature.options?.[0]?.model || '';
+        // Set sub-features to unselected by default
         feature.subFeatures?.forEach(subFeature => {
-          defaults[subFeature.id] = false;
-          defaults[`${subFeature.id}Model`] = subFeature.options?.[0]?.name || '';
+          if (subFeature.type === 'selection') {
+            defaults[subFeature.id] = 'None';
+          } else if (subFeature.type === 'quantity') {
+            defaults[subFeature.id] = 0;
+          } else if (subFeature.type === 'area') {
+            defaults[subFeature.id] = 0;
+          } else {
+            defaults[subFeature.id] = false;
+          }
         });
         break;
     }
