@@ -274,7 +274,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       // Generate hardscape deck that follows pool with default 3ft offset
       setHardscapePoints(generateHardscapeFromPool(initialPoolPoints, deckOffset));
       
-      // Add default decorations: trees, grass area, and fence
+      // Add default decorations: trees and grass area (NO default fence - user adds first anchor)
       const centerX = canvasSize.width / 2;
       const centerY = canvasSize.height / 2;
       
@@ -283,19 +283,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         { type: 'grass', x: centerX, y: centerY + 350, id: 'grass1', radius: 150 },
         // Trees in grass area
         { type: 'tree', x: centerX - 80, y: centerY + 350, id: 'tree1', treeType: 'palm' },
-        { type: 'tree', x: centerX + 80, y: centerY + 350, id: 'tree2', treeType: 'oak' },
-        // Default fence at top
-        { 
-          type: 'fence', 
-          x: centerX, 
-          y: centerY - 350, 
-          id: 'fence1',
-          roofPoints: [
-            { x: centerX - 200, y: centerY - 350, id: 'fp1' },
-            { x: centerX, y: centerY - 370, id: 'fp2' },
-            { x: centerX + 200, y: centerY - 350, id: 'fp3' }
-          ]
-        }
+        { type: 'tree', x: centerX + 80, y: centerY + 350, id: 'tree2', treeType: 'oak' }
       ]);
     }
   }, [canvasSize]);
@@ -817,7 +805,33 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     // Draw fence system (before hardscape for proper layering)
     if (fencePoints.length >= 2) {
       const fenceHeightPx = fenceHeight * scale;
-      const fenceColor = showFenceEditor ? '#3B82F6' : '#8B6F47'; // Blue when active, brown when not
+      // Check if fence crosses pool - if so, make it red and don't build
+      const fenceCrossesPool = fencePoints.some((point, index) => {
+        if (index === fencePoints.length - 1) return false;
+        const p1 = point;
+        const p2 = fencePoints[index + 1];
+        
+        // Check if fence segment passes through pool area
+        for (let i = 0; i < points.length; i++) {
+          const nextI = (i + 1) % points.length;
+          const poolP1 = points[i];
+          const poolP2 = points[nextI];
+          
+          // Simple line intersection check
+          const det = (p2.x - p1.x) * (poolP2.y - poolP1.y) - (poolP2.x - poolP1.x) * (p2.y - p1.y);
+          if (Math.abs(det) < 0.01) continue;
+          
+          const lambda = ((poolP2.y - poolP1.y) * (poolP2.x - p1.x) + (poolP1.x - poolP2.x) * (poolP2.y - p1.y)) / det;
+          const gamma = ((p1.y - p2.y) * (poolP2.x - p1.x) + (p2.x - p1.x) * (poolP2.y - p1.y)) / det;
+          
+          if (lambda > 0 && lambda < 1 && gamma > 0 && gamma < 1) {
+            return true; // Intersection found
+          }
+        }
+        return false;
+      });
+      
+      const fenceColor = fenceCrossesPool ? '#EF4444' : (showFenceEditor ? '#3B82F6' : '#8B6F47'); // Red if crossing pool, blue when active, brown when not
       
       // Draw fence panels between points
       ctx.save();
@@ -2198,12 +2212,37 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ));
       }
     } else if (isDraggingFence && selectedFencePoint) {
-      const boundedX = Math.max(0, Math.min(canvasSize.width, snappedX));
-      const boundedY = Math.max(0, Math.min(canvasSize.height, snappedY));
+      // Snap fence point to fence line when dragging
+      const selectedIndex = fencePoints.findIndex(p => p.id === selectedFencePoint);
+      
+      // If it's a middle point (not first or last), constrain it to the line between neighbors
+      if (selectedIndex > 0 && selectedIndex < fencePoints.length - 1) {
+        const p1 = fencePoints[selectedIndex - 1];
+        const p2 = fencePoints[selectedIndex + 1];
+        
+        // Calculate closest point on line segment between neighbors
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const lengthSquared = dx * dx + dy * dy;
+        
+        let t = ((snappedX - p1.x) * dx + (snappedY - p1.y) * dy) / lengthSquared;
+        t = Math.max(0, Math.min(1, t));
+        
+        const projectedX = p1.x + t * dx;
+        const projectedY = p1.y + t * dy;
+        
+        setFencePoints(prev => prev.map(p => 
+          p.id === selectedFencePoint ? { ...p, x: projectedX, y: projectedY } : p
+        ));
+      } else {
+        // First or last point - allow free movement
+        const boundedX = Math.max(0, Math.min(canvasSize.width, snappedX));
+        const boundedY = Math.max(0, Math.min(canvasSize.height, snappedY));
 
-      setFencePoints(prev => prev.map(p => 
-        p.id === selectedFencePoint ? { ...p, x: boundedX, y: boundedY } : p
-      ));
+        setFencePoints(prev => prev.map(p => 
+          p.id === selectedFencePoint ? { ...p, x: boundedX, y: boundedY } : p
+        ));
+      }
     } else if (isDraggingHardscape && selectedHardscapePoint) {
       const boundedX = Math.max(0, Math.min(canvasSize.width, snappedX));
       const boundedY = Math.max(0, Math.min(canvasSize.height, snappedY));
