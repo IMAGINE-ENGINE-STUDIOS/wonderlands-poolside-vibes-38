@@ -40,12 +40,43 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const paverTextureRef = useRef<HTMLImageElement | null>(null);
   const linerTextureRef = useRef<HTMLImageElement | null>(null);
-  const [points, setPoints] = useState<Point[]>([
-    { x: 250, y: 150, id: '1' },
-    { x: 450, y: 150, id: '2' },
-    { x: 450, y: 300, id: '3' },
-    { x: 250, y: 300, id: '4' },
-  ]);
+  const getShapePoints = (shape: 'rectangle' | 'kidney' | 'freeform'): Point[] => {
+    const centerX = 350;
+    const centerY = 250;
+    
+    switch (shape) {
+      case 'rectangle':
+        return [
+          { x: centerX - 100, y: centerY - 75, id: '1' },
+          { x: centerX + 100, y: centerY - 75, id: '2' },
+          { x: centerX + 100, y: centerY + 75, id: '3' },
+          { x: centerX - 100, y: centerY + 75, id: '4' },
+        ];
+      case 'kidney':
+        return [
+          { x: centerX - 120, y: centerY - 60, id: '1' },
+          { x: centerX - 40, y: centerY - 80, id: '2' },
+          { x: centerX + 80, y: centerY - 70, id: '3' },
+          { x: centerX + 120, y: centerY - 20, id: '4' },
+          { x: centerX + 100, y: centerY + 40, id: '5' },
+          { x: centerX + 40, y: centerY + 80, id: '6' },
+          { x: centerX - 60, y: centerY + 70, id: '7' },
+          { x: centerX - 120, y: centerY + 20, id: '8' },
+        ];
+      case 'freeform':
+        return [
+          { x: centerX - 110, y: centerY - 70, id: '1' },
+          { x: centerX - 20, y: centerY - 90, id: '2' },
+          { x: centerX + 90, y: centerY - 60, id: '3' },
+          { x: centerX + 110, y: centerY + 10, id: '4' },
+          { x: centerX + 70, y: centerY + 80, id: '5' },
+          { x: centerX - 30, y: centerY + 85, id: '6' },
+          { x: centerX - 110, y: centerY + 30, id: '7' },
+        ];
+    }
+  };
+
+  const [points, setPoints] = useState<Point[]>(getShapePoints('rectangle'));
   const [features, setFeatures] = useState<PoolFeature[]>([]);
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -60,14 +91,20 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [texturesLoaded, setTexturesLoaded] = useState(false);
   const [selectedPaverId, setSelectedPaverId] = useState('appian-adobe');
   const [paverSize] = useState(24); // Standard paver size in inches (2ft x 2ft)
+  const [poolShape, setPoolShape] = useState<'rectangle' | 'kidney' | 'freeform'>('rectangle');
+  const [lightHue, setLightHue] = useState(0); // For color-changing LED lights
 
-  // Load textures
+  // Load textures with high quality
   useEffect(() => {
     const paverImg = new Image();
     const linerImg = new Image();
     
     const selectedPaver = paverTypes.find(p => p.id === selectedPaverId);
     const paverImage = selectedPaver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
+    
+    // Enable high quality image rendering
+    paverImg.crossOrigin = "anonymous";
+    linerImg.crossOrigin = "anonymous";
     
     paverImg.src = paverImage;
     linerImg.src = aquamarineFinish;
@@ -87,6 +124,14 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     paverImg.onerror = checkLoaded;
     linerImg.onerror = checkLoaded;
   }, [selectedPaverId]);
+
+  // Animate LED lights color changing
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLightHue((prev) => (prev + 1) % 360);
+    }, 50);
+    return () => clearInterval(interval);
+  }, []);
 
   // Update canvas size based on container
   useEffect(() => {
@@ -180,8 +225,12 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const canvas = canvasRef.current;
     if (!canvas || !texturesLoaded) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
     if (!ctx) return;
+
+    // Enable high quality rendering
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
     // Clear canvas
     ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
@@ -198,13 +247,14 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       const numPaversX = Math.ceil(canvasSize.width / paverSizeInPixels) + 1;
       const numPaversY = Math.ceil(canvasSize.height / paverSizeInPixels) + 1;
       
-      // Draw pavers as perfect squares
+      // Draw pavers as perfect squares with enhanced quality
       for (let i = 0; i < numPaversX; i++) {
         for (let j = 0; j < numPaversY; j++) {
           const x = i * paverSizeInPixels;
           const y = j * paverSizeInPixels;
           
-          // Draw image maintaining aspect ratio - force square
+          // Draw high-quality paver image
+          ctx.save();
           ctx.drawImage(
             img,
             x,
@@ -213,12 +263,41 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
             paverSizeInPixels
           );
           
-          // Draw subtle grout lines
-          ctx.strokeStyle = 'rgba(100, 80, 60, 0.2)';
-          ctx.lineWidth = 1;
+          // Add subtle ambient occlusion in corners for depth
+          const aoGradient = ctx.createRadialGradient(
+            x + paverSizeInPixels / 2,
+            y + paverSizeInPixels / 2,
+            paverSizeInPixels * 0.3,
+            x + paverSizeInPixels / 2,
+            y + paverSizeInPixels / 2,
+            paverSizeInPixels * 0.7
+          );
+          aoGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+          aoGradient.addColorStop(1, 'rgba(0, 0, 0, 0.05)');
+          ctx.fillStyle = aoGradient;
+          ctx.fillRect(x, y, paverSizeInPixels, paverSizeInPixels);
+          
+          // Draw grout lines with depth
+          ctx.strokeStyle = 'rgba(100, 80, 60, 0.3)';
+          ctx.lineWidth = 1.5;
           ctx.strokeRect(x, y, paverSizeInPixels, paverSizeInPixels);
+          
+          ctx.restore();
         }
       }
+      
+      // Add directional lighting shader effect
+      const lightAngle = Math.PI / 4; // 45 degrees
+      const lightGradient = ctx.createLinearGradient(
+        0, 0,
+        Math.cos(lightAngle) * canvasSize.width,
+        Math.sin(lightAngle) * canvasSize.height
+      );
+      lightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+      lightGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
+      lightGradient.addColorStop(1, 'rgba(0, 0, 0, 0.05)');
+      ctx.fillStyle = lightGradient;
+      ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
     } else {
       // Fallback solid color
       ctx.fillStyle = '#D4C4A8';
@@ -404,27 +483,67 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.restore();
         
       } else if (feature.type === 'light') {
-        // Wall-mounted light with glow
-        const gradient = ctx.createRadialGradient(feature.x, feature.y, 0, feature.x, feature.y, 20);
-        gradient.addColorStop(0, 'rgba(255, 249, 230, 0.8)');
-        gradient.addColorStop(0.4, 'rgba(255, 232, 124, 0.4)');
-        gradient.addColorStop(1, 'transparent');
-        ctx.fillStyle = gradient;
+        // LED color-changing light with advanced physics
+        const hue = lightHue;
+        const lightColor = `hsl(${hue}, 100%, 60%)`;
+        const lightColorBright = `hsl(${hue}, 100%, 80%)`;
+        const lightColorDim = `hsl(${hue}, 80%, 40%)`;
+        
+        // Multiple glow layers for realistic light diffusion
+        const glowLayers = [
+          { radius: 60, opacity: 0.15 },
+          { radius: 40, opacity: 0.25 },
+          { radius: 25, opacity: 0.4 },
+          { radius: 15, opacity: 0.6 }
+        ];
+        
+        glowLayers.forEach(layer => {
+          const gradient = ctx.createRadialGradient(feature.x, feature.y, 0, feature.x, feature.y, layer.radius);
+          gradient.addColorStop(0, lightColorBright.replace(')', `, ${layer.opacity})`).replace('hsl', 'hsla'));
+          gradient.addColorStop(0.5, lightColor.replace(')', `, ${layer.opacity * 0.5})`).replace('hsl', 'hsla'));
+          gradient.addColorStop(1, 'transparent');
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(feature.x, feature.y, layer.radius, 0, 2 * Math.PI);
+          ctx.fill();
+        });
+        
+        // Caustic light ripples on water surface
+        const time = Date.now() / 1000;
+        for (let i = 0; i < 3; i++) {
+          const ripplePhase = (time * 2 + i * Math.PI / 1.5) % (Math.PI * 2);
+          const rippleRadius = 20 + Math.sin(ripplePhase) * 8;
+          const rippleOpacity = (Math.sin(ripplePhase) + 1) * 0.15;
+          
+          ctx.strokeStyle = lightColor.replace(')', `, ${rippleOpacity})`).replace('hsl', 'hsla');
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(feature.x, feature.y, rippleRadius, 0, 2 * Math.PI);
+          ctx.stroke();
+        }
+        
+        // LED housing with metallic rim
+        ctx.fillStyle = '#1a1a1a';
         ctx.beginPath();
-        ctx.arc(feature.x, feature.y, 20, 0, 2 * Math.PI);
+        ctx.arc(feature.x, feature.y, 10, 0, 2 * Math.PI);
         ctx.fill();
         
-        ctx.fillStyle = '#FFD700';
-        ctx.strokeStyle = isSelected ? '#FF6B00' : '#B8860B';
-        ctx.lineWidth = isSelected ? 3 : 2;
+        // LED core
+        const coreGradient = ctx.createRadialGradient(feature.x, feature.y, 0, feature.x, feature.y, 7);
+        coreGradient.addColorStop(0, lightColorBright);
+        coreGradient.addColorStop(0.7, lightColor);
+        coreGradient.addColorStop(1, lightColorDim);
+        ctx.fillStyle = coreGradient;
         ctx.beginPath();
         ctx.arc(feature.x, feature.y, 7, 0, 2 * Math.PI);
         ctx.fill();
-        ctx.stroke();
         
-        // Light housing
-        ctx.fillStyle = '#8B7355';
-        ctx.fillRect(feature.x - 10, feature.y - 3, 20, 6);
+        // Metallic rim highlight
+        ctx.strokeStyle = isSelected ? '#FFD700' : 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = isSelected ? 3 : 1.5;
+        ctx.beginPath();
+        ctx.arc(feature.x, feature.y, 9, 0, 2 * Math.PI);
+        ctx.stroke();
         
       } else if (feature.type === 'jet') {
         const nearWall = findNearestWallPoint(feature.x, feature.y);
@@ -784,6 +903,46 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           />
         </div>
 
+
+        {/* Pool Shape Selector */}
+        <div className="mt-6 p-4 bg-muted/30 rounded-lg border">
+          <Label className="text-sm font-semibold mb-3 block">Pool Shape</Label>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant={poolShape === 'rectangle' ? 'default' : 'outline'}
+              onClick={() => {
+                setPoolShape('rectangle');
+                setPoints(getShapePoints('rectangle'));
+                setFeatures([]);
+              }}
+            >
+              Rectangle
+            </Button>
+            <Button
+              size="sm"
+              variant={poolShape === 'kidney' ? 'default' : 'outline'}
+              onClick={() => {
+                setPoolShape('kidney');
+                setPoints(getShapePoints('kidney'));
+                setFeatures([]);
+              }}
+            >
+              Kidney
+            </Button>
+            <Button
+              size="sm"
+              variant={poolShape === 'freeform' ? 'default' : 'outline'}
+              onClick={() => {
+                setPoolShape('freeform');
+                setPoints(getShapePoints('freeform'));
+                setFeatures([]);
+              }}
+            >
+              Freeform
+            </Button>
+          </div>
+        </div>
 
         {/* Paver Selector */}
         <div className="mt-6 p-4 bg-muted/30 rounded-lg border">
