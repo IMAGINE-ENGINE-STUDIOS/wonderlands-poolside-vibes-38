@@ -159,14 +159,15 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [depthPoints, setDepthPoints] = useState<DepthPoint[]>([
     { position: 0, depth: 3.5, id: 'd1' },
     { position: 0.33, depth: 4.5, id: 'd2' },
-    { position: 0.67, depth: 7, id: 'd3' },
-    { position: 1, depth: 8, id: 'd4' }
+    { position: 0.67, depth: 5.5, id: 'd3' },
+    { position: 1, depth: 6.5, id: 'd4' }
   ]);
   const [selectedDepthPoint, setSelectedDepthPoint] = useState<string | null>(null);
   const [isDraggingDepth, setIsDraggingDepth] = useState(false);
   const [showDepthEditor, setShowDepthEditor] = useState(false);
   const [gridSnap, setGridSnap] = useState(true); // AutoCAD-like grid snapping
   const [snapSize, setSnapSize] = useState(6); // 6 inches snap (0.5 feet)
+  const [activeTab, setActiveTab] = useState('pool');
 
   // Pricing constants
   const PAVER_COST_PER_SQFT = 15;
@@ -562,6 +563,75 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       } else {
         ctx.fillStyle = '#5BC5D9';
         ctx.fill();
+      }
+      
+      // Draw depth spline in pool when Shape tab is active
+      if (activeTab === 'shape' && points.length > 0) {
+        // Calculate pool bounds
+        const minX = Math.min(...points.map(p => p.x));
+        const maxX = Math.max(...points.map(p => p.x));
+        const centerY = points.reduce((sum, p) => sum + p.y, 0) / points.length;
+        const poolWidth = maxX - minX;
+        
+        // Draw depth spline line (left to right center)
+        const sortedDepths = [...depthPoints].sort((a, b) => a.position - b.position);
+        
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        
+        sortedDepths.forEach((dp, i) => {
+          const x = minX + dp.position * poolWidth;
+          const y = centerY;
+          
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // Draw depth anchor points with labels
+        sortedDepths.forEach((dp) => {
+          const x = minX + dp.position * poolWidth;
+          const y = centerY;
+          const size = 8;
+          const isSelected = selectedDepthPoint === dp.id;
+          
+          // Draw point
+          ctx.fillStyle = isSelected ? '#FFD700' : '#ffffff';
+          ctx.strokeStyle = isSelected ? '#FFA500' : '#2E86AB';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, size / 2, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.stroke();
+          
+          // Draw depth label with background
+          const feet = Math.floor(dp.depth);
+          const inches = Math.round((dp.depth - feet) * 12);
+          const label = `${feet}'${inches}"`;
+          
+          ctx.font = 'bold 12px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const metrics = ctx.measureText(label);
+          const padding = 4;
+          
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+          ctx.fillRect(
+            x - metrics.width / 2 - padding,
+            y - 20 - 8,
+            metrics.width + padding * 2,
+            16
+          );
+          
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(label, x, y - 20);
+        });
       }
       
       ctx.restore();
@@ -1896,7 +1966,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       {/* Collapsible Controls Panel */}
       {showControls && (
         <div className="border-b bg-background/95 backdrop-blur">
-          <Tabs defaultValue="pool" className="w-full">
+          <Tabs defaultValue="pool" className="w-full" onValueChange={setActiveTab}>
             <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto">
               <TabsTrigger value="pool" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
                 Pool Design
@@ -2049,22 +2119,22 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                             step="1"
                           />
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Label className="text-xs flex-1">Depth: {dp.depth.toFixed(1)}'</Label>
-                          <Input
-                            type="number"
-                            value={dp.depth.toFixed(1)}
-                            onChange={(e) => {
-                              const newDepth = Math.max(1, Math.min(10, parseFloat(e.target.value)));
-                              setDepthPoints(prev => prev.map(d => 
-                                d.id === dp.id ? { ...d, depth: newDepth } : d
-                              ));
-                            }}
-                            className="h-7 w-20"
-                            min="1"
-                            max="10"
-                            step="0.5"
-                          />
+                         <div className="flex items-center gap-2">
+                           <Label className="text-xs flex-1">Depth: {dp.depth.toFixed(1)}'</Label>
+                           <Input
+                             type="number"
+                             value={dp.depth.toFixed(1)}
+                             onChange={(e) => {
+                               const newDepth = Math.max(1, Math.min(9, parseFloat(e.target.value)));
+                               setDepthPoints(prev => prev.map(d => 
+                                 d.id === dp.id ? { ...d, depth: newDepth } : d
+                               ));
+                             }}
+                             className="h-7 w-20"
+                             min="1"
+                             max="9"
+                             step="0.5"
+                           />
                         </div>
                         <div className="flex gap-2">
                           <Button 

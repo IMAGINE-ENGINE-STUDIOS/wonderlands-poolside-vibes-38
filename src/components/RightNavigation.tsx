@@ -84,7 +84,7 @@ const RightNavigation = () => {
   return (
     <TooltipProvider>
       <div className={`fixed right-4 z-[70] flex flex-col gap-2 ${
-        !isMainPage ? 'top-4' : 'top-1/2 transform -translate-y-1/2'
+        !isMainPage ? 'top-24' : 'top-1/2 transform -translate-y-1/2'
       }`}>
         {/* Conditional rendering based on current page */}
         {(!isMainPage || isQuoteOpen) ? (
