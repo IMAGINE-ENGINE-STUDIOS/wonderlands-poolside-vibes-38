@@ -101,17 +101,17 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [extras, setExtras] = useState<SaunaExtras>({
     spa: false,
-    selectedSpaModel: spas[0].model,
+    selectedSpaModel: '',
     heater: false,
-    heaterModel: poolHeaters[0].name,
+    heaterModel: '',
     waterline: false,
-    waterlineOption: poolLiners[0].name,
+    waterlineOption: '',
     deckPavers: false,
     deckPaversArea: 0,
-    paverCollection: paverCollections[0].name,
+    paverCollection: '',
     screenEnclosure: false,
     screenEnclosureArea: 0,
-    screenEnclosureQuality: 'standard',
+    screenEnclosureQuality: '',
   });
 
   const toggleExtra = (extra: keyof SaunaExtras) => {

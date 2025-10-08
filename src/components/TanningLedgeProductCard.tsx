@@ -142,10 +142,10 @@ const TanningLedgeProductCard = ({
   const [extras, setExtras] = useState<TanningLedgeExtras>({
     heater: false,
     jets: false,
-    jetQuantity: 1,
-    finish: 'Nantuke',
-    heaterModel: ledgeHeaters[0]?.name || 'Compact Heat Pump',
-    paverOption: 'No Pavers'
+    jetQuantity: 0,
+    finish: '',
+    heaterModel: '',
+    paverOption: ''
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
   const {

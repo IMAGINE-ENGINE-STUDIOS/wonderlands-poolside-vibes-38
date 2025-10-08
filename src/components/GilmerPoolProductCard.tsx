@@ -71,23 +71,23 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
   const [showQuoteTool, setShowQuoteTool] = useState(false);
   
   const [extras, setExtras] = useState<GilmerExtras>({
-    colorFinish: 'Ocean Blue',
+    colorFinish: '',
     pavers: false,
-    paverOption: 'Catalina Grana Blend',
+    paverOption: '',
     screenEnclosure: false,
-    screenEnclosureArea: 1000,
-    screenEnclosureQuality: 'Premium',
+    screenEnclosureArea: 0,
+    screenEnclosureQuality: '',
     poolHeater: false,
-    heaterModel: 'Hayward H400FDN Natural Gas',
+    heaterModel: '',
     spaJets: false,
-    jetQuantity: 6,
+    jetQuantity: 0,
     poolCover: false,
-    coverOption: 'ProMesh 2000',
+    coverOption: '',
     concreteConstruction: false,
     addSpa: false,
-    spaOption: 'Harmony',
+    spaOption: '',
     addTanningLedge: false,
-    tanningLedgeOption: 'Leisure'
+    tanningLedgeOption: ''
   });
 
   // Gilmer Glass color options

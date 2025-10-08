@@ -217,19 +217,19 @@ const SpaProductCard = ({
     heater: false,
     cover: false,
     jets: false,
-    jetQuantity: 1,
-    finish: 'Nantuke',
-    linerOption: 'Standard Blue',
-    coverOption: 'NO COVER',
+    jetQuantity: 0,
+    finish: '',
+    linerOption: '',
+    coverOption: '',
     tiles: false,
-    tileOption: 'Standard Waterline',
+    tileOption: '',
     spa: false,
-    spaModel: 'Mystic',
+    spaModel: '',
     tanningLedge: false,
-    tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
-    heaterModel: spaHeaters[0]?.name || 'Spa Heat Pump - Compact',
-    paverOption: 'No Pavers',
-    copingPaverOption: 'No Coping'
+    tanningLedgeModel: '',
+    heaterModel: '',
+    paverOption: '',
+    copingPaverOption: ''
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
   const {
