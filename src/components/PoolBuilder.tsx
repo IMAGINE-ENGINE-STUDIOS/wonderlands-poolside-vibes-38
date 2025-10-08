@@ -94,35 +94,38 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const getShapePoints = (shape: 'rectangle' | 'kidney' | 'freeform'): Point[] => {
     const centerX = canvasSize.width / 2;
     const centerY = canvasSize.height / 2;
+    // 15ft width = 150px, 35ft length = 350px at scale of 10
+    const poolWidth = 15 * scale; // 150px
+    const poolLength = 35 * scale; // 350px
     
     switch (shape) {
       case 'rectangle':
         return [
-          { x: centerX - 100, y: centerY - 75, id: '1' },
-          { x: centerX + 100, y: centerY - 75, id: '2' },
-          { x: centerX + 100, y: centerY + 75, id: '3' },
-          { x: centerX - 100, y: centerY + 75, id: '4' },
+          { x: centerX - poolLength / 2, y: centerY - poolWidth / 2, id: '1' },
+          { x: centerX + poolLength / 2, y: centerY - poolWidth / 2, id: '2' },
+          { x: centerX + poolLength / 2, y: centerY + poolWidth / 2, id: '3' },
+          { x: centerX - poolLength / 2, y: centerY + poolWidth / 2, id: '4' },
         ];
       case 'kidney':
         return [
-          { x: centerX - 120, y: centerY - 60, id: '1' },
-          { x: centerX - 40, y: centerY - 80, id: '2' },
-          { x: centerX + 80, y: centerY - 70, id: '3' },
-          { x: centerX + 120, y: centerY - 20, id: '4' },
-          { x: centerX + 100, y: centerY + 40, id: '5' },
-          { x: centerX + 40, y: centerY + 80, id: '6' },
-          { x: centerX - 60, y: centerY + 70, id: '7' },
-          { x: centerX - 120, y: centerY + 20, id: '8' },
+          { x: centerX - poolLength / 2, y: centerY - poolWidth / 3, id: '1' },
+          { x: centerX - poolLength / 4, y: centerY - poolWidth / 2, id: '2' },
+          { x: centerX + poolLength / 4, y: centerY - poolWidth / 2.5, id: '3' },
+          { x: centerX + poolLength / 2, y: centerY - poolWidth / 6, id: '4' },
+          { x: centerX + poolLength / 2.5, y: centerY + poolWidth / 4, id: '5' },
+          { x: centerX + poolLength / 6, y: centerY + poolWidth / 2, id: '6' },
+          { x: centerX - poolLength / 4, y: centerY + poolWidth / 2.5, id: '7' },
+          { x: centerX - poolLength / 2, y: centerY + poolWidth / 6, id: '8' },
         ];
       case 'freeform':
         return [
-          { x: centerX - 110, y: centerY - 70, id: '1' },
-          { x: centerX - 20, y: centerY - 90, id: '2' },
-          { x: centerX + 90, y: centerY - 60, id: '3' },
-          { x: centerX + 110, y: centerY + 10, id: '4' },
-          { x: centerX + 70, y: centerY + 80, id: '5' },
-          { x: centerX - 30, y: centerY + 85, id: '6' },
-          { x: centerX - 110, y: centerY + 30, id: '7' },
+          { x: centerX - poolLength / 2, y: centerY - poolWidth / 2.5, id: '1' },
+          { x: centerX - poolLength / 6, y: centerY - poolWidth / 2, id: '2' },
+          { x: centerX + poolLength / 3, y: centerY - poolWidth / 3, id: '3' },
+          { x: centerX + poolLength / 2, y: centerY + poolWidth / 6, id: '4' },
+          { x: centerX + poolLength / 4, y: centerY + poolWidth / 2, id: '5' },
+          { x: centerX - poolLength / 6, y: centerY + poolWidth / 2.2, id: '6' },
+          { x: centerX - poolLength / 2, y: centerY + poolWidth / 4, id: '7' },
         ];
     }
   };
@@ -165,8 +168,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [legendExpanded, setLegendExpanded] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [smoothCorners, setSmoothCorners] = useState(false);
   const [scale, setScale] = useState(10); // pixels per foot - reduced for larger canvas
-  const [canvasSize, setCanvasSize] = useState({ 
+  const [canvasSize, setCanvasSize] = useState({
     width: window.innerWidth - 20, 
     height: window.innerHeight - 100 
   });
@@ -216,7 +220,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     pathway: 0
   };
 
-  // Initialize pool and hardscape centered
+  // Initialize pool and hardscape centered with default decorations
   useEffect(() => {
     if (points.length === 0) {
       const initialPoolPoints = getShapePoints('rectangle');
@@ -224,6 +228,30 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       
       // Generate hardscape deck that follows pool with 3ft offset
       setHardscapePoints(generateHardscapeFromPool(initialPoolPoints, 3));
+      
+      // Add default decorations: trees, grass area, and fence
+      const centerX = canvasSize.width / 2;
+      const centerY = canvasSize.height / 2;
+      
+      setFeatures([
+        // Grass area at bottom
+        { type: 'grass', x: centerX, y: centerY + 350, id: 'grass1', radius: 150 },
+        // Trees in grass area
+        { type: 'tree', x: centerX - 80, y: centerY + 350, id: 'tree1', treeType: 'palm' },
+        { type: 'tree', x: centerX + 80, y: centerY + 350, id: 'tree2', treeType: 'oak' },
+        // Default fence at top
+        { 
+          type: 'fence', 
+          x: centerX, 
+          y: centerY - 350, 
+          id: 'fence1',
+          roofPoints: [
+            { x: centerX - 200, y: centerY - 350, id: 'fp1' },
+            { x: centerX, y: centerY - 370, id: 'fp2' },
+            { x: centerX + 200, y: centerY - 350, id: 'fp3' }
+          ]
+        }
+      ]);
     }
   }, [canvasSize]);
 
@@ -403,33 +431,41 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const paverSizeInFeet = paverSize / 12;
     const paverSizeInPixels = paverSizeInFeet * scale;
 
-    // Draw hardscape deck area with editable spline corners
+    // Draw hardscape deck area with editable corners (squared or smooth)
     if (paverTextureRef.current && hardscapePoints.length >= 3) {
       const img = paverTextureRef.current;
       
-      // Create hardscape path with smooth splines
+      // Create hardscape path
       ctx.save();
       ctx.beginPath();
       
-      // Draw smooth curves between hardscape points
-      for (let i = 0; i < hardscapePoints.length; i++) {
-        const p0 = hardscapePoints[(i - 1 + hardscapePoints.length) % hardscapePoints.length];
-        const p1 = hardscapePoints[i];
-        const p2 = hardscapePoints[(i + 1) % hardscapePoints.length];
-        const p3 = hardscapePoints[(i + 2) % hardscapePoints.length];
+      if (smoothCorners) {
+        // Draw smooth curves between hardscape points
+        for (let i = 0; i < hardscapePoints.length; i++) {
+          const p0 = hardscapePoints[(i - 1 + hardscapePoints.length) % hardscapePoints.length];
+          const p1 = hardscapePoints[i];
+          const p2 = hardscapePoints[(i + 1) % hardscapePoints.length];
+          const p3 = hardscapePoints[(i + 2) % hardscapePoints.length];
 
-        if (i === 0) {
-          ctx.moveTo(p1.x, p1.y);
+          if (i === 0) {
+            ctx.moveTo(p1.x, p1.y);
+          }
+
+          // Smooth spline control points
+          const tension = 0.3;
+          const cp1x = p1.x + (p2.x - p0.x) * tension;
+          const cp1y = p1.y + (p2.y - p0.y) * tension;
+          const cp2x = p2.x - (p3.x - p1.x) * tension;
+          const cp2y = p2.y - (p3.y - p1.y) * tension;
+
+          ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
         }
-
-        // Smooth spline control points
-        const tension = 0.3;
-        const cp1x = p1.x + (p2.x - p0.x) * tension;
-        const cp1y = p1.y + (p2.y - p0.y) * tension;
-        const cp2x = p2.x - (p3.x - p1.x) * tension;
-        const cp2y = p2.y - (p3.y - p1.y) * tension;
-
-        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+      } else {
+        // Draw straight lines for squared corners
+        ctx.moveTo(hardscapePoints[0].x, hardscapePoints[0].y);
+        for (let i = 1; i < hardscapePoints.length; i++) {
+          ctx.lineTo(hardscapePoints[i].x, hardscapePoints[i].y);
+        }
       }
       ctx.closePath();
       ctx.clip();
@@ -2130,27 +2166,15 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                 </Button>
                 <Button 
                   size="sm" 
-                  onClick={() => setGridSnap(!gridSnap)}
-                  variant={gridSnap ? "default" : "outline"}
+                  onClick={() => setSmoothCorners(!smoothCorners)}
+                  variant={smoothCorners ? "default" : "outline"}
                   className="h-8 text-xs col-span-2"
                 >
-                  <Ruler className="h-3 w-3 mr-1" />
-                  Grid {gridSnap ? 'ON' : 'OFF'}
+                  <svg className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 3h18v18H3z" strokeLinejoin={smoothCorners ? "round" : "miter"} />
+                  </svg>
+                  Deck {smoothCorners ? 'Smooth' : 'Squared'}
                 </Button>
-                {gridSnap && (
-                  <div className="col-span-2 flex items-center gap-2">
-                    <Label className="text-xs">Snap:</Label>
-                    <Input
-                      type="number"
-                      value={snapSize}
-                      onChange={(e) => setSnapSize(Math.max(1, parseInt(e.target.value) || 6))}
-                      className="h-7 w-20 text-xs"
-                      min="1"
-                      max="12"
-                    />
-                    <span className="text-xs text-muted-foreground">"</span>
-                  </div>
-                )}
               </div>
             </TabsContent>
 
