@@ -306,25 +306,22 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) 
 };
 
 // Deck component
-const DeckMesh = ({ hardscapePoints, scale }: { hardscapePoints: HardscapePoint[], scale: number }) => {
+const DeckMesh = ({ hardscapePoints, poolCenterX, poolCenterY, scale }: { 
+  hardscapePoints: HardscapePoint[], 
+  poolCenterX: number,
+  poolCenterY: number,
+  scale: number 
+}) => {
   const geometry = useMemo(() => {
     if (hardscapePoints.length < 3) return null;
 
     const vertices: number[] = [];
     const indices: number[] = [];
     
-    // Convert hardscape points to 3D
-    const minX = Math.min(...hardscapePoints.map(p => p.x));
-    const maxX = Math.max(...hardscapePoints.map(p => p.x));
-    const minY = Math.min(...hardscapePoints.map(p => p.y));
-    const maxY = Math.max(...hardscapePoints.map(p => p.y));
-    
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
-    
+    // Use the same pool center for all conversions
     hardscapePoints.forEach((p, i) => {
-      const x = (p.x - centerX) / scale;
-      const z = (p.y - centerY) / scale;
+      const x = (p.x - poolCenterX) / scale;
+      const z = (p.y - poolCenterY) / scale;
       const y = 0.1; // Slightly above ground
       
       vertices.push(x, y, z);
@@ -340,7 +337,7 @@ const DeckMesh = ({ hardscapePoints, scale }: { hardscapePoints: HardscapePoint[
     geo.computeVertexNormals();
     
     return geo;
-  }, [hardscapePoints, scale]);
+  }, [hardscapePoints, poolCenterX, poolCenterY, scale]);
 
   if (!geometry) return null;
 
@@ -356,7 +353,12 @@ const DeckMesh = ({ hardscapePoints, scale }: { hardscapePoints: HardscapePoint[
 };
 
 // Fence component
-const FenceMesh = ({ fencePoints, scale }: { fencePoints: FencePoint[], scale: number }) => {
+const FenceMesh = ({ fencePoints, poolCenterX, poolCenterY, scale }: { 
+  fencePoints: FencePoint[], 
+  poolCenterX: number,
+  poolCenterY: number,
+  scale: number 
+}) => {
   const geometry = useMemo(() => {
     if (fencePoints.length < 2) return null;
 
@@ -364,22 +366,15 @@ const FenceMesh = ({ fencePoints, scale }: { fencePoints: FencePoint[], scale: n
     const indices: number[] = [];
     const fenceHeight = 6; // 6 feet tall
     
-    const minX = Math.min(...fencePoints.map(p => p.x));
-    const maxX = Math.max(...fencePoints.map(p => p.x));
-    const minY = Math.min(...fencePoints.map(p => p.y));
-    const maxY = Math.max(...fencePoints.map(p => p.y));
-    
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
-    
     for (let i = 0; i < fencePoints.length - 1; i++) {
       const p1 = fencePoints[i];
       const p2 = fencePoints[i + 1];
       
-      const x1 = (p1.x - centerX) / scale;
-      const z1 = (p1.y - centerY) / scale;
-      const x2 = (p2.x - centerX) / scale;
-      const z2 = (p2.y - centerY) / scale;
+      // Use the same pool center for all conversions
+      const x1 = (p1.x - poolCenterX) / scale;
+      const z1 = (p1.y - poolCenterY) / scale;
+      const x2 = (p2.x - poolCenterX) / scale;
+      const z2 = (p2.y - poolCenterY) / scale;
       
       const baseIdx = vertices.length / 3;
       
@@ -404,7 +399,7 @@ const FenceMesh = ({ fencePoints, scale }: { fencePoints: FencePoint[], scale: n
     geo.computeVertexNormals();
     
     return geo;
-  }, [fencePoints, scale]);
+  }, [fencePoints, poolCenterX, poolCenterY, scale]);
 
   if (!geometry) return null;
 
@@ -421,19 +416,18 @@ const FenceMesh = ({ fencePoints, scale }: { fencePoints: FencePoint[], scale: n
 };
 
 // Pool Features component
-const PoolFeatures = ({ features, scale }: { features: PoolFeature[], scale: number }) => {
-  const minX = 0;
-  const maxX = 1000;
-  const minY = 0;
-  const maxY = 1000;
-  const centerX = (minX + maxX) / 2;
-  const centerY = (minY + maxY) / 2;
-
+const PoolFeatures = ({ features, poolCenterX, poolCenterY, scale }: { 
+  features: PoolFeature[], 
+  poolCenterX: number,
+  poolCenterY: number,
+  scale: number 
+}) => {
   return (
     <>
       {features.map((feature) => {
-        const x = (feature.x - centerX) / scale;
-        const z = (feature.y - centerY) / scale;
+        // Use the same pool center for all conversions
+        const x = (feature.x - poolCenterX) / scale;
+        const z = (feature.y - poolCenterY) / scale;
 
         if (feature.type === 'light') {
           return (
@@ -560,6 +554,21 @@ const PoolFeatures = ({ features, scale }: { features: PoolFeature[], scale: num
 };
 
 const Scene = ({ points, depthPoints, scale, poolShape, hardscapePoints = [], fencePoints = [], features = [] }: Pool3DViewerProps) => {
+  // Calculate pool center once for all objects to use
+  const poolCenter = useMemo(() => {
+    if (points.length === 0) return { x: 0, y: 0 };
+    
+    const minX = Math.min(...points.map(p => p.x));
+    const maxX = Math.max(...points.map(p => p.x));
+    const minY = Math.min(...points.map(p => p.y));
+    const maxY = Math.max(...points.map(p => p.y));
+    
+    return {
+      x: (minX + maxX) / 2,
+      y: (minY + maxY) / 2
+    };
+  }, [points]);
+
   return (
     <>
       <PerspectiveCamera makeDefault position={[30, 25, 30]} fov={50} />
@@ -604,17 +613,32 @@ const Scene = ({ points, depthPoints, scale, poolShape, hardscapePoints = [], fe
 
       {/* Deck */}
       {hardscapePoints.length > 0 && (
-        <DeckMesh hardscapePoints={hardscapePoints} scale={scale} />
+        <DeckMesh 
+          hardscapePoints={hardscapePoints} 
+          poolCenterX={poolCenter.x}
+          poolCenterY={poolCenter.y}
+          scale={scale} 
+        />
       )}
 
       {/* Fence */}
       {fencePoints.length > 0 && (
-        <FenceMesh fencePoints={fencePoints} scale={scale} />
+        <FenceMesh 
+          fencePoints={fencePoints} 
+          poolCenterX={poolCenter.x}
+          poolCenterY={poolCenter.y}
+          scale={scale} 
+        />
       )}
 
       {/* Pool Features */}
       {features.length > 0 && (
-        <PoolFeatures features={features} scale={scale} />
+        <PoolFeatures 
+          features={features} 
+          poolCenterX={poolCenter.x}
+          poolCenterY={poolCenter.y}
+          scale={scale} 
+        />
       )}
 
       {/* Axes helper */}
