@@ -137,8 +137,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     // Coping is drawn with lineWidth = paverSizeInPixels, so outer edge is paverSizeInPixels/2 from pool edge
     const paverSizeInFeet = paverSize / 12;
     const copingHalfWidthFeet = paverSizeInFeet / 2;
-    // Total offset = coping half-width (to outer edge) + deck distance
-    const totalOffsetFeet = copingHalfWidthFeet + deckDistanceInFeet;
+    // Total offset = coping half-width (to outer edge) + 3ft deck extension beyond pool
+    const totalOffsetFeet = copingHalfWidthFeet + 3;
     const offsetPixels = totalOffsetFeet * scale;
     const hardscapePoints: HardscapePoint[] = [];
     
