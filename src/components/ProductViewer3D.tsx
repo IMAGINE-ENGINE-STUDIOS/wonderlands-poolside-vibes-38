@@ -150,6 +150,7 @@ export const ProductViewer3D: React.FC<ProductViewer3DProps> = ({
           linerTextureUrl={linerTextureUrl}
           paverTextureUrl={paverTextureUrl}
           copingTextureUrl={copingTextureUrl}
+          fenceTextureUrl="/src/assets/fence-texture.png"
           features={[]}
           fencePoints={[]}
           scale={1}

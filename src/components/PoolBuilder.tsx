@@ -2719,6 +2719,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                         paverTextureUrl={paverTypes.find(p => p.id === selectedPaverId)?.image}
                         linerTextureUrl={poolTextureSapphire}
                         copingTextureUrl={paverTypes.find(p => p.id === selectedCopingId)?.image}
+                        fenceTextureUrl="/src/assets/fence-texture.png"
                       />
                     </div>
                     <div className="text-sm text-muted-foreground">

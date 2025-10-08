@@ -52,6 +52,7 @@ interface Pool3DViewerProps {
   paverTextureUrl?: string;
   linerTextureUrl?: string;
   copingTextureUrl?: string;
+  fenceTextureUrl?: string;
 }
 
 const PoolMesh = ({ points, depthPoints, scale, poolShape, linerTextureUrl }: Pool3DViewerProps & { linerTextureUrl?: string }) => {
@@ -461,17 +462,30 @@ const DeckMesh = ({
 };
 
 // Fence component with 4 inches thickness
-const FenceMesh = ({ fencePoints, poolCenterX, poolCenterY, scale }: { 
+const FenceMesh = ({ fencePoints, poolCenterX, poolCenterY, scale, fenceTextureUrl }: { 
   fencePoints: FencePoint[], 
   poolCenterX: number,
   poolCenterY: number,
-  scale: number 
+  scale: number,
+  fenceTextureUrl?: string
 }) => {
+  const [fenceTexture, setFenceTexture] = useState<THREE.Texture | null>(null);
+  
+  useEffect(() => {
+    if (!fenceTextureUrl) return;
+    
+    const loader = new THREE.TextureLoader();
+    loader.load(fenceTextureUrl, (loadedTexture) => {
+      setFenceTexture(loadedTexture);
+    });
+  }, [fenceTextureUrl]);
+  
   const geometry = useMemo(() => {
     if (fencePoints.length < 2) return null;
 
     const vertices: number[] = [];
     const indices: number[] = [];
+    const uvs: number[] = [];
     const fenceHeight = 6; // 6 feet tall
     const fenceThickness = 4 / 12; // 4 inches = 0.333 feet
     
@@ -506,6 +520,14 @@ const FenceMesh = ({ fencePoints, poolCenterX, poolCenterY, scale }: {
       vertices.push(x1 - offsetX, fenceHeight, z1 - offsetZ);
       vertices.push(x2 - offsetX, fenceHeight, z2 - offsetZ);
       
+      // UV coordinates for texture mapping
+      const uvLen = len / fenceHeight; // Scale UVs based on segment length
+      
+      // Front face UVs
+      uvs.push(0, 0, uvLen, 0, 0, 1, uvLen, 1);
+      // Back face UVs
+      uvs.push(0, 0, uvLen, 0, 0, 1, uvLen, 1);
+      
       // Front face
       indices.push(baseIdx, baseIdx + 1, baseIdx + 3);
       indices.push(baseIdx, baseIdx + 3, baseIdx + 2);
@@ -533,6 +555,7 @@ const FenceMesh = ({ fencePoints, poolCenterX, poolCenterY, scale }: {
     
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
     geo.setIndex(indices);
     geo.computeVertexNormals();
     
@@ -541,10 +564,18 @@ const FenceMesh = ({ fencePoints, poolCenterX, poolCenterY, scale }: {
 
   if (!geometry) return null;
 
+  // Configure texture if available
+  if (fenceTexture) {
+    fenceTexture.wrapS = THREE.RepeatWrapping;
+    fenceTexture.wrapT = THREE.RepeatWrapping;
+    fenceTexture.repeat.set(1, 1);
+  }
+
   return (
     <mesh geometry={geometry} castShadow receiveShadow>
       <meshStandardMaterial 
-        color="#8B6F47" 
+        map={fenceTexture || undefined}
+        color={fenceTexture ? "#ffffff" : "#8B6F47"}
         roughness={0.6}
         metalness={0.2}
         side={THREE.DoubleSide}
@@ -701,7 +732,8 @@ const Scene = ({
   features = [],
   paverTextureUrl,
   linerTextureUrl,
-  copingTextureUrl
+  copingTextureUrl,
+  fenceTextureUrl
 }: Pool3DViewerProps) => {
   // Calculate pool center once for all objects to use
   const poolCenter = useMemo(() => {
@@ -780,7 +812,8 @@ const Scene = ({
           fencePoints={fencePoints} 
           poolCenterX={poolCenter.x}
           poolCenterY={poolCenter.y}
-          scale={scale} 
+          scale={scale}
+          fenceTextureUrl={fenceTextureUrl}
         />
       )}
 
@@ -810,7 +843,8 @@ export const Pool3DViewer = ({
   features = [],
   paverTextureUrl,
   linerTextureUrl,
-  copingTextureUrl
+  copingTextureUrl,
+  fenceTextureUrl
 }: Pool3DViewerProps) => {
   return (
     <div className="w-full h-full bg-gradient-to-b from-sky-100 to-background rounded-lg overflow-hidden">
@@ -826,6 +860,7 @@ export const Pool3DViewer = ({
           paverTextureUrl={paverTextureUrl}
           linerTextureUrl={linerTextureUrl}
           copingTextureUrl={copingTextureUrl}
+          fenceTextureUrl={fenceTextureUrl}
         />
       </Canvas>
     </div>
