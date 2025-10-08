@@ -41,6 +41,12 @@ interface PoolFeature {
   color?: string;
 }
 
+interface DepthPoint {
+  position: number; // 0-1 along pool length
+  depth: number; // in feet
+  id: string;
+}
+
 interface HardscapePoint {
   x: number;
   y: number;
@@ -146,11 +152,22 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [selectedPaverId, setSelectedPaverId] = useState('appian-adobe');
   const [selectedCopingId, setSelectedCopingId] = useState('appian-adobe');
   const [selectedFinishId, setSelectedFinishId] = useState('aquamarine');
-  const [paverSize] = useState(24); // Standard paver size in inches (2ft x 2ft)
+  const [paverSize] = useState(16); // Reduced paver size for finer texture (16 inches)
   const [poolShape, setPoolShape] = useState<'rectangle' | 'kidney' | 'freeform'>('rectangle');
   const [lightHue, setLightHue] = useState(0); // For color-changing LED lights
   const [copingThickness, setCopingThickness] = useState(15); // 1 foot = 15 pixels at scale 15
   const [waterAnimationTime, setWaterAnimationTime] = useState(0);
+  const [depthPoints, setDepthPoints] = useState<DepthPoint[]>([
+    { position: 0, depth: 3.5, id: 'd1' },
+    { position: 0.33, depth: 4.5, id: 'd2' },
+    { position: 0.67, depth: 7, id: 'd3' },
+    { position: 1, depth: 8, id: 'd4' }
+  ]);
+  const [selectedDepthPoint, setSelectedDepthPoint] = useState<string | null>(null);
+  const [isDraggingDepth, setIsDraggingDepth] = useState(false);
+  const [showDepthEditor, setShowDepthEditor] = useState(false);
+  const [gridSnap, setGridSnap] = useState(true); // AutoCAD-like grid snapping
+  const [snapSize, setSnapSize] = useState(6); // 6 inches snap (0.5 feet)
 
   // Pricing constants
   const PAVER_COST_PER_SQFT = 15;
@@ -396,16 +413,33 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const paverSizeInFeet = paverSize / 12;
     const paverSizeInPixels = paverSizeInFeet * scale;
 
-    // Draw hardscape deck area with custom shape
+    // Draw hardscape deck area with editable spline corners
     if (paverTextureRef.current && hardscapePoints.length >= 3) {
       const img = paverTextureRef.current;
       
-      // Create hardscape path
+      // Create hardscape path with smooth splines
       ctx.save();
       ctx.beginPath();
-      ctx.moveTo(hardscapePoints[0].x, hardscapePoints[0].y);
-      for (let i = 1; i < hardscapePoints.length; i++) {
-        ctx.lineTo(hardscapePoints[i].x, hardscapePoints[i].y);
+      
+      // Draw smooth curves between hardscape points
+      for (let i = 0; i < hardscapePoints.length; i++) {
+        const p0 = hardscapePoints[(i - 1 + hardscapePoints.length) % hardscapePoints.length];
+        const p1 = hardscapePoints[i];
+        const p2 = hardscapePoints[(i + 1) % hardscapePoints.length];
+        const p3 = hardscapePoints[(i + 2) % hardscapePoints.length];
+
+        if (i === 0) {
+          ctx.moveTo(p1.x, p1.y);
+        }
+
+        // Smooth spline control points
+        const tension = 0.3;
+        const cp1x = p1.x + (p2.x - p0.x) * tension;
+        const cp1y = p1.y + (p2.y - p0.y) * tension;
+        const cp2x = p2.x - (p3.x - p1.x) * tension;
+        const cp2y = p2.y - (p3.y - p1.y) * tension;
+
+        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
       }
       ctx.closePath();
       ctx.clip();
@@ -736,7 +770,32 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       }
     }
 
-    // Draw square anchor points
+    // Draw hardscape anchor points with splines
+    hardscapePoints.forEach((point) => {
+      const size = 10;
+      const isSelected = selectedHardscapePoint === point.id;
+      
+      // Shadow for depth
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+      ctx.shadowBlur = isSelected ? 6 : 3;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+      
+      // Draw square anchor
+      ctx.fillStyle = isSelected ? '#F59E0B' : '#ffffff';
+      ctx.strokeStyle = isSelected ? '#D97706' : '#F59E0B';
+      ctx.lineWidth = 2;
+      ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
+      ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
+      
+      // Reset shadow
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+    });
+
+    // Draw square anchor points for pool
     points.forEach((point) => {
       const size = 10;
       const isSelected = selectedPoint === point.id;
@@ -761,6 +820,87 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
     });
+    
+    // Draw depth profile editor when pool is selected
+    if (showDepthEditor && points.length > 0) {
+      const editorX = 50;
+      const editorY = canvasSize.height - 200;
+      const editorWidth = 400;
+      const editorHeight = 150;
+      
+      // Background
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.strokeStyle = '#2E86AB';
+      ctx.lineWidth = 2;
+      ctx.fillRect(editorX, editorY, editorWidth, editorHeight);
+      ctx.strokeRect(editorX, editorY, editorWidth, editorHeight);
+      
+      // Title
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText('Pool Depth Profile (Section View)', editorX + 10, editorY + 20);
+      
+      // Draw depth curve
+      ctx.save();
+      ctx.translate(editorX, editorY + editorHeight);
+      ctx.scale(1, -1);
+      
+      // Grid lines
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 10; i++) {
+        const y = (i / 10) * (editorHeight - 30);
+        ctx.beginPath();
+        ctx.moveTo(10, y);
+        ctx.lineTo(editorWidth - 10, y);
+        ctx.stroke();
+      }
+      
+      // Depth spline
+      ctx.strokeStyle = '#2E86AB';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      
+      const sortedDepths = [...depthPoints].sort((a, b) => a.position - b.position);
+      sortedDepths.forEach((dp, i) => {
+        const x = 10 + dp.position * (editorWidth - 20);
+        const y = 10 + (dp.depth / 10) * (editorHeight - 40);
+        
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.stroke();
+      
+      // Depth anchor points
+      sortedDepths.forEach((dp) => {
+        const x = 10 + dp.position * (editorWidth - 20);
+        const y = 10 + (dp.depth / 10) * (editorHeight - 40);
+        const size = 8;
+        const isSelected = selectedDepthPoint === dp.id;
+        
+        ctx.fillStyle = isSelected ? '#F59E0B' : '#ffffff';
+        ctx.strokeStyle = isSelected ? '#D97706' : '#2E86AB';
+        ctx.lineWidth = 2;
+        ctx.fillRect(x - size / 2, y - size / 2, size, size);
+        ctx.strokeRect(x - size / 2, y - size / 2, size, size);
+      });
+      
+      ctx.restore();
+      
+      // Depth labels
+      ctx.fillStyle = '#000';
+      ctx.font = '11px Arial';
+      ctx.textAlign = 'center';
+      sortedDepths.forEach((dp) => {
+        const x = editorX + 10 + dp.position * (editorWidth - 20);
+        const y = editorY + editorHeight - 10 - (dp.depth / 10) * (editorHeight - 40);
+        ctx.fillText(`${dp.depth.toFixed(1)}'`, x, y - 10);
+      });
+    }
 
     // Draw landscape features first (behind pool)
     features.filter(f => f.type === 'grass' || f.type === 'home').forEach((feature) => {
@@ -1457,7 +1597,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.restore();
     }
 
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, lightHue, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, waterAnimationTime]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, lightHue, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, waterAnimationTime, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint]);
 
   // Memoize perimeter and area calculations
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
@@ -1515,8 +1655,34 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    let x = e.clientX - rect.left;
+    let y = e.clientY - rect.top;
+
+    // Apply grid snapping for AutoCAD-like precision
+    if (gridSnap) {
+      const snapPixels = (snapSize / 12) * scale; // Convert inches to pixels
+      x = Math.round(x / snapPixels) * snapPixels;
+      y = Math.round(y / snapPixels) * snapPixels;
+    }
+
+    // Check if clicked on depth point in depth editor
+    if (showDepthEditor && points.length > 0) {
+      const editorX = 50;
+      const editorY = canvasSize.height - 200;
+      const editorWidth = 400;
+      const editorHeight = 150;
+      
+      const sortedDepths = [...depthPoints].sort((a, b) => a.position - b.position);
+      for (const dp of sortedDepths) {
+        const dpx = editorX + 10 + dp.position * (editorWidth - 20);
+        const dpy = editorY + editorHeight - 10 - (dp.depth / 10) * (editorHeight - 40);
+        
+        if (Math.sqrt(Math.pow(dpx - (e.clientX - rect.left), 2) + Math.pow(dpy - (e.clientY - rect.top), 2)) < 10) {
+          setSelectedDepthPoint(dp.id);
+          return;
+        }
+      }
+    }
 
     // Check if clicked on roof point (for selected house)
     if (selectedFeature) {
@@ -1545,6 +1711,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       setSelectedPoint(null);
       setSelectedFeature(null);
       setSelectedRoofPoint(null);
+      setSelectedDepthPoint(null);
       return;
     }
 
@@ -1641,6 +1808,26 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       }
     }
 
+    // Check for depth point drag in depth editor
+    if (showDepthEditor && points.length > 0) {
+      const editorX = 50;
+      const editorY = canvasSize.height - 200;
+      const editorWidth = 400;
+      const editorHeight = 150;
+      
+      const sortedDepths = [...depthPoints].sort((a, b) => a.position - b.position);
+      for (const dp of sortedDepths) {
+        const dpx = editorX + 10 + dp.position * (editorWidth - 20);
+        const dpy = editorY + editorHeight - 10 - (dp.depth / 10) * (editorHeight - 40);
+        
+        if (Math.sqrt(Math.pow(dpx - x, 2) + Math.pow(dpy - y, 2)) < 10) {
+          setSelectedDepthPoint(dp.id);
+          setIsDraggingDepth(true);
+          return;
+        }
+      }
+    }
+
     // Check for hardscape point drag
     const clickedHardscapePoint = hardscapePoints.find(p => 
       Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10
@@ -1684,7 +1871,34 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     // Update cursor position for pending features
     setCursorPos({ x, y });
 
-    if (isDraggingRoof && selectedRoofPoint && selectedFeature) {
+    // Apply grid snapping
+    let snappedX = x;
+    let snappedY = y;
+    if (gridSnap) {
+      const snapPixels = (snapSize / 12) * scale;
+      snappedX = Math.round(x / snapPixels) * snapPixels;
+      snappedY = Math.round(y / snapPixels) * snapPixels;
+    }
+
+    if (isDraggingDepth && selectedDepthPoint && showDepthEditor) {
+      const editorX = 50;
+      const editorY = canvasSize.height - 200;
+      const editorWidth = 400;
+      const editorHeight = 150;
+      
+      // Calculate new position and depth
+      const relX = x - editorX - 10;
+      const relY = (editorY + editorHeight - y) - 10;
+      
+      const newPosition = Math.max(0, Math.min(1, relX / (editorWidth - 20)));
+      const newDepth = Math.max(1, Math.min(10, relY / (editorHeight - 40) * 10));
+      
+      setDepthPoints(prev => prev.map(dp =>
+        dp.id === selectedDepthPoint
+          ? { ...dp, position: newPosition, depth: newDepth }
+          : dp
+      ));
+    } else if (isDraggingRoof && selectedRoofPoint && selectedFeature) {
       const house = features.find(f => f.id === selectedFeature && f.type === 'home');
       if (house && house.roofPoints) {
         const relativeX = x - house.x;
@@ -1704,8 +1918,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ));
       }
     } else if (isDraggingHardscape && selectedHardscapePoint) {
-      const boundedX = Math.max(0, Math.min(canvasSize.width, x));
-      const boundedY = Math.max(0, Math.min(canvasSize.height, y));
+      const boundedX = Math.max(0, Math.min(canvasSize.width, snappedX));
+      const boundedY = Math.max(0, Math.min(canvasSize.height, snappedY));
 
       setHardscapePoints(prev => prev.map(p => 
         p.id === selectedHardscapePoint ? { ...p, x: boundedX, y: boundedY } : p
@@ -1757,7 +1971,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ));
       }
     } else if (isDragging && selectedPoint) {
-      const boundedX = Math.max(0, Math.min(canvasSize.width, x));
+      const boundedX = Math.max(0, Math.min(canvasSize.width, snappedX));
       const boundedY = Math.max(0, Math.min(canvasSize.height, y));
 
       setPoints(prev => prev.map(p => 
@@ -1776,6 +1990,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     setIsDragging(false);
     setDraggingFeature(false);
     setIsDraggingHardscape(false);
+    setIsDraggingRoof(false);
+    setIsDraggingDepth(false);
   };
 
   const addPoint = () => {
@@ -2012,6 +2228,119 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                     </Button>
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Precision Tools</Label>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      onClick={() => setGridSnap(!gridSnap)}
+                      variant={gridSnap ? "default" : "outline"}
+                      className="flex-1"
+                    >
+                      <Ruler className="h-4 w-4 mr-1" />
+                      Grid Snap {gridSnap ? 'ON' : 'OFF'}
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      onClick={() => setShowDepthEditor(!showDepthEditor)}
+                      variant={showDepthEditor ? "default" : "outline"}
+                      className="flex-1"
+                    >
+                      Depth Profile
+                    </Button>
+                  </div>
+                  {gridSnap && (
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs">Snap: {snapSize}"</Label>
+                      <Input
+                        type="number"
+                        value={snapSize}
+                        onChange={(e) => setSnapSize(Math.max(1, parseInt(e.target.value) || 6))}
+                        className="h-7 w-20"
+                        min="1"
+                        max="12"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {showDepthEditor && selectedDepthPoint && (
+                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                    <Label className="text-xs font-medium">Depth Point Editor</Label>
+                    {depthPoints.filter(dp => dp.id === selectedDepthPoint).map(dp => (
+                      <div key={dp.id} className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Label className="text-xs flex-1">Position: {(dp.position * 100).toFixed(0)}%</Label>
+                          <Input
+                            type="number"
+                            value={(dp.position * 100).toFixed(0)}
+                            onChange={(e) => {
+                              const newPos = Math.max(0, Math.min(100, parseFloat(e.target.value))) / 100;
+                              setDepthPoints(prev => prev.map(d => 
+                                d.id === dp.id ? { ...d, position: newPos } : d
+                              ));
+                            }}
+                            className="h-7 w-20"
+                            min="0"
+                            max="100"
+                            step="1"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Label className="text-xs flex-1">Depth: {dp.depth.toFixed(1)}'</Label>
+                          <Input
+                            type="number"
+                            value={dp.depth.toFixed(1)}
+                            onChange={(e) => {
+                              const newDepth = Math.max(1, Math.min(10, parseFloat(e.target.value)));
+                              setDepthPoints(prev => prev.map(d => 
+                                d.id === dp.id ? { ...d, depth: newDepth } : d
+                              ));
+                            }}
+                            className="h-7 w-20"
+                            min="1"
+                            max="10"
+                            step="0.5"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            onClick={() => {
+                              const maxId = Math.max(...depthPoints.map(d => parseInt(d.id.replace('d', ''))));
+                              setDepthPoints([...depthPoints, {
+                                id: `d${maxId + 1}`,
+                                position: 0.5,
+                                depth: 5
+                              }]);
+                            }}
+                            variant="outline"
+                            className="flex-1"
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add Point
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            onClick={() => {
+                              if (depthPoints.length > 2) {
+                                setDepthPoints(prev => prev.filter(d => d.id !== selectedDepthPoint));
+                                setSelectedDepthPoint(null);
+                              }
+                            }}
+                            variant="outline"
+                            disabled={depthPoints.length <= 2}
+                            className="flex-1"
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </TabsContent>
 
