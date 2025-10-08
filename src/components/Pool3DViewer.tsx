@@ -533,21 +533,39 @@ const PoolFeatures: React.FC<{ features: PoolFeature[] }> = ({ features }) => {
   return (
     <>
       {features.map((feature) => {
+        if (feature.type === 'stairs') {
+          const steps = feature.steps || 3;
+          const width = feature.width || 4;
+          const stepHeight = 0.67; // 8 inches per step
+          const stepDepth = 0.92; // 11 inches per step
+          
+          return (
+            <group key={feature.id} position={[feature.x, 0, feature.y]} rotation={[0, feature.angle || 0, 0]}>
+              {Array.from({ length: steps }).map((_, i) => (
+                <mesh key={i} position={[0, -i * stepHeight, i * stepDepth]}>
+                  <boxGeometry args={[width, stepHeight, stepDepth]} />
+                  <meshStandardMaterial color="#D4C4B0" roughness={0.8} />
+                </mesh>
+              ))}
+            </group>
+          );
+        }
+
         if (feature.type === 'light') {
           return (
-            <mesh key={feature.id} position={[feature.x, 0.2, feature.y]} castShadow>
-              <sphereGeometry args={[0.3, 16, 16]} />
-              <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={0.8} />
-              <pointLight color="#FFD700" intensity={2} distance={5} />
+            <mesh key={feature.id} position={[feature.x, -0.3, feature.y]} castShadow>
+              <sphereGeometry args={[0.25, 16, 16]} />
+              <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={1.2} />
+              <pointLight color="#FFD700" intensity={3} distance={8} />
             </mesh>
           );
         }
 
         if (feature.type === 'jet') {
           return (
-            <mesh key={feature.id} position={[feature.x, 0.1, feature.y]}>
-              <cylinderGeometry args={[0.2, 0.2, 0.3, 16]} />
-              <meshStandardMaterial color="#5BA5C6" metalness={0.8} roughness={0.2} />
+            <mesh key={feature.id} position={[feature.x, -0.2, feature.y]}>
+              <cylinderGeometry args={[0.167, 0.167, 0.33, 16]} />
+              <meshStandardMaterial color="#B8C9D9" metalness={0.9} roughness={0.1} />
             </mesh>
           );
         }
@@ -555,35 +573,100 @@ const PoolFeatures: React.FC<{ features: PoolFeature[] }> = ({ features }) => {
         if (feature.type === 'fountain') {
           return (
             <group key={feature.id} position={[feature.x, 0, feature.y]}>
-              <mesh position={[0, 0.5, 0]}>
-                <cylinderGeometry args={[0.5, 0.7, 1, 16]} />
-                <meshStandardMaterial color="#A8D8EA" />
+              {/* Base */}
+              <mesh position={[0, 0.25, 0]}>
+                <cylinderGeometry args={[0.83, 1, 0.5, 16]} />
+                <meshStandardMaterial color="#8B7355" roughness={0.6} />
+              </mesh>
+              {/* Column */}
+              <mesh position={[0, 1.5, 0]}>
+                <cylinderGeometry args={[0.33, 0.33, 2.5, 12]} />
+                <meshStandardMaterial color="#A8D8EA" roughness={0.4} />
+              </mesh>
+              {/* Top bowl */}
+              <mesh position={[0, 2.83, 0]}>
+                <sphereGeometry args={[0.5, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
+                <meshStandardMaterial color="#A8D8EA" roughness={0.3} side={THREE.DoubleSide} />
               </mesh>
             </group>
           );
         }
 
         if (feature.type === 'tree') {
+          const treeType = feature.treeType || 'palm';
+          
+          if (treeType === 'palm') {
+            return (
+              <group key={feature.id} position={[feature.x, 0, feature.y]}>
+                {/* Trunk */}
+                <mesh position={[0, 6, 0]}>
+                  <cylinderGeometry args={[0.5, 0.67, 12, 8]} />
+                  <meshStandardMaterial color="#8B7355" roughness={0.9} />
+                </mesh>
+                {/* Palm fronds */}
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <mesh
+                    key={i}
+                    position={[
+                      Math.cos((i / 8) * Math.PI * 2) * 0.5,
+                      12,
+                      Math.sin((i / 8) * Math.PI * 2) * 0.5
+                    ]}
+                    rotation={[Math.PI / 4, (i / 8) * Math.PI * 2, 0]}
+                  >
+                    <boxGeometry args={[0.3, 0.2, 4]} />
+                    <meshStandardMaterial color="#228B22" roughness={0.8} />
+                  </mesh>
+                ))}
+              </group>
+            );
+          }
+          
+          // Default tree (oak/generic)
           return (
             <group key={feature.id} position={[feature.x, 0, feature.y]}>
-              <mesh position={[0, 2, 0]}>
-                <cylinderGeometry args={[0.3, 0.4, 4, 8]} />
-                <meshStandardMaterial color="#8B4513" />
+              <mesh position={[0, 4, 0]}>
+                <cylinderGeometry args={[0.5, 0.67, 8, 8]} />
+                <meshStandardMaterial color="#654321" roughness={0.9} />
               </mesh>
-              <mesh position={[0, 5, 0]}>
-                <sphereGeometry args={[1.5, 8, 8]} />
-                <meshStandardMaterial color="#228B22" />
+              <mesh position={[0, 9, 0]}>
+                <sphereGeometry args={[3, 12, 12]} />
+                <meshStandardMaterial color="#228B22" roughness={0.8} />
               </mesh>
             </group>
           );
         }
 
         if (feature.type === 'shrub') {
+          const shrubType = feature.shrubType || 'round';
+          const size = shrubType === 'hedge' ? 1.5 : 1;
+          const height = shrubType === 'hedge' ? 3 : 2;
+          
           return (
-            <mesh key={feature.id} position={[feature.x, 0.5, feature.y]}>
-              <sphereGeometry args={[0.8, 8, 8]} />
-              <meshStandardMaterial color="#2E8B57" />
+            <mesh key={feature.id} position={[feature.x, height / 2, feature.y]}>
+              <sphereGeometry args={[size, 12, 12]} />
+              <meshStandardMaterial 
+                color={shrubType === 'flowering' ? "#90EE90" : "#2E8B57"} 
+                roughness={0.9}
+              />
             </mesh>
+          );
+        }
+
+        if (feature.type === 'umbrella') {
+          return (
+            <group key={feature.id} position={[feature.x, 0, feature.y]}>
+              {/* Pole */}
+              <mesh position={[0, 4.5, 0]}>
+                <cylinderGeometry args={[0.083, 0.083, 9, 8]} />
+                <meshStandardMaterial color="#8B7355" metalness={0.3} roughness={0.6} />
+              </mesh>
+              {/* Umbrella top */}
+              <mesh position={[0, 9, 0]} rotation={[0, 0, 0]}>
+                <coneGeometry args={[3, 2, 8]} />
+                <meshStandardMaterial color="#DC143C" roughness={0.7} />
+              </mesh>
+            </group>
           );
         }
 
