@@ -27,8 +27,8 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Vendor chunk for React ecosystem - keep React Query with React
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('@tanstack/react-query')) {
+          // Vendor chunk for React ecosystem - MUST include @react-three for proper React hooks access
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('@tanstack/react-query') || id.includes('@react-three')) {
             return 'react-vendor';
           }
           
@@ -42,8 +42,8 @@ export default defineConfig(({ mode }) => ({
             return 'data-vendor';
           }
           
-          // Three.js and heavy graphics libraries
-          if (id.includes('three') || id.includes('@react-three')) {
+          // Three.js core library only (without @react-three which is now in react-vendor)
+          if (id.includes('three') && !id.includes('@react-three')) {
             return 'graphics-vendor';
           }
           
