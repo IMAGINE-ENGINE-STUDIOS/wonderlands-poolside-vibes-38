@@ -115,6 +115,19 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [copingThickness, setCopingThickness] = useState(15); // 1 foot = 15 pixels at scale 15
   const [waterAnimationTime, setWaterAnimationTime] = useState(0);
 
+  // Pricing constants
+  const PAVER_COST_PER_SQFT = 15;
+  const POOL_COST_PER_SQFT = 190;
+  const FEATURE_COSTS = {
+    stairs: 2500,
+    light: 450,
+    jet: 850,
+    tree: 350,
+    fountain: 3500,
+    grass: 0,
+    home: 0
+  };
+
   // Initialize pool and hardscape centered
   useEffect(() => {
     if (points.length === 0) {
@@ -465,9 +478,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           copingPath.closePath();
         }
         
-        // Draw continuous coping texture along perimeter
+        // Draw continuous coping texture along perimeter using same paver size
         ctx.save();
-        ctx.lineWidth = copingThickness * 2;
+        ctx.lineWidth = paverSizeInPixels; // Use same size as deck pavers
         
         // Create pattern from coping texture
         const copingPattern = ctx.createPattern(copingTextureRef.current, 'repeat');
@@ -478,7 +491,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         
         // Add subtle shadow for depth
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.lineWidth = copingThickness * 2 + 2;
+        ctx.lineWidth = paverSizeInPixels + 2;
         ctx.globalCompositeOperation = 'destination-over';
         ctx.stroke();
         ctx.globalCompositeOperation = 'source-over';
@@ -1174,6 +1187,37 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
   const poolArea = useMemo(() => parseFloat(calculateArea()), [points]);
 
+  // Calculate total project cost
+  const calculateTotalCost = useCallback(() => {
+    // Pool cost
+    const poolCost = poolArea * POOL_COST_PER_SQFT;
+    
+    // Hardscape/deck cost
+    const deckArea = calculateHardscapeArea();
+    const deckCost = deckArea * PAVER_COST_PER_SQFT;
+    
+    // Calculate coping perimeter and cost
+    const copingPerimeterFeet = poolPerimeter;
+    const copingWidthFeet = paverSize / 12; // Convert inches to feet
+    const copingArea = copingPerimeterFeet * copingWidthFeet;
+    const copingCost = copingArea * PAVER_COST_PER_SQFT;
+    
+    // Features cost
+    const featuresCost = features.reduce((total, feature) => {
+      return total + (FEATURE_COSTS[feature.type] || 0);
+    }, 0);
+    
+    return {
+      poolCost,
+      deckCost,
+      copingCost,
+      featuresCost,
+      total: poolCost + deckCost + copingCost + featuresCost
+    };
+  }, [poolArea, poolPerimeter, features, calculateHardscapeArea, paverSize]);
+
+  const projectCost = useMemo(() => calculateTotalCost(), [calculateTotalCost]);
+
   // Notify parent of pool data changes (separate from drawing)
   useEffect(() => {
     if (onPoolDataChange) {
@@ -1526,7 +1570,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           </div>
           <div className="flex items-center gap-1 text-xs">
             <span className="font-bold">{calculateArea()}</span>
-            <span className="text-muted-foreground">sq ft</span>
+            <span className="text-muted-foreground">sq ft pool</span>
           </div>
           <div className="flex items-center gap-1 text-xs">
             <span className="font-bold">{points.length}</span>
@@ -1539,6 +1583,11 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           <div className="flex items-center gap-1 text-xs">
             <span className="font-bold">{calculateHardscapeArea().toFixed(1)}</span>
             <span className="text-muted-foreground">sq ft deck</span>
+          </div>
+          <div className="h-5 w-px bg-border" />
+          <div className="flex items-center gap-1 text-xs font-semibold text-primary">
+            <span className="text-muted-foreground">Total:</span>
+            <span className="text-lg">${projectCost.total.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
           </div>
         </div>
       </div>
