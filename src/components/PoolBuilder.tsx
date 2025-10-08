@@ -85,7 +85,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [scale, setScale] = useState(15); // pixels per foot - increased for better visibility
-  const [canvasSize, setCanvasSize] = useState({ width: window.innerWidth - 100, height: window.innerHeight - 200 });
+  const [canvasSize, setCanvasSize] = useState({ width: window.innerWidth - 40, height: window.innerHeight - 100 });
   const [editingDimension, setEditingDimension] = useState<string | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<string | null>(null);
   const [pendingFeature, setPendingFeature] = useState<'jet' | null>(null);
@@ -1465,8 +1465,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   };
 
   return (
-    <div ref={containerRef} className="w-full h-screen overflow-auto">
-      <Card className="p-2 md:p-4 bg-gradient-to-br from-background to-muted/20 border-2 m-2">
+    <div ref={containerRef} className="w-full h-screen overflow-auto p-2">
+      <Card className="p-2 md:p-4 bg-gradient-to-br from-background to-muted/20 border-2">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
           <div className="bg-card p-3 rounded-lg border">
             <Label className="text-xs text-muted-foreground flex items-center gap-1">
