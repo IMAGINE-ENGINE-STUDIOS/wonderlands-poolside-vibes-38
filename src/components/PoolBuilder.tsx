@@ -197,6 +197,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [selectedFenceDoor, setSelectedFenceDoor] = useState<string | null>(null);
   const [smoothFence, setSmoothFence] = useState(false);
   const [fenceHeight, setFenceHeight] = useState(6); // fence height in feet
+  const [fenceAddMode, setFenceAddMode] = useState(false); // mode to add fence anchors on click
   const [legendExpanded, setLegendExpanded] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -811,6 +812,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     // Draw fence system (before hardscape for proper layering)
     if (fencePoints.length >= 2) {
       const fenceHeightPx = fenceHeight * scale;
+      const fenceColor = showFenceEditor ? '#3B82F6' : '#8B6F47'; // Blue when active, brown when not
       
       // Draw fence panels between points
       ctx.save();
@@ -831,7 +833,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
             const cp2x = p1.x + 2 * (p2.x - p1.x) / 3;
             const cp2y = p1.y + 2 * (p2.y - p1.y) / 3;
             
-            ctx.strokeStyle = '#8B6F47';
+            ctx.strokeStyle = fenceColor;
             ctx.lineWidth = 6;
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
@@ -839,7 +841,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
             ctx.stroke();
           } else {
             // Straight fence
-            ctx.strokeStyle = '#8B6F47';
+            ctx.strokeStyle = fenceColor;
             ctx.lineWidth = 6;
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
@@ -860,7 +862,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
             
             // Draw fence before door
             if (doorStartPos > 0) {
-              ctx.strokeStyle = '#8B6F47';
+              ctx.strokeStyle = fenceColor;
               ctx.lineWidth = 6;
               ctx.beginPath();
               ctx.moveTo(p1.x, p1.y);
@@ -870,7 +872,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
             
             // Draw fence after door
             if (doorEndPos < 1) {
-              ctx.strokeStyle = '#8B6F47';
+              ctx.strokeStyle = fenceColor;
               ctx.lineWidth = 6;
               ctx.beginPath();
               ctx.moveTo(p1.x + dx * doorEndPos, p1.y + dy * doorEndPos);
@@ -878,30 +880,27 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
               ctx.stroke();
             }
             
-            // Draw door frame
+            // Draw door as black rectangle slightly larger than spline
             const doorX = p1.x + dx * door.position;
             const doorY = p1.y + dy * door.position;
             const angle = Math.atan2(dy, dx);
             
             ctx.save();
             ctx.translate(doorX, doorY);
-            ctx.rotate(angle + Math.PI / 2);
+            ctx.rotate(angle);
             
-            // Door posts
-            ctx.fillStyle = '#A67C52';
-            ctx.fillRect(-doorWidthPx / 2 - 3, -3, 6, 6);
-            ctx.fillRect(doorWidthPx / 2 - 3, -3, 6, 6);
+            // Door rectangle (black, slightly larger than fence line)
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(-doorWidthPx / 2, -8, doorWidthPx, 16);
             
-            // Door gate (if selected, show as open)
-            const isDoorSelected = selectedFenceDoor === door.id;
-            if (!isDoorSelected) {
-              ctx.strokeStyle = '#6B5435';
-              ctx.lineWidth = 3;
-              ctx.beginPath();
-              ctx.moveTo(-doorWidthPx / 2, 0);
-              ctx.lineTo(doorWidthPx / 2, 0);
-              ctx.stroke();
-            }
+            // Door frame outline
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-doorWidthPx / 2, -8, doorWidthPx, 16);
+            
+            // Door handle
+            ctx.fillStyle = '#888888';
+            ctx.fillRect(-doorWidthPx / 4, -2, 4, 4);
             
             ctx.restore();
           });
@@ -924,8 +923,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         const size = 10;
         const isSelected = selectedFencePoint === point.id;
         
-        ctx.fillStyle = isSelected ? '#8B6F47' : '#ffffff';
-        ctx.strokeStyle = isSelected ? '#6B5435' : '#8B6F47';
+        ctx.fillStyle = isSelected ? '#3B82F6' : '#ffffff';
+        ctx.strokeStyle = isSelected ? '#2563EB' : '#3B82F6';
         ctx.lineWidth = 2;
         ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
         ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
@@ -3017,7 +3016,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
               onMouseLeave={handleCanvasMouseUp}
               className="border-2 border-border rounded-lg shadow-2xl touch-none bg-gradient-to-br from-background to-muted/10"
               style={{ 
-                cursor: pendingFeature === 'jet' ? 'crosshair' 
+                cursor: fenceAddMode ? 'crosshair'
+                  : pendingFeature === 'jet' ? 'crosshair' 
                   : activeTool === 'add' ? 'crosshair'
                   : activeTool === 'select' ? 'default' 
                   : activeTool === 'rotate' ? 'grab' 
@@ -3085,7 +3085,10 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
               <Button 
                 size="sm" 
                 variant="ghost" 
-                onClick={() => setShowFenceEditor(false)}
+                onClick={() => {
+                  setShowFenceEditor(false);
+                  setFenceAddMode(false);
+                }}
                 className="h-6 w-6 p-0"
               >
                 ×
@@ -3096,29 +3099,20 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
               <Button 
                 size="sm" 
                 onClick={() => {
-                  const centerX = canvasSize.width / 2;
-                  const centerY = canvasSize.height / 2;
-                  const newId = `f${Date.now()}`;
-                  
                   if (fencePoints.length === 0) {
-                    setFencePoints([
-                      { x: centerX - 150, y: centerY - 200, id: `${newId}_1` },
-                      { x: centerX + 150, y: centerY - 200, id: `${newId}_2` }
-                    ]);
-                  } else {
-                    const lastPoint = fencePoints[fencePoints.length - 1];
-                    setFencePoints([...fencePoints, { 
-                      x: lastPoint.x + 100, 
-                      y: lastPoint.y, 
-                      id: newId 
-                    }]);
+                    // Create initial fence with first point at center
+                    const centerX = canvasSize.width / 2;
+                    const centerY = canvasSize.height / 2;
+                    setFencePoints([{ x: centerX, y: centerY - 200, id: `f${Date.now()}` }]);
                   }
+                  // Toggle add mode
+                  setFenceAddMode(!fenceAddMode);
                 }}
-                variant="outline" 
+                variant={fenceAddMode ? "default" : "outline"}
                 className="flex-1 h-8 text-xs"
               >
                 <Plus className="h-3 w-3 mr-1" />
-                {fencePoints.length === 0 ? 'Create' : 'Add Anchor'}
+                {fenceAddMode ? 'Click Canvas' : fencePoints.length === 0 ? 'Create' : 'Add Anchor'}
               </Button>
               <Button 
                 size="sm" 
@@ -3134,6 +3128,36 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
               >
                 <Trash2 className="h-3 w-3 mr-1" />
                 Remove
+              </Button>
+              <Button 
+                size="sm" 
+                onClick={() => {
+                  // Add division to selected fence segment
+                  if (selectedFencePoint && fencePoints.length >= 2) {
+                    const selectedIndex = fencePoints.findIndex(p => p.id === selectedFencePoint);
+                    if (selectedIndex >= 0 && selectedIndex < fencePoints.length - 1) {
+                      const p1 = fencePoints[selectedIndex];
+                      const p2 = fencePoints[selectedIndex + 1];
+                      const midPoint = {
+                        x: (p1.x + p2.x) / 2,
+                        y: (p1.y + p2.y) / 2,
+                        id: `f${Date.now()}`
+                      };
+                      const newPoints = [...fencePoints];
+                      newPoints.splice(selectedIndex + 1, 0, midPoint);
+                      setFencePoints(newPoints);
+                    }
+                  }
+                }}
+                variant="outline"
+                disabled={!selectedFencePoint || fencePoints.length < 2}
+                className="flex-1 h-8 text-xs"
+                title="Add division point to selected segment"
+              >
+                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
               </Button>
             </div>
             
