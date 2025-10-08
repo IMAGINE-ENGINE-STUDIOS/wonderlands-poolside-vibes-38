@@ -1321,21 +1321,21 @@ const WonderlandsStudio = () => {
                     <Separator />
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3">
-                      <Button onClick={handleQuoteRequest} variant="outline" className="flex-1">
-                        <Download className="h-4 w-4 mr-2" />
-                        Generate Quote
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                      <Button onClick={handleQuoteRequest} variant="outline" className="flex-1 text-xs sm:text-sm">
+                        <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                        <span className="truncate">Generate Quote</span>
                       </Button>
-                      <Button onClick={handleAddToCart} variant="outline" className="flex-1">
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        Add to Cart
+                      <Button onClick={handleAddToCart} variant="outline" className="flex-1 text-xs sm:text-sm">
+                        <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                        <span className="truncate">Add to Cart</span>
                       </Button>
                       <StripeCheckoutButton 
                         productId={`${selectedProduct.type}_${selectedProduct.model?.replace(/\s+/g, '_') || selectedProduct.name?.replace(/\s+/g, '_')}`} 
                         productName={selectedProduct.model || selectedProduct.name || 'Product'} 
                         price={calculateTotalPrice()} 
                         variant="default" 
-                        className="flex-1" 
+                        className="flex-1 text-xs sm:text-sm" 
                       />
                     </div>
                    </CardContent>
