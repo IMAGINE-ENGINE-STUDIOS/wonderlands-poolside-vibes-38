@@ -284,6 +284,21 @@ const WonderlandsStudio = () => {
   const [activeTab, setActiveTab] = useState<'pools' | 'spas' | 'tanning-ledges' | 'saunas' | 'scenes' | 'build-a-pool'>('pools');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [poolBuilderData, setPoolBuilderData] = useState<{
+    points: any[];
+    features: any[];
+    perimeter: number;
+    area: number;
+    deckArea?: number;
+    totalCost?: number;
+    breakdown?: {
+      poolCost: number;
+      deckCost: number;
+      copingCost: number;
+      featuresCost: number;
+      total: number;
+    };
+  } | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [selectedExtras, setSelectedExtras] = useState<any>({
     liner: false,
@@ -1006,7 +1021,7 @@ const WonderlandsStudio = () => {
                   </CardHeader>
                   <CardContent>
                     <PoolBuilder onPoolDataChange={(data) => {
-                      console.log('Pool data:', data);
+                      setPoolBuilderData(data as any);
                     }} />
                   </CardContent>
                 </Card>
@@ -1520,7 +1535,65 @@ const WonderlandsStudio = () => {
               </CardHeader>
               <CardContent className="p-3 sm:p-6">
                 <div className="space-y-3 sm:space-y-4">
-                  {selectedProduct ? <>
+                  {activeTab === 'build-a-pool' && poolBuilderData ? <>
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <div className="flex justify-between text-xs sm:text-sm">
+                          <span>Pool ({poolBuilderData.area.toFixed(1)} sq ft)</span>
+                          <span>${poolBuilderData.breakdown?.poolCost.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-xs sm:text-sm">
+                          <span>Deck Pavers ({poolBuilderData.deckArea?.toFixed(1)} sq ft)</span>
+                          <span>${poolBuilderData.breakdown?.deckCost.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between text-xs sm:text-sm">
+                          <span>Coping ({poolBuilderData.perimeter.toFixed(1)} ft)</span>
+                          <span>${poolBuilderData.breakdown?.copingCost.toLocaleString()}</span>
+                        </div>
+                        {poolBuilderData.features.length > 0 && (
+                          <div className="flex justify-between text-xs sm:text-sm">
+                            <span>Features ({poolBuilderData.features.length})</span>
+                            <span>${poolBuilderData.breakdown?.featuresCost.toLocaleString()}</span>
+                          </div>
+                        )}
+                        <Separator />
+                      </div>
+                      
+                      {/* Feature Breakdown */}
+                      {poolBuilderData.features.length > 0 && (
+                        <div className="space-y-1">
+                          <p className="text-xs font-medium text-muted-foreground">Added Features:</p>
+                          {poolBuilderData.features.map((feature: any, idx: number) => (
+                            <div key={idx} className="flex items-center gap-2 text-xs">
+                              <Badge variant="secondary" className="capitalize">{feature.type}</Badge>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      <div className="text-center p-3 sm:p-4 bg-gradient-to-r from-primary/10 to-teal/10 rounded-lg">
+                        <div className="text-xl sm:text-2xl font-bold text-primary">
+                          ${poolBuilderData.breakdown?.total.toLocaleString()}
+                        </div>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                          Total Configuration Price
+                        </p>
+                      </div>
+
+                      {/* Financing Options */}
+                      <div className="p-2 sm:p-3 bg-muted/50 rounded-lg">
+                        <p className="text-[10px] sm:text-xs font-medium mb-1.5 sm:mb-2">Financing Options:</p>
+                        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
+                          <div className="text-center p-1.5 sm:p-2 bg-background rounded">
+                            <div className="font-semibold text-[10px] sm:text-xs">36 months</div>
+                            <div className="text-primary text-[10px] sm:text-xs">${((poolBuilderData.breakdown?.total || 0) / 36).toLocaleString()}/mo</div>
+                          </div>
+                          <div className="text-center p-1.5 sm:p-2 bg-background rounded">
+                            <div className="font-semibold text-[10px] sm:text-xs">72 months</div>
+                            <div className="text-primary text-[10px] sm:text-xs">${((poolBuilderData.breakdown?.total || 0) / 72).toLocaleString()}/mo</div>
+                          </div>
+                        </div>
+                      </div>
+                    </> : selectedProduct ? <>
                       <div className="space-y-1.5 sm:space-y-2">
                         <div className="flex justify-between text-xs sm:text-sm">
                           <span>Base Price</span>

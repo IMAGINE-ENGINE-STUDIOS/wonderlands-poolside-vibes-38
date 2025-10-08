@@ -42,6 +42,15 @@ interface PoolBuilderProps {
     features: PoolFeature[];
     perimeter: number;
     area: number;
+    deckArea: number;
+    totalCost: number;
+    breakdown: {
+      poolCost: number;
+      deckCost: number;
+      copingCost: number;
+      featuresCost: number;
+      total: number;
+    };
   }) => void;
 }
 
@@ -1221,14 +1230,18 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   // Notify parent of pool data changes (separate from drawing)
   useEffect(() => {
     if (onPoolDataChange) {
+      const cost = calculateTotalCost();
       onPoolDataChange({
         points,
         features,
         perimeter: poolPerimeter,
-        area: poolArea
+        area: poolArea,
+        deckArea: calculateHardscapeArea(),
+        totalCost: cost.total,
+        breakdown: cost
       });
     }
-  }, [points, features, poolPerimeter, poolArea, onPoolDataChange]);
+  }, [points, features, poolPerimeter, poolArea, onPoolDataChange, calculateTotalCost, calculateHardscapeArea]);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
