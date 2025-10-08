@@ -148,6 +148,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   };
 
   // Generate rectangular hardscape deck measured from coping edge outward
+  // North = 3ft, South = 5ft, East/West = use deckDistanceInFeet
   const generateHardscapeFromPool = (poolPoints: Point[], deckDistanceInFeet: number = 3): HardscapePoint[] => {
     // Calculate pool bounding box
     const minX = Math.min(...poolPoints.map(p => p.x));
@@ -163,10 +164,14 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const copingThicknessFeet = copingThickness / scale;
     const totalCopingOnBothSides = copingThicknessFeet * 2; // both sides of pool
     
-    // Calculate required deck dimensions (pool + coping + deck offset on each side)
-    // Deck offset is measured FROM THE COPING EDGE, not the pool edge
-    const requiredDeckWidth = poolWidthFeet + totalCopingOnBothSides + (deckDistanceInFeet * 2);
-    const requiredDeckLength = poolLengthFeet + totalCopingOnBothSides + (deckDistanceInFeet * 2);
+    // Deck distances: North (top) = 3ft, South (bottom) = 5ft, East/West = deckDistanceInFeet
+    const deckNorth = 3; // 3 ft north of coping
+    const deckSouth = 5; // 5 ft south of coping
+    const deckEastWest = deckDistanceInFeet; // Use passed value for east/west
+    
+    // Calculate required deck dimensions
+    const requiredDeckWidth = poolWidthFeet + totalCopingOnBothSides + (deckEastWest * 2);
+    const requiredDeckLength = poolLengthFeet + totalCopingOnBothSides + deckNorth + deckSouth;
     
     // Use the larger of default minimum (38x18) or calculated dimensions
     const deckWidth = Math.max(defaultDeckWidth, requiredDeckWidth);
@@ -178,14 +183,20 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     
     // Convert deck dimensions to pixels
     const deckWidthPixels = deckWidth * scale;
-    const deckLengthPixels = deckLength * scale;
     
-    // Generate rectangular deck centered on pool
+    // Calculate asymmetric deck positioning
+    // North edge is 3ft from coping, south edge is 5ft from coping
+    const poolTopY = minY;
+    const poolBottomY = maxY;
+    const deckTopY = poolTopY - (deckNorth * scale) - (copingThicknessFeet * scale);
+    const deckBottomY = poolBottomY + (deckSouth * scale) + (copingThicknessFeet * scale);
+    
+    // Generate rectangular deck with asymmetric north/south distances
     const hardscapePoints: HardscapePoint[] = [
-      { x: poolCenterX - deckWidthPixels / 2, y: poolCenterY - deckLengthPixels / 2, id: 'h1' }, // Top-left
-      { x: poolCenterX + deckWidthPixels / 2, y: poolCenterY - deckLengthPixels / 2, id: 'h2' }, // Top-right
-      { x: poolCenterX + deckWidthPixels / 2, y: poolCenterY + deckLengthPixels / 2, id: 'h3' }, // Bottom-right
-      { x: poolCenterX - deckWidthPixels / 2, y: poolCenterY + deckLengthPixels / 2, id: 'h4' }  // Bottom-left
+      { x: poolCenterX - deckWidthPixels / 2, y: deckTopY, id: 'h1' }, // Top-left (North)
+      { x: poolCenterX + deckWidthPixels / 2, y: deckTopY, id: 'h2' }, // Top-right (North)
+      { x: poolCenterX + deckWidthPixels / 2, y: deckBottomY, id: 'h3' }, // Bottom-right (South)
+      { x: poolCenterX - deckWidthPixels / 2, y: deckBottomY, id: 'h4' }  // Bottom-left (South)
     ];
     
     return hardscapePoints;
@@ -232,7 +243,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [selectedPaverId, setSelectedPaverId] = useState('appian-adobe');
   const [selectedCopingId, setSelectedCopingId] = useState('appian-adobe');
   const [selectedFinishId, setSelectedFinishId] = useState('aquamarine');
-  const [paverSize] = useState(12); // Reduced paver size for finer texture at larger scale (12 inches)
+  const [paverSize] = useState(24); // Larger paver size for better visibility (24 inches / 2 feet)
   const [poolShape, setPoolShape] = useState<'rectangle' | 'kidney' | 'freeform'>('rectangle');
   const [copingThickness, setCopingThickness] = useState(10); // Adjusted for new scale
   const [depthPoints, setDepthPoints] = useState<DepthPoint[]>([
@@ -1820,6 +1831,55 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.stroke();
       ctx.restore();
     }
+
+    // Draw North arrow in the top right corner
+    const arrowX = canvasSize.width - 60;
+    const arrowY = 50;
+    const arrowSize = 40;
+    
+    ctx.save();
+    
+    // Arrow background circle
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(arrowX, arrowY, arrowSize / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // North arrow (pointing up)
+    ctx.fillStyle = '#EF4444'; // Red for north pointer
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(arrowX, arrowY - arrowSize / 2.5); // Top point
+    ctx.lineTo(arrowX - 8, arrowY + 5); // Bottom left
+    ctx.lineTo(arrowX, arrowY); // Center
+    ctx.lineTo(arrowX + 8, arrowY + 5); // Bottom right
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // South pointer (lighter)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.moveTo(arrowX, arrowY + arrowSize / 2.5); // Bottom point
+    ctx.lineTo(arrowX - 8, arrowY - 5); // Top left
+    ctx.lineTo(arrowX, arrowY); // Center
+    ctx.lineTo(arrowX + 8, arrowY - 5); // Top right
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // "N" label
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('N', arrowX, arrowY - arrowSize / 1.5);
+    
+    ctx.restore();
 
   }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel]);
 
