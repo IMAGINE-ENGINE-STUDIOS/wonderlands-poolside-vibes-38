@@ -49,7 +49,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [features, setFeatures] = useState<PoolFeature[]>([]);
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [scale, setScale] = useState(10); // pixels per foot
+  const [scale, setScale] = useState(15); // pixels per foot - increased for better visibility
   const [canvasSize, setCanvasSize] = useState({ width: 700, height: 500 });
   const [editingDimension, setEditingDimension] = useState<string | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<string | null>(null);
@@ -59,7 +59,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [draggingFeature, setDraggingFeature] = useState(false);
   const [texturesLoaded, setTexturesLoaded] = useState(false);
   const [selectedPaverId, setSelectedPaverId] = useState('appian-adobe');
-  const [paverSize] = useState(16); // Standard paver size in inches
+  const [paverSize] = useState(24); // Standard paver size in inches (2ft x 2ft)
 
   // Load textures
   useEffect(() => {
@@ -186,7 +186,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     // Clear canvas
     ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
 
-    // Calculate paver size in pixels (16 inches = 1.33 feet)
+    // Calculate paver size in pixels (24 inches = 2 feet)
     const paverSizeInFeet = paverSize / 12;
     const paverSizeInPixels = paverSizeInFeet * scale;
 
@@ -195,18 +195,28 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       const img = paverTextureRef.current;
       
       // Calculate how many pavers fit
-      const numPaversX = Math.ceil(canvasSize.width / paverSizeInPixels);
-      const numPaversY = Math.ceil(canvasSize.height / paverSizeInPixels);
+      const numPaversX = Math.ceil(canvasSize.width / paverSizeInPixels) + 1;
+      const numPaversY = Math.ceil(canvasSize.height / paverSizeInPixels) + 1;
       
-      for (let i = 0; i <= numPaversX; i++) {
-        for (let j = 0; j <= numPaversY; j++) {
+      // Draw pavers as perfect squares
+      for (let i = 0; i < numPaversX; i++) {
+        for (let j = 0; j < numPaversY; j++) {
+          const x = i * paverSizeInPixels;
+          const y = j * paverSizeInPixels;
+          
+          // Draw image maintaining aspect ratio - force square
           ctx.drawImage(
             img,
-            i * paverSizeInPixels,
-            j * paverSizeInPixels,
+            x,
+            y,
             paverSizeInPixels,
             paverSizeInPixels
           );
+          
+          // Draw subtle grout lines
+          ctx.strokeStyle = 'rgba(100, 80, 60, 0.2)';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x, y, paverSizeInPixels, paverSizeInPixels);
         }
       }
     } else {
@@ -216,15 +226,15 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     }
 
     // Draw subtle measurement grid
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.06)';
     ctx.lineWidth = 0.5;
-    for (let i = 0; i < canvasSize.width; i += scale) {
+    for (let i = 0; i <= canvasSize.width; i += scale) {
       ctx.beginPath();
       ctx.moveTo(i, 0);
       ctx.lineTo(i, canvasSize.height);
       ctx.stroke();
     }
-    for (let i = 0; i < canvasSize.height; i += scale) {
+    for (let i = 0; i <= canvasSize.height; i += scale) {
       ctx.beginPath();
       ctx.moveTo(0, i);
       ctx.lineTo(canvasSize.width, i);
