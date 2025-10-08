@@ -132,6 +132,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [features, setFeatures] = useState<PoolFeature[]>([]);
   const [selectedHardscapePoint, setSelectedHardscapePoint] = useState<string | null>(null);
   const [isDraggingHardscape, setIsDraggingHardscape] = useState(false);
+  const [legendExpanded, setLegendExpanded] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [scale, setScale] = useState(10); // pixels per foot - reduced for larger canvas
@@ -2412,95 +2413,117 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           />
         </div>
 
-        {/* Legend Panel - Floating */}
-        <Card className="absolute top-4 right-4 w-64 h-fit max-h-[calc(100vh-120px)] overflow-y-auto shadow-lg z-10">
-          <div className="p-4 border-b bg-muted/30">
-            <h3 className="font-semibold text-sm uppercase tracking-wide">Legend</h3>
-          </div>
-          <div className="p-4 space-y-4">
-            {/* Pool Elements */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase">Pool Elements</h4>
-              <div className="space-y-1.5 text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-sm bg-[#5BC5D9] border border-border" />
-                  <span>Pool Water</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-sm bg-[#8B7355] border border-border" />
-                  <span>Coping Edge</span>
-                </div>
+        {/* Legend Panel - Floating & Collapsible */}
+        <div className="absolute top-4 right-4 z-10">
+          {legendExpanded ? (
+            <Card className="w-64 h-fit max-h-[calc(100vh-120px)] overflow-y-auto shadow-lg animate-slide-in-right">
+              <div className="p-4 border-b bg-muted/30 flex items-center justify-between">
+                <h3 className="font-semibold text-sm uppercase tracking-wide">Legend</h3>
+                <button 
+                  onClick={() => setLegendExpanded(false)}
+                  className="hover:bg-muted rounded p-1 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
-            </div>
+              <div className="p-4 space-y-4">
+                {/* Pool Elements */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase">Pool Elements</h4>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-sm bg-[#5BC5D9] border border-border" />
+                      <span>Pool Water</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-sm bg-[#8B7355] border border-border" />
+                      <span>Coping Edge</span>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Features */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase">Features</h4>
-              <div className="space-y-1.5 text-xs">
-                <div className="flex items-center gap-2">
-                  <Move className="h-4 w-4 text-primary" />
-                  <span>Pool Stairs</span>
+                {/* Features */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase">Features</h4>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex items-center gap-2">
+                      <Move className="h-4 w-4 text-primary" />
+                      <span>Pool Stairs</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Lightbulb className="h-4 w-4 text-yellow-500" />
+                      <span>LED Lighting</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Waves className="h-4 w-4 text-blue-500" />
+                      <span>Water Jets</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Droplets className="h-4 w-4 text-cyan-500" />
+                      <span>Fountain</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Lightbulb className="h-4 w-4 text-yellow-500" />
-                  <span>LED Lighting</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Waves className="h-4 w-4 text-blue-500" />
-                  <span>Water Jets</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Droplets className="h-4 w-4 text-cyan-500" />
-                  <span>Fountain</span>
-                </div>
-              </div>
-            </div>
 
-            {/* Hardscape */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase">Hardscape</h4>
-              <div className="space-y-1.5 text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-sm border border-border bg-gradient-to-br from-stone-300 to-stone-400" />
-                  <span>Paver Deck</span>
+                {/* Hardscape */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase">Hardscape</h4>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-sm border border-border bg-gradient-to-br from-stone-300 to-stone-400" />
+                      <span>Paver Deck</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Landscape */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-semibold text-muted-foreground uppercase">Landscape</h4>
-              <div className="space-y-1.5 text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-sm bg-[#4A7C3C] border border-border" />
-                  <span>Grass Area</span>
+                {/* Landscape */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase">Landscape</h4>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-sm bg-[#4A7C3C] border border-border" />
+                      <span>Grass Area</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Trees className="h-4 w-4 text-green-700" />
+                      <span>Trees</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Home className="h-4 w-4 text-stone-600" />
+                      <span>Building</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Trees className="h-4 w-4 text-green-700" />
-                  <span>Trees</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Home className="h-4 w-4 text-stone-600" />
-                  <span>Building</span>
-                </div>
-              </div>
-            </div>
 
-            {/* Scale Info */}
-            <div className="pt-3 border-t space-y-1.5">
-              <div className="flex items-center gap-2 text-xs">
-                <Ruler className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Scale: {scale} px/ft</span>
+                {/* Scale Info */}
+                <div className="pt-3 border-t space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs">
+                    <Ruler className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Scale: {scale} px/ft</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Drag corners to reshape pool
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Drag features to reposition
+                  </div>
+                </div>
               </div>
-              <div className="text-xs text-muted-foreground">
-                Drag corners to reshape pool
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Drag features to reposition
-              </div>
-            </div>
-          </div>
-        </Card>
+            </Card>
+          ) : (
+            <button
+              onClick={() => setLegendExpanded(true)}
+              className="bg-card border rounded-lg shadow-lg p-3 hover:bg-muted transition-colors animate-fade-in"
+              title="Show Legend"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
