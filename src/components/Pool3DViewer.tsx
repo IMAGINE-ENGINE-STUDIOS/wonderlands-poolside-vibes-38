@@ -15,11 +15,40 @@ interface DepthPoint {
   id: string;
 }
 
+interface HardscapePoint {
+  x: number;
+  y: number;
+  id: string;
+}
+
+interface FencePoint {
+  x: number;
+  y: number;
+  id: string;
+}
+
+interface PoolFeature {
+  type: 'stairs' | 'light' | 'jet' | 'tree' | 'fountain' | 'grass' | 'home' | 'shrub' | 'umbrella' | 'fence' | 'pathway';
+  x: number;
+  y: number;
+  id: string;
+  angle?: number;
+  steps?: number;
+  width?: number;
+  height?: number;
+  treeType?: 'palm' | 'oak' | 'pine' | 'willow' | 'maple' | 'cypress';
+  shrubType?: 'round' | 'flowering' | 'hedge';
+  roofPoints?: any[];
+}
+
 interface Pool3DViewerProps {
   points: Point[];
   depthPoints: DepthPoint[];
   scale: number;
   poolShape: 'rectangle' | 'kidney' | 'freeform';
+  hardscapePoints?: HardscapePoint[];
+  fencePoints?: FencePoint[];
+  features?: PoolFeature[];
 }
 
 const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) => {
@@ -276,7 +305,261 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) 
   );
 };
 
-const Scene = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) => {
+// Deck component
+const DeckMesh = ({ hardscapePoints, scale }: { hardscapePoints: HardscapePoint[], scale: number }) => {
+  const geometry = useMemo(() => {
+    if (hardscapePoints.length < 3) return null;
+
+    const vertices: number[] = [];
+    const indices: number[] = [];
+    
+    // Convert hardscape points to 3D
+    const minX = Math.min(...hardscapePoints.map(p => p.x));
+    const maxX = Math.max(...hardscapePoints.map(p => p.x));
+    const minY = Math.min(...hardscapePoints.map(p => p.y));
+    const maxY = Math.max(...hardscapePoints.map(p => p.y));
+    
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    
+    hardscapePoints.forEach((p, i) => {
+      const x = (p.x - centerX) / scale;
+      const z = (p.y - centerY) / scale;
+      const y = 0.1; // Slightly above ground
+      
+      vertices.push(x, y, z);
+      
+      if (i >= 2) {
+        indices.push(0, i - 1, i);
+      }
+    });
+    
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+    
+    return geo;
+  }, [hardscapePoints, scale]);
+
+  if (!geometry) return null;
+
+  return (
+    <mesh geometry={geometry} receiveShadow>
+      <meshStandardMaterial 
+        color="#D4C4B0" 
+        roughness={0.8}
+        metalness={0.1}
+      />
+    </mesh>
+  );
+};
+
+// Fence component
+const FenceMesh = ({ fencePoints, scale }: { fencePoints: FencePoint[], scale: number }) => {
+  const geometry = useMemo(() => {
+    if (fencePoints.length < 2) return null;
+
+    const vertices: number[] = [];
+    const indices: number[] = [];
+    const fenceHeight = 6; // 6 feet tall
+    
+    const minX = Math.min(...fencePoints.map(p => p.x));
+    const maxX = Math.max(...fencePoints.map(p => p.x));
+    const minY = Math.min(...fencePoints.map(p => p.y));
+    const maxY = Math.max(...fencePoints.map(p => p.y));
+    
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    
+    for (let i = 0; i < fencePoints.length - 1; i++) {
+      const p1 = fencePoints[i];
+      const p2 = fencePoints[i + 1];
+      
+      const x1 = (p1.x - centerX) / scale;
+      const z1 = (p1.y - centerY) / scale;
+      const x2 = (p2.x - centerX) / scale;
+      const z2 = (p2.y - centerY) / scale;
+      
+      const baseIdx = vertices.length / 3;
+      
+      // Bottom edge
+      vertices.push(x1, 0, z1);
+      vertices.push(x2, 0, z2);
+      
+      // Top edge
+      vertices.push(x1, fenceHeight, z1);
+      vertices.push(x2, fenceHeight, z2);
+      
+      // Create quad
+      indices.push(
+        baseIdx, baseIdx + 1, baseIdx + 3,
+        baseIdx, baseIdx + 3, baseIdx + 2
+      );
+    }
+    
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+    
+    return geo;
+  }, [fencePoints, scale]);
+
+  if (!geometry) return null;
+
+  return (
+    <mesh geometry={geometry} castShadow receiveShadow>
+      <meshStandardMaterial 
+        color="#8B6F47" 
+        roughness={0.6}
+        metalness={0.2}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  );
+};
+
+// Pool Features component
+const PoolFeatures = ({ features, scale }: { features: PoolFeature[], scale: number }) => {
+  const minX = 0;
+  const maxX = 1000;
+  const minY = 0;
+  const maxY = 1000;
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+
+  return (
+    <>
+      {features.map((feature) => {
+        const x = (feature.x - centerX) / scale;
+        const z = (feature.y - centerY) / scale;
+
+        if (feature.type === 'light') {
+          return (
+            <mesh key={feature.id} position={[x, 0.2, z]} castShadow>
+              <sphereGeometry args={[0.3, 16, 16]} />
+              <meshStandardMaterial 
+                color="#FFD700" 
+                emissive="#FFD700"
+                emissiveIntensity={0.8}
+              />
+              <pointLight color="#FFD700" intensity={2} distance={5} />
+            </mesh>
+          );
+        }
+
+        if (feature.type === 'jet') {
+          return (
+            <mesh key={feature.id} position={[x, 0.1, z]}>
+              <cylinderGeometry args={[0.2, 0.2, 0.3, 16]} />
+              <meshStandardMaterial color="#5BA5C6" metalness={0.8} roughness={0.2} />
+            </mesh>
+          );
+        }
+
+        if (feature.type === 'fountain') {
+          return (
+            <group key={feature.id} position={[x, 0, z]}>
+              <mesh position={[0, 0.5, 0]}>
+                <cylinderGeometry args={[0.5, 0.7, 1, 16]} />
+                <meshStandardMaterial color="#A8D8EA" />
+              </mesh>
+              <mesh position={[0, 1.2, 0]}>
+                <sphereGeometry args={[0.3, 16, 16]} />
+                <meshStandardMaterial 
+                  color="#4DD0E1" 
+                  transparent 
+                  opacity={0.6}
+                />
+              </mesh>
+            </group>
+          );
+        }
+
+        if (feature.type === 'tree') {
+          return (
+            <group key={feature.id} position={[x, 0, z]}>
+              {/* Trunk */}
+              <mesh position={[0, 2, 0]}>
+                <cylinderGeometry args={[0.3, 0.4, 4, 8]} />
+                <meshStandardMaterial color="#8B4513" />
+              </mesh>
+              {/* Foliage */}
+              <mesh position={[0, 5, 0]}>
+                <sphereGeometry args={[1.5, 8, 8]} />
+                <meshStandardMaterial color="#228B22" />
+              </mesh>
+            </group>
+          );
+        }
+
+        if (feature.type === 'shrub') {
+          return (
+            <mesh key={feature.id} position={[x, 0.5, z]}>
+              <sphereGeometry args={[0.8, 8, 8]} />
+              <meshStandardMaterial color="#2E8B57" />
+            </mesh>
+          );
+        }
+
+        if (feature.type === 'grass') {
+          const width = (feature.width || 60) / scale;
+          const height = (feature.height || 60) / scale;
+          
+          return (
+            <mesh key={feature.id} position={[x, 0.05, z]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+              <planeGeometry args={[width, height]} />
+              <meshStandardMaterial color="#7CB342" roughness={1} />
+            </mesh>
+          );
+        }
+
+        if (feature.type === 'home' && feature.roofPoints) {
+          const houseWidth = (feature.width || 80) / scale;
+          const houseDepth = (feature.height || 80) / scale;
+          const houseHeight = 8;
+          
+          return (
+            <group key={feature.id} position={[x, 0, z]}>
+              {/* House walls */}
+              <mesh position={[0, houseHeight / 2, 0]} castShadow receiveShadow>
+                <boxGeometry args={[houseWidth, houseHeight, houseDepth]} />
+                <meshStandardMaterial color="#E8D5C4" />
+              </mesh>
+              {/* Roof */}
+              <mesh position={[0, houseHeight + 1, 0]} castShadow>
+                <coneGeometry args={[houseWidth * 0.7, 3, 4]} />
+                <meshStandardMaterial color="#8B4513" />
+              </mesh>
+            </group>
+          );
+        }
+
+        if (feature.type === 'umbrella') {
+          return (
+            <group key={feature.id} position={[x, 0, z]}>
+              {/* Pole */}
+              <mesh position={[0, 4, 0]}>
+                <cylinderGeometry args={[0.1, 0.1, 8, 8]} />
+                <meshStandardMaterial color="#654321" />
+              </mesh>
+              {/* Umbrella top */}
+              <mesh position={[0, 7.5, 0]} rotation={[0, 0, 0]}>
+                <coneGeometry args={[2, 1.5, 8, 1, true]} />
+                <meshStandardMaterial color="#FF6B6B" side={THREE.DoubleSide} />
+              </mesh>
+            </group>
+          );
+        }
+
+        return null;
+      })}
+    </>
+  );
+};
+
+const Scene = ({ points, depthPoints, scale, poolShape, hardscapePoints = [], fencePoints = [], features = [] }: Pool3DViewerProps) => {
   return (
     <>
       <PerspectiveCamera makeDefault position={[30, 25, 30]} fov={50} />
@@ -319,13 +602,28 @@ const Scene = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) => 
         poolShape={poolShape}
       />
 
+      {/* Deck */}
+      {hardscapePoints.length > 0 && (
+        <DeckMesh hardscapePoints={hardscapePoints} scale={scale} />
+      )}
+
+      {/* Fence */}
+      {fencePoints.length > 0 && (
+        <FenceMesh fencePoints={fencePoints} scale={scale} />
+      )}
+
+      {/* Pool Features */}
+      {features.length > 0 && (
+        <PoolFeatures features={features} scale={scale} />
+      )}
+
       {/* Axes helper */}
       <axesHelper args={[5]} />
     </>
   );
 };
 
-export const Pool3DViewer = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) => {
+export const Pool3DViewer = ({ points, depthPoints, scale, poolShape, hardscapePoints = [], fencePoints = [], features = [] }: Pool3DViewerProps) => {
   return (
     <div className="w-full h-full bg-gradient-to-b from-sky-100 to-background rounded-lg overflow-hidden">
       <Canvas shadows gl={{ antialias: true, alpha: true }}>
@@ -334,6 +632,9 @@ export const Pool3DViewer = ({ points, depthPoints, scale, poolShape }: Pool3DVi
           depthPoints={depthPoints}
           scale={scale}
           poolShape={poolShape}
+          hardscapePoints={hardscapePoints}
+          fencePoints={fencePoints}
+          features={features}
         />
       </Canvas>
     </div>

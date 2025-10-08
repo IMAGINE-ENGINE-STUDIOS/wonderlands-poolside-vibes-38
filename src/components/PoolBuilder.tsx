@@ -2713,6 +2713,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                         depthPoints={depthPoints}
                         scale={scale}
                         poolShape={poolShape}
+                        hardscapePoints={hardscapePoints}
+                        fencePoints={fencePoints}
+                        features={features}
                       />
                     </div>
                     <div className="text-sm text-muted-foreground">
