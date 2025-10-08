@@ -71,18 +71,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    console.log("AuthProvider: Setting up auth listener");
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("AuthProvider: Auth state changed:", event, !!session);
         setSession(session);
         setUser(session?.user ?? null);
         
         // Handle email verification
-        if (session?.user && !session.user.email_confirmed_at) {
-          console.log("User email not verified yet");
-        }
         
         if (session?.user) {
           // Defer profile fetch to avoid potential deadlock
@@ -99,7 +94,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("AuthProvider: Initial session check:", !!session);
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -195,10 +189,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refreshProfile,
   };
 
-  console.log("AuthProvider: Rendering with loading:", loading, "user:", !!user);
-  
   if (loading) {
-    console.log("AuthProvider: Still loading...");
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Loading application...</div>

@@ -815,8 +815,6 @@ const WonderlandsStudio = () => {
   const handleAddToCart = () => {
     if (!selectedProduct) return;
 
-    // Debug: Log selectedExtras to see what's being added
-    console.log('Adding to cart - selectedExtras:', JSON.stringify(selectedExtras, null, 2));
 
     // Convert selectedExtras to the format expected by CartItem
     const extrasArray = [];

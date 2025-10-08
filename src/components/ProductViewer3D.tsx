@@ -57,7 +57,6 @@ const parseDepth = (depthStr?: string): number => {
 // Map finish names to texture URLs
 const getFinishTextureUrl = (finishName?: string): string => {
   if (!finishName || finishName === 'None') {
-    console.log('Using default finish texture (no finish selected)');
     return '/src/assets/finishes/sapphire-blue-g3.jpg';
   }
   
@@ -79,14 +78,12 @@ const getFinishTextureUrl = (finishName?: string): string => {
     return '/src/assets/finishes/sapphire-blue-g3.jpg';
   }
   
-  console.log(`✓ Selected finish texture: ${finishName} -> ${textureUrl}`);
   return textureUrl;
 };
 
 // Map paver names to texture URLs from paverTypes data
 const getPaverTextureUrl = (paverName?: string, paverTypes?: any[]): string => {
   if (!paverName || paverName === 'None' || paverName === 'No Pavers') {
-    console.log('Using default paver texture (no pavers selected)');
     return '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
   }
   
@@ -96,7 +93,6 @@ const getPaverTextureUrl = (paverName?: string, paverTypes?: any[]): string => {
     return '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
   }
   
-  console.log(`✓ Selected paver texture: ${paverName} -> ${paver.image}`);
   return paver.image;
 };
 
@@ -129,12 +125,6 @@ export const ProductViewer3D: React.FC<ProductViewer3DProps> = ({
       
   const paverTextureUrl = getPaverTextureUrl(selectedExtras.paverOption, paverTypes);
   const copingTextureUrl = getPaverTextureUrl(selectedExtras.copingPaverOption, paverTypes);
-  
-  console.log('3D Viewer Textures:', {
-    liner: { selected: selectedExtras.finish || selectedExtras.linerOption, url: linerTextureUrl },
-    pavers: { selected: selectedExtras.paverOption, url: paverTextureUrl },
-    coping: { selected: selectedExtras.copingPaverOption, url: copingTextureUrl }
-  });
 
   // Create basic pool shape points (rectangle)
   const poolPoints = [

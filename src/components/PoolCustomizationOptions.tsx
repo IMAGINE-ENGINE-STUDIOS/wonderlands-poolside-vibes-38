@@ -21,15 +21,10 @@ import { getProductsByCategory, allProducts, type Product } from '@/data/consoli
 import { poolLiners, poolTiles } from '@/data/poolData';
 import { paverTypes } from '@/data/paverData';
 
-console.log('PoolCustomizationOptions: getProductsByCategory function:', getProductsByCategory);
-console.log('PoolCustomizationOptions: allProducts:', allProducts);
-
 // Safely get finish products with error handling
 const getFinishProducts = () => {
   try {
-    const finishes = getProductsByCategory('finish');
-    console.log('PoolCustomizationOptions: finish products:', finishes);
-    return finishes;
+    return getProductsByCategory('finish');
   } catch (error) {
     console.error('Error getting finish products:', error);
     return [];
