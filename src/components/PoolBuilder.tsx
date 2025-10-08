@@ -131,8 +131,12 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   };
 
   // Generate hardscape points that follow pool outline with offset on ALL sides
-  const generateHardscapeFromPool = (poolPoints: Point[], offsetInFeet: number = 3): HardscapePoint[] => {
-    const offsetPixels = offsetInFeet * scale;
+  // Offset should include coping thickness + deck distance
+  const generateHardscapeFromPool = (poolPoints: Point[], deckDistanceInFeet: number = 3): HardscapePoint[] => {
+    // Total offset = coping thickness + deck distance (both in feet, then convert to pixels)
+    const copingThicknessFeet = copingThickness / scale; // Convert pixels back to feet
+    const totalOffsetFeet = copingThicknessFeet + deckDistanceInFeet;
+    const offsetPixels = totalOffsetFeet * scale;
     const hardscapePoints: HardscapePoint[] = [];
     
     // For each pool edge, calculate perpendicular offset
@@ -159,7 +163,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       const avgPerpY = (perpY1 + perpY2) / 2;
       const avgLen = Math.sqrt(avgPerpX * avgPerpX + avgPerpY * avgPerpY);
       
-      // Apply offset perpendicular to edges
+      // Apply offset perpendicular to edges (outward from pool)
       hardscapePoints.push({
         x: current.x + (avgPerpX / avgLen) * offsetPixels,
         y: current.y + (avgPerpY / avgLen) * offsetPixels,
