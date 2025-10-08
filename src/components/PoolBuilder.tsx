@@ -154,9 +154,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [selectedFinishId, setSelectedFinishId] = useState('aquamarine');
   const [paverSize] = useState(16); // Reduced paver size for finer texture (16 inches)
   const [poolShape, setPoolShape] = useState<'rectangle' | 'kidney' | 'freeform'>('rectangle');
-  const [lightHue, setLightHue] = useState(0); // For color-changing LED lights
   const [copingThickness, setCopingThickness] = useState(15); // 1 foot = 15 pixels at scale 15
-  const [waterAnimationTime, setWaterAnimationTime] = useState(0);
   const [depthPoints, setDepthPoints] = useState<DepthPoint[]>([
     { position: 0, depth: 3.5, id: 'd1' },
     { position: 0.33, depth: 4.5, id: 'd2' },
@@ -257,28 +255,6 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     copingImg.onerror = checkLoaded;
   }, [selectedPaverId, selectedCopingId, selectedFinishId]);
 
-  // Animate LED lights color changing
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLightHue((prev) => (prev + 1) % 360);
-    }, 50);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Animate water movement - use ref to avoid triggering re-renders
-  useEffect(() => {
-    let animationTime = 0;
-    let animationId: number;
-    
-    const animate = () => {
-      animationTime += 0.02;
-      setWaterAnimationTime(animationTime);
-      animationId = requestAnimationFrame(animate);
-    };
-    
-    animationId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationId);
-  }, []);
 
   // Update canvas size to fill screen
   useEffect(() => {
@@ -385,28 +361,15 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const canvas = canvasRef.current;
     if (!canvas || !texturesLoaded) return;
 
-    const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
+    const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
-
-    // Enable high quality rendering
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
 
     // Clear canvas
     ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
     
-    // Draw grass background
+    // Draw grass background - flat color
     ctx.fillStyle = '#4A7C3C';
     ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
-    
-    // Add grass texture variation
-    for (let i = 0; i < 200; i++) {
-      const x = Math.random() * canvasSize.width;
-      const y = Math.random() * canvasSize.height;
-      const grassShade = Math.random() > 0.5 ? '#3D6B31' : '#568A44';
-      ctx.fillStyle = grassShade;
-      ctx.fillRect(x, y, 2, 2);
-    }
 
     // Draw hardscape/paver deck with custom shape
 
@@ -461,19 +424,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           
           ctx.drawImage(img, x, y, paverSizeInPixels, paverSizeInPixels);
           
-          // Add subtle ambient occlusion
-          const aoGradient = ctx.createRadialGradient(
-            x + paverSizeInPixels / 2, y + paverSizeInPixels / 2, paverSizeInPixels * 0.3,
-            x + paverSizeInPixels / 2, y + paverSizeInPixels / 2, paverSizeInPixels * 0.7
-          );
-          aoGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-          aoGradient.addColorStop(1, 'rgba(0, 0, 0, 0.05)');
-          ctx.fillStyle = aoGradient;
-          ctx.fillRect(x, y, paverSizeInPixels, paverSizeInPixels);
-          
           // Grout lines
-          ctx.strokeStyle = 'rgba(100, 80, 60, 0.3)';
-          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = 'rgba(100, 80, 60, 0.2)';
+          ctx.lineWidth = 1;
           ctx.strokeRect(x, y, paverSizeInPixels, paverSizeInPixels);
         }
       }
@@ -598,129 +551,16 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.save();
       ctx.clip();
       
+      // Simple flat water texture
       if (linerTextureRef.current) {
-        // Increase texture scale for better visibility
-        const tileSizeInFeet = 0.15; // Larger tiles - ~1.8 inches
-        const pixelsPerTile = tileSizeInFeet * scale;
-        
-        const tileCanvas = document.createElement('canvas');
-        tileCanvas.width = pixelsPerTile;
-        tileCanvas.height = pixelsPerTile;
-        const tileCtx = tileCanvas.getContext('2d');
-        
-        if (tileCtx) {
-          tileCtx.drawImage(
-            linerTextureRef.current,
-            0, 0, 
-            linerTextureRef.current.width / 10,
-            linerTextureRef.current.height / 10,
-            0, 0,
-            pixelsPerTile,
-            pixelsPerTile
-          );
-          
-          tileCtx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
-          tileCtx.lineWidth = 0.5;
-          tileCtx.strokeRect(0, 0, pixelsPerTile, pixelsPerTile);
-          
-          const pattern = ctx.createPattern(tileCanvas, 'repeat');
-          
-          if (pattern) {
-            ctx.fillStyle = pattern;
-            ctx.fill();
-          }
+        const pattern = ctx.createPattern(linerTextureRef.current, 'repeat');
+        if (pattern) {
+          ctx.fillStyle = pattern;
+          ctx.fill();
         }
       } else {
         ctx.fillStyle = '#5BC5D9';
         ctx.fill();
-      }
-      
-      // Animated water wave effects
-      const time = waterAnimationTime;
-      
-      // Multiple wave layers for realistic water movement
-      for (let layer = 0; layer < 3; layer++) {
-        ctx.save();
-        
-        // Create gradient for wave highlights
-        const waveGradient = ctx.createLinearGradient(
-          0, 
-          0, 
-          canvasSize.width, 
-          canvasSize.height
-        );
-        
-        const wavePhase = time * (1 + layer * 0.3);
-        const waveOpacity = 0.03 + Math.sin(wavePhase) * 0.02;
-        
-        waveGradient.addColorStop(0, `rgba(255, 255, 255, ${waveOpacity})`);
-        waveGradient.addColorStop(0.5, `rgba(255, 255, 255, ${waveOpacity * 1.5})`);
-        waveGradient.addColorStop(1, `rgba(255, 255, 255, ${waveOpacity})`);
-        
-        ctx.fillStyle = waveGradient;
-        ctx.fill();
-        
-        ctx.restore();
-      }
-      
-      // Caustic light patterns (underwater light refraction)
-      for (let i = 0; i < 8; i++) {
-        const causticPhase = time * 0.5 + i * Math.PI / 4;
-        const causticX = canvasSize.width / 2 + Math.sin(causticPhase) * 100;
-        const causticY = canvasSize.height / 2 + Math.cos(causticPhase * 1.3) * 80;
-        
-        const causticGradient = ctx.createRadialGradient(
-          causticX, causticY, 0,
-          causticX, causticY, 40
-        );
-        
-        const causticOpacity = (Math.sin(causticPhase * 2) + 1) * 0.02;
-        causticGradient.addColorStop(0, `rgba(200, 240, 255, ${causticOpacity})`);
-        causticGradient.addColorStop(0.5, `rgba(180, 230, 255, ${causticOpacity * 0.5})`);
-        causticGradient.addColorStop(1, 'transparent');
-        
-        ctx.fillStyle = causticGradient;
-        ctx.beginPath();
-        ctx.arc(causticX, causticY, 40, 0, 2 * Math.PI);
-        ctx.fill();
-      }
-      
-      // Shimmering wave highlights moving across surface
-      const shimmerCount = 5;
-      for (let i = 0; i < shimmerCount; i++) {
-        const shimmerPhase = time * 0.8 + i * (Math.PI * 2 / shimmerCount);
-        const shimmerProgress = (Math.sin(shimmerPhase) + 1) / 2;
-        const shimmerX = shimmerProgress * canvasSize.width;
-        
-        const shimmerGradient = ctx.createRadialGradient(
-          shimmerX, canvasSize.height / 2, 0,
-          shimmerX, canvasSize.height / 2, 60
-        );
-        
-        const shimmerOpacity = Math.sin(shimmerPhase) * 0.08;
-        shimmerGradient.addColorStop(0, `rgba(255, 255, 255, ${Math.max(0, shimmerOpacity)})`);
-        shimmerGradient.addColorStop(0.7, `rgba(255, 255, 255, ${Math.max(0, shimmerOpacity * 0.3)})`);
-        shimmerGradient.addColorStop(1, 'transparent');
-        
-        ctx.fillStyle = shimmerGradient;
-        ctx.fill();
-      }
-      
-      // Ripple effects for surface movement
-      const rippleCount = 3;
-      for (let i = 0; i < rippleCount; i++) {
-        const ripplePhase = time * 1.2 + i * (Math.PI * 2 / rippleCount);
-        const rippleRadius = 30 + Math.sin(ripplePhase) * 15;
-        const rippleOpacity = (Math.cos(ripplePhase) + 1) * 0.015;
-        
-        const rippleX = canvasSize.width * (0.3 + i * 0.2);
-        const rippleY = canvasSize.height * (0.4 + Math.sin(ripplePhase * 0.5) * 0.2);
-        
-        ctx.strokeStyle = `rgba(255, 255, 255, ${rippleOpacity})`;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(rippleX, rippleY, rippleRadius, 0, 2 * Math.PI);
-        ctx.stroke();
       }
       
       ctx.restore();
@@ -770,55 +610,29 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       }
     }
 
-    // Draw hardscape anchor points with splines
+    // Draw hardscape anchor points
     hardscapePoints.forEach((point) => {
       const size = 10;
       const isSelected = selectedHardscapePoint === point.id;
       
-      // Shadow for depth
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-      ctx.shadowBlur = isSelected ? 6 : 3;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
-      
-      // Draw square anchor
       ctx.fillStyle = isSelected ? '#F59E0B' : '#ffffff';
       ctx.strokeStyle = isSelected ? '#D97706' : '#F59E0B';
       ctx.lineWidth = 2;
       ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
       ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
-      
-      // Reset shadow
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
     });
 
-    // Draw square anchor points for pool
+    // Draw anchor points for pool
     points.forEach((point) => {
       const size = 10;
       const isSelected = selectedPoint === point.id;
       const isHovered = hoveredPoint === point.id;
       
-      // Shadow for depth
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-      ctx.shadowBlur = isSelected || isHovered ? 6 : 3;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
-      
-      // Draw square anchor
       ctx.fillStyle = isSelected ? '#2E86AB' : isHovered ? '#4FB3D9' : '#ffffff';
       ctx.strokeStyle = isSelected ? '#1a4d6d' : '#2E86AB';
       ctx.lineWidth = 2;
       ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
       ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
-      
-      // Reset shadow
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
     });
     
     // Draw depth profile editor when pool is selected
@@ -1250,11 +1064,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.restore();
         
       } else if (feature.type === 'light') {
-        // LED color-changing light with advanced physics AND directional cone
-        const hue = lightHue;
-        const lightColor = `hsl(${hue}, 100%, 60%)`;
-        const lightColorBright = `hsl(${hue}, 100%, 80%)`;
-        const lightColorDim = `hsl(${hue}, 80%, 40%)`;
+        // Simple LED light - flat rendering
+        const lightColor = '#FFD700';
         
         // Calculate angle pointing toward pool center
         const centerX = points.reduce((sum, p) => sum + p.x, 0) / points.length;
@@ -1262,82 +1073,19 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         const angleToCenter = Math.atan2(centerY - feature.y, centerX - feature.x);
         const lightAngle = feature.angle || angleToCenter;
         
-        // Draw directional light cone pointing inward
-        ctx.save();
-        ctx.translate(feature.x, feature.y);
-        ctx.rotate(lightAngle);
-        
-        // Light cone with gradient
-        const coneGradient = ctx.createLinearGradient(0, 0, 60, 0);
-        coneGradient.addColorStop(0, lightColorBright.replace(')', ', 0.4)').replace('hsl', 'hsla'));
-        coneGradient.addColorStop(0.5, lightColor.replace(')', ', 0.2)').replace('hsl', 'hsla'));
-        coneGradient.addColorStop(1, 'transparent');
-        
-        ctx.fillStyle = coneGradient;
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(60, -25);
-        ctx.lineTo(60, 25);
-        ctx.closePath();
-        ctx.fill();
-        
-        // Cone edges
-        ctx.strokeStyle = lightColor.replace(')', ', 0.3)').replace('hsl', 'hsla');
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        
-        ctx.restore();
-        
-        // Multiple glow layers for realistic light diffusion
-        const glowLayers = [
-          { radius: 60, opacity: 0.15 },
-          { radius: 40, opacity: 0.25 },
-          { radius: 25, opacity: 0.4 },
-          { radius: 15, opacity: 0.6 }
-        ];
-        
-        glowLayers.forEach(layer => {
-          const gradient = ctx.createRadialGradient(feature.x, feature.y, 0, feature.x, feature.y, layer.radius);
-          gradient.addColorStop(0, lightColorBright.replace(')', `, ${layer.opacity})`).replace('hsl', 'hsla'));
-          gradient.addColorStop(0.5, lightColor.replace(')', `, ${layer.opacity * 0.5})`).replace('hsl', 'hsla'));
-          gradient.addColorStop(1, 'transparent');
-          ctx.fillStyle = gradient;
-          ctx.beginPath();
-          ctx.arc(feature.x, feature.y, layer.radius, 0, 2 * Math.PI);
-          ctx.fill();
-        });
-        
-        // Caustic light ripples on water surface
-        const time = Date.now() / 1000;
-        for (let i = 0; i < 3; i++) {
-          const ripplePhase = (time * 2 + i * Math.PI / 1.5) % (Math.PI * 2);
-          const rippleRadius = 20 + Math.sin(ripplePhase) * 8;
-          const rippleOpacity = (Math.sin(ripplePhase) + 1) * 0.15;
-          
-          ctx.strokeStyle = lightColor.replace(')', `, ${rippleOpacity})`).replace('hsl', 'hsla');
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.arc(feature.x, feature.y, rippleRadius, 0, 2 * Math.PI);
-          ctx.stroke();
-        }
-        
-        // LED housing with metallic rim
+        // Simple LED housing
         ctx.fillStyle = '#1a1a1a';
         ctx.beginPath();
         ctx.arc(feature.x, feature.y, 10, 0, 2 * Math.PI);
         ctx.fill();
         
         // LED core
-        const coreGradient = ctx.createRadialGradient(feature.x, feature.y, 0, feature.x, feature.y, 7);
-        coreGradient.addColorStop(0, lightColorBright);
-        coreGradient.addColorStop(0.7, lightColor);
-        coreGradient.addColorStop(1, lightColorDim);
-        ctx.fillStyle = coreGradient;
+        ctx.fillStyle = lightColor;
         ctx.beginPath();
         ctx.arc(feature.x, feature.y, 7, 0, 2 * Math.PI);
         ctx.fill();
         
-        // Metallic rim highlight
+        // Rim
         ctx.strokeStyle = isSelected ? '#FFD700' : 'rgba(255, 255, 255, 0.3)';
         ctx.lineWidth = isSelected ? 3 : 1.5;
         ctx.beginPath();
@@ -1500,11 +1248,10 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.ellipse(feature.x, feature.y + 15, 20, 6, 0, 0, 2 * Math.PI);
         ctx.fill();
         
-        // Animated water spray
-        const time = waterAnimationTime;
+        // Static water spray
         for (let i = 0; i < 5; i++) {
-          const angle = (i / 5) * Math.PI * 2 + time;
-          const height = 15 + Math.sin(time * 3 + i) * 5;
+          const angle = (i / 5) * Math.PI * 2;
+          const height = 15;
           ctx.strokeStyle = 'rgba(160, 216, 241, 0.6)';
           ctx.lineWidth = 2;
           ctx.beginPath();
@@ -1523,7 +1270,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(feature.x, feature.y + 15);
-        ctx.lineTo(feature.x, feature.y - 20 - Math.sin(time * 2) * 8);
+        ctx.lineTo(feature.x, feature.y - 20);
         ctx.stroke();
         
         // Selection
@@ -1597,7 +1344,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.restore();
     }
 
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, lightHue, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, waterAnimationTime, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint]);
 
   // Memoize perimeter and area calculations
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
