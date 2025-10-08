@@ -85,7 +85,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [scale, setScale] = useState(15); // pixels per foot - increased for better visibility
-  const [canvasSize, setCanvasSize] = useState({ width: 1400, height: 900 });
+  const [canvasSize, setCanvasSize] = useState({ width: window.innerWidth - 100, height: window.innerHeight - 200 });
   const [editingDimension, setEditingDimension] = useState<string | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<string | null>(null);
   const [pendingFeature, setPendingFeature] = useState<'jet' | null>(null);
@@ -175,18 +175,13 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     return () => cancelAnimationFrame(animationId);
   }, []);
 
-  // Update canvas size based on container - expand to most of screen
+  // Update canvas size to fill screen
   useEffect(() => {
     const updateCanvasSize = () => {
-      if (containerRef.current) {
-        // Use most of the viewport
-        const maxWidth = Math.min(window.innerWidth - 100, 2000);
-        const maxHeight = Math.min(window.innerHeight - 300, 1200);
-        
-        const width = Math.min(containerRef.current.offsetWidth - 32, maxWidth);
-        const height = Math.min(width * 0.65, maxHeight);
-        setCanvasSize({ width, height });
-      }
+      // Full viewport dimensions minus minimal padding
+      const width = window.innerWidth - 80;
+      const height = window.innerHeight - 180;
+      setCanvasSize({ width, height });
     };
 
     updateCanvasSize();
@@ -1456,9 +1451,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   };
 
   return (
-    <div ref={containerRef} className="space-y-6 w-full max-w-[2050px] mx-auto px-2">
-      <Card className="p-4 md:p-6 bg-gradient-to-br from-background to-muted/20 border-2">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div ref={containerRef} className="w-full h-screen overflow-auto">
+      <Card className="p-2 md:p-4 bg-gradient-to-br from-background to-muted/20 border-2 m-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
           <div className="bg-card p-3 rounded-lg border">
             <Label className="text-xs text-muted-foreground flex items-center gap-1">
               <Ruler className="h-3 w-3" />
@@ -1484,7 +1479,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           </div>
         </div>
 
-        <div className="relative">
+        <div className="relative mb-4">
           <canvas
             ref={canvasRef}
             width={canvasSize.width}
