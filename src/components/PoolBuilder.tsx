@@ -90,40 +90,67 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [draggingFeature, setDraggingFeature] = useState(false);
   const [texturesLoaded, setTexturesLoaded] = useState(false);
   const [selectedPaverId, setSelectedPaverId] = useState('appian-adobe');
+  const [selectedCopingId, setSelectedCopingId] = useState('appian-adobe');
+  const [selectedFinishId, setSelectedFinishId] = useState('aquamarine');
   const [paverSize] = useState(24); // Standard paver size in inches (2ft x 2ft)
   const [poolShape, setPoolShape] = useState<'rectangle' | 'kidney' | 'freeform'>('rectangle');
   const [lightHue, setLightHue] = useState(0); // For color-changing LED lights
+  const [copingThickness, setCopingThickness] = useState(15); // 1 foot = 15 pixels at scale 15
+
+  // Available finishes
+  const finishes = [
+    { id: 'aquamarine', name: 'Aquamarine', image: '/src/assets/finishes/aquamarine-g3.jpg' },
+    { id: 'azure', name: 'Azure Blue', image: '/src/assets/finishes/azure-blue-g2.jpg' },
+    { id: 'lagoon', name: 'Lagoon Blue', image: '/src/assets/finishes/lagoon-blue-g2.jpg' },
+    { id: 'ocean', name: 'Ocean Blue', image: '/src/assets/finishes/ocean-blue-g3.jpg' },
+    { id: 'sapphire', name: 'Sapphire Blue', image: '/src/assets/finishes/sapphire-blue-g3.jpg' },
+    { id: 'coastal', name: 'Coastal Bronze', image: '/src/assets/finishes/coastal-bronze-g3.jpg' },
+    { id: 'pearl', name: 'Athens Pearl White', image: '/src/assets/finishes/athens-pearl-white-g3.jpg' },
+  ];
 
   // Load textures with high quality
+  const copingTextureRef = useRef<HTMLImageElement | null>(null);
+  
   useEffect(() => {
     const paverImg = new Image();
     const linerImg = new Image();
+    const copingImg = new Image();
     
     const selectedPaver = paverTypes.find(p => p.id === selectedPaverId);
+    const selectedCoping = paverTypes.find(p => p.id === selectedCopingId);
+    const selectedFinish = finishes.find(f => f.id === selectedFinishId);
+    
     const paverImage = selectedPaver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
+    const copingImage = selectedCoping?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
+    const finishImage = selectedFinish?.image || aquamarineFinish;
     
     // Enable high quality image rendering
     paverImg.crossOrigin = "anonymous";
     linerImg.crossOrigin = "anonymous";
+    copingImg.crossOrigin = "anonymous";
     
     paverImg.src = paverImage;
-    linerImg.src = aquamarineFinish;
+    linerImg.src = finishImage;
+    copingImg.src = copingImage;
     
     let loadedCount = 0;
     const checkLoaded = () => {
       loadedCount++;
-      if (loadedCount === 2) {
+      if (loadedCount === 3) {
         paverTextureRef.current = paverImg;
         linerTextureRef.current = linerImg;
+        copingTextureRef.current = copingImg;
         setTexturesLoaded(true);
       }
     };
     
     paverImg.onload = checkLoaded;
     linerImg.onload = checkLoaded;
+    copingImg.onload = checkLoaded;
     paverImg.onerror = checkLoaded;
     linerImg.onerror = checkLoaded;
-  }, [selectedPaverId]);
+    copingImg.onerror = checkLoaded;
+  }, [selectedPaverId, selectedCopingId, selectedFinishId]);
 
   // Animate LED lights color changing
   useEffect(() => {
@@ -320,35 +347,132 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.stroke();
     }
 
-    // Draw pool shape with smooth curves
+    // Draw pool shape - straight lines for rectangle, curves for others
     if (points.length > 2) {
       ctx.save();
       
-      // Create path for clipping
+      // Create path for pool outline
       ctx.beginPath();
-      for (let i = 0; i < points.length; i++) {
-        const p0 = points[(i - 1 + points.length) % points.length];
-        const p1 = points[i];
-        const p2 = points[(i + 1) % points.length];
-        const p3 = points[(i + 2) % points.length];
-
-        if (i === 0) {
-          ctx.moveTo(p1.x, p1.y);
+      
+      if (poolShape === 'rectangle') {
+        // Draw with straight lines
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          ctx.lineTo(points[i].x, points[i].y);
         }
+        ctx.closePath();
+      } else {
+        // Draw with smooth curves for kidney and freeform
+        for (let i = 0; i < points.length; i++) {
+          const p0 = points[(i - 1 + points.length) % points.length];
+          const p1 = points[i];
+          const p2 = points[(i + 1) % points.length];
+          const p3 = points[(i + 2) % points.length];
 
-        const cp1x = p1.x + (p2.x - p0.x) / 6;
-        const cp1y = p1.y + (p2.y - p0.y) / 6;
-        const cp2x = p2.x - (p3.x - p1.x) / 6;
-        const cp2y = p2.y - (p3.y - p1.y) / 6;
+          if (i === 0) {
+            ctx.moveTo(p1.x, p1.y);
+          }
 
-        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+          const cp1x = p1.x + (p2.x - p0.x) / 6;
+          const cp1y = p1.y + (p2.y - p0.y) / 6;
+          const cp2x = p2.x - (p3.x - p1.x) / 6;
+          const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+          ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+        }
+        ctx.closePath();
       }
-      ctx.closePath();
 
-      // Draw pool coping border
-      ctx.lineWidth = 10;
-      ctx.strokeStyle = '#8B7355';
-      ctx.stroke();
+      // Draw coping border with individual paver bricks
+      if (copingTextureRef.current) {
+        ctx.save();
+        ctx.lineWidth = copingThickness * 2;
+        ctx.strokeStyle = 'transparent';
+        
+        // Create a coping path
+        const copingPath = new Path2D();
+        if (poolShape === 'rectangle') {
+          copingPath.moveTo(points[0].x, points[0].y);
+          for (let i = 1; i < points.length; i++) {
+            copingPath.lineTo(points[i].x, points[i].y);
+          }
+          copingPath.closePath();
+        } else {
+          for (let i = 0; i < points.length; i++) {
+            const p0 = points[(i - 1 + points.length) % points.length];
+            const p1 = points[i];
+            const p2 = points[(i + 1) % points.length];
+            const p3 = points[(i + 2) % points.length];
+
+            if (i === 0) {
+              copingPath.moveTo(p1.x, p1.y);
+            }
+
+            const cp1x = p1.x + (p2.x - p0.x) / 6;
+            const cp1y = p1.y + (p2.y - p0.y) / 6;
+            const cp2x = p2.x - (p3.x - p1.x) / 6;
+            const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+            copingPath.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+          }
+          copingPath.closePath();
+        }
+        
+        // Draw individual coping bricks around perimeter
+        const brickWidth = 12; // Width of each coping brick
+        let totalPerimeter = 0;
+        
+        for (let i = 0; i < points.length; i++) {
+          const p1 = points[i];
+          const p2 = points[(i + 1) % points.length];
+          const segmentLength = Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
+          totalPerimeter += segmentLength;
+        }
+        
+        // Draw bricks along each edge
+        for (let i = 0; i < points.length; i++) {
+          const p1 = points[i];
+          const p2 = points[(i + 1) % points.length];
+          const dx = p2.x - p1.x;
+          const dy = p2.y - p1.y;
+          const segmentLength = Math.sqrt(dx * dx + dy * dy);
+          const angle = Math.atan2(dy, dx);
+          const numBricks = Math.ceil(segmentLength / brickWidth);
+          
+          for (let j = 0; j < numBricks; j++) {
+            const t = j / numBricks;
+            const x = p1.x + dx * t;
+            const y = p1.y + dy * t;
+            
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            
+            // Draw coping brick texture
+            ctx.drawImage(
+              copingTextureRef.current,
+              -brickWidth / 2,
+              -copingThickness,
+              brickWidth,
+              copingThickness * 2
+            );
+            
+            // Add grout line
+            ctx.strokeStyle = 'rgba(100, 80, 60, 0.4)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(-brickWidth / 2, -copingThickness, brickWidth, copingThickness * 2);
+            
+            ctx.restore();
+          }
+        }
+        
+        ctx.restore();
+      } else {
+        // Fallback solid coping
+        ctx.lineWidth = copingThickness * 2;
+        ctx.strokeStyle = '#8B7355';
+        ctx.stroke();
+      }
 
       // Fill pool with premium liner texture
       ctx.save();
@@ -944,7 +1068,86 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           </div>
         </div>
 
-        {/* Paver Selector */}
+        {/* Coping Border Controls */}
+        <div className="mt-6 p-4 bg-muted/30 rounded-lg border">
+          <Label className="text-sm font-semibold mb-3 block">Coping Border</Label>
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              <div className="flex-1 w-full sm:w-auto">
+                <Select value={selectedCopingId} onValueChange={setSelectedCopingId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select coping type" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px] bg-background">
+                    {paverTypes.filter(p => p.category === 'paver').map((paver) => (
+                      <SelectItem key={paver.id} value={paver.id}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-6 h-6 rounded border border-border bg-cover bg-center"
+                            style={{ backgroundImage: `url(${paver.image})` }}
+                          />
+                          <span>{paver.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <Label className="text-xs text-muted-foreground whitespace-nowrap">
+                Thickness: {(copingThickness / scale).toFixed(1)} ft
+              </Label>
+              <Input
+                type="range"
+                min={scale * 0.5}
+                max={scale * 2}
+                step={1}
+                value={copingThickness}
+                onChange={(e) => setCopingThickness(Number(e.target.value))}
+                className="flex-1"
+              />
+              <Input
+                type="number"
+                step="0.1"
+                min="0.5"
+                max="2"
+                value={(copingThickness / scale).toFixed(1)}
+                onChange={(e) => setCopingThickness(Number(e.target.value) * scale)}
+                className="w-20 h-8 text-sm"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Pool Finish Selector */}
+        <div className="mt-6 p-4 bg-muted/30 rounded-lg border">
+          <Label className="text-sm font-semibold mb-3 block">Pool Finish</Label>
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="flex-1 w-full sm:w-auto">
+              <Select value={selectedFinishId} onValueChange={setSelectedFinishId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select finish" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px] bg-background">
+                  {finishes.map((finish) => (
+                    <SelectItem key={finish.id} value={finish.id}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-6 h-6 rounded border border-border bg-cover bg-center"
+                          style={{ backgroundImage: `url(${finish.image})` }}
+                        />
+                        <span>{finish.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* Deck Paver Selector */}
         <div className="mt-6 p-4 bg-muted/30 rounded-lg border">
           <Label className="text-sm font-semibold mb-3 block">Deck Paver Selection</Label>
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
