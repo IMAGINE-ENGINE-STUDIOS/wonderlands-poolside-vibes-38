@@ -3322,13 +3322,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
               <Button 
                 size="sm" 
                 onClick={() => {
-                  if (fencePoints.length === 0) {
-                    // Create initial fence with first point at center
-                    const centerX = canvasSize.width / 2;
-                    const centerY = canvasSize.height / 2;
-                    setFencePoints([{ x: centerX, y: centerY - 200, id: `f${Date.now()}` }]);
-                  }
-                  // Toggle add mode
+                  // Toggle add mode without creating initial point
                   setFenceAddMode(!fenceAddMode);
                 }}
                 variant={fenceAddMode ? "default" : "outline"}
