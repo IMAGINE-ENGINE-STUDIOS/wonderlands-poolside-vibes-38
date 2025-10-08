@@ -146,7 +146,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     }
   };
 
-  // Generate rectangular hardscape deck that's minimum 38x18ft and always 3ft larger than pool
+  // Generate rectangular hardscape deck measured from coping edge outward
   const generateHardscapeFromPool = (poolPoints: Point[], deckDistanceInFeet: number = 3): HardscapePoint[] => {
     // Calculate pool bounding box
     const minX = Math.min(...poolPoints.map(p => p.x));
@@ -158,11 +158,16 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const poolWidthFeet = (maxX - minX) / scale;
     const poolLengthFeet = (maxY - minY) / scale;
     
-    // Calculate required deck dimensions (pool + 6ft for 3ft on each side)
-    const requiredDeckWidth = poolWidthFeet + 6;
-    const requiredDeckLength = poolLengthFeet + 6;
+    // Add coping thickness to pool dimensions (coping is measured in pixels, convert to feet)
+    const copingThicknessFeet = copingThickness / scale;
+    const totalCopingOnBothSides = copingThicknessFeet * 2; // both sides of pool
     
-    // Use the larger of default minimum (38x18) or pool + 6ft
+    // Calculate required deck dimensions (pool + coping + deck offset on each side)
+    // Deck offset is measured FROM THE COPING EDGE, not the pool edge
+    const requiredDeckWidth = poolWidthFeet + totalCopingOnBothSides + (deckDistanceInFeet * 2);
+    const requiredDeckLength = poolLengthFeet + totalCopingOnBothSides + (deckDistanceInFeet * 2);
+    
+    // Use the larger of default minimum (38x18) or calculated dimensions
     const deckWidth = Math.max(defaultDeckWidth, requiredDeckWidth);
     const deckLength = Math.max(defaultDeckLength, requiredDeckLength);
     
@@ -204,7 +209,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [smoothCorners, setSmoothCorners] = useState(false);
   const [activeTool, setActiveTool] = useState<'select' | 'rotate' | 'zoom' | 'add' | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
-  const [deckOffset, setDeckOffset] = useState(3); // Deck offset in feet (minimum 3ft)
+  const [deckOffset, setDeckOffset] = useState(3); // Deck offset from coping edge in feet (minimum 3ft)
   const [snapPoint, setSnapPoint] = useState<{ x: number; y: number } | null>(null);
   const [scale, setScale] = useState(10); // pixels per foot - reduced for larger canvas
   const [defaultDeckWidth] = useState(18); // Default deck width in feet
@@ -2462,7 +2467,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <Label className="text-xs whitespace-nowrap">Deck Size:</Label>
+                  <Label className="text-xs whitespace-nowrap" title="Measured from coping edge outward">Deck Size:</Label>
                   <Input
                     type="number"
                     value={deckOffset}
@@ -2474,8 +2479,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                     className="h-7 w-20 text-xs"
                     min="3"
                     step="0.5"
+                    title="Distance from coping edge to deck edge"
                   />
-                  <span className="text-xs text-muted-foreground">ft</span>
+                  <span className="text-xs text-muted-foreground">ft from coping</span>
                 </div>
               </div>
             </TabsContent>
