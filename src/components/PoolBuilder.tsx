@@ -5,12 +5,14 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower2, Droplets } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower2, Droplets, Box } from 'lucide-react';
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import poolTextureSapphire from '@/assets/pool-texture-sapphire.jpg';
 import { paverTypes } from '@/data/paverData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { loadAllTextureLODs, getTextureForLOD, getLODLevel, type TextureLODSet } from '@/utils/textureLOD';
+import { Pool3DViewer } from './Pool3DViewer';
 
 interface Point {
   x: number;
@@ -2688,6 +2690,36 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                   />
                   <span className="text-xs text-muted-foreground">ft from coping</span>
                 </div>
+                
+                {/* 3D View Button */}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      className="w-full h-9 gap-2"
+                    >
+                      <Box className="h-4 w-4" />
+                      View 3D Model
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl h-[80vh]">
+                    <DialogHeader>
+                      <DialogTitle>3D Pool Viewer</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex-1 h-full">
+                      <Pool3DViewer
+                        points={points}
+                        depthPoints={depthPoints}
+                        scale={scale}
+                        poolShape={poolShape}
+                      />
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Click and drag to rotate • Scroll to zoom • Right-click to pan
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </TabsContent>
 
