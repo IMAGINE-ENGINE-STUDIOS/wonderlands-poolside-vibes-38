@@ -9,6 +9,7 @@ import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import { paverTypes } from '@/data/paverData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { loadAllTextureLODs, getTextureForLOD, getLODLevel, type TextureLODSet } from '@/utils/textureLOD';
 
 interface Point {
   x: number;
@@ -89,8 +90,10 @@ const shadeColor = (color: string, percent: number) => {
 export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const paverTextureRef = useRef<HTMLImageElement | null>(null);
-  const linerTextureRef = useRef<HTMLImageElement | null>(null);
+  
+  // LOD texture system - stores all quality levels
+  const textureLODsRef = useRef<TextureLODSet | null>(null);
+  
   const getShapePoints = (shape: 'rectangle' | 'kidney' | 'freeform'): Point[] => {
     const centerX = canvasSize.width / 2;
     const centerY = canvasSize.height / 2;
@@ -287,14 +290,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     { id: 'pearl', name: 'Athens Pearl White', image: '/src/assets/finishes/athens-pearl-white-g3.jpg' },
   ];
 
-  // Load textures with high quality
-  const copingTextureRef = useRef<HTMLImageElement | null>(null);
-  
+  // Load textures with LOD system
   useEffect(() => {
-    const paverImg = new Image();
-    const linerImg = new Image();
-    const copingImg = new Image();
-    
     const selectedPaver = paverTypes.find(p => p.id === selectedPaverId);
     const selectedCoping = paverTypes.find(p => p.id === selectedCopingId);
     const selectedFinish = finishes.find(f => f.id === selectedFinishId);
@@ -303,32 +300,15 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const copingImage = selectedCoping?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
     const finishImage = selectedFinish?.image || aquamarineFinish;
     
-    // Enable high quality image rendering
-    paverImg.crossOrigin = "anonymous";
-    linerImg.crossOrigin = "anonymous";
-    copingImg.crossOrigin = "anonymous";
-    
-    paverImg.src = paverImage;
-    linerImg.src = finishImage;
-    copingImg.src = copingImage;
-    
-    let loadedCount = 0;
-    const checkLoaded = () => {
-      loadedCount++;
-      if (loadedCount === 3) {
-        paverTextureRef.current = paverImg;
-        linerTextureRef.current = linerImg;
-        copingTextureRef.current = copingImg;
-        setTexturesLoaded(true);
-      }
-    };
-    
-    paverImg.onload = checkLoaded;
-    linerImg.onload = checkLoaded;
-    copingImg.onload = checkLoaded;
-    paverImg.onerror = checkLoaded;
-    linerImg.onerror = checkLoaded;
-    copingImg.onerror = checkLoaded;
+    // Load all textures with LOD levels
+    setTexturesLoaded(false);
+    loadAllTextureLODs(paverImage, copingImage, finishImage).then((lodSet) => {
+      textureLODsRef.current = lodSet;
+      setTexturesLoaded(true);
+    }).catch((error) => {
+      console.error('Failed to load texture LODs:', error);
+      setTexturesLoaded(false);
+    });
   }, [selectedPaverId, selectedCopingId, selectedFinishId]);
 
 
@@ -454,8 +434,10 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const paverSizeInPixels = paverSizeInFeet * effectiveScale;
 
     // Draw hardscape deck area with editable corners (squared or smooth)
-    if (paverTextureRef.current && hardscapePoints.length >= 3) {
-      const img = paverTextureRef.current;
+    // Get appropriate LOD texture based on zoom level
+    const paverTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.paver, zoomLevel) : null;
+    if (paverTexture && hardscapePoints.length >= 3) {
+      const img = paverTexture;
       
       // Create hardscape path
       ctx.save();
@@ -572,7 +554,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       }
 
       // Draw coping border with individual paver bricks
-      if (copingTextureRef.current) {
+      const copingTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.coping, zoomLevel) : null;
+      if (copingTexture) {
         ctx.save();
         ctx.lineWidth = copingThickness * 2;
         ctx.strokeStyle = 'transparent';
@@ -611,7 +594,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.lineWidth = paverSizeInPixels; // Use same size as deck pavers
         
         // Create pattern from coping texture
-        const copingPattern = ctx.createPattern(copingTextureRef.current, 'repeat');
+        const copingPattern = ctx.createPattern(copingTexture, 'repeat');
         if (copingPattern) {
           ctx.strokeStyle = copingPattern;
           ctx.stroke();
@@ -637,8 +620,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.clip();
       
       // Simple flat water texture
-      if (linerTextureRef.current) {
-        const pattern = ctx.createPattern(linerTextureRef.current, 'repeat');
+      const linerTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
+      if (linerTexture) {
+        const pattern = ctx.createPattern(linerTexture, 'repeat');
         if (pattern) {
           ctx.fillStyle = pattern;
           ctx.fill();
@@ -2761,7 +2745,17 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           </div>
         </div>
 
-        {/* Tool Buttons - Top Right of Canvas */}
+        {/* LOD Indicator */}
+        <div className="absolute top-4 right-4 z-20 bg-background/90 backdrop-blur px-3 py-1.5 rounded-lg border shadow text-xs opacity-60 hover:opacity-100 transition-opacity">
+          <span className="text-muted-foreground">Texture Quality: </span>
+          <span className="font-medium text-foreground">
+            {getLODLevel(zoomLevel) === 'high' ? 'High (1.0x)' : 
+             getLODLevel(zoomLevel) === 'medium' ? 'Medium (0.5x)' : 
+             'Low (0.25x)'}
+          </span>
+        </div>
+
+        {/* Tool Buttons - Top Left of Canvas */}
         <div className="absolute top-8 left-8 flex items-center gap-2 z-20 bg-background/95 backdrop-blur p-2 rounded-lg border shadow-lg scale-[0.8] opacity-20 hover:opacity-100 transition-opacity duration-300">
           <Button 
             size="sm" 
