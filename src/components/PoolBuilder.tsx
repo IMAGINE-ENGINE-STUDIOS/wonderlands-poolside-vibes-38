@@ -508,25 +508,44 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.stroke();
       }
 
-      // Fill pool with premium liner texture at proper scale
+      // Fill pool with premium liner texture at proper scale (tiny mosaic tiles)
       ctx.save();
       ctx.clip();
       
       if (linerTextureRef.current) {
-        // Scale the texture to match pool dimensions (e.g., mosaic tiles are 2x2 inches)
-        const textureScale = scale / 6; // Mosaic pattern every 2 inches at scale
-        const scaledWidth = linerTextureRef.current.width * textureScale;
-        const scaledHeight = linerTextureRef.current.height * textureScale;
+        // Mosaic tiles are typically 1cm x 1cm (0.0328 feet)
+        const tileSizeInFeet = 0.0328; // 1 centimeter
+        const tileSizeInPixels = tileSizeInFeet * scale; // ~0.5 pixels at scale 15
         
-        // Create pattern at proper scale
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = scaledWidth;
-        tempCanvas.height = scaledHeight;
-        const tempCtx = tempCanvas.getContext('2d');
+        // Since tiles are so small, we need to create a high-resolution pattern
+        // We'll use 2x2 pixels per tile for visibility and detail
+        const pixelsPerTile = Math.max(2, tileSizeInPixels * 2);
         
-        if (tempCtx) {
-          tempCtx.drawImage(linerTextureRef.current, 0, 0, scaledWidth, scaledHeight);
-          const pattern = ctx.createPattern(tempCanvas, 'repeat');
+        // Create a small canvas for one tile
+        const tileCanvas = document.createElement('canvas');
+        tileCanvas.width = pixelsPerTile;
+        tileCanvas.height = pixelsPerTile;
+        const tileCtx = tileCanvas.getContext('2d');
+        
+        if (tileCtx) {
+          // Draw a small section of the texture
+          tileCtx.drawImage(
+            linerTextureRef.current,
+            0, 0, 
+            linerTextureRef.current.width / 20, // Sample small portion
+            linerTextureRef.current.height / 20,
+            0, 0,
+            pixelsPerTile,
+            pixelsPerTile
+          );
+          
+          // Add subtle tile grout/separation
+          tileCtx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+          tileCtx.lineWidth = 0.5;
+          tileCtx.strokeRect(0, 0, pixelsPerTile, pixelsPerTile);
+          
+          // Create repeating pattern
+          const pattern = ctx.createPattern(tileCanvas, 'repeat');
           
           if (pattern) {
             ctx.fillStyle = pattern;
