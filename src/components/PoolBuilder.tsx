@@ -2175,18 +2175,6 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           <Button size="sm" variant="outline" onClick={() => setShowControls(!showControls)}>
             {showControls ? 'Hide Controls' : 'Show Controls'}
           </Button>
-          
-          <Button 
-            size="sm" 
-            variant={legendExpanded ? "default" : "outline"}
-            onClick={() => setLegendExpanded(!legendExpanded)}
-          >
-            <svg className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2"/>
-              <path d="M3 9h18M9 21V9"/>
-            </svg>
-            Legend
-          </Button>
         </div>
 
         
@@ -2739,15 +2727,6 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           </div>
         </div>
 
-        {/* LOD Indicator */}
-        <div className="absolute top-4 right-4 z-20 bg-background/90 backdrop-blur px-3 py-1.5 rounded-lg border shadow text-xs opacity-60 hover:opacity-100 transition-opacity">
-          <span className="text-muted-foreground">Texture Quality: </span>
-          <span className="font-medium text-foreground">
-            {getLODLevel(zoomLevel) === 'high' ? 'High (1.0x)' : 
-             getLODLevel(zoomLevel) === 'medium' ? 'Medium (0.5x)' : 
-             'Low (0.25x)'}
-          </span>
-        </div>
 
         {/* Tool Buttons - Top Left of Canvas */}
         <div className="absolute top-8 left-8 flex items-center gap-2 z-20 bg-background/95 backdrop-blur p-2 rounded-lg border shadow-lg scale-[0.8] opacity-20 hover:opacity-100 transition-opacity duration-300">
@@ -2823,117 +2802,6 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           </Button>
         </div>
 
-        {/* Legend Panel - Floating & Collapsible */}
-        <div className="absolute top-4 right-4 z-10">
-          {legendExpanded ? (
-            <Card className="w-64 h-fit max-h-[calc(100vh-120px)] overflow-y-auto shadow-lg animate-slide-in-right">
-              <div className="p-4 border-b bg-muted/30 flex items-center justify-between">
-                <h3 className="font-semibold text-sm uppercase tracking-wide">Legend</h3>
-                <button 
-                  onClick={() => setLegendExpanded(false)}
-                  className="hover:bg-muted rounded p-1 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <div className="p-4 space-y-4">
-                {/* Pool Elements */}
-                <div className="space-y-2">
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase">Pool Elements</h4>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-sm bg-[#5BC5D9] border border-border" />
-                      <span>Pool Water</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-sm bg-[#8B7355] border border-border" />
-                      <span>Coping Edge</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Features */}
-                <div className="space-y-2">
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase">Features</h4>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex items-center gap-2">
-                      <Move className="h-4 w-4 text-primary" />
-                      <span>Pool Stairs</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Lightbulb className="h-4 w-4 text-yellow-500" />
-                      <span>LED Lighting</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Waves className="h-4 w-4 text-blue-500" />
-                      <span>Water Jets</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Droplets className="h-4 w-4 text-cyan-500" />
-                      <span>Fountain</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Hardscape */}
-                <div className="space-y-2">
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase">Hardscape</h4>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-sm border border-border bg-gradient-to-br from-stone-300 to-stone-400" />
-                      <span>Paver Deck</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Landscape */}
-                <div className="space-y-2">
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase">Landscape</h4>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-sm bg-[#4A7C3C] border border-border" />
-                      <span>Grass Area</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Trees className="h-4 w-4 text-green-700" />
-                      <span>Trees</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Home className="h-4 w-4 text-stone-600" />
-                      <span>Building</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Scale Info */}
-                <div className="pt-3 border-t space-y-1.5">
-                  <div className="flex items-center gap-2 text-xs">
-                    <Ruler className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Scale: {scale} px/ft</span>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Drag corners to reshape pool
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Drag features to reposition
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ) : (
-            <button
-              onClick={() => setLegendExpanded(true)}
-              className="bg-card border rounded-lg shadow-lg p-3 hover:bg-muted transition-colors animate-fade-in"
-              title="Show Legend"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          )}
-        </div>
       </div>
     </div>
   );
