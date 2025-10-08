@@ -565,7 +565,10 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.fill();
       }
       
-      // Draw depth spline in pool when Shape tab is active
+      ctx.restore();
+      ctx.restore();
+
+      // Draw depth spline in pool when Shape tab is active (AFTER clipping is restored)
       if (activeTab === 'shape' && points.length > 0) {
         // Calculate pool bounds
         const minX = Math.min(...points.map(p => p.x));
@@ -576,8 +579,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         // Draw depth spline line (left to right center)
         const sortedDepths = [...depthPoints].sort((a, b) => a.position - b.position);
         
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(46, 134, 171, 0.7)';
+        ctx.lineWidth = 3;
         ctx.setLineDash([5, 5]);
         ctx.beginPath();
         
@@ -598,13 +601,13 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         sortedDepths.forEach((dp) => {
           const x = minX + dp.position * poolWidth;
           const y = centerY;
-          const size = 8;
+          const size = 10;
           const isSelected = selectedDepthPoint === dp.id;
           
           // Draw point
           ctx.fillStyle = isSelected ? '#FFD700' : '#ffffff';
           ctx.strokeStyle = isSelected ? '#FFA500' : '#2E86AB';
-          ctx.lineWidth = 2;
+          ctx.lineWidth = 3;
           ctx.beginPath();
           ctx.arc(x, y, size / 2, 0, 2 * Math.PI);
           ctx.fill();
@@ -615,27 +618,24 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           const inches = Math.round((dp.depth - feet) * 12);
           const label = `${feet}'${inches}"`;
           
-          ctx.font = 'bold 12px Arial';
+          ctx.font = 'bold 14px Arial';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           const metrics = ctx.measureText(label);
-          const padding = 4;
+          const padding = 6;
           
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+          ctx.fillStyle = 'rgba(46, 134, 171, 0.95)';
           ctx.fillRect(
             x - metrics.width / 2 - padding,
-            y - 20 - 8,
+            y - 25 - 10,
             metrics.width + padding * 2,
-            16
+            20
           );
           
           ctx.fillStyle = '#ffffff';
-          ctx.fillText(label, x, y - 20);
+          ctx.fillText(label, x, y - 25);
         });
       }
-      
-      ctx.restore();
-      ctx.restore();
 
       // Draw dimension lines and labels
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
@@ -679,6 +679,51 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
         ctx.fillText(label, midX + offsetX, midY + offsetY);
       }
+    }
+
+    // Draw hardscape dimension lines and labels
+    ctx.strokeStyle = 'rgba(245, 158, 11, 0.6)';
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.9)';
+    ctx.lineWidth = 1;
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    for (let i = 0; i < hardscapePoints.length; i++) {
+      const current = hardscapePoints[i];
+      const next = hardscapePoints[(i + 1) % hardscapePoints.length];
+      const midX = (current.x + next.x) / 2;
+      const midY = (current.y + next.y) / 2;
+      const distance = Math.sqrt(
+        Math.pow(next.x - current.x, 2) + Math.pow(next.y - current.y, 2)
+      ) / scale;
+
+      // Draw dimension line
+      const angle = Math.atan2(next.y - current.y, next.x - current.x);
+      const offset = 35;
+      const offsetX = Math.cos(angle + Math.PI / 2) * offset;
+      const offsetY = Math.sin(angle + Math.PI / 2) * offset;
+
+      ctx.beginPath();
+      ctx.moveTo(current.x + offsetX, current.y + offsetY);
+      ctx.lineTo(next.x + offsetX, next.y + offsetY);
+      ctx.stroke();
+
+      // Draw dimension label with background
+      const label = `${distance.toFixed(1)}'`;
+      const metrics = ctx.measureText(label);
+      const padding = 4;
+      
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.95)';
+      ctx.fillRect(
+        midX + offsetX - metrics.width / 2 - padding,
+        midY + offsetY - 8,
+        metrics.width + padding * 2,
+        16
+      );
+      
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(label, midX + offsetX, midY + offsetY);
     }
 
     // Draw hardscape anchor points
