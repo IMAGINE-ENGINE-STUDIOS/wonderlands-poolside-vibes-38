@@ -81,7 +81,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [scale, setScale] = useState(15); // pixels per foot - increased for better visibility
-  const [canvasSize, setCanvasSize] = useState({ width: 700, height: 500 });
+  const [canvasSize, setCanvasSize] = useState({ width: 1200, height: 800 });
   const [editingDimension, setEditingDimension] = useState<string | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<string | null>(null);
   const [pendingFeature, setPendingFeature] = useState<'jet' | null>(null);
@@ -171,12 +171,12 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     return () => cancelAnimationFrame(animationId);
   }, []);
 
-  // Update canvas size based on container
+  // Update canvas size based on container - expand to most of screen
   useEffect(() => {
     const updateCanvasSize = () => {
       if (containerRef.current) {
-        const width = Math.min(containerRef.current.offsetWidth - 32, 900);
-        const height = Math.min(width * 0.71, 600);
+        const width = Math.min(containerRef.current.offsetWidth - 32, 1600);
+        const height = Math.min(width * 0.65, 1000);
         setCanvasSize({ width, height });
       }
     };
@@ -1095,7 +1095,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   };
 
   return (
-    <div ref={containerRef} className="space-y-6 w-full">
+    <div ref={containerRef} className="space-y-6 w-full max-w-[1650px] mx-auto">
       <Card className="p-6 bg-gradient-to-br from-background to-muted/20 border-2">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-card p-3 rounded-lg border">
