@@ -2515,6 +2515,51 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                     </svg>
                     {smoothCorners ? 'Smooth' : 'Squared'}
                   </Button>
+                  
+                  <Button 
+                    size="sm" 
+                    onClick={() => setShowFenceEditor(!showFenceEditor)} 
+                    variant={showFenceEditor ? "default" : "outline"} 
+                    className="h-7 w-7 p-0"
+                    title="Fence"
+                  >
+                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="6" width="3" height="12" />
+                      <rect x="10" y="6" width="3" height="12" />
+                      <rect x="17" y="6" width="3" height="12" />
+                      <line x1="2" y1="10" x2="22" y2="10" />
+                      <line x1="2" y1="14" x2="22" y2="14" />
+                    </svg>
+                  </Button>
+                  
+                  <Button 
+                    size="sm" 
+                    onClick={() => addFeature('home')} 
+                    variant="outline" 
+                    className="h-7 w-7 p-0"
+                    title="House"
+                  >
+                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                      <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                  </Button>
+                  
+                  <Button 
+                    size="sm" 
+                    onClick={() => addFeature('pathway')} 
+                    variant="outline" 
+                    className="h-7 w-7 p-0"
+                    title="Path"
+                  >
+                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="5" y="5" width="4" height="4" />
+                      <rect x="11" y="7" width="4" height="4" />
+                      <rect x="5" y="11" width="4" height="4" />
+                      <rect x="11" y="13" width="4" height="4" />
+                      <rect x="17" y="9" width="4" height="4" />
+                    </svg>
+                  </Button>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -2895,36 +2940,12 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                   <Flower2 className="h-4 w-4" />
                   <span className="text-[10px]">Grass</span>
                 </Button>
-                <Button size="sm" onClick={() => addFeature('home')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
-                  <Home className="h-4 w-4" />
-                  <span className="text-[10px]">House</span>
-                </Button>
                 <Button size="sm" onClick={() => addFeature('umbrella')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M12 2C7.03 2 3 6.03 3 11h18c0-4.97-4.03-9-9-9z" />
                     <line x1="12" y1="11" x2="12" y2="22" />
                   </svg>
                   <span className="text-[10px]">Umbrella</span>
-                </Button>
-                <Button size="sm" onClick={() => setShowFenceEditor(!showFenceEditor)} variant={showFenceEditor ? "default" : "outline"} className="h-auto py-2 flex-col gap-0.5">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="6" width="3" height="12" />
-                    <rect x="10" y="6" width="3" height="12" />
-                    <rect x="17" y="6" width="3" height="12" />
-                    <line x1="2" y1="10" x2="22" y2="10" />
-                    <line x1="2" y1="14" x2="22" y2="14" />
-                  </svg>
-                  <span className="text-[10px]">Fence</span>
-                </Button>
-                <Button size="sm" onClick={() => addFeature('pathway')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="5" y="5" width="4" height="4" />
-                    <rect x="11" y="7" width="4" height="4" />
-                    <rect x="5" y="11" width="4" height="4" />
-                    <rect x="11" y="13" width="4" height="4" />
-                    <rect x="17" y="9" width="4" height="4" />
-                  </svg>
-                  <span className="text-[10px]">Path</span>
                 </Button>
               </div>
 
