@@ -2716,6 +2716,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                         hardscapePoints={hardscapePoints}
                         fencePoints={fencePoints}
                         features={features}
+                        paverTextureUrl={paverTypes.find(p => p.id === selectedPaverId)?.image}
+                        linerTextureUrl={poolTextureSapphire}
+                        copingTextureUrl={paverTypes.find(p => p.id === selectedCopingId)?.image}
                       />
                     </div>
                     <div className="text-sm text-muted-foreground">

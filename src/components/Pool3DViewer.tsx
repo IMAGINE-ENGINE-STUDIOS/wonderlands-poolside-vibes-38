@@ -1,4 +1,4 @@
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Grid, PerspectiveCamera, Line } from '@react-three/drei';
 import * as THREE from 'three';
@@ -49,10 +49,26 @@ interface Pool3DViewerProps {
   hardscapePoints?: HardscapePoint[];
   fencePoints?: FencePoint[];
   features?: PoolFeature[];
+  paverTextureUrl?: string;
+  linerTextureUrl?: string;
+  copingTextureUrl?: string;
 }
 
-const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) => {
+const PoolMesh = ({ points, depthPoints, scale, poolShape, linerTextureUrl }: Pool3DViewerProps & { linerTextureUrl?: string }) => {
   const meshRef = useRef<THREE.Mesh>(null);
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  
+  useEffect(() => {
+    if (linerTextureUrl) {
+      const loader = new THREE.TextureLoader();
+      loader.load(linerTextureUrl, (loadedTexture) => {
+        loadedTexture.wrapS = THREE.RepeatWrapping;
+        loadedTexture.wrapT = THREE.RepeatWrapping;
+        loadedTexture.repeat.set(5, 5);
+        setTexture(loadedTexture);
+      });
+    }
+  }, [linerTextureUrl]);
 
   // Create accurate pool geometry from top view outline and depth profile
   const { geometry, wallsGeometry } = useMemo(() => {
@@ -275,11 +291,12 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) 
   return (
     <>
       {/* Pool water surface and floor */}
-      <mesh ref={meshRef} geometry={geometry}>
+      <mesh ref={meshRef} geometry={geometry} position={[0, -0.5, 0]}>
         <meshPhongMaterial
+          map={texture}
           color="#4DD0E1"
           transparent
-          opacity={0.75}
+          opacity={texture ? 0.85 : 0.75}
           side={THREE.DoubleSide}
           shininess={100}
           specular="#ffffff"
@@ -287,8 +304,9 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) 
       </mesh>
 
       {/* Pool walls */}
-      <mesh geometry={wallsGeometry}>
+      <mesh geometry={wallsGeometry} position={[0, -0.5, 0]}>
         <meshStandardMaterial
+          map={texture}
           color="#2196F3"
           side={THREE.DoubleSide}
           roughness={0.3}
@@ -297,7 +315,7 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) 
       </mesh>
 
       {/* Pool outline wireframe for reference */}
-      <lineSegments>
+      <lineSegments position={[0, -0.5, 0]}>
         <edgesGeometry args={[geometry]} />
         <lineBasicMaterial color="#1976D2" opacity={0.3} transparent />
       </lineSegments>
@@ -305,50 +323,159 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) 
   );
 };
 
-// Deck component
-const DeckMesh = ({ hardscapePoints, poolCenterX, poolCenterY, scale }: { 
+// Deck component with proper thickness and texture
+const DeckMesh = ({ 
+  hardscapePoints, 
+  poolCenterX, 
+  poolCenterY, 
+  scale,
+  paverTextureUrl 
+}: { 
   hardscapePoints: HardscapePoint[], 
   poolCenterX: number,
   poolCenterY: number,
-  scale: number 
+  scale: number,
+  paverTextureUrl?: string
 }) => {
-  const geometry = useMemo(() => {
-    if (hardscapePoints.length < 3) return null;
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  
+  useEffect(() => {
+    if (paverTextureUrl) {
+      const loader = new THREE.TextureLoader();
+      loader.load(paverTextureUrl, (loadedTexture) => {
+        loadedTexture.wrapS = THREE.RepeatWrapping;
+        loadedTexture.wrapT = THREE.RepeatWrapping;
+        loadedTexture.repeat.set(10, 10); // Repeat texture across deck
+        setTexture(loadedTexture);
+      });
+    }
+  }, [paverTextureUrl]);
 
+  const { topGeometry, bottomGeometry, sidesGeometry } = useMemo(() => {
+    if (hardscapePoints.length < 3) {
+      return { topGeometry: null, bottomGeometry: null, sidesGeometry: null };
+    }
+
+    const deckThickness = 0.5; // 6 inches = 0.5 feet
+    const deckY = 0; // Deck at ground level
     const vertices: number[] = [];
     const indices: number[] = [];
+    const uvs: number[] = [];
     
-    // Use the same pool center for all conversions
+    // Create top surface
     hardscapePoints.forEach((p, i) => {
       const x = (p.x - poolCenterX) / scale;
       const z = (p.y - poolCenterY) / scale;
-      const y = 0.1; // Slightly above ground
       
-      vertices.push(x, y, z);
+      vertices.push(x, deckY, z);
+      uvs.push(i / hardscapePoints.length, 0);
       
       if (i >= 2) {
         indices.push(0, i - 1, i);
       }
     });
     
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    geo.setIndex(indices);
-    geo.computeVertexNormals();
+    const topGeo = new THREE.BufferGeometry();
+    topGeo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    topGeo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    topGeo.setIndex(indices);
+    topGeo.computeVertexNormals();
     
-    return geo;
+    // Create bottom surface
+    const bottomVertices: number[] = [];
+    const bottomIndices: number[] = [];
+    
+    hardscapePoints.forEach((p, i) => {
+      const x = (p.x - poolCenterX) / scale;
+      const z = (p.y - poolCenterY) / scale;
+      
+      bottomVertices.push(x, deckY - deckThickness, z);
+      
+      if (i >= 2) {
+        bottomIndices.push(0, i, i - 1); // Reverse winding for bottom
+      }
+    });
+    
+    const bottomGeo = new THREE.BufferGeometry();
+    bottomGeo.setAttribute('position', new THREE.Float32BufferAttribute(bottomVertices, 3));
+    bottomGeo.setIndex(bottomIndices);
+    bottomGeo.computeVertexNormals();
+    
+    // Create side walls
+    const sideVertices: number[] = [];
+    const sideIndices: number[] = [];
+    
+    for (let i = 0; i < hardscapePoints.length; i++) {
+      const p1 = hardscapePoints[i];
+      const p2 = hardscapePoints[(i + 1) % hardscapePoints.length];
+      
+      const x1 = (p1.x - poolCenterX) / scale;
+      const z1 = (p1.y - poolCenterY) / scale;
+      const x2 = (p2.x - poolCenterX) / scale;
+      const z2 = (p2.y - poolCenterY) / scale;
+      
+      const baseIdx = sideVertices.length / 3;
+      
+      // Top edge
+      sideVertices.push(x1, deckY, z1);
+      sideVertices.push(x2, deckY, z2);
+      
+      // Bottom edge
+      sideVertices.push(x1, deckY - deckThickness, z1);
+      sideVertices.push(x2, deckY - deckThickness, z2);
+      
+      // Create quad
+      sideIndices.push(
+        baseIdx, baseIdx + 2, baseIdx + 1,
+        baseIdx + 1, baseIdx + 2, baseIdx + 3
+      );
+    }
+    
+    const sideGeo = new THREE.BufferGeometry();
+    sideGeo.setAttribute('position', new THREE.Float32BufferAttribute(sideVertices, 3));
+    sideGeo.setIndex(sideIndices);
+    sideGeo.computeVertexNormals();
+    
+    return { 
+      topGeometry: topGeo, 
+      bottomGeometry: bottomGeo, 
+      sidesGeometry: sideGeo 
+    };
   }, [hardscapePoints, poolCenterX, poolCenterY, scale]);
 
-  if (!geometry) return null;
+  if (!topGeometry || !bottomGeometry || !sidesGeometry) return null;
+
+  const material = texture ? (
+    <meshStandardMaterial 
+      map={texture}
+      roughness={0.8}
+      metalness={0.1}
+    />
+  ) : (
+    <meshStandardMaterial 
+      color="#D4C4B0" 
+      roughness={0.8}
+      metalness={0.1}
+    />
+  );
 
   return (
-    <mesh geometry={geometry} receiveShadow>
-      <meshStandardMaterial 
-        color="#D4C4B0" 
-        roughness={0.8}
-        metalness={0.1}
-      />
-    </mesh>
+    <group>
+      {/* Top surface */}
+      <mesh geometry={topGeometry} receiveShadow>
+        {material}
+      </mesh>
+      
+      {/* Bottom surface */}
+      <mesh geometry={bottomGeometry}>
+        <meshStandardMaterial color="#B5A48D" roughness={0.9} />
+      </mesh>
+      
+      {/* Side walls */}
+      <mesh geometry={sidesGeometry} castShadow receiveShadow>
+        <meshStandardMaterial color="#C9B8A0" roughness={0.8} />
+      </mesh>
+    </group>
   );
 };
 
@@ -553,7 +680,18 @@ const PoolFeatures = ({ features, poolCenterX, poolCenterY, scale }: {
   );
 };
 
-const Scene = ({ points, depthPoints, scale, poolShape, hardscapePoints = [], fencePoints = [], features = [] }: Pool3DViewerProps) => {
+const Scene = ({ 
+  points, 
+  depthPoints, 
+  scale, 
+  poolShape, 
+  hardscapePoints = [], 
+  fencePoints = [], 
+  features = [],
+  paverTextureUrl,
+  linerTextureUrl,
+  copingTextureUrl
+}: Pool3DViewerProps) => {
   // Calculate pool center once for all objects to use
   const poolCenter = useMemo(() => {
     if (points.length === 0) return { x: 0, y: 0 };
@@ -609,6 +747,7 @@ const Scene = ({ points, depthPoints, scale, poolShape, hardscapePoints = [], fe
         depthPoints={depthPoints}
         scale={scale}
         poolShape={poolShape}
+        linerTextureUrl={linerTextureUrl}
       />
 
       {/* Deck */}
@@ -617,7 +756,8 @@ const Scene = ({ points, depthPoints, scale, poolShape, hardscapePoints = [], fe
           hardscapePoints={hardscapePoints} 
           poolCenterX={poolCenter.x}
           poolCenterY={poolCenter.y}
-          scale={scale} 
+          scale={scale}
+          paverTextureUrl={paverTextureUrl}
         />
       )}
 
@@ -647,7 +787,18 @@ const Scene = ({ points, depthPoints, scale, poolShape, hardscapePoints = [], fe
   );
 };
 
-export const Pool3DViewer = ({ points, depthPoints, scale, poolShape, hardscapePoints = [], fencePoints = [], features = [] }: Pool3DViewerProps) => {
+export const Pool3DViewer = ({ 
+  points, 
+  depthPoints, 
+  scale, 
+  poolShape, 
+  hardscapePoints = [], 
+  fencePoints = [], 
+  features = [],
+  paverTextureUrl,
+  linerTextureUrl,
+  copingTextureUrl
+}: Pool3DViewerProps) => {
   return (
     <div className="w-full h-full bg-gradient-to-b from-sky-100 to-background rounded-lg overflow-hidden">
       <Canvas shadows gl={{ antialias: true, alpha: true }}>
@@ -659,6 +810,9 @@ export const Pool3DViewer = ({ points, depthPoints, scale, poolShape, hardscapeP
           hardscapePoints={hardscapePoints}
           fencePoints={fencePoints}
           features={features}
+          paverTextureUrl={paverTextureUrl}
+          linerTextureUrl={linerTextureUrl}
+          copingTextureUrl={copingTextureUrl}
         />
       </Canvas>
     </div>
