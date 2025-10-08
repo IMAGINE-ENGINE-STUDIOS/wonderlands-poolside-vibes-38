@@ -127,6 +127,36 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     }
   };
 
+  // Generate hardscape points that follow pool outline with offset
+  const generateHardscapeFromPool = (poolPoints: Point[], offsetInFeet: number = 3): HardscapePoint[] => {
+    const offsetPixels = offsetInFeet * scale;
+    const hardscapePoints: HardscapePoint[] = [];
+    
+    // Calculate centroid of pool
+    const centroidX = poolPoints.reduce((sum, p) => sum + p.x, 0) / poolPoints.length;
+    const centroidY = poolPoints.reduce((sum, p) => sum + p.y, 0) / poolPoints.length;
+    
+    // For each pool point, create an offset point moving away from centroid
+    poolPoints.forEach((point, i) => {
+      // Calculate direction from centroid to point
+      const dx = point.x - centroidX;
+      const dy = point.y - centroidY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      // Normalize and apply offset
+      const normalizedDx = dx / distance;
+      const normalizedDy = dy / distance;
+      
+      hardscapePoints.push({
+        x: point.x + normalizedDx * offsetPixels,
+        y: point.y + normalizedDy * offsetPixels,
+        id: `h${i + 1}`
+      });
+    });
+    
+    return hardscapePoints;
+  };
+
   const [points, setPoints] = useState<Point[]>([]);
   const [hardscapePoints, setHardscapePoints] = useState<HardscapePoint[]>([]);
   const [features, setFeatures] = useState<PoolFeature[]>([]);
@@ -189,16 +219,11 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   // Initialize pool and hardscape centered
   useEffect(() => {
     if (points.length === 0) {
-      setPoints(getShapePoints('rectangle'));
+      const initialPoolPoints = getShapePoints('rectangle');
+      setPoints(initialPoolPoints);
       
-      // Initialize hardscape deck around pool
-      const deckWidth = 100; // 100px deck around pool
-      setHardscapePoints([
-        { x: canvasSize.width / 2 - 200, y: canvasSize.height / 2 - 175, id: 'h1' },
-        { x: canvasSize.width / 2 + 200, y: canvasSize.height / 2 - 175, id: 'h2' },
-        { x: canvasSize.width / 2 + 200, y: canvasSize.height / 2 + 175, id: 'h3' },
-        { x: canvasSize.width / 2 - 200, y: canvasSize.height / 2 + 175, id: 'h4' },
-      ]);
+      // Generate hardscape deck that follows pool with 3ft offset
+      setHardscapePoints(generateHardscapeFromPool(initialPoolPoints, 3));
     }
   }, [canvasSize]);
 
@@ -2137,7 +2162,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                   variant={poolShape === 'rectangle' ? 'default' : 'outline'}
                   onClick={() => {
                     setPoolShape('rectangle');
-                    setPoints(getShapePoints('rectangle'));
+                    const newPoolPoints = getShapePoints('rectangle');
+                    setPoints(newPoolPoints);
+                    setHardscapePoints(generateHardscapeFromPool(newPoolPoints, 3));
                     setFeatures([]);
                   }}
                   className="h-8 text-xs"
@@ -2149,7 +2176,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                   variant={poolShape === 'kidney' ? 'default' : 'outline'}
                   onClick={() => {
                     setPoolShape('kidney');
-                    setPoints(getShapePoints('kidney'));
+                    const newPoolPoints = getShapePoints('kidney');
+                    setPoints(newPoolPoints);
+                    setHardscapePoints(generateHardscapeFromPool(newPoolPoints, 3));
                     setFeatures([]);
                   }}
                   className="h-8 text-xs"
@@ -2161,7 +2190,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                   variant={poolShape === 'freeform' ? 'default' : 'outline'}
                   onClick={() => {
                     setPoolShape('freeform');
-                    setPoints(getShapePoints('freeform'));
+                    const newPoolPoints = getShapePoints('freeform');
+                    setPoints(newPoolPoints);
+                    setHardscapePoints(generateHardscapeFromPool(newPoolPoints, 3));
                     setFeatures([]);
                   }}
                   className="h-8 text-xs"
