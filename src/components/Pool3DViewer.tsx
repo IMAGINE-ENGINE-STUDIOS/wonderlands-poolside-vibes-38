@@ -2,6 +2,7 @@ import { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Grid, PerspectiveCamera, Line } from '@react-three/drei';
 import * as THREE from 'three';
+import { SUBTRACTION, Brush, Evaluator } from 'three-bvh-csg';
 
 interface Point {
   x: number;
@@ -323,21 +324,26 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape, linerTextureUrl }: Po
   );
 };
 
-// Deck component with proper thickness and texture
+// Deck component with proper thickness, texture, and CSG hole cutting
 const DeckMesh = ({ 
   hardscapePoints, 
+  poolPoints,
   poolCenterX, 
   poolCenterY, 
   scale,
-  paverTextureUrl 
+  paverTextureUrl,
+  features = []
 }: { 
   hardscapePoints: HardscapePoint[], 
+  poolPoints: Point[],
   poolCenterX: number,
   poolCenterY: number,
   scale: number,
-  paverTextureUrl?: string
+  paverTextureUrl?: string,
+  features?: PoolFeature[]
 }) => {
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  const evaluator = useMemo(() => new Evaluator(), []);
   
   useEffect(() => {
     if (paverTextureUrl) {
@@ -345,105 +351,121 @@ const DeckMesh = ({
       loader.load(paverTextureUrl, (loadedTexture) => {
         loadedTexture.wrapS = THREE.RepeatWrapping;
         loadedTexture.wrapT = THREE.RepeatWrapping;
-        loadedTexture.repeat.set(10, 10); // Repeat texture across deck
+        loadedTexture.repeat.set(10, 10);
         setTexture(loadedTexture);
       });
     }
   }, [paverTextureUrl]);
 
-  const { topGeometry, bottomGeometry, sidesGeometry } = useMemo(() => {
-    if (hardscapePoints.length < 3) {
-      return { topGeometry: null, bottomGeometry: null, sidesGeometry: null };
-    }
+  const deckWithHoles = useMemo(() => {
+    if (hardscapePoints.length < 3) return null;
 
     const deckThickness = 0.5; // 6 inches = 0.5 feet
     const deckY = 0; // Deck at ground level
-    const vertices: number[] = [];
-    const indices: number[] = [];
-    const uvs: number[] = [];
     
-    // Create top surface
+    // Create deck shape from hardscape points
+    const deckShape = new THREE.Shape();
     hardscapePoints.forEach((p, i) => {
       const x = (p.x - poolCenterX) / scale;
       const z = (p.y - poolCenterY) / scale;
       
-      vertices.push(x, deckY, z);
-      uvs.push(i / hardscapePoints.length, 0);
-      
-      if (i >= 2) {
-        indices.push(0, i - 1, i);
+      if (i === 0) {
+        deckShape.moveTo(x, z);
+      } else {
+        deckShape.lineTo(x, z);
       }
     });
+    deckShape.closePath();
     
-    const topGeo = new THREE.BufferGeometry();
-    topGeo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    topGeo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-    topGeo.setIndex(indices);
-    topGeo.computeVertexNormals();
+    // Create extruded deck geometry
+    const extrudeSettings = {
+      depth: deckThickness,
+      bevelEnabled: false
+    };
     
-    // Create bottom surface
-    const bottomVertices: number[] = [];
-    const bottomIndices: number[] = [];
+    const deckGeometry = new THREE.ExtrudeGeometry(deckShape, extrudeSettings);
     
-    hardscapePoints.forEach((p, i) => {
-      const x = (p.x - poolCenterX) / scale;
-      const z = (p.y - poolCenterY) / scale;
-      
-      bottomVertices.push(x, deckY - deckThickness, z);
-      
-      if (i >= 2) {
-        bottomIndices.push(0, i, i - 1); // Reverse winding for bottom
-      }
-    });
+    // Rotate and position deck geometry to be horizontal
+    deckGeometry.rotateX(-Math.PI / 2);
+    deckGeometry.translate(0, deckY, 0);
     
-    const bottomGeo = new THREE.BufferGeometry();
-    bottomGeo.setAttribute('position', new THREE.Float32BufferAttribute(bottomVertices, 3));
-    bottomGeo.setIndex(bottomIndices);
-    bottomGeo.computeVertexNormals();
+    // Create deck brush for CSG
+    const deckBrush = new Brush(deckGeometry);
+    deckBrush.updateMatrixWorld();
     
-    // Create side walls
-    const sideVertices: number[] = [];
-    const sideIndices: number[] = [];
-    
-    for (let i = 0; i < hardscapePoints.length; i++) {
-      const p1 = hardscapePoints[i];
-      const p2 = hardscapePoints[(i + 1) % hardscapePoints.length];
+    // Create pool hole shape
+    if (poolPoints.length >= 3) {
+      const poolShape = new THREE.Shape();
+      poolPoints.forEach((p, i) => {
+        const x = (p.x - poolCenterX) / scale;
+        const z = (p.y - poolCenterY) / scale;
+        
+        if (i === 0) {
+          poolShape.moveTo(x, z);
+        } else {
+          poolShape.lineTo(x, z);
+        }
+      });
+      poolShape.closePath();
       
-      const x1 = (p1.x - poolCenterX) / scale;
-      const z1 = (p1.y - poolCenterY) / scale;
-      const x2 = (p2.x - poolCenterX) / scale;
-      const z2 = (p2.y - poolCenterY) / scale;
+      // Extrude pool hole slightly taller than deck to ensure clean cut
+      const poolHoleGeometry = new THREE.ExtrudeGeometry(poolShape, {
+        depth: deckThickness + 0.2,
+        bevelEnabled: false
+      });
       
-      const baseIdx = sideVertices.length / 3;
+      poolHoleGeometry.rotateX(-Math.PI / 2);
+      poolHoleGeometry.translate(0, deckY - 0.1, 0);
       
-      // Top edge
-      sideVertices.push(x1, deckY, z1);
-      sideVertices.push(x2, deckY, z2);
+      const poolBrush = new Brush(poolHoleGeometry);
+      poolBrush.updateMatrixWorld();
       
-      // Bottom edge
-      sideVertices.push(x1, deckY - deckThickness, z1);
-      sideVertices.push(x2, deckY - deckThickness, z2);
+      // Subtract pool from deck
+      const resultWithPool = evaluator.evaluate(deckBrush, poolBrush, SUBTRACTION);
+      deckBrush.geometry.dispose();
+      poolBrush.geometry.dispose();
       
-      // Create quad
-      sideIndices.push(
-        baseIdx, baseIdx + 2, baseIdx + 1,
-        baseIdx + 1, baseIdx + 2, baseIdx + 3
-      );
+      // Update deckBrush with the result
+      deckBrush.geometry = resultWithPool.geometry;
+      deckBrush.updateMatrixWorld();
     }
     
-    const sideGeo = new THREE.BufferGeometry();
-    sideGeo.setAttribute('position', new THREE.Float32BufferAttribute(sideVertices, 3));
-    sideGeo.setIndex(sideIndices);
-    sideGeo.computeVertexNormals();
+    // Cut holes for features (spas, water features, etc.)
+    features.forEach(feature => {
+      // Only cut holes for features that should intersect the deck
+      if (feature.type === 'fountain' || feature.type === 'light') {
+        const featureX = (feature.x - poolCenterX) / scale;
+        const featureZ = (feature.y - poolCenterY) / scale;
+        const holeRadius = feature.type === 'fountain' ? 0.8 : 0.4;
+        
+        // Create circular hole
+        const holeShape = new THREE.Shape();
+        holeShape.absarc(featureX, featureZ, holeRadius, 0, Math.PI * 2, false);
+        
+        const holeGeometry = new THREE.ExtrudeGeometry(holeShape, {
+          depth: deckThickness + 0.2,
+          bevelEnabled: false
+        });
+        
+        holeGeometry.rotateX(-Math.PI / 2);
+        holeGeometry.translate(0, deckY - 0.1, 0);
+        
+        const holeBrush = new Brush(holeGeometry);
+        holeBrush.updateMatrixWorld();
+        
+        const resultWithHole = evaluator.evaluate(deckBrush, holeBrush, SUBTRACTION);
+        deckBrush.geometry.dispose();
+        holeBrush.geometry.dispose();
+        
+        deckBrush.geometry = resultWithHole.geometry;
+        deckBrush.updateMatrixWorld();
+      }
+    });
     
-    return { 
-      topGeometry: topGeo, 
-      bottomGeometry: bottomGeo, 
-      sidesGeometry: sideGeo 
-    };
-  }, [hardscapePoints, poolCenterX, poolCenterY, scale]);
+    return deckBrush.geometry;
+  }, [hardscapePoints, poolPoints, poolCenterX, poolCenterY, scale, features, evaluator]);
 
-  if (!topGeometry || !bottomGeometry || !sidesGeometry) return null;
+  if (!deckWithHoles) return null;
 
   const material = texture ? (
     <meshStandardMaterial 
@@ -460,22 +482,9 @@ const DeckMesh = ({
   );
 
   return (
-    <group>
-      {/* Top surface */}
-      <mesh geometry={topGeometry} receiveShadow>
-        {material}
-      </mesh>
-      
-      {/* Bottom surface */}
-      <mesh geometry={bottomGeometry}>
-        <meshStandardMaterial color="#B5A48D" roughness={0.9} />
-      </mesh>
-      
-      {/* Side walls */}
-      <mesh geometry={sidesGeometry} castShadow receiveShadow>
-        <meshStandardMaterial color="#C9B8A0" roughness={0.8} />
-      </mesh>
-    </group>
+    <mesh geometry={deckWithHoles} receiveShadow castShadow>
+      {material}
+    </mesh>
   );
 };
 
@@ -750,14 +759,16 @@ const Scene = ({
         linerTextureUrl={linerTextureUrl}
       />
 
-      {/* Deck */}
+      {/* Deck with auto-cut holes */}
       {hardscapePoints.length > 0 && (
         <DeckMesh 
-          hardscapePoints={hardscapePoints} 
+          hardscapePoints={hardscapePoints}
+          poolPoints={points}
           poolCenterX={poolCenter.x}
           poolCenterY={poolCenter.y}
           scale={scale}
           paverTextureUrl={paverTextureUrl}
+          features={features}
         />
       )}
 
