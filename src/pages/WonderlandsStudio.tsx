@@ -805,7 +805,7 @@ const WonderlandsStudio = () => {
     }
 
     // Add heater if selected
-    if (selectedExtras.heater) {
+    if (selectedExtras.heater && selectedExtras.heaterModel && selectedExtras.heaterModel !== 'None' && selectedExtras.heaterModel !== '') {
       const selectedHeater = poolHeaters.find(heater => heater.name === selectedExtras.heaterModel);
       if (selectedHeater) {
         extrasArray.push({
@@ -817,7 +817,7 @@ const WonderlandsStudio = () => {
 
     // Add cover if selected
     const coverOption = coverOptions.find(option => option.name === selectedExtras.coverOption);
-    if (coverOption && selectedExtras.cover && coverOption.name !== 'NO COVER') {
+    if (coverOption && selectedExtras.cover && selectedExtras.coverOption && coverOption.name !== 'NO COVER' && selectedExtras.coverOption !== 'None' && selectedExtras.coverOption !== '') {
       extrasArray.push({
         name: coverOption.name,
         price: coverOption.price
@@ -834,7 +834,7 @@ const WonderlandsStudio = () => {
 
     // Add tiles if selected
     const tileOption = tileOptions.find(option => option.name === selectedExtras.tileOption);
-    if (tileOption && selectedExtras.tiles) {
+    if (tileOption && selectedExtras.tiles && selectedExtras.tileOption && selectedExtras.tileOption !== 'None' && selectedExtras.tileOption !== '') {
       extrasArray.push({
         name: tileOption.name,
         price: tileOption.price
@@ -851,7 +851,7 @@ const WonderlandsStudio = () => {
     }
 
     // Add paver surface area cost
-    if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+    if (selectedExtras.pavers && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && selectedExtras.paverOption && selectedExtras.paverOption !== 'None' && selectedExtras.paverOption !== '') {
       extrasArray.push({
         name: `${selectedExtras.paverOption} (${paverSurfaceArea} sq ft)`,
         price: parseFloat(paverSurfaceArea) * 15
@@ -859,7 +859,7 @@ const WonderlandsStudio = () => {
     }
 
     // Add screen enclosure if area provided
-    if (selectedExtras.screenEnclosureArea > 0) {
+    if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureArea > 0 && selectedExtras.screenEnclosureQuality && selectedExtras.screenEnclosureQuality !== 'None' && selectedExtras.screenEnclosureQuality !== '') {
       let pricePerSqFt = 15;
       if (selectedExtras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
       if (selectedExtras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
