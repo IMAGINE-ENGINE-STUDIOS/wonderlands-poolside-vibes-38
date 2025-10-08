@@ -96,6 +96,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [poolShape, setPoolShape] = useState<'rectangle' | 'kidney' | 'freeform'>('rectangle');
   const [lightHue, setLightHue] = useState(0); // For color-changing LED lights
   const [copingThickness, setCopingThickness] = useState(15); // 1 foot = 15 pixels at scale 15
+  const [waterAnimationTime, setWaterAnimationTime] = useState(0);
 
   // Available finishes
   const finishes = [
@@ -158,6 +159,16 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       setLightHue((prev) => (prev + 1) % 360);
     }, 50);
     return () => clearInterval(interval);
+  }, []);
+
+  // Animate water movement
+  useEffect(() => {
+    const animate = () => {
+      setWaterAnimationTime((prev) => prev + 0.02);
+      requestAnimationFrame(animate);
+    };
+    const animationId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationId);
   }, []);
 
   // Update canvas size based on container
@@ -474,15 +485,30 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.stroke();
       }
 
-      // Fill pool with premium liner texture
+      // Fill pool with premium liner texture at proper scale
       ctx.save();
       ctx.clip();
       
       if (linerTextureRef.current) {
-        const pattern = ctx.createPattern(linerTextureRef.current, 'repeat');
-        if (pattern) {
-          ctx.fillStyle = pattern;
-          ctx.fill();
+        // Scale the texture to match pool dimensions (e.g., mosaic tiles are 2x2 inches)
+        const textureScale = scale / 6; // Mosaic pattern every 2 inches at scale
+        const scaledWidth = linerTextureRef.current.width * textureScale;
+        const scaledHeight = linerTextureRef.current.height * textureScale;
+        
+        // Create pattern at proper scale
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = scaledWidth;
+        tempCanvas.height = scaledHeight;
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        if (tempCtx) {
+          tempCtx.drawImage(linerTextureRef.current, 0, 0, scaledWidth, scaledHeight);
+          const pattern = ctx.createPattern(tempCanvas, 'repeat');
+          
+          if (pattern) {
+            ctx.fillStyle = pattern;
+            ctx.fill();
+          }
         }
       } else {
         // Fallback to solid aquamarine color
@@ -490,9 +516,93 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.fill();
       }
       
-      // Subtle water shimmer overlay
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-      ctx.fill();
+      // Animated water wave effects
+      const time = waterAnimationTime;
+      
+      // Multiple wave layers for realistic water movement
+      for (let layer = 0; layer < 3; layer++) {
+        ctx.save();
+        
+        // Create gradient for wave highlights
+        const waveGradient = ctx.createLinearGradient(
+          0, 
+          0, 
+          canvasSize.width, 
+          canvasSize.height
+        );
+        
+        const wavePhase = time * (1 + layer * 0.3);
+        const waveOpacity = 0.03 + Math.sin(wavePhase) * 0.02;
+        
+        waveGradient.addColorStop(0, `rgba(255, 255, 255, ${waveOpacity})`);
+        waveGradient.addColorStop(0.5, `rgba(255, 255, 255, ${waveOpacity * 1.5})`);
+        waveGradient.addColorStop(1, `rgba(255, 255, 255, ${waveOpacity})`);
+        
+        ctx.fillStyle = waveGradient;
+        ctx.fill();
+        
+        ctx.restore();
+      }
+      
+      // Caustic light patterns (underwater light refraction)
+      for (let i = 0; i < 8; i++) {
+        const causticPhase = time * 0.5 + i * Math.PI / 4;
+        const causticX = canvasSize.width / 2 + Math.sin(causticPhase) * 100;
+        const causticY = canvasSize.height / 2 + Math.cos(causticPhase * 1.3) * 80;
+        
+        const causticGradient = ctx.createRadialGradient(
+          causticX, causticY, 0,
+          causticX, causticY, 40
+        );
+        
+        const causticOpacity = (Math.sin(causticPhase * 2) + 1) * 0.02;
+        causticGradient.addColorStop(0, `rgba(200, 240, 255, ${causticOpacity})`);
+        causticGradient.addColorStop(0.5, `rgba(180, 230, 255, ${causticOpacity * 0.5})`);
+        causticGradient.addColorStop(1, 'transparent');
+        
+        ctx.fillStyle = causticGradient;
+        ctx.beginPath();
+        ctx.arc(causticX, causticY, 40, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+      
+      // Shimmering wave highlights moving across surface
+      const shimmerCount = 5;
+      for (let i = 0; i < shimmerCount; i++) {
+        const shimmerPhase = time * 0.8 + i * (Math.PI * 2 / shimmerCount);
+        const shimmerProgress = (Math.sin(shimmerPhase) + 1) / 2;
+        const shimmerX = shimmerProgress * canvasSize.width;
+        
+        const shimmerGradient = ctx.createRadialGradient(
+          shimmerX, canvasSize.height / 2, 0,
+          shimmerX, canvasSize.height / 2, 60
+        );
+        
+        const shimmerOpacity = Math.sin(shimmerPhase) * 0.08;
+        shimmerGradient.addColorStop(0, `rgba(255, 255, 255, ${Math.max(0, shimmerOpacity)})`);
+        shimmerGradient.addColorStop(0.7, `rgba(255, 255, 255, ${Math.max(0, shimmerOpacity * 0.3)})`);
+        shimmerGradient.addColorStop(1, 'transparent');
+        
+        ctx.fillStyle = shimmerGradient;
+        ctx.fill();
+      }
+      
+      // Ripple effects for surface movement
+      const rippleCount = 3;
+      for (let i = 0; i < rippleCount; i++) {
+        const ripplePhase = time * 1.2 + i * (Math.PI * 2 / rippleCount);
+        const rippleRadius = 30 + Math.sin(ripplePhase) * 15;
+        const rippleOpacity = (Math.cos(ripplePhase) + 1) * 0.015;
+        
+        const rippleX = canvasSize.width * (0.3 + i * 0.2);
+        const rippleY = canvasSize.height * (0.4 + Math.sin(ripplePhase * 0.5) * 0.2);
+        
+        ctx.strokeStyle = `rgba(255, 255, 255, ${rippleOpacity})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(rippleX, rippleY, rippleRadius, 0, 2 * Math.PI);
+        ctx.stroke();
+      }
       
       ctx.restore();
       ctx.restore();
@@ -760,7 +870,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         area: parseFloat(calculateArea())
       });
     }
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, waterAnimationTime, copingThickness, lightHue]);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
