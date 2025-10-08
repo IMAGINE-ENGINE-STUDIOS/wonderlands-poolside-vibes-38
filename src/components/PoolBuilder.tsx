@@ -133,51 +133,41 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     }
   };
 
-  // Generate hardscape points that follow pool outline with offset on ALL sides
-  // Offset should start from the OUTER edge of coping + deck distance
+  // Generate rectangular hardscape deck that's minimum 38x18ft and always 3ft larger than pool
   const generateHardscapeFromPool = (poolPoints: Point[], deckDistanceInFeet: number = 3): HardscapePoint[] => {
-    // Calculate coping outer edge offset
-    // Coping is drawn with lineWidth = paverSizeInPixels, so outer edge is paverSizeInPixels/2 from pool edge
-    const paverSizeInFeet = paverSize / 12;
-    const copingHalfWidthFeet = paverSizeInFeet / 2;
+    // Calculate pool bounding box
+    const minX = Math.min(...poolPoints.map(p => p.x));
+    const maxX = Math.max(...poolPoints.map(p => p.x));
+    const minY = Math.min(...poolPoints.map(p => p.y));
+    const maxY = Math.max(...poolPoints.map(p => p.y));
     
-    // For default deck: ensure it's 38ft x 18ft minimum, or follows pool + 3ft, whichever is larger
-    // Total offset = coping half-width (to outer edge) + deck extension
-    const totalOffsetFeet = copingHalfWidthFeet + deckDistanceInFeet;
-    const offsetPixels = totalOffsetFeet * scale;
-    const hardscapePoints: HardscapePoint[] = [];
+    // Calculate pool dimensions in feet
+    const poolWidthFeet = (maxX - minX) / scale;
+    const poolLengthFeet = (maxY - minY) / scale;
     
-    // For each pool edge, calculate perpendicular offset
-    for (let i = 0; i < poolPoints.length; i++) {
-      const current = poolPoints[i];
-      const prev = poolPoints[(i - 1 + poolPoints.length) % poolPoints.length];
-      const next = poolPoints[(i + 1) % poolPoints.length];
-      
-      // Calculate perpendicular offsets for both adjacent edges
-      const dx1 = current.x - prev.x;
-      const dy1 = current.y - prev.y;
-      const len1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
-      const perpX1 = -dy1 / len1;
-      const perpY1 = dx1 / len1;
-      
-      const dx2 = next.x - current.x;
-      const dy2 = next.y - current.y;
-      const len2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-      const perpX2 = -dy2 / len2;
-      const perpY2 = dx2 / len2;
-      
-      // Average the perpendicular directions for smooth corners
-      const avgPerpX = (perpX1 + perpX2) / 2;
-      const avgPerpY = (perpY1 + perpY2) / 2;
-      const avgLen = Math.sqrt(avgPerpX * avgPerpX + avgPerpY * avgPerpY);
-      
-      // Apply offset perpendicular to edges (outward from pool)
-      hardscapePoints.push({
-        x: current.x + (avgPerpX / avgLen) * offsetPixels,
-        y: current.y + (avgPerpY / avgLen) * offsetPixels,
-        id: `h${i + 1}`
-      });
-    }
+    // Calculate required deck dimensions (pool + 6ft for 3ft on each side)
+    const requiredDeckWidth = poolWidthFeet + 6;
+    const requiredDeckLength = poolLengthFeet + 6;
+    
+    // Use the larger of default minimum (38x18) or pool + 6ft
+    const deckWidth = Math.max(defaultDeckWidth, requiredDeckWidth);
+    const deckLength = Math.max(defaultDeckLength, requiredDeckLength);
+    
+    // Calculate pool center
+    const poolCenterX = (minX + maxX) / 2;
+    const poolCenterY = (minY + maxY) / 2;
+    
+    // Convert deck dimensions to pixels
+    const deckWidthPixels = deckWidth * scale;
+    const deckLengthPixels = deckLength * scale;
+    
+    // Generate rectangular deck centered on pool
+    const hardscapePoints: HardscapePoint[] = [
+      { x: poolCenterX - deckWidthPixels / 2, y: poolCenterY - deckLengthPixels / 2, id: 'h1' }, // Top-left
+      { x: poolCenterX + deckWidthPixels / 2, y: poolCenterY - deckLengthPixels / 2, id: 'h2' }, // Top-right
+      { x: poolCenterX + deckWidthPixels / 2, y: poolCenterY + deckLengthPixels / 2, id: 'h3' }, // Bottom-right
+      { x: poolCenterX - deckWidthPixels / 2, y: poolCenterY + deckLengthPixels / 2, id: 'h4' }  // Bottom-left
+    ];
     
     return hardscapePoints;
   };
