@@ -24,7 +24,7 @@ interface RoofPoint {
 }
 
 interface PoolFeature {
-  type: 'stairs' | 'light' | 'jet' | 'tree' | 'fountain' | 'grass' | 'home' | 'shrub' | 'umbrella' | 'fence' | 'pathway';
+  type: 'stairs' | 'light' | 'jet' | 'tree' | 'fountain' | 'grass' | 'home' | 'shrub' | 'umbrella' | 'fence' | 'pathway' | 'waterfall' | 'step';
   x: number;
   y: number;
   id: string;
@@ -207,7 +207,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [smoothCorners, setSmoothCorners] = useState(false);
-  const [activeTool, setActiveTool] = useState<'select' | 'rotate' | 'zoom' | 'add' | null>(null);
+  const [activeTool, setActiveTool] = useState<'select' | 'rotate' | 'zoom' | 'add' | 'waterfall' | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [deckOffset, setDeckOffset] = useState(3); // Deck offset from coping edge in feet (minimum 3ft)
   const [snapPoint, setSnapPoint] = useState<{ x: number; y: number } | null>(null);
@@ -262,7 +262,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     shrub: 75,
     umbrella: 400,
     fence: 150,
-    pathway: 0
+    pathway: 0,
+    waterfall: 8500,
+    step: 0
   };
 
   // Initialize pool and hardscape centered with default decorations
@@ -279,6 +281,12 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       const centerY = canvasSize.height / 2;
       
       setFeatures([
+        // Pool steps on the left side
+        { type: 'step', x: centerX - 155, y: centerY - 40, id: 'step1', width: 60, height: 50 },
+        { type: 'step', x: centerX - 155, y: centerY + 20, id: 'step2', width: 60, height: 50 },
+        { type: 'step', x: centerX - 155, y: centerY + 80, id: 'step3', width: 60, height: 50 },
+        // Waterfall feature (separate from pool)
+        { type: 'waterfall', x: centerX - 150, y: centerY - 220, id: 'waterfall1', width: 300, height: 80 },
         // Grass area at bottom
         { type: 'grass', x: centerX, y: centerY + 350, id: 'grass1', radius: 150 },
         // Trees in grass area
@@ -534,11 +542,17 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.beginPath();
       
       if (poolShape === 'rectangle') {
-        // Draw with straight lines
-        ctx.moveTo(points[0].x, points[0].y);
-        for (let i = 1; i < points.length; i++) {
-          ctx.lineTo(points[i].x, points[i].y);
-        }
+        // Draw with rounded corners like the Astoria image
+        const cornerRadius = 20;
+        ctx.moveTo(points[0].x + cornerRadius, points[0].y);
+        ctx.lineTo(points[1].x - cornerRadius, points[1].y);
+        ctx.arcTo(points[1].x, points[1].y, points[1].x, points[1].y + cornerRadius, cornerRadius);
+        ctx.lineTo(points[2].x, points[2].y - cornerRadius);
+        ctx.arcTo(points[2].x, points[2].y, points[2].x - cornerRadius, points[2].y, cornerRadius);
+        ctx.lineTo(points[3].x + cornerRadius, points[3].y);
+        ctx.arcTo(points[3].x, points[3].y, points[3].x, points[3].y - cornerRadius, cornerRadius);
+        ctx.lineTo(points[0].x, points[0].y + cornerRadius);
+        ctx.arcTo(points[0].x, points[0].y, points[0].x + cornerRadius, points[0].y, cornerRadius);
         ctx.closePath();
       } else {
         // Draw with smooth curves for kidney and freeform
@@ -1495,7 +1509,72 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.shadowBlur = 4;
       const isSelected = selectedFeature === feature.id;
       
-      if (feature.type === 'stairs') {
+      if (feature.type === 'waterfall') {
+        // Draw waterfall as separate oval/rounded rectangle feature
+        const width = feature.width || 300;
+        const height = feature.height || 80;
+        
+        ctx.save();
+        ctx.translate(feature.x, feature.y);
+        
+        // Draw mosaic tile border
+        ctx.fillStyle = '#4A90A4';
+        ctx.strokeStyle = isSelected ? '#FFD700' : '#2C5F6F';
+        ctx.lineWidth = isSelected ? 3 : 2;
+        
+        // Rounded rectangle for waterfall
+        const radius = height / 2;
+        ctx.beginPath();
+        ctx.moveTo(radius, 0);
+        ctx.lineTo(width - radius, 0);
+        ctx.arcTo(width, 0, width, radius, radius);
+        ctx.arcTo(width, height, width - radius, height, radius);
+        ctx.lineTo(radius, height);
+        ctx.arcTo(0, height, 0, radius, radius);
+        ctx.arcTo(0, 0, radius, 0, radius);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Water texture
+        ctx.fillStyle = 'rgba(30, 144, 255, 0.6)';
+        ctx.fill();
+        
+        // Add waterfall flow lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 5; i++) {
+          ctx.beginPath();
+          ctx.moveTo(width / 2 - 30 + i * 15, 0);
+          ctx.lineTo(width / 2 - 30 + i * 15, height);
+          ctx.stroke();
+        }
+        
+        ctx.restore();
+      } else if (feature.type === 'step') {
+        // Draw as pool steps with mosaic tile border
+        ctx.save();
+        ctx.translate(feature.x, feature.y);
+        
+        // Step with mosaic border
+        const stepWidth = feature.width || 60;
+        const stepHeight = feature.height || 50;
+        
+        // Mosaic tile border
+        ctx.fillStyle = isSelected ? '#FFD700' : '#4A90A4';
+        ctx.fillRect(-5, -5, stepWidth + 10, stepHeight + 10);
+        
+        // Step platform
+        ctx.fillStyle = 'rgba(30, 144, 255, 0.5)';
+        ctx.fillRect(0, 0, stepWidth, stepHeight);
+        
+        // Border
+        ctx.strokeStyle = isSelected ? '#FFD700' : '#2C5F6F';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(0, 0, stepWidth, stepHeight);
+        
+        ctx.restore();
+      } else if (feature.type === 'stairs') {
         // Stairs with individual steps
         const steps = feature.steps || 3;
         const stairWidth = 30;
@@ -1557,6 +1636,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.stroke();
         
       } else if (feature.type === 'jet') {
+        // Jets are now just water effects, not steps
         const isInsidePoolArea = isInsidePool(feature.x, feature.y);
         const nearWall = findNearestWallPoint(feature.x, feature.y);
         const distToWall = Math.sqrt((feature.x - nearWall.x) ** 2 + (feature.y - nearWall.y) ** 2);
@@ -1885,6 +1965,21 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       };
       setFencePoints([...fencePoints, newPoint]);
       setFenceAddMode(false); // Auto-disable after adding point
+      return;
+    }
+
+    // Add waterfall when in waterfall mode
+    if (activeTool === 'waterfall') {
+      const newFeature: PoolFeature = {
+        id: Date.now().toString(),
+        type: 'waterfall',
+        x,
+        y,
+        width: 300,
+        height: 80,
+      };
+      setFeatures([...features, newFeature]);
+      setActiveTool(null);
       return;
     }
 
@@ -2326,6 +2421,11 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         setFeatures(prev => prev.map(f => 
           f.id === selectedFeature ? { ...f, x, y } : f
         ));
+      } else if (feature.type === 'waterfall' || feature.type === 'step') {
+        // Waterfalls and steps can be freely moved anywhere
+        setFeatures(prev => prev.map(f => 
+          f.id === selectedFeature ? { ...f, x, y } : f
+        ));
       } else {
         // Other features can be placed anywhere
         setFeatures(prev => prev.map(f => 
@@ -2595,6 +2695,16 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                       <rect x="11" y="13" width="4" height="4" />
                       <rect x="17" y="9" width="4" height="4" />
                     </svg>
+                  </Button>
+                  
+                  <Button 
+                    size="sm" 
+                    onClick={() => setActiveTool(activeTool === 'waterfall' ? null : 'waterfall')} 
+                    variant={activeTool === 'waterfall' ? "default" : "outline"}
+                    className="h-7 w-7 p-0"
+                    title="Add Waterfall"
+                  >
+                    <Waves className="h-3.5 w-3.5" />
                   </Button>
                 </div>
                 
@@ -3133,6 +3243,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                 cursor: fenceAddMode ? 'crosshair'
                   : pendingFeature === 'jet' ? 'crosshair' 
                   : activeTool === 'add' ? 'crosshair'
+                  : activeTool === 'waterfall' ? 'crosshair'
                   : 'default'
               }}
             />
