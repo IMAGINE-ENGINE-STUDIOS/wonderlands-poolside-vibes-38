@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import { Suspense } from 'react';
 import { Pool3DViewer } from './Pool3DViewer';
 import { Loader2 } from 'lucide-react';
 
