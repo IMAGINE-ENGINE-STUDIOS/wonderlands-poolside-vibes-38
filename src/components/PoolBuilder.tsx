@@ -179,9 +179,10 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [smoothCorners, setSmoothCorners] = useState(false);
-  const [activeTool, setActiveTool] = useState<'select' | 'rotate' | 'zoom'>('select');
+  const [activeTool, setActiveTool] = useState<'select' | 'rotate' | 'zoom' | 'add' | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [deckOffset, setDeckOffset] = useState(3); // Deck offset in feet (minimum 3ft)
+  const [snapPoint, setSnapPoint] = useState<{ x: number; y: number } | null>(null);
   const [scale, setScale] = useState(10); // pixels per foot - reduced for larger canvas
   const [canvasSize, setCanvasSize] = useState({
     width: window.innerWidth - 20, 
@@ -824,6 +825,17 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
       ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
     });
+
+    // Draw snap point if in add mode
+    if (activeTool === 'add' && snapPoint) {
+      ctx.beginPath();
+      ctx.arc(snapPoint.x, snapPoint.y, 8, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
     
     // Draw depth profile editor when pool is selected
     if (showDepthEditor && points.length > 0) {
@@ -1780,6 +1792,42 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
+    // If in add mode, add a new point at the snapped location
+    if (activeTool === 'add' && snapPoint) {
+      const newPoint = { x: snapPoint.x, y: snapPoint.y, id: Date.now().toString() };
+      
+      // Find the closest edge to insert the point
+      let closestEdgeIndex = 0;
+      let minDistance = Infinity;
+      
+      for (let i = 0; i < points.length; i++) {
+        const nextI = (i + 1) % points.length;
+        const edge = {
+          x1: points[i].x,
+          y1: points[i].y,
+          x2: points[nextI].x,
+          y2: points[nextI].y
+        };
+        
+        const distance = Math.sqrt(
+          Math.pow(snapPoint.x - (edge.x1 + edge.x2) / 2, 2) +
+          Math.pow(snapPoint.y - (edge.y1 + edge.y2) / 2, 2)
+        );
+        
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestEdgeIndex = i;
+        }
+      }
+      
+      const updatedPoints = [...points];
+      updatedPoints.splice(closestEdgeIndex + 1, 0, newPoint);
+      setPoints(updatedPoints);
+      setActiveTool(null);
+      setSnapPoint(null);
+      return;
+    }
+
     // Check for roof point drag (for selected house)
     if (selectedFeature) {
       const house = features.find(f => f.id === selectedFeature && f.type === 'home');
@@ -1857,6 +1905,42 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+
+    // If in add mode, calculate snap point on pool perimeter
+    if (activeTool === 'add') {
+      let closestPoint = { x, y };
+      let minDistance = Infinity;
+
+      for (let i = 0; i < points.length; i++) {
+        const nextI = (i + 1) % points.length;
+        const p1 = points[i];
+        const p2 = points[nextI];
+
+        // Calculate closest point on line segment
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const lengthSquared = dx * dx + dy * dy;
+        
+        let t = ((x - p1.x) * dx + (y - p1.y) * dy) / lengthSquared;
+        t = Math.max(0, Math.min(1, t));
+        
+        const projectedX = p1.x + t * dx;
+        const projectedY = p1.y + t * dy;
+        
+        const distance = Math.sqrt(
+          Math.pow(x - projectedX, 2) + Math.pow(y - projectedY, 2)
+        );
+
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestPoint = { x: projectedX, y: projectedY };
+        }
+      }
+
+      setSnapPoint(closestPoint);
+      setCursorPos({ x, y });
+      return;
+    }
 
     // Update cursor position for pending features
     setCursorPos({ x, y });
@@ -2716,6 +2800,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
               className="border-2 border-border rounded-lg shadow-2xl touch-none bg-gradient-to-br from-background to-muted/10"
               style={{ 
                 cursor: pendingFeature === 'jet' ? 'crosshair' 
+                  : activeTool === 'add' ? 'crosshair'
                   : activeTool === 'select' ? 'default' 
                   : activeTool === 'rotate' ? 'grab' 
                   : 'zoom-in' 
@@ -2728,9 +2813,13 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         <div className="absolute top-8 right-8 flex gap-2 z-20">
           <Button 
             size="sm" 
-            onClick={addPoint} 
+            onClick={() => {
+              setActiveTool(activeTool === 'add' ? null : 'add');
+              setSnapPoint(null);
+            }}
             variant="outline" 
-            className="h-9 w-9 p-0 bg-background/95 shadow-lg"
+            className={`h-9 w-9 p-0 bg-background/95 shadow-lg ${activeTool === 'add' ? 'bg-primary text-primary-foreground' : ''}`}
+            title="Add Point - Click on pool perimeter"
           >
             <Plus className="h-4 w-4" />
           </Button>
