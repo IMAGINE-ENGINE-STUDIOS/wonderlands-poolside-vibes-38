@@ -624,13 +624,13 @@ const WonderlandsStudio = () => {
   const getSelectedExtrasCount = () => {
     let count = 0;
     if (selectedExtras.spa) count++;
-    if (selectedExtras.finish !== 'Aquamarine') count++;
+    if (selectedExtras.finish && selectedExtras.finish !== 'None' && selectedExtras.finish !== '') count++;
     if (selectedExtras.heater) count++;
-    if (selectedExtras.cover && selectedExtras.coverOption !== 'NO COVER') count++;
-    if (selectedExtras.jets) count++;
+    if (selectedExtras.cover && selectedExtras.coverOption && selectedExtras.coverOption !== 'NO COVER' && selectedExtras.coverOption !== 'None') count++;
+    if (selectedExtras.jets && selectedExtras.jetQuantity > 0) count++;
     if (selectedExtras.tiles) count++;
-    if (selectedExtras.linerOption !== 'Standard Blue') count++;
-    if (selectedExtras.paverOption === 'No Pavers' || selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers') count++;
+    if (selectedExtras.liner && selectedExtras.linerOption && selectedExtras.linerOption !== 'None' && selectedExtras.linerOption !== '') count++;
+    if (selectedExtras.pavers && selectedExtras.paverOption && selectedExtras.paverOption !== 'No Pavers' && selectedExtras.paverOption !== 'None') count++;
     if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureArea > 0) count++;
     if (selectedExtras.concreteConstruction) count++;
     return count;
@@ -645,7 +645,7 @@ const WonderlandsStudio = () => {
         newExtras.selectedSpaModel = '';
         break;
       case 'finish':
-        newExtras.finish = 'Aquamarine';
+        newExtras.finish = 'None';
         break;
       case 'heater':
         newExtras.heater = false;
@@ -661,7 +661,8 @@ const WonderlandsStudio = () => {
         newExtras.tiles = false;
         break;
       case 'liner':
-        newExtras.linerOption = 'Standard Blue';
+        newExtras.liner = false;
+        newExtras.linerOption = 'None';
         break;
       case 'pavers':
         newExtras.pavers = false;
@@ -684,9 +685,9 @@ const WonderlandsStudio = () => {
     // Create detailed extras breakdown for quote tool
     const extrasBreakdown = [];
 
-    // Add finish if not default
+    // Add finish if selected
     const selectedFinish = finishOptions.find(finish => finish.name === selectedExtras.finish);
-    if (selectedFinish && selectedFinish.price > 0) {
+    if (selectedFinish && selectedExtras.finish && selectedExtras.finish !== 'None' && selectedExtras.finish !== '' && selectedFinish.price > 0) {
       extrasBreakdown.push({
         name: `${selectedFinish.name} Finish`,
         price: selectedFinish.price,
@@ -717,7 +718,7 @@ const WonderlandsStudio = () => {
     }
 
     // Add jets if selected
-    if (selectedExtras.jets) {
+    if (selectedExtras.jets && selectedExtras.jetQuantity > 0) {
       extrasBreakdown.push({
         name: `Spa Jets (${selectedExtras.jetQuantity})`,
         price: getExtraPrice('jets') * selectedExtras.jetQuantity,
@@ -736,7 +737,7 @@ const WonderlandsStudio = () => {
     }
 
     // Add liner if selected
-    if (selectedExtras.linerOption !== 'Standard Blue') {
+    if (selectedExtras.liner && selectedExtras.linerOption && selectedExtras.linerOption !== 'None' && selectedExtras.linerOption !== '') {
       const linerOption = linerOptions.find(option => option.name === selectedExtras.linerOption);
       if (linerOption) {
         extrasBreakdown.push({
@@ -794,9 +795,9 @@ const WonderlandsStudio = () => {
     // Convert selectedExtras to the format expected by CartItem
     const extrasArray = [];
 
-    // Add finish if not default
+    // Add finish if selected
     const selectedFinish = finishOptions.find(finish => finish.name === selectedExtras.finish);
-    if (selectedFinish && selectedFinish.price > 0) {
+    if (selectedFinish && selectedExtras.finish && selectedExtras.finish !== 'None' && selectedExtras.finish !== '' && selectedFinish.price > 0) {
       extrasArray.push({
         name: `${selectedFinish.name} Finish`,
         price: selectedFinish.price
@@ -824,7 +825,7 @@ const WonderlandsStudio = () => {
     }
 
     // Add jets if selected
-    if (selectedExtras.jets) {
+    if (selectedExtras.jets && selectedExtras.jetQuantity > 0) {
       extrasArray.push({
         name: `Spa Jets (${selectedExtras.jetQuantity})`,
         price: getExtraPrice('jets') * selectedExtras.jetQuantity
@@ -841,10 +842,11 @@ const WonderlandsStudio = () => {
     }
 
     // Add liner if selected
-    if (selectedExtras.linerOption !== 'Standard Blue') {
+    if (selectedExtras.liner && selectedExtras.linerOption && selectedExtras.linerOption !== 'None' && selectedExtras.linerOption !== '') {
+      const linerOption = linerOptions.find(option => option.name === selectedExtras.linerOption);
       extrasArray.push({
         name: `${selectedExtras.linerOption} Liner`,
-        price: 4500
+        price: linerOption?.price || 4500
       });
     }
 
