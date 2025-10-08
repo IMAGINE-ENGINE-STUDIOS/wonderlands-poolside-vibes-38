@@ -54,6 +54,19 @@ interface HardscapePoint {
   id: string;
 }
 
+interface FencePoint {
+  x: number;
+  y: number;
+  id: string;
+}
+
+interface FenceDoor {
+  segmentIndex: number; // which fence segment (between two points)
+  position: number; // 0-1 position along the segment
+  width: number; // door width in feet
+  id: string;
+}
+
 interface PoolBuilderProps {
   onPoolDataChange?: (data: {
     points: Point[];
@@ -174,9 +187,16 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
 
   const [points, setPoints] = useState<Point[]>([]);
   const [hardscapePoints, setHardscapePoints] = useState<HardscapePoint[]>([]);
+  const [fencePoints, setFencePoints] = useState<FencePoint[]>([]);
+  const [fenceDoors, setFenceDoors] = useState<FenceDoor[]>([]);
   const [features, setFeatures] = useState<PoolFeature[]>([]);
   const [selectedHardscapePoint, setSelectedHardscapePoint] = useState<string | null>(null);
   const [isDraggingHardscape, setIsDraggingHardscape] = useState(false);
+  const [selectedFencePoint, setSelectedFencePoint] = useState<string | null>(null);
+  const [isDraggingFence, setIsDraggingFence] = useState(false);
+  const [selectedFenceDoor, setSelectedFenceDoor] = useState<string | null>(null);
+  const [smoothFence, setSmoothFence] = useState(false);
+  const [fenceHeight, setFenceHeight] = useState(6); // fence height in feet
   const [legendExpanded, setLegendExpanded] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -220,6 +240,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [gridSnap, setGridSnap] = useState(true); // AutoCAD-like grid snapping
   const [snapSize, setSnapSize] = useState(6); // 6 inches snap (0.5 feet)
   const [activeTab, setActiveTab] = useState('pool');
+  const [showFenceEditor, setShowFenceEditor] = useState(false);
 
   // Pricing constants
   const PAVER_COST_PER_SQFT = 15;
@@ -785,6 +806,159 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       
       ctx.fillStyle = '#ffffff';
       ctx.fillText(label, midX + offsetX, midY + offsetY);
+    }
+
+    // Draw fence system (before hardscape for proper layering)
+    if (fencePoints.length >= 2) {
+      const fenceHeightPx = fenceHeight * scale;
+      
+      // Draw fence panels between points
+      ctx.save();
+      
+      for (let i = 0; i < fencePoints.length - 1; i++) {
+        const p1 = fencePoints[i];
+        const p2 = fencePoints[i + 1];
+        
+        // Check if there's a door in this segment
+        const segmentDoors = fenceDoors.filter(door => door.segmentIndex === i);
+        
+        if (segmentDoors.length === 0) {
+          // Draw solid fence panel
+          if (smoothFence) {
+            // Smooth curved fence
+            const cp1x = p1.x + (p2.x - p1.x) / 3;
+            const cp1y = p1.y + (p2.y - p1.y) / 3;
+            const cp2x = p1.x + 2 * (p2.x - p1.x) / 3;
+            const cp2y = p1.y + 2 * (p2.y - p1.y) / 3;
+            
+            ctx.strokeStyle = '#8B6F47';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+            ctx.stroke();
+          } else {
+            // Straight fence
+            ctx.strokeStyle = '#8B6F47';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        } else {
+          // Draw fence with door openings
+          segmentDoors.forEach(door => {
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const segmentLength = Math.sqrt(dx * dx + dy * dy);
+            const doorWidthPx = door.width * scale;
+            
+            // Calculate door start and end positions
+            const doorStartPos = Math.max(0, door.position - (doorWidthPx / 2 / segmentLength));
+            const doorEndPos = Math.min(1, door.position + (doorWidthPx / 2 / segmentLength));
+            
+            // Draw fence before door
+            if (doorStartPos > 0) {
+              ctx.strokeStyle = '#8B6F47';
+              ctx.lineWidth = 6;
+              ctx.beginPath();
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p1.x + dx * doorStartPos, p1.y + dy * doorStartPos);
+              ctx.stroke();
+            }
+            
+            // Draw fence after door
+            if (doorEndPos < 1) {
+              ctx.strokeStyle = '#8B6F47';
+              ctx.lineWidth = 6;
+              ctx.beginPath();
+              ctx.moveTo(p1.x + dx * doorEndPos, p1.y + dy * doorEndPos);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.stroke();
+            }
+            
+            // Draw door frame
+            const doorX = p1.x + dx * door.position;
+            const doorY = p1.y + dy * door.position;
+            const angle = Math.atan2(dy, dx);
+            
+            ctx.save();
+            ctx.translate(doorX, doorY);
+            ctx.rotate(angle + Math.PI / 2);
+            
+            // Door posts
+            ctx.fillStyle = '#A67C52';
+            ctx.fillRect(-doorWidthPx / 2 - 3, -3, 6, 6);
+            ctx.fillRect(doorWidthPx / 2 - 3, -3, 6, 6);
+            
+            // Door gate (if selected, show as open)
+            const isDoorSelected = selectedFenceDoor === door.id;
+            if (!isDoorSelected) {
+              ctx.strokeStyle = '#6B5435';
+              ctx.lineWidth = 3;
+              ctx.beginPath();
+              ctx.moveTo(-doorWidthPx / 2, 0);
+              ctx.lineTo(doorWidthPx / 2, 0);
+              ctx.stroke();
+            }
+            
+            ctx.restore();
+          });
+        }
+        
+        // Draw fence posts at points
+        ctx.fillStyle = '#A67C52';
+        ctx.fillRect(p1.x - 4, p1.y - 4, 8, 8);
+        if (i === fencePoints.length - 2) {
+          ctx.fillRect(p2.x - 4, p2.y - 4, 8, 8);
+        }
+      }
+      
+      ctx.restore();
+    }
+    
+    // Draw fence anchor points
+    if (showFenceEditor && fencePoints.length > 0) {
+      fencePoints.forEach((point) => {
+        const size = 10;
+        const isSelected = selectedFencePoint === point.id;
+        
+        ctx.fillStyle = isSelected ? '#8B6F47' : '#ffffff';
+        ctx.strokeStyle = isSelected ? '#6B5435' : '#8B6F47';
+        ctx.lineWidth = 2;
+        ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
+        ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
+      });
+      
+      // Draw door markers
+      fenceDoors.forEach(door => {
+        if (door.segmentIndex < fencePoints.length - 1) {
+          const p1 = fencePoints[door.segmentIndex];
+          const p2 = fencePoints[door.segmentIndex + 1];
+          const dx = p2.x - p1.x;
+          const dy = p2.y - p1.y;
+          const doorX = p1.x + dx * door.position;
+          const doorY = p1.y + dy * door.position;
+          
+          const size = 12;
+          const isSelected = selectedFenceDoor === door.id;
+          
+          ctx.fillStyle = isSelected ? '#10B981' : '#ffffff';
+          ctx.strokeStyle = isSelected ? '#059669' : '#10B981';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(doorX, doorY, size / 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          
+          // Door label
+          ctx.fillStyle = '#000';
+          ctx.font = 'bold 10px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('D', doorX, doorY + 4);
+        }
+      });
     }
 
     // Draw hardscape anchor points
@@ -1852,6 +2026,36 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       }
     }
 
+    // Check for fence point drag
+    if (showFenceEditor) {
+      const clickedFencePoint = fencePoints.find(p => 
+        Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10
+      );
+
+      if (clickedFencePoint) {
+        setSelectedFencePoint(clickedFencePoint.id);
+        setIsDraggingFence(true);
+        return;
+      }
+      
+      // Check for door marker click
+      for (const door of fenceDoors) {
+        if (door.segmentIndex < fencePoints.length - 1) {
+          const p1 = fencePoints[door.segmentIndex];
+          const p2 = fencePoints[door.segmentIndex + 1];
+          const dx = p2.x - p1.x;
+          const dy = p2.y - p1.y;
+          const doorX = p1.x + dx * door.position;
+          const doorY = p1.y + dy * door.position;
+          
+          if (Math.sqrt(Math.pow(doorX - x, 2) + Math.pow(doorY - y, 2)) < 12) {
+            setSelectedFenceDoor(door.id);
+            return;
+          }
+        }
+      }
+    }
+
     // Check for hardscape point drag
     const clickedHardscapePoint = hardscapePoints.find(p => 
       Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10
@@ -1977,6 +2181,13 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
             : f
         ));
       }
+    } else if (isDraggingFence && selectedFencePoint) {
+      const boundedX = Math.max(0, Math.min(canvasSize.width, snappedX));
+      const boundedY = Math.max(0, Math.min(canvasSize.height, snappedY));
+
+      setFencePoints(prev => prev.map(p => 
+        p.id === selectedFencePoint ? { ...p, x: boundedX, y: boundedY } : p
+      ));
     } else if (isDraggingHardscape && selectedHardscapePoint) {
       const boundedX = Math.max(0, Math.min(canvasSize.width, snappedX));
       const boundedY = Math.max(0, Math.min(canvasSize.height, snappedY));
@@ -2052,6 +2263,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     setIsDraggingHardscape(false);
     setIsDraggingRoof(false);
     setIsDraggingDepth(false);
+    setIsDraggingFence(false);
   };
 
   const addPoint = () => {
@@ -2638,7 +2850,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                   </svg>
                   <span className="text-[10px]">Umbrella</span>
                 </Button>
-                <Button size="sm" onClick={() => addFeature('fence')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
+                <Button size="sm" onClick={() => setShowFenceEditor(!showFenceEditor)} variant={showFenceEditor ? "default" : "outline"} className="h-auto py-2 flex-col gap-0.5">
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="6" width="3" height="12" />
                     <rect x="10" y="6" width="3" height="12" />
@@ -2729,9 +2941,277 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                 </div>
               )}
 
+              {/* Fence Editor Panel */}
+              {showFenceEditor && (
+                <div className="p-3 bg-muted/30 rounded-lg space-y-3 border">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium">Fence Builder</Label>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => {
+                        setShowFenceEditor(false);
+                        setSelectedFencePoint(null);
+                        setSelectedFenceDoor(null);
+                      }}
+                      className="h-6 w-6 p-0"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-[10px] text-muted-foreground">Fence Anchors: {fencePoints.length} points</Label>
+                    <div className="flex gap-1.5">
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          const centerX = canvasSize.width / 2;
+                          const centerY = canvasSize.height / 2;
+                          const newId = `f${Date.now()}`;
+                          
+                          if (fencePoints.length === 0) {
+                            // Create initial fence line
+                            setFencePoints([
+                              { x: centerX - 150, y: centerY - 200, id: `${newId}_1` },
+                              { x: centerX + 150, y: centerY - 200, id: `${newId}_2` }
+                            ]);
+                          } else {
+                            // Add point at the end
+                            const lastPoint = fencePoints[fencePoints.length - 1];
+                            setFencePoints([...fencePoints, { 
+                              x: lastPoint.x + 100, 
+                              y: lastPoint.y, 
+                              id: newId 
+                            }]);
+                          }
+                        }}
+                        variant="outline" 
+                        className="flex-1 h-7 text-xs"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        {fencePoints.length === 0 ? 'Create Fence' : 'Add Anchor'}
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          if (selectedFencePoint && fencePoints.length > 2) {
+                            setFencePoints(prev => prev.filter(p => p.id !== selectedFencePoint));
+                            setSelectedFencePoint(null);
+                          }
+                        }}
+                        variant="outline" 
+                        disabled={!selectedFencePoint || fencePoints.length <= 2}
+                        className="flex-1 h-7 text-xs"
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-medium">Fence Style</Label>
+                    <div className="flex gap-1.5">
+                      <Button
+                        size="sm"
+                        variant={smoothFence ? "outline" : "default"}
+                        onClick={() => setSmoothFence(false)}
+                        className="flex-1 h-7 text-[10px]"
+                      >
+                        Straight
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={smoothFence ? "default" : "outline"}
+                        onClick={() => setSmoothFence(true)}
+                        className="flex-1 h-7 text-[10px]"
+                      >
+                        Curved
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-medium">Fence Height: {fenceHeight}'</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="range"
+                        min="3"
+                        max="10"
+                        step="0.5"
+                        value={fenceHeight}
+                        onChange={(e) => setFenceHeight(parseFloat(e.target.value))}
+                        className="flex-1"
+                      />
+                      <Input
+                        type="number"
+                        value={fenceHeight}
+                        onChange={(e) => setFenceHeight(parseFloat(e.target.value) || 6)}
+                        className="h-7 w-16 text-xs"
+                        min="3"
+                        max="10"
+                        step="0.5"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Door Controls */}
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-medium">Doors: {fenceDoors.length}</Label>
+                    <div className="flex gap-1.5">
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          if (fencePoints.length >= 2) {
+                            const newDoor: FenceDoor = {
+                              segmentIndex: 0,
+                              position: 0.5,
+                              width: 3, // 3 feet wide door
+                              id: `door_${Date.now()}`
+                            };
+                            setFenceDoors([...fenceDoors, newDoor]);
+                            setSelectedFenceDoor(newDoor.id);
+                          }
+                        }}
+                        variant="outline"
+                        disabled={fencePoints.length < 2}
+                        className="flex-1 h-7 text-xs"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Door
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          if (selectedFenceDoor) {
+                            setFenceDoors(prev => prev.filter(d => d.id !== selectedFenceDoor));
+                            setSelectedFenceDoor(null);
+                          }
+                        }}
+                        variant="outline"
+                        disabled={!selectedFenceDoor}
+                        className="flex-1 h-7 text-xs"
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Door Editor */}
+                  {selectedFenceDoor && fenceDoors.find(d => d.id === selectedFenceDoor) && (
+                    <div className="p-2 bg-background rounded space-y-2 border">
+                      <Label className="text-[10px] font-medium">Door Settings</Label>
+                      {(() => {
+                        const door = fenceDoors.find(d => d.id === selectedFenceDoor)!;
+                        return (
+                          <>
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-muted-foreground">
+                                Segment: {door.segmentIndex + 1} / {fencePoints.length - 1}
+                              </Label>
+                              <Input
+                                type="range"
+                                min="0"
+                                max={Math.max(0, fencePoints.length - 2)}
+                                step="1"
+                                value={door.segmentIndex}
+                                onChange={(e) => {
+                                  setFenceDoors(prev => prev.map(d => 
+                                    d.id === selectedFenceDoor 
+                                      ? { ...d, segmentIndex: parseInt(e.target.value) }
+                                      : d
+                                  ));
+                                }}
+                                className="w-full"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-muted-foreground">
+                                Position: {(door.position * 100).toFixed(0)}%
+                              </Label>
+                              <Input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value={door.position}
+                                onChange={(e) => {
+                                  setFenceDoors(prev => prev.map(d => 
+                                    d.id === selectedFenceDoor 
+                                      ? { ...d, position: parseFloat(e.target.value) }
+                                      : d
+                                  ));
+                                }}
+                                className="w-full"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-muted-foreground">
+                                Width: {door.width.toFixed(1)}'
+                              </Label>
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="range"
+                                  min="2"
+                                  max="8"
+                                  step="0.5"
+                                  value={door.width}
+                                  onChange={(e) => {
+                                    setFenceDoors(prev => prev.map(d => 
+                                      d.id === selectedFenceDoor 
+                                        ? { ...d, width: parseFloat(e.target.value) }
+                                        : d
+                                    ));
+                                  }}
+                                  className="flex-1"
+                                />
+                                <Input
+                                  type="number"
+                                  value={door.width}
+                                  onChange={(e) => {
+                                    const val = parseFloat(e.target.value) || 3;
+                                    setFenceDoors(prev => prev.map(d => 
+                                      d.id === selectedFenceDoor 
+                                        ? { ...d, width: Math.max(2, Math.min(8, val)) }
+                                        : d
+                                    ));
+                                  }}
+                                  className="h-7 w-14 text-xs"
+                                  min="2"
+                                  max="8"
+                                  step="0.5"
+                                />
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+                  
+                  <Button 
+                    size="sm" 
+                    onClick={() => {
+                      setFencePoints([]);
+                      setFenceDoors([]);
+                      setSelectedFencePoint(null);
+                      setSelectedFenceDoor(null);
+                    }}
+                    variant="destructive"
+                    disabled={fencePoints.length === 0}
+                    className="w-full h-7 text-xs"
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Clear Fence
+                  </Button>
+                </div>
+              )}
+
               {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'fence' && (
                 <div className="p-2 bg-muted/50 rounded space-y-1.5">
-                  <Label className="text-[10px] font-medium">Fence Points</Label>
+                  <Label className="text-[10px] font-medium">Old Fence Feature</Label>
                   <div className="flex gap-1.5">
                     <Button 
                       size="sm" 
