@@ -45,6 +45,11 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) 
     const poolWidth = poolWidthPx / scale;
     const poolLength = poolLengthPx / scale;
 
+    // Determine which dimension is longer - depth profile should run along the longest dimension
+    const isWidthLonger = poolWidth > poolLength;
+    const longDimension = isWidthLonger ? poolWidth : poolLength;
+    const shortDimension = isWidthLonger ? poolLength : poolWidth;
+
     // Convert 2D pool points to 3D coordinates (canvas space to world space)
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
@@ -107,13 +112,6 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) 
         const x = (u - 0.5) * poolWidth;
         const z = (v - 0.5) * poolLength;
         
-        // Check if point is inside pool shape
-        const point2D = new THREE.Vector2(x, z);
-        const isInside = shape.getPoints(100).some((_, idx, arr) => {
-          const path = new THREE.Path(arr);
-          return true; // Simplified - use all points for water surface
-        });
-        
         vertices.push(x, 0, z);
         normals.push(0, 1, 0);
         uvs.push(u, v);
@@ -123,7 +121,7 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) 
 
     const verticesPerRow = segments + 1;
     
-    // Create bottom surface with varying depth based on position
+    // Create bottom surface with varying depth based on position along LONGEST dimension
     const bottomVertices: THREE.Vector3[] = [];
     for (let i = 0; i <= segments; i++) {
       for (let j = 0; j <= segments; j++) {
@@ -133,8 +131,10 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) 
         const x = (u - 0.5) * poolWidth;
         const z = (v - 0.5) * poolLength;
         
-        // Calculate depth based on position along pool length (v coordinate)
-        const depth = getDepthAtPosition(v);
+        // Calculate depth based on position along the LONGEST dimension
+        // If width is longer (x-axis), use u; if length is longer (z-axis), use v
+        const depthPosition = isWidthLonger ? u : v;
+        const depth = getDepthAtPosition(depthPosition);
         
         vertices.push(x, -depth, z);
         normals.push(0, -1, 0);
@@ -180,9 +180,18 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) 
       const p1 = normalizedPoints[i];
       const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
       
-      // Calculate position ratios for depth
-      const pos1 = (p1.z + poolLength / 2) / poolLength;
-      const pos2 = (p2.z + poolLength / 2) / poolLength;
+      // Calculate position ratios for depth along the longest dimension
+      let pos1, pos2;
+      if (isWidthLonger) {
+        // Depth varies along X axis
+        pos1 = (p1.x + poolWidth / 2) / poolWidth;
+        pos2 = (p2.x + poolWidth / 2) / poolWidth;
+      } else {
+        // Depth varies along Z axis
+        pos1 = (p1.z + poolLength / 2) / poolLength;
+        pos2 = (p2.z + poolLength / 2) / poolLength;
+      }
+      
       const depth1 = getDepthAtPosition(pos1);
       const depth2 = getDepthAtPosition(pos2);
       
