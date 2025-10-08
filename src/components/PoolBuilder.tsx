@@ -266,6 +266,21 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     return (sqPixels / (scale * scale)).toFixed(1);
   };
 
+  // Calculate hardscape area
+  const calculateHardscapeArea = () => {
+    if (hardscapePoints.length < 3) return 0;
+    let area = 0;
+    for (let i = 0; i < hardscapePoints.length; i++) {
+      const current = hardscapePoints[i];
+      const next = hardscapePoints[(i + 1) % hardscapePoints.length];
+      area += current.x * next.y - next.x * current.y;
+    }
+    const sqPixels = Math.abs(area / 2);
+    const hardscapeAreaSqFt = sqPixels / (scale * scale);
+    const poolAreaSqFt = parseFloat(calculateArea());
+    return Math.max(0, hardscapeAreaSqFt - poolAreaSqFt);
+  };
+
   // Find nearest point on pool perimeter
   const findNearestWallPoint = (x: number, y: number) => {
     let minDist = Infinity;
@@ -1167,21 +1182,6 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     }
 
   }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, lightHue, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, waterAnimationTime]);
-
-  // Calculate hardscape area
-  const calculateHardscapeArea = useCallback(() => {
-    if (hardscapePoints.length < 3) return 0;
-    let area = 0;
-    for (let i = 0; i < hardscapePoints.length; i++) {
-      const current = hardscapePoints[i];
-      const next = hardscapePoints[(i + 1) % hardscapePoints.length];
-      area += current.x * next.y - next.x * current.y;
-    }
-    const sqPixels = Math.abs(area / 2);
-    const hardscapeAreaSqFt = sqPixels / (scale * scale);
-    const poolAreaSqFt = parseFloat(calculateArea());
-    return Math.max(0, hardscapeAreaSqFt - poolAreaSqFt);
-  }, [hardscapePoints, scale, points]);
 
   // Memoize perimeter and area calculations
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
