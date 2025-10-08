@@ -209,10 +209,10 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [poolShape, setPoolShape] = useState<'rectangle' | 'kidney' | 'freeform'>('rectangle');
   const [copingThickness, setCopingThickness] = useState(10); // Adjusted for new scale
   const [depthPoints, setDepthPoints] = useState<DepthPoint[]>([
-    { position: 0, depth: 3.5, id: 'd1' },
-    { position: 0.33, depth: 4.5, id: 'd2' },
-    { position: 0.67, depth: 5.5, id: 'd3' },
-    { position: 1, depth: 6.5, id: 'd4' }
+    { position: 0, depth: 3.6, id: 'd1' },
+    { position: 0.33, depth: 4.6, id: 'd2' },
+    { position: 0.67, depth: 5.6, id: 'd3' },
+    { position: 1, depth: 6.6, id: 'd4' }
   ]);
   const [selectedDepthPoint, setSelectedDepthPoint] = useState<string | null>(null);
   const [isDraggingDepth, setIsDraggingDepth] = useState(false);
@@ -629,8 +629,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.restore();
       ctx.restore();
 
-      // Draw depth spline in pool when Shape tab is active (AFTER clipping is restored)
-      if (activeTab === 'shape' && points.length > 0) {
+      // Draw depth spline in pool when Depth tab is active (AFTER clipping is restored)
+      if (activeTab === 'depth' && points.length > 0) {
         // Calculate pool bounds
         const minX = Math.min(...points.map(p => p.x));
         const maxX = Math.max(...points.map(p => p.x));
