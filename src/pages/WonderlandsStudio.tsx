@@ -736,8 +736,8 @@ const WonderlandsStudio = () => {
       });
     }
 
-    // Add liner if selected
-    if (selectedExtras.liner && selectedExtras.linerOption && selectedExtras.linerOption !== 'None' && selectedExtras.linerOption !== '') {
+    // Add liner if selected - must have a valid option selected (not empty, not 'None', not free option)
+    if (selectedExtras.liner && selectedExtras.linerOption && selectedExtras.linerOption !== 'None' && selectedExtras.linerOption !== '' && selectedExtras.linerOption !== 'Standard Blue') {
       const linerOption = linerOptions.find(option => option.name === selectedExtras.linerOption);
       if (linerOption) {
         extrasBreakdown.push({
@@ -792,6 +792,9 @@ const WonderlandsStudio = () => {
   const handleAddToCart = () => {
     if (!selectedProduct) return;
 
+    // Debug: Log selectedExtras to see what's being added
+    console.log('Adding to cart - selectedExtras:', JSON.stringify(selectedExtras, null, 2));
+
     // Convert selectedExtras to the format expected by CartItem
     const extrasArray = [];
 
@@ -841,13 +844,15 @@ const WonderlandsStudio = () => {
       });
     }
 
-    // Add liner if selected
-    if (selectedExtras.liner && selectedExtras.linerOption && selectedExtras.linerOption !== 'None' && selectedExtras.linerOption !== '') {
+    // Add liner if selected - must have a valid option selected (not empty, not 'None')
+    if (selectedExtras.liner && selectedExtras.linerOption && selectedExtras.linerOption !== 'None' && selectedExtras.linerOption !== '' && selectedExtras.linerOption !== 'Standard Blue') {
       const linerOption = linerOptions.find(option => option.name === selectedExtras.linerOption);
-      extrasArray.push({
-        name: `${selectedExtras.linerOption} Liner`,
-        price: linerOption?.price || 4500
-      });
+      if (linerOption) {
+        extrasArray.push({
+          name: `${selectedExtras.linerOption} Liner`,
+          price: linerOption?.price || 4500
+        });
+      }
     }
 
     // Add paver surface area cost

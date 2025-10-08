@@ -59,7 +59,7 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
                   onCheckedChange={(checked) => {
                     const newExtras = {
                       ...selectedExtras,
-                      [feature.id]: checked ? (feature.options?.[1]?.name || '') : 'None'
+                      [feature.id]: checked ? '' : 'None'
                     };
                     onExtrasChange(newExtras);
                     if (checked) {
