@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SurveyQuoteTool from "@/components/SurveyQuoteTool";
 import { DynamicFeatureRenderer } from "@/components/DynamicFeatureRenderer";
+import { PoolBuilder } from "@/components/PoolBuilder";
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
 import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
@@ -280,7 +281,7 @@ const WonderlandsStudio = () => {
   const {
     toast
   } = useToast();
-  const [activeTab, setActiveTab] = useState<'pools' | 'spas' | 'tanning-ledges' | 'saunas' | 'scenes'>('pools');
+  const [activeTab, setActiveTab] = useState<'pools' | 'spas' | 'tanning-ledges' | 'saunas' | 'scenes' | 'build-a-pool'>('pools');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -596,6 +597,10 @@ const WonderlandsStudio = () => {
           type: 'scene' as const,
           model: scene.name
         }));
+        break;
+      case 'build-a-pool':
+        // Custom pool builder - no predefined products
+        products = [];
         break;
     }
     if (searchQuery) {
@@ -951,6 +956,10 @@ const WonderlandsStudio = () => {
                         <Thermometer className="h-4 w-4 mr-2" />
                         Saunas
                       </TabsTrigger>
+                      <TabsTrigger value="build-a-pool" className="justify-start data-[state=active]:bg-teal data-[state=active]:text-white">
+                        <Waves className="h-4 w-4 mr-2" />
+                        Build a Pool
+                      </TabsTrigger>
                     </TabsList>
 
                     <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
@@ -981,7 +990,23 @@ const WonderlandsStudio = () => {
 
           {/* Main Content - Product Details & Configuration */}
           <div className="flex-1 min-w-0">
-            {selectedProduct ? <div className="space-y-4 sm:space-y-6">
+            {activeTab === 'build-a-pool' ? (
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Build Your Custom Pool</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Design your perfect pool shape by dragging points and adding features
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <PoolBuilder onPoolDataChange={(data) => {
+                      console.log('Pool data:', data);
+                    }} />
+                  </CardContent>
+                </Card>
+              </div>
+            ) : selectedProduct ? <div className="space-y-4 sm:space-y-6">
                 {/* Large Product Media Gallery */}
                 <Card>
                   <CardContent className="p-3 sm:p-6">
