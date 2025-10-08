@@ -265,25 +265,73 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     pathway: 0
   };
 
-  // Initialize pool and hardscape centered with default decorations
+  // Initialize pool and hardscape centered with default decorations - Astoria Maxima style
   useEffect(() => {
     if (points.length === 0) {
-      const initialPoolPoints = getShapePoints('rectangle');
+      const centerX = canvasSize.width / 2;
+      const centerY = canvasSize.height / 2;
+      
+      // Create rectangular pool with rounded corners (Astoria Maxima style)
+      // Pool dimensions: approximately 35ft x 15ft
+      const poolLength = 35 * scale;
+      const poolWidth = 15 * scale;
+      
+      const initialPoolPoints: Point[] = [
+        { x: centerX - poolLength / 2, y: centerY - poolWidth / 2, id: '1' },
+        { x: centerX + poolLength / 2, y: centerY - poolWidth / 2, id: '2' },
+        { x: centerX + poolLength / 2, y: centerY + poolWidth / 2, id: '3' },
+        { x: centerX - poolLength / 2, y: centerY + poolWidth / 2, id: '4' },
+      ];
+      
       setPoints(initialPoolPoints);
+      setSmoothCorners(true); // Enable rounded corners by default
       
       // Generate hardscape deck that follows pool with default 3ft offset
       setHardscapePoints(generateHardscapeFromPool(initialPoolPoints, deckOffset));
       
-      // Add default decorations: trees and grass area (NO default fence - user adds first anchor)
-      const centerX = canvasSize.width / 2;
-      const centerY = canvasSize.height / 2;
+      // Add default features matching the Astoria Maxima image:
+      // - 3 tanning ledge steps on the left side
+      // - 1 waterfall feature separated from pool
+      const stepWidth = 2.5 * scale;
+      const stepSpacing = 0.5 * scale;
+      const leftEdge = centerX - poolLength / 2;
+      const topEdge = centerY - poolWidth / 2;
       
       setFeatures([
-        // Grass area at bottom
-        { type: 'grass', x: centerX, y: centerY + 350, id: 'grass1', radius: 150 },
-        // Trees in grass area
-        { type: 'tree', x: centerX - 80, y: centerY + 350, id: 'tree1', treeType: 'palm' },
-        { type: 'tree', x: centerX + 80, y: centerY + 350, id: 'tree2', treeType: 'oak' }
+        // Three tanning ledge steps on the left side
+        { 
+          type: 'jet', 
+          x: leftEdge + stepWidth / 2, 
+          y: topEdge + 40, 
+          id: 'step1',
+          width: stepWidth,
+          height: 30
+        },
+        { 
+          type: 'jet', 
+          x: leftEdge + stepWidth / 2, 
+          y: topEdge + 40 + 30 + stepSpacing, 
+          id: 'step2',
+          width: stepWidth,
+          height: 30
+        },
+        { 
+          type: 'jet', 
+          x: leftEdge + stepWidth / 2, 
+          y: topEdge + 40 + 60 + stepSpacing * 2, 
+          id: 'step3',
+          width: stepWidth,
+          height: 30
+        },
+        // Waterfall feature - separate from pool, positioned to the left
+        { 
+          type: 'fountain', 
+          x: leftEdge - 60, 
+          y: centerY, 
+          id: 'waterfall1',
+          width: 40,
+          height: 80
+        }
       ]);
     }
   }, [canvasSize]);
