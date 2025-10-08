@@ -2,7 +2,7 @@ import { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Grid, PerspectiveCamera, Line } from '@react-three/drei';
 import * as THREE from 'three';
-import { textureCache } from '@/utils/textureCache';
+import { textureCache, disposeTexture } from '@/utils/textureCache';
 
 interface Point {
   x: number;
@@ -56,23 +56,44 @@ interface Pool3DViewerProps {
   fenceTextureUrl?: string;
 }
 
-const PoolMesh = ({ points, depthPoints, scale, poolShape, linerTextureUrl }: Pool3DViewerProps & { linerTextureUrl?: string }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const [texture, setTexture] = useState<THREE.Texture | null>(null);
-  
+const PoolMesh: React.FC<{
+  points: Point[];
+  depthPoints: DepthPoint[];
+  linerTextureUrl?: string;
+}> = ({ points, depthPoints, linerTextureUrl }) => {
+  const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
+
+  // Calculate pool dimensions for dynamic texture repeats
+  const poolDimensions = useMemo(() => {
+    const xs = points.map(p => p.x);
+    const ys = points.map(p => p.y);
+    const width = Math.max(...xs) - Math.min(...xs);
+    const length = Math.max(...ys) - Math.min(...ys);
+    return { width, length };
+  }, [points]);
+
   useEffect(() => {
     if (linerTextureUrl) {
-      textureCache.loadTexture(linerTextureUrl, { x: 10, y: 10 })
-        .then(setTexture)
-        .catch(console.error);
+      // Dynamic repeat based on pool size (roughly 1 texture per 3 feet)
+      const repeatX = Math.ceil(poolDimensions.width / 3);
+      const repeatY = Math.ceil(poolDimensions.length / 3);
+      
+      textureCache.loadTexture(linerTextureUrl, { x: repeatX, y: repeatY })
+        .then(setLinerTexture)
+        .catch(err => {
+          console.error('Failed to load liner texture, using default');
+          setLinerTexture(null);
+        });
     }
-    
-    return () => {
-      if (texture) texture.dispose();
-    };
-  }, [linerTextureUrl]);
 
-  // Create accurate pool geometry from top view outline and depth profile
+    return () => {
+      if (linerTexture) {
+        disposeTexture(linerTexture);
+      }
+    };
+  }, [linerTextureUrl, poolDimensions]);
+
+  // Create accurate pool geometry from points and depth
   const { geometry, wallsGeometry } = useMemo(() => {
     if (points.length < 3) {
       return {
@@ -81,47 +102,19 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape, linerTextureUrl }: Po
       };
     }
 
-    // Calculate pool bounds from the actual points
     const minX = Math.min(...points.map(p => p.x));
     const maxX = Math.max(...points.map(p => p.x));
     const minY = Math.min(...points.map(p => p.y));
     const maxY = Math.max(...points.map(p => p.y));
-
-    const poolWidthPx = maxX - minX;
-    const poolLengthPx = maxY - minY;
-    const poolWidth = poolWidthPx / scale;
-    const poolLength = poolLengthPx / scale;
-
-    // Determine which dimension is longer - depth profile should run along the longest dimension
-    const isWidthLonger = poolWidth > poolLength;
-    const longDimension = isWidthLonger ? poolWidth : poolLength;
-    const shortDimension = isWidthLonger ? poolLength : poolWidth;
-
-    // Convert 2D pool points to 3D coordinates (canvas space to world space)
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
 
-    // Normalize points to center around origin
     const normalizedPoints = points.map(p => ({
-      x: (p.x - centerX) / scale,
-      z: (p.y - centerY) / scale
+      x: p.x - centerX,
+      z: p.y - centerY
     }));
 
-    // Sort depth points by position
     const sortedDepths = [...depthPoints].sort((a, b) => a.position - b.position);
-
-    // Create shape from top-view outline
-    const shape = new THREE.Shape();
-    normalizedPoints.forEach((p, i) => {
-      if (i === 0) {
-        shape.moveTo(p.x, p.z);
-      } else {
-        shape.lineTo(p.x, p.z);
-      }
-    });
-    shape.closePath();
-
-    // Interpolate depth at any position
     const getDepthAtPosition = (positionRatio: number): number => {
       if (sortedDepths.length === 0) return 5;
       if (positionRatio <= sortedDepths[0].position) return sortedDepths[0].depth;
@@ -141,418 +134,374 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape, linerTextureUrl }: Po
       return sortedDepths[0].depth;
     };
 
-    // Create detailed pool geometry with varying depth
-    const segments = 40;
-    const vertices: number[] = [];
-    const indices: number[] = [];
-    const normals: number[] = [];
-    const uvs: number[] = [];
+    // Create floor geometry
+    const poolShape = new THREE.Shape();
+    normalizedPoints.forEach((p, i) => {
+      if (i === 0) poolShape.moveTo(p.x, p.z);
+      else poolShape.lineTo(p.x, p.z);
+    });
+    poolShape.closePath();
 
-    // Create top surface (water level at y = 0)
-    const topVertices: THREE.Vector3[] = [];
-    for (let i = 0; i <= segments; i++) {
-      for (let j = 0; j <= segments; j++) {
-        const u = i / segments;
-        const v = j / segments;
-        
-        // Interpolate position within pool outline
-        const x = (u - 0.5) * poolWidth;
-        const z = (v - 0.5) * poolLength;
-        
-        vertices.push(x, 0, z);
-        normals.push(0, 1, 0);
-        uvs.push(u, v);
-        topVertices.push(new THREE.Vector3(x, 0, z));
-      }
-    }
+    const avgDepth = sortedDepths.reduce((sum, d) => sum + d.depth, 0) / sortedDepths.length;
+    const floorGeometry = new THREE.ExtrudeGeometry(poolShape, {
+      depth: 0.1,
+      bevelEnabled: false
+    });
+    floorGeometry.rotateX(-Math.PI / 2);
+    floorGeometry.translate(0, -avgDepth, 0);
 
-    const verticesPerRow = segments + 1;
-    
-    // Create bottom surface with varying depth based on position along LONGEST dimension
-    const bottomVertices: THREE.Vector3[] = [];
-    for (let i = 0; i <= segments; i++) {
-      for (let j = 0; j <= segments; j++) {
-        const u = i / segments;
-        const v = j / segments;
-        
-        const x = (u - 0.5) * poolWidth;
-        const z = (v - 0.5) * poolLength;
-        
-        // Calculate depth based on position along the LONGEST dimension
-        // If width is longer (x-axis), use u; if length is longer (z-axis), use v
-        const depthPosition = isWidthLonger ? u : v;
-        const depth = getDepthAtPosition(depthPosition);
-        
-        vertices.push(x, -depth, z);
-        normals.push(0, -1, 0);
-        uvs.push(u, v);
-        bottomVertices.push(new THREE.Vector3(x, -depth, z));
-      }
-    }
-
-    // Create indices for top surface
-    for (let i = 0; i < segments; i++) {
-      for (let j = 0; j < segments; j++) {
-        const a = i * verticesPerRow + j;
-        const b = i * verticesPerRow + j + 1;
-        const c = (i + 1) * verticesPerRow + j + 1;
-        const d = (i + 1) * verticesPerRow + j;
-        
-        indices.push(a, b, c);
-        indices.push(a, c, d);
-      }
-    }
-
-    // Create indices for bottom surface
-    const bottomOffset = topVertices.length;
-    for (let i = 0; i < segments; i++) {
-      for (let j = 0; j < segments; j++) {
-        const a = bottomOffset + i * verticesPerRow + j;
-        const b = bottomOffset + i * verticesPerRow + j + 1;
-        const c = bottomOffset + (i + 1) * verticesPerRow + j + 1;
-        const d = bottomOffset + (i + 1) * verticesPerRow + j;
-        
-        indices.push(a, c, b);
-        indices.push(a, d, c);
-      }
-    }
-
-    // Create pool walls geometry with 4-inch tile squares
+    // Create wall geometry
     const wallVertices: number[] = [];
     const wallIndices: number[] = [];
-    const wallNormals: number[] = [];
     const wallUVs: number[] = [];
-    const tileSize = 4 / 12; // 4 inches = 0.333 feet
     
-    // Create walls along pool perimeter
     for (let i = 0; i < normalizedPoints.length; i++) {
       const p1 = normalizedPoints[i];
       const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
       
-      // Calculate position ratios for depth along the longest dimension
-      let pos1, pos2;
-      if (isWidthLonger) {
-        // Depth varies along X axis
-        pos1 = (p1.x + poolWidth / 2) / poolWidth;
-        pos2 = (p2.x + poolWidth / 2) / poolWidth;
-      } else {
-        // Depth varies along Z axis
-        pos1 = (p1.z + poolLength / 2) / poolLength;
-        pos2 = (p2.z + poolLength / 2) / poolLength;
-      }
-      
-      const depth1 = getDepthAtPosition(pos1);
-      const depth2 = getDepthAtPosition(pos2);
-      
+      const depth = getDepthAtPosition(i / normalizedPoints.length);
       const wallLength = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2));
-      const avgDepth = (depth1 + depth2) / 2;
       
       const baseIdx = wallVertices.length / 3;
       
-      // Top edge of wall
       wallVertices.push(p1.x, 0, p1.z);
       wallVertices.push(p2.x, 0, p2.z);
+      wallVertices.push(p1.x, -depth, p1.z);
+      wallVertices.push(p2.x, -depth, p2.z);
       
-      // Bottom edge of wall
-      wallVertices.push(p1.x, -depth1, p1.z);
-      wallVertices.push(p2.x, -depth2, p2.z);
+      wallUVs.push(0, 0, wallLength / 3, 0, 0, depth / 3, wallLength / 3, depth / 3);
       
-      // Calculate wall normal (perpendicular to wall)
-      const dx = p2.x - p1.x;
-      const dz = p2.z - p1.z;
-      const len = Math.sqrt(dx * dx + dz * dz);
-      const nx = -dz / len;
-      const nz = dx / len;
-      
-      // Add normals for all 4 vertices
-      for (let v = 0; v < 4; v++) {
-        wallNormals.push(nx, 0, nz);
-      }
-      
-      // UV coordinates for 4-inch tiles
-      const uRepeat = wallLength / tileSize;
-      const vRepeat = avgDepth / tileSize;
-      
-      wallUVs.push(0, 0);
-      wallUVs.push(uRepeat, 0);
-      wallUVs.push(0, vRepeat);
-      wallUVs.push(uRepeat, vRepeat);
-      
-      // Create wall quad
       wallIndices.push(
         baseIdx, baseIdx + 1, baseIdx + 3,
         baseIdx, baseIdx + 3, baseIdx + 2
       );
     }
-
-    const poolGeometry = new THREE.BufferGeometry();
-    poolGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    poolGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-    poolGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-    poolGeometry.setIndex(indices);
-    poolGeometry.computeVertexNormals();
-
+    
     const poolWallsGeometry = new THREE.BufferGeometry();
     poolWallsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(wallVertices, 3));
-    poolWallsGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(wallNormals, 3));
     poolWallsGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(wallUVs, 2));
     poolWallsGeometry.setIndex(wallIndices);
     poolWallsGeometry.computeVertexNormals();
 
     return {
-      geometry: poolGeometry,
+      geometry: floorGeometry,
       wallsGeometry: poolWallsGeometry
     };
-  }, [points, depthPoints, scale, poolShape]);
+  }, [points, depthPoints]);
+
+  const waterLevel = -0.5;
 
   return (
     <>
-      {/* Pool water surface and floor */}
-      <mesh ref={meshRef} geometry={geometry} position={[0, -0.5, 0]}>
+      {/* Pool floor */}
+      <mesh geometry={geometry} position={[0, waterLevel, 0]}>
         <meshPhongMaterial
-          map={texture}
-          color="#4DD0E1"
+          color={linerTexture ? "#ffffff" : "#4DD0E1"}
+          map={linerTexture}
           transparent
-          opacity={texture ? 0.85 : 0.75}
+          opacity={0.85}
           side={THREE.DoubleSide}
           shininess={100}
           specular="#ffffff"
         />
       </mesh>
 
-      {/* Pool walls */}
-      <mesh geometry={wallsGeometry} position={[0, -0.5, 0]}>
+      {/* Pool walls with better texture visibility */}
+      <mesh geometry={wallsGeometry} position={[0, waterLevel, 0]}>
         <meshStandardMaterial
-          map={texture}
-          color="#2196F3"
-          side={THREE.DoubleSide}
-          roughness={0.3}
+          color={linerTexture ? "#e8f4f8" : "#2196F3"}
+          map={linerTexture}
+          roughness={0.6}
           metalness={0.1}
+          side={THREE.DoubleSide}
         />
       </mesh>
-
-      {/* Pool outline wireframe for reference */}
-      <lineSegments position={[0, -0.5, 0]}>
-        <edgesGeometry args={[geometry]} />
-        <lineBasicMaterial color="#1976D2" opacity={0.3} transparent />
-      </lineSegments>
     </>
   );
 };
 
-// Deck component with proper thickness, texture, and CSG hole cutting
-const DeckMesh = ({ 
-  hardscapePoints, 
-  poolPoints, 
-  poolCenterX, 
-  poolCenterY, 
-  scale,
-  paverTextureUrl,
-  features = []
-}: { 
-  hardscapePoints: HardscapePoint[], 
-  poolPoints: Point[],
-  poolCenterX: number,
-  poolCenterY: number,
-  scale: number,
-  paverTextureUrl?: string,
-  features?: PoolFeature[]
-}) => {
-  const [texture, setTexture] = useState<THREE.Texture | null>(null);
-  
+// Deck component
+const DeckMesh: React.FC<{
+  hardscapePoints: HardscapePoint[];
+  poolPoints: Point[];
+  features: PoolFeature[];
+  paverTextureUrl?: string;
+}> = ({ hardscapePoints, poolPoints, features, paverTextureUrl }) => {
+  const [paverTexture, setPaverTexture] = useState<THREE.Texture | null>(null);
+
+  // Calculate deck dimensions for dynamic texture repeats
+  const deckDimensions = useMemo(() => {
+    const xs = hardscapePoints.map(p => p.x);
+    const ys = hardscapePoints.map(p => p.y);
+    const width = Math.max(...xs) - Math.min(...xs);
+    const length = Math.max(...ys) - Math.min(...ys);
+    return { width, length };
+  }, [hardscapePoints]);
+
   useEffect(() => {
     if (paverTextureUrl) {
-      textureCache.loadTexture(paverTextureUrl, { x: 15, y: 15 })
-        .then(setTexture)
-        .catch(console.error);
+      // Dynamic repeat based on deck size (roughly 1 texture per 2 feet for pavers)
+      const repeatX = Math.ceil(deckDimensions.width / 2);
+      const repeatY = Math.ceil(deckDimensions.length / 2);
+      
+      textureCache.loadTexture(paverTextureUrl, { x: repeatX, y: repeatY })
+        .then(setPaverTexture)
+        .catch(err => {
+          console.error('Failed to load paver texture, using default');
+          setPaverTexture(null);
+        });
     }
-    
+
     return () => {
-      if (texture) texture.dispose();
+      if (paverTexture) {
+        disposeTexture(paverTexture);
+      }
     };
-  }, [paverTextureUrl]);
+  }, [paverTextureUrl, deckDimensions]);
 
-  const deckWithHoles = useMemo(() => {
-    if (hardscapePoints.length < 3) return null;
+  const deckGeometry = useMemo(() => {
+    if (hardscapePoints.length < 3 || poolPoints.length < 3) return null;
 
-    const deckThickness = 0.5; // 6 inches = 0.5 feet
-    const deckY = 0; // Deck at ground level
-    
-    // Create deck shape from hardscape points
+    const minX = Math.min(...poolPoints.map(p => p.x));
+    const maxX = Math.max(...poolPoints.map(p => p.x));
+    const minY = Math.min(...poolPoints.map(p => p.y));
+    const maxY = Math.max(...poolPoints.map(p => p.y));
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
     const deckShape = new THREE.Shape();
     hardscapePoints.forEach((p, i) => {
-      const x = (p.x - poolCenterX) / scale;
-      const z = (p.y - poolCenterY) / scale;
-      
-      if (i === 0) {
-        deckShape.moveTo(x, z);
-      } else {
-        deckShape.lineTo(x, z);
-      }
+      const x = p.x - centerX;
+      const z = p.y - centerY;
+      if (i === 0) deckShape.moveTo(x, z);
+      else deckShape.lineTo(x, z);
     });
     deckShape.closePath();
-    
-    // Add pool hole as a hole in the deck shape
-    if (poolPoints.length >= 3) {
-      const poolHole = new THREE.Path();
-      poolPoints.forEach((p, i) => {
-        const x = (p.x - poolCenterX) / scale;
-        const z = (p.y - poolCenterY) / scale;
-        
-        if (i === 0) {
-          poolHole.moveTo(x, z);
-        } else {
-          poolHole.lineTo(x, z);
-        }
-      });
-      poolHole.closePath();
-      deckShape.holes.push(poolHole);
-    }
-    
-    // Add feature holes
-    features.forEach(feature => {
-      if (feature.type === 'fountain' || feature.type === 'light') {
-        const featureX = (feature.x - poolCenterX) / scale;
-        const featureZ = (feature.y - poolCenterY) / scale;
-        const holeRadius = feature.type === 'fountain' ? 0.8 : 0.4;
-        
-        const featureHole = new THREE.Path();
-        featureHole.absarc(featureX, featureZ, holeRadius, 0, Math.PI * 2, false);
-        deckShape.holes.push(featureHole);
-      }
+
+    const poolHole = new THREE.Path();
+    poolPoints.forEach((p, i) => {
+      const x = p.x - centerX;
+      const z = p.y - centerY;
+      if (i === 0) poolHole.moveTo(x, z);
+      else poolHole.lineTo(x, z);
     });
-    
-    // Create extruded deck geometry with holes
-    const extrudeSettings = {
-      depth: deckThickness,
+    poolHole.closePath();
+    deckShape.holes.push(poolHole);
+
+    const deckGeom = new THREE.ExtrudeGeometry(deckShape, {
+      depth: 0.5,
       bevelEnabled: false
-    };
-    
-    const deckGeometry = new THREE.ExtrudeGeometry(deckShape, extrudeSettings);
-    
-    // Rotate and position deck geometry to be horizontal
-    deckGeometry.rotateX(-Math.PI / 2);
-    deckGeometry.translate(0, deckY, 0);
-    
-    return deckGeometry;
-  }, [hardscapePoints, poolPoints, poolCenterX, poolCenterY, scale, features]);
+    });
+    deckGeom.rotateX(-Math.PI / 2);
 
-  if (!deckWithHoles) return null;
+    return deckGeom;
+  }, [hardscapePoints, poolPoints]);
 
-  const material = texture ? (
-    <meshStandardMaterial 
-      map={texture}
-      roughness={0.8}
-      metalness={0.1}
-    />
-  ) : (
-    <meshStandardMaterial 
-      color="#D4C4B0" 
-      roughness={0.8}
-      metalness={0.1}
-    />
-  );
+  if (!deckGeometry) return null;
 
   return (
-    <mesh geometry={deckWithHoles} receiveShadow castShadow>
-      {material}
+    <mesh geometry={deckGeometry} receiveShadow castShadow>
+      <meshStandardMaterial
+        map={paverTexture}
+        color={paverTexture ? "#ffffff" : "#D4C4B0"}
+        roughness={0.8}
+        metalness={0.1}
+      />
     </mesh>
   );
 };
 
-// Fence component with 4 inches thickness
-const FenceMesh = ({ fencePoints, poolCenterX, poolCenterY, scale, fenceTextureUrl }: { 
-  fencePoints: FencePoint[], 
-  poolCenterX: number,
-  poolCenterY: number,
-  scale: number,
-  fenceTextureUrl?: string
-}) => {
-  const [fenceTexture, setFenceTexture] = useState<THREE.Texture | null>(null);
-  
+// Coping Mesh - raised edge around pool
+const CopingMesh: React.FC<{
+  poolPoints: Point[];
+  copingTextureUrl?: string;
+}> = ({ poolPoints, copingTextureUrl }) => {
+  const [copingTexture, setCopingTexture] = useState<THREE.Texture | null>(null);
+
+  // Calculate pool perimeter for dynamic texture repeats
+  const poolPerimeter = useMemo(() => {
+    if (poolPoints.length < 2) return 0;
+    let perimeter = 0;
+    for (let i = 0; i < poolPoints.length; i++) {
+      const p1 = poolPoints[i];
+      const p2 = poolPoints[(i + 1) % poolPoints.length];
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      perimeter += Math.sqrt(dx * dx + dy * dy);
+    }
+    return perimeter;
+  }, [poolPoints]);
+
   useEffect(() => {
-    if (!fenceTextureUrl) return;
-    
-    textureCache.loadTexture(fenceTextureUrl, { x: 1, y: 1 })
-      .then(setFenceTexture)
-      .catch(console.error);
-    
+    if (copingTextureUrl) {
+      // Dynamic repeat based on perimeter (roughly 1 texture per 4 feet)
+      const repeatX = Math.ceil(poolPerimeter / 4);
+      const repeatY = 1;
+      
+      textureCache.loadTexture(copingTextureUrl, { x: repeatX, y: repeatY })
+        .then(setCopingTexture)
+        .catch(err => {
+          console.error('Failed to load coping texture, using default');
+          setCopingTexture(null);
+        });
+    }
+
     return () => {
-      if (fenceTexture) fenceTexture.dispose();
+      if (copingTexture) {
+        disposeTexture(copingTexture);
+      }
     };
-  }, [fenceTextureUrl]);
-  
+  }, [copingTextureUrl, poolPerimeter]);
+
+  const copingGeometry = useMemo(() => {
+    if (poolPoints.length < 3) return null;
+
+    const minX = Math.min(...poolPoints.map(p => p.x));
+    const maxX = Math.max(...poolPoints.map(p => p.x));
+    const minY = Math.min(...poolPoints.map(p => p.y));
+    const maxY = Math.max(...poolPoints.map(p => p.y));
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
+    const copingWidth = 1; // 12 inches
+    const copingHeight = 0.167; // 2 inches raised
+    const vertices: number[] = [];
+    const indices: number[] = [];
+    const uvs: number[] = [];
+    
+    let uvDistance = 0;
+
+    for (let i = 0; i < poolPoints.length; i++) {
+      const p1 = poolPoints[i];
+      const p2 = poolPoints[(i + 1) % poolPoints.length];
+      
+      const x1 = p1.x - centerX;
+      const z1 = p1.y - centerY;
+      const x2 = p2.x - centerX;
+      const z2 = p2.y - centerY;
+      
+      const dx = x2 - x1;
+      const dz = z2 - z1;
+      const length = Math.sqrt(dx * dx + dz * dz);
+      const nx = -dz / length;
+      const nz = dx / length;
+      
+      const outerX1 = x1 + nx * copingWidth;
+      const outerZ1 = z1 + nz * copingWidth;
+      const outerX2 = x2 + nx * copingWidth;
+      const outerZ2 = z2 + nz * copingWidth;
+      
+      const baseIndex = i * 8;
+      
+      // Top surface
+      vertices.push(x1, copingHeight, z1, outerX1, copingHeight, outerZ1, x2, copingHeight, z2, outerX2, copingHeight, outerZ2);
+      // Bottom surface
+      vertices.push(x1, 0, z1, outerX1, 0, outerZ1, x2, 0, z2, outerX2, 0, outerZ2);
+      
+      const uvStart = uvDistance / poolPerimeter;
+      uvDistance += length;
+      const uvEnd = uvDistance / poolPerimeter;
+      
+      uvs.push(0, uvStart, 1, uvStart, 0, uvEnd, 1, uvEnd);
+      uvs.push(0, uvStart, 1, uvStart, 0, uvEnd, 1, uvEnd);
+      
+      // Top face
+      indices.push(baseIndex, baseIndex + 2, baseIndex + 1);
+      indices.push(baseIndex + 1, baseIndex + 2, baseIndex + 3);
+      
+      // Outer face
+      indices.push(baseIndex + 1, baseIndex + 3, baseIndex + 5);
+      indices.push(baseIndex + 5, baseIndex + 3, baseIndex + 7);
+      
+      // Inner face
+      indices.push(baseIndex, baseIndex + 4, baseIndex + 2);
+      indices.push(baseIndex + 2, baseIndex + 4, baseIndex + 6);
+    }
+    
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    
+    return geometry;
+  }, [poolPoints, poolPerimeter]);
+
+  if (!copingGeometry) return null;
+
+  return (
+    <mesh geometry={copingGeometry}>
+      <meshStandardMaterial
+        map={copingTexture}
+        color={copingTexture ? "#ffffff" : "#b8a088"}
+        roughness={0.7}
+        metalness={0.2}
+      />
+    </mesh>
+  );
+};
+
+// Fence component
+const FenceMesh: React.FC<{
+  fencePoints: FencePoint[];
+  fenceTextureUrl?: string;
+}> = ({ fencePoints, fenceTextureUrl }) => {
+  const [fenceTexture, setFenceTexture] = useState<THREE.Texture | null>(null);
+
+  const fenceLength = useMemo(() => {
+    if (fencePoints.length < 2) return 0;
+    let length = 0;
+    for (let i = 0; i < fencePoints.length; i++) {
+      const p1 = fencePoints[i];
+      const p2 = fencePoints[(i + 1) % fencePoints.length];
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      length += Math.sqrt(dx * dx + dy * dy);
+    }
+    return length;
+  }, [fencePoints]);
+
+  useEffect(() => {
+    if (fenceTextureUrl) {
+      // Dynamic repeat based on fence length
+      const repeatX = Math.max(1, Math.ceil(fenceLength / 6));
+      const repeatY = 2;
+      
+      textureCache.loadTexture(fenceTextureUrl, { x: repeatX, y: repeatY })
+        .then(setFenceTexture)
+        .catch(err => {
+          console.error('Failed to load fence texture, using default');
+          setFenceTexture(null);
+        });
+    }
+
+    return () => {
+      if (fenceTexture) {
+        disposeTexture(fenceTexture);
+      }
+    };
+  }, [fenceTextureUrl, fenceLength]);
+
   const geometry = useMemo(() => {
     if (fencePoints.length < 2) return null;
 
     const vertices: number[] = [];
     const indices: number[] = [];
     const uvs: number[] = [];
-    const fenceHeight = 6; // 6 feet tall
-    const fenceThickness = 4 / 12; // 4 inches = 0.333 feet
+    const fenceHeight = 6;
     
     for (let i = 0; i < fencePoints.length - 1; i++) {
       const p1 = fencePoints[i];
       const p2 = fencePoints[i + 1];
       
-      // Use the same pool center for all conversions
-      const x1 = (p1.x - poolCenterX) / scale;
-      const z1 = (p1.y - poolCenterY) / scale;
-      const x2 = (p2.x - poolCenterX) / scale;
-      const z2 = (p2.y - poolCenterY) / scale;
-      
-      // Calculate perpendicular offset for thickness
-      const dx = x2 - x1;
-      const dz = z2 - z1;
-      const len = Math.sqrt(dx * dx + dz * dz);
-      const offsetX = (-dz / len) * fenceThickness / 2;
-      const offsetZ = (dx / len) * fenceThickness / 2;
-      
       const baseIdx = vertices.length / 3;
       
-      // Front face vertices
-      vertices.push(x1 + offsetX, 0, z1 + offsetZ);
-      vertices.push(x2 + offsetX, 0, z2 + offsetZ);
-      vertices.push(x1 + offsetX, fenceHeight, z1 + offsetZ);
-      vertices.push(x2 + offsetX, fenceHeight, z2 + offsetZ);
+      vertices.push(p1.x, 0, p1.y, p2.x, 0, p2.y, p1.x, fenceHeight, p1.y, p2.x, fenceHeight, p2.y);
       
-      // Back face vertices
-      vertices.push(x1 - offsetX, 0, z1 - offsetZ);
-      vertices.push(x2 - offsetX, 0, z2 - offsetZ);
-      vertices.push(x1 - offsetX, fenceHeight, z1 - offsetZ);
-      vertices.push(x2 - offsetX, fenceHeight, z2 - offsetZ);
+      const segmentLength = Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
+      uvs.push(0, 0, segmentLength / 6, 0, 0, 1, segmentLength / 6, 1);
       
-      // UV coordinates for texture mapping
-      const uvLen = len / fenceHeight; // Scale UVs based on segment length
-      
-      // Front face UVs
-      uvs.push(0, 0, uvLen, 0, 0, 1, uvLen, 1);
-      // Back face UVs
-      uvs.push(0, 0, uvLen, 0, 0, 1, uvLen, 1);
-      
-      // Front face
-      indices.push(baseIdx, baseIdx + 1, baseIdx + 3);
-      indices.push(baseIdx, baseIdx + 3, baseIdx + 2);
-      
-      // Back face
-      indices.push(baseIdx + 4, baseIdx + 7, baseIdx + 5);
-      indices.push(baseIdx + 4, baseIdx + 6, baseIdx + 7);
-      
-      // Top face
-      indices.push(baseIdx + 2, baseIdx + 3, baseIdx + 7);
-      indices.push(baseIdx + 2, baseIdx + 7, baseIdx + 6);
-      
-      // Bottom face
-      indices.push(baseIdx, baseIdx + 5, baseIdx + 1);
-      indices.push(baseIdx, baseIdx + 4, baseIdx + 5);
-      
-      // Left side
-      indices.push(baseIdx, baseIdx + 2, baseIdx + 6);
-      indices.push(baseIdx, baseIdx + 6, baseIdx + 4);
-      
-      // Right side
-      indices.push(baseIdx + 1, baseIdx + 5, baseIdx + 7);
-      indices.push(baseIdx + 1, baseIdx + 7, baseIdx + 3);
+      indices.push(baseIdx, baseIdx + 1, baseIdx + 3, baseIdx, baseIdx + 3, baseIdx + 2);
     }
     
     const geo = new THREE.BufferGeometry();
@@ -562,46 +511,33 @@ const FenceMesh = ({ fencePoints, poolCenterX, poolCenterY, scale, fenceTextureU
     geo.computeVertexNormals();
     
     return geo;
-  }, [fencePoints, poolCenterX, poolCenterY, scale]);
+  }, [fencePoints]);
 
   if (!geometry) return null;
 
   return (
     <mesh geometry={geometry} castShadow receiveShadow>
-      <meshStandardMaterial 
-        map={fenceTexture || undefined}
-        color={fenceTexture ? "#ffffff" : "#8B6F47"}
-        roughness={0.6}
-        metalness={0.2}
+      <meshStandardMaterial
+        map={fenceTexture}
+        color={fenceTexture ? "#ffffff" : "#8B7355"}
+        roughness={0.8}
+        metalness={0.1}
         side={THREE.DoubleSide}
       />
     </mesh>
   );
 };
 
-// Pool Features component
-const PoolFeatures = ({ features, poolCenterX, poolCenterY, scale }: { 
-  features: PoolFeature[], 
-  poolCenterX: number,
-  poolCenterY: number,
-  scale: number 
-}) => {
+// Pool Features
+const PoolFeatures: React.FC<{ features: PoolFeature[] }> = ({ features }) => {
   return (
     <>
       {features.map((feature) => {
-        // Use the same pool center for all conversions
-        const x = (feature.x - poolCenterX) / scale;
-        const z = (feature.y - poolCenterY) / scale;
-
         if (feature.type === 'light') {
           return (
-            <mesh key={feature.id} position={[x, 0.2, z]} castShadow>
+            <mesh key={feature.id} position={[feature.x, 0.2, feature.y]} castShadow>
               <sphereGeometry args={[0.3, 16, 16]} />
-              <meshStandardMaterial 
-                color="#FFD700" 
-                emissive="#FFD700"
-                emissiveIntensity={0.8}
-              />
+              <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={0.8} />
               <pointLight color="#FFD700" intensity={2} distance={5} />
             </mesh>
           );
@@ -609,7 +545,7 @@ const PoolFeatures = ({ features, poolCenterX, poolCenterY, scale }: {
 
         if (feature.type === 'jet') {
           return (
-            <mesh key={feature.id} position={[x, 0.1, z]}>
+            <mesh key={feature.id} position={[feature.x, 0.1, feature.y]}>
               <cylinderGeometry args={[0.2, 0.2, 0.3, 16]} />
               <meshStandardMaterial color="#5BA5C6" metalness={0.8} roughness={0.2} />
             </mesh>
@@ -618,18 +554,10 @@ const PoolFeatures = ({ features, poolCenterX, poolCenterY, scale }: {
 
         if (feature.type === 'fountain') {
           return (
-            <group key={feature.id} position={[x, 0, z]}>
+            <group key={feature.id} position={[feature.x, 0, feature.y]}>
               <mesh position={[0, 0.5, 0]}>
                 <cylinderGeometry args={[0.5, 0.7, 1, 16]} />
                 <meshStandardMaterial color="#A8D8EA" />
-              </mesh>
-              <mesh position={[0, 1.2, 0]}>
-                <sphereGeometry args={[0.3, 16, 16]} />
-                <meshStandardMaterial 
-                  color="#4DD0E1" 
-                  transparent 
-                  opacity={0.6}
-                />
               </mesh>
             </group>
           );
@@ -637,13 +565,11 @@ const PoolFeatures = ({ features, poolCenterX, poolCenterY, scale }: {
 
         if (feature.type === 'tree') {
           return (
-            <group key={feature.id} position={[x, 0, z]}>
-              {/* Trunk */}
+            <group key={feature.id} position={[feature.x, 0, feature.y]}>
               <mesh position={[0, 2, 0]}>
                 <cylinderGeometry args={[0.3, 0.4, 4, 8]} />
                 <meshStandardMaterial color="#8B4513" />
               </mesh>
-              {/* Foliage */}
               <mesh position={[0, 5, 0]}>
                 <sphereGeometry args={[1.5, 8, 8]} />
                 <meshStandardMaterial color="#228B22" />
@@ -654,60 +580,10 @@ const PoolFeatures = ({ features, poolCenterX, poolCenterY, scale }: {
 
         if (feature.type === 'shrub') {
           return (
-            <mesh key={feature.id} position={[x, 0.5, z]}>
+            <mesh key={feature.id} position={[feature.x, 0.5, feature.y]}>
               <sphereGeometry args={[0.8, 8, 8]} />
               <meshStandardMaterial color="#2E8B57" />
             </mesh>
-          );
-        }
-
-        if (feature.type === 'grass') {
-          const width = (feature.width || 60) / scale;
-          const height = (feature.height || 60) / scale;
-          
-          return (
-            <mesh key={feature.id} position={[x, 0.05, z]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-              <planeGeometry args={[width, height]} />
-              <meshStandardMaterial color="#7CB342" roughness={1} />
-            </mesh>
-          );
-        }
-
-        if (feature.type === 'home' && feature.roofPoints) {
-          const houseWidth = (feature.width || 80) / scale;
-          const houseDepth = (feature.height || 80) / scale;
-          const houseHeight = 8;
-          
-          return (
-            <group key={feature.id} position={[x, 0, z]}>
-              {/* House walls */}
-              <mesh position={[0, houseHeight / 2, 0]} castShadow receiveShadow>
-                <boxGeometry args={[houseWidth, houseHeight, houseDepth]} />
-                <meshStandardMaterial color="#E8D5C4" />
-              </mesh>
-              {/* Roof */}
-              <mesh position={[0, houseHeight + 1, 0]} castShadow>
-                <coneGeometry args={[houseWidth * 0.7, 3, 4]} />
-                <meshStandardMaterial color="#8B4513" />
-              </mesh>
-            </group>
-          );
-        }
-
-        if (feature.type === 'umbrella') {
-          return (
-            <group key={feature.id} position={[x, 0, z]}>
-              {/* Pole */}
-              <mesh position={[0, 4, 0]}>
-                <cylinderGeometry args={[0.1, 0.1, 8, 8]} />
-                <meshStandardMaterial color="#654321" />
-              </mesh>
-              {/* Umbrella top */}
-              <mesh position={[0, 7.5, 0]} rotation={[0, 0, 0]}>
-                <coneGeometry args={[2, 1.5, 8, 1, true]} />
-                <meshStandardMaterial color="#FF6B6B" side={THREE.DoubleSide} />
-              </mesh>
-            </group>
           );
         }
 
@@ -717,34 +593,19 @@ const PoolFeatures = ({ features, poolCenterX, poolCenterY, scale }: {
   );
 };
 
-const Scene = ({ 
-  points, 
-  depthPoints, 
-  scale, 
-  poolShape, 
-  hardscapePoints = [], 
-  fencePoints = [], 
-  features = [],
-  paverTextureUrl,
+const Scene: React.FC<Pool3DViewerProps> = ({
+  points,
+  depthPoints,
+  hardscapePoints,
   linerTextureUrl,
+  paverTextureUrl,
   copingTextureUrl,
-  fenceTextureUrl
-}: Pool3DViewerProps) => {
-  // Calculate pool center once for all objects to use
-  const poolCenter = useMemo(() => {
-    if (points.length === 0) return { x: 0, y: 0 };
-    
-    const minX = Math.min(...points.map(p => p.x));
-    const maxX = Math.max(...points.map(p => p.x));
-    const minY = Math.min(...points.map(p => p.y));
-    const maxY = Math.max(...points.map(p => p.y));
-    
-    return {
-      x: (minX + maxX) / 2,
-      y: (minY + maxY) / 2
-    };
-  }, [points]);
-
+  fenceTextureUrl,
+  features,
+  fencePoints,
+  scale = 1,
+  poolShape = 'rectangle',
+}) => {
   return (
     <>
       <PerspectiveCamera makeDefault position={[30, 25, 30]} fov={50} />
@@ -757,14 +618,12 @@ const Scene = ({
         maxPolarAngle={Math.PI / 2.1}
       />
 
-      {/* Lighting */}
-      <ambientLight intensity={0.5} />
+      <ambientLight intensity={0.6} />
       <directionalLight position={[20, 30, 10]} intensity={1.2} castShadow />
       <directionalLight position={[-20, 20, -10]} intensity={0.6} />
       <pointLight position={[0, 15, 0]} intensity={0.8} color="#ffffff" />
-      <hemisphereLight intensity={0.4} color="#87CEEB" groundColor="#8B7355" />
+      <hemisphereLight intensity={0.5} color="#87CEEB" groundColor="#8B7355" />
 
-      {/* Grid */}
       <Grid
         args={[100, 100]}
         cellSize={1}
@@ -779,62 +638,51 @@ const Scene = ({
         infiniteGrid={true}
       />
 
-      {/* Pool mesh */}
       <PoolMesh
         points={points}
         depthPoints={depthPoints}
-        scale={scale}
-        poolShape={poolShape}
         linerTextureUrl={linerTextureUrl}
       />
 
-      {/* Deck with auto-cut holes */}
-      {hardscapePoints.length > 0 && (
-        <DeckMesh 
+      {hardscapePoints && hardscapePoints.length > 0 && (
+        <DeckMesh
           hardscapePoints={hardscapePoints}
           poolPoints={points}
-          poolCenterX={poolCenter.x}
-          poolCenterY={poolCenter.y}
-          scale={scale}
+          features={features || []}
           paverTextureUrl={paverTextureUrl}
-          features={features}
         />
       )}
 
-      {/* Fence */}
-      {fencePoints.length > 0 && (
-        <FenceMesh 
-          fencePoints={fencePoints} 
-          poolCenterX={poolCenter.x}
-          poolCenterY={poolCenter.y}
-          scale={scale}
+      {copingTextureUrl && (
+        <CopingMesh
+          poolPoints={points}
+          copingTextureUrl={copingTextureUrl}
+        />
+      )}
+
+      {fencePoints && fencePoints.length > 0 && (
+        <FenceMesh
+          fencePoints={fencePoints}
           fenceTextureUrl={fenceTextureUrl}
         />
       )}
 
-      {/* Pool Features */}
-      {features.length > 0 && (
-        <PoolFeatures 
-          features={features} 
-          poolCenterX={poolCenter.x}
-          poolCenterY={poolCenter.y}
-          scale={scale} 
-        />
+      {features && features.length > 0 && (
+        <PoolFeatures features={features} />
       )}
 
-      {/* Axes helper */}
       <axesHelper args={[5]} />
     </>
   );
 };
 
-export const Pool3DViewer = ({ 
-  points, 
-  depthPoints, 
-  scale, 
-  poolShape, 
-  hardscapePoints = [], 
-  fencePoints = [], 
+export const Pool3DViewer = ({
+  points,
+  depthPoints,
+  scale,
+  poolShape,
+  hardscapePoints = [],
+  fencePoints = [],
   features = [],
   paverTextureUrl,
   linerTextureUrl,

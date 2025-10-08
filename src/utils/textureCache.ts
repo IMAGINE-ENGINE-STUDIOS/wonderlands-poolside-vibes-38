@@ -25,7 +25,14 @@ class TextureCache {
     const cached = this.cache.get(url);
     if (cached) {
       cached.lastUsed = Date.now();
-      return cached.texture.clone();
+      // Clone texture and preserve repeat settings
+      const clonedTexture = cached.texture.clone();
+      if (repeat) {
+        clonedTexture.repeat.set(repeat.x, repeat.y);
+        clonedTexture.needsUpdate = true;
+      }
+      console.log(`✓ Loaded texture from cache: ${url.substring(0, 50)}...`, repeat);
+      return clonedTexture;
     }
 
     // Load new texture
@@ -59,11 +66,17 @@ class TextureCache {
           this.currentCacheSize += size;
           this.cleanupCache();
           
+          console.log(`✓ Loaded new texture: ${url.substring(0, 50)}...`, { 
+            size: `${(size / 1024).toFixed(0)}KB`, 
+            repeat,
+            dimensions: `${texture.image?.width}x${texture.image?.height}`
+          });
+          
           resolve(texture);
         },
         undefined,
         (error) => {
-          console.error('Error loading texture:', url, error);
+          console.warn(`⚠️ Failed to load texture: ${url.substring(0, 50)}...`, error);
           reject(error);
         }
       );
