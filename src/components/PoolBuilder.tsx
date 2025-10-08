@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower2, Droplets } from 'lucide-react';
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import { paverTypes } from '@/data/paverData';
@@ -1607,224 +1608,282 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
 
       {/* Collapsible Controls Panel */}
       {showControls && (
-        <div className="flex items-center gap-2 px-3 py-2 border-b bg-background/90 backdrop-blur overflow-x-auto">
-          {/* Shape Buttons */}
-          <div className="flex items-center gap-1">
-            <Label className="text-xs mr-1">Shape:</Label>
-            <Button
-              size="sm"
-              variant={poolShape === 'rectangle' ? 'default' : 'outline'}
-              onClick={() => {
-                setPoolShape('rectangle');
-                setPoints(getShapePoints('rectangle'));
-                setFeatures([]);
-              }}
-              className="h-7 text-xs px-2"
-            >
-              Rectangle
-            </Button>
-            <Button
-              size="sm"
-              variant={poolShape === 'kidney' ? 'default' : 'outline'}
-              onClick={() => {
-                setPoolShape('kidney');
-                setPoints(getShapePoints('kidney'));
-                setFeatures([]);
-              }}
-              className="h-7 text-xs px-2"
-            >
-              Kidney
-            </Button>
-            <Button
-              size="sm"
-              variant={poolShape === 'freeform' ? 'default' : 'outline'}
-              onClick={() => {
-                setPoolShape('freeform');
-                setPoints(getShapePoints('freeform'));
-                setFeatures([]);
-              }}
-              className="h-7 text-xs px-2"
-            >
-              Freeform
-            </Button>
-          </div>
+        <div className="border-b bg-background/95 backdrop-blur">
+          <Tabs defaultValue="pool" className="w-full">
+            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto">
+              <TabsTrigger value="pool" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
+                Pool Design
+              </TabsTrigger>
+              <TabsTrigger value="materials" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
+                Materials
+              </TabsTrigger>
+              <TabsTrigger value="features" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
+                Features
+              </TabsTrigger>
+              <TabsTrigger value="landscape" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
+                Landscape
+              </TabsTrigger>
+            </TabsList>
 
-          <div className="h-6 w-px bg-border" />
+            {/* Pool Design Tab */}
+            <TabsContent value="pool" className="mt-0 p-3 space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Pool Shape</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant={poolShape === 'rectangle' ? 'default' : 'outline'}
+                      onClick={() => {
+                        setPoolShape('rectangle');
+                        setPoints(getShapePoints('rectangle'));
+                        setFeatures([]);
+                      }}
+                      className="flex-1"
+                    >
+                      Rectangle
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={poolShape === 'kidney' ? 'default' : 'outline'}
+                      onClick={() => {
+                        setPoolShape('kidney');
+                        setPoints(getShapePoints('kidney'));
+                        setFeatures([]);
+                      }}
+                      className="flex-1"
+                    >
+                      Kidney
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={poolShape === 'freeform' ? 'default' : 'outline'}
+                      onClick={() => {
+                        setPoolShape('freeform');
+                        setPoints(getShapePoints('freeform'));
+                        setFeatures([]);
+                      }}
+                      className="flex-1"
+                    >
+                      Freeform
+                    </Button>
+                  </div>
+                </div>
 
-          {/* Coping */}
-          <div className="flex items-center gap-1">
-            <Label className="text-xs mr-1">Coping:</Label>
-            <Select value={selectedCopingId} onValueChange={setSelectedCopingId}>
-              <SelectTrigger className="w-32 h-7 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                {paverTypes.filter(p => p.category === 'paver').map((paver) => (
-                  <SelectItem key={paver.id} value={paver.id}>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-4 h-4 rounded border bg-cover bg-center"
-                        style={{ backgroundImage: `url(${paver.image})` }}
-                      />
-                      <span className="text-xs">{paver.name}</span>
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Pool Corners</Label>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={addPoint} className="flex-1">
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Corner
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      onClick={removePoint} 
+                      variant="outline"
+                      disabled={!selectedPoint || points.length <= 3}
+                      className="flex-1"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Materials Tab */}
+            <TabsContent value="materials" className="mt-0 p-3 space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Pool Finish</Label>
+                  <Select value={selectedFinishId} onValueChange={setSelectedFinishId}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px] z-50 bg-background">
+                      {finishes.map((finish) => (
+                        <SelectItem key={finish.id} value={finish.id}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-5 h-5 rounded border bg-cover bg-center"
+                              style={{ backgroundImage: `url(${finish.image})` }}
+                            />
+                            <span>{finish.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Coping Pavers</Label>
+                  <Select value={selectedCopingId} onValueChange={setSelectedCopingId}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px] z-50 bg-background">
+                      {paverTypes.filter(p => p.category === 'paver').map((paver) => (
+                        <SelectItem key={paver.id} value={paver.id}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-5 h-5 rounded border bg-cover bg-center"
+                              style={{ backgroundImage: `url(${paver.image})` }}
+                            />
+                            <span>{paver.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Deck Pavers</Label>
+                  <Select value={selectedPaverId} onValueChange={setSelectedPaverId}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px] z-50 bg-background">
+                      {paverTypes.filter(p => p.category === 'paver').map((paver) => (
+                        <SelectItem key={paver.id} value={paver.id}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-5 h-5 rounded border bg-cover bg-center"
+                              style={{ backgroundImage: `url(${paver.image})` }}
+                            />
+                            <span>{paver.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Features Tab */}
+            <TabsContent value="features" className="mt-0 p-3 space-y-3">
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <Button size="sm" onClick={() => addFeature('stairs')} variant="outline" className="h-auto py-3 flex-col gap-1">
+                    <Move className="h-5 w-5" />
+                    <span className="text-xs">Stairs</span>
+                  </Button>
+                  <Button size="sm" onClick={() => addFeature('light')} variant="outline" className="h-auto py-3 flex-col gap-1">
+                    <Lightbulb className="h-5 w-5" />
+                    <span className="text-xs">LED Light</span>
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={() => addFeature('jet')} 
+                    variant="outline"
+                    disabled={pendingFeature === 'jet'}
+                    className="h-auto py-3 flex-col gap-1"
+                  >
+                    <Waves className="h-5 w-5" />
+                    <span className="text-xs">Water Jet</span>
+                  </Button>
+                  <Button size="sm" onClick={() => addFeature('fountain')} variant="outline" className="h-auto py-3 flex-col gap-1">
+                    <Droplets className="h-5 w-5" />
+                    <span className="text-xs">Fountain</span>
+                  </Button>
+                </div>
+
+                {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'stairs' && (
+                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                    <Label className="text-xs font-medium">Stairs Configuration</Label>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={addStairStep} variant="outline" className="flex-1">
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Step
+                      </Button>
+                      <Button size="sm" onClick={removeStairStep} variant="outline" className="flex-1">
+                        <Minus className="h-4 w-4 mr-1" />
+                        Remove Step
+                      </Button>
                     </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                  </div>
+                )}
 
-          {/* Finish */}
-          <div className="flex items-center gap-1">
-            <Label className="text-xs mr-1">Finish:</Label>
-            <Select value={selectedFinishId} onValueChange={setSelectedFinishId}>
-              <SelectTrigger className="w-32 h-7 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                {finishes.map((finish) => (
-                  <SelectItem key={finish.id} value={finish.id}>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-4 h-4 rounded border bg-cover bg-center"
-                        style={{ backgroundImage: `url(${finish.image})` }}
-                      />
-                      <span className="text-xs">{finish.name}</span>
+                {selectedFeature && (
+                  <Button size="sm" onClick={removeFeature} variant="destructive" className="w-full">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Remove Selected Feature
+                  </Button>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Landscape Tab */}
+            <TabsContent value="landscape" className="mt-0 p-3 space-y-3">
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <Button size="sm" onClick={() => addFeature('tree')} variant="outline" className="h-auto py-3 flex-col gap-1">
+                    <Trees className="h-5 w-5" />
+                    <span className="text-xs">Tree</span>
+                  </Button>
+                  <Button size="sm" onClick={() => addFeature('grass')} variant="outline" className="h-auto py-3 flex-col gap-1">
+                    <Flower2 className="h-5 w-5" />
+                    <span className="text-xs">Grass Area</span>
+                  </Button>
+                  <Button size="sm" onClick={() => addFeature('home')} variant="outline" className="h-auto py-3 flex-col gap-1">
+                    <Home className="h-5 w-5" />
+                    <span className="text-xs">House</span>
+                  </Button>
+                </div>
+
+                {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'tree' && (
+                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                    <Label className="text-xs font-medium">Tree Type</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          setFeatures(prev => prev.map(f => 
+                            f.id === selectedFeature ? { ...f, treeType: 'oak' } : f
+                          ));
+                        }} 
+                        variant="outline"
+                      >
+                        Oak
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          setFeatures(prev => prev.map(f => 
+                            f.id === selectedFeature ? { ...f, treeType: 'palm' } : f
+                          ));
+                        }} 
+                        variant="outline"
+                      >
+                        Palm
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          setFeatures(prev => prev.map(f => 
+                            f.id === selectedFeature ? { ...f, treeType: 'pine' } : f
+                          ));
+                        }} 
+                        variant="outline"
+                      >
+                        Pine
+                      </Button>
                     </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                  </div>
+                )}
 
-          {/* Deck Paver */}
-          <div className="flex items-center gap-1">
-            <Label className="text-xs mr-1">Deck:</Label>
-            <Select value={selectedPaverId} onValueChange={setSelectedPaverId}>
-              <SelectTrigger className="w-32 h-7 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                {paverTypes.filter(p => p.category === 'paver').map((paver) => (
-                  <SelectItem key={paver.id} value={paver.id}>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-4 h-4 rounded border bg-cover bg-center"
-                        style={{ backgroundImage: `url(${paver.image})` }}
-                      />
-                      <span className="text-xs">{paver.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="h-6 w-px bg-border" />
-
-          {/* Action Buttons */}
-          <Button size="sm" onClick={addPoint} className="h-7 text-xs px-2">
-            <Plus className="h-3 w-3 mr-1" />
-            Corner
-          </Button>
-          <Button 
-            size="sm" 
-            onClick={removePoint} 
-            variant="outline"
-            disabled={!selectedPoint || points.length <= 3}
-            className="h-7 text-xs px-2"
-          >
-            <Trash2 className="h-3 w-3 mr-1" />
-            Remove
-          </Button>
-
-          <div className="h-6 w-px bg-border" />
-
-          <Button size="sm" onClick={() => addFeature('stairs')} variant="outline" className="h-7 text-xs px-2">
-            <Move className="h-3 w-3 mr-1" />
-            Stairs
-          </Button>
-          <Button size="sm" onClick={() => addFeature('light')} variant="outline" className="h-7 text-xs px-2">
-            <Lightbulb className="h-3 w-3 mr-1" />
-            Light
-          </Button>
-          <Button 
-            size="sm" 
-            onClick={() => addFeature('jet')} 
-            variant="outline"
-            disabled={pendingFeature === 'jet'}
-            className="h-7 text-xs px-2"
-          >
-            <Waves className="h-3 w-3 mr-1" />
-            Jet
-          </Button>
-          <Button size="sm" onClick={() => addFeature('tree')} variant="outline" className="h-7 text-xs px-2">
-            <Trees className="h-3 w-3 mr-1" />
-            Tree
-          </Button>
-          <Button size="sm" onClick={() => addFeature('fountain')} variant="outline" className="h-7 text-xs px-2">
-            <Droplets className="h-3 w-3 mr-1" />
-            Fountain
-          </Button>
-          <Button size="sm" onClick={() => addFeature('grass')} variant="outline" className="h-7 text-xs px-2">
-            <Flower2 className="h-3 w-3 mr-1" />
-            Grass
-          </Button>
-          <Button size="sm" onClick={() => addFeature('home')} variant="outline" className="h-7 text-xs px-2">
-            <Home className="h-3 w-3 mr-1" />
-            House
-          </Button>
-
-          {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'stairs' && (
-            <>
-              <div className="h-6 w-px bg-border" />
-              <Button size="sm" onClick={addStairStep} variant="outline" className="h-7 text-xs px-2">
-                <Plus className="h-3 w-3 mr-1" />
-                Step
-              </Button>
-              <Button size="sm" onClick={removeStairStep} variant="outline" className="h-7 text-xs px-2">
-                <Minus className="h-3 w-3 mr-1" />
-                Step
-              </Button>
-            </>
-          )}
-
-          {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'tree' && (
-            <>
-              <div className="h-6 w-px bg-border" />
-              <Button size="sm" onClick={() => {
-                setFeatures(prev => prev.map(f => 
-                  f.id === selectedFeature ? { ...f, treeType: 'oak' } : f
-                ));
-              }} variant="outline" className="h-7 text-xs px-2">
-                Oak
-              </Button>
-              <Button size="sm" onClick={() => {
-                setFeatures(prev => prev.map(f => 
-                  f.id === selectedFeature ? { ...f, treeType: 'palm' } : f
-                ));
-              }} variant="outline" className="h-7 text-xs px-2">
-                Palm
-              </Button>
-              <Button size="sm" onClick={() => {
-                setFeatures(prev => prev.map(f => 
-                  f.id === selectedFeature ? { ...f, treeType: 'pine' } : f
-                ));
-              }} variant="outline" className="h-7 text-xs px-2">
-                Pine
-              </Button>
-            </>
-          )}
-
-          {selectedFeature && (
-            <>
-              <div className="h-6 w-px bg-border" />
-              <Button size="sm" onClick={removeFeature} variant="destructive" className="h-7 text-xs px-2">
-                <Trash2 className="h-3 w-3 mr-1" />
-                Remove Feature
-              </Button>
-            </>
-          )}
+                {selectedFeature && (
+                  <Button size="sm" onClick={removeFeature} variant="destructive" className="w-full">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Remove Selected Feature
+                  </Button>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       )}
 
