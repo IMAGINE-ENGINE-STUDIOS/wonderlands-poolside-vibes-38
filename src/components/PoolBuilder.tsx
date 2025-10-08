@@ -16,8 +16,14 @@ interface Point {
   id: string;
 }
 
+interface RoofPoint {
+  x: number;
+  y: number;
+  id: string;
+}
+
 interface PoolFeature {
-  type: 'stairs' | 'light' | 'jet' | 'tree' | 'fountain' | 'grass' | 'home';
+  type: 'stairs' | 'light' | 'jet' | 'tree' | 'fountain' | 'grass' | 'home' | 'shrub' | 'umbrella' | 'fence' | 'pathway';
   x: number;
   y: number;
   id: string;
@@ -27,8 +33,12 @@ interface PoolFeature {
   wallPosition?: number;
   width?: number;
   height?: number;
-  treeType?: 'palm' | 'oak' | 'pine';
+  treeType?: 'palm' | 'oak' | 'pine' | 'willow' | 'maple' | 'cypress';
+  shrubType?: 'round' | 'flowering' | 'hedge';
+  pathwayType?: 'straight' | 'curved' | 'circular';
   radius?: number;
+  roofPoints?: RoofPoint[];
+  color?: string;
 }
 
 interface HardscapePoint {
@@ -54,6 +64,21 @@ interface PoolBuilderProps {
     };
   }) => void;
 }
+
+// Helper function to shade colors
+const shadeColor = (color: string, percent: number) => {
+  const num = parseInt(color.replace('#', ''), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = (num >> 16) + amt;
+  const G = (num >> 8 & 0x00FF) + amt;
+  const B = (num & 0x0000FF) + amt;
+  return '#' + (
+    0x1000000 +
+    (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+    (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+    (B < 255 ? (B < 1 ? 0 : B) : 255)
+  ).toString(16).slice(1);
+};
 
 export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -116,6 +141,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
   const [draggingFeature, setDraggingFeature] = useState(false);
   const [texturesLoaded, setTexturesLoaded] = useState(false);
+  const [selectedRoofPoint, setSelectedRoofPoint] = useState<string | null>(null);
+  const [isDraggingRoof, setIsDraggingRoof] = useState(false);
   const [selectedPaverId, setSelectedPaverId] = useState('appian-adobe');
   const [selectedCopingId, setSelectedCopingId] = useState('appian-adobe');
   const [selectedFinishId, setSelectedFinishId] = useState('aquamarine');
@@ -135,7 +162,11 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     tree: 350,
     fountain: 3500,
     grass: 0,
-    home: 0
+    home: 0,
+    shrub: 75,
+    umbrella: 400,
+    fence: 150,
+    pathway: 0
   };
 
   // Initialize pool and hardscape centered
@@ -759,44 +790,279 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.lineWidth = isSelected ? 3 : 2;
         ctx.stroke();
       } else if (feature.type === 'home') {
-        // House roof top-down view
-        const width = feature.width || 200;
-        const height = feature.height || 150;
+        // House with editable roof (like roof.jpg reference)
         const isSelected = selectedFeature === feature.id;
         
-        // Roof structure (top-down)
-        const roofGradient = ctx.createLinearGradient(
-          feature.x - width / 2, feature.y - height / 2,
-          feature.x + width / 2, feature.y + height / 2
-        );
-        roofGradient.addColorStop(0, '#8B6F47');
-        roofGradient.addColorStop(0.5, '#A0826D');
-        roofGradient.addColorStop(1, '#6B5435');
+        // Initialize roof points if not exist (complex multi-section roof)
+        if (!feature.roofPoints || feature.roofPoints.length === 0) {
+          const width = 200;
+          const height = 150;
+          feature.roofPoints = [
+            { x: -width/2, y: -height/2, id: 'r1' },
+            { x: -width/4, y: -height/2, id: 'r2' },
+            { x: width/4, y: -height/2, id: 'r3' },
+            { x: width/2, y: -height/2, id: 'r4' },
+            { x: width/2, y: 0, id: 'r5' },
+            { x: width/2, y: height/2, id: 'r6' },
+            { x: width/4, y: height/2, id: 'r7' },
+            { x: -width/4, y: height/2, id: 'r8' },
+            { x: -width/2, y: height/2, id: 'r9' },
+            { x: -width/2, y: 0, id: 'r10' }
+          ];
+        }
         
-        ctx.fillStyle = roofGradient;
-        ctx.fillRect(feature.x - width / 2, feature.y - height / 2, width, height);
+        // Draw roof with splines
+        ctx.save();
+        ctx.translate(feature.x, feature.y);
         
-        // Roof tiles/shingles pattern
-        ctx.strokeStyle = 'rgba(60, 40, 20, 0.3)';
-        ctx.lineWidth = 1;
-        for (let i = 0; i < 15; i++) {
-          const yPos = feature.y - height / 2 + (i * height / 15);
-          ctx.beginPath();
-          ctx.moveTo(feature.x - width / 2, yPos);
-          ctx.lineTo(feature.x + width / 2, yPos);
+        // Create roof shape
+        ctx.beginPath();
+        const roofPts = feature.roofPoints;
+        if (roofPts.length > 2) {
+          ctx.moveTo(roofPts[0].x, roofPts[0].y);
+          for (let i = 1; i < roofPts.length; i++) {
+            ctx.lineTo(roofPts[i].x, roofPts[i].y);
+          }
+          ctx.closePath();
+          
+          // Roof gradient fill
+          const roofGradient = ctx.createLinearGradient(
+            -100, -75, 100, 75
+          );
+          roofGradient.addColorStop(0, '#8B4513');
+          roofGradient.addColorStop(0.3, '#A0522D');
+          roofGradient.addColorStop(0.6, '#8B4513');
+          roofGradient.addColorStop(1, '#704214');
+          
+          ctx.fillStyle = roofGradient;
+          ctx.fill();
+          
+          // Roof sections - create visual depth like the reference
+          ctx.strokeStyle = 'rgba(60, 40, 20, 0.4)';
+          ctx.lineWidth = 2;
+          
+          // Draw ridge lines to create multi-section appearance
+          for (let i = 1; i < roofPts.length - 1; i += 2) {
+            ctx.beginPath();
+            ctx.moveTo(roofPts[i].x, roofPts[i].y);
+            ctx.lineTo(roofPts[i+1]?.x || roofPts[i].x, roofPts[i+1]?.y || roofPts[i].y);
+            ctx.stroke();
+          }
+          
+          // Shingle pattern
+          ctx.strokeStyle = 'rgba(40, 30, 15, 0.25)';
+          ctx.lineWidth = 0.8;
+          for (let i = 0; i < 20; i++) {
+            const progress = i / 20;
+            const minX = Math.min(...roofPts.map(p => p.x));
+            const maxX = Math.max(...roofPts.map(p => p.x));
+            const minY = Math.min(...roofPts.map(p => p.y));
+            const maxY = Math.max(...roofPts.map(p => p.y));
+            
+            const y = minY + (maxY - minY) * progress;
+            ctx.beginPath();
+            ctx.moveTo(minX, y);
+            ctx.lineTo(maxX, y);
+            ctx.stroke();
+          }
+          
+          // Roof outline
+          ctx.strokeStyle = isSelected ? '#FFD700' : '#5D4E37';
+          ctx.lineWidth = isSelected ? 3 : 2;
           ctx.stroke();
         }
         
-        // Ridge line
-        ctx.strokeStyle = '#6B5435';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(feature.x - width / 2, feature.y);
-        ctx.lineTo(feature.x + width / 2, feature.y);
+        ctx.restore();
+        
+        // Draw roof anchor points when selected
+        if (isSelected && feature.roofPoints) {
+          feature.roofPoints.forEach((rp) => {
+            const rpx = feature.x + rp.x;
+            const rpy = feature.y + rp.y;
+            const size = 8;
+            const isRoofSelected = selectedRoofPoint === rp.id;
+            
+            ctx.fillStyle = isRoofSelected ? '#2E86AB' : '#ffffff';
+            ctx.strokeStyle = isRoofSelected ? '#1a4d6d' : '#2E86AB';
+            ctx.lineWidth = 2;
+            ctx.fillRect(rpx - size / 2, rpy - size / 2, size, size);
+            ctx.strokeRect(rpx - size / 2, rpy - size / 2, size, size);
+          });
+        }
+      } else if (feature.type === 'shrub') {
+        // Various shrub types
+        const isSelected = selectedFeature === feature.id;
+        const shrubType = feature.shrubType || 'round';
+        const radius = feature.radius || 30;
+        
+        if (shrubType === 'round') {
+          // Round green shrub
+          ctx.fillStyle = '#5A8F3D';
+          ctx.beginPath();
+          ctx.arc(feature.x, feature.y, radius, 0, 2 * Math.PI);
+          ctx.fill();
+          
+          // Add texture circles
+          for (let i = 0; i < 5; i++) {
+            const angle = (i / 5) * Math.PI * 2;
+            const dist = radius * 0.5;
+            ctx.fillStyle = i % 2 === 0 ? '#6BA04A' : '#4F7D35';
+            ctx.beginPath();
+            ctx.arc(feature.x + Math.cos(angle) * dist, feature.y + Math.sin(angle) * dist, radius * 0.35, 0, 2 * Math.PI);
+            ctx.fill();
+          }
+        } else if (shrubType === 'flowering') {
+          // Flowering shrub with colorful flowers
+          ctx.fillStyle = '#5A8F3D';
+          ctx.beginPath();
+          ctx.arc(feature.x, feature.y, radius, 0, 2 * Math.PI);
+          ctx.fill();
+          
+          // Add flowers
+          const flowerColors = ['#FF6B9D', '#FFD93D', '#9B59B6', '#FF8C42'];
+          for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            const dist = radius * 0.6;
+            ctx.fillStyle = flowerColors[i % flowerColors.length];
+            ctx.beginPath();
+            ctx.arc(feature.x + Math.cos(angle) * dist, feature.y + Math.sin(angle) * dist, radius * 0.2, 0, 2 * Math.PI);
+            ctx.fill();
+          }
+        } else if (shrubType === 'hedge') {
+          // Rectangular hedge
+          const width = radius * 2;
+          const height = radius;
+          ctx.fillStyle = '#4A7D35';
+          ctx.fillRect(feature.x - width / 2, feature.y - height / 2, width, height);
+          
+          // Hedge texture
+          ctx.strokeStyle = 'rgba(30, 50, 20, 0.3)';
+          ctx.lineWidth = 1;
+          for (let i = 0; i < 5; i++) {
+            ctx.strokeRect(feature.x - width / 2 + i * (width / 5), feature.y - height / 2, width / 5, height);
+          }
+        }
+        
+        ctx.strokeStyle = isSelected ? '#FFD700' : 'rgba(70, 120, 50, 0.5)';
+        ctx.lineWidth = isSelected ? 3 : 2;
         ctx.stroke();
+      } else if (feature.type === 'umbrella') {
+        // Patio umbrella
+        const isSelected = selectedFeature === feature.id;
+        const umbrellaColor = feature.color || '#4A9FD8';
+        
+        // Umbrella pole
+        ctx.fillStyle = '#8B7355';
+        ctx.fillRect(feature.x - 3, feature.y - 10, 6, 30);
+        
+        // Umbrella canopy (top-down view with segments)
+        const segments = 8;
+        const radius = 35;
+        
+        for (let i = 0; i < segments; i++) {
+          const angle1 = (i / segments) * Math.PI * 2;
+          const angle2 = ((i + 1) / segments) * Math.PI * 2;
+          
+          ctx.fillStyle = i % 2 === 0 ? umbrellaColor : shadeColor(umbrellaColor, -10);
+          ctx.beginPath();
+          ctx.moveTo(feature.x, feature.y);
+          ctx.arc(feature.x, feature.y, radius, angle1, angle2);
+          ctx.closePath();
+          ctx.fill();
+        }
+        
+        // Umbrella outline
+        ctx.strokeStyle = isSelected ? '#FFD700' : '#2E5D7A';
+        ctx.lineWidth = isSelected ? 3 : 2;
+        ctx.beginPath();
+        ctx.arc(feature.x, feature.y, radius, 0, 2 * Math.PI);
+        ctx.stroke();
+      } else if (feature.type === 'fence') {
+        // Fence section
+        const isSelected = selectedFeature === feature.id;
+        const width = feature.width || 80;
+        const height = 10;
+        
+        // Fence boards
+        ctx.fillStyle = '#A67C52';
+        const boardCount = 8;
+        const boardWidth = width / boardCount;
+        
+        for (let i = 0; i < boardCount; i++) {
+          const x = feature.x - width / 2 + i * boardWidth;
+          ctx.fillRect(x, feature.y - height / 2, boardWidth - 2, height);
+        }
+        
+        // Fence rails
+        ctx.fillStyle = '#8B6F47';
+        ctx.fillRect(feature.x - width / 2, feature.y - height / 2, width, 2);
+        ctx.fillRect(feature.x - width / 2, feature.y + height / 2 - 2, width, 2);
         
         // Border
-        ctx.strokeStyle = isSelected ? '#FFD700' : '#5D4E37';
+        ctx.strokeStyle = isSelected ? '#FFD700' : '#6B5435';
+        ctx.lineWidth = isSelected ? 3 : 2;
+        ctx.strokeRect(feature.x - width / 2, feature.y - height / 2, width, height);
+      } else if (feature.type === 'pathway') {
+        // Decorative pathway/paver pattern
+        const isSelected = selectedFeature === feature.id;
+        const pathwayType = feature.pathwayType || 'straight';
+        const width = feature.width || 60;
+        const height = feature.height || 120;
+        
+        if (pathwayType === 'circular') {
+          // Circular paver pattern
+          const radius = width / 2;
+          const rings = 3;
+          
+          for (let ring = 0; ring < rings; ring++) {
+            const ringRadius = radius * ((ring + 1) / rings);
+            const segments = 8 + ring * 4;
+            
+            for (let seg = 0; seg < segments; seg++) {
+              const angle1 = (seg / segments) * Math.PI * 2;
+              const angle2 = ((seg + 1) / segments) * Math.PI * 2;
+              
+              ctx.fillStyle = seg % 2 === 0 ? '#C9B8A0' : '#B5A48D';
+              ctx.beginPath();
+              ctx.moveTo(feature.x, feature.y);
+              ctx.arc(feature.x, feature.y, ringRadius, angle1, angle2);
+              if (ring > 0) {
+                const prevRadius = radius * (ring / rings);
+                ctx.arc(feature.x, feature.y, prevRadius, angle2, angle1, true);
+              }
+              ctx.closePath();
+              ctx.fill();
+              
+              // Grout lines
+              ctx.strokeStyle = 'rgba(100, 80, 60, 0.4)';
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
+          }
+        } else {
+          // Rectangular paver pattern
+          const paverWidth = 20;
+          const paverHeight = 20;
+          const cols = Math.floor(width / paverWidth);
+          const rows = Math.floor(height / paverHeight);
+          
+          for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+              const x = feature.x - width / 2 + col * paverWidth;
+              const y = feature.y - height / 2 + row * paverHeight;
+              
+              ctx.fillStyle = (row + col) % 2 === 0 ? '#D4C4B0' : '#BFB0A0';
+              ctx.fillRect(x, y, paverWidth - 1, paverHeight - 1);
+              
+              // Grout
+              ctx.strokeStyle = 'rgba(100, 80, 60, 0.3)';
+              ctx.lineWidth = 1;
+              ctx.strokeRect(x, y, paverWidth - 1, paverHeight - 1);
+            }
+          }
+        }
+        
+        ctx.strokeStyle = isSelected ? '#FFD700' : 'rgba(100, 80, 60, 0.5)';
         ctx.lineWidth = isSelected ? 3 : 2;
         ctx.strokeRect(feature.x - width / 2, feature.y - height / 2, width, height);
       }
@@ -1252,6 +1518,23 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
+    // Check if clicked on roof point (for selected house)
+    if (selectedFeature) {
+      const house = features.find(f => f.id === selectedFeature && f.type === 'home');
+      if (house && house.roofPoints) {
+        const clickedRoofPoint = house.roofPoints.find(rp => {
+          const rpx = house.x + rp.x;
+          const rpy = house.y + rp.y;
+          return Math.sqrt(Math.pow(rpx - x, 2) + Math.pow(rpy - y, 2)) < 10;
+        });
+        
+        if (clickedRoofPoint) {
+          setSelectedRoofPoint(clickedRoofPoint.id);
+          return;
+        }
+      }
+    }
+
     // Check if clicked on hardscape point
     const clickedHardscapePoint = hardscapePoints.find(p => 
       Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10
@@ -1261,6 +1544,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       setSelectedHardscapePoint(clickedHardscapePoint.id);
       setSelectedPoint(null);
       setSelectedFeature(null);
+      setSelectedRoofPoint(null);
       return;
     }
 
@@ -1320,10 +1604,12 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       setSelectedPoint(clickedPoint.id);
       setSelectedFeature(null);
       setSelectedHardscapePoint(null);
+      setSelectedRoofPoint(null);
     } else {
       setSelectedPoint(null);
       setSelectedFeature(null);
       setSelectedHardscapePoint(null);
+      setSelectedRoofPoint(null);
     }
   };
 
@@ -1336,6 +1622,24 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+
+    // Check for roof point drag (for selected house)
+    if (selectedFeature) {
+      const house = features.find(f => f.id === selectedFeature && f.type === 'home');
+      if (house && house.roofPoints) {
+        const clickedRoofPoint = house.roofPoints.find(rp => {
+          const rpx = house.x + rp.x;
+          const rpy = house.y + rp.y;
+          return Math.sqrt(Math.pow(rpx - x, 2) + Math.pow(rpy - y, 2)) < 10;
+        });
+        
+        if (clickedRoofPoint) {
+          setSelectedRoofPoint(clickedRoofPoint.id);
+          setIsDraggingRoof(true);
+          return;
+        }
+      }
+    }
 
     // Check for hardscape point drag
     const clickedHardscapePoint = hardscapePoints.find(p => 
@@ -1380,7 +1684,26 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     // Update cursor position for pending features
     setCursorPos({ x, y });
 
-    if (isDraggingHardscape && selectedHardscapePoint) {
+    if (isDraggingRoof && selectedRoofPoint && selectedFeature) {
+      const house = features.find(f => f.id === selectedFeature && f.type === 'home');
+      if (house && house.roofPoints) {
+        const relativeX = x - house.x;
+        const relativeY = y - house.y;
+        
+        setFeatures(prev => prev.map(f => 
+          f.id === selectedFeature && f.type === 'home' && f.roofPoints
+            ? {
+                ...f,
+                roofPoints: f.roofPoints.map(rp =>
+                  rp.id === selectedRoofPoint
+                    ? { ...rp, x: relativeX, y: relativeY }
+                    : rp
+                )
+              }
+            : f
+        ));
+      }
+    } else if (isDraggingHardscape && selectedHardscapePoint) {
       const boundedX = Math.max(0, Math.min(canvasSize.width, x));
       const boundedY = Math.max(0, Math.min(canvasSize.height, y));
 
@@ -1472,7 +1795,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     }
   };
 
-  const addFeature = (type: 'stairs' | 'light' | 'jet' | 'tree' | 'fountain' | 'grass' | 'home') => {
+  const addFeature = (type: 'stairs' | 'light' | 'jet' | 'tree' | 'fountain' | 'grass' | 'home' | 'shrub' | 'umbrella' | 'fence' | 'pathway') => {
     if (type === 'jet') {
       setPendingFeature('jet');
       return;
@@ -1480,7 +1803,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
 
     let newFeature: PoolFeature;
     
-    if (type === 'tree' || type === 'fountain' || type === 'grass' || type === 'home') {
+    if (type === 'tree' || type === 'fountain' || type === 'grass' || type === 'home' || type === 'shrub' || type === 'umbrella' || type === 'fence' || type === 'pathway') {
       // Place in open area
       newFeature = {
         type,
@@ -1824,6 +2147,10 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                     <Trees className="h-5 w-5" />
                     <span className="text-xs">Tree</span>
                   </Button>
+                  <Button size="sm" onClick={() => addFeature('shrub')} variant="outline" className="h-auto py-3 flex-col gap-1">
+                    <Flower2 className="h-5 w-5" />
+                    <span className="text-xs">Shrub</span>
+                  </Button>
                   <Button size="sm" onClick={() => addFeature('grass')} variant="outline" className="h-auto py-3 flex-col gap-1">
                     <Flower2 className="h-5 w-5" />
                     <span className="text-xs">Grass Area</span>
@@ -1832,44 +2159,148 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                     <Home className="h-5 w-5" />
                     <span className="text-xs">House</span>
                   </Button>
+                  <Button size="sm" onClick={() => addFeature('umbrella')} variant="outline" className="h-auto py-3 flex-col gap-1">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 2C7.03 2 3 6.03 3 11h18c0-4.97-4.03-9-9-9z" />
+                      <line x1="12" y1="11" x2="12" y2="22" />
+                    </svg>
+                    <span className="text-xs">Umbrella</span>
+                  </Button>
+                  <Button size="sm" onClick={() => addFeature('fence')} variant="outline" className="h-auto py-3 flex-col gap-1">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="6" width="3" height="12" />
+                      <rect x="10" y="6" width="3" height="12" />
+                      <rect x="17" y="6" width="3" height="12" />
+                      <line x1="2" y1="10" x2="22" y2="10" />
+                      <line x1="2" y1="14" x2="22" y2="14" />
+                    </svg>
+                    <span className="text-xs">Fence</span>
+                  </Button>
+                  <Button size="sm" onClick={() => addFeature('pathway')} variant="outline" className="h-auto py-3 flex-col gap-1">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="5" y="5" width="4" height="4" />
+                      <rect x="11" y="7" width="4" height="4" />
+                      <rect x="5" y="11" width="4" height="4" />
+                      <rect x="11" y="13" width="4" height="4" />
+                      <rect x="17" y="9" width="4" height="4" />
+                    </svg>
+                    <span className="text-xs">Pathway</span>
+                  </Button>
                 </div>
 
                 {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'tree' && (
                   <div className="p-3 bg-muted/50 rounded-lg space-y-2">
                     <Label className="text-xs font-medium">Tree Type</Label>
                     <div className="grid grid-cols-3 gap-2">
+                      {['oak', 'palm', 'pine', 'willow', 'maple', 'cypress'].map(treeType => (
+                        <Button 
+                          key={treeType}
+                          size="sm" 
+                          onClick={() => {
+                            setFeatures(prev => prev.map(f => 
+                              f.id === selectedFeature ? { ...f, treeType: treeType as any } : f
+                            ));
+                          }} 
+                          variant="outline"
+                          className="capitalize"
+                        >
+                          {treeType}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'shrub' && (
+                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                    <Label className="text-xs font-medium">Shrub Type</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['round', 'flowering', 'hedge'].map(shrubType => (
+                        <Button 
+                          key={shrubType}
+                          size="sm" 
+                          onClick={() => {
+                            setFeatures(prev => prev.map(f => 
+                              f.id === selectedFeature ? { ...f, shrubType: shrubType as any } : f
+                            ));
+                          }} 
+                          variant="outline"
+                          className="capitalize"
+                        >
+                          {shrubType}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'pathway' && (
+                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                    <Label className="text-xs font-medium">Pathway Type</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['straight', 'curved', 'circular'].map(pathType => (
+                        <Button 
+                          key={pathType}
+                          size="sm" 
+                          onClick={() => {
+                            setFeatures(prev => prev.map(f => 
+                              f.id === selectedFeature ? { ...f, pathwayType: pathType as any } : f
+                            ));
+                          }} 
+                          variant="outline"
+                          className="capitalize"
+                        >
+                          {pathType}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'home' && (
+                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                    <Label className="text-xs font-medium">Roof Editor</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Drag the anchor points to reshape the roof
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
                       <Button 
                         size="sm" 
                         onClick={() => {
-                          setFeatures(prev => prev.map(f => 
-                            f.id === selectedFeature ? { ...f, treeType: 'oak' } : f
-                          ));
+                          const house = features.find(f => f.id === selectedFeature);
+                          if (house && house.roofPoints) {
+                            const newPoint: RoofPoint = {
+                              x: 0,
+                              y: 0,
+                              id: `r${house.roofPoints.length + 1}`
+                            };
+                            setFeatures(prev => prev.map(f => 
+                              f.id === selectedFeature ? { ...f, roofPoints: [...(f.roofPoints || []), newPoint] } : f
+                            ));
+                          }
                         }} 
                         variant="outline"
                       >
-                        Oak
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add Point
                       </Button>
                       <Button 
                         size="sm" 
                         onClick={() => {
-                          setFeatures(prev => prev.map(f => 
-                            f.id === selectedFeature ? { ...f, treeType: 'palm' } : f
-                          ));
+                          if (selectedRoofPoint) {
+                            setFeatures(prev => prev.map(f => 
+                              f.id === selectedFeature && f.roofPoints
+                                ? { ...f, roofPoints: f.roofPoints.filter(rp => rp.id !== selectedRoofPoint) }
+                                : f
+                            ));
+                            setSelectedRoofPoint(null);
+                          }
                         }} 
                         variant="outline"
+                        disabled={!selectedRoofPoint}
                       >
-                        Palm
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        onClick={() => {
-                          setFeatures(prev => prev.map(f => 
-                            f.id === selectedFeature ? { ...f, treeType: 'pine' } : f
-                          ));
-                        }} 
-                        variant="outline"
-                      >
-                        Pine
+                        <Minus className="h-4 w-4 mr-1" />
+                        Remove Point
                       </Button>
                     </div>
                   </div>
