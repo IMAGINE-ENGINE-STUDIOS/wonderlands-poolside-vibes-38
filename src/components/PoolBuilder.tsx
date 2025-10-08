@@ -1831,6 +1831,18 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       y = Math.round(y / snapPixels) * snapPixels;
     }
 
+    // Add fence point when in fence add mode
+    if (fenceAddMode && showFenceEditor) {
+      const newPoint: FencePoint = {
+        id: `fence-${Date.now()}`,
+        x,
+        y
+      };
+      setFencePoints([...fencePoints, newPoint]);
+      setFenceAddMode(false); // Auto-disable after adding point
+      return;
+    }
+
     // Check if clicked on depth point in depth editor
     if (showDepthEditor && points.length > 0) {
       const editorX = 50;
