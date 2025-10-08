@@ -2290,6 +2290,11 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
             f.id === selectedFeature ? { ...f, x, y } : f
           ));
         }
+      } else if (feature.type === 'home') {
+        // Houses can be freely moved anywhere
+        setFeatures(prev => prev.map(f => 
+          f.id === selectedFeature ? { ...f, x, y } : f
+        ));
       } else {
         // Other features can be placed anywhere
         setFeatures(prev => prev.map(f => 
@@ -3097,9 +3102,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                 cursor: fenceAddMode ? 'crosshair'
                   : pendingFeature === 'jet' ? 'crosshair' 
                   : activeTool === 'add' ? 'crosshair'
-                  : activeTool === 'select' ? 'default' 
-                  : activeTool === 'rotate' ? 'grab' 
-                  : 'zoom-in' 
+                  : 'default'
               }}
             />
           </div>
