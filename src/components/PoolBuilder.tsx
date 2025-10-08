@@ -2207,62 +2207,6 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           </Button>
         </div>
 
-        {/* Tool Buttons */}
-        <div className="flex items-center gap-1 ml-4 border-l pl-4">
-          <Button 
-            size="sm" 
-            variant={activeTool === 'select' ? "default" : "outline"}
-            onClick={() => setActiveTool('select')}
-            className="h-8 w-8 p-0"
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/>
-            </svg>
-          </Button>
-          <Button 
-            size="sm" 
-            variant={activeTool === 'rotate' ? "default" : "outline"}
-            onClick={() => setActiveTool('rotate')}
-            className="h-8 w-8 p-0"
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-            </svg>
-          </Button>
-          <div className="flex items-center gap-1">
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => setZoomLevel(prev => Math.max(prev - 0.2, 0.5))}
-              className="h-8 w-8 p-0"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M5 12h14"/>
-              </svg>
-            </Button>
-            <Button 
-              size="sm" 
-              variant={activeTool === 'zoom' ? "default" : "outline"}
-              onClick={() => setActiveTool('zoom')}
-              className="h-8 w-8 p-0"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="m21 21-4.35-4.35"/>
-              </svg>
-            </Button>
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => setZoomLevel(prev => Math.min(prev + 0.2, 2))}
-              className="h-8 w-8 p-0"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 5v14M5 12h14"/>
-              </svg>
-            </Button>
-          </div>
-        </div>
         
         <div className="flex items-center gap-4 ml-auto">
           <div className="flex items-center gap-1 text-xs">
@@ -2813,8 +2757,57 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           </div>
         </div>
 
-        {/* Add/Remove Corner Buttons - Top Right of Canvas */}
-        <div className="absolute top-8 right-8 flex gap-2 z-20">
+        {/* Tool Buttons - Top Right of Canvas */}
+        <div className="absolute top-8 right-8 flex items-center gap-2 z-20 bg-background/95 backdrop-blur p-2 rounded-lg border shadow-lg">
+          <Button 
+            size="sm" 
+            variant={activeTool === 'select' ? "default" : "outline"}
+            onClick={() => setActiveTool('select')}
+            className="h-8 w-8 p-0"
+            title="Select"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/>
+            </svg>
+          </Button>
+          <Button 
+            size="sm" 
+            variant={activeTool === 'rotate' ? "default" : "outline"}
+            onClick={() => setActiveTool('rotate')}
+            className="h-8 w-8 p-0"
+            title="Rotate"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+            </svg>
+          </Button>
+          <div className="h-4 w-px bg-border" />
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => setZoomLevel(prev => Math.max(prev - 0.2, 0.5))}
+            className="h-8 w-8 p-0"
+            title="Zoom Out"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M5 12h14"/>
+            </svg>
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => setZoomLevel(prev => Math.min(prev + 0.2, 2))}
+            className="h-8 w-8 p-0"
+            title="Zoom In"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </Button>
+        </div>
+
+        {/* Add/Remove Corner Buttons */}
+        <div className="absolute top-24 right-8 flex gap-2 z-20">
           <Button 
             size="sm" 
             onClick={() => {
