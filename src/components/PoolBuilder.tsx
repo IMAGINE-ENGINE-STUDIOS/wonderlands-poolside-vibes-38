@@ -2811,7 +2811,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         </div>
 
         {/* Add/Remove Corner Buttons */}
-        <div className="absolute top-24 right-8 flex gap-2 z-20">
+        <div className="absolute bottom-8 left-8 flex gap-2 z-20">
           <Button 
             size="sm" 
             onClick={() => {
