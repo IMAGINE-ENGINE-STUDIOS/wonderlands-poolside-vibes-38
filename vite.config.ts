@@ -19,6 +19,7 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    dedupe: ['react', 'react-dom'],
   },
   build: {
     cssCodeSplit: true,
@@ -27,28 +28,31 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Vendor chunk for React ecosystem - MUST include @react-three for proper React hooks access
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('@tanstack/react-query') || id.includes('@react-three')) {
+          // Single React vendor chunk - ALL React-dependent libraries MUST be here
+          if (
+            id.includes('node_modules/react') || 
+            id.includes('node_modules/react-dom') || 
+            id.includes('@tanstack/react-query') ||
+            id.includes('@react-three') ||
+            id.includes('@radix-ui') ||
+            id.includes('react-router') ||
+            id.includes('lucide-react')
+          ) {
             return 'react-vendor';
           }
           
-          // UI libraries chunk
-          if (id.includes('@radix-ui') || id.includes('lucide-react')) {
-            return 'ui-vendor';
-          }
-          
-          // Supabase only (removed React Query from here to prevent loading order issues)
+          // Supabase
           if (id.includes('@supabase')) {
             return 'data-vendor';
           }
           
-          // Three.js core library only (without @react-three which is now in react-vendor)
-          if (id.includes('three') && !id.includes('@react-three')) {
+          // Three.js core only (no React bindings)
+          if (id.includes('node_modules/three/') && !id.includes('@react-three')) {
             return 'graphics-vendor';
           }
           
-          // Routing and utilities
-          if (id.includes('react-router') || id.includes('date-fns') || id.includes('zod')) {
+          // Utilities
+          if (id.includes('date-fns') || id.includes('zod')) {
             return 'utils-vendor';
           }
           
