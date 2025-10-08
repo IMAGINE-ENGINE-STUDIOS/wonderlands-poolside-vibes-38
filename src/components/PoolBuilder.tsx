@@ -2213,31 +2213,17 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
 
             {/* Pool Design Tab */}
             <TabsContent value="pool" className="mt-0 p-2 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <Button size="sm" onClick={addPoint} variant="outline" className="h-8 text-xs">
-                  <Plus className="h-3 w-3 mr-1" />
-                  Add
-                </Button>
-                <Button 
-                  size="sm" 
-                  onClick={removePoint} 
-                  variant="outline"
-                  disabled={!selectedPoint || points.length <= 3}
-                  className="h-8 text-xs"
-                >
-                  <Trash2 className="h-3 w-3 mr-1" />
-                  Remove
-                </Button>
+              <div className="flex gap-2">
                 <Button 
                   size="sm" 
                   onClick={() => setSmoothCorners(!smoothCorners)}
                   variant={smoothCorners ? "default" : "outline"}
-                  className="h-8 text-xs col-span-2"
+                  className="h-7 text-[10px]"
                 >
                   <svg className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M3 3h18v18H3z" strokeLinejoin={smoothCorners ? "round" : "miter"} />
                   </svg>
-                  Deck {smoothCorners ? 'Smooth' : 'Squared'}
+                  {smoothCorners ? 'Smooth' : 'Squared'}
                 </Button>
               </div>
             </TabsContent>
@@ -2675,7 +2661,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       )}
 
       {/* Canvas with Legend */}
-      <div className="flex-1 flex gap-4 p-4 overflow-hidden">
+      <div className="flex-1 flex gap-4 p-4 overflow-hidden relative">
         {/* Main Canvas */}
         <div className="flex-1 flex items-center justify-center overflow-hidden">
           <div style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center', transition: 'transform 0.2s' }}>
@@ -2697,6 +2683,27 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
               }}
             />
           </div>
+        </div>
+
+        {/* Add/Remove Corner Buttons - Top Right of Canvas */}
+        <div className="absolute top-8 right-8 flex gap-2 z-20">
+          <Button 
+            size="sm" 
+            onClick={addPoint} 
+            variant="outline" 
+            className="h-9 w-9 p-0 bg-background/95 shadow-lg"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          <Button 
+            size="sm" 
+            onClick={removePoint} 
+            variant="outline"
+            disabled={!selectedPoint || points.length <= 3}
+            className="h-9 w-9 p-0 bg-background/95 shadow-lg"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
 
         {/* Legend Panel - Floating & Collapsible */}
