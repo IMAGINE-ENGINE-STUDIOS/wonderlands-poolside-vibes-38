@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower2, Droplets } from 'lucide-react';
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
+import poolTextureSapphire from '@/assets/pool-texture-sapphire.jpg';
 import { paverTypes } from '@/data/paverData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { loadAllTextureLODs, getTextureForLOD, getLODLevel, type TextureLODSet } from '@/utils/textureLOD';
@@ -628,17 +629,29 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.save();
       ctx.clip();
       
-      // Simple flat water texture
-      const linerTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
-      if (linerTexture) {
-        const pattern = ctx.createPattern(linerTexture, 'repeat');
+      // Load and use sapphire blue pool texture
+      const poolTextureImg = new Image();
+      poolTextureImg.src = poolTextureSapphire;
+      
+      if (poolTextureImg.complete) {
+        const pattern = ctx.createPattern(poolTextureImg, 'repeat');
         if (pattern) {
           ctx.fillStyle = pattern;
           ctx.fill();
         }
       } else {
-        ctx.fillStyle = '#5BC5D9';
-        ctx.fill();
+        // Fallback while loading
+        const linerTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
+        if (linerTexture) {
+          const pattern = ctx.createPattern(linerTexture, 'repeat');
+          if (pattern) {
+            ctx.fillStyle = pattern;
+            ctx.fill();
+          }
+        } else {
+          ctx.fillStyle = '#5BC5D9';
+          ctx.fill();
+        }
       }
       
       ctx.restore();
