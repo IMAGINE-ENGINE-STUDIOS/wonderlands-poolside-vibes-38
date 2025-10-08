@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler } from 'lucide-react';
+import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower2, Droplets } from 'lucide-react';
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import { paverTypes } from '@/data/paverData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,14 +16,18 @@ interface Point {
 }
 
 interface PoolFeature {
-  type: 'stairs' | 'light' | 'jet';
+  type: 'stairs' | 'light' | 'jet' | 'tree' | 'fountain' | 'grass' | 'home';
   x: number;
   y: number;
   id: string;
-  angle?: number; // For jets pointing inward
-  steps?: number; // For stairs step count
-  wallSegment?: number; // Which wall segment it's attached to
-  wallPosition?: number; // Position along the wall (0-1)
+  angle?: number;
+  steps?: number;
+  wallSegment?: number;
+  wallPosition?: number;
+  width?: number;
+  height?: number;
+  treeType?: 'palm' | 'oak' | 'pine';
+  radius?: number;
 }
 
 interface PoolBuilderProps {
@@ -270,26 +274,49 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
-    // Clear canvas
+    // Draw grass background
+    ctx.fillStyle = '#4A7C3C';
+    ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
+    
+    // Add grass texture variation
+    for (let i = 0; i < 200; i++) {
+      const x = Math.random() * canvasSize.width;
+      const y = Math.random() * canvasSize.height;
+      const grassShade = Math.random() > 0.5 ? '#3D6B31' : '#568A44';
+      ctx.fillStyle = grassShade;
+      ctx.fillRect(x, y, 2, 2);
+    }
+
+    // Draw paver deck area around pool (smaller area)
     ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
 
     // Calculate paver size in pixels (24 inches = 2 feet)
     const paverSizeInFeet = paverSize / 12;
     const paverSizeInPixels = paverSizeInFeet * scale;
 
-    // Draw paver texture as background at scale
+    // Draw paver texture only around pool area (not full canvas)
     if (paverTextureRef.current) {
       const img = paverTextureRef.current;
       
-      // Calculate how many pavers fit
-      const numPaversX = Math.ceil(canvasSize.width / paverSizeInPixels) + 1;
-      const numPaversY = Math.ceil(canvasSize.height / paverSizeInPixels) + 1;
+      // Find pool bounds
+      const poolMinX = Math.min(...points.map(p => p.x)) - 100;
+      const poolMaxX = Math.max(...points.map(p => p.x)) + 100;
+      const poolMinY = Math.min(...points.map(p => p.y)) - 100;
+      const poolMaxY = Math.max(...points.map(p => p.y)) + 100;
+      
+      const startX = Math.max(0, poolMinX);
+      const startY = Math.max(0, poolMinY);
+      const endX = Math.min(canvasSize.width, poolMaxX);
+      const endY = Math.min(canvasSize.height, poolMaxY);
+      
+      const numPaversX = Math.ceil((endX - startX) / paverSizeInPixels) + 1;
+      const numPaversY = Math.ceil((endY - startY) / paverSizeInPixels) + 1;
       
       // Draw pavers as perfect squares with enhanced quality
       for (let i = 0; i < numPaversX; i++) {
         for (let j = 0; j < numPaversY; j++) {
-          const x = i * paverSizeInPixels;
-          const y = j * paverSizeInPixels;
+          const x = startX + i * paverSizeInPixels;
+          const y = startY + j * paverSizeInPixels;
           
           // Draw high-quality paver image
           ctx.save();
@@ -324,22 +351,18 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         }
       }
       
-      // Add directional lighting shader effect
-      const lightAngle = Math.PI / 4; // 45 degrees
+      // Add directional lighting shader effect only to deck
+      const lightAngle = Math.PI / 4;
       const lightGradient = ctx.createLinearGradient(
-        0, 0,
-        Math.cos(lightAngle) * canvasSize.width,
-        Math.sin(lightAngle) * canvasSize.height
+        startX, startY,
+        startX + Math.cos(lightAngle) * (endX - startX),
+        startY + Math.sin(lightAngle) * (endY - startY)
       );
       lightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
       lightGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
       lightGradient.addColorStop(1, 'rgba(0, 0, 0, 0.05)');
       ctx.fillStyle = lightGradient;
-      ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
-    } else {
-      // Fallback solid color
-      ctx.fillStyle = '#D4C4A8';
-      ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
+      ctx.fillRect(startX, startY, endX - startX, endY - startY);
     }
 
     // Draw subtle measurement grid
@@ -677,8 +700,72 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.shadowOffsetY = 0;
     });
 
+    // Draw landscape features first (behind pool)
+    features.filter(f => f.type === 'grass' || f.type === 'home').forEach((feature) => {
+      ctx.save();
+      
+      if (feature.type === 'grass') {
+        // Grass patch
+        const radius = feature.radius || 80;
+        ctx.fillStyle = '#5A9547';
+        ctx.beginPath();
+        ctx.arc(feature.x, feature.y, radius, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Grass texture
+        for (let i = 0; i < 30; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const dist = Math.random() * radius;
+          const x = feature.x + Math.cos(angle) * dist;
+          const y = feature.y + Math.sin(angle) * dist;
+          ctx.fillStyle = Math.random() > 0.5 ? '#4A8538' : '#6BA557';
+          ctx.fillRect(x, y, 2, 2);
+        }
+        
+        // Border
+        const isSelected = selectedFeature === feature.id;
+        ctx.strokeStyle = isSelected ? '#FFD700' : 'rgba(70, 120, 50, 0.5)';
+        ctx.lineWidth = isSelected ? 3 : 2;
+        ctx.stroke();
+      } else if (feature.type === 'home') {
+        // Home outline
+        const width = feature.width || 200;
+        const height = feature.height || 150;
+        const isSelected = selectedFeature === feature.id;
+        
+        // Main structure
+        ctx.fillStyle = '#D4C5B0';
+        ctx.fillRect(feature.x - width / 2, feature.y - height / 2, width, height);
+        
+        // Roof
+        ctx.fillStyle = '#8B6F47';
+        ctx.beginPath();
+        ctx.moveTo(feature.x - width / 2 - 10, feature.y - height / 2);
+        ctx.lineTo(feature.x, feature.y - height / 2 - 40);
+        ctx.lineTo(feature.x + width / 2 + 10, feature.y - height / 2);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Windows
+        ctx.fillStyle = '#A8D8EA';
+        ctx.fillRect(feature.x - 60, feature.y - 20, 30, 35);
+        ctx.fillRect(feature.x + 30, feature.y - 20, 30, 35);
+        
+        // Door
+        ctx.fillStyle = '#6B4423';
+        ctx.fillRect(feature.x - 15, feature.y + 20, 30, 50);
+        
+        // Border
+        ctx.strokeStyle = isSelected ? '#FFD700' : '#A0826D';
+        ctx.lineWidth = isSelected ? 3 : 2;
+        ctx.strokeRect(feature.x - width / 2, feature.y - height / 2, width, height);
+      }
+      
+      ctx.restore();
+    });
+
     // Draw features with better styling
-    features.forEach((feature) => {
+    features.filter(f => f.type !== 'grass' && f.type !== 'home').forEach((feature) => {
       ctx.save();
       ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
       ctx.shadowBlur = 4;
@@ -822,6 +909,145 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.arc(feature.x, feature.y, 6, 0, 2 * Math.PI);
         ctx.fill();
         ctx.stroke();
+      } else if (feature.type === 'tree') {
+        // Tree with different types
+        const treeType = feature.treeType || 'oak';
+        const isSelected = selectedFeature === feature.id;
+        
+        if (treeType === 'palm') {
+          // Palm tree trunk
+          ctx.fillStyle = '#8B6F47';
+          ctx.fillRect(feature.x - 6, feature.y - 20, 12, 60);
+          
+          // Palm fronds
+          ctx.strokeStyle = '#2D5016';
+          ctx.lineWidth = 4;
+          for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            ctx.beginPath();
+            ctx.moveTo(feature.x, feature.y - 20);
+            ctx.quadraticCurveTo(
+              feature.x + Math.cos(angle) * 20,
+              feature.y - 30,
+              feature.x + Math.cos(angle) * 40,
+              feature.y - 25
+            );
+            ctx.stroke();
+          }
+        } else if (treeType === 'pine') {
+          // Pine tree trunk
+          ctx.fillStyle = '#6B4423';
+          ctx.fillRect(feature.x - 5, feature.y + 10, 10, 40);
+          
+          // Pine layers
+          const layers = 4;
+          for (let i = 0; i < layers; i++) {
+            ctx.fillStyle = '#1C4D1F';
+            ctx.beginPath();
+            const y = feature.y - 10 - i * 15;
+            const width = 50 - i * 8;
+            ctx.moveTo(feature.x, y);
+            ctx.lineTo(feature.x - width / 2, y + 20);
+            ctx.lineTo(feature.x + width / 2, y + 20);
+            ctx.closePath();
+            ctx.fill();
+          }
+        } else {
+          // Oak tree trunk
+          ctx.fillStyle = '#5C4033';
+          ctx.fillRect(feature.x - 8, feature.y, 16, 50);
+          
+          // Oak canopy
+          const canopyGradient = ctx.createRadialGradient(
+            feature.x, feature.y - 10, 0,
+            feature.x, feature.y - 10, 45
+          );
+          canopyGradient.addColorStop(0, '#4A7C3C');
+          canopyGradient.addColorStop(1, '#2D5016');
+          ctx.fillStyle = canopyGradient;
+          ctx.beginPath();
+          ctx.arc(feature.x, feature.y - 10, 45, 0, 2 * Math.PI);
+          ctx.fill();
+          
+          // Canopy detail circles
+          ctx.beginPath();
+          ctx.arc(feature.x - 20, feature.y - 15, 30, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(feature.x + 20, feature.y - 15, 30, 0, 2 * Math.PI);
+          ctx.fill();
+        }
+        
+        // Selection indicator
+        if (isSelected) {
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(feature.x, feature.y, 60, 0, 2 * Math.PI);
+          ctx.stroke();
+        }
+      } else if (feature.type === 'fountain') {
+        // Decorative fountain
+        const isSelected = selectedFeature === feature.id;
+        
+        // Fountain base
+        ctx.fillStyle = '#A0826D';
+        ctx.beginPath();
+        ctx.arc(feature.x, feature.y + 20, 30, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Fountain bowl
+        ctx.fillStyle = '#C5B4A0';
+        ctx.beginPath();
+        ctx.ellipse(feature.x, feature.y + 15, 25, 8, 0, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Water
+        const waterGradient = ctx.createRadialGradient(
+          feature.x, feature.y + 15, 0,
+          feature.x, feature.y + 15, 20
+        );
+        waterGradient.addColorStop(0, 'rgba(160, 216, 241, 0.8)');
+        waterGradient.addColorStop(1, 'rgba(91, 165, 198, 0.6)');
+        ctx.fillStyle = waterGradient;
+        ctx.beginPath();
+        ctx.ellipse(feature.x, feature.y + 15, 20, 6, 0, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Animated water spray
+        const time = waterAnimationTime;
+        for (let i = 0; i < 5; i++) {
+          const angle = (i / 5) * Math.PI * 2 + time;
+          const height = 15 + Math.sin(time * 3 + i) * 5;
+          ctx.strokeStyle = 'rgba(160, 216, 241, 0.6)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(feature.x, feature.y + 15);
+          ctx.quadraticCurveTo(
+            feature.x + Math.cos(angle) * 8,
+            feature.y - height,
+            feature.x + Math.cos(angle) * 4,
+            feature.y + 15
+          );
+          ctx.stroke();
+        }
+        
+        // Center spray
+        ctx.strokeStyle = 'rgba(200, 240, 255, 0.8)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(feature.x, feature.y + 15);
+        ctx.lineTo(feature.x, feature.y - 20 - Math.sin(time * 2) * 8);
+        ctx.stroke();
+        
+        // Selection
+        if (isSelected) {
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(feature.x, feature.y + 20, 35, 0, 2 * Math.PI);
+          ctx.stroke();
+        }
       }
       ctx.restore();
     });
@@ -1028,25 +1254,42 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     }
   };
 
-  const addFeature = (type: 'stairs' | 'light' | 'jet') => {
+  const addFeature = (type: 'stairs' | 'light' | 'jet' | 'tree' | 'fountain' | 'grass' | 'home') => {
     if (type === 'jet') {
       setPendingFeature('jet');
       return;
     }
 
-    // Find a point on the wall
-    const wallPoint = findNearestWallPoint(canvasSize.width / 2, canvasSize.height / 2);
+    let newFeature: PoolFeature;
     
-    const newFeature: PoolFeature = {
-      type,
-      x: wallPoint.x,
-      y: wallPoint.y,
-      id: Date.now().toString(),
-      steps: type === 'stairs' ? 3 : undefined,
-      angle: wallPoint.angle + Math.PI / 2,
-      wallSegment: wallPoint.segment,
-      wallPosition: wallPoint.position
-    };
+    if (type === 'tree' || type === 'fountain' || type === 'grass' || type === 'home') {
+      // Place in open area
+      newFeature = {
+        type,
+        x: canvasSize.width / 2 + Math.random() * 100 - 50,
+        y: canvasSize.height / 2 + Math.random() * 100 - 50,
+        id: Date.now().toString(),
+        treeType: type === 'tree' ? 'oak' : undefined,
+        radius: type === 'grass' ? 80 : undefined,
+        width: type === 'home' ? 200 : undefined,
+        height: type === 'home' ? 150 : undefined,
+      };
+    } else {
+      // Find a point on the wall for stairs/lights
+      const wallPoint = findNearestWallPoint(canvasSize.width / 2, canvasSize.height / 2);
+      
+      newFeature = {
+        type,
+        x: wallPoint.x,
+        y: wallPoint.y,
+        id: Date.now().toString(),
+        steps: type === 'stairs' ? 3 : undefined,
+        angle: wallPoint.angle + Math.PI / 2,
+        wallSegment: wallPoint.segment,
+        wallPosition: wallPoint.position
+      };
+    }
+    
     setFeatures([...features, newFeature]);
     setSelectedFeature(newFeature.id);
   };
@@ -1351,6 +1594,49 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
             <Waves className="h-4 w-4 mr-1" />
             {pendingFeature === 'jet' ? 'Click to Place Jet' : 'Add Jet'}
           </Button>
+          <div className="h-4 w-px bg-border mx-1" />
+          <Button size="sm" onClick={() => addFeature('tree')} variant="outline" className="border-green-300 text-green-700 hover:bg-green-50">
+            <Trees className="h-4 w-4 mr-1" />
+            Add Tree
+          </Button>
+          <Button size="sm" onClick={() => addFeature('fountain')} variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+            <Droplets className="h-4 w-4 mr-1" />
+            Add Fountain
+          </Button>
+          <Button size="sm" onClick={() => addFeature('grass')} variant="outline" className="border-green-400 text-green-800 hover:bg-green-50">
+            <Flower2 className="h-4 w-4 mr-1" />
+            Add Grass
+          </Button>
+          <Button size="sm" onClick={() => addFeature('home')} variant="outline" className="border-orange-300 text-orange-700 hover:bg-orange-50">
+            <Home className="h-4 w-4 mr-1" />
+            Add House
+          </Button>
+          {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'tree' && (
+            <>
+              <div className="h-4 w-px bg-border mx-1" />
+              <Button size="sm" onClick={() => {
+                setFeatures(prev => prev.map(f => 
+                  f.id === selectedFeature ? { ...f, treeType: 'oak' } : f
+                ));
+              }} variant="outline">
+                Oak
+              </Button>
+              <Button size="sm" onClick={() => {
+                setFeatures(prev => prev.map(f => 
+                  f.id === selectedFeature ? { ...f, treeType: 'palm' } : f
+                ));
+              }} variant="outline">
+                Palm
+              </Button>
+              <Button size="sm" onClick={() => {
+                setFeatures(prev => prev.map(f => 
+                  f.id === selectedFeature ? { ...f, treeType: 'pine' } : f
+                ));
+              }} variant="outline">
+                Pine
+              </Button>
+            </>
+          )}
           {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'stairs' && (
             <>
               <div className="h-4 w-px bg-border mx-1" />
