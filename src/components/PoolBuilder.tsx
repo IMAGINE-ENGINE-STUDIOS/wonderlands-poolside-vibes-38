@@ -2758,7 +2758,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         </div>
 
         {/* Tool Buttons - Top Right of Canvas */}
-        <div className="absolute top-8 right-8 flex items-center gap-2 z-20 bg-background/95 backdrop-blur p-2 rounded-lg border shadow-lg">
+        <div className="absolute top-8 left-8 flex items-center gap-2 z-20 bg-background/95 backdrop-blur p-2 rounded-lg border shadow-lg scale-[0.8] opacity-20 hover:opacity-100 transition-opacity duration-300">
           <Button 
             size="sm" 
             variant={activeTool === 'select' ? "default" : "outline"}
