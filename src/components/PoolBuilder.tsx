@@ -1124,103 +1124,134 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.lineWidth = isSelected ? 3 : 2;
         ctx.stroke();
       } else if (feature.type === 'home') {
-        // House with editable roof (like roof.jpg reference)
+        // American-style house roof with ridge lines and shingles
         const isSelected = selectedFeature === feature.id;
         
-        // Initialize roof points if not exist (complex multi-section roof)
+        // Initialize roof points if not exist (American residential roof shape)
         if (!feature.roofPoints || feature.roofPoints.length === 0) {
           const width = 200;
           const height = 150;
           feature.roofPoints = [
-            { x: -width/2, y: -height/2, id: 'r1' },
-            { x: -width/4, y: -height/2, id: 'r2' },
-            { x: width/4, y: -height/2, id: 'r3' },
-            { x: width/2, y: -height/2, id: 'r4' },
-            { x: width/2, y: 0, id: 'r5' },
-            { x: width/2, y: height/2, id: 'r6' },
-            { x: width/4, y: height/2, id: 'r7' },
-            { x: -width/4, y: height/2, id: 'r8' },
-            { x: -width/2, y: height/2, id: 'r9' },
-            { x: -width/2, y: 0, id: 'r10' }
+            { x: -width/2, y: 0, id: 'r1' },           // Left base
+            { x: -width/2, y: -height/3, id: 'r2' },   // Left side peak
+            { x: 0, y: -height/2, id: 'r3' },          // Top ridge peak
+            { x: width/2, y: -height/3, id: 'r4' },    // Right side peak
+            { x: width/2, y: 0, id: 'r5' },            // Right base
+            { x: width/3, y: 0, id: 'r6' },            // Right base inner
+            { x: width/3, y: height/4, id: 'r7' },     // Right lower section
+            { x: 0, y: height/3, id: 'r8' },           // Bottom center
+            { x: -width/3, y: height/4, id: 'r9' },    // Left lower section
+            { x: -width/3, y: 0, id: 'r10' }           // Left base inner
           ];
         }
         
-        // Draw roof with splines
+        // Draw American-style roof
         ctx.save();
         ctx.translate(feature.x, feature.y);
         
-        // Create roof shape
-        ctx.beginPath();
         const roofPts = feature.roofPoints;
         if (roofPts.length > 2) {
+          // Main roof outline
+          ctx.beginPath();
           ctx.moveTo(roofPts[0].x, roofPts[0].y);
           for (let i = 1; i < roofPts.length; i++) {
             ctx.lineTo(roofPts[i].x, roofPts[i].y);
           }
           ctx.closePath();
           
-          // Roof gradient fill
-          const roofGradient = ctx.createLinearGradient(
-            -100, -75, 100, 75
-          );
-          roofGradient.addColorStop(0, '#8B4513');
-          roofGradient.addColorStop(0.3, '#A0522D');
-          roofGradient.addColorStop(0.6, '#8B4513');
-          roofGradient.addColorStop(1, '#704214');
-          
-          ctx.fillStyle = roofGradient;
+          // Base roof color
+          ctx.fillStyle = '#A0463D';
           ctx.fill();
           
-          // Roof sections - create visual depth like the reference
-          ctx.strokeStyle = 'rgba(60, 40, 20, 0.4)';
-          ctx.lineWidth = 2;
+          // Calculate center for ridge lines
+          const centerX = roofPts.reduce((sum, p) => sum + p.x, 0) / roofPts.length;
+          const centerY = roofPts.reduce((sum, p) => sum + p.y, 0) / roofPts.length;
           
-          // Draw ridge lines to create multi-section appearance
-          for (let i = 1; i < roofPts.length - 1; i += 2) {
+          // Draw ridge lines emanating from center (dimensional effect)
+          ctx.strokeStyle = 'rgba(120, 50, 40, 0.6)';
+          ctx.lineWidth = 2.5;
+          roofPts.forEach((pt) => {
             ctx.beginPath();
-            ctx.moveTo(roofPts[i].x, roofPts[i].y);
-            ctx.lineTo(roofPts[i+1]?.x || roofPts[i].x, roofPts[i+1]?.y || roofPts[i].y);
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(pt.x, pt.y);
             ctx.stroke();
-          }
+          });
           
-          // Shingle pattern
-          ctx.strokeStyle = 'rgba(40, 30, 15, 0.25)';
-          ctx.lineWidth = 0.8;
-          for (let i = 0; i < 20; i++) {
-            const progress = i / 20;
-            const minX = Math.min(...roofPts.map(p => p.x));
-            const maxX = Math.max(...roofPts.map(p => p.x));
-            const minY = Math.min(...roofPts.map(p => p.y));
-            const maxY = Math.max(...roofPts.map(p => p.y));
+          // Draw layered shingle texture (concentric pattern)
+          const numLayers = 12;
+          for (let layer = 0; layer < numLayers; layer++) {
+            const ratio = (layer + 1) / (numLayers + 1);
             
-            const y = minY + (maxY - minY) * progress;
+            // Alternate shingle colors for depth
+            const layerColor = layer % 2 === 0 
+              ? `rgba(140, 60, 50, ${0.15})` 
+              : `rgba(100, 40, 35, ${0.15})`;
+            
+            ctx.strokeStyle = layerColor;
+            ctx.lineWidth = 1.5;
+            
             ctx.beginPath();
-            ctx.moveTo(minX, y);
-            ctx.lineTo(maxX, y);
+            roofPts.forEach((pt, i) => {
+              const lx = centerX + (pt.x - centerX) * ratio;
+              const ly = centerY + (pt.y - centerY) * ratio;
+              if (i === 0) ctx.moveTo(lx, ly);
+              else ctx.lineTo(lx, ly);
+            });
+            ctx.closePath();
+            ctx.stroke();
+            
+            // Add shingle texture lines
+            if (layer % 2 === 0) {
+              ctx.fillStyle = layerColor;
+              ctx.fill();
+            }
+          }
+          
+          // Add vertical shingle pattern lines
+          const minX = Math.min(...roofPts.map(p => p.x));
+          const maxX = Math.max(...roofPts.map(p => p.x));
+          const minY = Math.min(...roofPts.map(p => p.y));
+          const maxY = Math.max(...roofPts.map(p => p.y));
+          
+          ctx.strokeStyle = 'rgba(80, 40, 30, 0.15)';
+          ctx.lineWidth = 0.8;
+          for (let i = 0; i < 15; i++) {
+            const x = minX + (maxX - minX) * (i / 15);
+            ctx.beginPath();
+            ctx.moveTo(x, minY);
+            ctx.lineTo(x, maxY);
             ctx.stroke();
           }
           
-          // Roof outline
-          ctx.strokeStyle = isSelected ? '#FFD700' : '#5D4E37';
+          // Roof outline/edge
+          ctx.beginPath();
+          roofPts.forEach((pt, i) => {
+            if (i === 0) ctx.moveTo(pt.x, pt.y);
+            else ctx.lineTo(pt.x, pt.y);
+          });
+          ctx.closePath();
+          ctx.strokeStyle = isSelected ? '#FFD700' : '#5D3A2E';
           ctx.lineWidth = isSelected ? 3 : 2;
           ctx.stroke();
         }
         
         ctx.restore();
         
-        // Draw roof anchor points when selected
+        // Draw editable roof anchor points when selected
         if (isSelected && feature.roofPoints) {
           feature.roofPoints.forEach((rp) => {
             const rpx = feature.x + rp.x;
             const rpy = feature.y + rp.y;
-            const size = 8;
+            const size = 7;
             const isRoofSelected = selectedRoofPoint === rp.id;
             
-            ctx.fillStyle = isRoofSelected ? '#2E86AB' : '#ffffff';
-            ctx.strokeStyle = isRoofSelected ? '#1a4d6d' : '#2E86AB';
+            ctx.fillStyle = isRoofSelected ? '#FFD700' : '#FFFFFF';
+            ctx.strokeStyle = isRoofSelected ? '#FF8800' : '#333333';
             ctx.lineWidth = 2;
-            ctx.fillRect(rpx - size / 2, rpy - size / 2, size, size);
-            ctx.strokeRect(rpx - size / 2, rpy - size / 2, size, size);
+            ctx.beginPath();
+            ctx.arc(rpx, rpy, size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
           });
         }
       } else if (feature.type === 'shrub') {
