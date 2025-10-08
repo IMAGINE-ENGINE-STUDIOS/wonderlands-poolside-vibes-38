@@ -22,9 +22,9 @@ export interface TextureLODSet {
  */
 export const calculateTextureSizes = (baseSize: number) => {
   return {
-    high: baseSize,      // Full resolution
-    medium: baseSize * 0.5,  // Half resolution
-    low: baseSize * 0.25     // Quarter resolution (current light version)
+    high: baseSize * 2,      // Double resolution for full quality when zoomed
+    medium: baseSize,        // Full base resolution
+    low: baseSize * 0.5      // Half resolution for distant view
   };
 };
 
@@ -32,8 +32,8 @@ export const calculateTextureSizes = (baseSize: number) => {
  * Determine which LOD level to use based on zoom level
  */
 export const getLODLevel = (zoomLevel: number): 'high' | 'medium' | 'low' => {
-  if (zoomLevel >= 1.5) return 'high';
-  if (zoomLevel >= 0.75) return 'medium';
+  if (zoomLevel >= 1.3) return 'high';    // Use high quality at lower zoom threshold
+  if (zoomLevel >= 0.8) return 'medium';  // Medium quality for moderate zoom
   return 'low';
 };
 
@@ -85,9 +85,9 @@ const loadTexture = (src: string, scale: number = 1): Promise<HTMLImageElement> 
 export const loadTextureLOD = async (src: string): Promise<TextureLOD> => {
   try {
     const [high, medium, low] = await Promise.all([
-      loadTexture(src, 1.0),    // Full size
-      loadTexture(src, 0.5),    // Half size
-      loadTexture(src, 0.25)    // Quarter size
+      loadTexture(src, 2.0),    // Double size for maximum quality when zoomed
+      loadTexture(src, 1.0),    // Full base size
+      loadTexture(src, 0.5)     // Half size for distant view
     ]);
 
     return {

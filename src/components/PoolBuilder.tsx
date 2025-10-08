@@ -140,8 +140,10 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     // Coping is drawn with lineWidth = paverSizeInPixels, so outer edge is paverSizeInPixels/2 from pool edge
     const paverSizeInFeet = paverSize / 12;
     const copingHalfWidthFeet = paverSizeInFeet / 2;
-    // Total offset = coping half-width (to outer edge) + 3ft deck extension beyond pool
-    const totalOffsetFeet = copingHalfWidthFeet + 3;
+    
+    // For default deck: ensure it's 38ft x 18ft minimum, or follows pool + 3ft, whichever is larger
+    // Total offset = coping half-width (to outer edge) + deck extension
+    const totalOffsetFeet = copingHalfWidthFeet + deckDistanceInFeet;
     const offsetPixels = totalOffsetFeet * scale;
     const hardscapePoints: HardscapePoint[] = [];
     
@@ -194,6 +196,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [deckOffset, setDeckOffset] = useState(3); // Deck offset in feet (minimum 3ft)
   const [snapPoint, setSnapPoint] = useState<{ x: number; y: number } | null>(null);
   const [scale, setScale] = useState(10); // pixels per foot - reduced for larger canvas
+  const [defaultDeckWidth] = useState(18); // Default deck width in feet
+  const [defaultDeckLength] = useState(38); // Default deck length in feet
   const [canvasSize, setCanvasSize] = useState({
     width: window.innerWidth - 20, 
     height: window.innerHeight - 100 
@@ -777,7 +781,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.stroke();
 
       // Draw dimension label with background
-      const label = `${distance.toFixed(1)}'`;
+      const label = `${distance.toFixed(1)}' deck`;
       const metrics = ctx.measureText(label);
       const padding = 4;
       
