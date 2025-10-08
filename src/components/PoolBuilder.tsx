@@ -804,11 +804,43 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.restore();
         
       } else if (feature.type === 'light') {
-        // LED color-changing light with advanced physics
+        // LED color-changing light with advanced physics AND directional cone
         const hue = lightHue;
         const lightColor = `hsl(${hue}, 100%, 60%)`;
         const lightColorBright = `hsl(${hue}, 100%, 80%)`;
         const lightColorDim = `hsl(${hue}, 80%, 40%)`;
+        
+        // Calculate angle pointing toward pool center
+        const centerX = points.reduce((sum, p) => sum + p.x, 0) / points.length;
+        const centerY = points.reduce((sum, p) => sum + p.y, 0) / points.length;
+        const angleToCenter = Math.atan2(centerY - feature.y, centerX - feature.x);
+        const lightAngle = feature.angle || angleToCenter;
+        
+        // Draw directional light cone pointing inward
+        ctx.save();
+        ctx.translate(feature.x, feature.y);
+        ctx.rotate(lightAngle);
+        
+        // Light cone with gradient
+        const coneGradient = ctx.createLinearGradient(0, 0, 60, 0);
+        coneGradient.addColorStop(0, lightColorBright.replace(')', ', 0.4)').replace('hsl', 'hsla'));
+        coneGradient.addColorStop(0.5, lightColor.replace(')', ', 0.2)').replace('hsl', 'hsla'));
+        coneGradient.addColorStop(1, 'transparent');
+        
+        ctx.fillStyle = coneGradient;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(60, -25);
+        ctx.lineTo(60, 25);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Cone edges
+        ctx.strokeStyle = lightColor.replace(')', ', 0.3)').replace('hsl', 'hsla');
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        
+        ctx.restore();
         
         // Multiple glow layers for realistic light diffusion
         const glowLayers = [
@@ -867,31 +899,39 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.stroke();
         
       } else if (feature.type === 'jet') {
+        const isInsidePoolArea = isInsidePool(feature.x, feature.y);
         const nearWall = findNearestWallPoint(feature.x, feature.y);
         const distToWall = Math.sqrt((feature.x - nearWall.x) ** 2 + (feature.y - nearWall.y) ** 2);
         
-        // If near wall, show directional cone
-        if (distToWall < 30) {
-          const angle = feature.angle || (nearWall.angle + Math.PI / 2);
-          
-          // Draw jet cone pointing inward
-          ctx.save();
-          ctx.translate(feature.x, feature.y);
-          ctx.rotate(angle);
-          
-          ctx.fillStyle = 'rgba(160, 216, 241, 0.3)';
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.lineTo(40, -15);
-          ctx.lineTo(40, 15);
-          ctx.closePath();
-          ctx.fill();
-          
-          ctx.strokeStyle = 'rgba(46, 134, 171, 0.5)';
-          ctx.lineWidth = 1;
-          ctx.stroke();
-          ctx.restore();
+        // Determine jet angle - either from wall or toward center if on floor
+        let jetAngle = feature.angle;
+        if (!jetAngle) {
+          if (distToWall < 50) {
+            jetAngle = nearWall.angle + Math.PI / 2;
+          } else {
+            const centerX = points.reduce((sum, p) => sum + p.x, 0) / points.length;
+            const centerY = points.reduce((sum, p) => sum + p.y, 0) / points.length;
+            jetAngle = Math.atan2(centerY - feature.y, centerX - feature.x);
+          }
         }
+        
+        // Draw jet cone pointing inward
+        ctx.save();
+        ctx.translate(feature.x, feature.y);
+        ctx.rotate(jetAngle);
+        
+        ctx.fillStyle = 'rgba(160, 216, 241, 0.3)';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(40, -15);
+        ctx.lineTo(40, 15);
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.strokeStyle = 'rgba(46, 134, 171, 0.5)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
         
         // Jet body with ripples
         ctx.strokeStyle = 'rgba(160, 216, 241, 0.4)';
@@ -1052,30 +1092,54 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.restore();
     });
 
-    // Draw pending jet following cursor
+    // Draw pending jet following cursor - show where it will snap
     if (pendingFeature === 'jet') {
       ctx.save();
       const nearWall = findNearestWallPoint(cursorPos.x, cursorPos.y);
       const distToWall = Math.sqrt((cursorPos.x - nearWall.x) ** 2 + (cursorPos.y - nearWall.y) ** 2);
+      const isInsidePoolArea = isInsidePool(cursorPos.x, cursorPos.y);
       
-      if (distToWall < 30) {
-        const angle = nearWall.angle + Math.PI / 2;
+      let previewX = cursorPos.x;
+      let previewY = cursorPos.y;
+      let previewAngle;
+      
+      // Show snap preview
+      if (distToWall < 50 || !isInsidePoolArea) {
+        previewX = nearWall.x;
+        previewY = nearWall.y;
+        previewAngle = nearWall.angle + Math.PI / 2;
         
-        ctx.translate(cursorPos.x, cursorPos.y);
-        ctx.rotate(angle);
-        
-        ctx.fillStyle = 'rgba(160, 216, 241, 0.4)';
-        ctx.strokeStyle = 'rgba(46, 134, 171, 0.6)';
+        // Draw snap indicator line
+        ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
         ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
         ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(40, -15);
-        ctx.lineTo(40, 15);
-        ctx.closePath();
-        ctx.fill();
+        ctx.moveTo(cursorPos.x, cursorPos.y);
+        ctx.lineTo(previewX, previewY);
         ctx.stroke();
-        ctx.restore();
+        ctx.setLineDash([]);
+      } else {
+        // Show it will place on floor
+        const centerX = points.reduce((sum, p) => sum + p.x, 0) / points.length;
+        const centerY = points.reduce((sum, p) => sum + p.y, 0) / points.length;
+        previewAngle = Math.atan2(centerY - previewY, centerX - previewX);
       }
+      
+      // Draw preview cone
+      ctx.translate(previewX, previewY);
+      ctx.rotate(previewAngle);
+      
+      ctx.fillStyle = 'rgba(160, 216, 241, 0.4)';
+      ctx.strokeStyle = 'rgba(46, 134, 171, 0.6)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(40, -15);
+      ctx.lineTo(40, 15);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
       
       ctx.fillStyle = 'rgba(91, 165, 198, 0.7)';
       ctx.strokeStyle = '#2E86AB';
@@ -1106,17 +1170,35 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // If placing jet, place it
+    // If placing jet, snap it to nearest wall or place on pool floor
     if (pendingFeature === 'jet') {
       const nearWall = findNearestWallPoint(x, y);
       const distToWall = Math.sqrt((x - nearWall.x) ** 2 + (y - nearWall.y) ** 2);
+      const isInsidePoolArea = isInsidePool(x, y);
+      
+      let jetX, jetY, jetAngle;
+      
+      // Snap to wall if within 50 pixels or outside pool
+      if (distToWall < 50 || !isInsidePoolArea) {
+        jetX = nearWall.x;
+        jetY = nearWall.y;
+        jetAngle = nearWall.angle + Math.PI / 2; // Point inward
+      } else {
+        // Place on pool floor (inside pool)
+        jetX = x;
+        jetY = y;
+        // Calculate angle pointing toward center of pool
+        const centerX = points.reduce((sum, p) => sum + p.x, 0) / points.length;
+        const centerY = points.reduce((sum, p) => sum + p.y, 0) / points.length;
+        jetAngle = Math.atan2(centerY - y, centerX - x);
+      }
       
       const newJet: PoolFeature = {
         type: 'jet',
-        x,
-        y,
+        x: jetX,
+        y: jetY,
         id: Date.now().toString(),
-        angle: distToWall < 30 ? nearWall.angle + Math.PI / 2 : undefined
+        angle: jetAngle
       };
       
       setFeatures([...features, newJet]);
@@ -1274,8 +1356,21 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         width: type === 'home' ? 200 : undefined,
         height: type === 'home' ? 150 : undefined,
       };
+    } else if (type === 'light') {
+      // Lights snap to walls and point inward
+      const wallPoint = findNearestWallPoint(canvasSize.width / 2, canvasSize.height / 2);
+      
+      newFeature = {
+        type,
+        x: wallPoint.x,
+        y: wallPoint.y,
+        id: Date.now().toString(),
+        angle: wallPoint.angle + Math.PI / 2, // Point inward
+        wallSegment: wallPoint.segment,
+        wallPosition: wallPoint.position
+      };
     } else {
-      // Find a point on the wall for stairs/lights
+      // Stairs snap to walls
       const wallPoint = findNearestWallPoint(canvasSize.width / 2, canvasSize.height / 2);
       
       newFeature = {
