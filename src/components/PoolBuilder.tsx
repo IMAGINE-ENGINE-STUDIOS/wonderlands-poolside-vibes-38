@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler } from 'lucide-react';
+import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 
 interface Point {
   x: number;
@@ -35,6 +36,8 @@ interface PoolBuilderProps {
 export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const paverTextureRef = useRef<HTMLImageElement | null>(null);
+  const linerTextureRef = useRef<HTMLImageElement | null>(null);
   const [points, setPoints] = useState<Point[]>([
     { x: 100, y: 100, id: '1' },
     { x: 300, y: 100, id: '2' },
@@ -52,6 +55,39 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
   const [draggingFeature, setDraggingFeature] = useState(false);
+  const [texturesLoaded, setTexturesLoaded] = useState(false);
+
+  // Load textures
+  useEffect(() => {
+    const paverImg = new Image();
+    const linerImg = new Image();
+    
+    // Random paver from available options
+    const paverImages = [
+      '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
+      '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png',
+      '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png',
+    ];
+    const randomPaver = paverImages[Math.floor(Math.random() * paverImages.length)];
+    
+    paverImg.src = randomPaver;
+    linerImg.src = aquamarineFinish;
+    
+    let loadedCount = 0;
+    const checkLoaded = () => {
+      loadedCount++;
+      if (loadedCount === 2) {
+        paverTextureRef.current = paverImg;
+        linerTextureRef.current = linerImg;
+        setTexturesLoaded(true);
+      }
+    };
+    
+    paverImg.onload = checkLoaded;
+    linerImg.onload = checkLoaded;
+    paverImg.onerror = checkLoaded;
+    linerImg.onerror = checkLoaded;
+  }, []);
 
   // Update canvas size based on container
   useEffect(() => {
@@ -143,37 +179,29 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   // Draw the pool shape
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !texturesLoaded) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Clear canvas with tile-like background
-    ctx.fillStyle = '#E8D4B8';
-    ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
+    // Clear canvas
+    ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
 
-    // Add pool deck texture
-    ctx.fillStyle = '#D4C4A8';
-    for (let i = 0; i < canvasSize.width; i += 40) {
-      for (let j = 0; j < canvasSize.height; j += 40) {
-        if (Math.random() > 0.5) {
-          ctx.fillRect(i, j, 39, 39);
-        }
+    // Draw paver texture as background
+    if (paverTextureRef.current) {
+      const pattern = ctx.createPattern(paverTextureRef.current, 'repeat');
+      if (pattern) {
+        ctx.fillStyle = pattern;
+        ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
       }
+    } else {
+      // Fallback solid color
+      ctx.fillStyle = '#D4C4A8';
+      ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
     }
 
-    // Draw realistic tile grid
-    const tileSize = scale * 2;
-    ctx.strokeStyle = 'rgba(180, 150, 110, 0.3)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < canvasSize.width; i += tileSize) {
-      for (let j = 0; j < canvasSize.height; j += tileSize) {
-        ctx.strokeRect(i, j, tileSize, tileSize);
-      }
-    }
-
-    // Draw measurement grid (lighter)
-    ctx.strokeStyle = 'rgba(120, 100, 80, 0.15)';
+    // Draw subtle measurement grid
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
     ctx.lineWidth = 0.5;
     for (let i = 0; i < canvasSize.width; i += scale) {
       ctx.beginPath();
@@ -188,7 +216,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.stroke();
     }
 
-    // Draw pool shape with smooth curves and realistic water
+    // Draw pool shape with smooth curves
     if (points.length > 2) {
       ctx.save();
       
@@ -213,50 +241,32 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       }
       ctx.closePath();
 
-      // Mosaic border (darker blue tiles)
-      ctx.lineWidth = 12;
-      ctx.strokeStyle = '#1a4d6d';
-      ctx.stroke();
-      
-      // Inner mosaic border
-      ctx.lineWidth = 8;
-      ctx.strokeStyle = '#2a5d7d';
+      // Draw pool coping border
+      ctx.lineWidth = 10;
+      ctx.strokeStyle = '#8B7355';
       ctx.stroke();
 
-      // Premium liner pattern (Aquamarine mosaic)
-      const centerX = points.reduce((sum, p) => sum + p.x, 0) / points.length;
-      const centerY = points.reduce((sum, p) => sum + p.y, 0) / points.length;
-      
-      // Base liner gradient
-      const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, canvasSize.width / 2);
-      gradient.addColorStop(0, '#5BC5D9');
-      gradient.addColorStop(0.3, '#3DA8BA');
-      gradient.addColorStop(0.7, '#2E86AB');
-      gradient.addColorStop(1, '#1a5d7d');
-      
-      ctx.fillStyle = gradient;
-      ctx.fill();
-
-      // Mosaic liner texture
+      // Fill pool with premium liner texture
       ctx.save();
       ctx.clip();
-      ctx.globalAlpha = 0.15;
-      const mosaicSize = 8;
-      for (let mx = 0; mx < canvasSize.width; mx += mosaicSize) {
-        for (let my = 0; my < canvasSize.height; my += mosaicSize) {
-          if (Math.random() > 0.3) {
-            ctx.fillStyle = Math.random() > 0.5 ? '#4FB3D9' : '#2a7d9d';
-            ctx.fillRect(mx, my, mosaicSize - 1, mosaicSize - 1);
-          }
+      
+      if (linerTextureRef.current) {
+        const pattern = ctx.createPattern(linerTextureRef.current, 'repeat');
+        if (pattern) {
+          ctx.fillStyle = pattern;
+          ctx.fill();
         }
+      } else {
+        // Fallback to solid aquamarine color
+        ctx.fillStyle = '#5BC5D9';
+        ctx.fill();
       }
-      ctx.globalAlpha = 1;
-      ctx.restore();
-
-      // Water shimmer effect
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+      
+      // Subtle water shimmer overlay
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.fill();
-
+      
+      ctx.restore();
       ctx.restore();
 
       // Draw dimension lines and labels
@@ -482,7 +492,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         area: parseFloat(calculateArea())
       });
     }
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded]);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
