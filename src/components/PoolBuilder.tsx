@@ -165,13 +165,18 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     return () => clearInterval(interval);
   }, []);
 
-  // Animate water movement
+  // Animate water movement - use ref to avoid triggering re-renders
   useEffect(() => {
+    let animationTime = 0;
+    let animationId: number;
+    
     const animate = () => {
-      setWaterAnimationTime((prev) => prev + 0.02);
-      requestAnimationFrame(animate);
+      animationTime += 0.02;
+      setWaterAnimationTime(animationTime);
+      animationId = requestAnimationFrame(animate);
     };
-    const animationId = requestAnimationFrame(animate);
+    
+    animationId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationId);
   }, []);
 
@@ -273,6 +278,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
+    // Clear canvas
+    ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
+    
     // Draw grass background
     ctx.fillStyle = '#4A7C3C';
     ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
@@ -287,7 +295,6 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     }
 
     // Draw paver deck area around pool (smaller area)
-    ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
 
     // Calculate paver size in pixels (24 inches = 2 feet)
     const paverSizeInFeet = paverSize / 12;
@@ -1169,7 +1176,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.restore();
     }
 
-    // Notify parent of changes
+    // Notify parent of changes only when pool structure changes
     if (onPoolDataChange) {
       onPoolDataChange({
         points,
@@ -1178,7 +1185,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         area: parseFloat(calculateArea())
       });
     }
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, waterAnimationTime, copingThickness, lightHue]);
+    
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, lightHue, selectedPaverId, selectedCopingId, selectedFinishId, poolShape]);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
