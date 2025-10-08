@@ -130,32 +130,42 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     }
   };
 
-  // Generate hardscape points that follow pool outline with offset
+  // Generate hardscape points that follow pool outline with offset on ALL sides
   const generateHardscapeFromPool = (poolPoints: Point[], offsetInFeet: number = 3): HardscapePoint[] => {
     const offsetPixels = offsetInFeet * scale;
     const hardscapePoints: HardscapePoint[] = [];
     
-    // Calculate centroid of pool
-    const centroidX = poolPoints.reduce((sum, p) => sum + p.x, 0) / poolPoints.length;
-    const centroidY = poolPoints.reduce((sum, p) => sum + p.y, 0) / poolPoints.length;
-    
-    // For each pool point, create an offset point moving away from centroid
-    poolPoints.forEach((point, i) => {
-      // Calculate direction from centroid to point
-      const dx = point.x - centroidX;
-      const dy = point.y - centroidY;
-      const distance = Math.sqrt(dx * dx + dy * dy);
+    // For each pool edge, calculate perpendicular offset
+    for (let i = 0; i < poolPoints.length; i++) {
+      const current = poolPoints[i];
+      const prev = poolPoints[(i - 1 + poolPoints.length) % poolPoints.length];
+      const next = poolPoints[(i + 1) % poolPoints.length];
       
-      // Normalize and apply offset
-      const normalizedDx = dx / distance;
-      const normalizedDy = dy / distance;
+      // Calculate perpendicular offsets for both adjacent edges
+      const dx1 = current.x - prev.x;
+      const dy1 = current.y - prev.y;
+      const len1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+      const perpX1 = -dy1 / len1;
+      const perpY1 = dx1 / len1;
       
+      const dx2 = next.x - current.x;
+      const dy2 = next.y - current.y;
+      const len2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+      const perpX2 = -dy2 / len2;
+      const perpY2 = dx2 / len2;
+      
+      // Average the perpendicular directions for smooth corners
+      const avgPerpX = (perpX1 + perpX2) / 2;
+      const avgPerpY = (perpY1 + perpY2) / 2;
+      const avgLen = Math.sqrt(avgPerpX * avgPerpX + avgPerpY * avgPerpY);
+      
+      // Apply offset perpendicular to edges
       hardscapePoints.push({
-        x: point.x + normalizedDx * offsetPixels,
-        y: point.y + normalizedDy * offsetPixels,
+        x: current.x + (avgPerpX / avgLen) * offsetPixels,
+        y: current.y + (avgPerpY / avgLen) * offsetPixels,
         id: `h${i + 1}`
       });
-    });
+    }
     
     return hardscapePoints;
   };
@@ -169,6 +179,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [smoothCorners, setSmoothCorners] = useState(false);
+  const [activeTool, setActiveTool] = useState<'select' | 'rotate' | 'zoom'>('select');
+  const [zoomLevel, setZoomLevel] = useState(1);
   const [scale, setScale] = useState(10); // pixels per foot - reduced for larger canvas
   const [canvasSize, setCanvasSize] = useState({
     width: window.innerWidth - 20, 
@@ -2088,9 +2100,61 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     <div ref={containerRef} className="h-screen flex flex-col bg-gradient-to-br from-background to-muted/20">
       {/* Top Control Bar */}
       <div className="flex items-center gap-2 px-3 py-2 border-b bg-background/95 backdrop-blur">
-        <Button size="sm" variant="outline" onClick={() => setShowControls(!showControls)}>
-          {showControls ? 'Hide Controls' : 'Show Controls'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => setShowControls(!showControls)}>
+            {showControls ? 'Hide Controls' : 'Show Controls'}
+          </Button>
+          
+          <Button 
+            size="sm" 
+            variant={legendExpanded ? "default" : "outline"}
+            onClick={() => setLegendExpanded(!legendExpanded)}
+          >
+            <svg className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9h18M9 21V9"/>
+            </svg>
+            Legend
+          </Button>
+        </div>
+
+        {/* Tool Buttons */}
+        <div className="flex items-center gap-1 ml-4 border-l pl-4">
+          <Button 
+            size="sm" 
+            variant={activeTool === 'select' ? "default" : "outline"}
+            onClick={() => setActiveTool('select')}
+            className="h-8 w-8 p-0"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/>
+            </svg>
+          </Button>
+          <Button 
+            size="sm" 
+            variant={activeTool === 'rotate' ? "default" : "outline"}
+            onClick={() => setActiveTool('rotate')}
+            className="h-8 w-8 p-0"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+            </svg>
+          </Button>
+          <Button 
+            size="sm" 
+            variant={activeTool === 'zoom' ? "default" : "outline"}
+            onClick={() => {
+              setActiveTool('zoom');
+              setZoomLevel(prev => Math.min(prev + 0.2, 2));
+            }}
+            className="h-8 w-8 p-0"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35M11 8v6M8 11h6"/>
+            </svg>
+          </Button>
+        </div>
         
         <div className="flex items-center gap-4 ml-auto">
           <div className="flex items-center gap-1 text-xs">
@@ -2613,19 +2677,26 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       {/* Canvas with Legend */}
       <div className="flex-1 flex gap-4 p-4 overflow-hidden">
         {/* Main Canvas */}
-        <div className="flex-1 flex items-center justify-center">
-          <canvas
-            ref={canvasRef}
-            width={canvasSize.width}
-            height={canvasSize.height}
-            onClick={handleCanvasClick}
-            onMouseDown={handleCanvasMouseDown}
-            onMouseMove={handleCanvasMouseMove}
-            onMouseUp={handleCanvasMouseUp}
-            onMouseLeave={handleCanvasMouseUp}
-            className="border-2 border-border rounded-lg shadow-2xl touch-none bg-gradient-to-br from-background to-muted/10"
-            style={{ cursor: pendingFeature === 'jet' ? 'crosshair' : 'default' }}
-          />
+        <div className="flex-1 flex items-center justify-center overflow-hidden">
+          <div style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center', transition: 'transform 0.2s' }}>
+            <canvas
+              ref={canvasRef}
+              width={canvasSize.width}
+              height={canvasSize.height}
+              onClick={handleCanvasClick}
+              onMouseDown={handleCanvasMouseDown}
+              onMouseMove={handleCanvasMouseMove}
+              onMouseUp={handleCanvasMouseUp}
+              onMouseLeave={handleCanvasMouseUp}
+              className="border-2 border-border rounded-lg shadow-2xl touch-none bg-gradient-to-br from-background to-muted/10"
+              style={{ 
+                cursor: pendingFeature === 'jet' ? 'crosshair' 
+                  : activeTool === 'select' ? 'default' 
+                  : activeTool === 'rotate' ? 'grab' 
+                  : 'zoom-in' 
+              }}
+            />
+          </div>
         </div>
 
         {/* Legend Panel - Floating & Collapsible */}
