@@ -86,9 +86,10 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [scale, setScale] = useState(15); // pixels per foot - increased for better visibility
   const [canvasSize, setCanvasSize] = useState({ 
-    width: Math.max(800, window.innerWidth - 420), 
-    height: window.innerHeight - 40 
+    width: window.innerWidth - 20, 
+    height: window.innerHeight - 80 
   });
+  const [showControls, setShowControls] = useState(true);
   const [editingDimension, setEditingDimension] = useState<string | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<string | null>(null);
   const [pendingFeature, setPendingFeature] = useState<'jet' | null>(null);
@@ -186,8 +187,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   // Update canvas size to fill screen
   useEffect(() => {
     const updateCanvasSize = () => {
-      const width = Math.max(800, window.innerWidth - 420);
-      const height = window.innerHeight - 40;
+      const width = window.innerWidth - 20;
+      const height = window.innerHeight - 80;
       setCanvasSize({ width, height });
     };
 
@@ -1467,141 +1468,96 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   };
 
   return (
-    <div ref={containerRef} className="flex h-screen overflow-hidden bg-gradient-to-br from-background to-muted/20">
-      {/* Left Sidebar - Controls */}
-      <div className="w-[400px] overflow-y-auto border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="p-4 space-y-4">
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-card p-3 rounded-lg border">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                <Ruler className="h-3 w-3" />
-                Perimeter
-              </Label>
-              <div className="text-xl font-bold text-primary mt-1">
-                {calculatePerimeter()}<span className="text-xs text-muted-foreground ml-1">ft</span>
-              </div>
-            </div>
-            <div className="bg-card p-3 rounded-lg border">
-              <Label className="text-xs text-muted-foreground">Area</Label>
-              <div className="text-xl font-bold text-primary mt-1">
-                {calculateArea()}<span className="text-xs text-muted-foreground ml-1">sq ft</span>
-              </div>
-            </div>
-            <div className="bg-card p-3 rounded-lg border">
-              <Label className="text-xs text-muted-foreground">Corners</Label>
-              <div className="text-xl font-bold text-primary mt-1">{points.length}</div>
-            </div>
-            <div className="bg-card p-3 rounded-lg border">
-              <Label className="text-xs text-muted-foreground">Features</Label>
-              <div className="text-xl font-bold text-primary mt-1">{features.length}</div>
-            </div>
+    <div ref={containerRef} className="h-screen flex flex-col bg-gradient-to-br from-background to-muted/20">
+      {/* Top Control Bar */}
+      <div className="flex items-center gap-2 px-3 py-2 border-b bg-background/95 backdrop-blur">
+        <Button size="sm" variant="outline" onClick={() => setShowControls(!showControls)}>
+          {showControls ? 'Hide Controls' : 'Show Controls'}
+        </Button>
+        
+        <div className="flex items-center gap-4 ml-auto">
+          <div className="flex items-center gap-1 text-xs">
+            <Ruler className="h-3 w-3" />
+            <span className="font-bold">{calculatePerimeter()}</span>
+            <span className="text-muted-foreground">ft</span>
+          </div>
+          <div className="flex items-center gap-1 text-xs">
+            <span className="font-bold">{calculateArea()}</span>
+            <span className="text-muted-foreground">sq ft</span>
+          </div>
+          <div className="flex items-center gap-1 text-xs">
+            <span className="font-bold">{points.length}</span>
+            <span className="text-muted-foreground">corners</span>
+          </div>
+          <div className="flex items-center gap-1 text-xs">
+            <span className="font-bold">{features.length}</span>
+            <span className="text-muted-foreground">features</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Collapsible Controls Panel */}
+      {showControls && (
+        <div className="flex items-center gap-2 px-3 py-2 border-b bg-background/90 backdrop-blur overflow-x-auto">
+          {/* Shape Buttons */}
+          <div className="flex items-center gap-1">
+            <Label className="text-xs mr-1">Shape:</Label>
+            <Button
+              size="sm"
+              variant={poolShape === 'rectangle' ? 'default' : 'outline'}
+              onClick={() => {
+                setPoolShape('rectangle');
+                setPoints(getShapePoints('rectangle'));
+                setFeatures([]);
+              }}
+              className="h-7 text-xs px-2"
+            >
+              Rectangle
+            </Button>
+            <Button
+              size="sm"
+              variant={poolShape === 'kidney' ? 'default' : 'outline'}
+              onClick={() => {
+                setPoolShape('kidney');
+                setPoints(getShapePoints('kidney'));
+                setFeatures([]);
+              }}
+              className="h-7 text-xs px-2"
+            >
+              Kidney
+            </Button>
+            <Button
+              size="sm"
+              variant={poolShape === 'freeform' ? 'default' : 'outline'}
+              onClick={() => {
+                setPoolShape('freeform');
+                setPoints(getShapePoints('freeform'));
+                setFeatures([]);
+              }}
+              className="h-7 text-xs px-2"
+            >
+              Freeform
+            </Button>
           </div>
 
-          {/* Pool Shape Selector */}
-          <div className="p-4 bg-muted/30 rounded-lg border">
-            <Label className="text-sm font-semibold mb-3 block">Pool Shape</Label>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant={poolShape === 'rectangle' ? 'default' : 'outline'}
-                onClick={() => {
-                  setPoolShape('rectangle');
-                  setPoints(getShapePoints('rectangle'));
-                  setFeatures([]);
-                }}
-              >
-                Rectangle
-              </Button>
-              <Button
-                size="sm"
-                variant={poolShape === 'kidney' ? 'default' : 'outline'}
-                onClick={() => {
-                  setPoolShape('kidney');
-                  setPoints(getShapePoints('kidney'));
-                  setFeatures([]);
-                }}
-              >
-                Kidney
-              </Button>
-              <Button
-                size="sm"
-                variant={poolShape === 'freeform' ? 'default' : 'outline'}
-                onClick={() => {
-                  setPoolShape('freeform');
-                  setPoints(getShapePoints('freeform'));
-                  setFeatures([]);
-                }}
-              >
-                Freeform
-              </Button>
-            </div>
-          </div>
+          <div className="h-6 w-px bg-border" />
 
-          {/* Coping Border Controls */}
-          <div className="p-4 bg-muted/30 rounded-lg border">
-            <Label className="text-sm font-semibold mb-3 block">Coping Border</Label>
-            <div className="space-y-3">
-              <Select value={selectedCopingId} onValueChange={setSelectedCopingId}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select coping type" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px] bg-background">
-                  {paverTypes.filter(p => p.category === 'paver').map((paver) => (
-                    <SelectItem key={paver.id} value={paver.id}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-6 h-6 rounded border border-border bg-cover bg-center"
-                          style={{ backgroundImage: `url(${paver.image})` }}
-                        />
-                        <span>{paver.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="flex items-center gap-2">
-                <Label className="text-xs text-muted-foreground whitespace-nowrap">
-                  Thickness: {(copingThickness / scale).toFixed(1)} ft
-                </Label>
-                <Input
-                  type="range"
-                  min={scale * 0.5}
-                  max={scale * 2}
-                  step={1}
-                  value={copingThickness}
-                  onChange={(e) => setCopingThickness(Number(e.target.value))}
-                  className="flex-1"
-                />
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0.5"
-                  max="2"
-                  value={(copingThickness / scale).toFixed(1)}
-                  onChange={(e) => setCopingThickness(Number(e.target.value) * scale)}
-                  className="w-16 h-8 text-sm"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Pool Finish Selector */}
-          <div className="p-4 bg-muted/30 rounded-lg border">
-            <Label className="text-sm font-semibold mb-3 block">Pool Finish</Label>
-            <Select value={selectedFinishId} onValueChange={setSelectedFinishId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select finish" />
+          {/* Coping */}
+          <div className="flex items-center gap-1">
+            <Label className="text-xs mr-1">Coping:</Label>
+            <Select value={selectedCopingId} onValueChange={setSelectedCopingId}>
+              <SelectTrigger className="w-32 h-7 text-xs">
+                <SelectValue />
               </SelectTrigger>
-              <SelectContent className="max-h-[300px] bg-background">
-                {finishes.map((finish) => (
-                  <SelectItem key={finish.id} value={finish.id}>
+              <SelectContent className="max-h-[300px]">
+                {paverTypes.filter(p => p.category === 'paver').map((paver) => (
+                  <SelectItem key={paver.id} value={paver.id}>
                     <div className="flex items-center gap-2">
                       <div 
-                        className="w-6 h-6 rounded border border-border bg-cover bg-center"
-                        style={{ backgroundImage: `url(${finish.image})` }}
+                        className="w-4 h-4 rounded border bg-cover bg-center"
+                        style={{ backgroundImage: `url(${paver.image})` }}
                       />
-                      <span>{finish.name}</span>
+                      <span className="text-xs">{paver.name}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -1609,198 +1565,167 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
             </Select>
           </div>
 
-          {/* Deck Paver Selector */}
-          <div className="p-4 bg-muted/30 rounded-lg border">
-            <Label className="text-sm font-semibold mb-3 block">Deck Paver</Label>
-            <div className="space-y-2">
-              <Select value={selectedPaverId} onValueChange={setSelectedPaverId}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select paver type" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px] bg-background">
-                  {paverTypes.filter(p => p.category === 'paver').map((paver) => (
-                    <SelectItem key={paver.id} value={paver.id}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-6 h-6 rounded border border-border bg-cover bg-center"
-                          style={{ backgroundImage: `url(${paver.image})` }}
-                        />
-                        <span>{paver.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="flex gap-2">
-                <Badge variant="outline" className="text-xs">
-                  {paverSize}" x {paverSize}"
-                </Badge>
-                <Badge variant="secondary" className="text-xs">
-                  ${paverTypes.find(p => p.id === selectedPaverId)?.basePrice || 15}/sq ft
-                </Badge>
-              </div>
-            </div>
+          {/* Finish */}
+          <div className="flex items-center gap-1">
+            <Label className="text-xs mr-1">Finish:</Label>
+            <Select value={selectedFinishId} onValueChange={setSelectedFinishId}>
+              <SelectTrigger className="w-32 h-7 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="max-h-[300px]">
+                {finishes.map((finish) => (
+                  <SelectItem key={finish.id} value={finish.id}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded border bg-cover bg-center"
+                        style={{ backgroundImage: `url(${finish.image})` }}
+                      />
+                      <span className="text-xs">{finish.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Editable Dimensions */}
-          <div className="p-4 bg-muted/50 rounded-lg border">
-            <Label className="text-sm font-semibold mb-3 block">Edge Dimensions (feet)</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {points.map((point, index) => {
-                const next = points[(index + 1) % points.length];
-                const distance = calculateDistance(point, next);
-                return (
-                  <div key={`dim-${point.id}`} className="flex flex-col gap-1">
-                    <Label className="text-xs text-muted-foreground">
-                      Edge {index + 1}
-                    </Label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      min="1"
-                      value={distance.toFixed(1)}
-                      onChange={(e) => updateDimension(index, e.target.value)}
-                      className="h-8 text-sm"
-                    />
-                  </div>
-                );
-              })}
-            </div>
+          {/* Deck Paver */}
+          <div className="flex items-center gap-1">
+            <Label className="text-xs mr-1">Deck:</Label>
+            <Select value={selectedPaverId} onValueChange={setSelectedPaverId}>
+              <SelectTrigger className="w-32 h-7 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="max-h-[300px]">
+                {paverTypes.filter(p => p.category === 'paver').map((paver) => (
+                  <SelectItem key={paver.id} value={paver.id}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded border bg-cover bg-center"
+                        style={{ backgroundImage: `url(${paver.image})` }}
+                      />
+                      <span className="text-xs">{paver.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+
+          <div className="h-6 w-px bg-border" />
 
           {/* Action Buttons */}
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <Button size="sm" onClick={addPoint} className="flex-1">
-                <Plus className="h-4 w-4 mr-1" />
-                Add Corner
-              </Button>
-              <Button 
-                size="sm" 
-                onClick={removePoint} 
-                variant="outline"
-                disabled={!selectedPoint || points.length <= 3}
-                className="flex-1"
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Remove
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2">
-              <Button size="sm" onClick={() => addFeature('stairs')} variant="outline">
-                <Move className="h-4 w-4 mr-1" />
-                Stairs
-              </Button>
-              <Button size="sm" onClick={() => addFeature('light')} variant="outline">
-                <Lightbulb className="h-4 w-4 mr-1" />
-                Light
-              </Button>
-              <Button 
-                size="sm" 
-                onClick={() => addFeature('jet')} 
-                variant="outline"
-                disabled={pendingFeature === 'jet'}
-              >
-                <Waves className="h-4 w-4 mr-1" />
-                Jet
-              </Button>
-              <Button size="sm" onClick={() => addFeature('tree')} variant="outline">
-                <Trees className="h-4 w-4 mr-1" />
-                Tree
-              </Button>
-              <Button size="sm" onClick={() => addFeature('fountain')} variant="outline">
-                <Droplets className="h-4 w-4 mr-1" />
-                Fountain
-              </Button>
-              <Button size="sm" onClick={() => addFeature('grass')} variant="outline">
-                <Flower2 className="h-4 w-4 mr-1" />
-                Grass
-              </Button>
-              <Button size="sm" onClick={() => addFeature('home')} variant="outline">
-                <Home className="h-4 w-4 mr-1" />
-                House
-              </Button>
-            </div>
+          <Button size="sm" onClick={addPoint} className="h-7 text-xs px-2">
+            <Plus className="h-3 w-3 mr-1" />
+            Corner
+          </Button>
+          <Button 
+            size="sm" 
+            onClick={removePoint} 
+            variant="outline"
+            disabled={!selectedPoint || points.length <= 3}
+            className="h-7 text-xs px-2"
+          >
+            <Trash2 className="h-3 w-3 mr-1" />
+            Remove
+          </Button>
 
-            {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'tree' && (
-              <div className="flex gap-2">
-                <Button size="sm" onClick={() => {
-                  setFeatures(prev => prev.map(f => 
-                    f.id === selectedFeature ? { ...f, treeType: 'oak' } : f
-                  ));
-                }} variant="outline" className="flex-1">
-                  Oak
-                </Button>
-                <Button size="sm" onClick={() => {
-                  setFeatures(prev => prev.map(f => 
-                    f.id === selectedFeature ? { ...f, treeType: 'palm' } : f
-                  ));
-                }} variant="outline" className="flex-1">
-                  Palm
-                </Button>
-                <Button size="sm" onClick={() => {
-                  setFeatures(prev => prev.map(f => 
-                    f.id === selectedFeature ? { ...f, treeType: 'pine' } : f
-                  ));
-                }} variant="outline" className="flex-1">
-                  Pine
-                </Button>
-              </div>
-            )}
-            
-            {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'stairs' && (
-              <div className="flex gap-2">
-                <Button size="sm" onClick={addStairStep} variant="outline" className="flex-1">
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Step
-                </Button>
-                <Button size="sm" onClick={removeStairStep} variant="outline" className="flex-1">
-                  <Minus className="h-4 w-4 mr-1" />
-                  Remove Step
-                </Button>
-              </div>
-            )}
-            
-            {selectedFeature && (
-              <Button size="sm" onClick={removeFeature} variant="destructive" className="w-full">
-                <Trash2 className="h-4 w-4 mr-1" />
+          <div className="h-6 w-px bg-border" />
+
+          <Button size="sm" onClick={() => addFeature('stairs')} variant="outline" className="h-7 text-xs px-2">
+            <Move className="h-3 w-3 mr-1" />
+            Stairs
+          </Button>
+          <Button size="sm" onClick={() => addFeature('light')} variant="outline" className="h-7 text-xs px-2">
+            <Lightbulb className="h-3 w-3 mr-1" />
+            Light
+          </Button>
+          <Button 
+            size="sm" 
+            onClick={() => addFeature('jet')} 
+            variant="outline"
+            disabled={pendingFeature === 'jet'}
+            className="h-7 text-xs px-2"
+          >
+            <Waves className="h-3 w-3 mr-1" />
+            Jet
+          </Button>
+          <Button size="sm" onClick={() => addFeature('tree')} variant="outline" className="h-7 text-xs px-2">
+            <Trees className="h-3 w-3 mr-1" />
+            Tree
+          </Button>
+          <Button size="sm" onClick={() => addFeature('fountain')} variant="outline" className="h-7 text-xs px-2">
+            <Droplets className="h-3 w-3 mr-1" />
+            Fountain
+          </Button>
+          <Button size="sm" onClick={() => addFeature('grass')} variant="outline" className="h-7 text-xs px-2">
+            <Flower2 className="h-3 w-3 mr-1" />
+            Grass
+          </Button>
+          <Button size="sm" onClick={() => addFeature('home')} variant="outline" className="h-7 text-xs px-2">
+            <Home className="h-3 w-3 mr-1" />
+            House
+          </Button>
+
+          {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'stairs' && (
+            <>
+              <div className="h-6 w-px bg-border" />
+              <Button size="sm" onClick={addStairStep} variant="outline" className="h-7 text-xs px-2">
+                <Plus className="h-3 w-3 mr-1" />
+                Step
+              </Button>
+              <Button size="sm" onClick={removeStairStep} variant="outline" className="h-7 text-xs px-2">
+                <Minus className="h-3 w-3 mr-1" />
+                Step
+              </Button>
+            </>
+          )}
+
+          {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'tree' && (
+            <>
+              <div className="h-6 w-px bg-border" />
+              <Button size="sm" onClick={() => {
+                setFeatures(prev => prev.map(f => 
+                  f.id === selectedFeature ? { ...f, treeType: 'oak' } : f
+                ));
+              }} variant="outline" className="h-7 text-xs px-2">
+                Oak
+              </Button>
+              <Button size="sm" onClick={() => {
+                setFeatures(prev => prev.map(f => 
+                  f.id === selectedFeature ? { ...f, treeType: 'palm' } : f
+                ));
+              }} variant="outline" className="h-7 text-xs px-2">
+                Palm
+              </Button>
+              <Button size="sm" onClick={() => {
+                setFeatures(prev => prev.map(f => 
+                  f.id === selectedFeature ? { ...f, treeType: 'pine' } : f
+                ));
+              }} variant="outline" className="h-7 text-xs px-2">
+                Pine
+              </Button>
+            </>
+          )}
+
+          {selectedFeature && (
+            <>
+              <div className="h-6 w-px bg-border" />
+              <Button size="sm" onClick={removeFeature} variant="destructive" className="h-7 text-xs px-2">
+                <Trash2 className="h-3 w-3 mr-1" />
                 Remove Feature
               </Button>
-            )}
-          </div>
-
-          {/* Info Box */}
-          <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-            <div className="space-y-1 text-xs text-muted-foreground">
-              <p className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-background border-2 border-primary inline-block" />
-                Drag anchors to reshape
-              </p>
-              <p className="flex items-center gap-2">
-                <Ruler className="h-3 w-3" />
-                Edit dimensions above
-              </p>
-              <p className="flex items-center gap-2">
-                <Lightbulb className="h-3 w-3" />
-                Features snap to walls
-              </p>
-            </div>
-            <div className="mt-2 p-2 bg-card rounded border">
-              <p className="text-xs font-semibold text-primary">Premium Liner Included</p>
-              <p className="text-xs text-muted-foreground">Aquamarine Mosaic</p>
-            </div>
-          </div>
+            </>
+          )}
         </div>
-      </div>
+      )}
 
-      {/* Right Side - Canvas (Full Screen) */}
-      <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
+      {/* Canvas - Almost Full Screen */}
+      <div className="flex-1 flex items-center justify-center p-2 overflow-hidden">
         <canvas
           ref={canvasRef}
           width={canvasSize.width}
           height={canvasSize.height}
-          className="border-2 border-border rounded-xl shadow-2xl touch-none bg-gradient-to-br from-amber-50 to-stone-100"
+          className="border border-border rounded-lg shadow-2xl touch-none bg-gradient-to-br from-amber-50 to-stone-100"
           onClick={handleCanvasClick}
           onMouseDown={handleCanvasMouseDown}
           onMouseMove={handleCanvasMouseMove}
