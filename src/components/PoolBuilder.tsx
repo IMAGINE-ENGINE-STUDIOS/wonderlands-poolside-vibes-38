@@ -17,6 +17,10 @@ interface PoolFeature {
   x: number;
   y: number;
   id: string;
+  angle?: number; // For jets pointing inward
+  steps?: number; // For stairs step count
+  wallSegment?: number; // Which wall segment it's attached to
+  wallPosition?: number; // Position along the wall (0-1)
 }
 
 interface PoolBuilderProps {
@@ -44,6 +48,10 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [canvasSize, setCanvasSize] = useState({ width: 600, height: 400 });
   const [editingDimension, setEditingDimension] = useState<string | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<string | null>(null);
+  const [pendingFeature, setPendingFeature] = useState<'jet' | null>(null);
+  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+  const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
+  const [draggingFeature, setDraggingFeature] = useState(false);
 
   // Update canvas size based on container
   useEffect(() => {
@@ -91,6 +99,47 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     return (sqPixels / (scale * scale)).toFixed(1);
   };
 
+  // Find nearest point on pool perimeter
+  const findNearestWallPoint = (x: number, y: number) => {
+    let minDist = Infinity;
+    let nearestPoint = { x, y, segment: 0, position: 0, angle: 0 };
+
+    for (let i = 0; i < points.length; i++) {
+      const p1 = points[i];
+      const p2 = points[(i + 1) % points.length];
+      
+      // Find closest point on line segment
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      const t = Math.max(0, Math.min(1, ((x - p1.x) * dx + (y - p1.y) * dy) / (len * len)));
+      
+      const projX = p1.x + t * dx;
+      const projY = p1.y + t * dy;
+      const dist = Math.sqrt((x - projX) ** 2 + (y - projY) ** 2);
+      
+      if (dist < minDist) {
+        minDist = dist;
+        const angle = Math.atan2(dy, dx);
+        nearestPoint = { x: projX, y: projY, segment: i, position: t, angle };
+      }
+    }
+    
+    return nearestPoint;
+  };
+
+  // Check if point is inside pool
+  const isInsidePool = (x: number, y: number) => {
+    let inside = false;
+    for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+      const xi = points[i].x, yi = points[i].y;
+      const xj = points[j].x, yj = points[j].y;
+      const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  };
+
   // Draw the pool shape
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -102,6 +151,16 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     // Clear canvas with tile-like background
     ctx.fillStyle = '#E8D4B8';
     ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
+
+    // Add pool deck texture
+    ctx.fillStyle = '#D4C4A8';
+    for (let i = 0; i < canvasSize.width; i += 40) {
+      for (let j = 0; j < canvasSize.height; j += 40) {
+        if (Math.random() > 0.5) {
+          ctx.fillRect(i, j, 39, 39);
+        }
+      }
+    }
 
     // Draw realistic tile grid
     const tileSize = scale * 2;
@@ -164,16 +223,35 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.strokeStyle = '#2a5d7d';
       ctx.stroke();
 
-      // Water gradient
+      // Premium liner pattern (Aquamarine mosaic)
       const centerX = points.reduce((sum, p) => sum + p.x, 0) / points.length;
       const centerY = points.reduce((sum, p) => sum + p.y, 0) / points.length;
+      
+      // Base liner gradient
       const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, canvasSize.width / 2);
-      gradient.addColorStop(0, '#4FB3D9');
-      gradient.addColorStop(0.5, '#2E86AB');
-      gradient.addColorStop(1, '#1a4d6d');
+      gradient.addColorStop(0, '#5BC5D9');
+      gradient.addColorStop(0.3, '#3DA8BA');
+      gradient.addColorStop(0.7, '#2E86AB');
+      gradient.addColorStop(1, '#1a5d7d');
       
       ctx.fillStyle = gradient;
       ctx.fill();
+
+      // Mosaic liner texture
+      ctx.save();
+      ctx.clip();
+      ctx.globalAlpha = 0.15;
+      const mosaicSize = 8;
+      for (let mx = 0; mx < canvasSize.width; mx += mosaicSize) {
+        for (let my = 0; my < canvasSize.height; my += mosaicSize) {
+          if (Math.random() > 0.3) {
+            ctx.fillStyle = Math.random() > 0.5 ? '#4FB3D9' : '#2a7d9d';
+            ctx.fillRect(mx, my, mosaicSize - 1, mosaicSize - 1);
+          }
+        }
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
 
       // Water shimmer effect
       ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
@@ -256,66 +334,144 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.save();
       ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
       ctx.shadowBlur = 4;
+      const isSelected = selectedFeature === feature.id;
       
       if (feature.type === 'stairs') {
-        // Teal stairs with tile pattern
-        ctx.fillStyle = '#4FB3D9';
-        ctx.strokeStyle = '#1a4d6d';
-        ctx.lineWidth = 2;
-        const stairWidth = 25;
-        const stairHeight = 20;
-        for (let i = 0; i < 3; i++) {
+        // Stairs with individual steps
+        const steps = feature.steps || 3;
+        const stairWidth = 30;
+        const stepHeight = 6;
+        const angle = feature.angle || 0;
+        
+        ctx.save();
+        ctx.translate(feature.x, feature.y);
+        ctx.rotate(angle);
+        
+        for (let i = 0; i < steps; i++) {
+          ctx.fillStyle = i % 2 === 0 ? '#6BB6D6' : '#5BA5C6';
+          ctx.strokeStyle = isSelected ? '#FFD700' : '#1a4d6d';
+          ctx.lineWidth = isSelected ? 3 : 2;
+          
+          const stepWidth = stairWidth - i * 4;
           ctx.fillRect(
-            feature.x - stairWidth / 2,
-            feature.y - stairHeight / 2 + i * 7,
-            stairWidth - i * 5,
-            6
+            -stepWidth / 2,
+            -steps * stepHeight / 2 + i * stepHeight,
+            stepWidth,
+            stepHeight - 1
           );
           ctx.strokeRect(
-            feature.x - stairWidth / 2,
-            feature.y - stairHeight / 2 + i * 7,
-            stairWidth - i * 5,
-            6
+            -stepWidth / 2,
+            -steps * stepHeight / 2 + i * stepHeight,
+            stepWidth,
+            stepHeight - 1
           );
         }
+        ctx.restore();
+        
       } else if (feature.type === 'light') {
-        // Glowing light
-        const gradient = ctx.createRadialGradient(feature.x, feature.y, 0, feature.x, feature.y, 12);
-        gradient.addColorStop(0, '#FFF9E6');
-        gradient.addColorStop(0.5, '#FFE87C');
+        // Wall-mounted light with glow
+        const gradient = ctx.createRadialGradient(feature.x, feature.y, 0, feature.x, feature.y, 20);
+        gradient.addColorStop(0, 'rgba(255, 249, 230, 0.8)');
+        gradient.addColorStop(0.4, 'rgba(255, 232, 124, 0.4)');
         gradient.addColorStop(1, 'transparent');
         ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(feature.x, feature.y, 12, 0, 2 * Math.PI);
+        ctx.arc(feature.x, feature.y, 20, 0, 2 * Math.PI);
         ctx.fill();
         
         ctx.fillStyle = '#FFD700';
-        ctx.strokeStyle = '#B8860B';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = isSelected ? '#FF6B00' : '#B8860B';
+        ctx.lineWidth = isSelected ? 3 : 2;
         ctx.beginPath();
-        ctx.arc(feature.x, feature.y, 6, 0, 2 * Math.PI);
+        ctx.arc(feature.x, feature.y, 7, 0, 2 * Math.PI);
         ctx.fill();
         ctx.stroke();
+        
+        // Light housing
+        ctx.fillStyle = '#8B7355';
+        ctx.fillRect(feature.x - 10, feature.y - 3, 20, 6);
+        
       } else if (feature.type === 'jet') {
-        // Water jet with ripple effect
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.lineWidth = 2;
-        for (let i = 1; i <= 3; i++) {
+        const nearWall = findNearestWallPoint(feature.x, feature.y);
+        const distToWall = Math.sqrt((feature.x - nearWall.x) ** 2 + (feature.y - nearWall.y) ** 2);
+        
+        // If near wall, show directional cone
+        if (distToWall < 30) {
+          const angle = feature.angle || (nearWall.angle + Math.PI / 2);
+          
+          // Draw jet cone pointing inward
+          ctx.save();
+          ctx.translate(feature.x, feature.y);
+          ctx.rotate(angle);
+          
+          ctx.fillStyle = 'rgba(160, 216, 241, 0.3)';
           ctx.beginPath();
-          ctx.arc(feature.x, feature.y, 5 * i, 0, 2 * Math.PI);
+          ctx.moveTo(0, 0);
+          ctx.lineTo(40, -15);
+          ctx.lineTo(40, 15);
+          ctx.closePath();
+          ctx.fill();
+          
+          ctx.strokeStyle = 'rgba(46, 134, 171, 0.5)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.restore();
+        }
+        
+        // Jet body with ripples
+        ctx.strokeStyle = 'rgba(160, 216, 241, 0.4)';
+        ctx.lineWidth = 1;
+        for (let i = 1; i <= 2; i++) {
+          ctx.beginPath();
+          ctx.arc(feature.x, feature.y, 8 + i * 4, 0, 2 * Math.PI);
           ctx.stroke();
         }
         
-        ctx.fillStyle = '#A0D8F1';
-        ctx.strokeStyle = '#2E86AB';
-        ctx.lineWidth = 2;
+        ctx.fillStyle = '#5BA5C6';
+        ctx.strokeStyle = isSelected ? '#FFD700' : '#2E86AB';
+        ctx.lineWidth = isSelected ? 3 : 2;
         ctx.beginPath();
-        ctx.arc(feature.x, feature.y, 5, 0, 2 * Math.PI);
+        ctx.arc(feature.x, feature.y, 6, 0, 2 * Math.PI);
         ctx.fill();
         ctx.stroke();
       }
       ctx.restore();
     });
+
+    // Draw pending jet following cursor
+    if (pendingFeature === 'jet') {
+      ctx.save();
+      const nearWall = findNearestWallPoint(cursorPos.x, cursorPos.y);
+      const distToWall = Math.sqrt((cursorPos.x - nearWall.x) ** 2 + (cursorPos.y - nearWall.y) ** 2);
+      
+      if (distToWall < 30) {
+        const angle = nearWall.angle + Math.PI / 2;
+        
+        ctx.translate(cursorPos.x, cursorPos.y);
+        ctx.rotate(angle);
+        
+        ctx.fillStyle = 'rgba(160, 216, 241, 0.4)';
+        ctx.strokeStyle = 'rgba(46, 134, 171, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(40, -15);
+        ctx.lineTo(40, 15);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+      
+      ctx.fillStyle = 'rgba(91, 165, 198, 0.7)';
+      ctx.strokeStyle = '#2E86AB';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cursorPos.x, cursorPos.y, 6, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
 
     // Notify parent of changes
     if (onPoolDataChange) {
@@ -326,7 +482,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         area: parseFloat(calculateArea())
       });
     }
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature]);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -336,6 +492,35 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
+    // If placing jet, place it
+    if (pendingFeature === 'jet') {
+      const nearWall = findNearestWallPoint(x, y);
+      const distToWall = Math.sqrt((x - nearWall.x) ** 2 + (y - nearWall.y) ** 2);
+      
+      const newJet: PoolFeature = {
+        type: 'jet',
+        x,
+        y,
+        id: Date.now().toString(),
+        angle: distToWall < 30 ? nearWall.angle + Math.PI / 2 : undefined
+      };
+      
+      setFeatures([...features, newJet]);
+      setPendingFeature(null);
+      return;
+    }
+
+    // Check if clicked on a feature
+    const clickedFeature = features.find(f => 
+      Math.sqrt((f.x - x) ** 2 + (f.y - y) ** 2) < 15
+    );
+
+    if (clickedFeature) {
+      setSelectedFeature(clickedFeature.id);
+      setSelectedPoint(null);
+      return;
+    }
+
     // Check if clicked on a point
     const clickedPoint = points.find(p => 
       Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10
@@ -343,18 +528,33 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
 
     if (clickedPoint) {
       setSelectedPoint(clickedPoint.id);
+      setSelectedFeature(null);
     } else {
       setSelectedPoint(null);
+      setSelectedFeature(null);
     }
   };
 
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (pendingFeature) return;
+    
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+
+    // Check for feature drag
+    const clickedFeature = features.find(f => 
+      Math.sqrt((f.x - x) ** 2 + (f.y - y) ** 2) < 15
+    );
+
+    if (clickedFeature) {
+      setSelectedFeature(clickedFeature.id);
+      setDraggingFeature(true);
+      return;
+    }
 
     const clickedPoint = points.find(p => 
       Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10
@@ -374,7 +574,35 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    if (isDragging && selectedPoint) {
+    // Update cursor position for pending features
+    setCursorPos({ x, y });
+
+    if (draggingFeature && selectedFeature) {
+      const feature = features.find(f => f.id === selectedFeature);
+      if (!feature) return;
+
+      if (feature.type === 'light' || feature.type === 'stairs') {
+        // Snap to wall
+        const wallPoint = findNearestWallPoint(x, y);
+        setFeatures(prev => prev.map(f => 
+          f.id === selectedFeature 
+            ? { 
+                ...f, 
+                x: wallPoint.x, 
+                y: wallPoint.y,
+                wallSegment: wallPoint.segment,
+                wallPosition: wallPoint.position,
+                angle: wallPoint.angle + Math.PI / 2
+              } 
+            : f
+        ));
+      } else {
+        // Jets can be placed anywhere
+        setFeatures(prev => prev.map(f => 
+          f.id === selectedFeature ? { ...f, x, y } : f
+        ));
+      }
+    } else if (isDragging && selectedPoint) {
       const boundedX = Math.max(0, Math.min(canvasSize.width, x));
       const boundedY = Math.max(0, Math.min(canvasSize.height, y));
 
@@ -392,6 +620,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
 
   const handleCanvasMouseUp = () => {
     setIsDragging(false);
+    setDraggingFeature(false);
   };
 
   const addPoint = () => {
@@ -412,13 +641,50 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   };
 
   const addFeature = (type: 'stairs' | 'light' | 'jet') => {
+    if (type === 'jet') {
+      setPendingFeature('jet');
+      return;
+    }
+
+    // Find a point on the wall
+    const wallPoint = findNearestWallPoint(canvasSize.width / 2, canvasSize.height / 2);
+    
     const newFeature: PoolFeature = {
       type,
-      x: canvasSize.width / 2,
-      y: canvasSize.height / 2,
-      id: Date.now().toString()
+      x: wallPoint.x,
+      y: wallPoint.y,
+      id: Date.now().toString(),
+      steps: type === 'stairs' ? 3 : undefined,
+      angle: wallPoint.angle + Math.PI / 2,
+      wallSegment: wallPoint.segment,
+      wallPosition: wallPoint.position
     };
     setFeatures([...features, newFeature]);
+    setSelectedFeature(newFeature.id);
+  };
+
+  const addStairStep = () => {
+    if (!selectedFeature) return;
+    setFeatures(prev => prev.map(f => 
+      f.id === selectedFeature && f.type === 'stairs'
+        ? { ...f, steps: (f.steps || 3) + 1 }
+        : f
+    ));
+  };
+
+  const removeStairStep = () => {
+    if (!selectedFeature) return;
+    setFeatures(prev => prev.map(f => 
+      f.id === selectedFeature && f.type === 'stairs' && (f.steps || 3) > 1
+        ? { ...f, steps: (f.steps || 3) - 1 }
+        : f
+    ));
+  };
+
+  const removeFeature = () => {
+    if (!selectedFeature) return;
+    setFeatures(prev => prev.filter(f => f.id !== selectedFeature));
+    setSelectedFeature(null);
   };
 
   const updateDimension = (index: number, value: string) => {
@@ -532,10 +798,35 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
             <Lightbulb className="h-4 w-4 mr-1" />
             Add Light
           </Button>
-          <Button size="sm" onClick={() => addFeature('jet')} variant="outline" className="border-cyan-300 text-cyan-700 hover:bg-cyan-50">
+          <Button 
+            size="sm" 
+            onClick={() => addFeature('jet')} 
+            variant="outline" 
+            className="border-cyan-300 text-cyan-700 hover:bg-cyan-50"
+            disabled={pendingFeature === 'jet'}
+          >
             <Waves className="h-4 w-4 mr-1" />
-            Add Jet
+            {pendingFeature === 'jet' ? 'Click to Place Jet' : 'Add Jet'}
           </Button>
+          {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'stairs' && (
+            <>
+              <div className="h-4 w-px bg-border mx-1" />
+              <Button size="sm" onClick={addStairStep} variant="outline">
+                <Plus className="h-4 w-4 mr-1" />
+                Add Step
+              </Button>
+              <Button size="sm" onClick={removeStairStep} variant="outline">
+                <Minus className="h-4 w-4 mr-1" />
+                Remove Step
+              </Button>
+            </>
+          )}
+          {selectedFeature && (
+            <Button size="sm" onClick={removeFeature} variant="destructive">
+              <Trash2 className="h-4 w-4 mr-1" />
+              Remove Feature
+            </Button>
+          )}
         </div>
 
         <div className="mt-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
@@ -550,10 +841,18 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                 Edit dimensions manually in the boxes above
               </p>
               <p className="flex items-center gap-2">
-                <Plus className="h-3 w-3" />
-                Add corners to create custom shapes
+                <Lightbulb className="h-3 w-3" />
+                Lights and stairs snap to walls • Jets follow cursor
+              </p>
+              <p className="flex items-center gap-2">
+                <Move className="h-3 w-3" />
+                Select stairs to add/remove individual steps
               </p>
             </div>
+          </div>
+          <div className="mt-3 p-2 bg-card rounded border">
+            <p className="text-xs font-semibold text-primary">Premium Pool Liner Included</p>
+            <p className="text-xs text-muted-foreground">Aquamarine Mosaic Pattern</p>
           </div>
         </div>
       </Card>
