@@ -181,6 +181,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [smoothCorners, setSmoothCorners] = useState(false);
   const [activeTool, setActiveTool] = useState<'select' | 'rotate' | 'zoom'>('select');
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [deckOffset, setDeckOffset] = useState(3); // Deck offset in feet (minimum 3ft)
   const [scale, setScale] = useState(10); // pixels per foot - reduced for larger canvas
   const [canvasSize, setCanvasSize] = useState({
     width: window.innerWidth - 20, 
@@ -238,8 +239,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       const initialPoolPoints = getShapePoints('rectangle');
       setPoints(initialPoolPoints);
       
-      // Generate hardscape deck that follows pool with 3ft offset
-      setHardscapePoints(generateHardscapeFromPool(initialPoolPoints, 3));
+      // Generate hardscape deck that follows pool with default 3ft offset
+      setHardscapePoints(generateHardscapeFromPool(initialPoolPoints, deckOffset));
       
       // Add default decorations: trees, grass area, and fence
       const centerX = canvasSize.width / 2;
@@ -2140,20 +2141,39 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
               <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
             </svg>
           </Button>
-          <Button 
-            size="sm" 
-            variant={activeTool === 'zoom' ? "default" : "outline"}
-            onClick={() => {
-              setActiveTool('zoom');
-              setZoomLevel(prev => Math.min(prev + 0.2, 2));
-            }}
-            className="h-8 w-8 p-0"
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="m21 21-4.35-4.35M11 8v6M8 11h6"/>
-            </svg>
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => setZoomLevel(prev => Math.max(prev - 0.2, 0.5))}
+              className="h-8 w-8 p-0"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14"/>
+              </svg>
+            </Button>
+            <Button 
+              size="sm" 
+              variant={activeTool === 'zoom' ? "default" : "outline"}
+              onClick={() => setActiveTool('zoom')}
+              className="h-8 w-8 p-0"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => setZoomLevel(prev => Math.min(prev + 0.2, 2))}
+              className="h-8 w-8 p-0"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+            </Button>
+          </div>
         </div>
         
         <div className="flex items-center gap-4 ml-auto">
@@ -2213,18 +2233,37 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
 
             {/* Pool Design Tab */}
             <TabsContent value="pool" className="mt-0 p-2 space-y-2">
-              <div className="flex gap-2">
-                <Button 
-                  size="sm" 
-                  onClick={() => setSmoothCorners(!smoothCorners)}
-                  variant={smoothCorners ? "default" : "outline"}
-                  className="h-7 text-[10px]"
-                >
-                  <svg className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M3 3h18v18H3z" strokeLinejoin={smoothCorners ? "round" : "miter"} />
-                  </svg>
-                  {smoothCorners ? 'Smooth' : 'Squared'}
-                </Button>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    onClick={() => setSmoothCorners(!smoothCorners)}
+                    variant={smoothCorners ? "default" : "outline"}
+                    className="h-7 text-[10px]"
+                  >
+                    <svg className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 3h18v18H3z" strokeLinejoin={smoothCorners ? "round" : "miter"} />
+                    </svg>
+                    {smoothCorners ? 'Smooth' : 'Squared'}
+                  </Button>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs whitespace-nowrap">Deck Size:</Label>
+                  <Input
+                    type="number"
+                    value={deckOffset}
+                    onChange={(e) => {
+                      const newOffset = Math.max(3, parseFloat(e.target.value) || 3);
+                      setDeckOffset(newOffset);
+                      setHardscapePoints(generateHardscapeFromPool(points, newOffset));
+                    }}
+                    className="h-7 w-20 text-xs"
+                    min="3"
+                    step="0.5"
+                  />
+                  <span className="text-xs text-muted-foreground">ft</span>
+                </div>
               </div>
             </TabsContent>
 
@@ -2238,7 +2277,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                     setPoolShape('rectangle');
                     const newPoolPoints = getShapePoints('rectangle');
                     setPoints(newPoolPoints);
-                    setHardscapePoints(generateHardscapeFromPool(newPoolPoints, 3));
+                    setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
                     setFeatures([]);
                   }}
                   className="h-8 text-xs"
@@ -2252,7 +2291,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                     setPoolShape('kidney');
                     const newPoolPoints = getShapePoints('kidney');
                     setPoints(newPoolPoints);
-                    setHardscapePoints(generateHardscapeFromPool(newPoolPoints, 3));
+                    setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
                     setFeatures([]);
                   }}
                   className="h-8 text-xs"
@@ -2266,7 +2305,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                     setPoolShape('freeform');
                     const newPoolPoints = getShapePoints('freeform');
                     setPoints(newPoolPoints);
-                    setHardscapePoints(generateHardscapeFromPool(newPoolPoints, 3));
+                    setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
                     setFeatures([]);
                   }}
                   className="h-8 text-xs"
