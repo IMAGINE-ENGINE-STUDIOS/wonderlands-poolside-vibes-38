@@ -2,6 +2,7 @@ import { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Grid, PerspectiveCamera, Line } from '@react-three/drei';
 import * as THREE from 'three';
+import { textureCache } from '@/utils/textureCache';
 
 interface Point {
   x: number;
@@ -61,15 +62,14 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape, linerTextureUrl }: Po
   
   useEffect(() => {
     if (linerTextureUrl) {
-      const loader = new THREE.TextureLoader();
-      loader.load(linerTextureUrl, (loadedTexture) => {
-        loadedTexture.wrapS = THREE.RepeatWrapping;
-        loadedTexture.wrapT = THREE.RepeatWrapping;
-        // Tile size is 4 inches, texture repeats to create 4-inch tiles
-        loadedTexture.repeat.set(10, 10);
-        setTexture(loadedTexture);
-      });
+      textureCache.loadTexture(linerTextureUrl, { x: 10, y: 10 })
+        .then(setTexture)
+        .catch(console.error);
     }
+    
+    return () => {
+      if (texture) texture.dispose();
+    };
   }, [linerTextureUrl]);
 
   // Create accurate pool geometry from top view outline and depth profile
@@ -362,15 +362,14 @@ const DeckMesh = ({
   
   useEffect(() => {
     if (paverTextureUrl) {
-      const loader = new THREE.TextureLoader();
-      loader.load(paverTextureUrl, (loadedTexture) => {
-        loadedTexture.wrapS = THREE.RepeatWrapping;
-        loadedTexture.wrapT = THREE.RepeatWrapping;
-        // Apply selected paver texture with proper tiling
-        loadedTexture.repeat.set(15, 15);
-        setTexture(loadedTexture);
-      });
+      textureCache.loadTexture(paverTextureUrl, { x: 15, y: 15 })
+        .then(setTexture)
+        .catch(console.error);
     }
+    
+    return () => {
+      if (texture) texture.dispose();
+    };
   }, [paverTextureUrl]);
 
   const deckWithHoles = useMemo(() => {
@@ -474,10 +473,13 @@ const FenceMesh = ({ fencePoints, poolCenterX, poolCenterY, scale, fenceTextureU
   useEffect(() => {
     if (!fenceTextureUrl) return;
     
-    const loader = new THREE.TextureLoader();
-    loader.load(fenceTextureUrl, (loadedTexture) => {
-      setFenceTexture(loadedTexture);
-    });
+    textureCache.loadTexture(fenceTextureUrl, { x: 1, y: 1 })
+      .then(setFenceTexture)
+      .catch(console.error);
+    
+    return () => {
+      if (fenceTexture) fenceTexture.dispose();
+    };
   }, [fenceTextureUrl]);
   
   const geometry = useMemo(() => {
@@ -563,13 +565,6 @@ const FenceMesh = ({ fencePoints, poolCenterX, poolCenterY, scale, fenceTextureU
   }, [fencePoints, poolCenterX, poolCenterY, scale]);
 
   if (!geometry) return null;
-
-  // Configure texture if available
-  if (fenceTexture) {
-    fenceTexture.wrapS = THREE.RepeatWrapping;
-    fenceTexture.wrapT = THREE.RepeatWrapping;
-    fenceTexture.repeat.set(1, 1);
-  }
 
   return (
     <mesh geometry={geometry} castShadow receiveShadow>

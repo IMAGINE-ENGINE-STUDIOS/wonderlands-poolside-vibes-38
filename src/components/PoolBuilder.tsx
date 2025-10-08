@@ -13,6 +13,7 @@ import { paverTypes } from '@/data/paverData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { loadAllTextureLODs, getTextureForLOD, getLODLevel, type TextureLODSet } from '@/utils/textureLOD';
 import { Pool3DViewer } from './Pool3DViewer';
+import { TextureBuilder, type TextureConfig } from './TextureBuilder';
 
 interface Point {
   x: number;
@@ -261,6 +262,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [snapSize, setSnapSize] = useState(6); // 6 inches snap (0.5 feet)
   const [activeTab, setActiveTab] = useState('pool');
   const [showFenceEditor, setShowFenceEditor] = useState(false);
+  const [customTextures, setCustomTextures] = useState<TextureConfig[]>([]);
+
 
   // Pricing constants
   const PAVER_COST_PER_SQFT = 15;
@@ -2597,6 +2600,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
               <TabsTrigger value="materials" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
                 Materials
               </TabsTrigger>
+              <TabsTrigger value="textures" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
+                Textures
+              </TabsTrigger>
               <TabsTrigger value="features" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
                 Features
               </TabsTrigger>
@@ -2716,10 +2722,22 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                         hardscapePoints={hardscapePoints}
                         fencePoints={fencePoints}
                         features={features}
-                        paverTextureUrl={paverTypes.find(p => p.id === selectedPaverId)?.image}
-                        linerTextureUrl={poolTextureSapphire}
-                        copingTextureUrl={paverTypes.find(p => p.id === selectedCopingId)?.image}
-                        fenceTextureUrl="/src/assets/fence-texture.png"
+                        paverTextureUrl={
+                          customTextures.find(t => t.target === 'deck')?.url ||
+                          paverTypes.find(p => p.id === selectedPaverId)?.image
+                        }
+                        linerTextureUrl={
+                          customTextures.find(t => t.target === 'pool')?.url ||
+                          poolTextureSapphire
+                        }
+                        copingTextureUrl={
+                          customTextures.find(t => t.target === 'coping')?.url ||
+                          paverTypes.find(p => p.id === selectedCopingId)?.image
+                        }
+                        fenceTextureUrl={
+                          customTextures.find(t => t.target === 'fence')?.url ||
+                          "/src/assets/fence-texture.png"
+                        }
                       />
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -3071,6 +3089,14 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                   Remove
                 </Button>
               )}
+            </TabsContent>
+
+            {/* Textures Tab */}
+            <TabsContent value="textures" className="mt-0 p-2">
+              <TextureBuilder
+                currentTextures={customTextures}
+                onTexturesChange={setCustomTextures}
+              />
             </TabsContent>
 
             {/* Landscape Tab */}
