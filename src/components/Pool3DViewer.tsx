@@ -64,7 +64,8 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape, linerTextureUrl }: Po
       loader.load(linerTextureUrl, (loadedTexture) => {
         loadedTexture.wrapS = THREE.RepeatWrapping;
         loadedTexture.wrapT = THREE.RepeatWrapping;
-        loadedTexture.repeat.set(5, 5);
+        // Tile size is 4 inches, texture repeats to create 4-inch tiles
+        loadedTexture.repeat.set(10, 10);
         setTexture(loadedTexture);
       });
     }
@@ -215,10 +216,12 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape, linerTextureUrl }: Po
       }
     }
 
-    // Create pool walls geometry
+    // Create pool walls geometry with 4-inch tile squares
     const wallVertices: number[] = [];
     const wallIndices: number[] = [];
     const wallNormals: number[] = [];
+    const wallUVs: number[] = [];
+    const tileSize = 4 / 12; // 4 inches = 0.333 feet
     
     // Create walls along pool perimeter
     for (let i = 0; i < normalizedPoints.length; i++) {
@@ -239,6 +242,9 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape, linerTextureUrl }: Po
       
       const depth1 = getDepthAtPosition(pos1);
       const depth2 = getDepthAtPosition(pos2);
+      
+      const wallLength = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2));
+      const avgDepth = (depth1 + depth2) / 2;
       
       const baseIdx = wallVertices.length / 3;
       
@@ -262,6 +268,15 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape, linerTextureUrl }: Po
         wallNormals.push(nx, 0, nz);
       }
       
+      // UV coordinates for 4-inch tiles
+      const uRepeat = wallLength / tileSize;
+      const vRepeat = avgDepth / tileSize;
+      
+      wallUVs.push(0, 0);
+      wallUVs.push(uRepeat, 0);
+      wallUVs.push(0, vRepeat);
+      wallUVs.push(uRepeat, vRepeat);
+      
       // Create wall quad
       wallIndices.push(
         baseIdx, baseIdx + 1, baseIdx + 3,
@@ -279,6 +294,7 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape, linerTextureUrl }: Po
     const poolWallsGeometry = new THREE.BufferGeometry();
     poolWallsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(wallVertices, 3));
     poolWallsGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(wallNormals, 3));
+    poolWallsGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(wallUVs, 2));
     poolWallsGeometry.setIndex(wallIndices);
     poolWallsGeometry.computeVertexNormals();
 
@@ -349,7 +365,8 @@ const DeckMesh = ({
       loader.load(paverTextureUrl, (loadedTexture) => {
         loadedTexture.wrapS = THREE.RepeatWrapping;
         loadedTexture.wrapT = THREE.RepeatWrapping;
-        loadedTexture.repeat.set(10, 10);
+        // Apply selected paver texture with proper tiling
+        loadedTexture.repeat.set(15, 15);
         setTexture(loadedTexture);
       });
     }
@@ -443,7 +460,7 @@ const DeckMesh = ({
   );
 };
 
-// Fence component
+// Fence component with 4 inches thickness
 const FenceMesh = ({ fencePoints, poolCenterX, poolCenterY, scale }: { 
   fencePoints: FencePoint[], 
   poolCenterX: number,
@@ -456,6 +473,7 @@ const FenceMesh = ({ fencePoints, poolCenterX, poolCenterY, scale }: {
     const vertices: number[] = [];
     const indices: number[] = [];
     const fenceHeight = 6; // 6 feet tall
+    const fenceThickness = 4 / 12; // 4 inches = 0.333 feet
     
     for (let i = 0; i < fencePoints.length - 1; i++) {
       const p1 = fencePoints[i];
@@ -467,21 +485,50 @@ const FenceMesh = ({ fencePoints, poolCenterX, poolCenterY, scale }: {
       const x2 = (p2.x - poolCenterX) / scale;
       const z2 = (p2.y - poolCenterY) / scale;
       
+      // Calculate perpendicular offset for thickness
+      const dx = x2 - x1;
+      const dz = z2 - z1;
+      const len = Math.sqrt(dx * dx + dz * dz);
+      const offsetX = (-dz / len) * fenceThickness / 2;
+      const offsetZ = (dx / len) * fenceThickness / 2;
+      
       const baseIdx = vertices.length / 3;
       
-      // Bottom edge
-      vertices.push(x1, 0, z1);
-      vertices.push(x2, 0, z2);
+      // Front face vertices
+      vertices.push(x1 + offsetX, 0, z1 + offsetZ);
+      vertices.push(x2 + offsetX, 0, z2 + offsetZ);
+      vertices.push(x1 + offsetX, fenceHeight, z1 + offsetZ);
+      vertices.push(x2 + offsetX, fenceHeight, z2 + offsetZ);
       
-      // Top edge
-      vertices.push(x1, fenceHeight, z1);
-      vertices.push(x2, fenceHeight, z2);
+      // Back face vertices
+      vertices.push(x1 - offsetX, 0, z1 - offsetZ);
+      vertices.push(x2 - offsetX, 0, z2 - offsetZ);
+      vertices.push(x1 - offsetX, fenceHeight, z1 - offsetZ);
+      vertices.push(x2 - offsetX, fenceHeight, z2 - offsetZ);
       
-      // Create quad
-      indices.push(
-        baseIdx, baseIdx + 1, baseIdx + 3,
-        baseIdx, baseIdx + 3, baseIdx + 2
-      );
+      // Front face
+      indices.push(baseIdx, baseIdx + 1, baseIdx + 3);
+      indices.push(baseIdx, baseIdx + 3, baseIdx + 2);
+      
+      // Back face
+      indices.push(baseIdx + 4, baseIdx + 7, baseIdx + 5);
+      indices.push(baseIdx + 4, baseIdx + 6, baseIdx + 7);
+      
+      // Top face
+      indices.push(baseIdx + 2, baseIdx + 3, baseIdx + 7);
+      indices.push(baseIdx + 2, baseIdx + 7, baseIdx + 6);
+      
+      // Bottom face
+      indices.push(baseIdx, baseIdx + 5, baseIdx + 1);
+      indices.push(baseIdx, baseIdx + 4, baseIdx + 5);
+      
+      // Left side
+      indices.push(baseIdx, baseIdx + 2, baseIdx + 6);
+      indices.push(baseIdx, baseIdx + 6, baseIdx + 4);
+      
+      // Right side
+      indices.push(baseIdx + 1, baseIdx + 5, baseIdx + 7);
+      indices.push(baseIdx + 1, baseIdx + 7, baseIdx + 3);
     }
     
     const geo = new THREE.BufferGeometry();
