@@ -1003,30 +1003,83 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.arc(feature.x, feature.y, radius, 0, 2 * Math.PI);
         ctx.stroke();
       } else if (feature.type === 'fence') {
-        // Fence section
+        // Fence with editable spline curve
         const isSelected = selectedFeature === feature.id;
-        const width = feature.width || 80;
-        const height = 10;
+        const fencePoints = feature.roofPoints || [
+          { x: feature.x - 80, y: feature.y, id: 'fp1' },
+          { x: feature.x, y: feature.y - 20, id: 'fp2' },
+          { x: feature.x + 80, y: feature.y, id: 'fp3' }
+        ];
         
-        // Fence boards
-        ctx.fillStyle = '#A67C52';
-        const boardCount = 8;
-        const boardWidth = width / boardCount;
+        // Draw fence spline curve
+        ctx.strokeStyle = '#8B6F47';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
         
-        for (let i = 0; i < boardCount; i++) {
-          const x = feature.x - width / 2 + i * boardWidth;
-          ctx.fillRect(x, feature.y - height / 2, boardWidth - 2, height);
-        }
+        // Draw smooth curve through points
+        fencePoints.forEach((point, i) => {
+          if (i === 0) {
+            ctx.moveTo(point.x, point.y);
+          } else {
+            const prevPoint = fencePoints[i - 1];
+            const cp1x = prevPoint.x + (point.x - prevPoint.x) / 3;
+            const cp1y = prevPoint.y + (point.y - prevPoint.y) / 3;
+            const cp2x = prevPoint.x + 2 * (point.x - prevPoint.x) / 3;
+            const cp2y = prevPoint.y + 2 * (point.y - prevPoint.y) / 3;
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, point.x, point.y);
+          }
+        });
+        ctx.stroke();
         
-        // Fence rails
-        ctx.fillStyle = '#8B6F47';
-        ctx.fillRect(feature.x - width / 2, feature.y - height / 2, width, 2);
-        ctx.fillRect(feature.x - width / 2, feature.y + height / 2 - 2, width, 2);
+        // Draw fence posts along the curve
+        fencePoints.forEach(point => {
+          ctx.fillStyle = '#A67C52';
+          ctx.fillRect(point.x - 3, point.y - 15, 6, 30);
+        });
         
-        // Border
+        // Draw fence rails
         ctx.strokeStyle = isSelected ? '#FFD700' : '#6B5435';
         ctx.lineWidth = isSelected ? 3 : 2;
-        ctx.strokeRect(feature.x - width / 2, feature.y - height / 2, width, height);
+        ctx.beginPath();
+        fencePoints.forEach((point, i) => {
+          if (i === 0) ctx.moveTo(point.x, point.y - 10);
+          else {
+            const prevPoint = fencePoints[i - 1];
+            const cp1x = prevPoint.x + (point.x - prevPoint.x) / 3;
+            const cp1y = prevPoint.y - 10 + (point.y - prevPoint.y) / 3;
+            const cp2x = prevPoint.x + 2 * (point.x - prevPoint.x) / 3;
+            const cp2y = prevPoint.y - 10 + 2 * (point.y - prevPoint.y) / 3;
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, point.x, point.y - 10);
+          }
+        });
+        ctx.stroke();
+        
+        ctx.beginPath();
+        fencePoints.forEach((point, i) => {
+          if (i === 0) ctx.moveTo(point.x, point.y + 10);
+          else {
+            const prevPoint = fencePoints[i - 1];
+            const cp1x = prevPoint.x + (point.x - prevPoint.x) / 3;
+            const cp1y = prevPoint.y + 10 + (point.y - prevPoint.y) / 3;
+            const cp2x = prevPoint.x + 2 * (point.x - prevPoint.x) / 3;
+            const cp2y = prevPoint.y + 10 + 2 * (point.y - prevPoint.y) / 3;
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, point.x, point.y + 10);
+          }
+        });
+        ctx.stroke();
+        
+        // Draw editable anchor points for fence
+        fencePoints.forEach(point => {
+          const size = 8;
+          const isPointSelected = selectedRoofPoint === point.id;
+          ctx.fillStyle = isPointSelected ? '#FFD700' : '#ffffff';
+          ctx.strokeStyle = isPointSelected ? '#FFA500' : '#8B6F47';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, size / 2, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.stroke();
+        });
       } else if (feature.type === 'pathway') {
         // Decorative pathway/paver pattern
         const isSelected = selectedFeature === feature.id;
@@ -1989,103 +2042,87 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
             </TabsList>
 
             {/* Pool Design Tab */}
-            <TabsContent value="pool" className="mt-0 p-3 space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Pool Corners</Label>
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={addPoint} className="flex-1">
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Corner
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      onClick={removePoint} 
-                      variant="outline"
-                      disabled={!selectedPoint || points.length <= 3}
-                      className="flex-1"
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Precision Tools</Label>
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
-                      onClick={() => setGridSnap(!gridSnap)}
-                      variant={gridSnap ? "default" : "outline"}
-                      className="flex-1"
-                    >
-                      <Ruler className="h-4 w-4 mr-1" />
-                      Grid Snap {gridSnap ? 'ON' : 'OFF'}
-                    </Button>
-                  </div>
-                </div>
-
+            <TabsContent value="pool" className="mt-0 p-2 space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Button size="sm" onClick={addPoint} variant="outline" className="h-8 text-xs">
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={removePoint} 
+                  variant="outline"
+                  disabled={!selectedPoint || points.length <= 3}
+                  className="h-8 text-xs"
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Remove
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={() => setGridSnap(!gridSnap)}
+                  variant={gridSnap ? "default" : "outline"}
+                  className="h-8 text-xs col-span-2"
+                >
+                  <Ruler className="h-3 w-3 mr-1" />
+                  Grid {gridSnap ? 'ON' : 'OFF'}
+                </Button>
                 {gridSnap && (
-                  <div className="flex items-center gap-2">
-                    <Label className="text-xs">Snap: {snapSize}"</Label>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <Label className="text-xs">Snap:</Label>
                     <Input
                       type="number"
                       value={snapSize}
                       onChange={(e) => setSnapSize(Math.max(1, parseInt(e.target.value) || 6))}
-                      className="h-7 w-20"
+                      className="h-7 w-20 text-xs"
                       min="1"
                       max="12"
                     />
+                    <span className="text-xs text-muted-foreground">"</span>
                   </div>
                 )}
               </div>
             </TabsContent>
 
             {/* Shape Tab */}
-            <TabsContent value="shape" className="mt-0 p-3 space-y-3">
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Pool Shape</Label>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant={poolShape === 'rectangle' ? 'default' : 'outline'}
-                      onClick={() => {
-                        setPoolShape('rectangle');
-                        setPoints(getShapePoints('rectangle'));
-                        setFeatures([]);
-                      }}
-                      className="flex-1"
-                    >
-                      Rectangle
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={poolShape === 'kidney' ? 'default' : 'outline'}
-                      onClick={() => {
-                        setPoolShape('kidney');
-                        setPoints(getShapePoints('kidney'));
-                        setFeatures([]);
-                      }}
-                      className="flex-1"
-                    >
-                      Kidney
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={poolShape === 'freeform' ? 'default' : 'outline'}
-                      onClick={() => {
-                        setPoolShape('freeform');
-                        setPoints(getShapePoints('freeform'));
-                        setFeatures([]);
-                      }}
-                      className="flex-1"
-                    >
-                      Freeform
-                    </Button>
-                  </div>
-                </div>
+            <TabsContent value="shape" className="mt-0 p-2 space-y-2">
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  size="sm"
+                  variant={poolShape === 'rectangle' ? 'default' : 'outline'}
+                  onClick={() => {
+                    setPoolShape('rectangle');
+                    setPoints(getShapePoints('rectangle'));
+                    setFeatures([]);
+                  }}
+                  className="h-8 text-xs"
+                >
+                  Rectangle
+                </Button>
+                <Button
+                  size="sm"
+                  variant={poolShape === 'kidney' ? 'default' : 'outline'}
+                  onClick={() => {
+                    setPoolShape('kidney');
+                    setPoints(getShapePoints('kidney'));
+                    setFeatures([]);
+                  }}
+                  className="h-8 text-xs"
+                >
+                  Kidney
+                </Button>
+                <Button
+                  size="sm"
+                  variant={poolShape === 'freeform' ? 'default' : 'outline'}
+                  onClick={() => {
+                    setPoolShape('freeform');
+                    setPoints(getShapePoints('freeform'));
+                    setFeatures([]);
+                  }}
+                  className="h-8 text-xs"
+                >
+                  Freeform
+                </Button>
               </div>
             </TabsContent>
 
@@ -2248,232 +2285,226 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
             </TabsContent>
 
             {/* Features Tab */}
-            <TabsContent value="features" className="mt-0 p-3 space-y-3">
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  <Button size="sm" onClick={() => addFeature('stairs')} variant="outline" className="h-auto py-3 flex-col gap-1">
-                    <Move className="h-5 w-5" />
-                    <span className="text-xs">Stairs</span>
-                  </Button>
-                  <Button size="sm" onClick={() => addFeature('light')} variant="outline" className="h-auto py-3 flex-col gap-1">
-                    <Lightbulb className="h-5 w-5" />
-                    <span className="text-xs">LED Light</span>
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    onClick={() => addFeature('jet')} 
-                    variant="outline"
-                    disabled={pendingFeature === 'jet'}
-                    className="h-auto py-3 flex-col gap-1"
-                  >
-                    <Waves className="h-5 w-5" />
-                    <span className="text-xs">Water Jet</span>
-                  </Button>
-                  <Button size="sm" onClick={() => addFeature('fountain')} variant="outline" className="h-auto py-3 flex-col gap-1">
-                    <Droplets className="h-5 w-5" />
-                    <span className="text-xs">Fountain</span>
-                  </Button>
-                </div>
-
-                {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'stairs' && (
-                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
-                    <Label className="text-xs font-medium">Stairs Configuration</Label>
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={addStairStep} variant="outline" className="flex-1">
-                        <Plus className="h-4 w-4 mr-1" />
-                        Add Step
-                      </Button>
-                      <Button size="sm" onClick={removeStairStep} variant="outline" className="flex-1">
-                        <Minus className="h-4 w-4 mr-1" />
-                        Remove Step
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {selectedFeature && (
-                  <Button size="sm" onClick={removeFeature} variant="destructive" className="w-full">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Remove Selected Feature
-                  </Button>
-                )}
+            <TabsContent value="features" className="mt-0 p-2 space-y-2">
+              <div className="grid grid-cols-4 gap-1.5">
+                <Button size="sm" onClick={() => addFeature('stairs')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
+                  <Move className="h-4 w-4" />
+                  <span className="text-[10px]">Stairs</span>
+                </Button>
+                <Button size="sm" onClick={() => addFeature('light')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
+                  <Lightbulb className="h-4 w-4" />
+                  <span className="text-[10px]">Light</span>
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={() => addFeature('jet')} 
+                  variant="outline"
+                  disabled={pendingFeature === 'jet'}
+                  className="h-auto py-2 flex-col gap-0.5"
+                >
+                  <Waves className="h-4 w-4" />
+                  <span className="text-[10px]">Jet</span>
+                </Button>
+                <Button size="sm" onClick={() => addFeature('fountain')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
+                  <Droplets className="h-4 w-4" />
+                  <span className="text-[10px]">Fountain</span>
+                </Button>
               </div>
+
+              {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'stairs' && (
+                <div className="p-2 bg-muted/50 rounded space-y-1.5">
+                  <Label className="text-[10px] font-medium">Stairs</Label>
+                  <div className="flex gap-1.5">
+                    <Button size="sm" onClick={addStairStep} variant="outline" className="flex-1 h-7 text-xs">
+                      <Plus className="h-3 w-3 mr-1" />
+                      Step
+                    </Button>
+                    <Button size="sm" onClick={removeStairStep} variant="outline" className="flex-1 h-7 text-xs">
+                      <Minus className="h-3 w-3 mr-1" />
+                      Step
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {selectedFeature && (
+                <Button size="sm" onClick={removeFeature} variant="destructive" className="w-full h-7 text-xs">
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Remove
+                </Button>
+              )}
             </TabsContent>
 
             {/* Landscape Tab */}
-            <TabsContent value="landscape" className="mt-0 p-3 space-y-3">
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  <Button size="sm" onClick={() => addFeature('tree')} variant="outline" className="h-auto py-3 flex-col gap-1">
-                    <Trees className="h-5 w-5" />
-                    <span className="text-xs">Tree</span>
-                  </Button>
-                  <Button size="sm" onClick={() => addFeature('shrub')} variant="outline" className="h-auto py-3 flex-col gap-1">
-                    <Flower2 className="h-5 w-5" />
-                    <span className="text-xs">Shrub</span>
-                  </Button>
-                  <Button size="sm" onClick={() => addFeature('grass')} variant="outline" className="h-auto py-3 flex-col gap-1">
-                    <Flower2 className="h-5 w-5" />
-                    <span className="text-xs">Grass Area</span>
-                  </Button>
-                  <Button size="sm" onClick={() => addFeature('home')} variant="outline" className="h-auto py-3 flex-col gap-1">
-                    <Home className="h-5 w-5" />
-                    <span className="text-xs">House</span>
-                  </Button>
-                  <Button size="sm" onClick={() => addFeature('umbrella')} variant="outline" className="h-auto py-3 flex-col gap-1">
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 2C7.03 2 3 6.03 3 11h18c0-4.97-4.03-9-9-9z" />
-                      <line x1="12" y1="11" x2="12" y2="22" />
-                    </svg>
-                    <span className="text-xs">Umbrella</span>
-                  </Button>
-                  <Button size="sm" onClick={() => addFeature('fence')} variant="outline" className="h-auto py-3 flex-col gap-1">
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="6" width="3" height="12" />
-                      <rect x="10" y="6" width="3" height="12" />
-                      <rect x="17" y="6" width="3" height="12" />
-                      <line x1="2" y1="10" x2="22" y2="10" />
-                      <line x1="2" y1="14" x2="22" y2="14" />
-                    </svg>
-                    <span className="text-xs">Fence</span>
-                  </Button>
-                  <Button size="sm" onClick={() => addFeature('pathway')} variant="outline" className="h-auto py-3 flex-col gap-1">
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="5" y="5" width="4" height="4" />
-                      <rect x="11" y="7" width="4" height="4" />
-                      <rect x="5" y="11" width="4" height="4" />
-                      <rect x="11" y="13" width="4" height="4" />
-                      <rect x="17" y="9" width="4" height="4" />
-                    </svg>
-                    <span className="text-xs">Pathway</span>
-                  </Button>
-                </div>
-
-                {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'tree' && (
-                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
-                    <Label className="text-xs font-medium">Tree Type</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {['oak', 'palm', 'pine', 'willow', 'maple', 'cypress'].map(treeType => (
-                        <Button 
-                          key={treeType}
-                          size="sm" 
-                          onClick={() => {
-                            setFeatures(prev => prev.map(f => 
-                              f.id === selectedFeature ? { ...f, treeType: treeType as any } : f
-                            ));
-                          }} 
-                          variant="outline"
-                          className="capitalize"
-                        >
-                          {treeType}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'shrub' && (
-                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
-                    <Label className="text-xs font-medium">Shrub Type</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {['round', 'flowering', 'hedge'].map(shrubType => (
-                        <Button 
-                          key={shrubType}
-                          size="sm" 
-                          onClick={() => {
-                            setFeatures(prev => prev.map(f => 
-                              f.id === selectedFeature ? { ...f, shrubType: shrubType as any } : f
-                            ));
-                          }} 
-                          variant="outline"
-                          className="capitalize"
-                        >
-                          {shrubType}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'pathway' && (
-                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
-                    <Label className="text-xs font-medium">Pathway Type</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {['straight', 'curved', 'circular'].map(pathType => (
-                        <Button 
-                          key={pathType}
-                          size="sm" 
-                          onClick={() => {
-                            setFeatures(prev => prev.map(f => 
-                              f.id === selectedFeature ? { ...f, pathwayType: pathType as any } : f
-                            ));
-                          }} 
-                          variant="outline"
-                          className="capitalize"
-                        >
-                          {pathType}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'home' && (
-                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
-                    <Label className="text-xs font-medium">Roof Editor</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Drag the anchor points to reshape the roof
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button 
-                        size="sm" 
-                        onClick={() => {
-                          const house = features.find(f => f.id === selectedFeature);
-                          if (house && house.roofPoints) {
-                            const newPoint: RoofPoint = {
-                              x: 0,
-                              y: 0,
-                              id: `r${house.roofPoints.length + 1}`
-                            };
-                            setFeatures(prev => prev.map(f => 
-                              f.id === selectedFeature ? { ...f, roofPoints: [...(f.roofPoints || []), newPoint] } : f
-                            ));
-                          }
-                        }} 
-                        variant="outline"
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Add Point
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        onClick={() => {
-                          if (selectedRoofPoint) {
-                            setFeatures(prev => prev.map(f => 
-                              f.id === selectedFeature && f.roofPoints
-                                ? { ...f, roofPoints: f.roofPoints.filter(rp => rp.id !== selectedRoofPoint) }
-                                : f
-                            ));
-                            setSelectedRoofPoint(null);
-                          }
-                        }} 
-                        variant="outline"
-                        disabled={!selectedRoofPoint}
-                      >
-                        <Minus className="h-4 w-4 mr-1" />
-                        Remove Point
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {selectedFeature && (
-                  <Button size="sm" onClick={removeFeature} variant="destructive" className="w-full">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Remove Selected Feature
-                  </Button>
-                )}
+            <TabsContent value="landscape" className="mt-0 p-2 space-y-2">
+              <div className="grid grid-cols-4 gap-1.5">
+                <Button size="sm" onClick={() => addFeature('tree')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
+                  <Trees className="h-4 w-4" />
+                  <span className="text-[10px]">Tree</span>
+                </Button>
+                <Button size="sm" onClick={() => addFeature('shrub')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
+                  <Flower2 className="h-4 w-4" />
+                  <span className="text-[10px]">Shrub</span>
+                </Button>
+                <Button size="sm" onClick={() => addFeature('grass')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
+                  <Flower2 className="h-4 w-4" />
+                  <span className="text-[10px]">Grass</span>
+                </Button>
+                <Button size="sm" onClick={() => addFeature('home')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
+                  <Home className="h-4 w-4" />
+                  <span className="text-[10px]">House</span>
+                </Button>
+                <Button size="sm" onClick={() => addFeature('umbrella')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2C7.03 2 3 6.03 3 11h18c0-4.97-4.03-9-9-9z" />
+                    <line x1="12" y1="11" x2="12" y2="22" />
+                  </svg>
+                  <span className="text-[10px]">Umbrella</span>
+                </Button>
+                <Button size="sm" onClick={() => addFeature('fence')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="6" width="3" height="12" />
+                    <rect x="10" y="6" width="3" height="12" />
+                    <rect x="17" y="6" width="3" height="12" />
+                    <line x1="2" y1="10" x2="22" y2="10" />
+                    <line x1="2" y1="14" x2="22" y2="14" />
+                  </svg>
+                  <span className="text-[10px]">Fence</span>
+                </Button>
+                <Button size="sm" onClick={() => addFeature('pathway')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="5" y="5" width="4" height="4" />
+                    <rect x="11" y="7" width="4" height="4" />
+                    <rect x="5" y="11" width="4" height="4" />
+                    <rect x="11" y="13" width="4" height="4" />
+                    <rect x="17" y="9" width="4" height="4" />
+                  </svg>
+                  <span className="text-[10px]">Path</span>
+                </Button>
               </div>
+
+              {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'tree' && (
+                <div className="p-2 bg-muted/50 rounded space-y-1.5">
+                  <Label className="text-[10px] font-medium">Tree Type</Label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {['oak', 'palm', 'pine', 'willow', 'maple', 'cypress'].map(treeType => (
+                      <Button 
+                        key={treeType}
+                        size="sm" 
+                        onClick={() => {
+                          setFeatures(prev => prev.map(f => 
+                            f.id === selectedFeature ? { ...f, treeType: treeType as any } : f
+                          ));
+                        }} 
+                        variant="outline"
+                        className="capitalize h-7 text-[10px]"
+                      >
+                        {treeType}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'shrub' && (
+                <div className="p-2 bg-muted/50 rounded space-y-1.5">
+                  <Label className="text-[10px] font-medium">Shrub Type</Label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {['round', 'flowering', 'hedge'].map(shrubType => (
+                      <Button 
+                        key={shrubType}
+                        size="sm" 
+                        onClick={() => {
+                          setFeatures(prev => prev.map(f => 
+                            f.id === selectedFeature ? { ...f, shrubType: shrubType as any } : f
+                          ));
+                        }} 
+                        variant="outline"
+                        className="capitalize h-7 text-[10px]"
+                      >
+                        {shrubType}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'pathway' && (
+                <div className="p-2 bg-muted/50 rounded space-y-1.5">
+                  <Label className="text-[10px] font-medium">Path Type</Label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {['straight', 'curved', 'circular'].map(pathType => (
+                      <Button 
+                        key={pathType}
+                        size="sm" 
+                        onClick={() => {
+                          setFeatures(prev => prev.map(f => 
+                            f.id === selectedFeature ? { ...f, pathwayType: pathType as any } : f
+                          ));
+                        }} 
+                        variant="outline"
+                        className="capitalize h-7 text-[10px]"
+                      >
+                        {pathType}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'fence' && (
+                <div className="p-2 bg-muted/50 rounded space-y-1.5">
+                  <Label className="text-[10px] font-medium">Fence Points</Label>
+                  <div className="flex gap-1.5">
+                    <Button 
+                      size="sm" 
+                      onClick={() => {
+                        const fence = features.find(f => f.id === selectedFeature);
+                        if (!fence) return;
+                        const points = fence.roofPoints || [
+                          { x: fence.x - 40, y: fence.y, id: 'fp1' },
+                          { x: fence.x + 40, y: fence.y, id: 'fp2' }
+                        ];
+                        const newId = `fp${points.length + 1}`;
+                        setFeatures(prev => prev.map(f => 
+                          f.id === selectedFeature 
+                            ? { ...f, roofPoints: [...points, { x: fence.x, y: fence.y, id: newId }] } 
+                            : f
+                        ));
+                      }}
+                      variant="outline" 
+                      className="flex-1 h-7 text-xs"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add Point
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      onClick={() => {
+                        setFeatures(prev => prev.map(f => {
+                          if (f.id === selectedFeature && f.roofPoints && f.roofPoints.length > 2) {
+                            return { ...f, roofPoints: f.roofPoints.slice(0, -1) };
+                          }
+                          return f;
+                        }));
+                      }}
+                      variant="outline" 
+                      className="flex-1 h-7 text-xs"
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {selectedFeature && (
+                <Button size="sm" onClick={removeFeature} variant="destructive" className="w-full h-7 text-xs">
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Remove
+                </Button>
+              )}
+
             </TabsContent>
           </Tabs>
         </div>
