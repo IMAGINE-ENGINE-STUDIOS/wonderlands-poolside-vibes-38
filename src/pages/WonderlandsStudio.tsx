@@ -908,8 +908,8 @@ const WonderlandsStudio = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex flex-col lg:flex-row gap-4">
+      <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
+        <div className="flex flex-col lg:flex-row gap-2 sm:gap-4">
           {/* Left Sidebar - Product Selection (Collapsible) */}
           <div className={`transition-all duration-300 ${leftSidebarCollapsed ? 'w-full lg:w-12' : 'w-full lg:w-80'} flex-shrink-0`}>
             {leftSidebarCollapsed ? <div className="sticky top-4">
@@ -973,11 +973,11 @@ const WonderlandsStudio = () => {
           </div>
 
           {/* Main Content - Product Details & Configuration */}
-          <div className="flex-1">
-            {selectedProduct ? <div className="space-y-6">
+          <div className="flex-1 min-w-0">
+            {selectedProduct ? <div className="space-y-4 sm:space-y-6">
                 {/* Large Product Media Gallery */}
                 <Card>
-                  <CardContent className="p-6">
+                  <CardContent className="p-3 sm:p-6">
                     <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
                       {(selectedProduct.media || selectedProduct.image) ? (
                         <ProductMediaGallery 
@@ -991,17 +991,17 @@ const WonderlandsStudio = () => {
                         </div>
                       )}
                     </div>
-                    <div className="mt-4">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
+                    <div className="mt-3 sm:mt-4">
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                           <div>
-                            <h1 className="text-2xl font-bold">
+                            <h1 className="text-xl sm:text-2xl font-bold">
                               {selectedProduct.model || selectedProduct.name}
                             </h1>
-                            <p className="text-3xl font-bold text-primary mt-2">
+                            <p className="text-2xl sm:text-3xl font-bold text-primary mt-1 sm:mt-2">
                               ${getProductPrice(selectedProduct).toLocaleString()}
                             </p>
-                            <div className="flex gap-2 mt-2">
+                            <div className="flex flex-wrap gap-2 mt-2">
                               <Badge className={getCategoryColor(selectedProduct.category)}>
                                 {selectedProduct.category}
                               </Badge>
@@ -1012,8 +1012,8 @@ const WonderlandsStudio = () => {
                         </div>
 
                         {/* Product Description */}
-                        {selectedProduct.description && <div className="bg-muted/30 p-4 rounded-lg">
-                            <p className="text-sm text-muted-foreground leading-relaxed">
+                        {selectedProduct.description && <div className="bg-muted/30 p-3 sm:p-4 rounded-lg">
+                            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                               {selectedProduct.description}
                             </p>
                           </div>}
@@ -1029,11 +1029,11 @@ const WonderlandsStudio = () => {
                         </div>
 
                          {/* Included Features */}
-                        <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
-                          <h3 className="text-sm font-semibold text-green-800 dark:text-green-300 mb-3">
+                        <div className="bg-green-50 dark:bg-green-950/20 p-3 sm:p-4 rounded-lg border border-green-200 dark:border-green-800">
+                          <h3 className="text-xs sm:text-sm font-semibold text-green-800 dark:text-green-300 mb-2 sm:mb-3">
                             ✓ Included at No Extra Cost
                           </h3>
-                          <div className="grid grid-cols-1 gap-2 text-xs text-green-700 dark:text-green-400">
+                          <div className="grid grid-cols-1 gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-green-700 dark:text-green-400">
                             <div className="flex items-center gap-2">
                               <span>• 3 ft pavers deck around pool</span>
                             </div>
@@ -1060,12 +1060,12 @@ const WonderlandsStudio = () => {
                 </Card>
 
                 <Card>
-                  <CardHeader>
-                    <CardTitle>
+                  <CardHeader className="p-3 sm:p-6">
+                    <CardTitle className="text-lg sm:text-xl">
                       {selectedProduct.type === 'scene' ? 'Belgard Studio Options' : 'Additional Features'}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-6">
+                  <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
                     {selectedProduct.type === 'scene' ? (
                       // Belgard Studio Options for Scenes - keep existing hardcoded UI
                       <>
@@ -1349,21 +1349,21 @@ const WonderlandsStudio = () => {
           </div>
 
           {/* Right Sidebar - Price Summary */}
-          <div className="w-80 flex-shrink-0">
+          <div className="w-full lg:w-80 flex-shrink-0 min-w-0">
             <Card className="sticky top-4">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Total Price</CardTitle>
+              <CardHeader className="pb-3 sm:pb-4 p-3 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                  <CardTitle className="text-base sm:text-lg">Total Price</CardTitle>
                   {getSelectedExtrasCount() > 0 && <DropdownMenu open={showExtrasDropdown} onOpenChange={setShowExtrasDropdown}>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Badge variant="secondary" className="mr-2">
+                        <Button variant="ghost" size="sm" className="text-xs sm:text-sm">
+                          <Badge variant="secondary" className="mr-1.5 sm:mr-2 text-[10px] sm:text-xs">
                             {getSelectedExtrasCount()}
                           </Badge>
                           <ChevronDown className="h-3 w-3" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-64 p-2">
+                      <DropdownMenuContent align="end" className="w-56 sm:w-64 p-2 bg-background z-50">
                         <div className="space-y-2">
                           <p className="text-sm font-medium mb-2">Selected Features:</p>
                           {selectedExtras.spa && selectedExtras.selectedSpaModel && <div className="flex items-center justify-between text-xs">
@@ -1481,41 +1481,41 @@ const WonderlandsStudio = () => {
                     </DropdownMenu>}
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="p-3 sm:p-6">
+                <div className="space-y-3 sm:space-y-4">
                   {selectedProduct ? <>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <div className="flex justify-between text-xs sm:text-sm">
                           <span>Base Price</span>
                           <span>${selectedProduct.price.toLocaleString()}</span>
                         </div>
-        {selectedProduct.type === 'pool' && <div className="flex justify-between text-sm text-green-600">
+        {selectedProduct.type === 'pool' && <div className="flex justify-between text-xs sm:text-sm text-green-600">
             <span>Pool Discount (10% off)</span>
             <span>-${(selectedProduct.price - getProductPrice(selectedProduct)).toLocaleString()}</span>
           </div>}
                         <Separator />
                       </div>
                       
-                      <div className="text-center p-4 bg-gradient-to-r from-primary/10 to-teal/10 rounded-lg">
-                        <div className="text-2xl font-bold text-primary">
+                      <div className="text-center p-3 sm:p-4 bg-gradient-to-r from-primary/10 to-teal/10 rounded-lg">
+                        <div className="text-xl sm:text-2xl font-bold text-primary">
                           ${calculateTotalPrice().toLocaleString()}
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                           Total Configuration Price
                         </p>
                       </div>
 
                       {/* Financing Options */}
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <p className="text-xs font-medium mb-2">Financing Options:</p>
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div className="text-center p-2 bg-background rounded">
-                            <div className="font-semibold">36 months</div>
-                            <div className="text-primary">${(calculateTotalPrice() / 36).toLocaleString()}/mo</div>
+                      <div className="p-2 sm:p-3 bg-muted/50 rounded-lg">
+                        <p className="text-[10px] sm:text-xs font-medium mb-1.5 sm:mb-2">Financing Options:</p>
+                        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
+                          <div className="text-center p-1.5 sm:p-2 bg-background rounded">
+                            <div className="font-semibold text-[10px] sm:text-xs">36 months</div>
+                            <div className="text-primary text-[10px] sm:text-xs">${(calculateTotalPrice() / 36).toLocaleString()}/mo</div>
                           </div>
-                          <div className="text-center p-2 bg-background rounded">
-                            <div className="font-semibold">72 months</div>
-                            <div className="text-primary">${(calculateTotalPrice() / 72).toLocaleString()}/mo</div>
+                          <div className="text-center p-1.5 sm:p-2 bg-background rounded">
+                            <div className="font-semibold text-[10px] sm:text-xs">72 months</div>
+                            <div className="text-primary text-[10px] sm:text-xs">${(calculateTotalPrice() / 72).toLocaleString()}/mo</div>
                           </div>
                         </div>
                       </div>

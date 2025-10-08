@@ -84,13 +84,13 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
               </div>
             </div>
             {selectedExtras[feature.id] && selectedExtras[feature.id] !== 'None' && activeFeatureCarousel === feature.id && feature.options && (
-              <div className="mb-4 border rounded-lg p-2 bg-background overflow-hidden">
+              <div className="mb-4 border rounded-lg p-2 bg-background overflow-hidden w-full">
                 <Carousel className="w-full">
-                  <CarouselContent className="h-24">
+                  <CarouselContent className="h-20 sm:h-24">
                     {feature.options.filter(opt => opt.name !== 'None').map((option) => (
-                      <CarouselItem key={option.name} className="basis-1/3 md:basis-1/4 lg:basis-1/5 pl-2">
+                      <CarouselItem key={option.name} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 pl-2">
                         <div
-                          className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-2 h-full ${
+                          className={`cursor-pointer rounded-lg border-2 transition-all duration-200 p-1.5 sm:p-2 h-full flex flex-col ${
                             selectedExtras[feature.id] === option.name
                               ? 'border-primary shadow-md'
                               : 'border-border hover:border-primary/50'
@@ -104,10 +104,10 @@ export function DynamicFeatureRenderer({ productType, selectedExtras, onExtrasCh
                           }}
                         >
                           {option.image && (
-                            <img src={option.image} alt={option.name} className="w-full h-12 object-cover rounded mb-1" />
+                            <img src={option.image} alt={option.name} className="w-full h-8 sm:h-12 object-cover rounded mb-1 flex-shrink-0" />
                           )}
-                          <p className="text-xs font-medium truncate">{option.name}</p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-[10px] sm:text-xs font-medium truncate">{option.name}</p>
+                          <p className="text-[9px] sm:text-xs text-muted-foreground">
                             {option.price > 0 ? `+$${option.price.toLocaleString()}` : 'Included'}
                           </p>
                         </div>
