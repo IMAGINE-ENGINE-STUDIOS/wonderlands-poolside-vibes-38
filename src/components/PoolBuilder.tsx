@@ -134,10 +134,10 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [isDraggingHardscape, setIsDraggingHardscape] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [scale, setScale] = useState(15); // pixels per foot - increased for better visibility
+  const [scale, setScale] = useState(10); // pixels per foot - reduced for larger canvas
   const [canvasSize, setCanvasSize] = useState({ 
-    width: window.innerWidth - 20, 
-    height: window.innerHeight - 80 
+    width: window.innerWidth - 100, 
+    height: window.innerHeight - 150 
   });
   const [showControls, setShowControls] = useState(true);
   const [editingDimension, setEditingDimension] = useState<string | null>(null);
@@ -152,9 +152,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [selectedPaverId, setSelectedPaverId] = useState('appian-adobe');
   const [selectedCopingId, setSelectedCopingId] = useState('appian-adobe');
   const [selectedFinishId, setSelectedFinishId] = useState('aquamarine');
-  const [paverSize] = useState(16); // Reduced paver size for finer texture (16 inches)
+  const [paverSize] = useState(12); // Reduced paver size for finer texture at larger scale (12 inches)
   const [poolShape, setPoolShape] = useState<'rectangle' | 'kidney' | 'freeform'>('rectangle');
-  const [copingThickness, setCopingThickness] = useState(15); // 1 foot = 15 pixels at scale 15
+  const [copingThickness, setCopingThickness] = useState(10); // Adjusted for new scale
   const [depthPoints, setDepthPoints] = useState<DepthPoint[]>([
     { position: 0, depth: 3.5, id: 'd1' },
     { position: 0.33, depth: 4.5, id: 'd2' },
@@ -256,11 +256,11 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   }, [selectedPaverId, selectedCopingId, selectedFinishId]);
 
 
-  // Update canvas size to fill screen
+  // Update canvas size to maximize screen space
   useEffect(() => {
     const updateCanvasSize = () => {
-      const width = window.innerWidth - 20;
-      const height = window.innerHeight - 80;
+      const width = window.innerWidth - 100;
+      const height = window.innerHeight - 150;
       setCanvasSize({ width, height });
     };
 

@@ -953,7 +953,11 @@ const WonderlandsStudio = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <Tabs value={activeTab} onValueChange={value => setActiveTab(value as any)} className="w-full">
+                  <Tabs value={activeTab} onValueChange={value => {
+                    setActiveTab(value as any);
+                    // Auto-collapse sidebar when selecting any category
+                    setLeftSidebarCollapsed(true);
+                  }} className="w-full">
                     <TabsList className="grid w-full grid-cols-1 gap-2 h-auto bg-transparent p-0">
                       <TabsTrigger value="pools" className="justify-start data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                         <Waves className="h-4 w-4 mr-2" />
