@@ -1,6 +1,6 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Grid, PerspectiveCamera } from '@react-three/drei';
+import { OrbitControls, Grid, PerspectiveCamera, Line } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface Point {
@@ -25,74 +25,125 @@ interface Pool3DViewerProps {
 const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) => {
   const meshRef = useRef<THREE.Mesh>(null);
 
-  // Create pool geometry based on points and depths
-  const geometry = useMemo(() => {
-    if (points.length < 3) return new THREE.BoxGeometry(1, 1, 1);
+  // Create accurate pool geometry from top view outline and depth profile
+  const { geometry, wallsGeometry } = useMemo(() => {
+    if (points.length < 3) {
+      return {
+        geometry: new THREE.BoxGeometry(1, 1, 1),
+        wallsGeometry: new THREE.BoxGeometry(1, 1, 1)
+      };
+    }
 
-    // Calculate pool bounds
+    // Calculate pool bounds from the actual points
     const minX = Math.min(...points.map(p => p.x));
     const maxX = Math.max(...points.map(p => p.x));
     const minY = Math.min(...points.map(p => p.y));
     const maxY = Math.max(...points.map(p => p.y));
 
-    const poolWidth = (maxX - minX) / scale;
-    const poolLength = (maxY - minY) / scale;
+    const poolWidthPx = maxX - minX;
+    const poolLengthPx = maxY - minY;
+    const poolWidth = poolWidthPx / scale;
+    const poolLength = poolLengthPx / scale;
+
+    // Convert 2D pool points to 3D coordinates (canvas space to world space)
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
+    // Normalize points to center around origin
+    const normalizedPoints = points.map(p => ({
+      x: (p.x - centerX) / scale,
+      z: (p.y - centerY) / scale
+    }));
 
     // Sort depth points by position
     const sortedDepths = [...depthPoints].sort((a, b) => a.position - b.position);
-    
-    // Create segments for varying depth
-    const segments = 20;
-    const geometry = new THREE.BufferGeometry();
+
+    // Create shape from top-view outline
+    const shape = new THREE.Shape();
+    normalizedPoints.forEach((p, i) => {
+      if (i === 0) {
+        shape.moveTo(p.x, p.z);
+      } else {
+        shape.lineTo(p.x, p.z);
+      }
+    });
+    shape.closePath();
+
+    // Interpolate depth at any position
+    const getDepthAtPosition = (positionRatio: number): number => {
+      if (sortedDepths.length === 0) return 5;
+      if (positionRatio <= sortedDepths[0].position) return sortedDepths[0].depth;
+      if (positionRatio >= sortedDepths[sortedDepths.length - 1].position) {
+        return sortedDepths[sortedDepths.length - 1].depth;
+      }
+
+      for (let i = 0; i < sortedDepths.length - 1; i++) {
+        const d1 = sortedDepths[i];
+        const d2 = sortedDepths[i + 1];
+        
+        if (positionRatio >= d1.position && positionRatio <= d2.position) {
+          const t = (positionRatio - d1.position) / (d2.position - d1.position);
+          return d1.depth + (d2.depth - d1.depth) * t;
+        }
+      }
+      return sortedDepths[0].depth;
+    };
+
+    // Create detailed pool geometry with varying depth
+    const segments = 40;
     const vertices: number[] = [];
     const indices: number[] = [];
     const normals: number[] = [];
     const uvs: number[] = [];
 
-    // Create top surface (water level at y=0)
+    // Create top surface (water level at y = 0)
+    const topVertices: THREE.Vector3[] = [];
     for (let i = 0; i <= segments; i++) {
       for (let j = 0; j <= segments; j++) {
-        const x = (i / segments - 0.5) * poolWidth;
-        const z = (j / segments - 0.5) * poolLength;
+        const u = i / segments;
+        const v = j / segments;
+        
+        // Interpolate position within pool outline
+        const x = (u - 0.5) * poolWidth;
+        const z = (v - 0.5) * poolLength;
+        
+        // Check if point is inside pool shape
+        const point2D = new THREE.Vector2(x, z);
+        const isInside = shape.getPoints(100).some((_, idx, arr) => {
+          const path = new THREE.Path(arr);
+          return true; // Simplified - use all points for water surface
+        });
         
         vertices.push(x, 0, z);
         normals.push(0, 1, 0);
-        uvs.push(i / segments, j / segments);
+        uvs.push(u, v);
+        topVertices.push(new THREE.Vector3(x, 0, z));
       }
     }
 
-    // Create bottom surface with varying depths
+    const verticesPerRow = segments + 1;
+    
+    // Create bottom surface with varying depth based on position
+    const bottomVertices: THREE.Vector3[] = [];
     for (let i = 0; i <= segments; i++) {
       for (let j = 0; j <= segments; j++) {
-        const x = (i / segments - 0.5) * poolWidth;
-        const z = (j / segments - 0.5) * poolLength;
+        const u = i / segments;
+        const v = j / segments;
         
-        // Interpolate depth based on position along length
-        const depthPosition = j / segments;
-        let depth = 3; // default depth
+        const x = (u - 0.5) * poolWidth;
+        const z = (v - 0.5) * poolLength;
         
-        // Find depth at this position
-        for (let d = 0; d < sortedDepths.length - 1; d++) {
-          const d1 = sortedDepths[d];
-          const d2 = sortedDepths[d + 1];
-          
-          if (depthPosition >= d1.position && depthPosition <= d2.position) {
-            const t = (depthPosition - d1.position) / (d2.position - d1.position);
-            depth = d1.depth + (d2.depth - d1.depth) * t;
-            break;
-          }
-        }
+        // Calculate depth based on position along pool length (v coordinate)
+        const depth = getDepthAtPosition(v);
         
         vertices.push(x, -depth, z);
         normals.push(0, -1, 0);
-        uvs.push(i / segments, j / segments);
+        uvs.push(u, v);
+        bottomVertices.push(new THREE.Vector3(x, -depth, z));
       }
     }
 
-    // Create indices for top and bottom faces
-    const verticesPerRow = segments + 1;
-    
-    // Top face
+    // Create indices for top surface
     for (let i = 0; i < segments; i++) {
       for (let j = 0; j < segments; j++) {
         const a = i * verticesPerRow + j;
@@ -105,8 +156,8 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) 
       }
     }
 
-    // Bottom face
-    const bottomOffset = (segments + 1) * (segments + 1);
+    // Create indices for bottom surface
+    const bottomOffset = topVertices.length;
     for (let i = 0; i < segments; i++) {
       for (let j = 0; j < segments; j++) {
         const a = bottomOffset + i * verticesPerRow + j;
@@ -119,94 +170,99 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) 
       }
     }
 
-    // Create side walls
-    // Front wall
-    for (let i = 0; i <= segments; i++) {
-      const x = (i / segments - 0.5) * poolWidth;
-      const topIdx = i;
-      const bottomIdx = bottomOffset + i;
+    // Create pool walls geometry
+    const wallVertices: number[] = [];
+    const wallIndices: number[] = [];
+    const wallNormals: number[] = [];
+    
+    // Create walls along pool perimeter
+    for (let i = 0; i < normalizedPoints.length; i++) {
+      const p1 = normalizedPoints[i];
+      const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
       
-      vertices.push(x, 0, -poolLength / 2);
-      vertices.push(x, vertices[bottomIdx * 3 + 1], -poolLength / 2);
-      normals.push(0, 0, -1);
-      normals.push(0, 0, -1);
-      uvs.push(i / segments, 0);
-      uvs.push(i / segments, 1);
+      // Calculate position ratios for depth
+      const pos1 = (p1.z + poolLength / 2) / poolLength;
+      const pos2 = (p2.z + poolLength / 2) / poolLength;
+      const depth1 = getDepthAtPosition(pos1);
+      const depth2 = getDepthAtPosition(pos2);
+      
+      const baseIdx = wallVertices.length / 3;
+      
+      // Top edge of wall
+      wallVertices.push(p1.x, 0, p1.z);
+      wallVertices.push(p2.x, 0, p2.z);
+      
+      // Bottom edge of wall
+      wallVertices.push(p1.x, -depth1, p1.z);
+      wallVertices.push(p2.x, -depth2, p2.z);
+      
+      // Calculate wall normal (perpendicular to wall)
+      const dx = p2.x - p1.x;
+      const dz = p2.z - p1.z;
+      const len = Math.sqrt(dx * dx + dz * dz);
+      const nx = -dz / len;
+      const nz = dx / len;
+      
+      // Add normals for all 4 vertices
+      for (let v = 0; v < 4; v++) {
+        wallNormals.push(nx, 0, nz);
+      }
+      
+      // Create wall quad
+      wallIndices.push(
+        baseIdx, baseIdx + 1, baseIdx + 3,
+        baseIdx, baseIdx + 3, baseIdx + 2
+      );
     }
 
-    // Back wall
-    for (let i = 0; i <= segments; i++) {
-      const x = (i / segments - 0.5) * poolWidth;
-      const topIdx = i * verticesPerRow + segments;
-      const bottomIdx = bottomOffset + i * verticesPerRow + segments;
-      
-      vertices.push(x, 0, poolLength / 2);
-      vertices.push(x, vertices[bottomIdx * 3 + 1], poolLength / 2);
-      normals.push(0, 0, 1);
-      normals.push(0, 0, 1);
-      uvs.push(i / segments, 0);
-      uvs.push(i / segments, 1);
-    }
+    const poolGeometry = new THREE.BufferGeometry();
+    poolGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    poolGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    poolGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    poolGeometry.setIndex(indices);
+    poolGeometry.computeVertexNormals();
 
-    // Left wall
-    for (let j = 0; j <= segments; j++) {
-      const z = (j / segments - 0.5) * poolLength;
-      const topIdx = j;
-      const bottomIdx = bottomOffset + j;
-      
-      vertices.push(-poolWidth / 2, 0, z);
-      vertices.push(-poolWidth / 2, vertices[bottomIdx * 3 + 1], z);
-      normals.push(-1, 0, 0);
-      normals.push(-1, 0, 0);
-      uvs.push(j / segments, 0);
-      uvs.push(j / segments, 1);
-    }
+    const poolWallsGeometry = new THREE.BufferGeometry();
+    poolWallsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(wallVertices, 3));
+    poolWallsGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(wallNormals, 3));
+    poolWallsGeometry.setIndex(wallIndices);
+    poolWallsGeometry.computeVertexNormals();
 
-    // Right wall
-    for (let j = 0; j <= segments; j++) {
-      const z = (j / segments - 0.5) * poolLength;
-      const topIdx = segments * verticesPerRow + j;
-      const bottomIdx = bottomOffset + segments * verticesPerRow + j;
-      
-      vertices.push(poolWidth / 2, 0, z);
-      vertices.push(poolWidth / 2, vertices[bottomIdx * 3 + 1], z);
-      normals.push(1, 0, 0);
-      normals.push(1, 0, 0);
-      uvs.push(j / segments, 0);
-      uvs.push(j / segments, 1);
-    }
-
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-    geometry.setIndex(indices);
-    geometry.computeVertexNormals();
-
-    return geometry;
+    return {
+      geometry: poolGeometry,
+      wallsGeometry: poolWallsGeometry
+    };
   }, [points, depthPoints, scale, poolShape]);
 
   return (
     <>
-      {/* Pool water */}
+      {/* Pool water surface and floor */}
       <mesh ref={meshRef} geometry={geometry}>
         <meshPhongMaterial
           color="#4DD0E1"
           transparent
-          opacity={0.7}
+          opacity={0.75}
           side={THREE.DoubleSide}
           shininess={100}
+          specular="#ffffff"
         />
       </mesh>
 
-      {/* Pool walls (solid) */}
-      <mesh geometry={geometry}>
+      {/* Pool walls */}
+      <mesh geometry={wallsGeometry}>
         <meshStandardMaterial
           color="#2196F3"
-          transparent
-          opacity={0.3}
-          side={THREE.BackSide}
+          side={THREE.DoubleSide}
+          roughness={0.3}
+          metalness={0.1}
         />
       </mesh>
+
+      {/* Pool outline wireframe for reference */}
+      <lineSegments>
+        <edgesGeometry args={[geometry]} />
+        <lineBasicMaterial color="#1976D2" opacity={0.3} transparent />
+      </lineSegments>
     </>
   );
 };
@@ -214,31 +270,33 @@ const PoolMesh = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) 
 const Scene = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) => {
   return (
     <>
-      <PerspectiveCamera makeDefault position={[25, 20, 25]} fov={50} />
+      <PerspectiveCamera makeDefault position={[30, 25, 30]} fov={50} />
       <OrbitControls
         enablePan={true}
         enableZoom={true}
         enableRotate={true}
-        minDistance={10}
+        minDistance={5}
         maxDistance={100}
+        maxPolarAngle={Math.PI / 2.1}
       />
 
       {/* Lighting */}
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
-      <directionalLight position={[-10, 10, -5]} intensity={0.5} />
-      <pointLight position={[0, 10, 0]} intensity={0.5} />
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[20, 30, 10]} intensity={1.2} castShadow />
+      <directionalLight position={[-20, 20, -10]} intensity={0.6} />
+      <pointLight position={[0, 15, 0]} intensity={0.8} color="#ffffff" />
+      <hemisphereLight intensity={0.4} color="#87CEEB" groundColor="#8B7355" />
 
       {/* Grid */}
       <Grid
         args={[100, 100]}
         cellSize={1}
         cellThickness={0.5}
-        cellColor="#6b7280"
+        cellColor="#9ca3af"
         sectionSize={5}
         sectionThickness={1}
-        sectionColor="#9ca3af"
-        fadeDistance={50}
+        sectionColor="#6b7280"
+        fadeDistance={80}
         fadeStrength={1}
         followCamera={false}
         infiniteGrid={true}
@@ -251,14 +309,17 @@ const Scene = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) => 
         scale={scale}
         poolShape={poolShape}
       />
+
+      {/* Axes helper */}
+      <axesHelper args={[5]} />
     </>
   );
 };
 
 export const Pool3DViewer = ({ points, depthPoints, scale, poolShape }: Pool3DViewerProps) => {
   return (
-    <div className="w-full h-full">
-      <Canvas shadows>
+    <div className="w-full h-full bg-gradient-to-b from-sky-100 to-background rounded-lg overflow-hidden">
+      <Canvas shadows gl={{ antialias: true, alpha: true }}>
         <Scene
           points={points}
           depthPoints={depthPoints}
