@@ -30,6 +30,12 @@ interface PoolFeature {
   radius?: number;
 }
 
+interface HardscapePoint {
+  x: number;
+  y: number;
+  id: string;
+}
+
 interface PoolBuilderProps {
   onPoolDataChange?: (data: {
     points: Point[];
@@ -45,8 +51,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const paverTextureRef = useRef<HTMLImageElement | null>(null);
   const linerTextureRef = useRef<HTMLImageElement | null>(null);
   const getShapePoints = (shape: 'rectangle' | 'kidney' | 'freeform'): Point[] => {
-    const centerX = 350;
-    const centerY = 250;
+    const centerX = canvasSize.width / 2;
+    const centerY = canvasSize.height / 2;
     
     switch (shape) {
       case 'rectangle':
@@ -80,8 +86,11 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     }
   };
 
-  const [points, setPoints] = useState<Point[]>(getShapePoints('rectangle'));
+  const [points, setPoints] = useState<Point[]>([]);
+  const [hardscapePoints, setHardscapePoints] = useState<HardscapePoint[]>([]);
   const [features, setFeatures] = useState<PoolFeature[]>([]);
+  const [selectedHardscapePoint, setSelectedHardscapePoint] = useState<string | null>(null);
+  const [isDraggingHardscape, setIsDraggingHardscape] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [scale, setScale] = useState(15); // pixels per foot - increased for better visibility
@@ -105,6 +114,22 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const [lightHue, setLightHue] = useState(0); // For color-changing LED lights
   const [copingThickness, setCopingThickness] = useState(15); // 1 foot = 15 pixels at scale 15
   const [waterAnimationTime, setWaterAnimationTime] = useState(0);
+
+  // Initialize pool and hardscape centered
+  useEffect(() => {
+    if (points.length === 0) {
+      setPoints(getShapePoints('rectangle'));
+      
+      // Initialize hardscape deck around pool
+      const deckWidth = 100; // 100px deck around pool
+      setHardscapePoints([
+        { x: canvasSize.width / 2 - 200, y: canvasSize.height / 2 - 175, id: 'h1' },
+        { x: canvasSize.width / 2 + 200, y: canvasSize.height / 2 - 175, id: 'h2' },
+        { x: canvasSize.width / 2 + 200, y: canvasSize.height / 2 + 175, id: 'h3' },
+        { x: canvasSize.width / 2 - 200, y: canvasSize.height / 2 + 175, id: 'h4' },
+      ]);
+    }
+  }, [canvasSize]);
 
   // Available finishes
   const finishes = [
@@ -297,81 +322,60 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.fillRect(x, y, 2, 2);
     }
 
-    // Draw paver deck area around pool (smaller area)
+    // Draw hardscape/paver deck with custom shape
 
-    // Calculate paver size in pixels (24 inches = 2 feet)
     const paverSizeInFeet = paverSize / 12;
     const paverSizeInPixels = paverSizeInFeet * scale;
 
-    // Draw paver texture only around pool area (not full canvas)
-    if (paverTextureRef.current) {
+    // Draw hardscape deck area with custom shape
+    if (paverTextureRef.current && hardscapePoints.length >= 3) {
       const img = paverTextureRef.current;
       
-      // Find pool bounds
-      const poolMinX = Math.min(...points.map(p => p.x)) - 100;
-      const poolMaxX = Math.max(...points.map(p => p.x)) + 100;
-      const poolMinY = Math.min(...points.map(p => p.y)) - 100;
-      const poolMaxY = Math.max(...points.map(p => p.y)) + 100;
+      // Create hardscape path
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(hardscapePoints[0].x, hardscapePoints[0].y);
+      for (let i = 1; i < hardscapePoints.length; i++) {
+        ctx.lineTo(hardscapePoints[i].x, hardscapePoints[i].y);
+      }
+      ctx.closePath();
+      ctx.clip();
       
-      const startX = Math.max(0, poolMinX);
-      const startY = Math.max(0, poolMinY);
-      const endX = Math.min(canvasSize.width, poolMaxX);
-      const endY = Math.min(canvasSize.height, poolMaxY);
+      // Find hardscape bounds
+      const hsMinX = Math.min(...hardscapePoints.map(p => p.x));
+      const hsMaxX = Math.max(...hardscapePoints.map(p => p.x));
+      const hsMinY = Math.min(...hardscapePoints.map(p => p.y));
+      const hsMaxY = Math.max(...hardscapePoints.map(p => p.y));
       
-      const numPaversX = Math.ceil((endX - startX) / paverSizeInPixels) + 1;
-      const numPaversY = Math.ceil((endY - startY) / paverSizeInPixels) + 1;
+      const numPaversX = Math.ceil((hsMaxX - hsMinX) / paverSizeInPixels) + 1;
+      const numPaversY = Math.ceil((hsMaxY - hsMinY) / paverSizeInPixels) + 1;
       
-      // Draw pavers as perfect squares with enhanced quality
+      // Draw pavers
       for (let i = 0; i < numPaversX; i++) {
         for (let j = 0; j < numPaversY; j++) {
-          const x = startX + i * paverSizeInPixels;
-          const y = startY + j * paverSizeInPixels;
+          const x = hsMinX + i * paverSizeInPixels;
+          const y = hsMinY + j * paverSizeInPixels;
           
-          // Draw high-quality paver image
-          ctx.save();
-          ctx.drawImage(
-            img,
-            x,
-            y,
-            paverSizeInPixels,
-            paverSizeInPixels
-          );
+          ctx.drawImage(img, x, y, paverSizeInPixels, paverSizeInPixels);
           
-          // Add subtle ambient occlusion in corners for depth
+          // Add subtle ambient occlusion
           const aoGradient = ctx.createRadialGradient(
-            x + paverSizeInPixels / 2,
-            y + paverSizeInPixels / 2,
-            paverSizeInPixels * 0.3,
-            x + paverSizeInPixels / 2,
-            y + paverSizeInPixels / 2,
-            paverSizeInPixels * 0.7
+            x + paverSizeInPixels / 2, y + paverSizeInPixels / 2, paverSizeInPixels * 0.3,
+            x + paverSizeInPixels / 2, y + paverSizeInPixels / 2, paverSizeInPixels * 0.7
           );
           aoGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
           aoGradient.addColorStop(1, 'rgba(0, 0, 0, 0.05)');
           ctx.fillStyle = aoGradient;
           ctx.fillRect(x, y, paverSizeInPixels, paverSizeInPixels);
           
-          // Draw grout lines with depth
+          // Grout lines
           ctx.strokeStyle = 'rgba(100, 80, 60, 0.3)';
           ctx.lineWidth = 1.5;
           ctx.strokeRect(x, y, paverSizeInPixels, paverSizeInPixels);
-          
-          ctx.restore();
         }
       }
       
-      // Add directional lighting shader effect only to deck
-      const lightAngle = Math.PI / 4;
-      const lightGradient = ctx.createLinearGradient(
-        startX, startY,
-        startX + Math.cos(lightAngle) * (endX - startX),
-        startY + Math.sin(lightAngle) * (endY - startY)
-      );
-      lightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
-      lightGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
-      lightGradient.addColorStop(1, 'rgba(0, 0, 0, 0.05)');
-      ctx.fillStyle = lightGradient;
-      ctx.fillRect(startX, startY, endX - startX, endY - startY);
+      ctx.restore();
     }
 
     // Draw subtle measurement grid
@@ -461,53 +465,23 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           copingPath.closePath();
         }
         
-        // Draw individual coping bricks around perimeter
-        const brickWidth = 12; // Width of each coping brick
-        let totalPerimeter = 0;
+        // Draw continuous coping texture along perimeter
+        ctx.save();
+        ctx.lineWidth = copingThickness * 2;
         
-        for (let i = 0; i < points.length; i++) {
-          const p1 = points[i];
-          const p2 = points[(i + 1) % points.length];
-          const segmentLength = Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
-          totalPerimeter += segmentLength;
+        // Create pattern from coping texture
+        const copingPattern = ctx.createPattern(copingTextureRef.current, 'repeat');
+        if (copingPattern) {
+          ctx.strokeStyle = copingPattern;
+          ctx.stroke();
         }
         
-        // Draw bricks along each edge
-        for (let i = 0; i < points.length; i++) {
-          const p1 = points[i];
-          const p2 = points[(i + 1) % points.length];
-          const dx = p2.x - p1.x;
-          const dy = p2.y - p1.y;
-          const segmentLength = Math.sqrt(dx * dx + dy * dy);
-          const angle = Math.atan2(dy, dx);
-          const numBricks = Math.ceil(segmentLength / brickWidth);
-          
-          for (let j = 0; j < numBricks; j++) {
-            const t = j / numBricks;
-            const x = p1.x + dx * t;
-            const y = p1.y + dy * t;
-            
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.rotate(angle);
-            
-            // Draw coping brick texture
-            ctx.drawImage(
-              copingTextureRef.current,
-              -brickWidth / 2,
-              -copingThickness,
-              brickWidth,
-              copingThickness * 2
-            );
-            
-            // Add grout line
-            ctx.strokeStyle = 'rgba(100, 80, 60, 0.4)';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(-brickWidth / 2, -copingThickness, brickWidth, copingThickness * 2);
-            
-            ctx.restore();
-          }
-        }
+        // Add subtle shadow for depth
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.lineWidth = copingThickness * 2 + 2;
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.stroke();
+        ctx.globalCompositeOperation = 'source-over';
         
         ctx.restore();
       } else {
@@ -522,38 +496,30 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       ctx.clip();
       
       if (linerTextureRef.current) {
-        // Mosaic tiles are typically 1cm x 1cm (0.0328 feet)
-        const tileSizeInFeet = 0.0328; // 1 centimeter
-        const tileSizeInPixels = tileSizeInFeet * scale; // ~0.5 pixels at scale 15
+        // Increase texture scale for better visibility
+        const tileSizeInFeet = 0.15; // Larger tiles - ~1.8 inches
+        const pixelsPerTile = tileSizeInFeet * scale;
         
-        // Since tiles are so small, we need to create a high-resolution pattern
-        // We'll use 2x2 pixels per tile for visibility and detail
-        const pixelsPerTile = Math.max(2, tileSizeInPixels * 2);
-        
-        // Create a small canvas for one tile
         const tileCanvas = document.createElement('canvas');
         tileCanvas.width = pixelsPerTile;
         tileCanvas.height = pixelsPerTile;
         const tileCtx = tileCanvas.getContext('2d');
         
         if (tileCtx) {
-          // Draw a small section of the texture
           tileCtx.drawImage(
             linerTextureRef.current,
             0, 0, 
-            linerTextureRef.current.width / 20, // Sample small portion
-            linerTextureRef.current.height / 20,
+            linerTextureRef.current.width / 10,
+            linerTextureRef.current.height / 10,
             0, 0,
             pixelsPerTile,
             pixelsPerTile
           );
           
-          // Add subtle tile grout/separation
           tileCtx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
           tileCtx.lineWidth = 0.5;
           tileCtx.strokeRect(0, 0, pixelsPerTile, pixelsPerTile);
           
-          // Create repeating pattern
           const pattern = ctx.createPattern(tileCanvas, 'repeat');
           
           if (pattern) {
@@ -562,7 +528,6 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           }
         }
       } else {
-        // Fallback to solid aquamarine color
         ctx.fillStyle = '#5BC5D9';
         ctx.fill();
       }
@@ -756,35 +721,44 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         ctx.lineWidth = isSelected ? 3 : 2;
         ctx.stroke();
       } else if (feature.type === 'home') {
-        // Home outline
+        // House roof top-down view
         const width = feature.width || 200;
         const height = feature.height || 150;
         const isSelected = selectedFeature === feature.id;
         
-        // Main structure
-        ctx.fillStyle = '#D4C5B0';
+        // Roof structure (top-down)
+        const roofGradient = ctx.createLinearGradient(
+          feature.x - width / 2, feature.y - height / 2,
+          feature.x + width / 2, feature.y + height / 2
+        );
+        roofGradient.addColorStop(0, '#8B6F47');
+        roofGradient.addColorStop(0.5, '#A0826D');
+        roofGradient.addColorStop(1, '#6B5435');
+        
+        ctx.fillStyle = roofGradient;
         ctx.fillRect(feature.x - width / 2, feature.y - height / 2, width, height);
         
-        // Roof
-        ctx.fillStyle = '#8B6F47';
+        // Roof tiles/shingles pattern
+        ctx.strokeStyle = 'rgba(60, 40, 20, 0.3)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 15; i++) {
+          const yPos = feature.y - height / 2 + (i * height / 15);
+          ctx.beginPath();
+          ctx.moveTo(feature.x - width / 2, yPos);
+          ctx.lineTo(feature.x + width / 2, yPos);
+          ctx.stroke();
+        }
+        
+        // Ridge line
+        ctx.strokeStyle = '#6B5435';
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(feature.x - width / 2 - 10, feature.y - height / 2);
-        ctx.lineTo(feature.x, feature.y - height / 2 - 40);
-        ctx.lineTo(feature.x + width / 2 + 10, feature.y - height / 2);
-        ctx.closePath();
-        ctx.fill();
-        
-        // Windows
-        ctx.fillStyle = '#A8D8EA';
-        ctx.fillRect(feature.x - 60, feature.y - 20, 30, 35);
-        ctx.fillRect(feature.x + 30, feature.y - 20, 30, 35);
-        
-        // Door
-        ctx.fillStyle = '#6B4423';
-        ctx.fillRect(feature.x - 15, feature.y + 20, 30, 50);
+        ctx.moveTo(feature.x - width / 2, feature.y);
+        ctx.lineTo(feature.x + width / 2, feature.y);
+        ctx.stroke();
         
         // Border
-        ctx.strokeStyle = isSelected ? '#FFD700' : '#A0826D';
+        ctx.strokeStyle = isSelected ? '#FFD700' : '#5D4E37';
         ctx.lineWidth = isSelected ? 3 : 2;
         ctx.strokeRect(feature.x - width / 2, feature.y - height / 2, width, height);
       }
@@ -1181,6 +1155,21 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
 
   }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, lightHue, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, waterAnimationTime]);
 
+  // Calculate hardscape area
+  const calculateHardscapeArea = useCallback(() => {
+    if (hardscapePoints.length < 3) return 0;
+    let area = 0;
+    for (let i = 0; i < hardscapePoints.length; i++) {
+      const current = hardscapePoints[i];
+      const next = hardscapePoints[(i + 1) % hardscapePoints.length];
+      area += current.x * next.y - next.x * current.y;
+    }
+    const sqPixels = Math.abs(area / 2);
+    const hardscapeAreaSqFt = sqPixels / (scale * scale);
+    const poolAreaSqFt = parseFloat(calculateArea());
+    return Math.max(0, hardscapeAreaSqFt - poolAreaSqFt);
+  }, [hardscapePoints, scale, points]);
+
   // Memoize perimeter and area calculations
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
   const poolArea = useMemo(() => parseFloat(calculateArea()), [points]);
@@ -1204,6 +1193,18 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+
+    // Check if clicked on hardscape point
+    const clickedHardscapePoint = hardscapePoints.find(p => 
+      Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10
+    );
+
+    if (clickedHardscapePoint) {
+      setSelectedHardscapePoint(clickedHardscapePoint.id);
+      setSelectedPoint(null);
+      setSelectedFeature(null);
+      return;
+    }
 
     // If placing jet, snap it to nearest wall or place on pool floor
     if (pendingFeature === 'jet') {
@@ -1260,9 +1261,11 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     if (clickedPoint) {
       setSelectedPoint(clickedPoint.id);
       setSelectedFeature(null);
+      setSelectedHardscapePoint(null);
     } else {
       setSelectedPoint(null);
       setSelectedFeature(null);
+      setSelectedHardscapePoint(null);
     }
   };
 
@@ -1275,6 +1278,17 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+
+    // Check for hardscape point drag
+    const clickedHardscapePoint = hardscapePoints.find(p => 
+      Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10
+    );
+
+    if (clickedHardscapePoint) {
+      setSelectedHardscapePoint(clickedHardscapePoint.id);
+      setIsDraggingHardscape(true);
+      return;
+    }
 
     // Check for feature drag
     const clickedFeature = features.find(f => 
@@ -1308,7 +1322,14 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
     // Update cursor position for pending features
     setCursorPos({ x, y });
 
-    if (draggingFeature && selectedFeature) {
+    if (isDraggingHardscape && selectedHardscapePoint) {
+      const boundedX = Math.max(0, Math.min(canvasSize.width, x));
+      const boundedY = Math.max(0, Math.min(canvasSize.height, y));
+
+      setHardscapePoints(prev => prev.map(p => 
+        p.id === selectedHardscapePoint ? { ...p, x: boundedX, y: boundedY } : p
+      ));
+    } else if (draggingFeature && selectedFeature) {
       const feature = features.find(f => f.id === selectedFeature);
       if (!feature) return;
 
@@ -1327,8 +1348,29 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
               } 
             : f
         ));
+      } else if (feature.type === 'tree') {
+        // Snap trees to grass areas
+        const grassAreas = features.filter(f => f.type === 'grass');
+        let snappedToGrass = false;
+        
+        for (const grass of grassAreas) {
+          const distToGrass = Math.sqrt((x - grass.x) ** 2 + (y - grass.y) ** 2);
+          if (distToGrass < (grass.radius || 80)) {
+            setFeatures(prev => prev.map(f => 
+              f.id === selectedFeature ? { ...f, x, y } : f
+            ));
+            snappedToGrass = true;
+            break;
+          }
+        }
+        
+        if (!snappedToGrass) {
+          setFeatures(prev => prev.map(f => 
+            f.id === selectedFeature ? { ...f, x, y } : f
+          ));
+        }
       } else {
-        // Jets can be placed anywhere
+        // Other features can be placed anywhere
         setFeatures(prev => prev.map(f => 
           f.id === selectedFeature ? { ...f, x, y } : f
         ));
@@ -1352,6 +1394,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   const handleCanvasMouseUp = () => {
     setIsDragging(false);
     setDraggingFeature(false);
+    setIsDraggingHardscape(false);
   };
 
   const addPoint = () => {
@@ -1492,6 +1535,10 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
           <div className="flex items-center gap-1 text-xs">
             <span className="font-bold">{features.length}</span>
             <span className="text-muted-foreground">features</span>
+          </div>
+          <div className="flex items-center gap-1 text-xs">
+            <span className="font-bold">{calculateHardscapeArea().toFixed(1)}</span>
+            <span className="text-muted-foreground">sq ft deck</span>
           </div>
         </div>
       </div>
