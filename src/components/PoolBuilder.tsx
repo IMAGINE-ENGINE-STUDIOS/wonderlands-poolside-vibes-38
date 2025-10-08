@@ -2328,13 +2328,13 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                 {/* Depth Anchor Controls */}
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">Depth Anchors (Shallow to Deep)</Label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="flex gap-1.5">
                     {depthPoints.sort((a, b) => a.position - b.position).map((dp, index) => (
-                      <div key={dp.id} className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">
-                          Anchor {index + 1} ({(dp.position * 100).toFixed(0)}%)
+                      <div key={dp.id} className="flex-1 space-y-1">
+                        <Label className="text-[10px] text-muted-foreground">
+                          {(dp.position * 100).toFixed(0)}%
                         </Label>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-0.5">
                           <Input
                             type="number"
                             value={dp.depth.toFixed(1)}
@@ -2346,12 +2346,12 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                                 d.id === dp.id ? { ...d, depth: newDepth } : d
                               ));
                             }}
-                            className="h-8 text-xs"
+                            className="h-7 text-[10px] px-1"
                             min="1"
                             max="12"
                             step="0.1"
                           />
-                          <span className="text-xs text-muted-foreground">ft</span>
+                          <span className="text-[10px] text-muted-foreground">ft</span>
                         </div>
                       </div>
                     ))}
@@ -2363,24 +2363,9 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                   <Label className="text-xs font-medium">Section Cut - Depth Profile</Label>
                   <div className="bg-muted/30 rounded-lg p-4 border">
                     <svg width="100%" height="120" viewBox="0 0 300 120" className="overflow-visible">
-                      {/* Pool outline */}
-                      <rect x="10" y="10" width="280" height="100" fill="none" stroke="hsl(var(--border))" strokeWidth="1" strokeDasharray="3,3" />
-                      
-                      {/* Water line */}
+                      {/* Water line at 0' */}
                       <line x1="10" y1="10" x2="290" y2="10" stroke="hsl(var(--primary))" strokeWidth="2" />
                       <text x="5" y="12" fontSize="10" fill="hsl(var(--muted-foreground))" textAnchor="end">0'</text>
-                      
-                      {/* Depth profile curve */}
-                      <path
-                        d={`M ${10 + depthPoints.sort((a, b) => a.position - b.position).map((dp, i) => {
-                          const x = 10 + dp.position * 280;
-                          const y = 10 + (dp.depth / 12) * 100;
-                          return i === 0 ? `${x},${y}` : `L ${x},${y}`;
-                        }).join(' ')}`}
-                        fill="none"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth="2"
-                      />
                       
                       {/* Depth anchor points and labels */}
                       {depthPoints.sort((a, b) => a.position - b.position).map((dp, i) => {
@@ -2400,15 +2385,27 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                         );
                       })}
                       
-                      {/* Pool floor fill */}
+                      {/* Closed contour: 0% at 0' -> spline points -> 100% at 0' -> back to start */}
                       <path
-                        d={`M 10,110 ${depthPoints.sort((a, b) => a.position - b.position).map(dp => {
-                          const x = 10 + dp.position * 280;
-                          const y = 10 + (dp.depth / 12) * 100;
-                          return `L ${x},${y}`;
-                        }).join(' ')} L 290,110 Z`}
-                        fill="hsl(var(--primary)/0.1)"
-                        stroke="none"
+                        d={(() => {
+                          const sortedPoints = depthPoints.sort((a, b) => a.position - b.position);
+                          // Start at 0% anchor at water level (0')
+                          let pathData = `M ${10 + sortedPoints[0].position * 280},10`;
+                          // Draw spline through all depth points
+                          sortedPoints.forEach(dp => {
+                            const x = 10 + dp.position * 280;
+                            const y = 10 + (dp.depth / 12) * 100;
+                            pathData += ` L ${x},${y}`;
+                          });
+                          // Connect last point (100%) back to water level at 100%
+                          pathData += ` L ${10 + sortedPoints[sortedPoints.length - 1].position * 280},10`;
+                          // Close the contour back to start (0% at 0')
+                          pathData += ' Z';
+                          return pathData;
+                        })()}
+                        fill="hsl(var(--primary)/0.15)"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth="2"
                       />
                     </svg>
                   </div>
