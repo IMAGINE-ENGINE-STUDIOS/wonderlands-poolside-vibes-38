@@ -168,6 +168,11 @@ const PoolMesh: React.FC<{
     });
     poolShape.closePath();
 
+    // Determine pool orientation: length is the direction of depth change
+    const poolWidth = maxX - minX;
+    const poolLength = maxY - minY;
+    const lengthDirection = poolLength > poolWidth ? 'z' : 'x';
+
     // Create floor with sloped depth following depth profile
     const floorVertices: number[] = [];
     const floorIndices: number[] = [];
@@ -182,15 +187,25 @@ const PoolMesh: React.FC<{
       const point = normalizedPoints[i];
       
       // Calculate position along pool length for depth interpolation
-      const lengthRatio = (point.z - minY) / (maxY - minY);
+      let lengthRatio;
+      if (lengthDirection === 'z') {
+        lengthRatio = (point.z - (minY - centerY)) / poolLength;
+      } else {
+        lengthRatio = (point.x - (minX - centerX)) / poolWidth;
+      }
+      
+      // Clamp to 0-1 range
+      lengthRatio = Math.max(0, Math.min(1, lengthRatio));
+      
+      // Get depth at this position
       const depth = getDepthAtPosition(lengthRatio);
       
       // Floor vertices with actual depth (negative Y)
       floorVertices.push(point.x, -depth, point.z);
       
-      // UV mapping for texture tiling
-      const u = (point.x + Math.abs(minX - centerX)) / (maxX - minX) * 3;
-      const v = (point.z + Math.abs(minY - centerY)) / (maxY - minY) * 3;
+      // UV mapping for texture tiling (3ft per tile)
+      const u = ((point.x - (minX - centerX)) / poolWidth) * (poolWidth / 3);
+      const v = ((point.z - (minY - centerY)) / poolLength) * (poolLength / 3);
       floorUVs.push(u, v);
     }
     
@@ -213,19 +228,32 @@ const PoolMesh: React.FC<{
       const p1 = normalizedPoints[i];
       const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
       
-      const depth = getDepthAtPosition(i / normalizedPoints.length);
+      // Calculate depth at ACTUAL position of wall segment, not just index
+      const p1LengthRatio = lengthDirection === 'z' 
+        ? (p1.z - (minY - centerY)) / poolLength
+        : (p1.x - (minX - centerX)) / poolWidth;
+      const p2LengthRatio = lengthDirection === 'z'
+        ? (p2.z - (minY - centerY)) / poolLength
+        : (p2.x - (minX - centerX)) / poolWidth;
+        
+      const depth1 = getDepthAtPosition(Math.max(0, Math.min(1, p1LengthRatio)));
+      const depth2 = getDepthAtPosition(Math.max(0, Math.min(1, p2LengthRatio)));
+      
       const wallLength = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2));
       
       const baseIdx = wallVertices.length / 3;
       
-      wallVertices.push(p1.x, 0, p1.z);
-      wallVertices.push(p2.x, 0, p2.z);
-      wallVertices.push(p1.x, -depth, p1.z);
-      wallVertices.push(p2.x, -depth, p2.z);
+      // Wall vertices with variable depth along segment
+      wallVertices.push(p1.x, 0, p1.z);          // Top left
+      wallVertices.push(p2.x, 0, p2.z);          // Top right
+      wallVertices.push(p1.x, -depth1, p1.z);    // Bottom left
+      wallVertices.push(p2.x, -depth2, p2.z);    // Bottom right
       
-      wallUVs.push(0, 0, wallLength / 3, 0, 0, depth / 3, wallLength / 3, depth / 3);
+      // UV mapping
+      const avgDepth = (depth1 + depth2) / 2;
+      wallUVs.push(0, 0, wallLength / 3, 0, 0, avgDepth / 3, wallLength / 3, avgDepth / 3);
       
-      // Wall indices - normals facing inward toward pool interior
+      // Indices - normals facing inward
       wallIndices.push(
         baseIdx, baseIdx + 3, baseIdx + 1,
         baseIdx, baseIdx + 2, baseIdx + 3
@@ -526,6 +554,17 @@ const DeckMesh: React.FC<{
       bevelEnabled: false
     });
     deckGeom.rotateX(-Math.PI / 2);
+
+    // Fix UV mapping for proper 1 sq ft tiles
+    const uvAttribute = deckGeom.getAttribute('uv');
+    if (uvAttribute) {
+      const uvArray = uvAttribute.array as Float32Array;
+      for (let i = 0; i < uvArray.length; i += 2) {
+        uvArray[i] = uvArray[i] * deckDimensions.width;     // U coordinate
+        uvArray[i + 1] = uvArray[i + 1] * deckDimensions.length; // V coordinate
+      }
+      uvAttribute.needsUpdate = true;
+    }
 
     return deckGeom;
   }, [hardscapePoints, poolPoints]);

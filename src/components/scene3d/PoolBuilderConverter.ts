@@ -199,6 +199,17 @@ export function poolBuilderToScene(data: PoolBuilderData): Scene3D {
         name: 'Default Coping',
         roughness: 0.6,
         metalness: 0.0
+      },
+      waterline: poolTexture ? {
+        url: poolTexture.url,
+        name: poolTexture.name || 'Custom Waterline',
+        roughness: 0.3,
+        metalness: 0.2
+      } : {
+        url: '/src/assets/finishes/sapphire-blue-g3.jpg',
+        name: 'Sapphire Blue',
+        roughness: 0.3,
+        metalness: 0.2
       }
     },
     features: scene3DFeatures,
@@ -241,23 +252,25 @@ export function buildTextureLibrary(
     }))
   ];
 
-  // If no finishes available, add all premium liner defaults
-  if (finishes.length === 0) {
-    const premiumLiners = [
-      { url: '/src/assets/finishes/sapphire-blue-g3.jpg', name: 'Sapphire Blue' },
-      { url: '/src/assets/finishes/aquamarine-g3.jpg', name: 'Aquamarine' },
-      { url: '/src/assets/finishes/caribbean-blue-g3.jpg', name: 'Caribbean Blue' },
-      { url: '/src/assets/finishes/midnight-blue-g3.jpg', name: 'Midnight Blue' },
-      { url: '/src/assets/finishes/crystal-blue-g3.jpg', name: 'Crystal Blue' }
-    ];
-    
-    finishes.push(...premiumLiners.map(liner => ({
-      url: liner.url,
-      name: liner.name,
-      roughness: 0.2,
-      metalness: 0.1
-    })));
-  }
+  // Always ensure all premium liner defaults are available
+  const premiumLiners = [
+    { url: '/src/assets/finishes/sapphire-blue-g3.jpg', name: 'Sapphire Blue G3' },
+    { url: '/src/assets/finishes/aquamarine-g3.jpg', name: 'Aquamarine G3' },
+    { url: '/src/assets/finishes/ocean-blue-g3.jpg', name: 'Ocean Blue G3' },
+    { url: '/src/assets/finishes/coastal-bronze-g3.jpg', name: 'Coastal Bronze G3' },
+    { url: '/src/assets/finishes/athens-pearl-white-g3.jpg', name: 'Athens Pearl White G3' },
+    { url: '/src/assets/finishes/night-sky-g3.jpg', name: 'Night Sky G3' },
+    { url: '/src/assets/finishes/shale-gray-g3.jpg', name: 'Shale Gray G3' },
+    { url: '/src/assets/finishes/azure-blue-g2.jpg', name: 'Azure Blue G2' },
+    { url: '/src/assets/finishes/lagoon-blue-g2.jpg', name: 'Lagoon Blue G2' }
+  ];
+  
+  finishes.push(...premiumLiners.map(liner => ({
+    url: liner.url,
+    name: liner.name,
+    roughness: 0.2,
+    metalness: 0.1
+  })));
 
   // Extract pavers
   const pavers: TextureConfig[] = [
