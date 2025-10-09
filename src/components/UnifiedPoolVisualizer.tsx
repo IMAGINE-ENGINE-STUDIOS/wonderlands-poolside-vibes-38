@@ -1,0 +1,308 @@
+import { Canvas, useThree } from '@react-three/fiber';
+import { OrbitControls, TransformControls, Environment } from '@react-three/drei';
+import { useState, useEffect, useRef } from 'react';
+import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation } from './scene3d/types';
+import { Pool3DViewer } from './Pool3DViewer';
+import { Scene3DControlPanel } from './Scene3DControlPanel';
+import { Scene3DAnnotations } from './Scene3DAnnotations';
+import { Button } from './ui/button';
+import * as THREE from 'three';
+
+interface UnifiedPoolVisualizerProps {
+  scene: Scene3D;
+  textureLibrary: {
+    finishes: TextureConfig[];
+    pavers: TextureConfig[];
+    coping: TextureConfig[];
+  };
+  onSceneChange?: (scene: Scene3D) => void;
+}
+
+// Camera preset positions component
+function CameraController({ 
+  preset, 
+  target 
+}: { 
+  preset: CameraPreset | null; 
+  target: [number, number, number];
+}) {
+  const { camera } = useThree();
+  
+  useEffect(() => {
+    if (!preset) return;
+
+    const positions: Record<CameraPreset, [number, number, number]> = {
+      top: [target[0], target[1] + 50, target[2]],
+      front: [target[0], target[1] + 10, target[2] + 40],
+      side: [target[0] + 40, target[1] + 10, target[2]],
+      isometric: [target[0] + 30, target[1] + 30, target[2] + 30]
+    };
+
+    const newPosition = positions[preset];
+    camera.position.lerp(new THREE.Vector3(...newPosition), 0.1);
+  }, [preset, target, camera]);
+
+  return null;
+}
+
+export function UnifiedPoolVisualizer({
+  scene: initialScene,
+  textureLibrary,
+  onSceneChange
+}: UnifiedPoolVisualizerProps) {
+  const [scene, setScene] = useState<Scene3D>(initialScene);
+  const [selectedObject, setSelectedObject] = useState<string | null>(null);
+  const [transformMode, setTransformMode] = useState<TransformMode>('translate');
+  const [cameraPreset, setCameraPreset] = useState<CameraPreset | null>(null);
+  const [autoRotate, setAutoRotate] = useState(false);
+  const controlsRef = useRef<any>(null);
+
+  // Update parent when scene changes
+  useEffect(() => {
+    onSceneChange?.(scene);
+  }, [scene, onSceneChange]);
+
+  // Sync with initial scene updates
+  useEffect(() => {
+    setScene(initialScene);
+  }, [initialScene]);
+
+  const handleTextureChange = (objectId: string, texture: TextureConfig) => {
+    setScene(prev => {
+      const updated = { ...prev };
+      
+      // Apply texture based on object ID
+      if (objectId === 'pool') {
+        updated.pool.finish = texture;
+      } else if (objectId === 'deck') {
+        updated.deck.paver = texture;
+      } else if (objectId === 'coping') {
+        updated.deck.coping = texture;
+      }
+      
+      return updated;
+    });
+  };
+
+  const handleTransformChange = (
+    position: [number, number, number],
+    rotation: [number, number, number],
+    scale: number
+  ) => {
+    if (!selectedObject) return;
+    
+    setScene(prev => {
+      const updated = { ...prev };
+      
+      // Update position/rotation based on selected object
+      if (selectedObject === 'pool') {
+        updated.pool.position = position;
+        updated.pool.rotation = rotation;
+      }
+      
+      return updated;
+    });
+  };
+
+  const handleCenterCamera = () => {
+    if (!selectedObject) return;
+    
+    // Calculate target based on selected object
+    let target: [number, number, number] = [0, 0, 0];
+    
+    if (selectedObject === 'pool' && scene.pool.dimensions) {
+      target = [
+        scene.pool.dimensions.width / 2,
+        0,
+        scene.pool.dimensions.length / 2
+      ];
+    }
+    
+    setScene(prev => ({
+      ...prev,
+      camera: {
+        position: [target[0] + 20, target[1] + 20, target[2] + 20],
+        target
+      }
+    }));
+    
+    setCameraPreset('isometric');
+  };
+
+  const handleAddAnnotation = (text: string, price?: number) => {
+    if (!selectedObject) return;
+    
+    // Calculate position based on selected object
+    let position: [number, number, number] = [0, 5, 0];
+    
+    if (selectedObject === 'pool' && scene.pool.dimensions) {
+      position = [
+        scene.pool.dimensions.width / 2,
+        5,
+        scene.pool.dimensions.length / 2
+      ];
+    }
+    
+    const newAnnotation: Annotation = {
+      id: `note-${Date.now()}`,
+      objectId: selectedObject,
+      position,
+      text,
+      color: '#fef3c7',
+      price,
+      confirmed: false
+    };
+    
+    setScene(prev => ({
+      ...prev,
+      annotations: [...prev.annotations, newAnnotation]
+    }));
+  };
+
+  const handleDeleteAnnotation = (id: string) => {
+    setScene(prev => ({
+      ...prev,
+      annotations: prev.annotations.filter(a => a.id !== id)
+    }));
+  };
+
+  const handleToggleConfirmAnnotation = (id: string) => {
+    setScene(prev => ({
+      ...prev,
+      annotations: prev.annotations.map(a =>
+        a.id === id ? { ...a, confirmed: !a.confirmed } : a
+      )
+    }));
+  };
+
+  return (
+    <div className="flex h-full w-full">
+      {/* Main 3D Canvas */}
+      <div className="flex-1 relative">
+        <Canvas
+          shadows
+          camera={{
+            position: scene.camera.position,
+            fov: 50
+          }}
+        >
+          <Environment preset="sunset" />
+          <ambientLight intensity={0.5} />
+          <directionalLight
+            position={[10, 10, 5]}
+            intensity={1}
+            castShadow
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+          />
+          
+          <CameraController preset={cameraPreset} target={scene.camera.target} />
+          
+          {/* Pool rendering */}
+          <group
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedObject('pool');
+            }}
+          >
+            <Pool3DViewer
+              points={scene.pool.points}
+              depthPoints={scene.pool.depthPoints}
+              hardscapePoints={scene.deck.points}
+              linerTextureUrl={scene.pool.finish.url}
+              paverTextureUrl={scene.deck.paver.url}
+              copingTextureUrl={scene.deck.coping.url}
+              fenceTextureUrl="/src/assets/fence-texture.png"
+              features={scene.features.map(f => ({
+                type: f.type as any,
+                x: f.position[0],
+                y: f.position[2],
+                id: f.id,
+                angle: f.rotation?.[1]
+              }))}
+              fencePoints={[]}
+              scale={1}
+              poolShape="rectangle"
+            />
+          </group>
+          
+          {/* Annotations */}
+          <Scene3DAnnotations
+            annotations={scene.annotations}
+            onDelete={handleDeleteAnnotation}
+            onToggleConfirm={handleToggleConfirmAnnotation}
+          />
+          
+          <OrbitControls
+            ref={controlsRef}
+            makeDefault
+            autoRotate={autoRotate}
+            autoRotateSpeed={0.5}
+            enableDamping
+            dampingFactor={0.05}
+          />
+        </Canvas>
+        
+        {/* Camera preset buttons (overlay) */}
+        <div className="absolute top-4 left-4 flex gap-2 z-10">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setCameraPreset('top')}
+            className="bg-background/80 backdrop-blur"
+          >
+            Top
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setCameraPreset('front')}
+            className="bg-background/80 backdrop-blur"
+          >
+            Front
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setCameraPreset('side')}
+            className="bg-background/80 backdrop-blur"
+          >
+            Side
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setCameraPreset('isometric')}
+            className="bg-background/80 backdrop-blur"
+          >
+            ISO
+          </Button>
+        </div>
+
+        {/* Selected object indicator */}
+        {selectedObject && (
+          <div className="absolute bottom-4 left-4 bg-background/80 backdrop-blur px-4 py-2 rounded-lg shadow-lg">
+            <p className="text-sm font-medium">
+              Selected: <span className="text-primary capitalize">{selectedObject}</span>
+            </p>
+          </div>
+        )}
+      </div>
+      
+      {/* Right Control Panel */}
+      <Scene3DControlPanel
+        scene={scene}
+        selectedObject={selectedObject}
+        textureLibrary={textureLibrary}
+        transformMode={transformMode}
+        autoRotate={autoRotate}
+        onTextureChange={handleTextureChange}
+        onTransformChange={handleTransformChange}
+        onTransformModeChange={setTransformMode}
+        onCenterCamera={handleCenterCamera}
+        onAddAnnotation={handleAddAnnotation}
+        onAutoRotateToggle={() => setAutoRotate(!autoRotate)}
+      />
+    </div>
+  );
+}

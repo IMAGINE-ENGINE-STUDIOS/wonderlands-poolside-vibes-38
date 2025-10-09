@@ -34,7 +34,8 @@ import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 import ProductMediaGallery, { MediaItem } from '@/components/ProductMediaGallery';
 import { getProductFeatures, getDefaultExtras, calculateFeaturePrice, type ProductType } from '@/config/productFeatures';
-import { ProductViewer3D } from '@/components/ProductViewer3D';
+import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
+import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
 
 interface Product {
@@ -1053,12 +1054,36 @@ const WonderlandsStudio = () => {
                     
                     <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
                       {show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') ? (
-                        <ProductViewer3D
-                          product={selectedProduct}
-                          selectedExtras={selectedExtras}
-                          paverTypes={paverTypes}
-                          finishOptions={finishOptions}
-                          linerOptions={linerOptions}
+                        <UnifiedPoolVisualizer
+                          scene={productToScene(
+                            selectedProduct,
+                            selectedExtras,
+                            paverTypes,
+                            finishOptions
+                          )}
+                          textureLibrary={{
+                            finishes: finishOptions.map(f => ({
+                              url: f.image || '/src/assets/finishes/sapphire-blue-g3.jpg',
+                              name: f.name || 'Unknown',
+                              scale: 1,
+                              repeat: [4, 4]
+                            })),
+                            pavers: paverTypes.map(p => ({
+                              url: p.image,
+                              name: p.name,
+                              scale: 1,
+                              repeat: [10, 10]
+                            })),
+                            coping: paverTypes.map(p => ({
+                              url: p.image,
+                              name: p.name,
+                              scale: 1,
+                              repeat: [5, 5]
+                            }))
+                          }}
+                          onSceneChange={(updatedScene) => {
+                            // Handle scene updates if needed
+                          }}
                         />
                       ) : (selectedProduct.media || selectedProduct.image) ? (
                         <ProductMediaGallery 
