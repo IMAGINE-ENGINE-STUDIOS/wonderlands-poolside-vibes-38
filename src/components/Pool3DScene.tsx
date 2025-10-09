@@ -3,6 +3,7 @@ import { PerspectiveCamera, Grid } from '@react-three/drei';
 import * as THREE from 'three';
 import { textureCache, disposeTexture } from '@/utils/textureCache';
 import { WaterlineMesh } from './WaterlineMesh';
+import earcut from 'earcut';
 
 interface Point {
   x: number;
@@ -173,7 +174,6 @@ const PoolMesh: React.FC<{
     const floorUVs: number[] = [];
     
     // Triangulate the pool shape for floor
-    const earcut = require('earcut'); // Use simple triangulation
     const flatCoords = normalizedPoints.flatMap(p => [p.x, p.z]);
     const triangles = earcut(flatCoords);
     
