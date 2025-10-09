@@ -1045,6 +1045,17 @@ const WonderlandsStudio = () => {
                   setPoolBuilderData(data as any);
                 }} />
               </div>
+            ) : sceneFromBuilder && textureLibFromBuilder ? (
+              /* Pool Builder 3D Visualizer - Full Screen */
+              <div className="fixed inset-0 z-50 bg-background">
+                <UnifiedPoolVisualizer
+                  scene={sceneFromBuilder}
+                  textureLibrary={textureLibFromBuilder}
+                  onSceneChange={(updatedScene) => {
+                    setSceneFromBuilder(updatedScene);
+                  }}
+                />
+              </div>
             ) : selectedProduct ? <div className="space-y-4 sm:space-y-6">
                 {/* Large Product Media Gallery */}
                 <Card>
