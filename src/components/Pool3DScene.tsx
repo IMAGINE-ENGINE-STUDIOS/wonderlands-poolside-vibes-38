@@ -89,8 +89,9 @@ const PoolMesh: React.FC<{
 
   useEffect(() => {
     if (linerTextureUrl) {
-      const repeatX = Math.ceil(poolDimensions.width / 3);
-      const repeatY = Math.ceil(poolDimensions.length / 3);
+      // EXACT 3ft tiles - no ceiling to allow partial tiles
+      const repeatX = poolDimensions.width / 3;
+      const repeatY = poolDimensions.length / 3;
       
       textureCache.loadTexture(linerTextureUrl, { x: repeatX, y: repeatY })
         .then(setLinerTexture)
@@ -203,9 +204,9 @@ const PoolMesh: React.FC<{
       // Floor vertices with actual depth (negative Y)
       floorVertices.push(point.x, -depth, point.z);
       
-      // UV mapping for texture tiling (3ft per tile)
-      const u = ((point.x - (minX - centerX)) / poolWidth) * (poolWidth / 3);
-      const v = ((point.z - (minY - centerY)) / poolLength) * (poolLength / 3);
+      // UV mapping for EXACT 3ft tiles (every 3ft = 1 tile)
+      const u = (point.x - (minX - centerX)) / 3;
+      const v = (point.z - (minY - centerY)) / 3;
       floorUVs.push(u, v);
     }
     
@@ -483,9 +484,9 @@ const DeckMesh: React.FC<{
 
   useEffect(() => {
     if (paverTextureUrl) {
-      // Deck texture: 1 sqft tiles (1 foot = 1 tile)
-      const repeatX = Math.ceil(deckDimensions.width); // Each tile is 1ft wide
-      const repeatY = Math.ceil(deckDimensions.length); // Each tile is 1ft long
+      // EXACT 1 sq ft tiles - no ceiling to allow partial tiles
+      const repeatX = deckDimensions.width;
+      const repeatY = deckDimensions.length;
       
       textureCache.loadTexture(paverTextureUrl, { x: repeatX, y: repeatY })
         .then(setPaverTexture)
@@ -555,13 +556,15 @@ const DeckMesh: React.FC<{
     });
     deckGeom.rotateX(-Math.PI / 2);
 
-    // Fix UV mapping for proper 1 sq ft tiles
+    // Fix UV mapping for EXACT 1 sq ft tiles
+    const positionAttribute = deckGeom.getAttribute('position');
     const uvAttribute = deckGeom.getAttribute('uv');
-    if (uvAttribute) {
-      const uvArray = uvAttribute.array as Float32Array;
-      for (let i = 0; i < uvArray.length; i += 2) {
-        uvArray[i] = uvArray[i] * deckDimensions.width;     // U coordinate
-        uvArray[i + 1] = uvArray[i + 1] * deckDimensions.length; // V coordinate
+    if (positionAttribute && uvAttribute) {
+      for (let i = 0; i < positionAttribute.count; i++) {
+        const x = positionAttribute.getX(i);
+        const z = positionAttribute.getZ(i);
+        // Each 1 foot = 1 tile (UV coordinates directly from position)
+        uvAttribute.setXY(i, x / 1.0, z / 1.0);
       }
       uvAttribute.needsUpdate = true;
     }

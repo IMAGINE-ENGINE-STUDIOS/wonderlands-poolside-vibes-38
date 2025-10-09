@@ -93,17 +93,16 @@ export function productToScene(
     { x: 0, y: length, id: 'p4' },
   ];
 
-  // Use product's actual depth specification (e.g., "4' - 6'" means 6ft deep)
-  const productDepth = parseDepth(product.depth); // Extract max depth from product
-  const shallowDepth = Math.max(3, productDepth - 2.5); // Shallow end ~2.5ft less than deep end
-  const deepDepth = productDepth; // Deep end is the stated depth
+  // Standardized pool depths: 3.6ft shallow to 6.6ft deep (industry standard)
+  const shallowDepth = 3.6;
+  const deepDepth = 6.6;
   
   const depthPoints: DepthPoint[] = [
-    { position: 0, depth: shallowDepth, id: 'd1' },
-    { position: 0.25, depth: shallowDepth + (deepDepth - shallowDepth) * 0.25, id: 'd2' },
-    { position: 0.5, depth: shallowDepth + (deepDepth - shallowDepth) * 0.5, id: 'd3' },
-    { position: 0.75, depth: shallowDepth + (deepDepth - shallowDepth) * 0.75, id: 'd4' },
-    { position: 1, depth: deepDepth, id: 'd5' },
+    { position: 0, depth: shallowDepth, id: 'd1' },      // 3.6ft
+    { position: 0.25, depth: 4.35, id: 'd2' },           // 4.35ft
+    { position: 0.5, depth: 5.1, id: 'd3' },             // 5.1ft
+    { position: 0.75, depth: 5.85, id: 'd4' },           // 5.85ft
+    { position: 1, depth: deepDepth, id: 'd5' },         // 6.6ft
   ];
 
   // Create deck points (5 feet wider on all sides)

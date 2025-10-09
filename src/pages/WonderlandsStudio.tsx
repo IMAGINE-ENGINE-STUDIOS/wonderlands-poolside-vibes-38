@@ -1038,6 +1038,7 @@ const WonderlandsStudio = () => {
 
           {/* Main Content - Product Details & Configuration */}
           <div className="flex-1 min-w-0">
+            {/* Pool Builder Mode - Full Screen */}
             {activeTab === 'build-a-pool' && !sceneFromBuilder ? (
               <div className="fixed inset-0 z-50 bg-background">
                 <PoolBuilder onPoolDataChange={(data) => {
@@ -1045,6 +1046,7 @@ const WonderlandsStudio = () => {
                 }} />
               </div>
             ) : sceneFromBuilder && textureLibFromBuilder ? (
+              /* Pool Builder 3D Visualizer - Full Screen */
               <div className="fixed inset-0 z-50 bg-background">
                 <UnifiedPoolVisualizer
                   scene={sceneFromBuilder}
