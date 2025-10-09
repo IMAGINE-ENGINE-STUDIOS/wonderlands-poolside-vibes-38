@@ -144,7 +144,7 @@ const PoolMesh: React.FC<{
 
     const sortedDepths = [...depthPoints].sort((a, b) => a.position - b.position);
     const getDepthAtPosition = (positionRatio: number): number => {
-      if (sortedDepths.length === 0) return 5;
+      if (sortedDepths.length === 0) return poolDimensions.depth || 5;
       if (positionRatio <= sortedDepths[0].position) return sortedDepths[0].depth;
       if (positionRatio >= sortedDepths[sortedDepths.length - 1].position) {
         return sortedDepths[sortedDepths.length - 1].depth;
@@ -162,32 +162,26 @@ const PoolMesh: React.FC<{
       return sortedDepths[0].depth;
     };
 
-    const poolShape = new THREE.Shape();
-    normalizedPoints.forEach((p, i) => {
-      if (i === 0) poolShape.moveTo(p.x, p.z);
-      else poolShape.lineTo(p.x, p.z);
-    });
-    poolShape.closePath();
-
-    // Determine pool orientation: length is the direction of depth change
+    // Pool orientation: length direction determines depth progression
     const poolWidth = maxX - minX;
     const poolLength = maxY - minY;
     const lengthDirection = poolLength > poolWidth ? 'z' : 'x';
 
-    // Create floor with sloped depth following depth profile
+    // === POOL FLOOR GEOMETRY ===
+    // Solid floor with sloped depth profile from shallow to deep
     const floorVertices: number[] = [];
     const floorIndices: number[] = [];
     const floorUVs: number[] = [];
     
-    // Triangulate the pool shape for floor
+    // Triangulate pool shape
     const flatCoords = normalizedPoints.flatMap(p => [p.x, p.z]);
     const triangles = earcut(flatCoords);
     
-    // Create floor vertices with varying depth (sloped bottom)
+    // Create floor vertices with actual depth variation
     for (let i = 0; i < normalizedPoints.length; i++) {
       const point = normalizedPoints[i];
       
-      // Calculate position along pool length for depth interpolation
+      // Calculate depth based on position along pool length
       let lengthRatio;
       if (lengthDirection === 'z') {
         lengthRatio = (point.z - (minY - centerY)) / poolLength;
@@ -195,22 +189,19 @@ const PoolMesh: React.FC<{
         lengthRatio = (point.x - (minX - centerX)) / poolWidth;
       }
       
-      // Clamp to 0-1 range
       lengthRatio = Math.max(0, Math.min(1, lengthRatio));
-      
-      // Get depth at this position
       const depth = getDepthAtPosition(lengthRatio);
       
-      // Floor vertices with actual depth (negative Y)
+      // Floor at negative Y (below water surface at y=0)
       floorVertices.push(point.x, -depth, point.z);
       
-      // UV mapping for EXACT 3ft tiles (every 3ft = 1 tile)
+      // UV mapping: 3ft x 3ft pool finish tiles
       const u = (point.x - (minX - centerX)) / 3;
       const v = (point.z - (minY - centerY)) / 3;
       floorUVs.push(u, v);
     }
     
-    // Floor indices from triangulation
+    // Floor triangulation indices
     for (let i = 0; i < triangles.length; i++) {
       floorIndices.push(triangles[i]);
     }
@@ -221,6 +212,8 @@ const PoolMesh: React.FC<{
     floorGeometry.setIndex(floorIndices);
     floorGeometry.computeVertexNormals();
 
+    // === POOL WALLS GEOMETRY ===
+    // Solid walls from water surface (y=0) to sloped floor
     const wallVertices: number[] = [];
     const wallIndices: number[] = [];
     const wallUVs: number[] = [];
@@ -229,7 +222,7 @@ const PoolMesh: React.FC<{
       const p1 = normalizedPoints[i];
       const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
       
-      // Calculate depth at ACTUAL position of wall segment, not just index
+      // Calculate depth at each wall vertex position
       const p1LengthRatio = lengthDirection === 'z' 
         ? (p1.z - (minY - centerY)) / poolLength
         : (p1.x - (minX - centerX)) / poolWidth;
@@ -244,17 +237,22 @@ const PoolMesh: React.FC<{
       
       const baseIdx = wallVertices.length / 3;
       
-      // Wall vertices with variable depth along segment
-      wallVertices.push(p1.x, 0, p1.z);          // Top left
-      wallVertices.push(p2.x, 0, p2.z);          // Top right
-      wallVertices.push(p1.x, -depth1, p1.z);    // Bottom left
-      wallVertices.push(p2.x, -depth2, p2.z);    // Bottom right
+      // Wall quad: top at water level, bottom follows floor slope
+      wallVertices.push(p1.x, 0, p1.z);          // Top left at water surface
+      wallVertices.push(p2.x, 0, p2.z);          // Top right at water surface
+      wallVertices.push(p1.x, -depth1, p1.z);    // Bottom left at floor
+      wallVertices.push(p2.x, -depth2, p2.z);    // Bottom right at floor
       
-      // UV mapping
+      // UV mapping: 3ft x 3ft tiles on walls
       const avgDepth = (depth1 + depth2) / 2;
-      wallUVs.push(0, 0, wallLength / 3, 0, 0, avgDepth / 3, wallLength / 3, avgDepth / 3);
+      wallUVs.push(
+        0, 0,
+        wallLength / 3, 0,
+        0, avgDepth / 3,
+        wallLength / 3, avgDepth / 3
+      );
       
-      // Indices - normals facing inward
+      // Wall face (normals facing inward to pool interior)
       wallIndices.push(
         baseIdx, baseIdx + 3, baseIdx + 1,
         baseIdx, baseIdx + 2, baseIdx + 3
@@ -271,7 +269,7 @@ const PoolMesh: React.FC<{
       geometry: floorGeometry,
       wallsGeometry: poolWallsGeometry
     };
-  }, [points, depthPoints]);
+  }, [points, depthPoints, poolDimensions]);
 
   const isSelected = selectedCategory === 'pool';
 
