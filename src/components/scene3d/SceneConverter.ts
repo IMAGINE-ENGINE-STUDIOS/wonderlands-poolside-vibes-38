@@ -93,13 +93,15 @@ export function productToScene(
     { x: 0, y: length, id: 'p4' },
   ];
 
-  // Create depth points (flat bottom)
+  // Create depth points (3.6ft shallow to 6.6ft deep with gradual slope)
+  const shallowDepth = 3.6;
+  const deepDepth = 6.6;
   const depthPoints: DepthPoint[] = [
-    { position: 0, depth: depth, id: 'd1' },
-    { position: 0.25, depth: depth, id: 'd2' },
-    { position: 0.5, depth: depth, id: 'd3' },
-    { position: 0.75, depth: depth, id: 'd4' },
-    { position: 1, depth: depth, id: 'd5' },
+    { position: 0, depth: shallowDepth, id: 'd1' },
+    { position: 0.25, depth: shallowDepth + (deepDepth - shallowDepth) * 0.25, id: 'd2' },
+    { position: 0.5, depth: shallowDepth + (deepDepth - shallowDepth) * 0.5, id: 'd3' },
+    { position: 0.75, depth: shallowDepth + (deepDepth - shallowDepth) * 0.75, id: 'd4' },
+    { position: 1, depth: deepDepth, id: 'd5' },
   ];
 
   // Create deck points (5 feet wider on all sides)
@@ -119,8 +121,8 @@ export function productToScene(
       finish: {
         url: linerTextureUrl,
         name: selectedExtras.finish || selectedExtras.linerOption || 'Default',
-        scale: 1,
-        repeat: [4, 4]
+        roughness: 0.2,
+        metalness: 0.1
       },
       position: [0, 0, 0],
       rotation: [0, 0, 0],
@@ -130,15 +132,21 @@ export function productToScene(
       points: deckPoints,
       paver: {
         url: paverTextureUrl,
-        name: selectedExtras.paverOption || 'Default',
-        scale: 1,
-        repeat: [10, 10]
+        name: selectedExtras.paverOption || 'Default Paver',
+        roughness: 0.8,
+        metalness: 0.0
       },
       coping: {
         url: copingTextureUrl,
-        name: selectedExtras.copingPaverOption || 'Default',
-        scale: 1,
-        repeat: [5, 5]
+        name: selectedExtras.copingPaverOption || 'Default Coping',
+        roughness: 0.6,
+        metalness: 0.0
+      },
+      waterline: {
+        url: linerTextureUrl,
+        name: `${selectedExtras.finish || selectedExtras.linerOption || 'Default'} (Waterline)`,
+        roughness: 0.3,
+        metalness: 0.2
       }
     },
     features: [],
