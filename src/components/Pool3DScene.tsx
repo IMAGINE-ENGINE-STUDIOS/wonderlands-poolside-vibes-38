@@ -168,7 +168,7 @@ const PoolMesh: React.FC<{
     });
     poolShape.closePath();
 
-    // Create floor with variable depth profile (sloped bottom)
+    // Create floor with sloped depth following depth profile
     const floorVertices: number[] = [];
     const floorIndices: number[] = [];
     const floorUVs: number[] = [];
@@ -177,16 +177,20 @@ const PoolMesh: React.FC<{
     const flatCoords = normalizedPoints.flatMap(p => [p.x, p.z]);
     const triangles = earcut(flatCoords);
     
-    // Create floor vertices at y=0 (will be positioned by mesh)
+    // Create floor vertices with varying depth (sloped bottom)
     for (let i = 0; i < normalizedPoints.length; i++) {
       const point = normalizedPoints[i];
       
-      // Floor vertices at y=0
-      floorVertices.push(point.x, 0, point.z);
+      // Calculate position along pool length for depth interpolation
+      const lengthRatio = (point.z - minY) / (maxY - minY);
+      const depth = getDepthAtPosition(lengthRatio);
+      
+      // Floor vertices with actual depth (negative Y)
+      floorVertices.push(point.x, -depth, point.z);
       
       // UV mapping for texture tiling
-      const u = (point.x - minX) / (maxX - minX) * 3;
-      const v = (point.z - minY) / (maxY - minY) * 3;
+      const u = (point.x + Math.abs(minX - centerX)) / (maxX - minX) * 3;
+      const v = (point.z + Math.abs(minY - centerY)) / (maxY - minY) * 3;
       floorUVs.push(u, v);
     }
     
@@ -240,16 +244,12 @@ const PoolMesh: React.FC<{
     };
   }, [points, depthPoints]);
 
-  // Calculate max depth for positioning floor at deepest point
-  const maxDepth = depthPoints.length > 0
-    ? Math.max(...depthPoints.map(d => d.depth))
-    : poolDimensions.depth;
-
   const isSelected = selectedCategory === 'pool';
 
   return (
     <>
-      <mesh geometry={geometry} position={[0, -maxDepth, 0]}>
+      {/* Pool floor - positioned at world origin, vertices have depth baked in */}
+      <mesh geometry={geometry} position={[0, 0, 0]}>
         <meshPhongMaterial
           color={linerTexture ? "#ffffff" : "#4DD0E1"}
           map={linerTexture}
@@ -263,6 +263,7 @@ const PoolMesh: React.FC<{
         />
       </mesh>
 
+      {/* Pool walls - from water level (y=0) down to floor */}
       <mesh geometry={wallsGeometry} position={[0, 0, 0]}>
         <meshStandardMaterial
           color={linerTexture ? "#ffffff" : "#2196F3"}
