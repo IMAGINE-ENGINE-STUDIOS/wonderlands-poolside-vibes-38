@@ -89,7 +89,7 @@ const PoolMesh: React.FC<{
 
   useEffect(() => {
     if (linerTextureUrl) {
-      // EXACT 3ft tiles - no ceiling to allow partial tiles
+      // Pool finish tiles: 3ft x 3ft industry standard
       const repeatX = poolDimensions.width / 3;
       const repeatY = poolDimensions.length / 3;
       
@@ -331,8 +331,8 @@ const CopingMesh: React.FC<{
 
   useEffect(() => {
     if (copingTextureUrl) {
-      // Coping texture: 1 sq ft tiles around perimeter
-      const repeatX = Math.max(1, Math.ceil(poolPerimeter / 1));
+      // Coping texture: 1ft length tiles around perimeter
+      const repeatX = Math.max(1, poolPerimeter / 1);
       const repeatY = 1;
       
       textureCache.loadTexture(copingTextureUrl, { x: repeatX, y: repeatY })
@@ -486,9 +486,9 @@ const DeckMesh: React.FC<{
 
   useEffect(() => {
     if (paverTextureUrl) {
-      // EXACT 1 sq ft tiles - no ceiling to allow partial tiles
-      const repeatX = deckDimensions.width;
-      const repeatY = deckDimensions.length;
+      // Deck paver tiles: 1ft x 1ft square pavers
+      const repeatX = deckDimensions.width / 1;
+      const repeatY = deckDimensions.length / 1;
       
       textureCache.loadTexture(paverTextureUrl, { x: repeatX, y: repeatY })
         .then(setPaverTexture)

@@ -28,14 +28,15 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
 
   useEffect(() => {
     if (waterlineTextureUrl) {
-      // Calculate pool perimeter for proper texture repeat
+      // Calculate pool perimeter for waterline tiles
       const poolPerimeter = poolPoints.reduce((sum, p, i) => {
         const nextP = poolPoints[(i + 1) % poolPoints.length];
         return sum + Math.sqrt(Math.pow(nextP.x - p.x, 2) + Math.pow(nextP.y - p.y, 2));
       }, 0);
       
-      const repeatX = Math.ceil(poolPerimeter / waterlineWidth); // 1 sq ft tiles along perimeter
-      const repeatY = 1; // 1 inch thick
+      // Waterline tiles: 1ft length along perimeter x 1 inch height
+      const repeatX = poolPerimeter / waterlineWidth;
+      const repeatY = 1;
       
       textureCache.loadTexture(waterlineTextureUrl, { x: repeatX, y: repeatY })
         .then(setWaterlineTexture)
