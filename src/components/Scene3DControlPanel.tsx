@@ -23,6 +23,7 @@ import { Scene3D, TextureConfig, TextureLibrary, TransformMode } from './scene3d
 interface Scene3DControlPanelProps {
   scene: Scene3D;
   selectedObject: string | null;
+  selectedCategory?: string | null;
   textureLibrary: TextureLibrary;
   transformMode: TransformMode;
   autoRotate: boolean;
@@ -37,6 +38,7 @@ interface Scene3DControlPanelProps {
 export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   scene,
   selectedObject,
+  selectedCategory,
   textureLibrary,
   transformMode,
   autoRotate,
@@ -145,7 +147,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
           <Separator />
 
           {/* Texture Editor */}
-          {selectedObject && (
+          {(selectedObject || selectedCategory) && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Paintbrush className="h-4 w-4" />
@@ -185,7 +187,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                 {textureLibrary[selectedTextureCategory]?.map((texture) => (
                   <button
                     key={texture.url}
-                    onClick={() => onTextureChange(selectedObject, texture)}
+                    onClick={() => onTextureChange(selectedObject || selectedCategory || '', texture)}
                     className="aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all"
                     title={texture.name}
                   >

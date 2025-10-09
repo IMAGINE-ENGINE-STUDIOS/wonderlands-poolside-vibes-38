@@ -2698,46 +2698,34 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                   <span className="text-xs text-muted-foreground">ft from coping</span>
                 </div>
                 
-                {/* 3D View Button */}
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="default"
-                      className="w-full h-9 gap-2"
-                    >
-                      <Box className="h-4 w-4" />
-                      View 3D Model
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-7xl h-[90vh]">
-                    <DialogHeader>
-                      <DialogTitle>3D Pool Visualizer</DialogTitle>
-                    </DialogHeader>
-                    <div className="flex-1 h-full">
-                      <UnifiedPoolVisualizer
-                        scene={poolBuilderToScene({
-                          points,
-                          depthPoints,
-                          hardscapePoints,
-                          fencePoints,
-                          features,
-                          customTextures,
-                          poolShape,
-                          scale,
-                          selectedPaverId,
-                          selectedCopingId,
-                          paverTypes
-                        })}
-                        textureLibrary={buildTextureLibrary(
-                          customTextures,
-                          paverTypes,
-                          []
-                        )}
-                      />
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                {/* 3D Scene Button */}
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="w-full h-9 gap-2"
+                  onClick={() => {
+                    const sceneData = poolBuilderToScene({
+                      points,
+                      depthPoints,
+                      hardscapePoints,
+                      fencePoints,
+                      features,
+                      customTextures,
+                      poolShape,
+                      scale,
+                      selectedPaverId,
+                      selectedCopingId,
+                      paverTypes
+                    });
+                    const textureLib = buildTextureLibrary(customTextures, paverTypes, []);
+                    
+                    // Navigate to Wonderlands Studio with pool builder data
+                    window.location.href = `/wonderlands-studio?fromBuilder=true&sceneData=${encodeURIComponent(JSON.stringify(sceneData))}&textureLib=${encodeURIComponent(JSON.stringify(textureLib))}`;
+                  }}
+                >
+                  <Box className="h-4 w-4" />
+                  3D Scene
+                </Button>
               </div>
             </TabsContent>
 

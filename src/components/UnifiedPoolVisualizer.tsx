@@ -52,6 +52,7 @@ export function UnifiedPoolVisualizer({
 }: UnifiedPoolVisualizerProps) {
   const [scene, setScene] = useState<Scene3D>(initialScene);
   const [selectedObject, setSelectedObject] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [transformMode, setTransformMode] = useState<TransformMode>('translate');
   const [cameraPreset, setCameraPreset] = useState<CameraPreset | null>(null);
   const [autoRotate, setAutoRotate] = useState(false);
@@ -71,12 +72,14 @@ export function UnifiedPoolVisualizer({
     setScene(prev => {
       const updated = { ...prev };
       
-      // Apply texture based on object ID
-      if (objectId === 'pool') {
+      // Apply texture based on object ID or selected category
+      const targetId = objectId || selectedCategory;
+      
+      if (targetId === 'pool') {
         updated.pool.finish = texture;
-      } else if (objectId === 'deck') {
+      } else if (targetId === 'deck') {
         updated.deck.paver = texture;
-      } else if (objectId === 'coping') {
+      } else if (targetId === 'coping') {
         updated.deck.coping = texture;
       }
       
@@ -199,32 +202,27 @@ export function UnifiedPoolVisualizer({
           <CameraController preset={cameraPreset} target={scene.camera.target} />
           
           {/* Pool rendering */}
-          <group
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedObject('pool');
-            }}
-          >
-            <Pool3DScene
-              points={scene.pool.points}
-              depthPoints={scene.pool.depthPoints}
-              hardscapePoints={scene.deck.points}
-              linerTextureUrl={scene.pool.finish.url}
-              paverTextureUrl={scene.deck.paver.url}
-              copingTextureUrl={scene.deck.coping.url}
-              fenceTextureUrl="/src/assets/fence-texture.png"
-              features={scene.features.map(f => ({
-                type: f.type as any,
-                x: f.position[0],
-                y: f.position[2],
-                id: f.id,
-                angle: f.rotation?.[1]
-              }))}
-              fencePoints={[]}
-              scale={1}
-              poolShape="rectangle"
-            />
-          </group>
+          <Pool3DScene
+            points={scene.pool.points}
+            depthPoints={scene.pool.depthPoints}
+            hardscapePoints={scene.deck.points}
+            linerTextureUrl={scene.pool.finish.url}
+            paverTextureUrl={scene.deck.paver.url}
+            copingTextureUrl={scene.deck.coping.url}
+            fenceTextureUrl="/src/assets/fence-texture.png"
+            features={scene.features.map(f => ({
+              type: f.type as any,
+              x: f.position[0],
+              y: f.position[2],
+              id: f.id,
+              angle: f.rotation?.[1]
+            }))}
+            fencePoints={[]}
+            scale={1}
+            poolShape="rectangle"
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+          />
           
           {/* Annotations */}
           <Scene3DAnnotations
@@ -280,10 +278,10 @@ export function UnifiedPoolVisualizer({
         </div>
 
         {/* Selected object indicator */}
-        {selectedObject && (
+        {(selectedObject || selectedCategory) && (
           <div className="absolute bottom-4 left-4 bg-background/80 backdrop-blur px-4 py-2 rounded-lg shadow-lg">
             <p className="text-sm font-medium">
-              Selected: <span className="text-primary capitalize">{selectedObject}</span>
+              Selected: <span className="text-primary capitalize">{selectedObject || selectedCategory}</span>
             </p>
           </div>
         )}
@@ -293,6 +291,7 @@ export function UnifiedPoolVisualizer({
       <Scene3DControlPanel
         scene={scene}
         selectedObject={selectedObject}
+        selectedCategory={selectedCategory}
         textureLibrary={textureLibrary}
         transformMode={transformMode}
         autoRotate={autoRotate}

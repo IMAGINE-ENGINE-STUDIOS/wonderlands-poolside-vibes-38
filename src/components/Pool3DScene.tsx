@@ -53,14 +53,18 @@ export interface Pool3DSceneProps {
   linerTextureUrl?: string;
   copingTextureUrl?: string;
   fenceTextureUrl?: string;
+  selectedCategory?: string | null;
+  onSelectCategory?: (category: string | null) => void;
 }
 
 const PoolMesh: React.FC<{
   points: Point[];
   depthPoints: DepthPoint[];
   linerTextureUrl?: string;
-}> = ({ points, depthPoints, linerTextureUrl }) => {
+  selectedCategory?: string | null;
+}> = ({ points, depthPoints, linerTextureUrl, selectedCategory }) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
+  const [pulseIntensity, setPulseIntensity] = useState(0);
 
   const poolDimensions = useMemo(() => {
     const xs = points.map(p => p.x);
@@ -89,6 +93,20 @@ const PoolMesh: React.FC<{
       }
     };
   }, [linerTextureUrl, poolDimensions]);
+
+  // Pulsing red effect when selected
+  useEffect(() => {
+    if (selectedCategory !== 'pool') return;
+    
+    const interval = setInterval(() => {
+      setPulseIntensity(prev => {
+        if (prev >= 1) return 0;
+        return prev + 0.05;
+      });
+    }, 50);
+    
+    return () => clearInterval(interval);
+  }, [selectedCategory]);
 
   const { geometry, wallsGeometry } = useMemo(() => {
     if (points.length < 3) {
@@ -212,13 +230,119 @@ const PoolMesh: React.FC<{
   );
 };
 
+const CopingMesh: React.FC<{
+  poolPoints: Point[];
+  copingTextureUrl?: string;
+  selectedCategory?: string | null;
+}> = ({ poolPoints, copingTextureUrl, selectedCategory }) => {
+  const [copingTexture, setCopingTexture] = useState<THREE.Texture | null>(null);
+  const [pulseIntensity, setPulseIntensity] = useState(0);
+
+  const copingDimensions = useMemo(() => {
+    const xs = poolPoints.map(p => p.x);
+    const ys = poolPoints.map(p => p.y);
+    const width = Math.max(...xs) - Math.min(...xs);
+    const length = Math.max(...ys) - Math.min(...ys);
+    return { width, length };
+  }, [poolPoints]);
+
+  useEffect(() => {
+    if (copingTextureUrl) {
+      const repeatX = Math.ceil(copingDimensions.width / 1);
+      const repeatY = Math.ceil(copingDimensions.length / 1);
+      
+      textureCache.loadTexture(copingTextureUrl, { x: repeatX, y: repeatY })
+        .then(setCopingTexture)
+        .catch(err => console.error('Failed to load coping texture'));
+    }
+    return () => {
+      if (copingTexture) disposeTexture(copingTexture);
+    };
+  }, [copingTextureUrl, copingDimensions]);
+
+  // Pulsing red effect when selected
+  useEffect(() => {
+    if (selectedCategory !== 'coping') return;
+    
+    const interval = setInterval(() => {
+      setPulseIntensity(prev => {
+        if (prev >= 1) return 0;
+        return prev + 0.05;
+      });
+    }, 50);
+    
+    return () => clearInterval(interval);
+  }, [selectedCategory]);
+
+  const copingGeometry = useMemo(() => {
+    if (poolPoints.length < 3) return null;
+
+    const minX = Math.min(...poolPoints.map(p => p.x));
+    const maxX = Math.max(...poolPoints.map(p => p.x));
+    const minY = Math.min(...poolPoints.map(p => p.y));
+    const maxY = Math.max(...poolPoints.map(p => p.y));
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
+    // Create outer shape (1 foot wider than pool)
+    const outerShape = new THREE.Shape();
+    poolPoints.forEach((p, i) => {
+      const x = p.x - centerX;
+      const z = p.y - centerY;
+      const angle = Math.atan2(z, x);
+      const offsetX = x + Math.cos(angle) * 1; // 1 foot offset
+      const offsetZ = z + Math.sin(angle) * 1;
+      if (i === 0) outerShape.moveTo(offsetX, offsetZ);
+      else outerShape.lineTo(offsetX, offsetZ);
+    });
+    outerShape.closePath();
+
+    // Create inner hole (pool edge)
+    const poolHole = new THREE.Path();
+    poolPoints.forEach((p, i) => {
+      const x = p.x - centerX;
+      const z = p.y - centerY;
+      if (i === 0) poolHole.moveTo(x, z);
+      else poolHole.lineTo(x, z);
+    });
+    poolHole.closePath();
+    outerShape.holes.push(poolHole);
+
+    const copingGeom = new THREE.ExtrudeGeometry(outerShape, {
+      depth: 0.3,
+      bevelEnabled: false
+    });
+    copingGeom.rotateX(-Math.PI / 2);
+
+    return copingGeom;
+  }, [poolPoints]);
+
+  if (!copingGeometry) return null;
+
+  const isSelected = selectedCategory === 'coping';
+  const redTint = isSelected ? Math.sin(pulseIntensity * Math.PI) : 0;
+
+  return (
+    <mesh geometry={copingGeometry} receiveShadow castShadow position={[0, 0.15, 0]}>
+      <meshStandardMaterial
+        map={copingTexture}
+        color={isSelected ? `rgb(${255}, ${Math.floor(255 * (1 - redTint * 0.7))}, ${Math.floor(255 * (1 - redTint * 0.7))})` : (copingTexture ? "#ffffff" : "#C4B5A0")}
+        roughness={0.7}
+        metalness={0.1}
+      />
+    </mesh>
+  );
+};
+
 const DeckMesh: React.FC<{
   hardscapePoints: HardscapePoint[];
   poolPoints: Point[];
   features: PoolFeature[];
   paverTextureUrl?: string;
-}> = ({ hardscapePoints, poolPoints, features, paverTextureUrl }) => {
+  selectedCategory?: string | null;
+}> = ({ hardscapePoints, poolPoints, features, paverTextureUrl, selectedCategory }) => {
   const [paverTexture, setPaverTexture] = useState<THREE.Texture | null>(null);
+  const [pulseIntensity, setPulseIntensity] = useState(0);
 
   const deckDimensions = useMemo(() => {
     const xs = hardscapePoints.map(p => p.x);
@@ -249,6 +373,20 @@ const DeckMesh: React.FC<{
     };
   }, [paverTextureUrl, deckDimensions]);
 
+  // Pulsing red effect when selected
+  useEffect(() => {
+    if (selectedCategory !== 'deck') return;
+    
+    const interval = setInterval(() => {
+      setPulseIntensity(prev => {
+        if (prev >= 1) return 0;
+        return prev + 0.05;
+      });
+    }, 50);
+    
+    return () => clearInterval(interval);
+  }, [selectedCategory]);
+
   const deckGeometry = useMemo(() => {
     if (hardscapePoints.length < 3 || poolPoints.length < 3) return null;
 
@@ -268,15 +406,19 @@ const DeckMesh: React.FC<{
     });
     deckShape.closePath();
 
-    const poolHole = new THREE.Path();
+    // Create hole that includes coping (1 foot larger than pool)
+    const copingHole = new THREE.Path();
     poolPoints.forEach((p, i) => {
       const x = p.x - centerX;
       const z = p.y - centerY;
-      if (i === 0) poolHole.moveTo(x, z);
-      else poolHole.lineTo(x, z);
+      const angle = Math.atan2(z, x);
+      const offsetX = x + Math.cos(angle) * 1; // 1 foot offset for coping
+      const offsetZ = z + Math.sin(angle) * 1;
+      if (i === 0) copingHole.moveTo(offsetX, offsetZ);
+      else copingHole.lineTo(offsetX, offsetZ);
     });
-    poolHole.closePath();
-    deckShape.holes.push(poolHole);
+    copingHole.closePath();
+    deckShape.holes.push(copingHole);
 
     const deckGeom = new THREE.ExtrudeGeometry(deckShape, {
       depth: 0.5,
@@ -289,135 +431,16 @@ const DeckMesh: React.FC<{
 
   if (!deckGeometry) return null;
 
+  const isSelected = selectedCategory === 'deck';
+  const redTint = isSelected ? Math.sin(pulseIntensity * Math.PI) : 0;
+
   return (
     <mesh geometry={deckGeometry} receiveShadow castShadow>
       <meshStandardMaterial
         map={paverTexture}
-        color={paverTexture ? "#ffffff" : "#D4C4B0"}
+        color={isSelected ? `rgb(${255}, ${Math.floor(255 * (1 - redTint * 0.7))}, ${Math.floor(255 * (1 - redTint * 0.7))})` : (paverTexture ? "#ffffff" : "#D4C4B0")}
         roughness={0.8}
         metalness={0.1}
-      />
-    </mesh>
-  );
-};
-
-const CopingMesh: React.FC<{
-  poolPoints: Point[];
-  copingTextureUrl?: string;
-}> = ({ poolPoints, copingTextureUrl }) => {
-  const [copingTexture, setCopingTexture] = useState<THREE.Texture | null>(null);
-
-  const poolPerimeter = useMemo(() => {
-    if (poolPoints.length < 2) return 0;
-    let perimeter = 0;
-    for (let i = 0; i < poolPoints.length; i++) {
-      const p1 = poolPoints[i];
-      const p2 = poolPoints[(i + 1) % poolPoints.length];
-      const dx = p2.x - p1.x;
-      const dy = p2.y - p1.y;
-      perimeter += Math.sqrt(dx * dx + dy * dy);
-    }
-    return perimeter;
-  }, [poolPoints]);
-
-  useEffect(() => {
-    if (copingTextureUrl) {
-      const repeatX = Math.ceil(poolPerimeter / 4);
-      const repeatY = 1;
-      
-      textureCache.loadTexture(copingTextureUrl, { x: repeatX, y: repeatY })
-        .then(setCopingTexture)
-        .catch(err => {
-          console.error('Failed to load coping texture, using default');
-          setCopingTexture(null);
-        });
-    }
-
-    return () => {
-      if (copingTexture) {
-        disposeTexture(copingTexture);
-      }
-    };
-  }, [copingTextureUrl, poolPerimeter]);
-
-  const copingGeometry = useMemo(() => {
-    if (poolPoints.length < 3) return null;
-
-    const minX = Math.min(...poolPoints.map(p => p.x));
-    const maxX = Math.max(...poolPoints.map(p => p.x));
-    const minY = Math.min(...poolPoints.map(p => p.y));
-    const maxY = Math.max(...poolPoints.map(p => p.y));
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
-
-    const copingWidth = 1;
-    const copingHeight = 0.167;
-    const vertices: number[] = [];
-    const indices: number[] = [];
-    const uvs: number[] = [];
-    
-    let uvDistance = 0;
-
-    for (let i = 0; i < poolPoints.length; i++) {
-      const p1 = poolPoints[i];
-      const p2 = poolPoints[(i + 1) % poolPoints.length];
-      
-      const x1 = p1.x - centerX;
-      const z1 = p1.y - centerY;
-      const x2 = p2.x - centerX;
-      const z2 = p2.y - centerY;
-      
-      const dx = x2 - x1;
-      const dz = z2 - z1;
-      const length = Math.sqrt(dx * dx + dz * dz);
-      const nx = -dz / length;
-      const nz = dx / length;
-      
-      const outerX1 = x1 + nx * copingWidth;
-      const outerZ1 = z1 + nz * copingWidth;
-      const outerX2 = x2 + nx * copingWidth;
-      const outerZ2 = z2 + nz * copingWidth;
-      
-      const baseIndex = i * 8;
-      
-      vertices.push(x1, copingHeight, z1, outerX1, copingHeight, outerZ1, x2, copingHeight, z2, outerX2, copingHeight, outerZ2);
-      vertices.push(x1, 0, z1, outerX1, 0, outerZ1, x2, 0, z2, outerX2, 0, outerZ2);
-      
-      const uvStart = uvDistance / poolPerimeter;
-      uvDistance += length;
-      const uvEnd = uvDistance / poolPerimeter;
-      
-      uvs.push(0, uvStart, 1, uvStart, 0, uvEnd, 1, uvEnd);
-      uvs.push(0, uvStart, 1, uvStart, 0, uvEnd, 1, uvEnd);
-      
-      indices.push(baseIndex, baseIndex + 2, baseIndex + 1);
-      indices.push(baseIndex + 1, baseIndex + 2, baseIndex + 3);
-      
-      indices.push(baseIndex + 1, baseIndex + 3, baseIndex + 5);
-      indices.push(baseIndex + 5, baseIndex + 3, baseIndex + 7);
-      
-      indices.push(baseIndex, baseIndex + 4, baseIndex + 2);
-      indices.push(baseIndex + 2, baseIndex + 4, baseIndex + 6);
-    }
-    
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-    geometry.setIndex(indices);
-    geometry.computeVertexNormals();
-    
-    return geometry;
-  }, [poolPoints, poolPerimeter]);
-
-  if (!copingGeometry) return null;
-
-  return (
-    <mesh geometry={copingGeometry}>
-      <meshStandardMaterial
-        map={copingTexture}
-        color={copingTexture ? "#ffffff" : "#b8a088"}
-        roughness={0.7}
-        metalness={0.2}
       />
     </mesh>
   );
@@ -661,6 +684,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   fencePoints,
   scale = 1,
   poolShape = 'rectangle',
+  selectedCategory,
+  onSelectCategory
 }) => {
   return (
     <>
@@ -686,26 +711,35 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         infiniteGrid={true}
       />
 
-      <PoolMesh
-        points={points}
-        depthPoints={depthPoints}
-        linerTextureUrl={linerTextureUrl}
-      />
+      <group onClick={() => onSelectCategory?.('pool')}>
+        <PoolMesh
+          points={points}
+          depthPoints={depthPoints}
+          linerTextureUrl={linerTextureUrl}
+          selectedCategory={selectedCategory}
+        />
+      </group>
 
       {hardscapePoints && hardscapePoints.length > 0 && (
-        <DeckMesh
-          hardscapePoints={hardscapePoints}
-          poolPoints={points}
-          features={features || []}
-          paverTextureUrl={paverTextureUrl}
-        />
+        <group onClick={() => onSelectCategory?.('deck')}>
+          <DeckMesh
+            hardscapePoints={hardscapePoints}
+            poolPoints={points}
+            features={features || []}
+            paverTextureUrl={paverTextureUrl}
+            selectedCategory={selectedCategory}
+          />
+        </group>
       )}
 
       {copingTextureUrl && (
-        <CopingMesh
-          poolPoints={points}
-          copingTextureUrl={copingTextureUrl}
-        />
+        <group onClick={() => onSelectCategory?.('coping')}>
+          <CopingMesh
+            poolPoints={points}
+            copingTextureUrl={copingTextureUrl}
+            selectedCategory={selectedCategory}
+          />
+        </group>
       )}
 
       {fencePoints && fencePoints.length > 0 && (
