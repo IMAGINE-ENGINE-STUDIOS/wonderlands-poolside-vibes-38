@@ -2,7 +2,7 @@ import { Canvas as R3FCanvas, useThree } from '@react-three/fiber';
 import { OrbitControls, TransformControls, Environment } from '@react-three/drei';
 import { useState, useEffect, useRef } from 'react';
 import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation } from './scene3d/types';
-import { Pool3DViewer } from './Pool3DViewer';
+import { Pool3DScene } from './Pool3DScene';
 import { Scene3DControlPanel } from './Scene3DControlPanel';
 import { Scene3DAnnotations } from './Scene3DAnnotations';
 import { Button } from './ui/button';
@@ -205,7 +205,7 @@ export function UnifiedPoolVisualizer({
               setSelectedObject('pool');
             }}
           >
-            <Pool3DViewer
+            <Pool3DScene
               points={scene.pool.points}
               depthPoints={scene.pool.depthPoints}
               hardscapePoints={scene.deck.points}
