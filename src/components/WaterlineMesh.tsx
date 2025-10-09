@@ -20,7 +20,7 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
   poolPoints, 
   waterlineTextureUrl,
   waterlineHeight = 0.0833, // Height of waterline tile (1 inch = 0.0833 feet)
-  waterlineWidth = 0.5,      // Width/depth into pool wall
+  waterlineWidth = 1.0,      // Width/depth: 1 sq ft tile (1ft along perimeter)
   selectedCategory
 }) => {
   const [waterlineTexture, setWaterlineTexture] = useState<THREE.Texture | null>(null);
@@ -95,57 +95,25 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       
       const baseIdx = vertices.length / 3;
       
-      // Outer edge (at bottom of coping = -0.15)
-      vertices.push(p1.x, -0.15, p1.z);
-      vertices.push(p2.x, -0.15, p2.z);
+      // Waterline: 1 inch thick, 1 sq ft tile attached to upper pool wall
+      // Top edge (at bottom of coping = 0.15)
+      vertices.push(p1.x, 0, p1.z);
+      vertices.push(p2.x, 0, p2.z);
       
-      // Outer edge bottom (1 inch below = -0.2333, connects to pool wall top)
-      vertices.push(p1.x, -0.2333, p1.z);
-      vertices.push(p2.x, -0.2333, p2.z);
+      // Bottom edge (1 inch below = -0.0833)
+      vertices.push(p1.x, -0.0833, p1.z);
+      vertices.push(p2.x, -0.0833, p2.z);
       
-      // Inner edge (waterlineWidth into pool)
-      vertices.push(
-        p1.x + nx * waterlineWidth,
-        -0.15,
-        p1.z + nz * waterlineWidth
-      );
-      vertices.push(
-        p2.x + nx * waterlineWidth,
-        -0.15,
-        p2.z + nz * waterlineWidth
-      );
+      // UV mapping: 1 sq ft tiles along perimeter
+      const numTiles = Math.ceil(segmentLength / 1.0);
       
-      // Inner edge bottom
-      vertices.push(
-        p1.x + nx * waterlineWidth,
-        -0.2333,
-        p1.z + nz * waterlineWidth
-      );
-      vertices.push(
-        p2.x + nx * waterlineWidth,
-        -0.2333,
-        p2.z + nz * waterlineWidth
-      );
-      
-      // UV mapping: each tile gets one texture repeat
-      const numTiles = Math.ceil(segmentLength / 1.0); // 1ft tiles
-      
-      // Front face (facing outward)
+      // Front face UVs (facing outward, showing liner pattern)
       uvs.push(0, 1, numTiles, 1, 0, 0, numTiles, 0);
       
-      // Top face
-      uvs.push(0, 0, numTiles, 0, 0, 1, numTiles, 1);
-      
-      // Front face indices
+      // Front face indices (visible from outside pool)
       indices.push(
         baseIdx, baseIdx + 1, baseIdx + 3,
         baseIdx, baseIdx + 3, baseIdx + 2
-      );
-      
-      // Top face indices
-      indices.push(
-        baseIdx, baseIdx + 4, baseIdx + 5,
-        baseIdx, baseIdx + 5, baseIdx + 1
       );
     }
     

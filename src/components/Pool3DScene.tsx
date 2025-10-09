@@ -177,22 +177,22 @@ const PoolMesh: React.FC<{
     const flatCoords = normalizedPoints.flatMap(p => [p.x, p.z]);
     const triangles = earcut(flatCoords);
     
-    // Create floor vertices with depth profile
-    for (let i = 0; i < triangles.length; i += 3) {
-      for (let j = 0; j < 3; j++) {
-        const idx = triangles[i + j];
-        const p = normalizedPoints[idx];
-        
-        // Calculate position ratio along pool length for depth
-        const positionRatio = idx / normalizedPoints.length;
-        const depth = getDepthAtPosition(positionRatio);
-        
-        floorVertices.push(p.x, -depth, p.z);
-        floorUVs.push((p.x + 50) / 100, (p.z + 50) / 100);
-      }
+    // Create floor vertices with variable depth following the depth profile
+    for (let i = 0; i < normalizedPoints.length; i++) {
+      const point = normalizedPoints[i];
+      const depth = getDepthAtPosition(i / normalizedPoints.length);
       
-      const baseIdx = (i / 3) * 3;
-      floorIndices.push(baseIdx, baseIdx + 1, baseIdx + 2);
+      floorVertices.push(point.x, -depth, point.z);
+      
+      // UV mapping based on position for texture tiling
+      const u = (point.x - minX) / (maxX - minX) * 3;
+      const v = (point.z - minY) / (maxY - minY) * 3;
+      floorUVs.push(u, v);
+    }
+    
+    // Floor indices from triangulation
+    for (let i = 0; i < triangles.length; i++) {
+      floorIndices.push(triangles[i]);
     }
     
     const floorGeometry = new THREE.BufferGeometry();
@@ -200,6 +200,13 @@ const PoolMesh: React.FC<{
     floorGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(floorUVs, 2));
     floorGeometry.setIndex(floorIndices);
     floorGeometry.computeVertexNormals();
+    
+    // Flip normals to face upward (so floor is visible from above)
+    const normals = floorGeometry.attributes.normal.array as Float32Array;
+    for (let i = 0; i < normals.length; i++) {
+      normals[i] = -normals[i];
+    }
+    floorGeometry.attributes.normal.needsUpdate = true;
 
     const wallVertices: number[] = [];
     const wallIndices: number[] = [];
@@ -279,35 +286,39 @@ const CopingMesh: React.FC<{
   const [copingTexture, setCopingTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
-  const copingDimensions = useMemo(() => {
-    const xs = poolPoints.map(p => p.x);
-    const ys = poolPoints.map(p => p.y);
-    const width = Math.max(...xs) - Math.min(...xs);
-    const length = Math.max(...ys) - Math.min(...ys);
-    return { width, length };
+  const poolPerimeter = useMemo(() => {
+    if (poolPoints.length < 2) return 0;
+    let perimeter = 0;
+    for (let i = 0; i < poolPoints.length; i++) {
+      const p1 = poolPoints[i];
+      const p2 = poolPoints[(i + 1) % poolPoints.length];
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      perimeter += Math.sqrt(dx * dx + dy * dy);
+    }
+    return perimeter;
   }, [poolPoints]);
 
   useEffect(() => {
     if (copingTextureUrl) {
-      // Calculate perimeter for 1ft segments
-      let perimeter = 0;
-      for (let i = 0; i < poolPoints.length; i++) {
-        const p1 = poolPoints[i];
-        const p2 = poolPoints[(i + 1) % poolPoints.length];
-        perimeter += Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-      }
-      // Each coping paver is 1ft long x 0.5ft (6 inch) wide
-      const repeatX = Math.ceil(perimeter); // 1ft segments along perimeter
-      const repeatY = 2; // 0.5ft width = 2 repeats per foot
+      // Coping texture: 1 sq ft tiles around perimeter
+      const repeatX = Math.max(1, Math.ceil(poolPerimeter / 1));
+      const repeatY = 1;
       
       textureCache.loadTexture(copingTextureUrl, { x: repeatX, y: repeatY })
         .then(setCopingTexture)
-        .catch(err => console.error('Failed to load coping texture'));
+        .catch(err => {
+          console.error('Failed to load coping texture');
+          setCopingTexture(null);
+        });
     }
+
     return () => {
-      if (copingTexture) disposeTexture(copingTexture);
+      if (copingTexture) {
+        disposeTexture(copingTexture);
+      }
     };
-  }, [copingTextureUrl, poolPoints]);
+  }, [copingTextureUrl, poolPerimeter]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
@@ -324,7 +335,9 @@ const CopingMesh: React.FC<{
   }, [selectedCategory]);
 
   const copingGeometry = useMemo(() => {
-    if (poolPoints.length < 3) return null;
+    if (poolPoints.length < 3) {
+      return new THREE.BoxGeometry(1, 0.5, 0.5);
+    }
 
     const minX = Math.min(...poolPoints.map(p => p.x));
     const maxX = Math.max(...poolPoints.map(p => p.x));
@@ -333,72 +346,89 @@ const CopingMesh: React.FC<{
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
 
-    // Create outer shape (1 foot wider than pool)
-    const outerShape = new THREE.Shape();
-    poolPoints.forEach((p, i) => {
-      const x = p.x - centerX;
-      const z = p.y - centerY;
-      const angle = Math.atan2(z, x);
-      const offsetX = x + Math.cos(angle) * 1; // 1 foot offset
-      const offsetZ = z + Math.sin(angle) * 1;
-      if (i === 0) outerShape.moveTo(offsetX, offsetZ);
-      else outerShape.lineTo(offsetX, offsetZ);
-    });
-    outerShape.closePath();
+    const normalizedPoints = poolPoints.map(p => ({
+      x: p.x - centerX,
+      z: p.y - centerY
+    }));
 
-    // Create inner hole (pool edge)
-    const poolHole = new THREE.Path();
-    poolPoints.forEach((p, i) => {
-      const x = p.x - centerX;
-      const z = p.y - centerY;
-      if (i === 0) poolHole.moveTo(x, z);
-      else poolHole.lineTo(x, z);
-    });
-    poolHole.closePath();
-    outerShape.holes.push(poolHole);
-
-    const copingGeom = new THREE.ExtrudeGeometry(outerShape, {
-      depth: 0.3,
-      bevelEnabled: false
-    });
-    copingGeom.rotateX(-Math.PI / 2);
-
-    // Calculate perimeter for proper UV mapping (1ft x 0.5ft pavers)
-    let perimeter = 0;
-    for (let i = 0; i < poolPoints.length; i++) {
-      const p1 = poolPoints[i];
-      const p2 = poolPoints[(i + 1) % poolPoints.length];
+    const vertices: number[] = [];
+    const indices: number[] = [];
+    const uvs: number[] = [];
+    
+    // Coping: 1 sq ft area (1ft wide x 1ft along perimeter)
+    const copingWidth = 1.0; // 1 foot width extending outward
+    const copingHeight = 0.15; // Raised above deck
+    
+    for (let i = 0; i < normalizedPoints.length; i++) {
+      const p1 = normalizedPoints[i];
+      const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
+      
+      const segmentLength = Math.sqrt(
+        Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2)
+      );
+      
+      // Calculate outward normal (pointing away from pool)
       const dx = p2.x - p1.x;
-      const dy = p2.y - p1.y;
-      perimeter += Math.sqrt(dx * dx + dy * dy);
+      const dz = p2.z - p1.z;
+      const nx = -dz / segmentLength;
+      const nz = dx / segmentLength;
+      
+      const baseIdx = vertices.length / 3;
+      
+      // Inner edge (at pool edge, top of coping)
+      vertices.push(p1.x, copingHeight, p1.z);
+      vertices.push(p2.x, copingHeight, p2.z);
+      
+      // Outer edge (1ft away from pool, top of coping)
+      vertices.push(
+        p1.x + nx * copingWidth,
+        copingHeight,
+        p1.z + nz * copingWidth
+      );
+      vertices.push(
+        p2.x + nx * copingWidth,
+        copingHeight,
+        p2.z + nz * copingWidth
+      );
+      
+      // UV mapping: 1 sq ft tiles
+      const numTiles = Math.ceil(segmentLength / 1.0);
+      uvs.push(
+        0, 0,
+        numTiles, 0,
+        0, 1,
+        numTiles, 1
+      );
+      
+      // Top face indices (visible from above)
+      indices.push(
+        baseIdx, baseIdx + 2, baseIdx + 3,
+        baseIdx, baseIdx + 3, baseIdx + 1
+      );
     }
-
-    // Set UVs so each coping paver is 1ft long x 0.5ft wide
-    const uvAttribute = copingGeom.attributes.uv;
-    if (uvAttribute) {
-      for (let i = 0; i < uvAttribute.count; i++) {
-        const u = uvAttribute.getX(i);
-        const v = uvAttribute.getY(i);
-        // Scale UV: perimeter determines how many 1ft pavers, v*2 for 0.5ft width
-        uvAttribute.setXY(i, u * perimeter, v * 2);
-      }
-    }
-
-    return copingGeom;
+    
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geom.setIndex(indices);
+    geom.computeVertexNormals();
+    
+    return geom;
   }, [poolPoints]);
 
   if (!copingGeometry) return null;
 
   const isSelected = selectedCategory === 'coping';
-  const redTint = isSelected ? Math.sin(pulseIntensity * Math.PI) : 0;
 
   return (
-    <mesh geometry={copingGeometry} receiveShadow castShadow position={[0, 0, 0]}>
+    <mesh geometry={copingGeometry} position={[0, 0, 0]}>
       <meshStandardMaterial
         map={copingTexture}
-        color={isSelected ? `rgb(${255}, ${Math.floor(255 * (1 - redTint * 0.7))}, ${Math.floor(255 * (1 - redTint * 0.7))})` : (copingTexture ? "#ffffff" : "#C4B5A0")}
+        color={copingTexture ? "#ffffff" : "#C4B5A0"}
         roughness={0.7}
         metalness={0.1}
+        emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
+        emissiveIntensity={pulseIntensity * 0.5}
       />
     </mesh>
   );

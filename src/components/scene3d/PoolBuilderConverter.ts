@@ -220,7 +220,7 @@ export function buildTextureLibrary(
   paverTypes: any[],
   finishOptions: any[] = []
 ): TextureLibrary {
-  // Extract finishes
+  // Extract finishes (premium pool liners for both pool and waterline)
   const finishes: TextureConfig[] = [
     ...customTextures
       .filter(t => t.target === 'pool' || t.target === 'water')
@@ -241,14 +241,22 @@ export function buildTextureLibrary(
     }))
   ];
 
-  // If no finishes available, add defaults
+  // If no finishes available, add all premium liner defaults
   if (finishes.length === 0) {
-    finishes.push({
-      url: '/src/assets/finishes/sapphire-blue-g3.jpg',
-      name: 'Sapphire Blue',
+    const premiumLiners = [
+      { url: '/src/assets/finishes/sapphire-blue-g3.jpg', name: 'Sapphire Blue' },
+      { url: '/src/assets/finishes/aquamarine-g3.jpg', name: 'Aquamarine' },
+      { url: '/src/assets/finishes/caribbean-blue-g3.jpg', name: 'Caribbean Blue' },
+      { url: '/src/assets/finishes/midnight-blue-g3.jpg', name: 'Midnight Blue' },
+      { url: '/src/assets/finishes/crystal-blue-g3.jpg', name: 'Crystal Blue' }
+    ];
+    
+    finishes.push(...premiumLiners.map(liner => ({
+      url: liner.url,
+      name: liner.name,
       roughness: 0.2,
       metalness: 0.1
-    });
+    })));
   }
 
   // Extract pavers
