@@ -168,7 +168,7 @@ const PoolMesh: React.FC<{
     });
     poolShape.closePath();
 
-    // Create floor with variable depth profile (sloped)
+    // Create floor with variable depth profile (sloped bottom)
     const floorVertices: number[] = [];
     const floorIndices: number[] = [];
     const floorUVs: number[] = [];
@@ -177,14 +177,14 @@ const PoolMesh: React.FC<{
     const flatCoords = normalizedPoints.flatMap(p => [p.x, p.z]);
     const triangles = earcut(flatCoords);
     
-    // Create floor vertices with variable depth following the depth profile
+    // Create floor vertices at y=0 (will be positioned by mesh)
     for (let i = 0; i < normalizedPoints.length; i++) {
       const point = normalizedPoints[i];
-      const depth = getDepthAtPosition(i / normalizedPoints.length);
       
-      floorVertices.push(point.x, -depth, point.z);
+      // Floor vertices at y=0
+      floorVertices.push(point.x, 0, point.z);
       
-      // UV mapping based on position for texture tiling
+      // UV mapping for texture tiling
       const u = (point.x - minX) / (maxX - minX) * 3;
       const v = (point.z - minY) / (maxY - minY) * 3;
       floorUVs.push(u, v);
@@ -200,13 +200,6 @@ const PoolMesh: React.FC<{
     floorGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(floorUVs, 2));
     floorGeometry.setIndex(floorIndices);
     floorGeometry.computeVertexNormals();
-    
-    // Flip normals to face upward (so floor is visible from above)
-    const normals = floorGeometry.attributes.normal.array as Float32Array;
-    for (let i = 0; i < normals.length; i++) {
-      normals[i] = -normals[i];
-    }
-    floorGeometry.attributes.normal.needsUpdate = true;
 
     const wallVertices: number[] = [];
     const wallIndices: number[] = [];
@@ -228,9 +221,10 @@ const PoolMesh: React.FC<{
       
       wallUVs.push(0, 0, wallLength / 3, 0, 0, depth / 3, wallLength / 3, depth / 3);
       
+      // Wall indices - normals facing inward toward pool interior
       wallIndices.push(
-        baseIdx, baseIdx + 1, baseIdx + 3,
-        baseIdx, baseIdx + 3, baseIdx + 2
+        baseIdx, baseIdx + 3, baseIdx + 1,
+        baseIdx, baseIdx + 2, baseIdx + 3
       );
     }
     
@@ -246,12 +240,16 @@ const PoolMesh: React.FC<{
     };
   }, [points, depthPoints]);
 
-  // Pool walls positioned at y = -0.2333 (just below waterline, which ends at -0.2333)
-  const waterLevel = -0.2333;
+  // Calculate max depth for positioning floor at deepest point
+  const maxDepth = depthPoints.length > 0
+    ? Math.max(...depthPoints.map(d => d.depth))
+    : poolDimensions.depth;
+
+  const isSelected = selectedCategory === 'pool';
 
   return (
     <>
-      <mesh geometry={geometry} position={[0, waterLevel, 0]}>
+      <mesh geometry={geometry} position={[0, -maxDepth, 0]}>
         <meshPhongMaterial
           color={linerTexture ? "#ffffff" : "#4DD0E1"}
           map={linerTexture}
@@ -260,17 +258,19 @@ const PoolMesh: React.FC<{
           side={THREE.DoubleSide}
           shininess={100}
           specular="#ffffff"
+          emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
+          emissiveIntensity={pulseIntensity * 0.3}
         />
       </mesh>
 
-      <mesh geometry={wallsGeometry} position={[0, waterLevel, 0]}>
+      <mesh geometry={wallsGeometry} position={[0, 0, 0]}>
         <meshStandardMaterial
           color={linerTexture ? "#ffffff" : "#2196F3"}
           map={linerTexture}
           roughness={0.7}
           metalness={0.1}
           side={THREE.DoubleSide}
-          emissive={selectedCategory === 'pool' ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
+          emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
           emissiveIntensity={pulseIntensity * 0.5}
         />
       </mesh>
@@ -355,9 +355,9 @@ const CopingMesh: React.FC<{
     const indices: number[] = [];
     const uvs: number[] = [];
     
-    // Coping: 1 sq ft area (1ft wide x 1ft along perimeter)
-    const copingWidth = 1.0; // 1 foot width extending outward
-    const copingHeight = 0.15; // Raised above deck
+    // Coping: 1 sq ft tiles (1ft wide x 1ft along perimeter)
+    const copingWidth = 1.0; // Exactly 1 foot wide extending from pool edge
+    const copingHeight = 0.15; // Exactly 0.15 feet raised above deck
     
     for (let i = 0; i < normalizedPoints.length; i++) {
       const p1 = normalizedPoints[i];
@@ -391,8 +391,8 @@ const CopingMesh: React.FC<{
         p2.z + nz * copingWidth
       );
       
-      // UV mapping: 1 sq ft tiles
-      const numTiles = Math.ceil(segmentLength / 1.0);
+      // UV mapping: 1 sq ft tiles along perimeter
+      const numTiles = Math.ceil(segmentLength / copingWidth);
       uvs.push(
         0, 0,
         numTiles, 0,
@@ -424,7 +424,7 @@ const CopingMesh: React.FC<{
     <mesh geometry={copingGeometry} position={[0, 0, 0]}>
       <meshStandardMaterial
         map={copingTexture}
-        color={copingTexture ? "#ffffff" : "#C4B5A0"}
+        color="#ffffff"
         roughness={0.7}
         metalness={0.1}
         emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
@@ -838,27 +838,23 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         </group>
       )}
 
-      {copingTextureUrl && (
-        <group onClick={() => onSelectCategory?.('coping')}>
-          <CopingMesh
-            key={copingTextureUrl}
-            poolPoints={points}
-            copingTextureUrl={copingTextureUrl}
-            selectedCategory={selectedCategory}
-          />
-        </group>
-      )}
+      <group onClick={() => onSelectCategory?.('coping')}>
+        <CopingMesh
+          key={copingTextureUrl}
+          poolPoints={points}
+          copingTextureUrl={copingTextureUrl}
+          selectedCategory={selectedCategory}
+        />
+      </group>
 
-      {waterlineTextureUrl && (
-        <group onClick={() => onSelectCategory?.('waterline')}>
-          <WaterlineMesh
-            key={waterlineTextureUrl}
-            poolPoints={points}
-            waterlineTextureUrl={waterlineTextureUrl}
-            selectedCategory={selectedCategory}
-          />
-        </group>
-      )}
+      <group onClick={() => onSelectCategory?.('waterline')}>
+        <WaterlineMesh
+          key={waterlineTextureUrl}
+          poolPoints={points}
+          waterlineTextureUrl={waterlineTextureUrl}
+          selectedCategory={selectedCategory}
+        />
+      </group>
 
       {fencePoints && fencePoints.length > 0 && (
         <FenceMesh

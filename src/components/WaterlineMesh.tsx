@@ -19,8 +19,8 @@ interface WaterlineMeshProps {
 export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({ 
   poolPoints, 
   waterlineTextureUrl,
-  waterlineHeight = 0.0833, // Height of waterline tile (1 inch = 0.0833 feet)
-  waterlineWidth = 1.0,      // Width/depth: 1 sq ft tile (1ft along perimeter)
+  waterlineHeight = 0.0833, // Exactly 1 inch thick (0.0833 feet)
+  waterlineWidth = 1.0,      // 1 sq ft tile (1ft along perimeter)
   selectedCategory
 }) => {
   const [waterlineTexture, setWaterlineTexture] = useState<THREE.Texture | null>(null);
@@ -95,25 +95,26 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       
       const baseIdx = vertices.length / 3;
       
-      // Waterline: 1 inch thick, 1 sq ft tile attached to upper pool wall
-      // Top edge (at bottom of coping = 0.15)
+      // Waterline: exactly 1 inch thick (0.0833 feet), 1 sq ft tile
+      // Positioned at top of pool wall just below coping
+      // Top edge (at y=0, just below coping bottom)
       vertices.push(p1.x, 0, p1.z);
       vertices.push(p2.x, 0, p2.z);
       
-      // Bottom edge (1 inch below = -0.0833)
-      vertices.push(p1.x, -0.0833, p1.z);
-      vertices.push(p2.x, -0.0833, p2.z);
+      // Bottom edge (exactly 1 inch below = -0.0833 feet)
+      vertices.push(p1.x, -waterlineHeight, p1.z);
+      vertices.push(p2.x, -waterlineHeight, p2.z);
       
-      // UV mapping: 1 sq ft tiles along perimeter
-      const numTiles = Math.ceil(segmentLength / 1.0);
+      // UV mapping: 1 sq ft tiles (1ft x 0.0833ft) along perimeter
+      const numTiles = Math.ceil(segmentLength / waterlineWidth);
       
-      // Front face UVs (facing outward, showing liner pattern)
+      // Front face UVs (facing pool interior, showing premium liner pattern)
       uvs.push(0, 1, numTiles, 1, 0, 0, numTiles, 0);
       
-      // Front face indices (visible from outside pool)
+      // Front face indices (visible from inside pool, normals facing inward)
       indices.push(
-        baseIdx, baseIdx + 1, baseIdx + 3,
-        baseIdx, baseIdx + 3, baseIdx + 2
+        baseIdx, baseIdx + 3, baseIdx + 1,
+        baseIdx, baseIdx + 2, baseIdx + 3
       );
     }
     
@@ -126,15 +127,13 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
     return geom;
   }, [poolPoints, waterlineHeight, waterlineWidth]);
 
-  if (!waterlineTextureUrl) return null;
-
   const isSelected = selectedCategory === 'waterline';
 
   return (
     <mesh geometry={waterlineGeometry} position={[0, 0, 0]}>
       <meshStandardMaterial
         map={waterlineTexture}
-        color={waterlineTexture ? "#ffffff" : "#1976D2"}
+        color="#ffffff"
         roughness={0.3}
         metalness={0.2}
         side={THREE.DoubleSide}
