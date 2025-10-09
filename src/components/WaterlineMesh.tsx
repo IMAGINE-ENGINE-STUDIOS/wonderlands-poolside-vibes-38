@@ -13,15 +13,18 @@ interface WaterlineMeshProps {
   waterlineTextureUrl?: string;
   waterlineHeight?: number;
   waterlineWidth?: number;
+  selectedCategory?: string | null;
 }
 
 export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({ 
   poolPoints, 
   waterlineTextureUrl,
   waterlineHeight = 0.0833, // Height of waterline tile (1 inch = 0.0833 feet)
-  waterlineWidth = 0.5      // Width/depth into pool wall
+  waterlineWidth = 0.5,      // Width/depth into pool wall
+  selectedCategory
 }) => {
   const [waterlineTexture, setWaterlineTexture] = useState<THREE.Texture | null>(null);
+  const [pulseIntensity, setPulseIntensity] = useState(0);
 
   useEffect(() => {
     if (waterlineTextureUrl) {
@@ -39,6 +42,20 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       }
     };
   }, [waterlineTextureUrl]);
+
+  // Pulsing red effect when selected (8 second cycle)
+  useEffect(() => {
+    if (selectedCategory !== 'waterline') return;
+    
+    const interval = setInterval(() => {
+      setPulseIntensity(prev => {
+        if (prev >= 1) return 0;
+        return prev + 0.0125; // 8 second cycle
+      });
+    }, 50);
+    
+    return () => clearInterval(interval);
+  }, [selectedCategory]);
 
   const waterlineGeometry = useMemo(() => {
     if (poolPoints.length < 3) {
@@ -143,6 +160,8 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
 
   if (!waterlineTextureUrl) return null;
 
+  const isSelected = selectedCategory === 'waterline';
+
   return (
     <mesh geometry={waterlineGeometry} position={[0, 0, 0]}>
       <meshStandardMaterial
@@ -151,6 +170,8 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
         roughness={0.3}
         metalness={0.2}
         side={THREE.DoubleSide}
+        emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
+        emissiveIntensity={pulseIntensity * 0.5}
       />
     </mesh>
   );

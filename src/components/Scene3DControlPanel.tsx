@@ -198,7 +198,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                   className="text-xs"
                   onClick={() => setSelectedTextureCategory('waterline')}
                 >
-                  Waterline
+                  Waterline (Liners)
                 </Button>
               </div>
 
@@ -214,6 +214,13 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                   className="w-full"
                 />
               </div>
+
+              {/* Helper text for waterline */}
+              {selectedTextureCategory === 'waterline' && (
+                <p className="text-xs text-muted-foreground">
+                  Select from premium pool liner finishes for waterline tiles
+                </p>
+              )}
 
               {/* Texture Grid */}
               <div className="grid grid-cols-3 gap-2">

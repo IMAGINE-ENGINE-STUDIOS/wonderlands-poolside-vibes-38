@@ -70,6 +70,30 @@ export function UnifiedPoolVisualizer({
     setScene(initialScene);
   }, [initialScene]);
 
+  // Auto-snap camera to selected category
+  useEffect(() => {
+    if (!selectedCategory || !controlsRef.current) return;
+    
+    const cameraConfigs: Record<string, { position: [number, number, number], target: [number, number, number] }> = {
+      pool: { position: [0, 40, 0], target: [0, -3, 0] },
+      deck: { position: [25, 15, 25], target: [0, 0, 0] },
+      coping: { position: [15, 5, 15], target: [0, 0, 0] },
+      waterline: { position: [20, 2, 20], target: [0, -0.2, 0] }
+    };
+    
+    const config = cameraConfigs[selectedCategory];
+    if (config) {
+      setCameraPreset(null);
+      setScene(prev => ({
+        ...prev,
+        camera: {
+          position: config.position,
+          target: config.target
+        }
+      }));
+    }
+  }, [selectedCategory]);
+
   const handleTextureChange = (category: 'pool' | 'deck' | 'coping' | 'waterline', texture: TextureConfig) => {
     setScene(prev => {
       const updated = { ...prev };

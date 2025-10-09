@@ -78,10 +78,12 @@ const PoolMesh: React.FC<{
     const ys = points.map(p => p.y);
     const width = Math.max(...xs) - Math.min(...xs);
     const length = Math.max(...ys) - Math.min(...ys);
-    const avgDepth = depthPoints.length > 0 
-      ? depthPoints.reduce((sum, d) => sum + d.depth, 0) / depthPoints.length 
+    
+    // Use maximum depth from depth points
+    const maxDepth = depthPoints.length > 0 
+      ? Math.max(...depthPoints.map(d => d.depth))
       : 5;
-    return { width, length, depth: avgDepth };
+    return { width, length, depth: maxDepth };
   }, [points, depthPoints, providedDimensions]);
 
   useEffect(() => {
@@ -165,13 +167,39 @@ const PoolMesh: React.FC<{
     });
     poolShape.closePath();
 
-    const avgDepth = sortedDepths.reduce((sum, d) => sum + d.depth, 0) / sortedDepths.length;
-    const floorGeometry = new THREE.ExtrudeGeometry(poolShape, {
-      depth: 0.1,
-      bevelEnabled: false
-    });
-    floorGeometry.rotateX(-Math.PI / 2);
-    floorGeometry.translate(0, -avgDepth, 0);
+    // Create floor with variable depth profile (sloped)
+    const floorVertices: number[] = [];
+    const floorIndices: number[] = [];
+    const floorUVs: number[] = [];
+    
+    // Triangulate the pool shape for floor
+    const earcut = require('earcut'); // Use simple triangulation
+    const flatCoords = normalizedPoints.flatMap(p => [p.x, p.z]);
+    const triangles = earcut(flatCoords);
+    
+    // Create floor vertices with depth profile
+    for (let i = 0; i < triangles.length; i += 3) {
+      for (let j = 0; j < 3; j++) {
+        const idx = triangles[i + j];
+        const p = normalizedPoints[idx];
+        
+        // Calculate position ratio along pool length for depth
+        const positionRatio = idx / normalizedPoints.length;
+        const depth = getDepthAtPosition(positionRatio);
+        
+        floorVertices.push(p.x, -depth, p.z);
+        floorUVs.push((p.x + 50) / 100, (p.z + 50) / 100);
+      }
+      
+      const baseIdx = (i / 3) * 3;
+      floorIndices.push(baseIdx, baseIdx + 1, baseIdx + 2);
+    }
+    
+    const floorGeometry = new THREE.BufferGeometry();
+    floorGeometry.setAttribute('position', new THREE.Float32BufferAttribute(floorVertices, 3));
+    floorGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(floorUVs, 2));
+    floorGeometry.setIndex(floorIndices);
+    floorGeometry.computeVertexNormals();
 
     const wallVertices: number[] = [];
     const wallIndices: number[] = [];
@@ -230,9 +258,9 @@ const PoolMesh: React.FC<{
 
       <mesh geometry={wallsGeometry} position={[0, waterLevel, 0]}>
         <meshStandardMaterial
-          color={linerTexture ? "#e8f4f8" : "#2196F3"}
+          color={linerTexture ? "#ffffff" : "#2196F3"}
           map={linerTexture}
-          roughness={0.6}
+          roughness={0.7}
           metalness={0.1}
           side={THREE.DoubleSide}
           emissive={selectedCategory === 'pool' ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
@@ -758,6 +786,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
 
       <group onClick={() => onSelectCategory?.('pool')}>
         <PoolMesh
+          key={linerTextureUrl}
           points={points}
           depthPoints={depthPoints}
           linerTextureUrl={linerTextureUrl}
@@ -769,6 +798,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       {hardscapePoints && hardscapePoints.length > 0 && (
         <group onClick={() => onSelectCategory?.('deck')}>
           <DeckMesh
+            key={paverTextureUrl}
             hardscapePoints={hardscapePoints}
             poolPoints={points}
             features={features || []}
@@ -781,6 +811,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       {copingTextureUrl && (
         <group onClick={() => onSelectCategory?.('coping')}>
           <CopingMesh
+            key={copingTextureUrl}
             poolPoints={points}
             copingTextureUrl={copingTextureUrl}
             selectedCategory={selectedCategory}
@@ -791,8 +822,10 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       {waterlineTextureUrl && (
         <group onClick={() => onSelectCategory?.('waterline')}>
           <WaterlineMesh
+            key={waterlineTextureUrl}
             poolPoints={points}
             waterlineTextureUrl={waterlineTextureUrl}
+            selectedCategory={selectedCategory}
           />
         </group>
       )}
