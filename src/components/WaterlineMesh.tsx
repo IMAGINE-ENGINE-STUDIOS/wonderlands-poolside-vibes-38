@@ -78,35 +78,35 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       
       const baseIdx = vertices.length / 3;
       
-      // Outer edge (at bottom of coping, touching pool wall)
-      vertices.push(p1.x, -0.65, p1.z);  // Positioned at bottom of coping
-      vertices.push(p2.x, -0.65, p2.z);
+      // Outer edge (at bottom of coping = -0.15)
+      vertices.push(p1.x, -0.15, p1.z);
+      vertices.push(p2.x, -0.15, p2.z);
       
-      // Outer edge bottom (1 inch below)
-      vertices.push(p1.x, -0.65 - waterlineHeight, p1.z);
-      vertices.push(p2.x, -0.65 - waterlineHeight, p2.z);
+      // Outer edge bottom (1 inch below = -0.2333, connects to pool wall top)
+      vertices.push(p1.x, -0.2333, p1.z);
+      vertices.push(p2.x, -0.2333, p2.z);
       
       // Inner edge (waterlineWidth into pool)
       vertices.push(
         p1.x + nx * waterlineWidth,
-        -0.65,
+        -0.15,
         p1.z + nz * waterlineWidth
       );
       vertices.push(
         p2.x + nx * waterlineWidth,
-        -0.65,
+        -0.15,
         p2.z + nz * waterlineWidth
       );
       
       // Inner edge bottom
       vertices.push(
         p1.x + nx * waterlineWidth,
-        -0.65 - waterlineHeight,
+        -0.2333,
         p1.z + nz * waterlineWidth
       );
       vertices.push(
         p2.x + nx * waterlineWidth,
-        -0.65 - waterlineHeight,
+        -0.2333,
         p2.z + nz * waterlineWidth
       );
       

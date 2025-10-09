@@ -1,5 +1,5 @@
 import { Canvas as R3FCanvas, useThree } from '@react-three/fiber';
-import { OrbitControls, TransformControls, Environment } from '@react-three/drei';
+import { OrbitControls, TransformControls, Sky } from '@react-three/drei';
 import { useState, useEffect, useRef } from 'react';
 import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation } from './scene3d/types';
 import { Pool3DScene } from './Pool3DScene';
@@ -56,6 +56,8 @@ export function UnifiedPoolVisualizer({
   const [transformMode, setTransformMode] = useState<TransformMode>('translate');
   const [cameraPreset, setCameraPreset] = useState<CameraPreset | null>(null);
   const [autoRotate, setAutoRotate] = useState(false);
+  const [sunPosition, setSunPosition] = useState<[number, number, number]>([100, 20, 100]);
+  const [fenceHeight, setFenceHeight] = useState(6);
   const controlsRef = useRef<any>(null);
 
   // Update parent when scene changes
@@ -189,14 +191,26 @@ export function UnifiedPoolVisualizer({
             fov: 50
           }}
         >
-          <Environment preset="sunset" />
-          <ambientLight intensity={0.5} />
+          {/* Dynamic Sky with Clouds */}
+          <Sky 
+            distance={450000}
+            sunPosition={sunPosition}
+            inclination={0.6}
+            azimuth={0.25}
+          />
+          
+          <ambientLight intensity={0.4} />
           <directionalLight
-            position={[10, 10, 5]}
-            intensity={1}
+            position={sunPosition}
+            intensity={1.2}
             castShadow
             shadow-mapSize-width={2048}
             shadow-mapSize-height={2048}
+            shadow-camera-far={100}
+            shadow-camera-left={-50}
+            shadow-camera-right={50}
+            shadow-camera-top={50}
+            shadow-camera-bottom={-50}
           />
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />
@@ -224,6 +238,7 @@ export function UnifiedPoolVisualizer({
             poolDimensions={scene.pool.dimensions}
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
+            fenceHeight={fenceHeight}
           />
           
           {/* Annotations */}
@@ -269,6 +284,10 @@ export function UnifiedPoolVisualizer({
         onAddAnnotation={handleAddAnnotation}
         onAutoRotateToggle={() => setAutoRotate(!autoRotate)}
         onSceneChange={setScene}
+        sunPosition={sunPosition}
+        onSunPositionChange={setSunPosition}
+        fenceHeight={fenceHeight}
+        onFenceHeightChange={setFenceHeight}
       />
     </div>
   );

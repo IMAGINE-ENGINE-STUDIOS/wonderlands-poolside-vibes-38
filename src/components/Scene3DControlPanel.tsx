@@ -34,6 +34,10 @@ interface Scene3DControlPanelProps {
   onAddAnnotation: (text: string, price?: number) => void;
   onAutoRotateToggle: () => void;
   onSceneChange: (scene: Scene3D) => void;
+  sunPosition: [number, number, number];
+  onSunPositionChange: (position: [number, number, number]) => void;
+  fenceHeight: number;
+  onFenceHeightChange: (height: number) => void;
 }
 
 export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
@@ -49,14 +53,18 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   onCenterCamera,
   onAddAnnotation,
   onAutoRotateToggle,
-  onSceneChange
+  onSceneChange,
+  sunPosition,
+  onSunPositionChange,
+  fenceHeight,
+  onFenceHeightChange
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [annotationText, setAnnotationText] = useState('');
   const [annotationPrice, setAnnotationPrice] = useState('');
   const [selectedTextureCategory, setSelectedTextureCategory] = useState<'finishes' | 'pavers' | 'coping' | 'waterline'>('finishes');
   const [textureScale, setTextureScale] = useState(1);
-  const [fenceHeight, setFenceHeight] = useState(6);
+  const [sunTime, setSunTime] = useState(0.6); // 0 = sunrise, 0.5 = noon, 1 = sunset
 
   const handleAddNote = () => {
     if (annotationText.trim()) {
@@ -291,20 +299,38 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
               <Label className="text-xs">Height: {fenceHeight} ft</Label>
               <Slider
                 value={[fenceHeight]}
-                onValueChange={(value) => {
-                  setFenceHeight(value[0]);
-                  onSceneChange({
-                    ...scene,
-                    features: scene.features.map(f => 
-                      f.type === 'custom' && f.metadata?.name === 'fence'
-                        ? { ...f, scale: [1, value[0], 1] }
-                        : f
-                    )
-                  });
-                }}
+                onValueChange={(value) => onFenceHeightChange(value[0])}
                 min={4}
                 max={10}
                 step={0.5}
+                className="w-full"
+              />
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Sun Position Control */}
+          <div className="space-y-3">
+            <h4 className="font-medium">Sun Position</h4>
+            <div className="space-y-2">
+              <Label className="text-xs">
+                Time: {sunTime < 0.3 ? 'Morning' : sunTime < 0.7 ? 'Midday' : 'Evening'}
+              </Label>
+              <Slider
+                value={[sunTime]}
+                onValueChange={(value) => {
+                  setSunTime(value[0]);
+                  // Calculate sun position based on time (arc across sky)
+                  const angle = value[0] * Math.PI; // 0 to PI (sunrise to sunset)
+                  const x = Math.cos(angle) * 100;
+                  const y = Math.sin(angle) * 50 + 20; // Height 20-70
+                  const z = Math.sin(angle) * 100;
+                  onSunPositionChange([x, y, z]);
+                }}
+                min={0}
+                max={1}
+                step={0.01}
                 className="w-full"
               />
             </div>

@@ -58,6 +58,7 @@ export interface Pool3DSceneProps {
   poolDimensions?: { length: number; width: number; depth: number };
   selectedCategory?: string | null;
   onSelectCategory?: (category: string | null) => void;
+  fenceHeight?: number;
 }
 
 const PoolMesh: React.FC<{
@@ -210,8 +211,8 @@ const PoolMesh: React.FC<{
     };
   }, [points, depthPoints]);
 
-  // Pool walls must touch bottom of coping (at y = -0.65)
-  const waterLevel = -0.65;
+  // Pool walls positioned at y = -0.2333 (just below waterline, which ends at -0.2333)
+  const waterLevel = -0.2333;
 
   return (
     <>
@@ -260,9 +261,16 @@ const CopingMesh: React.FC<{
 
   useEffect(() => {
     if (copingTextureUrl) {
-      // Coping texture subdivided for 1ft x 0.5ft (6 inch) portions
-      const repeatX = Math.ceil(copingDimensions.width * 2);  // 2x for 6-inch width
-      const repeatY = Math.ceil(copingDimensions.length * 2);  // 2x for proper subdivision
+      // Calculate perimeter for 1ft segments
+      let perimeter = 0;
+      for (let i = 0; i < poolPoints.length; i++) {
+        const p1 = poolPoints[i];
+        const p2 = poolPoints[(i + 1) % poolPoints.length];
+        perimeter += Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+      }
+      // Each coping paver is 1ft long x 0.5ft (6 inch) wide
+      const repeatX = Math.ceil(perimeter); // 1ft segments along perimeter
+      const repeatY = 2; // 0.5ft width = 2 repeats per foot
       
       textureCache.loadTexture(copingTextureUrl, { x: repeatX, y: repeatY })
         .then(setCopingTexture)
@@ -271,7 +279,7 @@ const CopingMesh: React.FC<{
     return () => {
       if (copingTexture) disposeTexture(copingTexture);
     };
-  }, [copingTextureUrl, copingDimensions]);
+  }, [copingTextureUrl, poolPoints]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
@@ -357,7 +365,7 @@ const CopingMesh: React.FC<{
   const redTint = isSelected ? Math.sin(pulseIntensity * Math.PI) : 0;
 
   return (
-    <mesh geometry={copingGeometry} receiveShadow castShadow position={[0, 0.15, 0]}>
+    <mesh geometry={copingGeometry} receiveShadow castShadow position={[0, 0, 0]}>
       <meshStandardMaterial
         map={copingTexture}
         color={isSelected ? `rgb(${255}, ${Math.floor(255 * (1 - redTint * 0.7))}, ${Math.floor(255 * (1 - redTint * 0.7))})` : (copingTexture ? "#ffffff" : "#C4B5A0")}
@@ -388,9 +396,9 @@ const DeckMesh: React.FC<{
 
   useEffect(() => {
     if (paverTextureUrl) {
-      // Deck texture should be 1 sqft tiles (severely increased scale)
-      const repeatX = Math.ceil(deckDimensions.width * 3);  // 3x increase
-      const repeatY = Math.ceil(deckDimensions.length * 3);  // 3x increase
+      // Deck texture: 1 sqft tiles (1 foot = 1 tile)
+      const repeatX = Math.ceil(deckDimensions.width); // Each tile is 1ft wide
+      const repeatY = Math.ceil(deckDimensions.length); // Each tile is 1ft long
       
       textureCache.loadTexture(paverTextureUrl, { x: repeatX, y: repeatY })
         .then(setPaverTexture)
@@ -483,7 +491,8 @@ const DeckMesh: React.FC<{
 const FenceMesh: React.FC<{
   fencePoints: FencePoint[];
   fenceTextureUrl?: string;
-}> = ({ fencePoints, fenceTextureUrl }) => {
+  fenceHeight?: number;
+}> = ({ fencePoints, fenceTextureUrl, fenceHeight = 6 }) => {
   const [fenceTexture, setFenceTexture] = useState<THREE.Texture | null>(null);
 
   const fenceLength = useMemo(() => {
@@ -526,7 +535,6 @@ const FenceMesh: React.FC<{
     const vertices: number[] = [];
     const indices: number[] = [];
     const uvs: number[] = [];
-    const fenceHeight = 6;
     
     for (let i = 0; i < fencePoints.length - 1; i++) {
       const p1 = fencePoints[i];
@@ -537,8 +545,8 @@ const FenceMesh: React.FC<{
       vertices.push(p1.x, 0, p1.y, p2.x, 0, p2.y, p1.x, fenceHeight, p1.y, p2.x, fenceHeight, p2.y);
       
       const segmentLength = Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
-      // UV mapping for 6ft tall x 12ft long fence sections
-      uvs.push(0, 0, segmentLength / 12, 0, 0, 1, segmentLength / 12, 1);
+      // UV mapping for fence sections (12ft wide, height is dynamic)
+      uvs.push(0, 0, segmentLength / 12, 0, 0, fenceHeight / 6, segmentLength / 12, fenceHeight / 6);
       
       indices.push(baseIdx, baseIdx + 1, baseIdx + 3, baseIdx, baseIdx + 3, baseIdx + 2);
     }
@@ -550,7 +558,7 @@ const FenceMesh: React.FC<{
     geo.computeVertexNormals();
     
     return geo;
-  }, [fencePoints]);
+  }, [fencePoints, fenceHeight]);
 
   if (!geometry) return null;
 
@@ -721,7 +729,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   poolShape = 'rectangle',
   poolDimensions,
   selectedCategory,
-  onSelectCategory
+  onSelectCategory,
+  fenceHeight = 6
 }) => {
   return (
     <>
@@ -792,6 +801,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         <FenceMesh
           fencePoints={fencePoints}
           fenceTextureUrl={fenceTextureUrl}
+          fenceHeight={fenceHeight}
         />
       )}
 
