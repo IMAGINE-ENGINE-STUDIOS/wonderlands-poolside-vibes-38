@@ -230,8 +230,9 @@ const DeckMesh: React.FC<{
 
   useEffect(() => {
     if (paverTextureUrl) {
-      const repeatX = Math.ceil(deckDimensions.width / 2);
-      const repeatY = Math.ceil(deckDimensions.length / 2);
+      // Deck texture should be 1 foot tiles
+      const repeatX = Math.ceil(deckDimensions.width / 1);
+      const repeatY = Math.ceil(deckDimensions.length / 1);
       
       textureCache.loadTexture(paverTextureUrl, { x: repeatX, y: repeatY })
         .then(setPaverTexture)
@@ -443,8 +444,9 @@ const FenceMesh: React.FC<{
 
   useEffect(() => {
     if (fenceTextureUrl) {
-      const repeatX = Math.max(1, Math.ceil(fenceLength / 6));
-      const repeatY = 2;
+      // Fence texture should fit sections of 6ft tall x 12ft long
+      const repeatX = Math.max(1, Math.ceil(fenceLength / 12));
+      const repeatY = 1;
       
       textureCache.loadTexture(fenceTextureUrl, { x: repeatX, y: repeatY })
         .then(setFenceTexture)
@@ -478,7 +480,8 @@ const FenceMesh: React.FC<{
       vertices.push(p1.x, 0, p1.y, p2.x, 0, p2.y, p1.x, fenceHeight, p1.y, p2.x, fenceHeight, p2.y);
       
       const segmentLength = Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
-      uvs.push(0, 0, segmentLength / 6, 0, 0, 1, segmentLength / 6, 1);
+      // UV mapping for 6ft tall x 12ft long fence sections
+      uvs.push(0, 0, segmentLength / 12, 0, 0, 1, segmentLength / 12, 1);
       
       indices.push(baseIdx, baseIdx + 1, baseIdx + 3, baseIdx, baseIdx + 3, baseIdx + 2);
     }
