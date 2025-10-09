@@ -1,4 +1,4 @@
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas as R3FCanvas, useThree } from '@react-three/fiber';
 import { OrbitControls, TransformControls, Environment } from '@react-three/drei';
 import { useState, useEffect, useRef } from 'react';
 import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation } from './scene3d/types';
@@ -179,7 +179,7 @@ export function UnifiedPoolVisualizer({
     <div className="flex h-full w-full">
       {/* Main 3D Canvas */}
       <div className="flex-1 relative">
-        <Canvas
+        <R3FCanvas
           shadows
           camera={{
             position: scene.camera.position,
@@ -241,7 +241,7 @@ export function UnifiedPoolVisualizer({
             enableDamping
             dampingFactor={0.05}
           />
-        </Canvas>
+        </R3FCanvas>
         
         {/* Camera preset buttons (overlay) */}
         <div className="absolute top-4 left-4 flex gap-2 z-10">
