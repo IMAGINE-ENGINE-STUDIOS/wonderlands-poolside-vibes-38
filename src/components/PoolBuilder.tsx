@@ -1938,7 +1938,8 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
         breakdown: cost
       });
     }
-  }, [points, features, poolPerimeter, poolArea, onPoolDataChange, calculateTotalCost, calculateHardscapeArea]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [points, features, poolPerimeter, poolArea]);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
