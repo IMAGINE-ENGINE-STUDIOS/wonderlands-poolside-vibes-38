@@ -12,7 +12,8 @@ import poolTextureSapphire from '@/assets/pool-texture-sapphire.jpg';
 import { paverTypes } from '@/data/paverData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { loadAllTextureLODs, getTextureForLOD, getLODLevel, type TextureLODSet } from '@/utils/textureLOD';
-import { Pool3DViewer } from './Pool3DViewer';
+import { UnifiedPoolVisualizer } from './UnifiedPoolVisualizer';
+import { poolBuilderToScene, buildTextureLibrary } from './scene3d/PoolBuilderConverter';
 import { TextureBuilder, type TextureConfig } from './TextureBuilder';
 
 interface Point {
@@ -2709,39 +2710,31 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
                       View 3D Model
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-4xl h-[80vh]">
+                  <DialogContent className="max-w-7xl h-[90vh]">
                     <DialogHeader>
-                      <DialogTitle>3D Pool Viewer</DialogTitle>
+                      <DialogTitle>3D Pool Visualizer</DialogTitle>
                     </DialogHeader>
                     <div className="flex-1 h-full">
-                      <Pool3DViewer
-                        points={points}
-                        depthPoints={depthPoints}
-                        scale={scale}
-                        poolShape={poolShape}
-                        hardscapePoints={hardscapePoints}
-                        fencePoints={fencePoints}
-                        features={features}
-                        paverTextureUrl={
-                          customTextures.find(t => t.target === 'deck')?.url ||
-                          paverTypes.find(p => p.id === selectedPaverId)?.image
-                        }
-                        linerTextureUrl={
-                          customTextures.find(t => t.target === 'pool')?.url ||
-                          poolTextureSapphire
-                        }
-                        copingTextureUrl={
-                          customTextures.find(t => t.target === 'coping')?.url ||
-                          paverTypes.find(p => p.id === selectedCopingId)?.image
-                        }
-                        fenceTextureUrl={
-                          customTextures.find(t => t.target === 'fence')?.url ||
-                          "/src/assets/fence-texture.png"
-                        }
+                      <UnifiedPoolVisualizer
+                        scene={poolBuilderToScene({
+                          points,
+                          depthPoints,
+                          hardscapePoints,
+                          fencePoints,
+                          features,
+                          customTextures,
+                          poolShape,
+                          scale,
+                          selectedPaverId,
+                          selectedCopingId,
+                          paverTypes
+                        })}
+                        textureLibrary={buildTextureLibrary(
+                          customTextures,
+                          paverTypes,
+                          []
+                        )}
                       />
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Click and drag to rotate • Scroll to zoom • Right-click to pan
                     </div>
                   </DialogContent>
                 </Dialog>
