@@ -18,8 +18,8 @@ interface WaterlineMeshProps {
 export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({ 
   poolPoints, 
   waterlineTextureUrl,
-  waterlineHeight = 0.5, // Height of waterline tile (6 inches)
-  waterlineWidth = 0.5   // Width/depth into pool wall
+  waterlineHeight = 0.0833, // Height of waterline tile (1 inch = 0.0833 feet)
+  waterlineWidth = 0.5      // Width/depth into pool wall
 }) => {
   const [waterlineTexture, setWaterlineTexture] = useState<THREE.Texture | null>(null);
 
@@ -78,35 +78,35 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       
       const baseIdx = vertices.length / 3;
       
-      // Outer edge (at coping)
-      vertices.push(p1.x, -0.5, p1.z);
-      vertices.push(p2.x, -0.5, p2.z);
+      // Outer edge (at bottom of coping, touching pool wall)
+      vertices.push(p1.x, -0.65, p1.z);  // Positioned at bottom of coping
+      vertices.push(p2.x, -0.65, p2.z);
       
-      // Outer edge bottom
-      vertices.push(p1.x, -0.5 - waterlineHeight, p1.z);
-      vertices.push(p2.x, -0.5 - waterlineHeight, p2.z);
+      // Outer edge bottom (1 inch below)
+      vertices.push(p1.x, -0.65 - waterlineHeight, p1.z);
+      vertices.push(p2.x, -0.65 - waterlineHeight, p2.z);
       
       // Inner edge (waterlineWidth into pool)
       vertices.push(
         p1.x + nx * waterlineWidth,
-        -0.5,
+        -0.65,
         p1.z + nz * waterlineWidth
       );
       vertices.push(
         p2.x + nx * waterlineWidth,
-        -0.5,
+        -0.65,
         p2.z + nz * waterlineWidth
       );
       
       // Inner edge bottom
       vertices.push(
         p1.x + nx * waterlineWidth,
-        -0.5 - waterlineHeight,
+        -0.65 - waterlineHeight,
         p1.z + nz * waterlineWidth
       );
       vertices.push(
         p2.x + nx * waterlineWidth,
-        -0.5 - waterlineHeight,
+        -0.65 - waterlineHeight,
         p2.z + nz * waterlineWidth
       );
       

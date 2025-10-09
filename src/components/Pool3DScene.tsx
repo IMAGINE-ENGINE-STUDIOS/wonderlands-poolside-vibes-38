@@ -210,7 +210,8 @@ const PoolMesh: React.FC<{
     };
   }, [points, depthPoints]);
 
-  const waterLevel = -0.5;
+  // Pool walls must touch bottom of coping (at y = -0.65)
+  const waterLevel = -0.65;
 
   return (
     <>
@@ -259,8 +260,9 @@ const CopingMesh: React.FC<{
 
   useEffect(() => {
     if (copingTextureUrl) {
-      const repeatX = Math.ceil(copingDimensions.width / 1);
-      const repeatY = Math.ceil(copingDimensions.length / 1);
+      // Coping texture subdivided for 1ft x 0.5ft (6 inch) portions
+      const repeatX = Math.ceil(copingDimensions.width * 2);  // 2x for 6-inch width
+      const repeatY = Math.ceil(copingDimensions.length * 2);  // 2x for proper subdivision
       
       textureCache.loadTexture(copingTextureUrl, { x: repeatX, y: repeatY })
         .then(setCopingTexture)
@@ -386,9 +388,9 @@ const DeckMesh: React.FC<{
 
   useEffect(() => {
     if (paverTextureUrl) {
-      // Deck texture should be 1 foot tiles
-      const repeatX = Math.ceil(deckDimensions.width / 1);
-      const repeatY = Math.ceil(deckDimensions.length / 1);
+      // Deck texture should be 1 sqft tiles (severely increased scale)
+      const repeatX = Math.ceil(deckDimensions.width * 3);  // 3x increase
+      const repeatY = Math.ceil(deckDimensions.length * 3);  // 3x increase
       
       textureCache.loadTexture(paverTextureUrl, { x: repeatX, y: repeatY })
         .then(setPaverTexture)
