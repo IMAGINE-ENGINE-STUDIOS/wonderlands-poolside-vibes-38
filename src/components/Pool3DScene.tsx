@@ -385,9 +385,10 @@ const CopingMesh: React.FC<{
     const indices: number[] = [];
     const uvs: number[] = [];
     
-    // Coping: 1 sq ft tiles (1ft wide x 1ft along perimeter)
-    const copingWidth = 1.0; // Exactly 1 foot wide extending from pool edge
-    const copingHeight = 0.15; // Exactly 0.15 feet raised above deck
+    // Coping: 1ft long x 6in (0.5ft) wide x 4in (0.333ft) tall
+    const copingWidth = 0.5;     // 6 inches = 0.5 feet wide
+    const copingHeight = 0.333;  // 4 inches = 0.333 feet tall
+    const copingLength = 1.0;    // 1 foot along perimeter
     
     for (let i = 0; i < normalizedPoints.length; i++) {
       const p1 = normalizedPoints[i];
@@ -405,11 +406,12 @@ const CopingMesh: React.FC<{
       
       const baseIdx = vertices.length / 3;
       
+      // Top surface vertices (coping sits ON TOP of deck at y=0)
       // Inner edge (at pool edge, top of coping)
       vertices.push(p1.x, copingHeight, p1.z);
       vertices.push(p2.x, copingHeight, p2.z);
       
-      // Outer edge (1ft away from pool, top of coping)
+      // Outer edge (6 inches away from pool, top of coping)
       vertices.push(
         p1.x + nx * copingWidth,
         copingHeight,
@@ -421,8 +423,8 @@ const CopingMesh: React.FC<{
         p2.z + nz * copingWidth
       );
       
-      // UV mapping: 1 sq ft tiles along perimeter
-      const numTiles = Math.ceil(segmentLength / copingWidth);
+      // UV mapping: 1ft x 0.5ft tiles along perimeter
+      const numTiles = segmentLength / copingLength;
       uvs.push(
         0, 0,
         numTiles, 0,

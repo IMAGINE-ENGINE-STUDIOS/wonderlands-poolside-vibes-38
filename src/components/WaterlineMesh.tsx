@@ -19,8 +19,8 @@ interface WaterlineMeshProps {
 export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({ 
   poolPoints, 
   waterlineTextureUrl,
-  waterlineHeight = 0.0833, // Exactly 1 inch thick (0.0833 feet)
-  waterlineWidth = 1.0,      // 1 sq ft tile (1ft along perimeter)
+  waterlineHeight = 0.0833, // Exactly 1 inch thick (1/12 feet = 0.0833ft)
+  waterlineWidth = 1.0,      // 1 foot tile along perimeter
   selectedCategory
 }) => {
   const [waterlineTexture, setWaterlineTexture] = useState<THREE.Texture | null>(null);
@@ -104,23 +104,23 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       
       const baseIdx = vertices.length / 3;
       
-      // Waterline: exactly 1 inch thick (0.0833 feet), 1 sq ft tile
-      // Positioned at top of pool wall just below coping
-      // Top edge (at y=0, just below coping bottom)
+      // Waterline: 1 inch thick band attached to upper pool wall
+      // Positioned just below water surface (y=0) at top of pool wall
+      // Top edge (at y=0, at water surface level)
       vertices.push(p1.x, 0, p1.z);
       vertices.push(p2.x, 0, p2.z);
       
-      // Bottom edge (exactly 1 inch below = -0.0833 feet)
+      // Bottom edge (exactly 1 inch = 0.0833ft below water surface)
       vertices.push(p1.x, -waterlineHeight, p1.z);
       vertices.push(p2.x, -waterlineHeight, p2.z);
       
-      // UV mapping: 1 sq ft tiles (1ft x 0.0833ft) along perimeter
-      const numTiles = Math.ceil(segmentLength / waterlineWidth);
+      // UV mapping: tiles are 1ft along perimeter x 1 inch tall
+      const numTiles = segmentLength / waterlineWidth;
       
-      // Front face UVs (facing pool interior, showing premium liner pattern)
+      // Face UVs (facing pool interior, visible from inside pool)
       uvs.push(0, 1, numTiles, 1, 0, 0, numTiles, 0);
       
-      // Front face indices (visible from inside pool, normals facing inward)
+      // Face indices (visible from inside pool, normals facing inward)
       indices.push(
         baseIdx, baseIdx + 3, baseIdx + 1,
         baseIdx, baseIdx + 2, baseIdx + 3
