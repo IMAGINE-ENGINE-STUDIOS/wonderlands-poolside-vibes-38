@@ -27,12 +27,13 @@ interface Scene3DControlPanelProps {
   textureLibrary: TextureLibrary;
   transformMode: TransformMode;
   autoRotate: boolean;
-  onTextureChange: (objectId: string, texture: TextureConfig) => void;
+  onTextureChange: (category: 'pool' | 'deck' | 'coping' | 'waterline', texture: TextureConfig) => void;
   onTransformChange: (position: [number, number, number], rotation: [number, number, number], scale: number) => void;
   onTransformModeChange: (mode: TransformMode) => void;
   onCenterCamera: () => void;
   onAddAnnotation: (text: string, price?: number) => void;
   onAutoRotateToggle: () => void;
+  onSceneChange: (scene: Scene3D) => void;
 }
 
 export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
@@ -47,12 +48,15 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   onTransformModeChange,
   onCenterCamera,
   onAddAnnotation,
-  onAutoRotateToggle
+  onAutoRotateToggle,
+  onSceneChange
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [annotationText, setAnnotationText] = useState('');
   const [annotationPrice, setAnnotationPrice] = useState('');
-  const [selectedTextureCategory, setSelectedTextureCategory] = useState<'finishes' | 'pavers' | 'coping'>('finishes');
+  const [selectedTextureCategory, setSelectedTextureCategory] = useState<'finishes' | 'pavers' | 'coping' | 'waterline'>('finishes');
+  const [textureScale, setTextureScale] = useState(1);
+  const [fenceHeight, setFenceHeight] = useState(6);
 
   const handleAddNote = () => {
     if (annotationText.trim()) {
@@ -155,39 +159,71 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
               </div>
 
               {/* Texture Category Tabs */}
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <Button
                   variant={selectedTextureCategory === 'finishes' ? 'default' : 'outline'}
                   size="sm"
-                  className="flex-1 text-xs"
+                  className="text-xs"
                   onClick={() => setSelectedTextureCategory('finishes')}
                 >
-                  Finishes
+                  Pool Finishes
                 </Button>
                 <Button
                   variant={selectedTextureCategory === 'pavers' ? 'default' : 'outline'}
                   size="sm"
-                  className="flex-1 text-xs"
+                  className="text-xs"
                   onClick={() => setSelectedTextureCategory('pavers')}
                 >
-                  Pavers
+                  Deck Pavers
                 </Button>
                 <Button
                   variant={selectedTextureCategory === 'coping' ? 'default' : 'outline'}
                   size="sm"
-                  className="flex-1 text-xs"
+                  className="text-xs"
                   onClick={() => setSelectedTextureCategory('coping')}
                 >
                   Coping
                 </Button>
+                <Button
+                  variant={selectedTextureCategory === 'waterline' ? 'default' : 'outline'}
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => setSelectedTextureCategory('waterline')}
+                >
+                  Waterline
+                </Button>
+              </div>
+
+              {/* Texture Scale Control */}
+              <div className="space-y-2">
+                <Label className="text-xs">Texture Scale: {textureScale.toFixed(1)}x</Label>
+                <Slider
+                  value={[textureScale]}
+                  onValueChange={(value) => setTextureScale(value[0])}
+                  min={0.5}
+                  max={3}
+                  step={0.1}
+                  className="w-full"
+                />
               </div>
 
               {/* Texture Grid */}
               <div className="grid grid-cols-3 gap-2">
-                {textureLibrary[selectedTextureCategory]?.map((texture) => (
+                {textureLibrary[selectedTextureCategory === 'waterline' ? 'finishes' : selectedTextureCategory]?.map((texture) => (
                   <button
                     key={texture.url}
-                    onClick={() => onTextureChange(selectedObject || selectedCategory || '', texture)}
+                    onClick={() => {
+                      const scaledTexture = { ...texture, scale: textureScale };
+                      if (selectedTextureCategory === 'finishes') {
+                        onTextureChange('pool', scaledTexture);
+                      } else if (selectedTextureCategory === 'pavers') {
+                        onTextureChange('deck', scaledTexture);
+                      } else if (selectedTextureCategory === 'coping') {
+                        onTextureChange('coping', scaledTexture);
+                      } else if (selectedTextureCategory === 'waterline') {
+                        onTextureChange('waterline', scaledTexture);
+                      }
+                    }}
                     className="aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all"
                     title={texture.name}
                   >
@@ -243,6 +279,34 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
               >
                 Add Note to Selected
               </Button>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Fence Controls */}
+          <div className="space-y-3">
+            <h4 className="font-medium">Fence Height</h4>
+            <div className="space-y-2">
+              <Label className="text-xs">Height: {fenceHeight} ft</Label>
+              <Slider
+                value={[fenceHeight]}
+                onValueChange={(value) => {
+                  setFenceHeight(value[0]);
+                  onSceneChange({
+                    ...scene,
+                    features: scene.features.map(f => 
+                      f.type === 'custom' && f.metadata?.name === 'fence'
+                        ? { ...f, scale: [1, value[0], 1] }
+                        : f
+                    )
+                  });
+                }}
+                min={4}
+                max={10}
+                step={0.5}
+                className="w-full"
+              />
             </div>
           </div>
 

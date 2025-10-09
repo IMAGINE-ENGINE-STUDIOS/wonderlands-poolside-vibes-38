@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { PerspectiveCamera, Grid } from '@react-three/drei';
 import * as THREE from 'three';
 import { textureCache, disposeTexture } from '@/utils/textureCache';
+import { WaterlineMesh } from './WaterlineMesh';
 
 interface Point {
   x: number;
@@ -52,7 +53,9 @@ export interface Pool3DSceneProps {
   paverTextureUrl?: string;
   linerTextureUrl?: string;
   copingTextureUrl?: string;
+  waterlineTextureUrl?: string;
   fenceTextureUrl?: string;
+  poolDimensions?: { length: number; width: number; depth: number };
   selectedCategory?: string | null;
   onSelectCategory?: (category: string | null) => void;
 }
@@ -61,18 +64,24 @@ const PoolMesh: React.FC<{
   points: Point[];
   depthPoints: DepthPoint[];
   linerTextureUrl?: string;
+  poolDimensions?: { length: number; width: number; depth: number };
   selectedCategory?: string | null;
-}> = ({ points, depthPoints, linerTextureUrl, selectedCategory }) => {
+}> = ({ points, depthPoints, linerTextureUrl, poolDimensions: providedDimensions, selectedCategory }) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
   const poolDimensions = useMemo(() => {
+    if (providedDimensions) return providedDimensions;
+    
     const xs = points.map(p => p.x);
     const ys = points.map(p => p.y);
     const width = Math.max(...xs) - Math.min(...xs);
     const length = Math.max(...ys) - Math.min(...ys);
-    return { width, length };
-  }, [points]);
+    const avgDepth = depthPoints.length > 0 
+      ? depthPoints.reduce((sum, d) => sum + d.depth, 0) / depthPoints.length 
+      : 5;
+    return { width, length, depth: avgDepth };
+  }, [points, depthPoints, providedDimensions]);
 
   useEffect(() => {
     if (linerTextureUrl) {
@@ -224,6 +233,8 @@ const PoolMesh: React.FC<{
           roughness={0.6}
           metalness={0.1}
           side={THREE.DoubleSide}
+          emissive={selectedCategory === 'pool' ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
+          emissiveIntensity={pulseIntensity * 0.5}
         />
       </mesh>
     </>
@@ -700,11 +711,13 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   linerTextureUrl,
   paverTextureUrl,
   copingTextureUrl,
+  waterlineTextureUrl,
   fenceTextureUrl,
   features,
   fencePoints,
   scale = 1,
   poolShape = 'rectangle',
+  poolDimensions,
   selectedCategory,
   onSelectCategory
 }) => {
@@ -737,6 +750,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           points={points}
           depthPoints={depthPoints}
           linerTextureUrl={linerTextureUrl}
+          poolDimensions={poolDimensions}
           selectedCategory={selectedCategory}
         />
       </group>
@@ -759,6 +773,15 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
             poolPoints={points}
             copingTextureUrl={copingTextureUrl}
             selectedCategory={selectedCategory}
+          />
+        </group>
+      )}
+
+      {waterlineTextureUrl && (
+        <group onClick={() => onSelectCategory?.('waterline')}>
+          <WaterlineMesh
+            poolPoints={points}
+            waterlineTextureUrl={waterlineTextureUrl}
           />
         </group>
       )}

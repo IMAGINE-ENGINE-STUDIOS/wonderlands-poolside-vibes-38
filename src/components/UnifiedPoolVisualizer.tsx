@@ -68,19 +68,19 @@ export function UnifiedPoolVisualizer({
     setScene(initialScene);
   }, [initialScene]);
 
-  const handleTextureChange = (objectId: string, texture: TextureConfig) => {
+  const handleTextureChange = (category: 'pool' | 'deck' | 'coping' | 'waterline', texture: TextureConfig) => {
     setScene(prev => {
       const updated = { ...prev };
       
-      // Apply texture based on object ID or selected category
-      const targetId = objectId || selectedCategory;
-      
-      if (targetId === 'pool') {
+      if (category === 'pool') {
         updated.pool.finish = texture;
-      } else if (targetId === 'deck') {
+      } else if (category === 'deck') {
         updated.deck.paver = texture;
-      } else if (targetId === 'coping') {
+      } else if (category === 'coping') {
         updated.deck.coping = texture;
+      } else if (category === 'waterline') {
+        // Store waterline texture in deck for now
+        updated.deck.waterline = texture;
       }
       
       return updated;
@@ -209,6 +209,7 @@ export function UnifiedPoolVisualizer({
             linerTextureUrl={scene.pool.finish.url}
             paverTextureUrl={scene.deck.paver.url}
             copingTextureUrl={scene.deck.coping.url}
+            waterlineTextureUrl={scene.deck.waterline?.url}
             fenceTextureUrl="/src/assets/fence-texture.png"
             features={scene.features.map(f => ({
               type: f.type as any,
@@ -220,6 +221,7 @@ export function UnifiedPoolVisualizer({
             fencePoints={[]}
             scale={1}
             poolShape="rectangle"
+            poolDimensions={scene.pool.dimensions}
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
           />
@@ -241,41 +243,6 @@ export function UnifiedPoolVisualizer({
           />
         </R3FCanvas>
         
-        {/* Camera preset buttons (overlay) */}
-        <div className="absolute top-4 left-4 flex gap-2 z-10">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setCameraPreset('top')}
-            className="bg-background/80 backdrop-blur"
-          >
-            Top
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setCameraPreset('front')}
-            className="bg-background/80 backdrop-blur"
-          >
-            Front
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setCameraPreset('side')}
-            className="bg-background/80 backdrop-blur"
-          >
-            Side
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setCameraPreset('isometric')}
-            className="bg-background/80 backdrop-blur"
-          >
-            ISO
-          </Button>
-        </div>
 
         {/* Selected object indicator */}
         {(selectedObject || selectedCategory) && (
@@ -301,6 +268,7 @@ export function UnifiedPoolVisualizer({
         onCenterCamera={handleCenterCamera}
         onAddAnnotation={handleAddAnnotation}
         onAutoRotateToggle={() => setAutoRotate(!autoRotate)}
+        onSceneChange={setScene}
       />
     </div>
   );

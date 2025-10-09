@@ -81,6 +81,7 @@ export interface Scene3D {
     points: HardscapePoint[];
     paver: TextureConfig;
     coping: TextureConfig;
+    waterline?: TextureConfig;
   };
   features: PoolFeature[];
   annotations: Annotation[];

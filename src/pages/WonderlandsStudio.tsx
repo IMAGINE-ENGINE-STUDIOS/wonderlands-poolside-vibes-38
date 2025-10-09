@@ -287,6 +287,8 @@ const WonderlandsStudio = () => {
   const [activeTab, setActiveTab] = useState<'pools' | 'spas' | 'tanning-ledges' | 'saunas' | 'scenes' | 'build-a-pool'>('pools');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sceneFromBuilder, setSceneFromBuilder] = useState<any>(null);
+  const [textureLibFromBuilder, setTextureLibFromBuilder] = useState<any>(null);
   const [poolBuilderData, setPoolBuilderData] = useState<{
     points: any[];
     features: any[];
@@ -347,6 +349,26 @@ const WonderlandsStudio = () => {
   // Handle URL parameters for product search integration
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
+    
+    // Check for pool builder scene data
+    const fromBuilder = urlParams.get('fromBuilder');
+    const sceneDataParam = urlParams.get('sceneData');
+    const textureLibParam = urlParams.get('textureLib');
+    
+    if (fromBuilder === 'true' && sceneDataParam && textureLibParam) {
+      try {
+        const sceneData = JSON.parse(decodeURIComponent(sceneDataParam));
+        const textureLib = JSON.parse(decodeURIComponent(textureLibParam));
+        setSceneFromBuilder(sceneData);
+        setTextureLibFromBuilder(textureLib);
+        setShow3DView(true);
+        setActiveTab('build-a-pool');
+        return;
+      } catch (err) {
+        console.error('Failed to parse scene data from URL:', err);
+      }
+    }
+    
     const model = urlParams.get('model');
     const price = urlParams.get('price');
     const category = urlParams.get('category');
@@ -1016,11 +1038,21 @@ const WonderlandsStudio = () => {
 
           {/* Main Content - Product Details & Configuration */}
           <div className="flex-1 min-w-0">
-            {activeTab === 'build-a-pool' ? (
+            {activeTab === 'build-a-pool' && !sceneFromBuilder ? (
               <div className="fixed inset-0 z-50 bg-background">
                 <PoolBuilder onPoolDataChange={(data) => {
                   setPoolBuilderData(data as any);
                 }} />
+              </div>
+            ) : sceneFromBuilder && textureLibFromBuilder ? (
+              <div className="fixed inset-0 z-50 bg-background">
+                <UnifiedPoolVisualizer
+                  scene={sceneFromBuilder}
+                  textureLibrary={textureLibFromBuilder}
+                  onSceneChange={(updatedScene) => {
+                    setSceneFromBuilder(updatedScene);
+                  }}
+                />
               </div>
             ) : selectedProduct ? <div className="space-y-4 sm:space-y-6">
                 {/* Large Product Media Gallery */}
