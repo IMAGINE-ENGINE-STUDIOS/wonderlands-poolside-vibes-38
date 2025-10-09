@@ -94,14 +94,14 @@ const PoolMesh: React.FC<{
     };
   }, [linerTextureUrl, poolDimensions]);
 
-  // Pulsing red effect when selected
+  // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
     if (selectedCategory !== 'pool') return;
     
     const interval = setInterval(() => {
       setPulseIntensity(prev => {
         if (prev >= 1) return 0;
-        return prev + 0.05;
+        return prev + 0.0125; // 8 second cycle (1/8000ms * 50ms = 0.0125)
       });
     }, 50);
     
@@ -260,14 +260,14 @@ const CopingMesh: React.FC<{
     };
   }, [copingTextureUrl, copingDimensions]);
 
-  // Pulsing red effect when selected
+  // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
     if (selectedCategory !== 'coping') return;
     
     const interval = setInterval(() => {
       setPulseIntensity(prev => {
         if (prev >= 1) return 0;
-        return prev + 0.05;
+        return prev + 0.0125; // 8 second cycle
       });
     }, 50);
     
@@ -313,6 +313,27 @@ const CopingMesh: React.FC<{
       bevelEnabled: false
     });
     copingGeom.rotateX(-Math.PI / 2);
+
+    // Calculate perimeter for proper UV mapping (1ft x 0.5ft pavers)
+    let perimeter = 0;
+    for (let i = 0; i < poolPoints.length; i++) {
+      const p1 = poolPoints[i];
+      const p2 = poolPoints[(i + 1) % poolPoints.length];
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      perimeter += Math.sqrt(dx * dx + dy * dy);
+    }
+
+    // Set UVs so each coping paver is 1ft long x 0.5ft wide
+    const uvAttribute = copingGeom.attributes.uv;
+    if (uvAttribute) {
+      for (let i = 0; i < uvAttribute.count; i++) {
+        const u = uvAttribute.getX(i);
+        const v = uvAttribute.getY(i);
+        // Scale UV: perimeter determines how many 1ft pavers, v*2 for 0.5ft width
+        uvAttribute.setXY(i, u * perimeter, v * 2);
+      }
+    }
 
     return copingGeom;
   }, [poolPoints]);
@@ -373,14 +394,14 @@ const DeckMesh: React.FC<{
     };
   }, [paverTextureUrl, deckDimensions]);
 
-  // Pulsing red effect when selected
+  // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
     if (selectedCategory !== 'deck') return;
     
     const interval = setInterval(() => {
       setPulseIntensity(prev => {
         if (prev >= 1) return 0;
-        return prev + 0.05;
+        return prev + 0.0125; // 8 second cycle
       });
     }, 50);
     
