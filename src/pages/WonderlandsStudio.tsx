@@ -1094,23 +1094,40 @@ const WonderlandsStudio = () => {
                             finishOptions
                           )}
                           textureLibrary={{
-                            finishes: finishOptions.map(f => ({
-                              url: f.image || '/src/assets/finishes/sapphire-blue-g3.jpg',
-                              name: f.name || 'Unknown',
-                              scale: 1,
-                              repeat: [4, 4]
-                            })),
+                            finishes: [
+                              // Pool Finishes (Crystite Crystal collection)
+                              ...poolFinishesData.map(f => ({
+                                url: f.image,
+                                name: f.name,
+                                roughness: 0.2,
+                                metalness: 0.1
+                              })),
+                              // Premium Liners (for waterline)
+                              ...poolLinersData.map(l => ({
+                                url: l.image,
+                                name: l.name,
+                                roughness: 0.3,
+                                metalness: 0.2
+                              })),
+                              // Pool Tiles (for waterline borders)
+                              ...poolTilesData.map(t => ({
+                                url: t.image,
+                                name: t.name,
+                                roughness: 0.1,
+                                metalness: 0.3
+                              }))
+                            ],
                             pavers: paverTypes.map(p => ({
                               url: p.image,
                               name: p.name,
-                              scale: 1,
-                              repeat: [10, 10]
+                              roughness: 0.8,
+                              metalness: 0.0
                             })),
                             coping: paverTypes.map(p => ({
                               url: p.image,
                               name: p.name,
-                              scale: 1,
-                              repeat: [5, 5]
+                              roughness: 0.6,
+                              metalness: 0.0
                             }))
                           }}
                           onSceneChange={(updatedScene) => {

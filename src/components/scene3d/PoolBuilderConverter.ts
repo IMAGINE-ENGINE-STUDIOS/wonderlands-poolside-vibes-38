@@ -252,7 +252,7 @@ export function buildTextureLibrary(
     }))
   ];
 
-  // Always ensure all premium liner defaults are available
+  // Premium liners for pool finish and waterline
   const premiumLiners = [
     { url: '/src/assets/finishes/sapphire-blue-g3.jpg', name: 'Sapphire Blue G3' },
     { url: '/src/assets/finishes/aquamarine-g3.jpg', name: 'Aquamarine G3' },
@@ -264,12 +264,27 @@ export function buildTextureLibrary(
     { url: '/src/assets/finishes/azure-blue-g2.jpg', name: 'Azure Blue G2' },
     { url: '/src/assets/finishes/lagoon-blue-g2.jpg', name: 'Lagoon Blue G2' }
   ];
+
+  // Pool tiles for waterline borders (Mountain, Carnegie, Panama from poolTilesData)
+  const poolTiles = [
+    { url: '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.png', name: 'Mountain Tile' },
+    { url: '/lovable-uploads/5bfe3308-05a6-4d01-9f62-014d86ea281c.png', name: 'Carnegie Tile' },
+    { url: '/lovable-uploads/c6bebb1e-d2ed-4591-b81d-0af558ed3e52.png', name: 'Panama Tile' }
+  ];
   
+  // Combine all finishes: premium liners + pool tiles for waterline options
   finishes.push(...premiumLiners.map(liner => ({
     url: liner.url,
     name: liner.name,
     roughness: 0.2,
     metalness: 0.1
+  })));
+  
+  finishes.push(...poolTiles.map(tile => ({
+    url: tile.url,
+    name: tile.name,
+    roughness: 0.1,
+    metalness: 0.3
   })));
 
   // Extract pavers
