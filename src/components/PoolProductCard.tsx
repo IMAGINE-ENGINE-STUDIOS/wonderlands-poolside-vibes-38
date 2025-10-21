@@ -748,7 +748,16 @@ const PoolProductCard = ({
         <div className="text-sm text-muted-foreground space-y-1">
           {pool.dimensions && <p>Dimensions: {pool.dimensions}</p>}
           {pool.depth && <p>Depth: {pool.depth}</p>}
-          <p>Includes: 3 ft perimeter pavers around pool area</p>
+          <div className="mt-2 p-2 bg-primary/5 rounded-lg border border-primary/20">
+            <p className="text-xs font-semibold text-primary mb-1">✓ Included with Pool:</p>
+            <ul className="text-xs space-y-0.5">
+              <li>• 3 ft of pavers</li>
+              <li>• Salt system</li>
+              <li>• Pool equipment</li>
+              <li>• LED light</li>
+              <li>• Waterfall/fountain</li>
+            </ul>
+          </div>
           {pool.installationTimeWeeks && <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
               <span>Installation: {pool.installationTimeWeeks} weeks</span>
