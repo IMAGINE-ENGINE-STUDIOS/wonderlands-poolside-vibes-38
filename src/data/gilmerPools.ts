@@ -23,6 +23,9 @@ import gilmerSerafina from '@/assets/gilmer-serafina.png';
 import gilmerSerenade from '@/assets/gilmer-serenade.png';
 import gilmerSilverShore from '@/assets/gilmer-silver-shore.png';
 import gilmerRegal from '@/assets/gilmer-regal.png';
+import gilmerSuperior from '@/assets/gilmer-superior.png';
+import gilmerTortola from '@/assets/gilmer-tortola.png';
+import gilmerVision from '@/assets/gilmer-vision.png';
 
 export const gilmerPools = [
   // Small & Compact Models
@@ -176,7 +179,7 @@ export const gilmerPools = [
     dimensions: "12' x 25'8\"",
     depth: "5'6\"",
     price: 66000, // $16,500 × 4
-    image: "/lovable-uploads/gilmer-serafina.png", // placeholder
+    image: gilmerSuperior,
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -274,7 +277,7 @@ export const gilmerPools = [
     dimensions: "14' x 30'",
     depth: "6'",
     price: 78000, // $19,500 × 4
-    image: "/lovable-uploads/gilmer-tortola.jpeg",
+    image: gilmerTortola,
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -406,7 +409,7 @@ export const gilmerPools = [
     dimensions: "16' x 41'",
     depth: "6'6\"",
     price: 114824, // $28,706 × 4
-    image: "/lovable-uploads/gilmer-serafina.png", // placeholder
+    image: gilmerVision,
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
