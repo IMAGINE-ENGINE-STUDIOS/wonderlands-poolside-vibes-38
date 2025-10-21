@@ -14,6 +14,15 @@ import gilmerIslander from '@/assets/gilmer-islander.png';
 import gilmerMajestic from '@/assets/gilmer-majestic.png';
 import gilmerMystic from '@/assets/gilmer-mystic.png';
 import gilmerNeptune from '@/assets/gilmer-neptune.png';
+import gilmerNewport from '@/assets/gilmer-newport.png';
+import gilmerPonceXL from '@/assets/gilmer-ponce-xl.png';
+import gilmerRegalPlunge from '@/assets/gilmer-regal-plunge.png';
+import gilmerRetreat from '@/assets/gilmer-retreat.png';
+import gilmerRoman from '@/assets/gilmer-roman.png';
+import gilmerSerafina from '@/assets/gilmer-serafina.png';
+import gilmerSerenade from '@/assets/gilmer-serenade.png';
+import gilmerSilverShore from '@/assets/gilmer-silver-shore.png';
+import gilmerRegal from '@/assets/gilmer-regal.png';
 
 export const gilmerPools = [
   // Small & Compact Models
@@ -22,7 +31,7 @@ export const gilmerPools = [
     dimensions: "8'6\" x 14'",
     depth: "4'",
     price: 40940, // $10,235 × 4
-    image: "/lovable-uploads/gilmer-serafina.png",
+    image: gilmerSerafina,
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -48,7 +57,7 @@ export const gilmerPools = [
     dimensions: "10'3\" x 18'5\"",
     depth: "4'4\"",
     price: 43300, // $10,825 × 4
-    image: "/lovable-uploads/gilmer-serafina.png", // placeholder
+    image: gilmerRetreat,
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -61,7 +70,7 @@ export const gilmerPools = [
     dimensions: "10' x 16'",
     depth: "5'5\"",
     price: 48500, // $12,125 × 4
-    image: "/lovable-uploads/gilmer-regal-plunge.png",
+    image: gilmerRegalPlunge,
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -74,7 +83,7 @@ export const gilmerPools = [
     dimensions: "10' x 20'",
     depth: "5'4\"",
     price: 56000, // $14,000 × 4
-    image: "/lovable-uploads/gilmer-regal-plunge.png", // placeholder
+    image: gilmerRegal,
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -154,7 +163,7 @@ export const gilmerPools = [
     dimensions: "11' x 27'",
     depth: "6'2\"",
     price: 66000, // $16,500 × 4
-    image: "/lovable-uploads/gilmer-serafina.png", // placeholder
+    image: gilmerRoman,
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -280,7 +289,7 @@ export const gilmerPools = [
     dimensions: "15' x 28'",
     depth: "6'",
     price: 65500, // $16,375 × 4
-    image: "/lovable-uploads/gilmer-serafina.png", // placeholder
+    image: gilmerSilverShore,
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -345,7 +354,7 @@ export const gilmerPools = [
     dimensions: "15'6\" x 32'",
     depth: "6'",
     price: 94000, // $23,500 × 4
-    image: "/lovable-uploads/gilmer-serafina.png", // placeholder
+    image: gilmerPonceXL,
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -358,7 +367,7 @@ export const gilmerPools = [
     dimensions: "16' x 35'",
     depth: "6'",
     price: 88000, // $22,000 × 4
-    image: "/lovable-uploads/gilmer-serafina.png", // placeholder
+    image: gilmerNewport,
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -371,7 +380,7 @@ export const gilmerPools = [
     dimensions: "16' x 38'",
     depth: "6'",
     price: 114824, // $28,706 × 4
-    image: "/lovable-uploads/gilmer-serafina.png", // placeholder
+    image: gilmerSerenade,
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
