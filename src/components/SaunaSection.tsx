@@ -1,7 +1,7 @@
 import { saunas } from "@/data/saunaData";
 import SaunaProductCard from "./SaunaProductCard";
 const SaunaSection = () => {
-  return <section id="saunas" className="py-20 bg-gradient-to-br from-amber-50/30 via-orange-50/30 to-background">
+  return <section id="saunas" className="py-12 bg-gradient-to-br from-amber-50/30 via-orange-50/30 to-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 bg-clip-text text-transparent">

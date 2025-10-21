@@ -118,7 +118,7 @@ const AutomaticCoversSection = () => {
     return () => window.removeEventListener('open-product', handleOpenProduct as EventListener);
   }, []);
   return <>
-      <section className="py-20 px-4 bg-gradient-to-br from-muted/30 to-background">
+      <section className="py-12 px-4 bg-gradient-to-br from-muted/30 to-background">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
@@ -217,7 +217,7 @@ const AutomaticCoversSection = () => {
       </section>
 
       {/* Energy Savings Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-primary/5 to-teal/5">
+      <section className="py-12 px-4 bg-gradient-to-br from-primary/5 to-teal/5">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">

@@ -22,7 +22,7 @@ const GilmerPoolsSection = () => {
   };
   
   return (
-    <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-primary/5 to-background">
+    <section className="py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-primary/5 to-background">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12 space-y-4">

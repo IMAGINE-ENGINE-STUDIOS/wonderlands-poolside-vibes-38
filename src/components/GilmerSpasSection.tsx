@@ -17,7 +17,7 @@ const GilmerSpasSection = () => {
 
   return (
     <>
-      <section className="py-20 px-4 bg-gradient-to-br from-background via-muted/20 to-background">
+      <section className="py-12 px-4 bg-gradient-to-br from-background via-muted/20 to-background">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-block mb-4">
