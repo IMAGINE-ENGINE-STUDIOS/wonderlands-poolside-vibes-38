@@ -106,7 +106,7 @@ const LinersSection = ({
             <div className="flex gap-4 overflow-x-auto pb-4">
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
-                  {getProductsByCategory('liner').slice(0, 3).map((liner, index) => <CarouselItem key={liner.name} className="pl-1 basis-1/3 md:basis-1/2 lg:basis-1/3">
+                  {getProductsByCategory('liner').map((liner, index) => <CarouselItem key={liner.name} className="pl-1 basis-1/3 md:basis-1/2 lg:basis-1/3">
                       <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer h-full" onClick={() => handleLinerClick(liner)}>
                         {/* Full Background Image */}
                         <div className="relative h-64 overflow-hidden">
