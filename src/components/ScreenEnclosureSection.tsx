@@ -1,4 +1,6 @@
 import { useState } from "react";
+import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
+import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,14 +29,14 @@ const screenEnclosureOptions: ScreenEnclosureOption[] = [{
   name: "Deluxe Screen Enclosure",
   type: "deluxe",
   pricePerSqFt: 22,
-  image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
+  image: screenEnclosureDeluxe,
   description: "Enhanced aluminum frame with premium mesh and improved durability",
   features: ["Premium Aluminum Frame", "Enhanced Screen Mesh", "Upgraded Hardware", "Pet Screen Option", "10-Year Warranty"]
 }, {
   name: "Premium Screen Enclosure",
   type: "premium",
   pricePerSqFt: 28,
-  image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
+  image: screenEnclosurePremium,
   description: "Top-tier aluminum construction with impact-resistant screening and premium finishes",
   features: ["Heavy-Duty Aluminum Frame", "Impact-Resistant Screen", "Premium Hardware", "Custom Color Options", "Lifetime Warranty"]
 }];
