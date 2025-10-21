@@ -105,7 +105,7 @@ export const poolFinishes: Product[] = [
   }
 ];
 
-// Pool Liners - ALL 17 LINERS
+// Pool Liners - ALL 17 LINERS ($20/sqft installed, $15/sheet material only)
 export const poolLiners: Product[] = [
   // Glass Tile Collection
   {
@@ -113,9 +113,10 @@ export const poolLiners: Product[] = [
     name: "Paradise",
     category: "liner",
     subcategory: "Glass",
-    price: 4500,
+    price: 20, // Per sqft installed
+    originalPrice: 15, // Per sheet material only
     image: "/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.png",
-    description: "Vibrant blue glass tiles with flowing striped patterns for a tropical paradise feel",
+    description: "Vibrant blue glass tiles with flowing striped patterns for a tropical paradise feel. $20/sqft installed or $15/sheet material only.",
     warranty: "25-Year Warranty",
     isActive: true,
     isPopular: true
@@ -125,9 +126,10 @@ export const poolLiners: Product[] = [
     name: "Water Lilies",
     category: "liner",
     subcategory: "Glass",
-    price: 4500,
+    price: 20,
+    originalPrice: 15,
     image: "/lovable-uploads/7f1b802e-1c58-4807-b6d6-41aab2eed1ca.png",
-    description: "Serene blue and white striped glass tiles reminiscent of peaceful water gardens",
+    description: "Serene blue and white striped glass tiles reminiscent of peaceful water gardens. $20/sqft installed or $15/sheet material only.",
     warranty: "25-Year Warranty",
     isActive: true
   },
@@ -136,9 +138,10 @@ export const poolLiners: Product[] = [
     name: "Sail Boat",
     category: "liner",
     subcategory: "Glass",
-    price: 4500,
+    price: 20,
+    originalPrice: 15,
     image: "/lovable-uploads/c4b386e8-679d-4ea3-be08-9b8fb9e8d50e.png",
-    description: "Nautical-inspired mixed blue and brown striped glass tiles for coastal elegance",
+    description: "Nautical-inspired mixed blue and brown striped glass tiles for coastal elegance. $20/sqft installed or $15/sheet material only.",
     warranty: "25-Year Warranty",
     isActive: true
   },
@@ -147,9 +150,10 @@ export const poolLiners: Product[] = [
     name: "Stormy",
     category: "liner",
     subcategory: "Glass",
-    price: 4500,
+    price: 20,
+    originalPrice: 15,
     image: "/lovable-uploads/ee0c59a8-87bb-4b74-b6e9-9eeba3633e9f.png",
-    description: "Dramatic neutral and brown striped glass tiles with stormy weather appeal",
+    description: "Dramatic neutral and brown striped glass tiles with stormy weather appeal. $20/sqft installed or $15/sheet material only.",
     warranty: "25-Year Warranty",
     isActive: true
   },
@@ -158,9 +162,10 @@ export const poolLiners: Product[] = [
     name: "Ballad",
     category: "liner",
     subcategory: "Glass",
-    price: 4500,
+    price: 20,
+    originalPrice: 15,
     image: "/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png",
-    description: "Mixed blue mosaic glass tiles with artistic patterns and flowing design",
+    description: "Mixed blue mosaic glass tiles with artistic patterns and flowing design. $20/sqft installed or $15/sheet material only.",
     warranty: "25-Year Warranty",
     isActive: true
   },
@@ -169,9 +174,10 @@ export const poolLiners: Product[] = [
     name: "Galant",
     category: "liner",
     subcategory: "Glass",
-    price: 4500,
+    price: 20,
+    originalPrice: 15,
     image: "/lovable-uploads/723a9c27-b7d5-4139-bda7-4eed2d0b23e8.png",
-    description: "Elegant blue mosaic glass tiles with iridescent effects and sophisticated style",
+    description: "Elegant blue mosaic glass tiles with iridescent effects and sophisticated style. $20/sqft installed or $15/sheet material only.",
     warranty: "25-Year Warranty",
     isActive: true
   },
@@ -180,9 +186,10 @@ export const poolLiners: Product[] = [
     name: "Melody",
     category: "liner",
     subcategory: "Glass",
-    price: 4500,
+    price: 20,
+    originalPrice: 15,
     image: "/lovable-uploads/c8e3cc34-9fbe-4ece-af71-05b7e4f94332.png",
-    description: "Harmonious iridescent glass tiles with rainbow shimmer and artistic flair",
+    description: "Harmonious iridescent glass tiles with rainbow shimmer and artistic flair. $20/sqft installed or $15/sheet material only.",
     warranty: "25-Year Warranty",
     isActive: true
   },
@@ -191,9 +198,10 @@ export const poolLiners: Product[] = [
     name: "Soul",
     category: "liner",
     subcategory: "Glass",
-    price: 4500,
+    price: 20,
+    originalPrice: 15,
     image: "/lovable-uploads/7dc956df-af5c-4c6b-b2af-6bc9d6fbf179.png",
-    description: "Sophisticated gray and white mosaic glass tiles with deep, soulful character",
+    description: "Sophisticated gray and white mosaic glass tiles with deep, soulful character. $20/sqft installed or $15/sheet material only.",
     warranty: "25-Year Warranty",
     isActive: true
   },
@@ -202,9 +210,10 @@ export const poolLiners: Product[] = [
     name: "Glacier",
     category: "liner",
     subcategory: "Glass",
-    price: 4500,
+    price: 20,
+    originalPrice: 15,
     image: "/lovable-uploads/96f46291-85e7-4b48-9465-623400a8e835.png",
-    description: "Cool glacier-inspired glass tiles with decorative borders and flowing patterns",
+    description: "Cool glacier-inspired glass tiles with decorative borders and flowing patterns. $20/sqft installed or $15/sheet material only.",
     warranty: "25-Year Warranty",
     isActive: true
   },
@@ -214,9 +223,10 @@ export const poolLiners: Product[] = [
     name: "Tikal",
     category: "liner",
     subcategory: "Porcelain",
-    price: 4500,
+    price: 20,
+    originalPrice: 15,
     image: "/lovable-uploads/d5e74c29-95f6-4a9a-9395-a98fe4efdadd.png",
-    description: "Marbled blue porcelain with premium durability and 25-year warranty",
+    description: "Marbled blue porcelain with premium durability and 25-year warranty. $20/sqft installed or $15/sheet material only.",
     warranty: "25-Year Warranty",
     isActive: true
   },
@@ -225,9 +235,10 @@ export const poolLiners: Product[] = [
     name: "Port Royal",
     category: "liner",
     subcategory: "Porcelain",
-    price: 4500,
+    price: 20,
+    originalPrice: 15,
     image: "/lovable-uploads/56fd62de-130b-4b90-98a0-596007f5dadb.png",
-    description: "Deep ocean blue porcelain with premium durability and 25-year warranty",
+    description: "Deep ocean blue porcelain with premium durability and 25-year warranty. $20/sqft installed or $15/sheet material only.",
     warranty: "25-Year Warranty",
     isActive: true
   },
@@ -236,9 +247,10 @@ export const poolLiners: Product[] = [
     name: "Alexandria",
     category: "liner",
     subcategory: "Porcelain",
-    price: 4500,
+    price: 20,
+    originalPrice: 15,
     image: "/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png",
-    description: "Golden marble porcelain with premium durability and 25-year warranty",
+    description: "Golden marble porcelain with premium durability and 25-year warranty. $20/sqft installed or $15/sheet material only.",
     warranty: "25-Year Warranty",
     isActive: true
   },
@@ -248,9 +260,10 @@ export const poolLiners: Product[] = [
     name: "San Marino",
     category: "liner",
     subcategory: "Italian Stone",
-    price: 4500,
+    price: 20,
+    originalPrice: 15,
     image: "/lovable-uploads/7f823d88-d9f2-4ecf-bcd1-a9d25d8519a8.png",
-    description: "Dark granite Italian stone with luxury durability and 30-year warranty",
+    description: "Dark granite Italian stone with luxury durability and 30-year warranty. $20/sqft installed or $15/sheet material only.",
     warranty: "30-Year Warranty",
     isActive: true
   },
@@ -259,9 +272,10 @@ export const poolLiners: Product[] = [
     name: "Firenze",
     category: "liner",
     subcategory: "Italian Stone",
-    price: 4500,
+    price: 20,
+    originalPrice: 15,
     image: "/lovable-uploads/797bcadb-19bc-4859-8319-ceb12ea23d10.png",
-    description: "Blue grey marble Italian stone with luxury durability and 30-year warranty",
+    description: "Blue grey marble Italian stone with luxury durability and 30-year warranty. $20/sqft installed or $15/sheet material only.",
     warranty: "30-Year Warranty",
     isActive: true
   },
@@ -270,9 +284,10 @@ export const poolLiners: Product[] = [
     name: "Naples",
     category: "liner",
     subcategory: "Italian Stone",
-    price: 4500,
+    price: 20,
+    originalPrice: 15,
     image: "/lovable-uploads/a378df22-0a67-4626-ac93-c6cf8fe37602.png",
-    description: "Warm beige stone Italian stone with luxury durability and 30-year warranty",
+    description: "Warm beige stone Italian stone with luxury durability and 30-year warranty. $20/sqft installed or $15/sheet material only.",
     warranty: "30-Year Warranty",
     isActive: true
   },
@@ -281,9 +296,10 @@ export const poolLiners: Product[] = [
     name: "Milan",
     category: "liner",
     subcategory: "Italian Stone",
-    price: 4500,
+    price: 20,
+    originalPrice: 15,
     image: "/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png",
-    description: "Charcoal stone Italian stone with luxury durability and 30-year warranty",
+    description: "Charcoal stone Italian stone with luxury durability and 30-year warranty. $20/sqft installed or $15/sheet material only.",
     warranty: "30-Year Warranty",
     isActive: true
   }
