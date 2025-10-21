@@ -816,7 +816,7 @@ const PoolProductCard = ({
                           <p className="text-xs font-medium text-center line-clamp-2">{liner.name}</p>
                           <div className="mt-1 space-y-1">
                             {liner.type && liner.type !== 'Standard' && <p className="text-xs text-primary text-center font-semibold">{liner.type}</p>}
-                            {liner.price > 0 && <p className="text-xs text-foreground font-semibold text-center">+${liner.price.toLocaleString()}</p>}
+                            {liner.name !== 'Standard Blue' && <p className="text-xs text-foreground font-semibold text-center">+$4,500</p>}
                           </div>
                         </div>
                       </div>
