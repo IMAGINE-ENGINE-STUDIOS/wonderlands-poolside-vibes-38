@@ -105,8 +105,9 @@ export const poolFinishes: Product[] = [
   }
 ];
 
-// Pool Liners
+// Pool Liners - ALL 17 LINERS
 export const poolLiners: Product[] = [
+  // Glass Tile Collection
   {
     id: "paradise-glass",
     name: "Paradise",
@@ -142,6 +143,73 @@ export const poolLiners: Product[] = [
     isActive: true
   },
   {
+    id: "stormy-glass",
+    name: "Stormy",
+    category: "liner",
+    subcategory: "Glass",
+    price: 4500,
+    image: "/lovable-uploads/ee0c59a8-87bb-4b74-b6e9-9eeba3633e9f.png",
+    description: "Dramatic neutral and brown striped glass tiles with stormy weather appeal",
+    warranty: "25-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "ballad-glass",
+    name: "Ballad",
+    category: "liner",
+    subcategory: "Glass",
+    price: 4500,
+    image: "/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png",
+    description: "Mixed blue mosaic glass tiles with artistic patterns and flowing design",
+    warranty: "25-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "galant-glass",
+    name: "Galant",
+    category: "liner",
+    subcategory: "Glass",
+    price: 4500,
+    image: "/lovable-uploads/723a9c27-b7d5-4139-bda7-4eed2d0b23e8.png",
+    description: "Elegant blue mosaic glass tiles with iridescent effects and sophisticated style",
+    warranty: "25-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "melody-glass",
+    name: "Melody",
+    category: "liner",
+    subcategory: "Glass",
+    price: 4500,
+    image: "/lovable-uploads/c8e3cc34-9fbe-4ece-af71-05b7e4f94332.png",
+    description: "Harmonious iridescent glass tiles with rainbow shimmer and artistic flair",
+    warranty: "25-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "soul-glass",
+    name: "Soul",
+    category: "liner",
+    subcategory: "Glass",
+    price: 4500,
+    image: "/lovable-uploads/7dc956df-af5c-4c6b-b2af-6bc9d6fbf179.png",
+    description: "Sophisticated gray and white mosaic glass tiles with deep, soulful character",
+    warranty: "25-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "glacier-glass",
+    name: "Glacier",
+    category: "liner",
+    subcategory: "Glass",
+    price: 4500,
+    image: "/lovable-uploads/96f46291-85e7-4b48-9465-623400a8e835.png",
+    description: "Cool glacier-inspired glass tiles with decorative borders and flowing patterns",
+    warranty: "25-Year Warranty",
+    isActive: true
+  },
+  // Porcelain Collection
+  {
     id: "tikal-porcelain",
     name: "Tikal",
     category: "liner",
@@ -153,6 +221,29 @@ export const poolLiners: Product[] = [
     isActive: true
   },
   {
+    id: "port-royal-porcelain",
+    name: "Port Royal",
+    category: "liner",
+    subcategory: "Porcelain",
+    price: 4500,
+    image: "/lovable-uploads/56fd62de-130b-4b90-98a0-596007f5dadb.png",
+    description: "Deep ocean blue porcelain with premium durability and 25-year warranty",
+    warranty: "25-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "alexandria-porcelain",
+    name: "Alexandria",
+    category: "liner",
+    subcategory: "Porcelain",
+    price: 4500,
+    image: "/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png",
+    description: "Golden marble porcelain with premium durability and 25-year warranty",
+    warranty: "25-Year Warranty",
+    isActive: true
+  },
+  // Italian Stone Collection
+  {
     id: "san-marino-stone",
     name: "San Marino",
     category: "liner",
@@ -160,6 +251,39 @@ export const poolLiners: Product[] = [
     price: 4500,
     image: "/lovable-uploads/7f823d88-d9f2-4ecf-bcd1-a9d25d8519a8.png",
     description: "Dark granite Italian stone with luxury durability and 30-year warranty",
+    warranty: "30-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "firenze-stone",
+    name: "Firenze",
+    category: "liner",
+    subcategory: "Italian Stone",
+    price: 4500,
+    image: "/lovable-uploads/797bcadb-19bc-4859-8319-ceb12ea23d10.png",
+    description: "Blue grey marble Italian stone with luxury durability and 30-year warranty",
+    warranty: "30-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "naples-stone",
+    name: "Naples",
+    category: "liner",
+    subcategory: "Italian Stone",
+    price: 4500,
+    image: "/lovable-uploads/a378df22-0a67-4626-ac93-c6cf8fe37602.png",
+    description: "Warm beige stone Italian stone with luxury durability and 30-year warranty",
+    warranty: "30-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "milan-stone",
+    name: "Milan",
+    category: "liner",
+    subcategory: "Italian Stone",
+    price: 4500,
+    image: "/lovable-uploads/b871f521-8e15-4ed4-ad20-1a3774f535cd.png",
+    description: "Charcoal stone Italian stone with luxury durability and 30-year warranty",
     warranty: "30-Year Warranty",
     isActive: true
   }

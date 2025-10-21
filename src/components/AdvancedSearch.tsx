@@ -38,10 +38,10 @@ const AdvancedSearch = () => {
       { id: 'aruba', name: 'Aruba', category: 'Pool', price: 51300, image: '/lovable-uploads/ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5.png', keywords: ['pool', 'standard', 'caribbean'] },
       { id: 'pleasant-cove', name: 'Pleasant Cove', category: 'Pool', price: 51300, image: '/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.png', keywords: ['pool', 'standard', 'cove'] },
 
-      // Enchantment Compact Series
-      { id: 'enchantment-917', name: 'Enchantment 9.17', category: 'Pool', price: 47900, image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png', keywords: ['pool', 'compact', 'small', '9x17', '9 x 17'] },
-      { id: 'enchantment-921', name: 'Enchantment 9.21', category: 'Pool', price: 54400, image: '/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png', keywords: ['pool', 'compact', 'small', '9x21', '9 x 21'] },
-      { id: 'enchantment-924', name: 'Enchantment 9.24', category: 'Pool', price: 60800, image: '/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png', keywords: ['pool', 'compact', 'small', '9x24', '9 x 24'] },
+      // Enchantment Compact Series (cache-busting added)
+      { id: 'enchantment-917', name: 'Enchantment 9.17', category: 'Pool', price: 47900, image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png?v=1', keywords: ['pool', 'compact', 'small', '9x17', '9 x 17'] },
+      { id: 'enchantment-921', name: 'Enchantment 9.21', category: 'Pool', price: 54400, image: '/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png?v=1', keywords: ['pool', 'compact', 'small', '9x21', '9 x 21'] },
+      { id: 'enchantment-924', name: 'Enchantment 9.24', category: 'Pool', price: 60800, image: '/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png?v=1', keywords: ['pool', 'compact', 'small', '9x24', '9 x 24'] },
 
       // Tuscan Series
       { id: 'tuscan-1120', name: 'Tuscan 11.20', category: 'Pool', price: 59430, image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png', keywords: ['pool', 'deluxe', 'medium', '11x20', '11 x 20'] },

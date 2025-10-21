@@ -23,11 +23,11 @@ import pacificRidgeImage from "@/assets/pools/pacific-ridge.jpg";
 
 // Data loaded successfully
 
-// Pool model images - synchronized with Wonderlands Studio
-const astoriaImage = "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png";
-const enchantment917Image = "/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png";
-const enchantment921Image = "/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png";
-const enchantment924Image = "/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png";
+// Pool model images - synchronized with Wonderlands Studio (with cache-busting)
+const astoriaImage = "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png?v=1";
+const enchantment917Image = "/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png?v=1";
+const enchantment921Image = "/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png?v=1";
+const enchantment924Image = "/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png?v=1";
 const tuscan1120Image = "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png";
 const tuscan1324Image = "/lovable-uploads/2677d17d-ba82-407b-896c-b4b3e238b8d5.png";
 const tuscan1427Image = "/lovable-uploads/de3068d3-0f04-4a3c-a2ed-f52141f36b3e.png";
