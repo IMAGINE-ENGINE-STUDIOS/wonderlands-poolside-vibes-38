@@ -194,16 +194,37 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
         </div>
         
         {/* Price */}
-        <div className="flex items-center gap-2">
-          <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
-          {spa.price > 0 ? (
-            <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
-              ${calculateTotalPrice().toLocaleString()}
-            </span>
-          ) : (
-            <span className="text-lg sm:text-xl font-semibold text-muted-foreground">
-              Contact for Pricing
-            </span>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
+            {spa.price > 0 ? (
+              <div className="flex flex-col">
+                <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
+                  ${calculateTotalPrice().toLocaleString()}
+                </span>
+                {calculateTotalPrice() === spa.price && (
+                  <span className="text-xs text-muted-foreground">
+                    Base Price (includes installation)
+                  </span>
+                )}
+              </div>
+            ) : (
+              <span className="text-lg sm:text-xl font-semibold text-muted-foreground">
+                Contact for Pricing
+              </span>
+            )}
+          </div>
+          
+          {/* Final Price Summary */}
+          {(extras.heater || extras.jets || extras.pavers) && calculateTotalPrice() > spa.price && (
+            <div className="bg-primary/10 p-2 rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Final Price:</span>
+                <span className="text-lg font-bold text-primary">
+                  ${calculateTotalPrice().toLocaleString()}
+                </span>
+              </div>
+            </div>
           )}
         </div>
         

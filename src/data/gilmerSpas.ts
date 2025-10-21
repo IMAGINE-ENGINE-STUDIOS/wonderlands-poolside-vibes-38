@@ -7,6 +7,7 @@ import gilmerTranquility from '@/assets/gilmer-tranquility.png';
 export interface GilmerSpa {
   model: string;
   price: number;
+  dealerPrice: number;
   category: 'spillover' | 'standard' | 'deluxe';
   image: string;
   dimensions?: string;
@@ -23,11 +24,12 @@ export interface GilmerSpa {
 export const gilmerSpas: GilmerSpa[] = [
   {
     model: "Moonlight Spillover",
-    price: 0, // Price TBD - multiply dealer price × 4
+    dealerPrice: 5000,
+    price: 20000, // Dealer price × 4
     category: "spillover",
     image: gilmerMoonlight,
-    dimensions: "TBD",
-    depth: "TBD",
+    dimensions: "8'x8'x3'3\"",
+    depth: "3'3\"",
     colorOptions: ["Ocean Blue", "Sapphire Blue", "Coastal Bronze", "Snow White", "Steel Grey", "Arctic White", "Glacier Blue"],
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
@@ -38,11 +40,12 @@ export const gilmerSpas: GilmerSpa[] = [
   },
   {
     model: "Pacifica Spa",
-    price: 0, // Price TBD - multiply dealer price × 4
+    dealerPrice: 4500,
+    price: 18000, // Dealer price × 4
     category: "standard",
     image: gilmerPacifica,
-    dimensions: "TBD",
-    depth: "TBD",
+    dimensions: "7'6\"x7'6\"x3'",
+    depth: "3'",
     colorOptions: ["Ocean Blue", "Sapphire Blue", "Coastal Bronze", "Snow White", "Steel Grey", "Arctic White", "Glacier Blue"],
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
@@ -52,11 +55,12 @@ export const gilmerSpas: GilmerSpa[] = [
   },
   {
     model: "Pearl Spillover",
-    price: 0, // Price TBD - multiply dealer price × 4
+    dealerPrice: 4500,
+    price: 18000, // Dealer price × 4
     category: "spillover",
     image: gilmerPearl,
-    dimensions: "TBD",
-    depth: "TBD",
+    dimensions: "7'6\"x7'6\"x3'",
+    depth: "3'",
     colorOptions: ["Ocean Blue", "Sapphire Blue", "Coastal Bronze", "Snow White", "Steel Grey", "Arctic White", "Glacier Blue"],
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
@@ -67,11 +71,12 @@ export const gilmerSpas: GilmerSpa[] = [
   },
   {
     model: "Tranquility Spa",
-    price: 0, // Price TBD - multiply dealer price × 4
+    dealerPrice: 5000,
+    price: 20000, // Dealer price × 4
     category: "deluxe",
     image: gilmerTranquility,
-    dimensions: "TBD",
-    depth: "TBD",
+    dimensions: "9'x9'x3'8\"",
+    depth: "3'8\"",
     colorOptions: ["Ocean Blue", "Sapphire Blue", "Coastal Bronze", "Snow White", "Steel Grey", "Arctic White", "Glacier Blue"],
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
