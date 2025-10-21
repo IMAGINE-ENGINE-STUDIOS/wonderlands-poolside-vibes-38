@@ -99,7 +99,7 @@ export const gilmerPools = [
     dimensions: "11' x 23'",
     depth: "5'6\"",
     price: 58824, // $14,706 × 4
-    image: "/lovable-uploads/gilmer-serafina.png", // placeholder
+    image: "/src/assets/gilmer-neptune.png",
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -112,7 +112,7 @@ export const gilmerPools = [
     dimensions: "12' x 24'",
     depth: "5'6\"",
     price: 56000, // $14,000 × 4
-    image: "/lovable-uploads/gilmer-serafina.png", // placeholder
+    image: "/src/assets/gilmer-islander.png",
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -125,7 +125,7 @@ export const gilmerPools = [
     dimensions: "12' x 25'",
     depth: "5'7\"",
     price: 58824, // $14,706 × 4
-    image: "/lovable-uploads/gilmer-serafina.png", // placeholder
+    image: "/src/assets/gilmer-emerald.png",
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -190,7 +190,7 @@ export const gilmerPools = [
     dimensions: "13' x 25'6\"",
     depth: "6'",
     price: 62300, // $15,575 × 4
-    image: "/lovable-uploads/gilmer-serafina.png", // placeholder
+    image: "/src/assets/gilmer-majestic.png",
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -205,7 +205,7 @@ export const gilmerPools = [
     dimensions: "14' x 28'",
     depth: "5'8\"",
     price: 86000, // $21,500 × 4
-    image: "/lovable-uploads/gilmer-gold-coast.png",
+    image: "/src/assets/gilmer-gold-coast.png",
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -277,7 +277,7 @@ export const gilmerPools = [
     dimensions: "15' x 32'",
     depth: "6'",
     price: 88000, // $22,000 × 4
-    image: "/lovable-uploads/gilmer-serafina.png", // placeholder
+    image: "/src/assets/gilmer-mystic.png",
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
@@ -394,7 +394,7 @@ export const gilmerPools = [
     dimensions: "16' x 42'",
     depth: "8'",
     price: 114824, // $28,706 × 4
-    image: "/lovable-uploads/gilmer-serafina.png", // placeholder
+    image: "/src/assets/gilmer-grand-cayman.png",
     warranty: "Life Warranty",
     brand: "Gilmer Glass",
     type: "Fiber Pool",
