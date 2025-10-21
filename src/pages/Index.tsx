@@ -4,6 +4,7 @@ import Hero from "@/components/Hero";
 import PoolCatalog from "@/components/PoolCatalog";
 import GilmerPoolsSection from "@/components/GilmerPoolsSection";
 import SpaCatalog from "@/components/SpaCatalog";
+import GilmerSpasSection from "@/components/GilmerSpasSection";
 import TanningLedgeSection from "@/components/TanningLedgeSection";
 import PoolFinishesSection from "@/components/PoolFinishesSection";
 import LinersSection from "@/components/LinersSection";
@@ -43,6 +44,11 @@ const Index = () => {
       <div id="spas" />
       <LazySection eager={true}>
         <SpaCatalog />
+      </LazySection>
+      
+      <div id="gilmer-spas" />
+      <LazySection>
+        <GilmerSpasSection />
       </LazySection>
       <LazySection>
         <TanningLedgeSection />
