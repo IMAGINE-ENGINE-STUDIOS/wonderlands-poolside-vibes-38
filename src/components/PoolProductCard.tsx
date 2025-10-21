@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
+import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -891,14 +893,21 @@ const PoolProductCard = ({
               name: 'Wonder Cage'
             }, {
               key: 'deluxe',
-              name: 'Deluxe'
+              name: 'Deluxe',
+              image: screenEnclosureDeluxe
             }, {
               key: 'premium',
-              name: '2 stories'
-            }].map(quality => <div key={quality.key} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md text-center ${extras.screenEnclosureQuality === quality.key ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
+              name: '2 stories',
+              image: screenEnclosurePremium
+            }].map(quality => <div key={quality.key} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md ${extras.screenEnclosureQuality === quality.key ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
               ...prev,
               screenEnclosureQuality: quality.key as 'standard' | 'deluxe' | 'premium'
             }))}>
+                    {quality.image && (
+                      <div className="w-full h-24 rounded-md mb-2 overflow-hidden">
+                        <img src={quality.image} alt={quality.name} className="w-full h-full object-cover" />
+                      </div>
+                    )}
                     <p className="text-sm font-medium">{quality.name}</p>
                     <p className="text-xs text-muted-foreground">
                       ${quality.key === 'standard' ? '15' : quality.key === 'deluxe' ? '22' : '28'}/sq ft
