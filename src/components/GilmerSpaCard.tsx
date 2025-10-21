@@ -4,8 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Clock, Award } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Waves, DollarSign, Thermometer, Zap, Droplets, Clock, Award, Cpu } from "lucide-react";
 import { GilmerSpa } from "@/data/gilmerSpas";
+import { paverTypes } from "@/data/paverData";
+import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 
 interface GilmerSpaCardProps {
   spa: GilmerSpa;
@@ -25,20 +28,47 @@ const getCategoryColor = (category: string) => {
   }
 };
 
+// Spa heater options
+const spaHeaters = [
+  { name: 'Spa Heat Pump - Compact', price: 3500, description: 'Compact heat pump designed for spas' },
+  { name: 'Spa Heat Pump - Premium', price: 4500, description: 'Premium spa heat pump with digital controls' },
+  { name: 'Spa Gas Heater', price: 2800, description: 'Efficient gas heater for quick spa heating' },
+  { name: 'Solar Spa Heater', price: 2200, description: 'Eco-friendly solar heating for spas' }
+];
+
+// Paver options
+const paverOptions = [
+  { name: 'No Pavers', price: 0, description: 'No additional pavers' },
+  ...paverTypes.map(paver => ({
+    name: paver.name,
+    price: 0, // Base price is 0, actual cost calculated by surface area × $15/sq ft
+    description: paver.description,
+    image: paver.image || azureBlueFinish
+  }))
+];
+
 const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [selectedColor, setSelectedColor] = useState(spa.colorOptions[0]);
   const [extras, setExtras] = useState({
     heater: false,
+    heaterModel: '',
     jets: false,
+    jetQuantity: 0,
+    pavers: false,
+    paverOption: '',
+    paverSurfaceArea: '',
     color: spa.colorOptions[0]
   });
 
   const colorSwatches: Record<string, string> = {
-    "Azure Blue": "bg-blue-500",
-    "Caribbean Teal": "bg-teal-500",
-    "Pearl White": "bg-gray-100 border-2 border-gray-300",
-    "Graphite Gray": "bg-gray-700"
+    "Ocean Blue": "bg-blue-600",
+    "Sapphire Blue": "bg-blue-700",
+    "Coastal Bronze": "bg-amber-700",
+    "Snow White": "bg-white border-2 border-gray-300",
+    "Steel Grey": "bg-gray-500",
+    "Arctic White": "bg-gray-100 border-2 border-gray-300",
+    "Glacier Blue": "bg-cyan-400"
   };
 
   const toggleExtra = (extra: string) => {
@@ -46,6 +76,11 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
       ...prev,
       [extra]: !prev[extra as keyof typeof prev]
     }));
+    
+    // Expand details when selecting an option
+    if (!showDetails) {
+      setShowDetails(true);
+    }
   };
 
   const handleColorSelect = (color: string) => {
@@ -60,11 +95,61 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
     setShowDetails(!showDetails);
   };
 
+  const calculateTotalPrice = () => {
+    let total = spa.price;
+
+    // Add heater price if selected
+    if (extras.heater && extras.heaterModel) {
+      const selectedHeater = spaHeaters.find(h => h.name === extras.heaterModel);
+      if (selectedHeater) total += selectedHeater.price;
+    }
+
+    // Add jets price
+    if (extras.jets && extras.jetQuantity > 0) {
+      total += extras.jetQuantity * 1800; // $1800 per jet
+    }
+
+    // Add paver surface area cost
+    if (extras.pavers && extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea))) {
+      total += parseFloat(extras.paverSurfaceArea) * 15; // $15 per sq ft
+    }
+
+    return total;
+  };
+
   const handleRequestQuote = () => {
     if (onRequestQuote) {
+      const extrasBreakdown = [];
+      
+      if (extras.heater && extras.heaterModel) {
+        const selectedHeater = spaHeaters.find(h => h.name === extras.heaterModel);
+        if (selectedHeater) {
+          extrasBreakdown.push({
+            name: selectedHeater.name,
+            price: selectedHeater.price
+          });
+        }
+      }
+
+      if (extras.jets && extras.jetQuantity > 0) {
+        extrasBreakdown.push({
+          name: `Spa Jets (${extras.jetQuantity})`,
+          price: extras.jetQuantity * 1800
+        });
+      }
+
+      if (extras.pavers && extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea))) {
+        extrasBreakdown.push({
+          name: `${extras.paverOption} (${extras.paverSurfaceArea} sq ft)`,
+          price: parseFloat(extras.paverSurfaceArea) * 15
+        });
+      }
+
       onRequestQuote(spa, {
         ...extras,
-        selectedColor
+        selectedColor,
+        extrasBreakdown,
+        extrasTotal: extrasBreakdown.reduce((sum, item) => sum + item.price, 0)
       });
     }
   };
@@ -113,7 +198,7 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
           <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
           {spa.price > 0 ? (
             <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
-              ${spa.price.toLocaleString()}
+              ${calculateTotalPrice().toLocaleString()}
             </span>
           ) : (
             <span className="text-lg sm:text-xl font-semibold text-muted-foreground">
@@ -176,6 +261,18 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
               Heater
             </span>
           </label>
+
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <Checkbox 
+              checked={extras.pavers} 
+              onCheckedChange={() => toggleExtra('pavers')} 
+              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary" 
+            />
+            <span className="flex items-center gap-1">
+              <Cpu size={14} className="text-coral" />
+              Pavers
+            </span>
+          </label>
         </div>
         
         {/* Expanded Details */}
@@ -189,12 +286,12 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
                 <Droplets size={16} />
                 Spa Color Options
               </h4>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 {spa.colorOptions.map((color) => (
                   <button
                     key={color}
                     onClick={() => handleColorSelect(color)}
-                    className={`p-3 rounded-lg border-2 transition-all ${
+                    className={`p-2 rounded-lg border-2 transition-all ${
                       selectedColor === color
                         ? 'border-primary bg-primary/10'
                         : 'border-gray-200 hover:border-primary/50'
@@ -202,19 +299,119 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
                   >
                     <div className="flex items-center gap-2">
                       <div 
-                        className={`w-8 h-8 rounded-full ${colorSwatches[color]}`}
+                        className={`w-6 h-6 rounded-full ${colorSwatches[color]}`}
                       />
                       <span className="text-xs font-medium">{color}</span>
                     </div>
                   </button>
                 ))}
               </div>
-              {selectedColor && (
-                <p className="text-sm text-primary font-medium">
-                  Selected: {selectedColor}
-                </p>
-              )}
             </div>
+
+            {/* Jets Options */}
+            {extras.jets && (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground flex items-center gap-2">
+                  <Zap size={16} />
+                  Spa Jets
+                </h4>
+                <div className="space-y-2">
+                  <label className="text-sm text-muted-foreground">
+                    Number of Jets ($1,800 each)
+                  </label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={extras.jetQuantity}
+                    onChange={(e) => setExtras(prev => ({ ...prev, jetQuantity: parseInt(e.target.value) || 0 }))}
+                    className="w-full"
+                  />
+                  {extras.jetQuantity > 0 && (
+                    <p className="text-sm text-primary font-medium">
+                      Jets Cost: ${(extras.jetQuantity * 1800).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Heater Options */}
+            {extras.heater && (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground flex items-center gap-2">
+                  <Thermometer size={16} />
+                  Spa Heaters
+                </h4>
+                <div className="grid gap-2">
+                  {spaHeaters.map((heater) => (
+                    <button
+                      key={heater.name}
+                      onClick={() => setExtras(prev => ({ ...prev, heaterModel: heater.name }))}
+                      className={`p-3 rounded-lg border-2 text-left transition-all ${
+                        extras.heaterModel === heater.name
+                          ? 'border-primary bg-primary/10'
+                          : 'border-gray-200 hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium text-sm">{heater.name}</p>
+                          <p className="text-xs text-muted-foreground">{heater.description}</p>
+                        </div>
+                        <span className="text-sm font-bold text-primary">
+                          +${heater.price.toLocaleString()}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Paver Options */}
+            {extras.pavers && (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground flex items-center gap-2">
+                  <Cpu size={16} />
+                  Pavers ($15/sq ft)
+                </h4>
+                <div className="space-y-3">
+                  <select
+                    value={extras.paverOption}
+                    onChange={(e) => setExtras(prev => ({ ...prev, paverOption: e.target.value }))}
+                    className="w-full p-2 rounded-lg border-2 border-gray-200 focus:border-primary outline-none"
+                  >
+                    <option value="">Select Paver Type</option>
+                    {paverOptions.map((paver) => (
+                      <option key={paver.name} value={paver.name}>
+                        {paver.name}
+                      </option>
+                    ))}
+                  </select>
+                  
+                  {extras.paverOption && extras.paverOption !== 'No Pavers' && (
+                    <div className="space-y-2">
+                      <label className="text-sm text-muted-foreground">
+                        Surface Area (sq ft)
+                      </label>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={extras.paverSurfaceArea}
+                        onChange={(e) => setExtras(prev => ({ ...prev, paverSurfaceArea: e.target.value }))}
+                        placeholder="Enter square footage"
+                        className="w-full"
+                      />
+                      {extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea)) && (
+                        <p className="text-sm text-primary font-medium">
+                          Paver Cost: ${(parseFloat(extras.paverSurfaceArea) * 15).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
         
