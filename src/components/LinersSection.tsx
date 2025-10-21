@@ -124,11 +124,19 @@ const LinersSection = ({
                               <CardTitle className="text-lg font-semibold mb-2">
                                 {liner.name}
                               </CardTitle>
-                              <div className="flex items-center gap-2 mb-2">
-                                <DollarSign className="h-5 w-5 text-teal" />
-                                <span className="text-xl font-bold">
-                                  ${liner.price.toLocaleString()}
-                                </span>
+                              <div className="space-y-1 mb-2">
+                                <div className="flex items-center gap-2">
+                                  <DollarSign className="h-4 w-4 text-teal" />
+                                  <span className="text-lg font-bold">
+                                    ${liner.price}/sqft installed
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <DollarSign className="h-4 w-4 text-teal" />
+                                  <span className="text-sm font-medium text-white/90">
+                                    ${liner.originalPrice}/sheet material only
+                                  </span>
+                                </div>
                               </div>
                               <p className="text-sm text-white/80 line-clamp-2">
                                 {liner.description}
@@ -173,11 +181,19 @@ const LinersSection = ({
                   </Badge>
                   <p className="text-foreground/80">{selectedLiner.description}</p>
                   
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-teal" />
-                    <span className="text-2xl font-bold text-foreground">
-                      ${selectedLiner.price.toLocaleString()}
-                    </span>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-5 w-5 text-teal" />
+                      <span className="text-2xl font-bold text-foreground">
+                        ${selectedLiner.price}/sqft installed
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-teal" />
+                      <span className="text-lg font-semibold text-foreground/80">
+                        ${selectedLiner.originalPrice}/sheet material only
+                      </span>
+                    </div>
                   </div>
                   
                   <div className="flex gap-3">
