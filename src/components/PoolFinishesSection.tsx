@@ -208,37 +208,43 @@ const PoolFinishesSection = () => {
           </div>
         )}
 
-        {/* Pool Finish Technology Section */}
-        <div className="mt-16 grid md:grid-cols-3 gap-8">
-          <Card className="text-center p-6 bg-gradient-to-br from-primary/10 to-coral/10 border-none">
-            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Sparkles className="h-8 w-8 text-primary" />
+        {/* Pool Finish Technology Section - Compact */}
+        <div className="mt-12 grid md:grid-cols-3 gap-4">
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-gradient-to-br from-primary/5 to-coral/5 border border-primary/10">
+            <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
+              <Sparkles className="h-5 w-5 text-primary" />
             </div>
-            <h3 className="font-bold mb-2">Crystite Technology</h3>
-            <p className="text-sm text-foreground/70">
-              Advanced crystal-infused finishes that provide superior durability and stunning visual effects
-            </p>
-          </Card>
+            <div>
+              <h3 className="font-semibold text-sm mb-1">Crystite Technology</h3>
+              <p className="text-xs text-muted-foreground">
+                Crystal-infused finishes for superior durability
+              </p>
+            </div>
+          </div>
           
-          <Card className="text-center p-6 bg-gradient-to-br from-coral/10 to-teal/10 border-none">
-            <div className="w-16 h-16 bg-coral/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Award className="h-8 w-8 text-coral" />
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-gradient-to-br from-coral/5 to-teal/5 border border-coral/10">
+            <div className="w-10 h-10 bg-coral/20 rounded-full flex items-center justify-center flex-shrink-0">
+              <Award className="h-5 w-5 text-coral" />
             </div>
-            <h3 className="font-bold mb-2">25-Year Warranty</h3>
-            <p className="text-sm text-foreground/70">
-              Industry-leading warranty coverage for peace of mind and long-term protection
-            </p>
-          </Card>
+            <div>
+              <h3 className="font-semibold text-sm mb-1">25-Year Warranty</h3>
+              <p className="text-xs text-muted-foreground">
+                Industry-leading coverage for peace of mind
+              </p>
+            </div>
+          </div>
           
-          <Card className="text-center p-6 bg-gradient-to-br from-teal/10 to-primary/10 border-none">
-            <div className="w-16 h-16 bg-teal/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Eye className="h-8 w-8 text-teal" />
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-gradient-to-br from-teal/5 to-primary/5 border border-teal/10">
+            <div className="w-10 h-10 bg-teal/20 rounded-full flex items-center justify-center flex-shrink-0">
+              <Eye className="h-5 w-5 text-teal" />
             </div>
-            <h3 className="font-bold mb-2">Color Preview</h3>
-            <p className="text-sm text-foreground/70">
-              See exactly how your chosen finish will look with our advanced color visualization
-            </p>
-          </Card>
+            <div>
+              <h3 className="font-semibold text-sm mb-1">Color Preview</h3>
+              <p className="text-xs text-muted-foreground">
+                Advanced color visualization technology
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
