@@ -6,8 +6,12 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Droplets, Palette, Shield, Star, DollarSign, ShoppingCart } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { useShoppingCart } from "./ShoppingCart";
+import { toast } from "@/components/ui/use-toast";
 import { getProductsByCategory, Product } from "@/data/consolidatedProducts";
 interface Liner extends Product {
   type?: string; // For backwards compatibility
@@ -49,11 +53,15 @@ const LinersSection = ({
   const [selectedLiner, setSelectedLiner] = useState<Product | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [unitType, setUnitType] = useState<'sqft' | 'sheet'>('sqft');
+  const [quantity, setQuantity] = useState(1);
   const {
     addToCart
   } = useShoppingCart();
   const handleLinerClick = (liner: Product) => {
     setSelectedLiner(liner);
+    setUnitType('sqft');
+    setQuantity(1);
     setShowDetailModal(true);
   };
   const handleRequestQuote = (liner: Product) => {
@@ -61,15 +69,30 @@ const LinersSection = ({
     setShowDetailModal(false);
     setShowQuoteModal(true);
   };
-  const handleAddToCart = (liner: any) => {
+  const handleAddToCart = () => {
+    if (!selectedLiner) return;
+    
+    const pricePerUnit = unitType === 'sqft' ? selectedLiner.price : (selectedLiner.originalPrice || selectedLiner.price);
+    const unitLabel = unitType === 'sqft' ? 'sqft (installed)' : 'sheet (material only)';
+    
     addToCart({
-      id: `liner_${liner.name.replace(/\s+/g, '_')}_${Date.now()}`,
-      name: liner.name,
-      price: liner.price,
+      id: `liner_${selectedLiner.name.replace(/\s+/g, '_')}_${unitType}_${Date.now()}`,
+      name: `${selectedLiner.name} - ${quantity} ${unitLabel}`,
+      price: pricePerUnit * quantity,
       category: 'liner',
-      image: liner.image,
-      extras: []
+      image: selectedLiner.image,
+      extras: [{
+        name: `${quantity} ${unitLabel}`,
+        price: 0
+      }]
     });
+    
+    toast({
+      title: "Added to Cart",
+      description: `${selectedLiner.name} (${quantity} ${unitLabel}) has been added to your cart.`
+    });
+    
+    setShowDetailModal(false);
   };
 
   // Listen for search events to open specific liners
@@ -195,6 +218,51 @@ const LinersSection = ({
                       </span>
                     </div>
                   </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">Purchase Type</Label>
+                      <RadioGroup value={unitType} onValueChange={(value: 'sqft' | 'sheet') => setUnitType(value)}>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="sqft" id="sqft" />
+                          <Label htmlFor="sqft" className="cursor-pointer">
+                            Per sqft (installed) - ${selectedLiner.price}/sqft
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="sheet" id="sheet" />
+                          <Label htmlFor="sheet" className="cursor-pointer">
+                            Per sheet (material only) - ${selectedLiner.originalPrice}/sheet
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="quantity" className="text-sm font-medium mb-2 block">
+                        Quantity ({unitType === 'sqft' ? 'square feet' : 'sheets'})
+                      </Label>
+                      <Input
+                        id="quantity"
+                        type="number"
+                        min="1"
+                        value={quantity}
+                        onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="bg-muted/50 p-3 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Total:</span>
+                        <span className="text-xl font-bold text-primary">
+                          ${((unitType === 'sqft' ? selectedLiner.price : selectedLiner.originalPrice) * quantity).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                   
                   <div className="flex gap-3">
                     {allowSelection && !selectedLinerProp && selectedLiner && <Button onClick={() => {
@@ -203,6 +271,10 @@ const LinersSection = ({
                 }} variant="default" className="flex-1">
                         Select Liner
                       </Button>}
+                    <Button onClick={handleAddToCart} variant="default" className="flex-1">
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      Add to Cart
+                    </Button>
                     <Button onClick={() => handleRequestQuote(selectedLiner)} variant="gradient" className="flex-1">
                       Get Quote
                     </Button>
