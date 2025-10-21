@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import PoolCatalog from "@/components/PoolCatalog";
+import GilmerPoolsSection from "@/components/GilmerPoolsSection";
 import SpaCatalog from "@/components/SpaCatalog";
 import TanningLedgeSection from "@/components/TanningLedgeSection";
 import PoolFinishesSection from "@/components/PoolFinishesSection";
@@ -33,6 +34,12 @@ const Index = () => {
       {/* Anchors for RightNavigation */}
       <div id="pools" />
       <PoolCatalog />
+      
+      <div id="gilmer-pools" />
+      <LazySection>
+        <GilmerPoolsSection />
+      </LazySection>
+      
       <div id="spas" />
       <LazySection eager={true}>
         <SpaCatalog />
