@@ -68,9 +68,12 @@ interface Spa {
 // Pool finish options
 export const poolFinishes = ["Nantuke", "Esagoni", "Whitehaven", "Island Wave", "Durango Gray", "Vintage Blue", "Royal Blue", "Gulf Coast", "Hamper", "Indigo", "Cayman", "Mountain", "Carnegie", "Panama", "Corolla", "Summerwave", "Legends", "Z terrazzo", "Tullism", "Courtstone Gray", "Courtstone Blue"];
 
-// Helper function to get pool price with 10% discount applied
+// Helper function to get pool price with 10% discount applied (except Cancún Deluxe)
 const getPoolPrice = (pool: Pool) => {
-  return Math.round(pool.price * 0.90); // 10% discount for all pools
+  if (pool.model === "Cancún Deluxe") {
+    return pool.price; // No discount for Cancún Deluxe
+  }
+  return Math.round(pool.price * 0.90); // 10% discount for all other pools
 };
 const pools: Pool[] = [
 // Premium Infinity Concrete Pool
@@ -113,7 +116,7 @@ const pools: Pool[] = [
   depth: "4'3\" - 6'6\"; Spa 3'",
   installationTimeWeeks: 12,
   warrantyYears: "Life Warranty",
-  features: ["Integrated Spa", "Freeform Design", "Tanning Ledge", "Spillover Water Feature", "Premium Finish"],
+  features: ["Integrated Spa", "Freeform Design", "Tanning Ledge", "Spillover Water Feature", "Premium Finish", "Sauna Offer"],
   heater: false,
   saltSystem: false,
   carbonFiber: false
