@@ -131,8 +131,24 @@ const SpaCatalog = () => {
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-gradient-to-br from-background to-muted/30">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-20 px-4 relative overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background to-muted/30">
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-20 right-20 w-72 h-72 bg-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-20 left-20 w-72 h-72 bg-pink-500/30 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1.5s'}}></div>
+            <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '3s'}}></div>
+          </div>
+          {/* Bubble Effect */}
+          <svg className="absolute top-0 left-0 w-full h-full opacity-5" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="10%" cy="20%" r="2%" className="fill-primary animate-pulse" style={{animationDelay: '0s', animationDuration: '3s'}}/>
+            <circle cx="85%" cy="15%" r="3%" className="fill-coral animate-pulse" style={{animationDelay: '1s', animationDuration: '4s'}}/>
+            <circle cx="50%" cy="80%" r="2.5%" className="fill-teal animate-pulse" style={{animationDelay: '2s', animationDuration: '3.5s'}}/>
+            <circle cx="20%" cy="70%" r="1.5%" className="fill-purple-500 animate-pulse" style={{animationDelay: '0.5s', animationDuration: '4.5s'}}/>
+            <circle cx="75%" cy="60%" r="2%" className="fill-pink-500 animate-pulse" style={{animationDelay: '1.5s', animationDuration: '3s'}}/>
+          </svg>
+        </div>
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
               Premium Spas
