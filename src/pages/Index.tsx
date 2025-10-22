@@ -15,6 +15,7 @@ import DrivewayGateSection from "@/components/DrivewayGateSection";
 import SaunaSection from "@/components/SaunaSection";
 import Footer from "@/components/Footer";
 import LazySection from "@/components/LazySection";
+import lathamGilmerBanner from "@/assets/latham-gilmer-banner.jpeg";
 const Index = () => {
   useEffect(() => {
     // Handle navigation to sections from URL hash
@@ -35,6 +36,15 @@ const Index = () => {
       {/* Anchors for RightNavigation */}
       <div id="pools" />
       <PoolCatalog />
+      
+      {/* Banner between Latham and Gilmer Pools */}
+      <div className="w-full">
+        <img 
+          src={lathamGilmerBanner} 
+          alt="Luxury Pool Design" 
+          className="w-full h-auto object-cover"
+        />
+      </div>
       
       <div id="gilmer-pools" />
       <LazySection>
