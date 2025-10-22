@@ -19,6 +19,7 @@ import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
 // Import Madre Perla pool image
 import madrePerlaImage from "@/assets/pools/madre-perla.jpg";
 import pacificRidgeImage from "@/assets/pools/pacific-ridge.jpg";
+import cancunDeluxeImage from "@/assets/cancun-deluxe.png";
 
 // Data loaded successfully
 
@@ -98,6 +99,21 @@ const pools: Pool[] = [
   installationTimeWeeks: 18,
   warrantyYears: 10,
   features: ["Rectangular Design", "Variable Depth", "Premium Finish"],
+  heater: false,
+  saltSystem: false,
+  carbonFiber: false
+},
+// Cancún Deluxe - Latham Pool with Integrated Spa
+{
+  model: "Cancún Deluxe",
+  price: 93000,
+  category: 'deluxe',
+  image: cancunDeluxeImage,
+  dimensions: "16' x 35'",
+  depth: "4'3\" - 6'6\"; Spa 3'",
+  installationTimeWeeks: 12,
+  warrantyYears: "Life Warranty",
+  features: ["Integrated Spa", "Freeform Design", "Tanning Ledge", "Spillover Water Feature", "Premium Finish"],
   heater: false,
   saltSystem: false,
   carbonFiber: false

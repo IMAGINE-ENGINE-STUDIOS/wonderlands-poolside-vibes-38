@@ -243,6 +243,46 @@ const lathamPoolsDatabase: Record<string, PoolSpec> = {
       drainSize: 'Quad 8" Main Drains',
       stepConfiguration: 'Traditional Ladder System with Safety Rails'
     }
+  },
+  'Cancún Deluxe': {
+    model: 'Cancún Deluxe',
+    series: 'Deluxe Series',
+    dimensions: {
+      length: "35' 0\"",
+      width: "16' 0\"",
+      shallowEnd: "4' 3\"",
+      deepEnd: "6' 6\"",
+      volume: "22,000 gallons"
+    },
+    features: [
+      'Integrated Spa',
+      'Freeform Design',
+      'Tanning Ledge',
+      'Spillover Water Feature',
+      'Multiple Entry Points',
+      'Luxury Aesthetics'
+    ],
+    materials: {
+      shell: 'Premium Composite Construction',
+      finish: ['Premium Gelcoat', 'Glass Tile Ready', 'Natural Stone Compatible', 'Custom Colors'],
+      coping: ['Natural Stone', 'Travertine', 'Flagstone', 'Bullnose Fiberglass']
+    },
+    equipment: {
+      filtration: 'High-Capacity Multi-Port System',
+      heating: ['High-Efficiency Heat Pump', 'Dual-Zone Heating', 'Solar Panel System'],
+      automation: ['Premium Smart Controls', 'Color-Changing LED Package', 'Water Features Control', 'Salt System Ready']
+    },
+    warranty: {
+      structure: 'Lifetime',
+      surface: '15 Years',
+      equipment: '7 Years'
+    },
+    specifications: {
+      waterCapacity: '22,000 gallons',
+      skimmerSize: 'Triple 10" Wide Mouth Skimmers',
+      drainSize: 'Multiple 8" Main Drains',
+      stepConfiguration: 'Multiple Entry Points with Integrated Spa Access'
+    }
   }
 };
 
