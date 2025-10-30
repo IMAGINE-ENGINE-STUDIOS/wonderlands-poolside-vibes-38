@@ -30,7 +30,7 @@ const GilmerPoolsSection = () => {
           <div className="flex items-center justify-center gap-3 mb-4">
             <Waves className="h-8 w-8 text-primary" />
             <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-teal to-primary bg-clip-text text-transparent">
-              Gilmer Glass Pools Collection
+              Glimerglass Pools Collection
             </h2>
             <Waves className="h-8 w-8 text-primary" />
           </div>
