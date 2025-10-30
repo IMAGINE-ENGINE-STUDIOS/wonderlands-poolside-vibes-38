@@ -92,6 +92,21 @@ const pools: Pool[] = [
   saltSystem: true,
   carbonFiber: false
 },
+// Maxima Premium Fiberglass Pool
+{
+  model: "Maxima",
+  price: 150000,
+  category: 'premium',
+  image: maximaImage,
+  dimensions: "16' × 40'",
+  depth: "3'9\" - 8'6\"",
+  installationTimeWeeks: 12,
+  warrantyYears: "Lifetime",
+  features: ["Premium Fiberglass Construction", "Wonderlands World Collection", "Luxury Design", "Low Maintenance"],
+  heater: false,
+  saltSystem: false,
+  carbonFiber: false
+},
 // Pacific Ridge Concrete Pool
 {
   model: "Pacific Ridge",
@@ -564,19 +579,6 @@ const pools: Pool[] = [
   heater: false,
   saltSystem: true,
   carbonFiber: true
-}, {
-  model: "Maxima",
-  price: 120000,
-  category: 'premium',
-  image: maximaImage,
-  dimensions: "16' × 40'",
-  depth: "3'9\" - 8'6\"",
-  installationTimeWeeks: 8,
-  warrantyYears: "Lifetime",
-  features: ["Fiberglass Construction", "Premium Design", "Large Swimming Area", "10% Discount Applied"],
-  heater: false,
-  saltSystem: false,
-  carbonFiber: true
 }
 ];
 
@@ -751,7 +753,7 @@ const PoolCatalog = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16 px-4">
-                {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
+                {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
               </div>
             </div>
           </div>
@@ -763,7 +765,7 @@ const PoolCatalog = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16">
-            {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
+            {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
           </div>
 
           {/* Pagination Controls */}
