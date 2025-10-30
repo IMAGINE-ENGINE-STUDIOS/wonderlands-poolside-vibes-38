@@ -283,6 +283,46 @@ const lathamPoolsDatabase: Record<string, PoolSpec> = {
       drainSize: 'Multiple 8" Main Drains',
       stepConfiguration: 'Multiple Entry Points with Integrated Spa Access'
     }
+  },
+  'Maxima': {
+    model: 'Maxima',
+    series: 'Premium',
+    dimensions: {
+      length: "40'",
+      width: "16'",
+      shallowEnd: "3'9\"",
+      deepEnd: "8'6\"",
+      volume: "25,000 gallons"
+    },
+    features: [
+      'Premium fiberglass construction',
+      'Spacious swimming area',
+      'Elegant design',
+      'Lifetime structural warranty',
+      'Low maintenance surface',
+      'UV-resistant gel coat finish'
+    ],
+    materials: {
+      shell: 'Premium fiberglass composite',
+      finish: ['UV-resistant gel coat', 'Custom color options'],
+      coping: ['Bullnose coping', 'Cantilever coping']
+    },
+    equipment: {
+      filtration: 'High-efficiency sand or cartridge filter',
+      heating: ['Variable-speed energy-efficient pump', 'Heat pump ready'],
+      automation: ['Chlorine', 'Salt system', 'Mineral system']
+    },
+    warranty: {
+      structure: 'Lifetime',
+      surface: '15 years',
+      equipment: '2 years parts, 1 year labor'
+    },
+    specifications: {
+      waterCapacity: '25,000 gallons',
+      skimmerSize: 'Standard skimmer',
+      drainSize: 'Main drain system',
+      stepConfiguration: 'Entry steps with tanning ledge'
+    }
   }
 };
 
