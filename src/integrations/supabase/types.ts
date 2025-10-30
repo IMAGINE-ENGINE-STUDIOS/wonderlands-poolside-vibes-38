@@ -21,7 +21,7 @@ export type Database = {
           created_at: string
           details: Json | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           resource_id: string | null
           resource_type: string | null
           user_agent: string | null
@@ -32,7 +32,7 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           resource_id?: string | null
           resource_type?: string | null
           user_agent?: string | null
@@ -43,7 +43,7 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           resource_id?: string | null
           resource_type?: string | null
           user_agent?: string | null
@@ -225,7 +225,7 @@ export type Database = {
       }
       conversion_funnels: {
         Row: {
-          average_session_duration: unknown | null
+          average_session_duration: unknown
           bounce_rate: number | null
           campaign_id: string | null
           conversion_rate: number | null
@@ -241,7 +241,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          average_session_duration?: unknown | null
+          average_session_duration?: unknown
           bounce_rate?: number | null
           campaign_id?: string | null
           conversion_rate?: number | null
@@ -257,7 +257,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          average_session_duration?: unknown | null
+          average_session_duration?: unknown
           bounce_rate?: number | null
           campaign_id?: string | null
           conversion_rate?: number | null
@@ -627,7 +627,7 @@ export type Database = {
       page_analytics: {
         Row: {
           accessibility_score: number | null
-          average_session_duration: unknown | null
+          average_session_duration: unknown
           backlinks_count: number | null
           bounce_rate: number | null
           created_at: string
@@ -648,7 +648,7 @@ export type Database = {
         }
         Insert: {
           accessibility_score?: number | null
-          average_session_duration?: unknown | null
+          average_session_duration?: unknown
           backlinks_count?: number | null
           bounce_rate?: number | null
           created_at?: string
@@ -669,7 +669,7 @@ export type Database = {
         }
         Update: {
           accessibility_score?: number | null
-          average_session_duration?: unknown | null
+          average_session_duration?: unknown
           backlinks_count?: number | null
           bounce_rate?: number | null
           created_at?: string
@@ -1171,7 +1171,7 @@ export type Database = {
           clicked_result_id: string | null
           has_results: boolean | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           results_count: number | null
           search_query: string
           search_refinements: Json | null
@@ -1185,7 +1185,7 @@ export type Database = {
           clicked_result_id?: string | null
           has_results?: boolean | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           results_count?: number | null
           search_query: string
           search_refinements?: Json | null
@@ -1199,7 +1199,7 @@ export type Database = {
           clicked_result_id?: string | null
           has_results?: boolean | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           results_count?: number | null
           search_query?: string
           search_refinements?: Json | null
@@ -1457,7 +1457,7 @@ export type Database = {
           current_page: string | null
           device_type: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           is_converted: boolean | null
           landing_page: string | null
           pipeline_stage: string
@@ -1483,7 +1483,7 @@ export type Database = {
           current_page?: string | null
           device_type?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_converted?: boolean | null
           landing_page?: string | null
           pipeline_stage?: string
@@ -1509,7 +1509,7 @@ export type Database = {
           current_page?: string | null
           device_type?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_converted?: boolean | null
           landing_page?: string | null
           pipeline_stage?: string
@@ -1739,16 +1739,13 @@ export type Database = {
           success: boolean
         }[]
       }
-      cleanup_expired_sessions: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      cleanup_expired_sessions: { Args: never; Returns: number }
       get_installer_profile_safe: {
         Args: { installer_uuid: string }
         Returns: Json
       }
       get_public_supplier_info: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           company_logo_url: string
           company_name: string
@@ -1761,26 +1758,11 @@ export type Database = {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
-      is_admin_user: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_consumer: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_current_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_main_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_supplier: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_admin_user: { Args: never; Returns: boolean }
+      is_consumer: { Args: never; Returns: boolean }
+      is_current_admin: { Args: never; Returns: boolean }
+      is_main_admin: { Args: never; Returns: boolean }
+      is_supplier: { Args: never; Returns: boolean }
       log_admin_action: {
         Args: {
           p_action: string
@@ -1791,10 +1773,7 @@ export type Database = {
         }
         Returns: string
       }
-      mask_sensitive_data: {
-        Args: { data: string }
-        Returns: string
-      }
+      mask_sensitive_data: { Args: { data: string }; Returns: string }
       promote_user_to_main_admin: {
         Args: { user_email: string }
         Returns: boolean

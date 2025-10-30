@@ -319,17 +319,12 @@ const SurveyQuoteTool = ({
       return null;
     }
 
-    // Check if user is authenticated
-    if (!user) {
-      setShowAuthPrompt(true);
-      return null;
-    }
     setIsSaving(true);
     try {
       const quoteAmount = calculateQuote();
       const recommendations = getIncludedItems();
       const quotationData = {
-        user_id: user.id,
+        user_id: user?.id || null, // Allow NULL for guest quotes
         name: surveyData.name,
         email: surveyData.email,
         phone: surveyData.phone || null,
@@ -367,8 +362,10 @@ const SurveyQuoteTool = ({
         return null;
       }
       toast({
-        title: "Quotation Saved!",
-        description: "Your information has been securely saved to our database."
+        title: "Quote Saved!",
+        description: user 
+          ? "Your quote has been saved to your account."
+          : "Your quote request has been submitted. We'll contact you at " + surveyData.email
       });
       return data;
     } catch (error) {

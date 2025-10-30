@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface UserQuotation {
   id: string;
+  user_id?: string | null;
   name: string;
   email: string;
   phone: string;
@@ -212,7 +213,14 @@ const AdminQuotesManager = () => {
                 <TableRow key={quote.id}>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{quote.name}</p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium">{quote.name}</p>
+                        {!quote.user_id ? (
+                          <Badge variant="outline" className="text-xs">Guest</Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs bg-primary/10">Registered</Badge>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground">{quote.email}</p>
                     </div>
                   </TableCell>
