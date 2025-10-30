@@ -16,7 +16,6 @@ import SaunaSection from "@/components/SaunaSection";
 import Footer from "@/components/Footer";
 import LazySection from "@/components/LazySection";
 import lathamGilmerBanner from "@/assets/latham-gilmer-banner.jpeg";
-import poolBanner2 from "@/assets/pool-banner-2.jpg";
 const Index = () => {
   useEffect(() => {
     // Handle navigation to sections from URL hash
@@ -51,15 +50,6 @@ const Index = () => {
       <LazySection>
         <GilmerPoolsSection />
       </LazySection>
-      
-      {/* Banner between Wonderlands and Latham */}
-      <div className="w-full">
-        <img 
-          src={poolBanner2} 
-          alt="Luxury Pool with Mosaic Tiles" 
-          className="w-full h-auto object-cover"
-        />
-      </div>
       
       <div id="spas" />
       <LazySection eager={true}>

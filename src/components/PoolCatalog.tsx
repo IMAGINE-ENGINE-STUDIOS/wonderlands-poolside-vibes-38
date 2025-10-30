@@ -758,6 +758,15 @@ const PoolCatalog = () => {
             </div>
           </div>
 
+          {/* Banner between Wonderlands and Latham */}
+          <div className="w-full my-12">
+            <img 
+              src="/lovable-uploads/Astoria_Maxima_029.jpg" 
+              alt="Luxury Pool with Mosaic Tiles" 
+              className="w-full h-auto object-cover rounded-lg"
+            />
+          </div>
+
           {/* Latham Pools Collection */}
           <div className="text-center mb-8 sm:mb-12 lg:mb-16 mt-20">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">Latham Pools Collection</h2>
