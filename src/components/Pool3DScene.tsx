@@ -90,6 +90,7 @@ const PoolMesh: React.FC<{
   linerTextureOffset = [0, 0] 
 }) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
+  const [previousLinerTexture, setPreviousLinerTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
   const poolDimensions = useMemo(() => {
@@ -121,6 +122,9 @@ const PoolMesh: React.FC<{
           texture.wrapS = THREE.RepeatWrapping;
           texture.wrapT = THREE.RepeatWrapping;
           texture.needsUpdate = true;
+          
+          // Store the previous texture before setting the new one
+          setPreviousLinerTexture(linerTexture);
           setLinerTexture(texture);
         })
         .catch(err => {
@@ -128,13 +132,15 @@ const PoolMesh: React.FC<{
           setLinerTexture(null);
         });
     }
-
-    return () => {
-      if (linerTexture) {
-        disposeTexture(linerTexture);
-      }
-    };
   }, [linerTextureUrl, poolDimensions, linerTextureScale, linerTextureOffset]);
+
+  // Dispose of previous texture after new one is loaded
+  useEffect(() => {
+    if (previousLinerTexture) {
+      disposeTexture(previousLinerTexture);
+      setPreviousLinerTexture(null);
+    }
+  }, [previousLinerTexture]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
