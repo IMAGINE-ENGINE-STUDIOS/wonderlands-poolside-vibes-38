@@ -343,8 +343,16 @@ const CopingMesh: React.FC<{
   const [copingTexture, setCopingTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
-  const poolPerimeter = useMemo(() => {
-    if (poolPoints.length < 2) return 0;
+  // Calculate pool bounds for coping dimensions
+  const copingDimensions = useMemo(() => {
+    if (poolPoints.length < 3) return { width: 0, length: 0, perimeter: 0 };
+    
+    const xs = poolPoints.map(p => p.x);
+    const ys = poolPoints.map(p => p.y);
+    const width = Math.max(...xs) - Math.min(...xs);
+    const length = Math.max(...ys) - Math.min(...ys);
+    
+    // Calculate perimeter for texture mapping
     let perimeter = 0;
     for (let i = 0; i < poolPoints.length; i++) {
       const p1 = poolPoints[i];
@@ -353,14 +361,15 @@ const CopingMesh: React.FC<{
       const dy = p2.y - p1.y;
       perimeter += Math.sqrt(dx * dx + dy * dy);
     }
-    return perimeter;
+    
+    return { width, length, perimeter };
   }, [poolPoints]);
 
   useEffect(() => {
     if (copingTextureUrl) {
-      // Coping texture: tiles along perimeter with scale control
-      const repeatX = Math.max(1, (poolPerimeter / 1) * copingTextureScale);
-      const repeatY = copingTextureScale;
+      // Coping texture: 1ft tiles along perimeter, scaled by control
+      const repeatX = (copingDimensions.perimeter / 1) / copingTextureScale;
+      const repeatY = 1 / copingTextureScale;
       
       textureCache.loadTexture(copingTextureUrl, { x: repeatX, y: repeatY })
         .then(texture => {
@@ -381,7 +390,7 @@ const CopingMesh: React.FC<{
         disposeTexture(copingTexture);
       }
     };
-  }, [copingTextureUrl, poolPerimeter, copingTextureScale, copingTextureOffset]);
+  }, [copingTextureUrl, copingDimensions, copingTextureScale, copingTextureOffset]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
@@ -397,101 +406,133 @@ const CopingMesh: React.FC<{
     return () => clearInterval(interval);
   }, [selectedCategory]);
 
+  // Create rectangular coping frame geometry
   const copingGeometry = useMemo(() => {
     if (poolPoints.length < 3) {
       return new THREE.BoxGeometry(1, 0.5, 0.5);
     }
 
-    const minX = Math.min(...poolPoints.map(p => p.x));
-    const maxX = Math.max(...poolPoints.map(p => p.x));
-    const minY = Math.min(...poolPoints.map(p => p.y));
-    const maxY = Math.max(...poolPoints.map(p => p.y));
+    // Calculate pool bounds
+    const xs = poolPoints.map(p => p.x);
+    const ys = poolPoints.map(p => p.y);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
+    
+    const poolWidth = maxX - minX;
+    const poolLength = maxY - minY;
 
-    const normalizedPoints = poolPoints.map(p => ({
-      x: p.x - centerX,
-      z: p.y - centerY
-    }));
+    // COORDINATE SYSTEM:
+    // Origin (0,0,0) = pool center at water surface
+    // X-axis = pool width direction
+    // Y-axis = vertical (up/down), water surface at y=0
+    // Z-axis = pool length direction
+
+    const copingWidth = 1.0; // 1 foot wide coping
+    const copingThickness = 0.25; // 3 inches thick (0.25 feet)
+
+    // Pool outer edge (at pool perimeter)
+    const innerHalfWidth = poolWidth / 2;
+    const innerHalfLength = poolLength / 2;
+    
+    // Coping outer edge (1 foot beyond pool edge)
+    const outerHalfWidth = innerHalfWidth + copingWidth;
+    const outerHalfLength = innerHalfLength + copingWidth;
 
     const vertices: number[] = [];
     const indices: number[] = [];
     const uvs: number[] = [];
-    
-    // Coping: 1ft long x 6in (0.5ft) wide x 4in (0.333ft) tall
-    const copingWidth = 0.5;     // 6 inches = 0.5 feet wide
-    const copingHeight = 0.333;  // 4 inches = 0.333 feet tall
-    const copingLength = 1.0;    // 1 foot along perimeter
-    
-    for (let i = 0; i < normalizedPoints.length; i++) {
-      const p1 = normalizedPoints[i];
-      const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
-      
-      const segmentLength = Math.sqrt(
-        Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2)
-      );
-      
-      // Calculate outward normal (pointing away from pool)
-      const dx = p2.x - p1.x;
-      const dz = p2.z - p1.z;
-      const nx = -dz / segmentLength;
-      const nz = dx / segmentLength;
-      
+
+    // Create 4 rectangular strips forming a frame
+    const strips = [
+      // Top strip (along +Z edge)
+      { 
+        corners: [
+          [-outerHalfWidth, 0, outerHalfLength],  // outer top-left
+          [outerHalfWidth, 0, outerHalfLength],   // outer top-right
+          [innerHalfWidth, 0, innerHalfLength],   // inner top-right
+          [-innerHalfWidth, 0, innerHalfLength]   // inner top-left
+        ],
+        uStart: 0,
+        length: poolWidth + copingWidth * 2
+      },
+      // Right strip (along +X edge)
+      {
+        corners: [
+          [outerHalfWidth, 0, outerHalfLength],   // outer top-right
+          [outerHalfWidth, 0, -outerHalfLength],  // outer bottom-right
+          [innerHalfWidth, 0, -innerHalfLength],  // inner bottom-right
+          [innerHalfWidth, 0, innerHalfLength]    // inner top-right
+        ],
+        uStart: (poolWidth + copingWidth * 2),
+        length: poolLength + copingWidth * 2
+      },
+      // Bottom strip (along -Z edge)
+      {
+        corners: [
+          [outerHalfWidth, 0, -outerHalfLength],  // outer bottom-right
+          [-outerHalfWidth, 0, -outerHalfLength], // outer bottom-left
+          [-innerHalfWidth, 0, -innerHalfLength], // inner bottom-left
+          [innerHalfWidth, 0, -innerHalfLength]   // inner bottom-right
+        ],
+        uStart: (poolWidth + copingWidth * 2) + (poolLength + copingWidth * 2),
+        length: poolWidth + copingWidth * 2
+      },
+      // Left strip (along -X edge)
+      {
+        corners: [
+          [-outerHalfWidth, 0, -outerHalfLength], // outer bottom-left
+          [-outerHalfWidth, 0, outerHalfLength],  // outer top-left
+          [-innerHalfWidth, 0, innerHalfLength],  // inner top-left
+          [-innerHalfWidth, 0, -innerHalfLength]  // inner bottom-left
+        ],
+        uStart: (poolWidth + copingWidth * 2) * 2 + (poolLength + copingWidth * 2),
+        length: poolLength + copingWidth * 2
+      }
+    ];
+
+    strips.forEach(strip => {
       const baseIdx = vertices.length / 3;
       
-      // Top surface vertices (coping sits FLUSH with deck at y=0)
-      // Inner edge (at pool edge, at deck level)
-      vertices.push(p1.x, 0, p1.z);
-      vertices.push(p2.x, 0, p2.z);
+      // Add 4 corner vertices for this strip
+      strip.corners.forEach(([x, y, z], i) => {
+        vertices.push(x, y, z);
+        
+        // UV mapping: stretch texture along perimeter, 1 unit across width
+        const u = (strip.uStart + (i < 2 ? strip.length : 0)) / copingDimensions.perimeter;
+        const v = i % 2 === 0 ? 1 : 0; // outer edge = 1, inner edge = 0
+        uvs.push(u, v);
+      });
       
-      // Outer edge (6 inches away from pool, top of coping raised)
-      vertices.push(
-        p1.x + nx * copingWidth,
-        copingHeight,
-        p1.z + nz * copingWidth
-      );
-      vertices.push(
-        p2.x + nx * copingWidth,
-        copingHeight,
-        p2.z + nz * copingWidth
-      );
-      
-      // UV mapping: 1ft x 0.5ft tiles along perimeter
-      const numTiles = segmentLength / copingLength;
-      uvs.push(
-        0, 0,
-        numTiles, 0,
-        0, 1,
-        numTiles, 1
-      );
-      
-      // Top face indices (visible from above)
+      // Two triangles forming the rectangular strip
       indices.push(
-        baseIdx, baseIdx + 2, baseIdx + 3,
-        baseIdx, baseIdx + 3, baseIdx + 1
+        baseIdx, baseIdx + 1, baseIdx + 2,
+        baseIdx, baseIdx + 2, baseIdx + 3
       );
-    }
-    
-    const geom = new THREE.BufferGeometry();
-    geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-    geom.setIndex(indices);
-    geom.computeVertexNormals();
-    
-    return geom;
-  }, [poolPoints]);
+    });
 
-  if (!copingGeometry) return null;
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+
+    return geometry;
+  }, [poolPoints, copingDimensions]);
 
   const isSelected = selectedCategory === 'coping';
 
   return (
     <mesh geometry={copingGeometry} position={[0, 0, 0]}>
       <meshStandardMaterial
+        color={copingTexture ? "#ffffff" : "#8B7355"}
         map={copingTexture}
-        color="#ffffff"
-        roughness={0.7}
-        metalness={0.1}
+        roughness={0.6}
+        metalness={0.0}
+        side={THREE.DoubleSide}
         emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
         emissiveIntensity={pulseIntensity * 0.5}
       />
