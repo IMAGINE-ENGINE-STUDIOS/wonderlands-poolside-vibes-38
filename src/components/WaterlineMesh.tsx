@@ -45,6 +45,9 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       textureCache.loadTexture(waterlineTextureUrl, { x: repeatX, y: repeatY })
         .then(texture => {
           texture.offset.set(waterlineTextureOffset[0], waterlineTextureOffset[1]);
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.needsUpdate = true;
           setWaterlineTexture(texture);
         })
         .catch(err => {

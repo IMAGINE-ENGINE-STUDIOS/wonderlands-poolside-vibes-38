@@ -365,6 +365,9 @@ const CopingMesh: React.FC<{
       textureCache.loadTexture(copingTextureUrl, { x: repeatX, y: repeatY })
         .then(texture => {
           texture.offset.set(copingTextureOffset[0], copingTextureOffset[1]);
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.needsUpdate = true;
           setCopingTexture(texture);
         })
         .catch(err => {
@@ -525,6 +528,9 @@ const DeckMesh: React.FC<{
       textureCache.loadTexture(paverTextureUrl, { x: repeatX, y: repeatY })
         .then(texture => {
           texture.offset.set(paverTextureOffset[0], paverTextureOffset[1]);
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.needsUpdate = true;
           setPaverTexture(texture);
         })
         .catch(err => {
