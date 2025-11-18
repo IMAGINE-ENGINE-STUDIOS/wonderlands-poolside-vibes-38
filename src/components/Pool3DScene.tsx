@@ -396,8 +396,23 @@ const CopingMesh: React.FC<{
       const repeatX = (copingDimensions.perimeter / 1) / copingTextureScale;
       const repeatY = 1 / copingTextureScale;
       
+      // Check if we already have the correct texture loaded
+      const currentTextureUrl = copingTexture?.userData?.url;
+      if (currentTextureUrl === copingTextureUrl && 
+          copingTexture?.repeat.x === repeatX && 
+          copingTexture?.repeat.y === repeatY) {
+        // Just update offset if needed
+        if (copingTexture.offset.x !== copingTextureOffset[0] || 
+            copingTexture.offset.y !== copingTextureOffset[1]) {
+          copingTexture.offset.set(copingTextureOffset[0], copingTextureOffset[1]);
+          copingTexture.needsUpdate = true;
+        }
+        return; // Don't reload the same texture
+      }
+      
       textureCache.loadTexture(copingTextureUrl, { x: repeatX, y: repeatY })
         .then(texture => {
+          texture.userData.url = copingTextureUrl; // Track URL
           texture.offset.set(copingTextureOffset[0], copingTextureOffset[1]);
           texture.wrapS = THREE.RepeatWrapping;
           texture.wrapT = THREE.RepeatWrapping;
@@ -415,7 +430,7 @@ const CopingMesh: React.FC<{
         disposeTexture(copingTexture);
       }
     };
-  }, [copingTextureUrl, copingDimensions, copingTextureScale, copingTextureOffset]);
+  }, [copingTextureUrl, copingDimensions, copingTextureScale, copingTextureOffset, copingTexture]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
@@ -625,8 +640,23 @@ const DeckMesh: React.FC<{
       const repeatX = (deckDimensions.width / 1) * paverTextureScale;
       const repeatY = (deckDimensions.length / 1) * paverTextureScale;
       
+      // Check if we already have the correct texture loaded
+      const currentTextureUrl = paverTexture?.userData?.url;
+      if (currentTextureUrl === paverTextureUrl && 
+          paverTexture?.repeat.x === repeatX && 
+          paverTexture?.repeat.y === repeatY) {
+        // Just update offset if needed
+        if (paverTexture.offset.x !== paverTextureOffset[0] || 
+            paverTexture.offset.y !== paverTextureOffset[1]) {
+          paverTexture.offset.set(paverTextureOffset[0], paverTextureOffset[1]);
+          paverTexture.needsUpdate = true;
+        }
+        return; // Don't reload the same texture
+      }
+      
       textureCache.loadTexture(paverTextureUrl, { x: repeatX, y: repeatY })
         .then(texture => {
+          texture.userData.url = paverTextureUrl; // Track URL
           texture.offset.set(paverTextureOffset[0], paverTextureOffset[1]);
           texture.wrapS = THREE.RepeatWrapping;
           texture.wrapT = THREE.RepeatWrapping;
@@ -644,7 +674,7 @@ const DeckMesh: React.FC<{
         disposeTexture(paverTexture);
       }
     };
-  }, [paverTextureUrl, deckDimensions, paverTextureScale, paverTextureOffset]);
+  }, [paverTextureUrl, deckDimensions, paverTextureScale, paverTextureOffset, paverTexture]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
