@@ -149,6 +149,8 @@ export function productToScene(
       finish: {
         url: linerTextureUrl,
         name: selectedExtras.finish || selectedExtras.linerOption || 'Default',
+        scale: 1,
+        offset: [0, 0],
         roughness: 0.2,
         metalness: 0.1
       },
