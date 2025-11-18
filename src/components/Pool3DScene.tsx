@@ -5,10 +5,6 @@ import { textureCache, disposeTexture } from '@/utils/textureCache';
 import { WaterlineMesh } from './WaterlineMesh';
 import earcut from 'earcut';
 import grassTexture from '@/assets/grass-texture.avif';
-import { PoolMesh as NewPoolMesh } from './pool3d/PoolMesh';
-import { CopingMesh as NewCopingMesh } from './pool3d/CopingMesh';
-import { DeckMesh as NewDeckMesh } from './pool3d/DeckMesh';
-import { WaterMesh } from './pool3d/WaterMesh';
 
 interface Point {
   x: number;
