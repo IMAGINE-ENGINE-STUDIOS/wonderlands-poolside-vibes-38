@@ -64,6 +64,8 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   const [annotationPrice, setAnnotationPrice] = useState('');
   const [selectedTextureCategory, setSelectedTextureCategory] = useState<'finishes' | 'pavers' | 'coping' | 'waterline'>('finishes');
   const [textureScale, setTextureScale] = useState(1);
+  const [textureOffsetX, setTextureOffsetX] = useState(0);
+  const [textureOffsetY, setTextureOffsetY] = useState(0);
   const [sunTime, setSunTime] = useState(0.6); // 0 = sunrise, 0.5 = noon, 1 = sunset
 
   const handleAddNote = () => {
@@ -208,9 +210,34 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                 <Slider
                   value={[textureScale]}
                   onValueChange={(value) => setTextureScale(value[0])}
-                  min={0.5}
-                  max={3}
+                  min={0.1}
+                  max={5}
                   step={0.1}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Texture Offset Controls */}
+              <div className="space-y-2">
+                <Label className="text-xs">Offset X: {textureOffsetX.toFixed(2)}</Label>
+                <Slider
+                  value={[textureOffsetX]}
+                  onValueChange={(value) => setTextureOffsetX(value[0])}
+                  min={-2}
+                  max={2}
+                  step={0.01}
+                  className="w-full"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs">Offset Y: {textureOffsetY.toFixed(2)}</Label>
+                <Slider
+                  value={[textureOffsetY]}
+                  onValueChange={(value) => setTextureOffsetY(value[0])}
+                  min={-2}
+                  max={2}
+                  step={0.01}
                   className="w-full"
                 />
               </div>
@@ -228,7 +255,11 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                   <button
                     key={texture.url}
                     onClick={() => {
-                      const scaledTexture = { ...texture, scale: textureScale };
+                      const scaledTexture = { 
+                        ...texture, 
+                        scale: textureScale,
+                        offset: [textureOffsetX, textureOffsetY] as [number, number]
+                      };
                       if (selectedTextureCategory === 'finishes') {
                         onTextureChange('pool', scaledTexture);
                       } else if (selectedTextureCategory === 'pavers') {

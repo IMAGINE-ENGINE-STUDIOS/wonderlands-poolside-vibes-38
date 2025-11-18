@@ -64,6 +64,9 @@ export interface Pool3DSceneProps {
   paverTextureScale?: number;
   copingTextureScale?: number;
   waterlineTextureScale?: number;
+  paverTextureOffset?: [number, number];
+  copingTextureOffset?: [number, number];
+  waterlineTextureOffset?: [number, number];
 }
 
 const PoolMesh: React.FC<{
@@ -315,7 +318,8 @@ const CopingMesh: React.FC<{
   copingTextureUrl?: string;
   selectedCategory?: string | null;
   copingTextureScale?: number;
-}> = ({ poolPoints, copingTextureUrl, selectedCategory, copingTextureScale = 1 }) => {
+  copingTextureOffset?: [number, number];
+}> = ({ poolPoints, copingTextureUrl, selectedCategory, copingTextureScale = 1, copingTextureOffset = [0, 0] }) => {
   const [copingTexture, setCopingTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
@@ -339,7 +343,10 @@ const CopingMesh: React.FC<{
       const repeatY = copingTextureScale;
       
       textureCache.loadTexture(copingTextureUrl, { x: repeatX, y: repeatY })
-        .then(setCopingTexture)
+        .then(texture => {
+          texture.offset.set(copingTextureOffset[0], copingTextureOffset[1]);
+          setCopingTexture(texture);
+        })
         .catch(err => {
           console.error('Failed to load coping texture');
           setCopingTexture(null);
@@ -351,7 +358,7 @@ const CopingMesh: React.FC<{
         disposeTexture(copingTexture);
       }
     };
-  }, [copingTextureUrl, poolPerimeter, copingTextureScale]);
+  }, [copingTextureUrl, poolPerimeter, copingTextureScale, copingTextureOffset]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
@@ -476,7 +483,8 @@ const DeckMesh: React.FC<{
   paverTextureUrl?: string;
   selectedCategory?: string | null;
   paverTextureScale?: number;
-}> = ({ hardscapePoints, poolPoints, features, paverTextureUrl, selectedCategory, paverTextureScale = 1 }) => {
+  paverTextureOffset?: [number, number];
+}> = ({ hardscapePoints, poolPoints, features, paverTextureUrl, selectedCategory, paverTextureScale = 1, paverTextureOffset = [0, 0] }) => {
   const [paverTexture, setPaverTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
@@ -495,7 +503,10 @@ const DeckMesh: React.FC<{
       const repeatY = (deckDimensions.length / 1) * paverTextureScale;
       
       textureCache.loadTexture(paverTextureUrl, { x: repeatX, y: repeatY })
-        .then(setPaverTexture)
+        .then(texture => {
+          texture.offset.set(paverTextureOffset[0], paverTextureOffset[1]);
+          setPaverTexture(texture);
+        })
         .catch(err => {
           console.error('Failed to load paver texture, using default');
           setPaverTexture(null);
@@ -507,7 +518,7 @@ const DeckMesh: React.FC<{
         disposeTexture(paverTexture);
       }
     };
-  }, [paverTextureUrl, deckDimensions, paverTextureScale]);
+  }, [paverTextureUrl, deckDimensions, paverTextureScale, paverTextureOffset]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
@@ -892,7 +903,10 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   fenceHeight = 6,
   paverTextureScale = 1,
   copingTextureScale = 1,
-  waterlineTextureScale = 1
+  waterlineTextureScale = 1,
+  paverTextureOffset = [0, 0],
+  copingTextureOffset = [0, 0],
+  waterlineTextureOffset = [0, 0]
 }) => {
   return (
     <>
@@ -942,6 +956,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
             paverTextureUrl={paverTextureUrl}
             selectedCategory={selectedCategory}
             paverTextureScale={paverTextureScale}
+            paverTextureOffset={paverTextureOffset}
           />
         </group>
       )}
@@ -953,6 +968,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           copingTextureUrl={copingTextureUrl}
           selectedCategory={selectedCategory}
           copingTextureScale={copingTextureScale}
+          copingTextureOffset={copingTextureOffset}
         />
       </group>
 
@@ -963,6 +979,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           waterlineTextureUrl={waterlineTextureUrl}
           selectedCategory={selectedCategory}
           waterlineTextureScale={waterlineTextureScale}
+          waterlineTextureOffset={waterlineTextureOffset}
         />
       </group>
 

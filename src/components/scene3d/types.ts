@@ -22,6 +22,7 @@ export interface TextureConfig {
   url: string;
   name: string;
   scale?: number;
+  offset?: [number, number];
   repeat?: [number, number];
   roughness?: number;
   metalness?: number;

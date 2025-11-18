@@ -266,6 +266,9 @@ export function UnifiedPoolVisualizer({
             paverTextureScale={scene.deck.paver.scale || 1}
             copingTextureScale={scene.deck.coping.scale || 1}
             waterlineTextureScale={scene.deck.waterline?.scale || 1}
+            paverTextureOffset={scene.deck.paver.offset || [0, 0]}
+            copingTextureOffset={scene.deck.coping.offset || [0, 0]}
+            waterlineTextureOffset={scene.deck.waterline?.offset || [0, 0]}
           />
           
           {/* Annotations */}
