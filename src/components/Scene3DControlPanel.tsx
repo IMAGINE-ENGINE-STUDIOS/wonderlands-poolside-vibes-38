@@ -238,15 +238,75 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
             </div>
 
             {selectedObject && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={onCenterCamera}
-              >
-                <Camera className="h-3 w-3 mr-2" />
-                Center Camera
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={onCenterCamera}
+                >
+                  <Camera className="h-3 w-3 mr-2" />
+                  Center Camera
+                </Button>
+
+                {/* X, Y, Z Position Controls */}
+                <div className="space-y-2 mt-3">
+                  <Label className="text-xs font-semibold">Position (X, Y, Z)</Label>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs w-6">X:</Label>
+                      <Slider
+                        value={[scene.pool.position[0]]}
+                        onValueChange={(value) => {
+                          const updatedScene = { ...scene };
+                          updatedScene.pool.position = [value[0], scene.pool.position[1], scene.pool.position[2]];
+                          onSceneChange(updatedScene);
+                        }}
+                        min={-100}
+                        max={100}
+                        step={0.1}
+                        className="flex-1"
+                      />
+                      <span className="text-xs w-12 text-right">{scene.pool.position[0].toFixed(1)}ft</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs w-6">Y:</Label>
+                      <Slider
+                        value={[scene.pool.position[1]]}
+                        onValueChange={(value) => {
+                          const updatedScene = { ...scene };
+                          updatedScene.pool.position = [scene.pool.position[0], value[0], scene.pool.position[2]];
+                          onSceneChange(updatedScene);
+                        }}
+                        min={-100}
+                        max={100}
+                        step={0.1}
+                        className="flex-1"
+                      />
+                      <span className="text-xs w-12 text-right">{scene.pool.position[1].toFixed(1)}ft</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs w-6">Z:</Label>
+                      <Slider
+                        value={[scene.pool.position[2]]}
+                        onValueChange={(value) => {
+                          const updatedScene = { ...scene };
+                          updatedScene.pool.position = [scene.pool.position[0], scene.pool.position[1], value[0]];
+                          onSceneChange(updatedScene);
+                        }}
+                        min={-100}
+                        max={100}
+                        step={0.1}
+                        className="flex-1"
+                      />
+                      <span className="text-xs w-12 text-right">{scene.pool.position[2].toFixed(1)}ft</span>
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
           </div>
 
