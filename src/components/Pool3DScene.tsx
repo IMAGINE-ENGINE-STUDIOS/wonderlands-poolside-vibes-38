@@ -5,6 +5,10 @@ import { textureCache, disposeTexture } from '@/utils/textureCache';
 import { WaterlineMesh } from './WaterlineMesh';
 import earcut from 'earcut';
 import grassTexture from '@/assets/grass-texture.avif';
+import { PoolMesh as NewPoolMesh } from './pool3d/PoolMesh';
+import { CopingMesh as NewCopingMesh } from './pool3d/CopingMesh';
+import { DeckMesh as NewDeckMesh } from './pool3d/DeckMesh';
+import { WaterMesh } from './pool3d/WaterMesh';
 
 interface Point {
   x: number;
@@ -677,15 +681,30 @@ const FenceMesh: React.FC<{
   );
 };
 
-// Grass Terrain Component with Pool Cutout
+// Grass Terrain Component with Precise Pool Cutout
 const GrassTerrain: React.FC<{ poolPoints: Point[] }> = ({ poolPoints }) => {
   const texture = useTexture(grassTexture);
   
   const terrainGeometry = useMemo(() => {
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(200, 200); // More repetitions for larger terrain
+    texture.repeat.set(200, 200);
     
-    // Create the large terrain shape (10000ft x 10000ft)
+    if (poolPoints.length < 3) {
+      // No pool, just flat terrain
+      const geo = new THREE.PlaneGeometry(10000, 10000);
+      geo.rotateX(-Math.PI / 2);
+      return geo;
+    }
+
+    // Get pool center
+    const minX = Math.min(...poolPoints.map(p => p.x));
+    const maxX = Math.max(...poolPoints.map(p => p.x));
+    const minY = Math.min(...poolPoints.map(p => p.y));
+    const maxY = Math.max(...poolPoints.map(p => p.y));
+    const poolCenterX = (minX + maxX) / 2;
+    const poolCenterY = (minY + maxY) / 2;
+    
+    // Create terrain shape (10000ft x 10000ft centered at origin)
     const terrainShape = new THREE.Shape();
     terrainShape.moveTo(-5000, -5000);
     terrainShape.lineTo(5000, -5000);
@@ -693,48 +712,53 @@ const GrassTerrain: React.FC<{ poolPoints: Point[] }> = ({ poolPoints }) => {
     terrainShape.lineTo(-5000, 5000);
     terrainShape.closePath();
     
-    // Create pool hole with coping offset (3ft outside pool for coping)
-    const copingOffset = 1.5; // 1.5ft coping width
+    // Create pool cutout hole - EXACTLY at coping outer edge (1ft from pool edge)
+    const copingWidth = 1.0;
     const poolHole = new THREE.Path();
     
-    if (poolPoints.length > 0) {
-      // Expand pool points outward for coping
-      const expandedPoints = poolPoints.map((point, i) => {
-        const prevPoint = poolPoints[(i - 1 + poolPoints.length) % poolPoints.length];
-        const nextPoint = poolPoints[(i + 1) % poolPoints.length];
-        
-        // Calculate outward normal
-        const edge1X = point.x - prevPoint.x;
-        const edge1Y = point.y - prevPoint.y;
-        const edge2X = nextPoint.x - point.x;
-        const edge2Y = nextPoint.y - point.y;
-        
-        const normal1X = -edge1Y;
-        const normal1Y = edge1X;
-        const normal2X = -edge2Y;
-        const normal2Y = edge2X;
-        
-        const len1 = Math.sqrt(normal1X * normal1X + normal1Y * normal1Y);
-        const len2 = Math.sqrt(normal2X * normal2X + normal2Y * normal2Y);
-        
-        const avgNormalX = (normal1X / len1 + normal2X / len2) / 2;
-        const avgNormalY = (normal1Y / len1 + normal2Y / len2) / 2;
-        const avgLen = Math.sqrt(avgNormalX * avgNormalX + avgNormalY * avgNormalY);
-        
-        return {
-          x: point.x + (avgNormalX / avgLen) * copingOffset,
-          y: point.y + (avgNormalY / avgLen) * copingOffset
-        };
-      });
+    // Calculate expanded pool boundary for coping
+    poolPoints.forEach((point, i) => {
+      const prevPoint = poolPoints[(i - 1 + poolPoints.length) % poolPoints.length];
+      const nextPoint = poolPoints[(i + 1) % poolPoints.length];
       
-      poolHole.moveTo(expandedPoints[0].x, expandedPoints[0].y);
-      for (let i = 1; i < expandedPoints.length; i++) {
-        poolHole.lineTo(expandedPoints[i].x, expandedPoints[i].y);
+      // Vectors to adjacent points
+      const toPrev = { x: prevPoint.x - point.x, y: prevPoint.y - point.y };
+      const toNext = { x: nextPoint.x - point.x, y: nextPoint.y - point.y };
+      
+      // Normalize
+      const lenPrev = Math.sqrt(toPrev.x * toPrev.x + toPrev.y * toPrev.y);
+      const lenNext = Math.sqrt(toNext.x * toNext.x + toNext.y * toNext.y);
+      toPrev.x /= lenPrev;
+      toPrev.y /= lenPrev;
+      toNext.x /= lenNext;
+      toNext.y /= lenNext;
+      
+      // Perpendicular outward normals
+      const normalPrev = { x: toPrev.y, y: -toPrev.x };
+      const normalNext = { x: -toNext.y, y: toNext.x };
+      
+      // Average outward direction
+      const avgNormal = {
+        x: (normalPrev.x + normalNext.x) / 2,
+        y: (normalPrev.y + normalNext.y) / 2
+      };
+      const avgLen = Math.sqrt(avgNormal.x * avgNormal.x + avgNormal.y * avgNormal.y);
+      avgNormal.x /= avgLen;
+      avgNormal.y /= avgLen;
+      
+      // Expand point outward by coping width
+      const expandedX = point.x + avgNormal.x * copingWidth;
+      const expandedY = point.y + avgNormal.y * copingWidth;
+      
+      if (i === 0) {
+        poolHole.moveTo(expandedX, expandedY);
+      } else {
+        poolHole.lineTo(expandedX, expandedY);
       }
-      poolHole.closePath();
-      
-      terrainShape.holes.push(poolHole);
-    }
+    });
+    poolHole.closePath();
+    
+    terrainShape.holes.push(poolHole);
     
     // Create geometry from shape
     const geometry = new THREE.ShapeGeometry(terrainShape);
@@ -744,7 +768,7 @@ const GrassTerrain: React.FC<{ poolPoints: Point[] }> = ({ poolPoints }) => {
   }, [poolPoints, texture]);
   
   return (
-    <mesh geometry={terrainGeometry} position={[0, -0.01, 0]} receiveShadow>
+    <mesh geometry={terrainGeometry} position={[0, -0.02, 0]} receiveShadow>
       <meshStandardMaterial map={texture} side={THREE.DoubleSide} />
     </mesh>
   );
@@ -934,9 +958,9 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         infiniteGrid={true}
       />
 
+      {/* NEW INTEGRATED POOL MODEL */}
       <group onClick={() => onSelectCategory?.('pool')}>
-        <PoolMesh
-          key={linerTextureUrl}
+        <NewPoolMesh
           points={points}
           depthPoints={depthPoints}
           linerTextureUrl={linerTextureUrl}
@@ -945,10 +969,13 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         />
       </group>
 
+      {/* Water Surface */}
+      <WaterMesh poolPoints={points} />
+
+      {/* Deck - sits flush at y=0 */}
       {hardscapePoints && hardscapePoints.length > 0 && (
         <group onClick={() => onSelectCategory?.('deck')}>
-          <DeckMesh
-            key={paverTextureUrl}
+          <NewDeckMesh
             hardscapePoints={hardscapePoints}
             poolPoints={points}
             features={features || []}
@@ -958,18 +985,18 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         </group>
       )}
 
+      {/* Coping - sits on deck, extends over pool edge */}
       <group onClick={() => onSelectCategory?.('coping')}>
-        <CopingMesh
-          key={copingTextureUrl}
+        <NewCopingMesh
           poolPoints={points}
           copingTextureUrl={copingTextureUrl}
           selectedCategory={selectedCategory}
         />
       </group>
 
+      {/* Waterline Tile */}
       <group onClick={() => onSelectCategory?.('waterline')}>
         <WaterlineMesh
-          key={waterlineTextureUrl}
           poolPoints={points}
           waterlineTextureUrl={waterlineTextureUrl}
           selectedCategory={selectedCategory}
