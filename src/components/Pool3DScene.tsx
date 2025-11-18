@@ -541,10 +541,11 @@ const CopingMesh: React.FC<{
       strip.corners.forEach(([x, y, z], i) => {
         vertices.push(x, y, z);
         
-        // UV mapping: stretch texture along perimeter, 1 unit across width
-        const u = (strip.uStart + (i < 2 ? strip.length : 0)) / copingDimensions.perimeter;
-        const v = i % 2 === 0 ? 1 : 0; // outer edge = 1, inner edge = 0
-        uvs.push(u, v);
+        // UV mapping: 1ft x 1ft tiles (matching pool bottom pattern)
+        // Map based on actual world position for consistent tile size
+        const uPos = (i < 2) ? strip.length : 0; // Along perimeter
+        const vPos = (i % 2 === 0) ? copingWidth : 0; // Across width (1 ft)
+        uvs.push(uPos / 1.0, vPos / 1.0); // Each foot = 1 tile
       });
       
       // Two triangles forming the rectangular strip
@@ -569,6 +570,11 @@ const CopingMesh: React.FC<{
       
       const baseIdx = vertices.length / 3;
       
+      // Calculate wall segment length for UV mapping
+      const wallLength = Math.sqrt(
+        Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2)
+      );
+      
       // Top edge vertices (at coping height)
       vertices.push(p1[0], copingHeight, p1[1]);
       vertices.push(p2[0], copingHeight, p2[1]);
@@ -577,8 +583,13 @@ const CopingMesh: React.FC<{
       vertices.push(p1[0], 0, p1[1]);
       vertices.push(p2[0], 0, p2[1]);
       
-      // UV mapping for vertical wall
-      uvs.push(0, 1, 1, 1, 0, 0, 1, 0);
+      // UV mapping: 1ft x 1ft tiles on vertical walls
+      uvs.push(
+        0, 0,
+        wallLength / 1.0, 0,
+        0, copingHeight / 1.0,
+        wallLength / 1.0, copingHeight / 1.0
+      );
       
       // Two triangles for the wall segment
       indices.push(
