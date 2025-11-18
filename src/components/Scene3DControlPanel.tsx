@@ -64,6 +64,9 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   const [annotationPrice, setAnnotationPrice] = useState('');
   const [selectedTextureCategory, setSelectedTextureCategory] = useState<'finishes' | 'pavers' | 'coping' | 'waterline'>('finishes');
   const [sunTime, setSunTime] = useState(0.6); // 0 = sunrise, 0.5 = noon, 1 = sunset
+  const [poolPosition, setPoolPosition] = useState<[number, number, number]>([0, 0, 0]);
+  const [snapToGrid, setSnapToGrid] = useState(false);
+  const [gridSize, setGridSize] = useState(1); // Grid snap size in feet
 
   // Get current texture config based on selected category
   const getCurrentTexture = (): TextureConfig => {
@@ -126,6 +129,18 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
         }
         break;
     }
+    onSceneChange(updatedScene);
+  };
+
+  const handlePoolPositionChange = (axis: 'x' | 'y' | 'z', value: number) => {
+    const snappedValue = snapToGrid ? Math.round(value / gridSize) * gridSize : value;
+    const newPosition: [number, number, number] = [...poolPosition];
+    const axisIndex = axis === 'x' ? 0 : axis === 'y' ? 1 : 2;
+    newPosition[axisIndex] = snappedValue;
+    setPoolPosition(newPosition);
+    
+    const updatedScene = { ...scene };
+    updatedScene.pool.position = newPosition;
     onSceneChange(updatedScene);
   };
 
@@ -344,6 +359,94 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
               </div>
             </div>
           )}
+
+
+          <Separator />
+
+          {/* Pool Position Controls */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Move className="h-4 w-4" />
+              <h4 className="font-medium">Pool Position</h4>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="snap-to-grid"
+                  checked={snapToGrid}
+                  onCheckedChange={(checked) => setSnapToGrid(checked as boolean)}
+                />
+                <Label htmlFor="snap-to-grid" className="text-xs cursor-pointer">
+                  Snap to Grid
+                </Label>
+              </div>
+
+              {snapToGrid && (
+                <div className="space-y-2">
+                  <Label className="text-xs">Grid Size: {gridSize} ft</Label>
+                  <Slider
+                    value={[gridSize]}
+                    onValueChange={(value) => setGridSize(value[0])}
+                    min={0.5}
+                    max={5}
+                    step={0.5}
+                    className="w-full"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label className="text-xs">X Position: {poolPosition[0].toFixed(2)} ft</Label>
+                <Slider
+                  value={[poolPosition[0]]}
+                  onValueChange={(value) => handlePoolPositionChange('x', value[0])}
+                  min={-50}
+                  max={50}
+                  step={snapToGrid ? gridSize : 0.1}
+                  className="w-full"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs">Y Position: {poolPosition[1].toFixed(2)} ft</Label>
+                <Slider
+                  value={[poolPosition[1]]}
+                  onValueChange={(value) => handlePoolPositionChange('y', value[0])}
+                  min={-20}
+                  max={20}
+                  step={snapToGrid ? gridSize : 0.1}
+                  className="w-full"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs">Z Position: {poolPosition[2].toFixed(2)} ft</Label>
+                <Slider
+                  value={[poolPosition[2]]}
+                  onValueChange={(value) => handlePoolPositionChange('z', value[0])}
+                  min={-50}
+                  max={50}
+                  step={snapToGrid ? gridSize : 0.1}
+                  className="w-full"
+                />
+              </div>
+
+              <Button
+                onClick={() => {
+                  setPoolPosition([0, 0, 0]);
+                  const updatedScene = { ...scene };
+                  updatedScene.pool.position = [0, 0, 0];
+                  onSceneChange(updatedScene);
+                }}
+                variant="outline"
+                size="sm"
+                className="w-full"
+              >
+                Reset Position
+              </Button>
+            </div>
+          </div>
 
           <Separator />
 

@@ -69,6 +69,7 @@ export interface Pool3DSceneProps {
   copingTextureOffset?: [number, number];
   waterlineTextureOffset?: [number, number];
   linerTextureOffset?: [number, number];
+  poolPosition?: [number, number, number];
 }
 
 const PoolMesh: React.FC<{
@@ -951,6 +952,7 @@ const PoolFeatures: React.FC<{ features: PoolFeature[] }> = ({ features }) => {
   );
 };
 
+
 export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   points,
   depthPoints,
@@ -975,7 +977,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   paverTextureOffset = [0, 0],
   copingTextureOffset = [0, 0],
   waterlineTextureOffset = [0, 0],
-  linerTextureOffset = [0, 0]
+  linerTextureOffset = [0, 0],
+  poolPosition = [0, 0, 0]
 }) => {
   return (
     <>
@@ -986,6 +989,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       <directionalLight position={[-20, 20, -10]} intensity={0.6} />
       <pointLight position={[0, 15, 0]} intensity={0.8} color="#ffffff" />
       <hemisphereLight intensity={0.5} color="#87CEEB" groundColor="#8B7355" />
+
+      <group position={poolPosition}>
 
       {/* Grass Terrain Base - 10000ft x 10000ft with pool cutout */}
       <GrassTerrain poolPoints={points} />
@@ -1062,9 +1067,12 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         />
       )}
 
+
       {features && features.length > 0 && (
         <PoolFeatures features={features} />
       )}
+
+      </group>
 
       <axesHelper args={[5]} />
     </>
