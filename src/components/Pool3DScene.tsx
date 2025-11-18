@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
-import { PerspectiveCamera, Grid } from '@react-three/drei';
+import { PerspectiveCamera, Grid, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { textureCache, disposeTexture } from '@/utils/textureCache';
 import { WaterlineMesh } from './WaterlineMesh';
 import earcut from 'earcut';
+import grassTexture from '@/assets/grass-texture.avif';
 
 interface Point {
   x: number;
@@ -676,6 +677,23 @@ const FenceMesh: React.FC<{
   );
 };
 
+// Grass Terrain Component
+const GrassTerrain: React.FC = () => {
+  const texture = useTexture(grassTexture);
+  
+  useMemo(() => {
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(20, 20);
+  }, [texture]);
+  
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
+      <planeGeometry args={[100, 100]} />
+      <meshStandardMaterial map={texture} />
+    </mesh>
+  );
+};
+
 const PoolFeatures: React.FC<{ features: PoolFeature[] }> = ({ features }) => {
   return (
     <>
@@ -842,6 +860,9 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       <directionalLight position={[-20, 20, -10]} intensity={0.6} />
       <pointLight position={[0, 15, 0]} intensity={0.8} color="#ffffff" />
       <hemisphereLight intensity={0.5} color="#87CEEB" groundColor="#8B7355" />
+
+      {/* Grass Terrain Base - 100ft x 100ft */}
+      <GrassTerrain />
 
       <Grid
         args={[100, 100]}
