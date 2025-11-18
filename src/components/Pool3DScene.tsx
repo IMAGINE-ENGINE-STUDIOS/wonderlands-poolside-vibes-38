@@ -64,9 +64,11 @@ export interface Pool3DSceneProps {
   paverTextureScale?: number;
   copingTextureScale?: number;
   waterlineTextureScale?: number;
+  linerTextureScale?: number;
   paverTextureOffset?: [number, number];
   copingTextureOffset?: [number, number];
   waterlineTextureOffset?: [number, number];
+  linerTextureOffset?: [number, number];
 }
 
 const PoolMesh: React.FC<{
@@ -75,7 +77,9 @@ const PoolMesh: React.FC<{
   linerTextureUrl?: string;
   poolDimensions?: { length: number; width: number; depth: number };
   selectedCategory?: string | null;
-}> = ({ points, depthPoints, linerTextureUrl, poolDimensions: providedDimensions, selectedCategory }) => {
+  linerTextureScale?: number;
+  linerTextureOffset?: [number, number];
+}> = ({ points, depthPoints, linerTextureUrl, poolDimensions: providedDimensions, selectedCategory, linerTextureScale, linerTextureOffset }) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
@@ -97,11 +101,19 @@ const PoolMesh: React.FC<{
   useEffect(() => {
     if (linerTextureUrl) {
       // Pool finish tiles: 3ft x 3ft industry standard
-      const repeatX = poolDimensions.width / 3;
-      const repeatY = poolDimensions.length / 3;
+      const baseRepeatX = poolDimensions.width / 3;
+      const baseRepeatY = poolDimensions.length / 3;
+      const repeatX = baseRepeatX / (linerTextureScale || 1);
+      const repeatY = baseRepeatY / (linerTextureScale || 1);
       
       textureCache.loadTexture(linerTextureUrl, { x: repeatX, y: repeatY })
-        .then(setLinerTexture)
+        .then(texture => {
+          texture.offset.set(linerTextureOffset?.[0] || 0, linerTextureOffset?.[1] || 0);
+          texture.wrapS = THREE.RepeatWrapping;
+          texture.wrapT = THREE.RepeatWrapping;
+          texture.needsUpdate = true;
+          setLinerTexture(texture);
+        })
         .catch(err => {
           console.error('Failed to load liner texture, using default');
           setLinerTexture(null);
@@ -113,7 +125,7 @@ const PoolMesh: React.FC<{
         disposeTexture(linerTexture);
       }
     };
-  }, [linerTextureUrl, poolDimensions]);
+  }, [linerTextureUrl, poolDimensions, linerTextureScale, linerTextureOffset]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
@@ -904,9 +916,11 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   paverTextureScale = 1,
   copingTextureScale = 1,
   waterlineTextureScale = 1,
+  linerTextureScale = 1,
   paverTextureOffset = [0, 0],
   copingTextureOffset = [0, 0],
-  waterlineTextureOffset = [0, 0]
+  waterlineTextureOffset = [0, 0],
+  linerTextureOffset = [0, 0]
 }) => {
   return (
     <>
@@ -942,6 +956,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           depthPoints={depthPoints}
           linerTextureUrl={linerTextureUrl}
           poolDimensions={poolDimensions}
+          linerTextureScale={linerTextureScale}
+          linerTextureOffset={linerTextureOffset}
           selectedCategory={selectedCategory}
         />
       </group>
