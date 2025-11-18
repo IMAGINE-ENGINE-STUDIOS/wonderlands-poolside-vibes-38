@@ -63,10 +63,71 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   const [annotationText, setAnnotationText] = useState('');
   const [annotationPrice, setAnnotationPrice] = useState('');
   const [selectedTextureCategory, setSelectedTextureCategory] = useState<'finishes' | 'pavers' | 'coping' | 'waterline'>('finishes');
-  const [textureScale, setTextureScale] = useState(1);
-  const [textureOffsetX, setTextureOffsetX] = useState(0);
-  const [textureOffsetY, setTextureOffsetY] = useState(0);
   const [sunTime, setSunTime] = useState(0.6); // 0 = sunrise, 0.5 = noon, 1 = sunset
+
+  // Get current texture config based on selected category
+  const getCurrentTexture = (): TextureConfig => {
+    switch (selectedTextureCategory) {
+      case 'finishes':
+        return scene.pool.finish;
+      case 'pavers':
+        return scene.deck.paver;
+      case 'coping':
+        return scene.deck.coping;
+      case 'waterline':
+        return scene.deck.waterline || scene.pool.finish;
+      default:
+        return scene.pool.finish;
+    }
+  };
+
+  const currentTexture = getCurrentTexture();
+  const textureScale = currentTexture.scale || 1;
+  const textureOffsetX = currentTexture.offset?.[0] || 0;
+  const textureOffsetY = currentTexture.offset?.[1] || 0;
+
+  // Real-time texture property updates
+  const handleTextureScaleChange = (newScale: number) => {
+    const updatedScene = { ...scene };
+    switch (selectedTextureCategory) {
+      case 'finishes':
+        updatedScene.pool.finish = { ...updatedScene.pool.finish, scale: newScale };
+        break;
+      case 'pavers':
+        updatedScene.deck.paver = { ...updatedScene.deck.paver, scale: newScale };
+        break;
+      case 'coping':
+        updatedScene.deck.coping = { ...updatedScene.deck.coping, scale: newScale };
+        break;
+      case 'waterline':
+        if (updatedScene.deck.waterline) {
+          updatedScene.deck.waterline = { ...updatedScene.deck.waterline, scale: newScale };
+        }
+        break;
+    }
+    onSceneChange(updatedScene);
+  };
+
+  const handleTextureOffsetChange = (offsetX: number, offsetY: number) => {
+    const updatedScene = { ...scene };
+    switch (selectedTextureCategory) {
+      case 'finishes':
+        updatedScene.pool.finish = { ...updatedScene.pool.finish, offset: [offsetX, offsetY] };
+        break;
+      case 'pavers':
+        updatedScene.deck.paver = { ...updatedScene.deck.paver, offset: [offsetX, offsetY] };
+        break;
+      case 'coping':
+        updatedScene.deck.coping = { ...updatedScene.deck.coping, offset: [offsetX, offsetY] };
+        break;
+      case 'waterline':
+        if (updatedScene.deck.waterline) {
+          updatedScene.deck.waterline = { ...updatedScene.deck.waterline, offset: [offsetX, offsetY] };
+        }
+        break;
+    }
+    onSceneChange(updatedScene);
+  };
 
   const handleAddNote = () => {
     if (annotationText.trim()) {
@@ -209,9 +270,9 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                 <Label className="text-xs">Texture Scale: {textureScale.toFixed(1)}x</Label>
                 <Slider
                   value={[textureScale]}
-                  onValueChange={(value) => setTextureScale(value[0])}
+                  onValueChange={(value) => handleTextureScaleChange(value[0])}
                   min={0.1}
-                  max={5}
+                  max={100}
                   step={0.1}
                   className="w-full"
                 />
@@ -222,7 +283,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                 <Label className="text-xs">Offset X: {textureOffsetX.toFixed(2)}</Label>
                 <Slider
                   value={[textureOffsetX]}
-                  onValueChange={(value) => setTextureOffsetX(value[0])}
+                  onValueChange={(value) => handleTextureOffsetChange(value[0], textureOffsetY)}
                   min={-2}
                   max={2}
                   step={0.01}
@@ -234,7 +295,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                 <Label className="text-xs">Offset Y: {textureOffsetY.toFixed(2)}</Label>
                 <Slider
                   value={[textureOffsetY]}
-                  onValueChange={(value) => setTextureOffsetY(value[0])}
+                  onValueChange={(value) => handleTextureOffsetChange(textureOffsetX, value[0])}
                   min={-2}
                   max={2}
                   step={0.01}
