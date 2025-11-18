@@ -79,7 +79,15 @@ const PoolMesh: React.FC<{
   selectedCategory?: string | null;
   linerTextureScale?: number;
   linerTextureOffset?: [number, number];
-}> = ({ points, depthPoints, linerTextureUrl, poolDimensions: providedDimensions, selectedCategory, linerTextureScale, linerTextureOffset }) => {
+}> = ({ 
+  points, 
+  depthPoints, 
+  linerTextureUrl, 
+  poolDimensions: providedDimensions, 
+  selectedCategory, 
+  linerTextureScale = 1, 
+  linerTextureOffset = [0, 0] 
+}) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
