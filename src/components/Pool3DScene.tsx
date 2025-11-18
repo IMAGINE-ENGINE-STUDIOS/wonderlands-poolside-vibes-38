@@ -439,7 +439,7 @@ const CopingMesh: React.FC<{
     // Z-axis = pool length direction
 
     const copingWidth = 1.0; // 1 foot wide coping
-    const copingThickness = 0.25; // 3 inches thick (0.25 feet)
+    const copingHeight = 2 / 12; // 2 inches tall (converted to feet: 2/12 = 0.167 feet)
 
     // Pool outer edge (at pool perimeter)
     const innerHalfWidth = poolWidth / 2;
@@ -453,15 +453,15 @@ const CopingMesh: React.FC<{
     const indices: number[] = [];
     const uvs: number[] = [];
 
-    // Create 4 rectangular strips forming a frame
+    // Create 4 rectangular strips forming a frame - flush with deck at y = copingHeight
     const strips = [
       // Top strip (along +Z edge)
       { 
         corners: [
-          [-outerHalfWidth, 0, outerHalfLength],  // outer top-left
-          [outerHalfWidth, 0, outerHalfLength],   // outer top-right
-          [innerHalfWidth, 0, innerHalfLength],   // inner top-right
-          [-innerHalfWidth, 0, innerHalfLength]   // inner top-left
+          [-outerHalfWidth, copingHeight, outerHalfLength],  // outer top-left
+          [outerHalfWidth, copingHeight, outerHalfLength],   // outer top-right
+          [innerHalfWidth, copingHeight, innerHalfLength],   // inner top-right
+          [-innerHalfWidth, copingHeight, innerHalfLength]   // inner top-left
         ],
         uStart: 0,
         length: poolWidth + copingWidth * 2
@@ -469,10 +469,10 @@ const CopingMesh: React.FC<{
       // Right strip (along +X edge)
       {
         corners: [
-          [outerHalfWidth, 0, outerHalfLength],   // outer top-right
-          [outerHalfWidth, 0, -outerHalfLength],  // outer bottom-right
-          [innerHalfWidth, 0, -innerHalfLength],  // inner bottom-right
-          [innerHalfWidth, 0, innerHalfLength]    // inner top-right
+          [outerHalfWidth, copingHeight, outerHalfLength],   // outer top-right
+          [outerHalfWidth, copingHeight, -outerHalfLength],  // outer bottom-right
+          [innerHalfWidth, copingHeight, -innerHalfLength],  // inner bottom-right
+          [innerHalfWidth, copingHeight, innerHalfLength]    // inner top-right
         ],
         uStart: (poolWidth + copingWidth * 2),
         length: poolLength + copingWidth * 2
@@ -480,10 +480,10 @@ const CopingMesh: React.FC<{
       // Bottom strip (along -Z edge)
       {
         corners: [
-          [outerHalfWidth, 0, -outerHalfLength],  // outer bottom-right
-          [-outerHalfWidth, 0, -outerHalfLength], // outer bottom-left
-          [-innerHalfWidth, 0, -innerHalfLength], // inner bottom-left
-          [innerHalfWidth, 0, -innerHalfLength]   // inner bottom-right
+          [outerHalfWidth, copingHeight, -outerHalfLength],  // outer bottom-right
+          [-outerHalfWidth, copingHeight, -outerHalfLength], // outer bottom-left
+          [-innerHalfWidth, copingHeight, -innerHalfLength], // inner bottom-left
+          [innerHalfWidth, copingHeight, -innerHalfLength]   // inner bottom-right
         ],
         uStart: (poolWidth + copingWidth * 2) + (poolLength + copingWidth * 2),
         length: poolWidth + copingWidth * 2
@@ -491,10 +491,10 @@ const CopingMesh: React.FC<{
       // Left strip (along -X edge)
       {
         corners: [
-          [-outerHalfWidth, 0, -outerHalfLength], // outer bottom-left
-          [-outerHalfWidth, 0, outerHalfLength],  // outer top-left
-          [-innerHalfWidth, 0, innerHalfLength],  // inner top-left
-          [-innerHalfWidth, 0, -innerHalfLength]  // inner bottom-left
+          [-outerHalfWidth, copingHeight, -outerHalfLength], // outer bottom-left
+          [-outerHalfWidth, copingHeight, outerHalfLength],  // outer top-left
+          [-innerHalfWidth, copingHeight, innerHalfLength],  // inner top-left
+          [-innerHalfWidth, copingHeight, -innerHalfLength]  // inner bottom-left
         ],
         uStart: (poolWidth + copingWidth * 2) * 2 + (poolLength + copingWidth * 2),
         length: poolLength + copingWidth * 2
