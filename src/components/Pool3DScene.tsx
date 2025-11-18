@@ -368,9 +368,10 @@ const CopingMesh: React.FC<{
 
   useEffect(() => {
     if (copingTextureUrl) {
-      // Coping texture: 1ft tiles along perimeter, scaled by control
-      const repeatX = (copingDimensions.perimeter / 1) / copingTextureScale;
-      const repeatY = 1 / copingTextureScale;
+      // Coping texture: tile in exact 1ft x 1ft sections
+      // No scaling needed - texture will tile naturally at 1:1
+      const repeatX = 1;
+      const repeatY = 1;
       
       textureCache.loadTexture(copingTextureUrl, { x: repeatX, y: repeatY })
         .then(texture => {
@@ -391,7 +392,7 @@ const CopingMesh: React.FC<{
         disposeTexture(copingTexture);
       }
     };
-  }, [copingTextureUrl, copingDimensions, copingTextureScale, copingTextureOffset]);
+  }, [copingTextureUrl, copingTextureScale, copingTextureOffset]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
@@ -429,17 +430,17 @@ const CopingMesh: React.FC<{
     // COORDINATE SYSTEM:
     // Origin (0,0,0) = pool center at water surface
     // X-axis = pool width direction
-    // Y-axis = vertical (up/down), water surface at y=0
+    // Y-axis = vertical (up/down), water surface at y=0, deck at y=0
     // Z-axis = pool length direction
 
-    const copingWidth = 1.0; // 1 foot wide coping
-    const copingThickness = 0.25; // 3 inches thick (0.25 feet)
+    const copingWidth = 0.5; // 6 inches (0.5 feet) wide coping
+    const copingThickness = 0.0; // No thickness - flat at deck level (y=0)
 
     // Pool outer edge (at pool perimeter)
     const innerHalfWidth = poolWidth / 2;
     const innerHalfLength = poolLength / 2;
     
-    // Coping outer edge (1 foot beyond pool edge)
+    // Coping outer edge (6 inches beyond pool edge)
     const outerHalfWidth = innerHalfWidth + copingWidth;
     const outerHalfLength = innerHalfLength + copingWidth;
 
@@ -447,7 +448,7 @@ const CopingMesh: React.FC<{
     const indices: number[] = [];
     const uvs: number[] = [];
 
-    // Create 4 rectangular strips forming a frame
+    // Create 4 rectangular strips forming a frame at deck level (y=0)
     const strips = [
       // Top strip (along +Z edge)
       { 
@@ -457,8 +458,7 @@ const CopingMesh: React.FC<{
           [innerHalfWidth, 0, innerHalfLength],   // inner top-right
           [-innerHalfWidth, 0, innerHalfLength]   // inner top-left
         ],
-        uStart: 0,
-        length: poolWidth + copingWidth * 2
+        lengthAlong: poolWidth + copingWidth * 2
       },
       // Right strip (along +X edge)
       {
@@ -468,8 +468,7 @@ const CopingMesh: React.FC<{
           [innerHalfWidth, 0, -innerHalfLength],  // inner bottom-right
           [innerHalfWidth, 0, innerHalfLength]    // inner top-right
         ],
-        uStart: (poolWidth + copingWidth * 2),
-        length: poolLength + copingWidth * 2
+        lengthAlong: poolLength + copingWidth * 2
       },
       // Bottom strip (along -Z edge)
       {
@@ -479,8 +478,7 @@ const CopingMesh: React.FC<{
           [-innerHalfWidth, 0, -innerHalfLength], // inner bottom-left
           [innerHalfWidth, 0, -innerHalfLength]   // inner bottom-right
         ],
-        uStart: (poolWidth + copingWidth * 2) + (poolLength + copingWidth * 2),
-        length: poolWidth + copingWidth * 2
+        lengthAlong: poolWidth + copingWidth * 2
       },
       // Left strip (along -X edge)
       {
@@ -490,8 +488,7 @@ const CopingMesh: React.FC<{
           [-innerHalfWidth, 0, innerHalfLength],  // inner top-left
           [-innerHalfWidth, 0, -innerHalfLength]  // inner bottom-left
         ],
-        uStart: (poolWidth + copingWidth * 2) * 2 + (poolLength + copingWidth * 2),
-        length: poolLength + copingWidth * 2
+        lengthAlong: poolLength + copingWidth * 2
       }
     ];
 
@@ -499,12 +496,14 @@ const CopingMesh: React.FC<{
       const baseIdx = vertices.length / 3;
       
       // Add 4 corner vertices for this strip
-      strip.corners.forEach(([x, y, z], i) => {
+      strip.corners.forEach(([x, y, z], cornerIdx) => {
         vertices.push(x, y, z);
         
-        // UV mapping: stretch texture along perimeter, 1 unit across width
-        const u = (strip.uStart + (i < 2 ? strip.length : 0)) / copingDimensions.perimeter;
-        const v = i % 2 === 0 ? 1 : 0; // outer edge = 1, inner edge = 0
+        // UV mapping: tile in 1ft x 1ft sections
+        // U direction: along the strip length (in feet)
+        // V direction: across the coping width (0.5 feet = 0 to 0.5)
+        const u = (cornerIdx < 2 ? strip.lengthAlong : 0) / 1; // in feet (tiles at 1ft intervals)
+        const v = (cornerIdx % 2 === 0 ? 1 : 0) * copingWidth; // outer=0.5, inner=0
         uvs.push(u, v);
       });
       
