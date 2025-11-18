@@ -2,33 +2,47 @@
 
 import { Scene3D, TextureConfig, Point, DepthPoint, HardscapePoint } from './types';
 
-// Parse dimensions from string like "14' x 28'" or "16 feet x 32 feet"
+// Parse dimensions from string like "14' x 28'" or "16 feet x 32 feet" or "16' × 40'"
 export const parseDimensions = (dimensionsStr?: string): { length: number; width: number } => {
   if (!dimensionsStr) return { length: 30, width: 15 };
   
-  const matches = dimensionsStr.match(/(\d+)\s*(?:'|ft|feet)?\s*x\s*(\d+)/i);
+  // Handle various formats: "14' x 28'", "16' × 40'", "16 feet x 32 feet"
+  const matches = dimensionsStr.match(/(\d+)\s*(?:'|ft|feet)?\s*[x×]\s*(\d+)/i);
   if (matches) {
     return {
-      length: parseInt(matches[2]),
-      width: parseInt(matches[1])
+      width: parseInt(matches[1]),
+      length: parseInt(matches[2])
     };
   }
   
   return { length: 30, width: 15 };
 };
 
-// Parse depth from string like "4' - 6'" or "4-6 feet"
+// Parse depth from string like "4' - 6'" or "3'9\" - 8'6\"" or "4-6 feet"
 export const parseDepth = (depthStr?: string): number => {
   if (!depthStr) return 6;
   
-  const matches = depthStr.match(/(\d+)\s*(?:'|ft|feet)?.*?(\d+)/);
-  if (matches) {
-    return parseInt(matches[2]); // Use deeper end
+  // Handle formats like "3'9\" - 8'6\"" or "4' - 6'"
+  const rangeMatches = depthStr.match(/(\d+)[''](\d+)?[""]?\s*[-–]\s*(\d+)[''](\d+)?[""]?/);
+  if (rangeMatches) {
+    // Extract deep end: feet and inches
+    const deepFeet = parseInt(rangeMatches[3]);
+    const deepInches = rangeMatches[4] ? parseInt(rangeMatches[4]) : 0;
+    return deepFeet + (deepInches / 12); // Convert to decimal feet
   }
   
-  const singleMatch = depthStr.match(/(\d+)/);
+  // Handle simple range like "4-6"
+  const simpleRange = depthStr.match(/(\d+)\s*[-–]\s*(\d+)/);
+  if (simpleRange) {
+    return parseInt(simpleRange[2]); // Use deeper end
+  }
+  
+  // Handle single value
+  const singleMatch = depthStr.match(/(\d+)['']?(\d+)?/);
   if (singleMatch) {
-    return parseInt(singleMatch[1]);
+    const feet = parseInt(singleMatch[1]);
+    const inches = singleMatch[2] ? parseInt(singleMatch[2]) : 0;
+    return feet + (inches / 12);
   }
   
   return 6;
@@ -72,8 +86,11 @@ export function productToScene(
   paverTypes: any[],
   finishOptions: any[]
 ): Scene3D {
+  // Parse dimensions from product data (e.g., "16' × 40'")
   const { length, width } = parseDimensions(product.dimensions);
-  const depth = parseDepth(product.depth);
+  
+  // Parse depth from product data (e.g., "3'9\" - 8'6\"")
+  const deepEndDepth = parseDepth(product.depth);
 
   // Get texture URLs
   const linerTextureUrl = selectedExtras.finish 
@@ -93,10 +110,19 @@ export function productToScene(
     { x: 0, y: length, id: 'p4' },
   ];
 
-  // Pool depth from product or use actual depth data
-  // If product specifies depth range like "3.5' - 6'", use shallow to deep
-  const shallowDepth = 3.6;  // Standard shallow end
-  const deepDepth = depth || 6.6;  // Use product depth or standard deep end
+  // Parse shallow end depth from product depth string
+  // Extract shallow end from depth range like "3'9\" - 8'6\""
+  let shallowDepth = 3.75; // Default 3'9"
+  if (product.depth) {
+    const shallowMatches = product.depth.match(/(\d+)[''](\d+)?[""]?\s*[-–]/);
+    if (shallowMatches) {
+      const shallowFeet = parseInt(shallowMatches[1]);
+      const shallowInches = shallowMatches[2] ? parseInt(shallowMatches[2]) : 0;
+      shallowDepth = shallowFeet + (shallowInches / 12);
+    }
+  }
+  
+  const deepDepth = deepEndDepth || 6.6;  // Use parsed product depth or fallback
   
   const depthPoints: DepthPoint[] = [
     { position: 0, depth: shallowDepth, id: 'd1' },                    // Shallow end
@@ -128,7 +154,7 @@ export function productToScene(
       },
       position: [0, 0, 0],
       rotation: [0, 0, 0],
-      dimensions: { length, width, depth }
+      dimensions: { length, width, depth: deepDepth }
     },
     deck: {
       points: deckPoints,
