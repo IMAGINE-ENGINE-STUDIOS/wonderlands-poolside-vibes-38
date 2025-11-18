@@ -263,6 +263,9 @@ export function UnifiedPoolVisualizer({
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
             fenceHeight={fenceHeight}
+            paverTextureScale={scene.deck.paver.scale || 1}
+            copingTextureScale={scene.deck.coping.scale || 1}
+            waterlineTextureScale={scene.deck.waterline?.scale || 1}
           />
           
           {/* Annotations */}
