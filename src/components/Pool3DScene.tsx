@@ -677,19 +677,75 @@ const FenceMesh: React.FC<{
   );
 };
 
-// Grass Terrain Component
-const GrassTerrain: React.FC = () => {
+// Grass Terrain Component with Pool Cutout
+const GrassTerrain: React.FC<{ poolPoints: Point[] }> = ({ poolPoints }) => {
   const texture = useTexture(grassTexture);
   
-  useMemo(() => {
+  const terrainGeometry = useMemo(() => {
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(20, 20);
-  }, [texture]);
+    texture.repeat.set(200, 200); // More repetitions for larger terrain
+    
+    // Create the large terrain shape (10000ft x 10000ft)
+    const terrainShape = new THREE.Shape();
+    terrainShape.moveTo(-5000, -5000);
+    terrainShape.lineTo(5000, -5000);
+    terrainShape.lineTo(5000, 5000);
+    terrainShape.lineTo(-5000, 5000);
+    terrainShape.closePath();
+    
+    // Create pool hole with coping offset (3ft outside pool for coping)
+    const copingOffset = 1.5; // 1.5ft coping width
+    const poolHole = new THREE.Path();
+    
+    if (poolPoints.length > 0) {
+      // Expand pool points outward for coping
+      const expandedPoints = poolPoints.map((point, i) => {
+        const prevPoint = poolPoints[(i - 1 + poolPoints.length) % poolPoints.length];
+        const nextPoint = poolPoints[(i + 1) % poolPoints.length];
+        
+        // Calculate outward normal
+        const edge1X = point.x - prevPoint.x;
+        const edge1Y = point.y - prevPoint.y;
+        const edge2X = nextPoint.x - point.x;
+        const edge2Y = nextPoint.y - point.y;
+        
+        const normal1X = -edge1Y;
+        const normal1Y = edge1X;
+        const normal2X = -edge2Y;
+        const normal2Y = edge2X;
+        
+        const len1 = Math.sqrt(normal1X * normal1X + normal1Y * normal1Y);
+        const len2 = Math.sqrt(normal2X * normal2X + normal2Y * normal2Y);
+        
+        const avgNormalX = (normal1X / len1 + normal2X / len2) / 2;
+        const avgNormalY = (normal1Y / len1 + normal2Y / len2) / 2;
+        const avgLen = Math.sqrt(avgNormalX * avgNormalX + avgNormalY * avgNormalY);
+        
+        return {
+          x: point.x + (avgNormalX / avgLen) * copingOffset,
+          y: point.y + (avgNormalY / avgLen) * copingOffset
+        };
+      });
+      
+      poolHole.moveTo(expandedPoints[0].x, expandedPoints[0].y);
+      for (let i = 1; i < expandedPoints.length; i++) {
+        poolHole.lineTo(expandedPoints[i].x, expandedPoints[i].y);
+      }
+      poolHole.closePath();
+      
+      terrainShape.holes.push(poolHole);
+    }
+    
+    // Create geometry from shape
+    const geometry = new THREE.ShapeGeometry(terrainShape);
+    geometry.rotateX(-Math.PI / 2);
+    
+    return geometry;
+  }, [poolPoints, texture]);
   
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
-      <planeGeometry args={[100, 100]} />
-      <meshStandardMaterial map={texture} />
+    <mesh geometry={terrainGeometry} position={[0, -0.01, 0]} receiveShadow>
+      <meshStandardMaterial map={texture} side={THREE.DoubleSide} />
     </mesh>
   );
 };
@@ -861,8 +917,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       <pointLight position={[0, 15, 0]} intensity={0.8} color="#ffffff" />
       <hemisphereLight intensity={0.5} color="#87CEEB" groundColor="#8B7355" />
 
-      {/* Grass Terrain Base - 100ft x 100ft */}
-      <GrassTerrain />
+      {/* Grass Terrain Base - 10000ft x 10000ft with pool cutout */}
+      <GrassTerrain poolPoints={points} />
 
       <Grid
         args={[100, 100]}
