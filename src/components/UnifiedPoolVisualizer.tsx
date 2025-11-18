@@ -271,6 +271,7 @@ export function UnifiedPoolVisualizer({
             copingTextureOffset={scene.deck.coping.offset || [0, 0]}
             waterlineTextureOffset={scene.deck.waterline?.offset || [0, 0]}
             linerTextureOffset={scene.pool.finish.offset || [0, 0]}
+            poolPosition={scene.pool.position}
           />
           
           {/* Annotations */}
