@@ -14,6 +14,7 @@ interface WaterlineMeshProps {
   waterlineHeight?: number;
   waterlineWidth?: number;
   selectedCategory?: string | null;
+  waterlineTextureScale?: number;
 }
 
 export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({ 
@@ -21,7 +22,8 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
   waterlineTextureUrl,
   waterlineHeight = 0.0833, // Exactly 1 inch thick (1/12 feet = 0.0833ft)
   waterlineWidth = 1.0,      // 1 foot tile along perimeter
-  selectedCategory
+  selectedCategory,
+  waterlineTextureScale = 1
 }) => {
   const [waterlineTexture, setWaterlineTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
@@ -34,9 +36,9 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
         return sum + Math.sqrt(Math.pow(nextP.x - p.x, 2) + Math.pow(nextP.y - p.y, 2));
       }, 0);
       
-      // Waterline tiles: 1ft length along perimeter x 1 inch height
-      const repeatX = poolPerimeter / waterlineWidth;
-      const repeatY = 1;
+      // Waterline tiles: scale control
+      const repeatX = (poolPerimeter / waterlineWidth) * waterlineTextureScale;
+      const repeatY = waterlineTextureScale;
       
       textureCache.loadTexture(waterlineTextureUrl, { x: repeatX, y: repeatY })
         .then(setWaterlineTexture)
@@ -51,7 +53,7 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
         disposeTexture(waterlineTexture);
       }
     };
-  }, [waterlineTextureUrl, poolPoints, waterlineWidth]);
+  }, [waterlineTextureUrl, poolPoints, waterlineWidth, waterlineTextureScale]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
