@@ -68,6 +68,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   const [snapToGrid, setSnapToGrid] = useState(false);
   const [gridSize, setGridSize] = useState(1); // Grid snap size in feet
   const [copingHeight, setCopingHeight] = useState(2 / 12); // Default 2 inches in feet
+  const [deckHeight, setDeckHeight] = useState(2 / 12); // Default 2 inches in feet
 
   // Get current texture config based on selected category
   const getCurrentTexture = (): TextureConfig => {
@@ -149,6 +150,13 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
     setCopingHeight(height);
     const updatedScene = { ...scene };
     updatedScene.deck.copingHeight = height;
+    onSceneChange(updatedScene);
+  };
+
+  const handleDeckHeightChange = (height: number) => {
+    setDeckHeight(height);
+    const updatedScene = { ...scene };
+    updatedScene.deck.deckHeight = height;
     onSceneChange(updatedScene);
   };
 
@@ -458,13 +466,24 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
               
               {/* Coping Height Control */}
               <div className="space-y-2">
-                <Label className="text-xs">Coping Height: {(copingHeight * 12).toFixed(1)} inches</Label>
+                <Label className="text-xs">Coping Height: {(copingHeight).toFixed(1)} ft</Label>
                 <Slider
-                  value={[copingHeight * 12]}
-                  onValueChange={(value) => handleCopingHeightChange(value[0] / 12)}
+                  value={[copingHeight]}
+                  onValueChange={(value) => handleCopingHeightChange(value[0])}
                   min={0}
-                  max={12}
-                  step={0.5}
+                  max={40}
+                  step={0.1}
+                  className="w-full"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Deck Height: {(deckHeight).toFixed(1)} ft</Label>
+                <Slider
+                  value={[deckHeight]}
+                  onValueChange={(value) => handleDeckHeightChange(value[0])}
+                  min={0}
+                  max={40}
+                  step={0.1}
                   className="w-full"
                 />
               </div>

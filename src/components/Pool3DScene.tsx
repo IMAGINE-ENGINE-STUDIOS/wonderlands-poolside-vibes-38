@@ -71,6 +71,7 @@ export interface Pool3DSceneProps {
   linerTextureOffset?: [number, number];
   poolPosition?: [number, number, number];
   copingHeight?: number;
+  deckHeight?: number;
 }
 
 const PoolMesh: React.FC<{
@@ -605,8 +606,8 @@ const DeckMesh: React.FC<{
   selectedCategory?: string | null;
   paverTextureScale?: number;
   paverTextureOffset?: [number, number];
-  copingHeight?: number;
-}> = ({ hardscapePoints, poolPoints, features, paverTextureUrl, selectedCategory, paverTextureScale = 1, paverTextureOffset = [0, 0], copingHeight = 2 / 12 }) => {
+  deckHeight?: number;
+}> = ({ hardscapePoints, poolPoints, features, paverTextureUrl, selectedCategory, paverTextureScale = 1, paverTextureOffset = [0, 0], deckHeight = 2 / 12 }) => {
   const [paverTexture, setPaverTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
@@ -720,7 +721,7 @@ const DeckMesh: React.FC<{
   const redTint = isSelected ? Math.sin(pulseIntensity * Math.PI) : 0;
 
   return (
-    <mesh geometry={deckGeometry} position={[0, copingHeight, 0]} receiveShadow castShadow>
+    <mesh geometry={deckGeometry} position={[0, deckHeight, 0]} receiveShadow castShadow>
       <meshStandardMaterial
         map={paverTexture}
         color={isSelected ? `rgb(${255}, ${Math.floor(255 * (1 - redTint * 0.7))}, ${Math.floor(255 * (1 - redTint * 0.7))})` : (paverTexture ? "#ffffff" : "#D4C4B0")}
@@ -1036,7 +1037,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   waterlineTextureOffset = [0, 0],
   linerTextureOffset = [0, 0],
   poolPosition = [0, 0, 0],
-  copingHeight = 2 / 12
+  copingHeight = 2 / 12,
+  deckHeight = 2 / 12
 }) => {
   return (
     <>
@@ -1091,7 +1093,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
             selectedCategory={selectedCategory}
             paverTextureScale={paverTextureScale}
             paverTextureOffset={paverTextureOffset}
-            copingHeight={copingHeight}
+            deckHeight={deckHeight}
           />
         </group>
       )}
