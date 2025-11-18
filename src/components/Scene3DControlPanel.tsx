@@ -67,6 +67,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   const [poolPosition, setPoolPosition] = useState<[number, number, number]>([0, 0, 0]);
   const [snapToGrid, setSnapToGrid] = useState(false);
   const [gridSize, setGridSize] = useState(1); // Grid snap size in feet
+  const [copingHeight, setCopingHeight] = useState(2 / 12); // Default 2 inches in feet
 
   // Get current texture config based on selected category
   const getCurrentTexture = (): TextureConfig => {
@@ -141,6 +142,13 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
     
     const updatedScene = { ...scene };
     updatedScene.pool.position = newPosition;
+    onSceneChange(updatedScene);
+  };
+
+  const handleCopingHeightChange = (height: number) => {
+    setCopingHeight(height);
+    const updatedScene = { ...scene };
+    updatedScene.deck.copingHeight = height;
     onSceneChange(updatedScene);
   };
 
@@ -445,6 +453,21 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
               >
                 Reset Position
               </Button>
+
+              <Separator className="my-3" />
+              
+              {/* Coping Height Control */}
+              <div className="space-y-2">
+                <Label className="text-xs">Coping Height: {(copingHeight * 12).toFixed(1)} inches</Label>
+                <Slider
+                  value={[copingHeight * 12]}
+                  onValueChange={(value) => handleCopingHeightChange(value[0] / 12)}
+                  min={0}
+                  max={12}
+                  step={0.5}
+                  className="w-full"
+                />
+              </div>
             </div>
           </div>
 
