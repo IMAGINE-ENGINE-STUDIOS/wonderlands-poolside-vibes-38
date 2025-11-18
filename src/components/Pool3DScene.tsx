@@ -954,9 +954,9 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         infiniteGrid={true}
       />
 
-      {/* NEW INTEGRATED POOL MODEL */}
+      {/* Pool Mesh */}
       <group onClick={() => onSelectCategory?.('pool')}>
-        <NewPoolMesh
+        <PoolMesh
           points={points}
           depthPoints={depthPoints}
           linerTextureUrl={linerTextureUrl}
@@ -965,13 +965,10 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         />
       </group>
 
-      {/* Water Surface */}
-      <WaterMesh poolPoints={points} />
-
-      {/* Deck - sits flush at y=0 */}
+      {/* Deck */}
       {hardscapePoints && hardscapePoints.length > 0 && (
         <group onClick={() => onSelectCategory?.('deck')}>
-          <NewDeckMesh
+          <DeckMesh
             hardscapePoints={hardscapePoints}
             poolPoints={points}
             features={features || []}
@@ -981,9 +978,9 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         </group>
       )}
 
-      {/* Coping - sits on deck, extends over pool edge */}
+      {/* Coping */}
       <group onClick={() => onSelectCategory?.('coping')}>
-        <NewCopingMesh
+        <CopingMesh
           poolPoints={points}
           copingTextureUrl={copingTextureUrl}
           selectedCategory={selectedCategory}
