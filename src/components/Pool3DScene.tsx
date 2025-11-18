@@ -61,6 +61,9 @@ export interface Pool3DSceneProps {
   selectedCategory?: string | null;
   onSelectCategory?: (category: string | null) => void;
   fenceHeight?: number;
+  paverTextureScale?: number;
+  copingTextureScale?: number;
+  waterlineTextureScale?: number;
 }
 
 const PoolMesh: React.FC<{
@@ -311,7 +314,8 @@ const CopingMesh: React.FC<{
   poolPoints: Point[];
   copingTextureUrl?: string;
   selectedCategory?: string | null;
-}> = ({ poolPoints, copingTextureUrl, selectedCategory }) => {
+  copingTextureScale?: number;
+}> = ({ poolPoints, copingTextureUrl, selectedCategory, copingTextureScale = 1 }) => {
   const [copingTexture, setCopingTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
@@ -330,9 +334,9 @@ const CopingMesh: React.FC<{
 
   useEffect(() => {
     if (copingTextureUrl) {
-      // Coping texture: 1ft length tiles around perimeter
-      const repeatX = Math.max(1, poolPerimeter / 1);
-      const repeatY = 1;
+      // Coping texture: tiles along perimeter with scale control
+      const repeatX = Math.max(1, (poolPerimeter / 1) * copingTextureScale);
+      const repeatY = copingTextureScale;
       
       textureCache.loadTexture(copingTextureUrl, { x: repeatX, y: repeatY })
         .then(setCopingTexture)
@@ -347,7 +351,7 @@ const CopingMesh: React.FC<{
         disposeTexture(copingTexture);
       }
     };
-  }, [copingTextureUrl, poolPerimeter]);
+  }, [copingTextureUrl, poolPerimeter, copingTextureScale]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
@@ -405,12 +409,12 @@ const CopingMesh: React.FC<{
       
       const baseIdx = vertices.length / 3;
       
-      // Top surface vertices (coping sits ON TOP of deck at y=0)
-      // Inner edge (at pool edge, top of coping)
-      vertices.push(p1.x, copingHeight, p1.z);
-      vertices.push(p2.x, copingHeight, p2.z);
+      // Top surface vertices (coping sits FLUSH with deck at y=0)
+      // Inner edge (at pool edge, at deck level)
+      vertices.push(p1.x, 0, p1.z);
+      vertices.push(p2.x, 0, p2.z);
       
-      // Outer edge (6 inches away from pool, top of coping)
+      // Outer edge (6 inches away from pool, top of coping raised)
       vertices.push(
         p1.x + nx * copingWidth,
         copingHeight,
@@ -471,7 +475,8 @@ const DeckMesh: React.FC<{
   features: PoolFeature[];
   paverTextureUrl?: string;
   selectedCategory?: string | null;
-}> = ({ hardscapePoints, poolPoints, features, paverTextureUrl, selectedCategory }) => {
+  paverTextureScale?: number;
+}> = ({ hardscapePoints, poolPoints, features, paverTextureUrl, selectedCategory, paverTextureScale = 1 }) => {
   const [paverTexture, setPaverTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
@@ -485,9 +490,9 @@ const DeckMesh: React.FC<{
 
   useEffect(() => {
     if (paverTextureUrl) {
-      // Deck paver tiles: 1ft x 1ft square pavers
-      const repeatX = deckDimensions.width / 1;
-      const repeatY = deckDimensions.length / 1;
+      // Deck paver tiles: scale control
+      const repeatX = (deckDimensions.width / 1) * paverTextureScale;
+      const repeatY = (deckDimensions.length / 1) * paverTextureScale;
       
       textureCache.loadTexture(paverTextureUrl, { x: repeatX, y: repeatY })
         .then(setPaverTexture)
@@ -502,7 +507,7 @@ const DeckMesh: React.FC<{
         disposeTexture(paverTexture);
       }
     };
-  }, [paverTextureUrl, deckDimensions]);
+  }, [paverTextureUrl, deckDimensions, paverTextureScale]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
@@ -691,14 +696,6 @@ const GrassTerrain: React.FC<{ poolPoints: Point[] }> = ({ poolPoints }) => {
       geo.rotateX(-Math.PI / 2);
       return geo;
     }
-
-    // Get pool center
-    const minX = Math.min(...poolPoints.map(p => p.x));
-    const maxX = Math.max(...poolPoints.map(p => p.x));
-    const minY = Math.min(...poolPoints.map(p => p.y));
-    const maxY = Math.max(...poolPoints.map(p => p.y));
-    const poolCenterX = (minX + maxX) / 2;
-    const poolCenterY = (minY + maxY) / 2;
     
     // Create terrain shape (10000ft x 10000ft centered at origin)
     const terrainShape = new THREE.Shape();
@@ -708,48 +705,15 @@ const GrassTerrain: React.FC<{ poolPoints: Point[] }> = ({ poolPoints }) => {
     terrainShape.lineTo(-5000, 5000);
     terrainShape.closePath();
     
-    // Create pool cutout hole - EXACTLY at coping outer edge (1ft from pool edge)
-    const copingWidth = 1.0;
+    // Create pool cutout hole - INSIDE THE POOL (at pool boundary, not expanded)
     const poolHole = new THREE.Path();
     
-    // Calculate expanded pool boundary for coping
+    // Use pool points directly for the hole (cuts INSIDE the pool)
     poolPoints.forEach((point, i) => {
-      const prevPoint = poolPoints[(i - 1 + poolPoints.length) % poolPoints.length];
-      const nextPoint = poolPoints[(i + 1) % poolPoints.length];
-      
-      // Vectors to adjacent points
-      const toPrev = { x: prevPoint.x - point.x, y: prevPoint.y - point.y };
-      const toNext = { x: nextPoint.x - point.x, y: nextPoint.y - point.y };
-      
-      // Normalize
-      const lenPrev = Math.sqrt(toPrev.x * toPrev.x + toPrev.y * toPrev.y);
-      const lenNext = Math.sqrt(toNext.x * toNext.x + toNext.y * toNext.y);
-      toPrev.x /= lenPrev;
-      toPrev.y /= lenPrev;
-      toNext.x /= lenNext;
-      toNext.y /= lenNext;
-      
-      // Perpendicular outward normals
-      const normalPrev = { x: toPrev.y, y: -toPrev.x };
-      const normalNext = { x: -toNext.y, y: toNext.x };
-      
-      // Average outward direction
-      const avgNormal = {
-        x: (normalPrev.x + normalNext.x) / 2,
-        y: (normalPrev.y + normalNext.y) / 2
-      };
-      const avgLen = Math.sqrt(avgNormal.x * avgNormal.x + avgNormal.y * avgNormal.y);
-      avgNormal.x /= avgLen;
-      avgNormal.y /= avgLen;
-      
-      // Expand point outward by coping width
-      const expandedX = point.x + avgNormal.x * copingWidth;
-      const expandedY = point.y + avgNormal.y * copingWidth;
-      
       if (i === 0) {
-        poolHole.moveTo(expandedX, expandedY);
+        poolHole.moveTo(point.x, point.y);
       } else {
-        poolHole.lineTo(expandedX, expandedY);
+        poolHole.lineTo(point.x, point.y);
       }
     });
     poolHole.closePath();
@@ -925,7 +889,10 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   poolDimensions,
   selectedCategory,
   onSelectCategory,
-  fenceHeight = 6
+  fenceHeight = 6,
+  paverTextureScale = 1,
+  copingTextureScale = 1,
+  waterlineTextureScale = 1
 }) => {
   return (
     <>
@@ -974,6 +941,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
             features={features || []}
             paverTextureUrl={paverTextureUrl}
             selectedCategory={selectedCategory}
+            paverTextureScale={paverTextureScale}
           />
         </group>
       )}
@@ -984,6 +952,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           poolPoints={points}
           copingTextureUrl={copingTextureUrl}
           selectedCategory={selectedCategory}
+          copingTextureScale={copingTextureScale}
         />
       </group>
 
@@ -993,6 +962,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           poolPoints={points}
           waterlineTextureUrl={waterlineTextureUrl}
           selectedCategory={selectedCategory}
+          waterlineTextureScale={waterlineTextureScale}
         />
       </group>
 
