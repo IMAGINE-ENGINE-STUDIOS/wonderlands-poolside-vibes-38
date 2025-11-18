@@ -21,7 +21,7 @@ interface WaterlineMeshProps {
 export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({ 
   poolPoints, 
   waterlineTextureUrl,
-  waterlineHeight = 0.0833, // Exactly 1 inch thick (1/12 feet = 0.0833ft)
+  waterlineHeight = 0.5, // 6 inches tall (6/12 feet = 0.5ft)
   waterlineWidth = 1.0,      // 1 foot tile along perimeter
   selectedCategory,
   waterlineTextureScale = 1,
@@ -115,17 +115,17 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       
       const baseIdx = vertices.length / 3;
       
-      // Waterline: 1 inch thick band attached to upper pool wall
-      // Positioned just below water surface (y=0) at top of pool wall
-      // Top edge (at y=0, at water surface level)
+      // Waterline: 6 inches tall band attached to pool wall, positioned just below coping
+      // Coping is at y = 2/12 = 0.167ft, so waterline starts just below it
+      // Top edge (just below coping at y = 0)
       vertices.push(p1.x, 0, p1.z);
       vertices.push(p2.x, 0, p2.z);
       
-      // Bottom edge (exactly 1 inch = 0.0833ft below water surface)
+      // Bottom edge (6 inches = 0.5ft below, so y = -0.5)
       vertices.push(p1.x, -waterlineHeight, p1.z);
       vertices.push(p2.x, -waterlineHeight, p2.z);
       
-      // UV mapping: tiles are 1ft along perimeter x 1 inch tall
+      // UV mapping: tiles are 1ft along perimeter x 6 inches tall
       const numTiles = segmentLength / waterlineWidth;
       
       // Face UVs (facing pool interior, visible from inside pool)
