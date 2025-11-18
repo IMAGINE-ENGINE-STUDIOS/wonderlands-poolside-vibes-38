@@ -83,6 +83,7 @@ export interface Scene3D {
     paver: TextureConfig;
     coping: TextureConfig;
     waterline?: TextureConfig;
+    copingHeight?: number;
   };
   features: PoolFeature[];
   annotations: Annotation[];

@@ -70,6 +70,7 @@ export interface Pool3DSceneProps {
   waterlineTextureOffset?: [number, number];
   linerTextureOffset?: [number, number];
   poolPosition?: [number, number, number];
+  copingHeight?: number;
 }
 
 const PoolMesh: React.FC<{
@@ -346,7 +347,8 @@ const CopingMesh: React.FC<{
   selectedCategory?: string | null;
   copingTextureScale?: number;
   copingTextureOffset?: [number, number];
-}> = ({ poolPoints, copingTextureUrl, selectedCategory, copingTextureScale = 1, copingTextureOffset = [0, 0] }) => {
+  copingHeight?: number;
+}> = ({ poolPoints, copingTextureUrl, selectedCategory, copingTextureScale = 1, copingTextureOffset = [0, 0], copingHeight = 2 / 12 }) => {
   const [copingTexture, setCopingTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
@@ -413,7 +415,7 @@ const CopingMesh: React.FC<{
     return () => clearInterval(interval);
   }, [selectedCategory]);
 
-  // Create rectangular coping frame geometry
+  // Create rectangular coping frame geometry with vertical walls
   const copingGeometry = useMemo(() => {
     if (poolPoints.length < 3) {
       return new THREE.BoxGeometry(1, 0.5, 0.5);
@@ -439,7 +441,6 @@ const CopingMesh: React.FC<{
     // Z-axis = pool length direction
 
     const copingWidth = 1.0; // 1 foot wide coping
-    const copingHeight = 2 / 12; // 2 inches tall (converted to feet: 2/12 = 0.167 feet)
 
     // Pool outer edge (at pool perimeter)
     const innerHalfWidth = poolWidth / 2;
@@ -453,8 +454,8 @@ const CopingMesh: React.FC<{
     const indices: number[] = [];
     const uvs: number[] = [];
 
-    // Create 4 rectangular strips forming a frame - flush with deck at y = copingHeight
-    const strips = [
+    // Create 4 rectangular strips forming a frame - TOP SURFACE at y = copingHeight
+    const topStrips = [
       // Top strip (along +Z edge)
       { 
         corners: [
@@ -501,7 +502,8 @@ const CopingMesh: React.FC<{
       }
     ];
 
-    strips.forEach(strip => {
+    // Add top surface vertices
+    topStrips.forEach(strip => {
       const baseIdx = vertices.length / 3;
       
       // Add 4 corner vertices for this strip
@@ -521,6 +523,39 @@ const CopingMesh: React.FC<{
       );
     });
 
+    // Add INNER VERTICAL WALLS (2-inch drop from coping to water level at y=0)
+    // These walls connect the inner edge of the coping top surface down to the water surface
+    const innerPerimeterPoints = [
+      [-innerHalfWidth, innerHalfLength],   // top-left
+      [innerHalfWidth, innerHalfLength],    // top-right
+      [innerHalfWidth, -innerHalfLength],   // bottom-right
+      [-innerHalfWidth, -innerHalfLength]   // bottom-left
+    ];
+
+    for (let i = 0; i < innerPerimeterPoints.length; i++) {
+      const p1 = innerPerimeterPoints[i];
+      const p2 = innerPerimeterPoints[(i + 1) % innerPerimeterPoints.length];
+      
+      const baseIdx = vertices.length / 3;
+      
+      // Top edge vertices (at coping height)
+      vertices.push(p1[0], copingHeight, p1[1]);
+      vertices.push(p2[0], copingHeight, p2[1]);
+      
+      // Bottom edge vertices (at water surface, y=0)
+      vertices.push(p1[0], 0, p1[1]);
+      vertices.push(p2[0], 0, p2[1]);
+      
+      // UV mapping for vertical wall
+      uvs.push(0, 1, 1, 1, 0, 0, 1, 0);
+      
+      // Two triangles for the wall segment
+      indices.push(
+        baseIdx, baseIdx + 1, baseIdx + 2,
+        baseIdx + 1, baseIdx + 3, baseIdx + 2
+      );
+    }
+
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
     geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
@@ -528,7 +563,7 @@ const CopingMesh: React.FC<{
     geometry.computeVertexNormals();
 
     return geometry;
-  }, [poolPoints, copingDimensions]);
+  }, [poolPoints, copingDimensions, copingHeight]);
 
   const isSelected = selectedCategory === 'coping';
 
@@ -555,7 +590,8 @@ const DeckMesh: React.FC<{
   selectedCategory?: string | null;
   paverTextureScale?: number;
   paverTextureOffset?: [number, number];
-}> = ({ hardscapePoints, poolPoints, features, paverTextureUrl, selectedCategory, paverTextureScale = 1, paverTextureOffset = [0, 0] }) => {
+  copingHeight?: number;
+}> = ({ hardscapePoints, poolPoints, features, paverTextureUrl, selectedCategory, paverTextureScale = 1, paverTextureOffset = [0, 0], copingHeight = 2 / 12 }) => {
   const [paverTexture, setPaverTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
@@ -669,7 +705,7 @@ const DeckMesh: React.FC<{
   const redTint = isSelected ? Math.sin(pulseIntensity * Math.PI) : 0;
 
   return (
-    <mesh geometry={deckGeometry} receiveShadow castShadow>
+    <mesh geometry={deckGeometry} position={[0, copingHeight, 0]} receiveShadow castShadow>
       <meshStandardMaterial
         map={paverTexture}
         color={isSelected ? `rgb(${255}, ${Math.floor(255 * (1 - redTint * 0.7))}, ${Math.floor(255 * (1 - redTint * 0.7))})` : (paverTexture ? "#ffffff" : "#D4C4B0")}
@@ -984,7 +1020,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   copingTextureOffset = [0, 0],
   waterlineTextureOffset = [0, 0],
   linerTextureOffset = [0, 0],
-  poolPosition = [0, 0, 0]
+  poolPosition = [0, 0, 0],
+  copingHeight = 2 / 12
 }) => {
   return (
     <>
@@ -1039,6 +1076,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
             selectedCategory={selectedCategory}
             paverTextureScale={paverTextureScale}
             paverTextureOffset={paverTextureOffset}
+            copingHeight={copingHeight}
           />
         </group>
       )}
@@ -1051,6 +1089,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           selectedCategory={selectedCategory}
           copingTextureScale={copingTextureScale}
           copingTextureOffset={copingTextureOffset}
+          copingHeight={copingHeight}
         />
       </group>
 
