@@ -694,7 +694,7 @@ const DeckMesh: React.FC<{
     deckShape.holes.push(copingHole);
 
     const deckGeom = new THREE.ExtrudeGeometry(deckShape, {
-      depth: 0.5,
+      depth: deckHeight, // Use deckHeight for thickness
       bevelEnabled: false
     });
     deckGeom.rotateX(-Math.PI / 2);
@@ -713,7 +713,7 @@ const DeckMesh: React.FC<{
     }
 
     return deckGeom;
-  }, [hardscapePoints, poolPoints]);
+  }, [hardscapePoints, poolPoints, deckHeight]);
 
   if (!deckGeometry) return null;
 
@@ -721,7 +721,7 @@ const DeckMesh: React.FC<{
   const redTint = isSelected ? Math.sin(pulseIntensity * Math.PI) : 0;
 
   return (
-    <mesh geometry={deckGeometry} position={[0, deckHeight, 0]} receiveShadow castShadow>
+    <mesh geometry={deckGeometry} position={[0, 0, 0]} receiveShadow castShadow>
       <meshStandardMaterial
         map={paverTexture}
         color={isSelected ? `rgb(${255}, ${Math.floor(255 * (1 - redTint * 0.7))}, ${Math.floor(255 * (1 - redTint * 0.7))})` : (paverTexture ? "#ffffff" : "#D4C4B0")}
