@@ -117,8 +117,23 @@ const PoolMesh: React.FC<{
       const repeatX = baseRepeatX / (linerTextureScale || 1);
       const repeatY = baseRepeatY / (linerTextureScale || 1);
       
+      // Check if we already have the correct texture loaded
+      const currentTextureUrl = linerTexture?.userData?.url;
+      if (currentTextureUrl === linerTextureUrl && 
+          linerTexture?.repeat.x === repeatX && 
+          linerTexture?.repeat.y === repeatY) {
+        // Just update offset if needed
+        if (linerTexture.offset.x !== (linerTextureOffset?.[0] || 0) || 
+            linerTexture.offset.y !== (linerTextureOffset?.[1] || 0)) {
+          linerTexture.offset.set(linerTextureOffset?.[0] || 0, linerTextureOffset?.[1] || 0);
+          linerTexture.needsUpdate = true;
+        }
+        return; // Don't reload the same texture
+      }
+      
       textureCache.loadTexture(linerTextureUrl, { x: repeatX, y: repeatY })
         .then(texture => {
+          texture.userData.url = linerTextureUrl; // Track which URL this texture came from
           texture.offset.set(linerTextureOffset?.[0] || 0, linerTextureOffset?.[1] || 0);
           texture.wrapS = THREE.RepeatWrapping;
           texture.wrapT = THREE.RepeatWrapping;
@@ -133,7 +148,7 @@ const PoolMesh: React.FC<{
           setLinerTexture(null);
         });
     }
-  }, [linerTextureUrl, poolDimensions, linerTextureScale, linerTextureOffset]);
+  }, [linerTextureUrl, poolDimensions, linerTextureScale, linerTextureOffset, linerTexture]);
 
   // Dispose of previous texture after new one is loaded
   useEffect(() => {
