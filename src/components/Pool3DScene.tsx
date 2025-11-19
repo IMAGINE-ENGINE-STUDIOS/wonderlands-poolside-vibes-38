@@ -202,7 +202,8 @@ const PoolMesh: React.FC<{
     const lengthDirection = poolLength > poolWidth ? 'z' : 'x';
 
     // === POOL FLOOR GEOMETRY ===
-    // Solid floor with sloped depth profile from shallow to deep
+    // Thick floor (9 inches = 0.75 ft) with top and bottom surfaces
+    const floorThickness = 0.75; // 9 inches
     const floorVertices: number[] = [];
     const floorIndices: number[] = [];
     const floorUVs: number[] = [];
@@ -211,7 +212,7 @@ const PoolMesh: React.FC<{
     const flatCoords = normalizedPoints.flatMap(p => [p.x, p.z]);
     const triangles = earcut(flatCoords);
     
-    // Create floor vertices with actual depth variation
+    // Create TOP surface floor vertices (visible inside pool)
     for (let i = 0; i < normalizedPoints.length; i++) {
       const point = normalizedPoints[i];
       
@@ -229,15 +230,50 @@ const PoolMesh: React.FC<{
       // Floor at negative Y (below water surface at y=0)
       floorVertices.push(point.x, -depth, point.z);
       
-      // UV mapping: 1ft x 1ft pool finish tiles
-      const u = (point.x - (minX - centerX)) / 1;
-      const v = (point.z - (minY - centerY)) / 1;
-      floorUVs.push(u, v);
+      // Perfect UV mapping: world-space coordinates for 1ft x 1ft tiles
+      floorUVs.push(point.x, point.z);
     }
     
-    // Floor triangulation indices
+    // Create BOTTOM surface floor vertices (9 inches below top)
+    const bottomVertexOffset = normalizedPoints.length;
+    for (let i = 0; i < normalizedPoints.length; i++) {
+      const point = normalizedPoints[i];
+      
+      let lengthRatio;
+      if (lengthDirection === 'z') {
+        lengthRatio = (point.z - (minY - centerY)) / poolLength;
+      } else {
+        lengthRatio = (point.x - (minX - centerX)) / poolWidth;
+      }
+      
+      lengthRatio = Math.max(0, Math.min(1, lengthRatio));
+      const depth = getDepthAtPosition(lengthRatio);
+      
+      // Bottom surface 9 inches below top
+      floorVertices.push(point.x, -depth - floorThickness, point.z);
+      floorUVs.push(point.x, point.z);
+    }
+    
+    // Top surface triangulation indices
     for (let i = 0; i < triangles.length; i++) {
       floorIndices.push(triangles[i]);
+    }
+    
+    // Bottom surface triangulation indices (reversed winding)
+    for (let i = 0; i < triangles.length; i += 3) {
+      floorIndices.push(
+        bottomVertexOffset + triangles[i + 2],
+        bottomVertexOffset + triangles[i + 1],
+        bottomVertexOffset + triangles[i]
+      );
+    }
+    
+    // Side edges connecting top and bottom surfaces
+    for (let i = 0; i < normalizedPoints.length; i++) {
+      const nextI = (i + 1) % normalizedPoints.length;
+      
+      floorIndices.push(i, nextI, bottomVertexOffset + nextI);
+      floorIndices.push(i, bottomVertexOffset + nextI, bottomVertexOffset + i);
     }
     
     const floorGeometry = new THREE.BufferGeometry();
@@ -247,10 +283,12 @@ const PoolMesh: React.FC<{
     floorGeometry.computeVertexNormals();
 
     // === POOL WALLS GEOMETRY ===
-    // Solid walls from water surface (y=0) to sloped floor
+    // Thick walls (9 inches = 0.75 ft) with inner and outer surfaces
+    const wallThickness = 0.75; // 9 inches
     const wallVertices: number[] = [];
     const wallIndices: number[] = [];
     const wallUVs: number[] = [];
+    let perimeterDistance = 0;
     
     for (let i = 0; i < normalizedPoints.length; i++) {
       const p1 = normalizedPoints[i];
@@ -269,28 +307,86 @@ const PoolMesh: React.FC<{
       
       const wallLength = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2));
       
+      // Calculate inward normal
+      const dx = p2.x - p1.x;
+      const dz = p2.z - p1.z;
+      const nx = -dz / wallLength;  // Points inward
+      const nz = dx / wallLength;
+      
       const baseIdx = wallVertices.length / 3;
       
-      // Wall quad: top at water level, bottom follows floor slope
-      wallVertices.push(p1.x, 0, p1.z);          // Top left at water surface
-      wallVertices.push(p2.x, 0, p2.z);          // Top right at water surface
-      wallVertices.push(p1.x, -depth1, p1.z);    // Bottom left at floor
-      wallVertices.push(p2.x, -depth2, p2.z);    // Bottom right at floor
+      // OUTER surface (at pool boundary - in ground, not visible)
+      const outerP1 = { x: p1.x, z: p1.z };
+      const outerP2 = { x: p2.x, z: p2.z };
       
-      // UV mapping: 1ft x 1ft tiles on walls
+      // INNER surface (0.75 ft inward - visible with liner texture)
+      const innerP1 = { x: p1.x + nx * wallThickness, z: p1.z + nz * wallThickness };
+      const innerP2 = { x: p2.x + nx * wallThickness, z: p2.z + nz * wallThickness };
+      
+      // === INNER WALL SURFACE (textured, visible from inside pool) ===
+      wallVertices.push(innerP1.x, 0, innerP1.z);
+      wallVertices.push(innerP2.x, 0, innerP2.z);
+      wallVertices.push(innerP1.x, -depth1, innerP1.z);
+      wallVertices.push(innerP2.x, -depth2, innerP2.z);
+      
+      // Perfect UV mapping for inner surface
       const avgDepth = (depth1 + depth2) / 2;
-      // Fixed UV V-coordinates for proper texture orientation
       wallUVs.push(
-        0, avgDepth / 1,
-        wallLength / 1, avgDepth / 1,
-        0, 0,
-        wallLength / 1, 0
+        perimeterDistance, avgDepth,
+        perimeterDistance + wallLength, avgDepth,
+        perimeterDistance, 0,
+        perimeterDistance + wallLength, 0
       );
       
-      // Wall face (normals facing inward to pool interior)
+      perimeterDistance += wallLength;
+      
+      // Inner wall face (normals pointing outward so visible from inside)
       wallIndices.push(
-        baseIdx, baseIdx + 3, baseIdx + 1,
-        baseIdx, baseIdx + 2, baseIdx + 3
+        baseIdx, baseIdx + 1, baseIdx + 3,
+        baseIdx, baseIdx + 3, baseIdx + 2
+      );
+      
+      // === OUTER WALL SURFACE (concrete, not visible) ===
+      const outerBaseIdx = wallVertices.length / 3;
+      wallVertices.push(outerP1.x, 0, outerP1.z);
+      wallVertices.push(outerP2.x, 0, outerP2.z);
+      wallVertices.push(outerP1.x, -depth1, outerP1.z);
+      wallVertices.push(outerP2.x, -depth2, outerP2.z);
+      
+      wallUVs.push(0, avgDepth, wallLength, avgDepth, 0, 0, wallLength, 0);
+      
+      // Outer wall face (reversed winding)
+      wallIndices.push(
+        outerBaseIdx, outerBaseIdx + 3, outerBaseIdx + 1,
+        outerBaseIdx, outerBaseIdx + 2, outerBaseIdx + 3
+      );
+      
+      // === TOP EDGE (connecting at water surface) ===
+      const topBaseIdx = wallVertices.length / 3;
+      wallVertices.push(innerP1.x, 0, innerP1.z);
+      wallVertices.push(innerP2.x, 0, innerP2.z);
+      wallVertices.push(outerP1.x, 0, outerP1.z);
+      wallVertices.push(outerP2.x, 0, outerP2.z);
+      
+      wallUVs.push(0, 0, wallLength, 0, 0, wallThickness, wallLength, wallThickness);
+      
+      wallIndices.push(
+        topBaseIdx, topBaseIdx + 2, topBaseIdx + 3,
+        topBaseIdx, topBaseIdx + 3, topBaseIdx + 1
+      );
+      
+      // === BOTTOM EDGE (connecting at floor) ===
+      const bottomBaseIdx = wallVertices.length / 3;
+      wallVertices.push(innerP1.x, -depth1, innerP1.z);
+      wallVertices.push(innerP2.x, -depth2, innerP2.z);
+      wallVertices.push(outerP1.x, -depth1, outerP1.z);
+      wallVertices.push(outerP2.x, -depth2, outerP2.z);
+      
+      wallUVs.push(0, 0, wallLength, 0, 0, wallThickness, wallLength, wallThickness);
+      
+      wallIndices.push(
+        bottomBaseIdx, bottomBaseIdx + 1, bottomBaseIdx + 3,
+        bottomBaseIdx, bottomBaseIdx + 3, bottomBaseIdx + 2
       );
     }
     
@@ -747,33 +843,14 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number }> = ({
     terrainShape.lineTo(-5000, 5000);
     terrainShape.closePath();
     
-    // Create pool cutout hole - using INNER edge of coping (pool boundary + coping width)
+    // Create pool cutout hole - use pool boundary directly (where walls are)
     const poolHole = new THREE.Path();
     
-    // Calculate inner edge of coping for each point
     poolPoints.forEach((point, i) => {
-      const nextPoint = poolPoints[(i + 1) % poolPoints.length];
-      const prevPoint = poolPoints[(i - 1 + poolPoints.length) % poolPoints.length];
-      
-      // Calculate normal vector pointing inward (toward pool center)
-      const dx1 = nextPoint.x - point.x;
-      const dy1 = nextPoint.y - point.y;
-      const dx2 = point.x - prevPoint.x;
-      const dy2 = point.y - prevPoint.y;
-      
-      // Average normal from both edges
-      const nx = -(dy1 + dy2) / 2;
-      const ny = (dx1 + dx2) / 2;
-      const len = Math.sqrt(nx * nx + ny * ny);
-      
-      // Offset point inward by coping width to get inner edge
-      const offsetX = point.x + (nx / len) * copingWidth;
-      const offsetY = point.y + (ny / len) * copingWidth;
-      
       if (i === 0) {
-        poolHole.moveTo(offsetX, offsetY);
+        poolHole.moveTo(point.x, point.y);
       } else {
-        poolHole.lineTo(offsetX, offsetY);
+        poolHole.lineTo(point.x, point.y);
       }
     });
     poolHole.closePath();
