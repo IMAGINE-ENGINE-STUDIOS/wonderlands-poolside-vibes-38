@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation } from './scene3d/types';
 import { Pool3DScene } from './Pool3DScene';
 import { Scene3DControlPanel } from './Scene3DControlPanel';
+import { StairsControls } from './StairsControls';
 import { Scene3DAnnotations } from './Scene3DAnnotations';
 import { Button } from './ui/button';
 import * as THREE from 'three';
@@ -58,7 +59,14 @@ export function UnifiedPoolVisualizer({
   const [autoRotate, setAutoRotate] = useState(false);
   const [sunPosition, setSunPosition] = useState<[number, number, number]>([100, 20, 100]);
   const [fenceHeight, setFenceHeight] = useState(6);
+  const [isStairsPlacementMode, setIsStairsPlacementMode] = useState(false);
+  const [selectedStairId, setSelectedStairId] = useState<string | null>(null);
   const controlsRef = useRef<any>(null);
+
+  const FLORIDA_STEP_HEIGHT = 0.625; // 7.5 inches
+  const DEFAULT_STEP_DEPTH = 0.9167; // 11 inches
+  
+  const poolDepth = scene.pool.dimensions?.depth || 8;
 
   // Update parent when scene changes
   useEffect(() => {
@@ -204,6 +212,42 @@ export function UnifiedPoolVisualizer({
     }));
   };
 
+  const handleStairsPlacementComplete = (position: [number, number, number], rotation: number) => {
+    if (position[0] === 0 && position[1] === 0 && position[2] === 0) {
+      // Cancel placement
+      setIsStairsPlacementMode(false);
+      return;
+    }
+
+    const numSteps = Math.ceil(poolDepth / FLORIDA_STEP_HEIGHT);
+    
+    const newStair = {
+      id: `stair-${Date.now()}`,
+      position,
+      rotation,
+      shape: 'rectangle' as const,
+      width: 3,
+      numSteps,
+      stepHeight: FLORIDA_STEP_HEIGHT,
+      stepDepth: DEFAULT_STEP_DEPTH
+    };
+
+    setScene(prev => ({
+      ...prev,
+      stairs: [...prev.stairs, newStair]
+    }));
+
+    setIsStairsPlacementMode(false);
+    setSelectedStairId(newStair.id);
+  };
+
+  const handleStairsChange = (updatedStairs: any[]) => {
+    setScene(prev => ({
+      ...prev,
+      stairs: updatedStairs
+    }));
+  };
+
   return (
     <div className="flex h-full w-full">
       {/* Main 3D Canvas */}
@@ -275,6 +319,12 @@ export function UnifiedPoolVisualizer({
             copingHeight={scene.deck.copingHeight || 2 / 12}
             deckHeight={scene.deck.deckHeight || 2 / 12}
             copingWidth={scene.deck.copingWidth || 1.0}
+            stairs={scene.stairs}
+            onStairsChange={handleStairsChange}
+            isStairsPlacementMode={isStairsPlacementMode}
+            onStairsPlacementComplete={handleStairsPlacementComplete}
+            selectedStairId={selectedStairId}
+            onSelectStair={setSelectedStairId}
           />
           
           {/* Annotations */}
@@ -325,6 +375,18 @@ export function UnifiedPoolVisualizer({
         fenceHeight={fenceHeight}
         onFenceHeightChange={setFenceHeight}
       />
+
+      {/* Stairs Controls Floating Panel */}
+      <div className="absolute left-4 bottom-20 w-80 bg-background/95 backdrop-blur border rounded-lg shadow-lg p-4 z-10">
+        <StairsControls
+          stairs={scene.stairs}
+          poolDepth={poolDepth}
+          onStairsChange={handleStairsChange}
+          onPlacementModeToggle={setIsStairsPlacementMode}
+          isPlacementMode={isStairsPlacementMode}
+          selectedStairId={selectedStairId}
+        />
+      </div>
     </div>
   );
 }
