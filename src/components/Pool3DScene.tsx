@@ -325,12 +325,11 @@ const PoolMesh: React.FC<{
       </mesh>
 
       {/* Pool walls - from water level (y=0) down to floor */}
-      <mesh geometry={wallsGeometry} position={[0, 0, 0]}>
-        <meshStandardMaterial
-          color="#ffffff"
+      <mesh key={linerTexture?.uuid || 'no-liner-texture'} geometry={wallsGeometry} position={[0, 0, 0]}>
+        <meshPhongMaterial
           map={linerTexture}
-          roughness={0.6}
-          metalness={0.0}
+          color="#ffffff"
+          shininess={30}
           side={THREE.DoubleSide}
           emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
           emissiveIntensity={pulseIntensity * 0.5}
@@ -573,12 +572,11 @@ const CopingMesh: React.FC<{
   const isSelected = selectedCategory === 'coping';
 
   return (
-    <mesh geometry={copingGeometry} position={[0, 0, 0]}>
-      <meshStandardMaterial
-        color={copingTexture ? "#ffffff" : "#8B7355"}
+    <mesh key={copingTexture?.uuid || 'no-coping-texture'} geometry={copingGeometry} position={[0, 0, 0]}>
+      <meshPhongMaterial
         map={copingTexture}
-        roughness={0.6}
-        metalness={0.0}
+        color={copingTexture ? "#ffffff" : "#8B7355"}
+        shininess={50}
         side={THREE.DoubleSide}
         emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
         emissiveIntensity={pulseIntensity * 0.5}
@@ -715,12 +713,13 @@ const DeckMesh: React.FC<{
   const redTint = isSelected ? Math.sin(pulseIntensity * Math.PI) : 0;
 
   return (
-    <mesh geometry={deckGeometry} position={[0, 0, 0]} receiveShadow castShadow>
-      <meshStandardMaterial
+    <mesh key={paverTexture?.uuid || 'no-paver-texture'} geometry={deckGeometry} position={[0, 0, 0]} receiveShadow castShadow>
+      <meshPhongMaterial
         map={paverTexture}
-        color={isSelected ? `rgb(${255}, ${Math.floor(255 * (1 - redTint * 0.7))}, ${Math.floor(255 * (1 - redTint * 0.7))})` : (paverTexture ? "#ffffff" : "#D4C4B0")}
-        roughness={0.8}
-        metalness={0.1}
+        color={paverTexture ? "#ffffff" : "#D4C4B0"}
+        shininess={20}
+        emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
+        emissiveIntensity={pulseIntensity * 0.3}
       />
     </mesh>
   );
