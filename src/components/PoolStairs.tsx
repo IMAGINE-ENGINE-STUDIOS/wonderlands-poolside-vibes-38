@@ -102,13 +102,71 @@ export const PoolStairs = ({
       }
     }
 
+    // Foundation/base that extends to pool bottom
+    const lastStepHeight = -(numSteps * stepHeight);
+    const lastStepDepth = numSteps * stepDepth;
+    const poolBottom = -poolDepth;
+    const hw = width / 2;
+
+    // Bottom foundation panel (front)
+    const foundationFront = [
+      [-hw, lastStepHeight, lastStepDepth],
+      [hw, lastStepHeight, lastStepDepth],
+      [hw, poolBottom, lastStepDepth],
+      [-hw, poolBottom, lastStepDepth]
+    ];
+    foundationFront.forEach(v => vertices.push(...v));
+    [[0, 0], [1, 0], [1, 1], [0, 1]].forEach(uv => uvs.push(...uv));
+    [0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1].forEach(n => normals.push(n));
+    indices.push(vertexOffset, vertexOffset + 1, vertexOffset + 2, vertexOffset, vertexOffset + 2, vertexOffset + 3);
+    vertexOffset += 4;
+
+    // Foundation left side
+    const foundationLeft = [
+      [-hw, lastStepHeight, 0],
+      [-hw, lastStepHeight, lastStepDepth],
+      [-hw, poolBottom, lastStepDepth],
+      [-hw, poolBottom, 0]
+    ];
+    foundationLeft.forEach(v => vertices.push(...v));
+    [[0, 0], [1, 0], [1, 1], [0, 1]].forEach(uv => uvs.push(...uv));
+    [-1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0].forEach(n => normals.push(n));
+    indices.push(vertexOffset, vertexOffset + 1, vertexOffset + 2, vertexOffset, vertexOffset + 2, vertexOffset + 3);
+    vertexOffset += 4;
+
+    // Foundation right side
+    const foundationRight = [
+      [hw, lastStepHeight, 0],
+      [hw, poolBottom, 0],
+      [hw, poolBottom, lastStepDepth],
+      [hw, lastStepHeight, lastStepDepth]
+    ];
+    foundationRight.forEach(v => vertices.push(...v));
+    [[0, 0], [1, 0], [1, 1], [0, 1]].forEach(uv => uvs.push(...uv));
+    [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0].forEach(n => normals.push(n));
+    indices.push(vertexOffset, vertexOffset + 1, vertexOffset + 2, vertexOffset, vertexOffset + 2, vertexOffset + 3);
+    vertexOffset += 4;
+
+    // Foundation bottom (floor)
+    const foundationBottom = [
+      [-hw, poolBottom, 0],
+      [hw, poolBottom, 0],
+      [hw, poolBottom, lastStepDepth],
+      [-hw, poolBottom, lastStepDepth]
+    ];
+    foundationBottom.forEach(v => vertices.push(...v));
+    [[0, 0], [1, 0], [1, 1], [0, 1]].forEach(uv => uvs.push(...uv));
+    [0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0].forEach(n => normals.push(n));
+    indices.push(vertexOffset, vertexOffset + 1, vertexOffset + 2, vertexOffset, vertexOffset + 2, vertexOffset + 3);
+    vertexOffset += 4;
+
     geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
     geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
     geo.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
     geo.setIndex(indices);
 
     return geo;
-  }, [stair]);
+  }, [stair, poolDepth]);
 
   return (
     <group 

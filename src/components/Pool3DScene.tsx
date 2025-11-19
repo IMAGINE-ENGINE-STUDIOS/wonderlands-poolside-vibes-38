@@ -860,10 +860,43 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number }> = ({
     terrainShape.lineTo(-5000, 5000);
     terrainShape.closePath();
     
-    // Create pool cutout hole - use pool boundary directly (where walls are)
+    // Create pool cutout hole - use outer edge (coping boundary)
     const poolHole = new THREE.Path();
     
-    poolPoints.forEach((point, i) => {
+    // Calculate coping outer boundary
+    const copingOuterPoints: Array<{x: number, y: number}> = [];
+    
+    for (let i = 0; i < poolPoints.length; i++) {
+      const p1 = poolPoints[i];
+      const p2 = poolPoints[(i + 1) % poolPoints.length];
+      const p0 = poolPoints[(i - 1 + poolPoints.length) % poolPoints.length];
+      
+      // Calculate normals for both edges meeting at this point
+      const dx1 = p1.x - p0.x;
+      const dy1 = p1.y - p0.y;
+      const len1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+      const nx1 = -dy1 / len1;
+      const nz1 = dx1 / len1;
+      
+      const dx2 = p2.x - p1.x;
+      const dy2 = p2.y - p1.y;
+      const len2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+      const nx2 = -dy2 / len2;
+      const nz2 = dx2 / len2;
+      
+      // Average normal at corner
+      const avgNx = (nx1 + nx2) / 2;
+      const avgNz = (nz1 + nz2) / 2;
+      const avgLen = Math.sqrt(avgNx * avgNx + avgNz * avgNz);
+      
+      // Push point outward by coping width
+      copingOuterPoints.push({
+        x: p1.x - (avgNx / avgLen) * copingWidth,
+        y: p1.y - (avgNz / avgLen) * copingWidth
+      });
+    }
+    
+    copingOuterPoints.forEach((point, i) => {
       if (i === 0) {
         poolHole.moveTo(point.x, point.y);
       } else {
