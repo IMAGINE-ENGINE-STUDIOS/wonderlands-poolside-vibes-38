@@ -1,8 +1,7 @@
 import { useMemo, useRef } from 'react';
-import { useFrame, useLoader } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Point } from './scene3d/types';
-import poolWaterTexture from '@/assets/pool-texture-sapphire.jpg';
 
 interface DepthPoint {
   position: number;
@@ -24,18 +23,6 @@ interface WaterSurfaceProps {
 const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, poolDimensions }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
-  
-  // Load water texture
-  const waterTexture = useLoader(THREE.TextureLoader, poolWaterTexture);
-
-  // Configure water texture
-  useMemo(() => {
-    if (waterTexture) {
-      waterTexture.wrapS = THREE.RepeatWrapping;
-      waterTexture.wrapT = THREE.RepeatWrapping;
-      waterTexture.repeat.set(4, 4);
-    }
-  }, [waterTexture]);
 
   // Get depth interpolation function
   const getDepthAtPosition = useMemo(() => {
@@ -118,7 +105,6 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
     return new THREE.ShaderMaterial({
       uniforms: {
         time: { value: 0 },
-        waterTexture: { value: waterTexture },
         
         // Depth-based water colors (shallow to deep)
         shallowColor: { value: new THREE.Color(0.4, 0.85, 0.9) }, // Turquoise
@@ -206,7 +192,6 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
       `,
       fragmentShader: `
         uniform float time;
-        uniform sampler2D waterTexture;
         
         uniform vec3 shallowColor;
         uniform vec3 mediumColor;
@@ -285,12 +270,8 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
             depthColor = mix(mediumColor, deepColor, (depthRatio - 0.5) * 2.0);
           }
           
-          // Sample water texture
-          vec2 animatedUV = vUv + vec2(time * 0.01, time * 0.015);
-          vec4 texColor = texture2D(waterTexture, animatedUV);
-          
-          // Blend texture with depth color
-          vec3 baseColor = mix(depthColor, texColor.rgb, 0.3);
+          // Use depth color as base (no texture)
+          vec3 baseColor = depthColor;
           
           // Apply water color filter
           baseColor = mix(baseColor, waterColorFilter, filterStrength);
@@ -330,7 +311,7 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
       side: THREE.DoubleSide,
       depthWrite: false,
     });
-  }, [waterTexture, depthPoints]);
+  }, [depthPoints]);
 
   // Animate water
   useFrame((state) => {
