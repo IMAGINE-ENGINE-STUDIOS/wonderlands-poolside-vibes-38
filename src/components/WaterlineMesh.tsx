@@ -38,9 +38,9 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
         return sum + Math.sqrt(Math.pow(nextP.x - p.x, 2) + Math.pow(nextP.y - p.y, 2));
       }, 0);
       
-      // Waterline tiles: scale control
-      const repeatX = (poolPerimeter / waterlineWidth) * waterlineTextureScale;
-      const repeatY = waterlineTextureScale;
+      // Waterline tiles: scale control (inverted to fix backwards scaling)
+      const repeatX = (poolPerimeter / waterlineWidth) / waterlineTextureScale;
+      const repeatY = 1 / waterlineTextureScale;
       
       textureCache.loadTexture(waterlineTextureUrl, { x: repeatX, y: repeatY })
         .then(texture => {
@@ -110,15 +110,24 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       
       const baseIdx = vertices.length / 3;
       
-      // Waterline: 6 inches tall band attached to pool wall, positioned just below coping
-      // Coping is at y = 2/12 = 0.167ft, so waterline starts just below it
-      // Top edge (just below coping at y = 0)
-      vertices.push(p1.x, 0, p1.z);
-      vertices.push(p2.x, 0, p2.z);
+      // Waterline: 6 inches tall ceramic band, positioned 2 inches below coping top
+      // Coping is 2 inches tall (0.167ft), waterline starts 2 inches below top
+      // This makes waterline visible on the inner pool wall, below the 2" coping border
+      const copingHeight = 2 / 12; // 2 inches
+      const waterlineTop = copingHeight - (2 / 12); // 2 inches below coping top = 0ft (water surface)
       
-      // Bottom edge (6 inches = 0.5ft below, so y = -0.5)
-      vertices.push(p1.x, -waterlineHeight, p1.z);
-      vertices.push(p2.x, -waterlineHeight, p2.z);
+      // Offset waterline inward slightly (3mm = 0.01ft) to be in front of pool wall
+      const offsetDist = 0.01;
+      const innerP1 = { x: p1.x - nx * offsetDist, z: p1.z - nz * offsetDist };
+      const innerP2 = { x: p2.x - nx * offsetDist, z: p2.z - nz * offsetDist };
+      
+      // Top edge (at water surface, 2 inches below coping top)
+      vertices.push(innerP1.x, waterlineTop, innerP1.z);
+      vertices.push(innerP2.x, waterlineTop, innerP2.z);
+      
+      // Bottom edge (6 inches = 0.5ft below water surface)
+      vertices.push(innerP1.x, waterlineTop - waterlineHeight, innerP1.z);
+      vertices.push(innerP2.x, waterlineTop - waterlineHeight, innerP2.z);
       
       // UV mapping: tiles are 1ft along perimeter x 6 inches tall
       const numTiles = segmentLength / waterlineWidth;
