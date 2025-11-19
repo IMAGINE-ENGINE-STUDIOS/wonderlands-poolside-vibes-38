@@ -504,17 +504,17 @@ const CopingMesh: React.FC<{
       strip.corners.forEach(([x, y, z], i) => {
         vertices.push(x, y, z);
         
-        // UV mapping: EXACTLY 1ft x 1ft sections, then texture scaled at 46x
-        // Calculate actual position along perimeter and across width
+        // UV mapping: EXACTLY 1ft x 1ft sections without distortion
+        // Map along the natural direction of the coping strip
         const isOuterEdge = i < 2;
-        const isRightVertex = i === 1 || i === 2;
+        const isEndVertex = i === 1 || i === 2;
         
-        // U: Position along the perimeter (in feet)
-        const uPos = isRightVertex ? strip.length : 0;
-        // V: Position across coping width (in feet, 0 = inner edge, copingWidth = outer edge)
+        // U: Distance along perimeter (in feet) - follows the strip direction
+        const uPos = isEndVertex ? strip.length : 0;
+        // V: Distance across width (in feet) - perpendicular to strip
         const vPos = isOuterEdge ? copingWidth : 0;
         
-        // Each 1ft = 1 UV unit (will be scaled 46x by texture)
+        // Direct 1:1 mapping (1 ft = 1 UV unit)
         uvs.push(uPos, vPos);
       });
       
@@ -703,19 +703,21 @@ const DeckMesh: React.FC<{
     });
     deckShape.closePath();
 
-    // Create hole that EXACTLY matches coping outer edge (1 foot larger than pool)
-    // This ensures the coping completely cuts through the deck without overlap
-    const copingWidth = 1.0; // Must match coping definition
+    // Create hole that EXACTLY matches coping outer edge with 2 inch buffer
+    // Coping is 1 foot wide, add small buffer to ensure complete cutout
+    const copingWidth = 1.0; // Coping width in feet
+    const bufferDistance = 2 / 12; // 2 inch buffer = 0.167 ft
+    const totalCutout = copingWidth + bufferDistance;
     
     const copingHole = new THREE.Path();
     poolPoints.forEach((p, i) => {
       const x = p.x - centerX;
       const z = p.y - centerY;
       
-      // Calculate radial offset: move exactly copingWidth (1 foot) outward from pool center
+      // Calculate radial offset: move outward by coping width + buffer
       const distance = Math.sqrt(x * x + z * z);
-      const offsetX = distance > 0 ? x * (distance + copingWidth) / distance : x;
-      const offsetZ = distance > 0 ? z * (distance + copingWidth) / distance : z;
+      const offsetX = distance > 0 ? x * (distance + totalCutout) / distance : x;
+      const offsetZ = distance > 0 ? z * (distance + totalCutout) / distance : z;
       
       if (i === 0) {
         copingHole.moveTo(offsetX, offsetZ);

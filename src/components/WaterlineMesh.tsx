@@ -102,7 +102,7 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
         Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2)
       );
       
-      // Calculate normal (pointing inward)
+      // Calculate normal (pointing inward toward pool center)
       const dx = p2.x - p1.x;
       const dz = p2.z - p1.z;
       const nx = -dz / segmentLength;
@@ -110,35 +110,40 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       
       const baseIdx = vertices.length / 3;
       
-      // Waterline: 6 inches tall ceramic band, positioned 2 inches below coping top
-      // Coping is 2 inches tall (0.167ft), waterline starts 2 inches below top
-      // This makes waterline visible on the inner pool wall, below the 2" coping border
+      // Waterline: 1 inch thick ceramic band, positioned 2 inches below coping top
       const copingHeight = 2 / 12; // 2 inches
       const waterlineTop = copingHeight - (2 / 12); // 2 inches below coping top = 0ft (water surface)
+      const waterlineThickness = 1 / 12; // 1 inch thick
       
-      // Offset waterline inward slightly (3mm = 0.01ft) to be in front of pool wall
+      // Position on pool wall - offset inward by 3mm to be in front of pool wall
       const offsetDist = 0.01;
       const innerP1 = { x: p1.x - nx * offsetDist, z: p1.z - nz * offsetDist };
       const innerP2 = { x: p2.x - nx * offsetDist, z: p2.z - nz * offsetDist };
       
-      // Top edge (at water surface, 2 inches below coping top)
-      vertices.push(innerP1.x, waterlineTop, innerP1.z);
-      vertices.push(innerP2.x, waterlineTop, innerP2.z);
+      // Outer edge (toward pool center, 1 inch inward)
+      const outerP1 = { x: p1.x - nx * (offsetDist + waterlineThickness), z: p1.z - nz * (offsetDist + waterlineThickness) };
+      const outerP2 = { x: p2.x - nx * (offsetDist + waterlineThickness), z: p2.z - nz * (offsetDist + waterlineThickness) };
       
-      // Bottom edge (6 inches = 0.5ft below water surface)
-      vertices.push(innerP1.x, waterlineTop - waterlineHeight, innerP1.z);
-      vertices.push(innerP2.x, waterlineTop - waterlineHeight, innerP2.z);
+      // Outer edge vertices (facing pool center)
+      vertices.push(outerP1.x, waterlineTop, outerP1.z);
+      vertices.push(outerP2.x, waterlineTop, outerP2.z);
+      vertices.push(outerP1.x, waterlineTop - waterlineHeight, outerP1.z);
+      vertices.push(outerP2.x, waterlineTop - waterlineHeight, outerP2.z);
       
-      // UV mapping: tiles are 1ft along perimeter x 6 inches tall
-      const numTiles = segmentLength / waterlineWidth;
+      // UV mapping: EXACTLY 1ft x 1ft sections (not deformed)
+      // U = distance along perimeter (in feet), V = height (in feet)
+      const uStart = 0;
+      const uEnd = segmentLength; // Actual segment length in feet
+      const vTop = waterlineHeight; // 0.5 ft (6 inches)
+      const vBottom = 0;
       
-      // Face UVs (facing pool interior, visible from inside pool) - Fixed V-coordinates
-      uvs.push(0, 0, numTiles, 0, 0, 1, numTiles, 1);
+      // UV coordinates for 1x1 ft tiling
+      uvs.push(uStart, vTop, uEnd, vTop, uStart, vBottom, uEnd, vBottom);
       
-      // Face indices (visible from inside pool, normals facing inward)
+      // Face indices (normals facing inward toward pool center)
       indices.push(
-        baseIdx, baseIdx + 3, baseIdx + 1,
-        baseIdx, baseIdx + 2, baseIdx + 3
+        baseIdx, baseIdx + 1, baseIdx + 3,
+        baseIdx, baseIdx + 3, baseIdx + 2
       );
     }
     
