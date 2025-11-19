@@ -87,6 +87,10 @@ export interface Pool3DSceneProps {
     stepDepth: number;
   }>;
   onStairsChange?: (stairs: Array<any>) => void;
+  isStairsPlacementMode?: boolean;
+  onStairsPlacementComplete?: (position: [number, number, number], rotation: number) => void;
+  selectedStairId?: string | null;
+  onSelectStair?: (id: string | null) => void;
 }
 
 const PoolMesh: React.FC<{
@@ -105,11 +109,7 @@ const PoolMesh: React.FC<{
   selectedCategory, 
   linerTextureScale = 1.8, 
   linerTextureOffset = [0, 0]
-  stairs = [],
-  onStairsChange,
-  isStairsPlacementMode,
-  onStairsPlacementComplete
-}: Pool3DSceneProps & { isStairsPlacementMode?: boolean; onStairsPlacementComplete?: (position: [number, number, number], rotation: number) => void }) => {
+}) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
   const [previousLinerTexture, setPreviousLinerTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
@@ -1059,7 +1059,11 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   deckHeight = 2 / 12,
   copingWidth = 1.1, // Minimum 1.1 ft
   stairs = [],
-  onStairsChange
+  onStairsChange,
+  isStairsPlacementMode = false,
+  onStairsPlacementComplete,
+  selectedStairId,
+  onSelectStair
 }) => {
   const [linerTexture] = useTexture([linerTextureUrl || '']);
   const poolDepth = poolDimensions?.depth || (depthPoints.length > 0 
@@ -1172,6 +1176,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           stair={stair}
           poolDepth={poolDepth}
           texture={linerTexture}
+          onSelect={onSelectStair}
+          isSelected={selectedStairId === stair.id}
         />
       ))}
 
