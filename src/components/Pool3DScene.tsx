@@ -838,7 +838,7 @@ const FenceMesh: React.FC<{
 };
 
 // Grass Terrain Component with Precise Pool Cutout
-const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number }> = ({ poolPoints, copingWidth = 1.0 }) => {
+const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPosition?: [number, number, number] }> = ({ poolPoints, copingWidth = 1.0, poolPosition = [0, 0, 0] }) => {
   const texture = useTexture(grassTexture);
   
   const terrainGeometry = useMemo(() => {
@@ -891,8 +891,8 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number }> = ({
       
       // Push point outward by coping width
       copingOuterPoints.push({
-        x: p1.x - (avgNx / avgLen) * copingWidth,
-        y: p1.y - (avgNz / avgLen) * copingWidth
+        x: p1.x - (avgNx / avgLen) * copingWidth + poolPosition[0],
+        y: p1.y - (avgNz / avgLen) * copingWidth + poolPosition[2]
       });
     }
     
@@ -913,7 +913,7 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number }> = ({
     
     
     return geometry;
-  }, [poolPoints, texture]);
+  }, [poolPoints, texture, copingWidth, poolPosition]);
   
   return (
     <mesh geometry={terrainGeometry} position={[0, -0.02, 0]} receiveShadow>
@@ -1113,10 +1113,10 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       <pointLight position={[0, 15, 0]} intensity={0.8} color="#ffffff" />
       <hemisphereLight intensity={0.5} color="#87CEEB" groundColor="#8B7355" />
 
-      <group position={poolPosition}>
+      {/* Grass Terrain Base - 10000ft x 10000ft with pool cutout at world origin */}
+      <GrassTerrain poolPoints={points} copingWidth={copingWidth} poolPosition={poolPosition} />
 
-      {/* Grass Terrain Base - 10000ft x 10000ft with pool cutout */}
-      <GrassTerrain poolPoints={points} copingWidth={copingWidth} />
+      <group position={poolPosition}>
 
       <Grid
         args={[100, 100]}
