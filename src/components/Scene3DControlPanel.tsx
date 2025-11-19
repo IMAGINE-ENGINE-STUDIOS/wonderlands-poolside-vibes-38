@@ -16,9 +16,11 @@ import {
   Camera, 
   StickyNote,
   Play,
-  Pause
+  Pause,
+  Layers
 } from 'lucide-react';
-import { Scene3D, TextureConfig, TextureLibrary, TransformMode } from './scene3d/types';
+import { Scene3D, TextureConfig, TextureLibrary, TransformMode, PoolStair } from './scene3d/types';
+import { StairsControls } from './StairsControls';
 
 interface Scene3DControlPanelProps {
   scene: Scene3D;
@@ -38,6 +40,13 @@ interface Scene3DControlPanelProps {
   onSunPositionChange: (position: [number, number, number]) => void;
   fenceHeight: number;
   onFenceHeightChange: (height: number) => void;
+  // Stairs props
+  stairs: PoolStair[];
+  poolDepth: number;
+  onStairsChange: (stairs: PoolStair[]) => void;
+  onPlacementModeToggle: (active: boolean) => void;
+  isStairsPlacementMode: boolean;
+  selectedStairId: string | null;
 }
 
 export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
@@ -57,7 +66,13 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   sunPosition,
   onSunPositionChange,
   fenceHeight,
-  onFenceHeightChange
+  onFenceHeightChange,
+  stairs,
+  poolDepth,
+  onStairsChange,
+  onPlacementModeToggle,
+  isStairsPlacementMode,
+  selectedStairId
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [annotationText, setAnnotationText] = useState('');
@@ -661,6 +676,25 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                 className="w-full"
               />
             </div>
+          </div>
+
+          <Separator />
+
+          {/* Pool Stairs */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Layers className="h-4 w-4" />
+              <h4 className="font-medium">Pool Stairs</h4>
+            </div>
+
+            <StairsControls
+              stairs={stairs}
+              poolDepth={poolDepth}
+              onStairsChange={onStairsChange}
+              onPlacementModeToggle={onPlacementModeToggle}
+              isPlacementMode={isStairsPlacementMode}
+              selectedStairId={selectedStairId}
+            />
           </div>
 
           <Separator />
