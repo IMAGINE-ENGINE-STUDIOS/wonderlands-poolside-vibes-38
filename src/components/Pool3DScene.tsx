@@ -88,8 +88,8 @@ const PoolMesh: React.FC<{
   linerTextureUrl, 
   poolDimensions: providedDimensions, 
   selectedCategory, 
-  linerTextureScale = 1, 
-  linerTextureOffset = [0, 0] 
+  linerTextureScale = 46, 
+  linerTextureOffset = [0, 0]
 }) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
   const [previousLinerTexture, setPreviousLinerTexture] = useState<THREE.Texture | null>(null);
@@ -347,7 +347,7 @@ const CopingMesh: React.FC<{
   copingTextureScale?: number;
   copingTextureOffset?: [number, number];
   copingHeight?: number;
-}> = ({ poolPoints, copingTextureUrl, selectedCategory, copingTextureScale = 1, copingTextureOffset = [0, 0], copingHeight = 2 / 12 }) => {
+}> = ({ poolPoints, copingTextureUrl, selectedCategory, copingTextureScale = 46, copingTextureOffset = [0, 0], copingHeight = 2 / 12 }) => {
   const [copingTexture, setCopingTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
@@ -629,7 +629,7 @@ const DeckMesh: React.FC<{
   paverTextureScale?: number;
   paverTextureOffset?: [number, number];
   deckHeight?: number;
-}> = ({ hardscapePoints, poolPoints, features, paverTextureUrl, selectedCategory, paverTextureScale = 1, paverTextureOffset = [0, 0], deckHeight = 2 / 12 }) => {
+}> = ({ hardscapePoints, poolPoints, features, paverTextureUrl, selectedCategory, paverTextureScale = 46, paverTextureOffset = [0, 0], deckHeight = 2 / 12 }) => {
   const [paverTexture, setPaverTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
@@ -1056,10 +1056,10 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   selectedCategory,
   onSelectCategory,
   fenceHeight = 6,
-  paverTextureScale = 1,
-  copingTextureScale = 1,
-  waterlineTextureScale = 1,
-  linerTextureScale = 1,
+  paverTextureScale = 46,
+  copingTextureScale = 46,
+  waterlineTextureScale = 46,
+  linerTextureScale = 46,
   paverTextureOffset = [0, 0],
   copingTextureOffset = [0, 0],
   waterlineTextureOffset = [0, 0],
