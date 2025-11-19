@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useRef, useMemo } from 'react';
 import { Point } from './scene3d/types';
 
 interface StairsPlacementModeProps {
@@ -10,6 +9,11 @@ interface StairsPlacementModeProps {
   isActive: boolean;
   onPlace: (position: [number, number, number], rotation: number) => void;
   onCancel: () => void;
+  numSteps: number;
+  stepHeight: number;
+  stepDepth: number;
+  stairWidth: number;
+  stairShape: 'rectangle' | 'square' | 'rounded';
 }
 
 export const StairsPlacementMode = ({
@@ -17,7 +21,12 @@ export const StairsPlacementMode = ({
   copingWidth,
   isActive,
   onPlace,
-  onCancel
+  onCancel,
+  numSteps,
+  stepHeight,
+  stepDepth,
+  stairWidth,
+  stairShape
 }: StairsPlacementModeProps) => {
   const { camera, raycaster, scene, gl } = useThree();
   const [hoverPosition, setHoverPosition] = useState<THREE.Vector3 | null>(null);
@@ -102,36 +111,99 @@ export const StairsPlacementMode = ({
     };
   }, [isActive, poolPoints, copingWidth, camera, raycaster, gl, onPlace, onCancel, hoverPosition, hoverRotation]);
 
-  // Create blue indicator line on coping
-  const indicatorGeometry = useMemo(() => {
+  // Create stairs preview geometry
+  const stairsPreviewGeometry = useMemo(() => {
     if (!hoverPosition || !isActive) return null;
 
-    const points: THREE.Vector3[] = [];
-    
-    // Draw line segment on coping where stairs will attach
-    const lineLength = 3; // 3 feet wide indicator
-    const angle = hoverRotation;
-    const dx = Math.sin(angle) * lineLength / 2;
-    const dz = -Math.cos(angle) * lineLength / 2;
+    const geometry = new THREE.BufferGeometry();
+    const vertices: number[] = [];
+    const indices: number[] = [];
+    const uvs: number[] = [];
+    let vertexIndex = 0;
 
-    points.push(new THREE.Vector3(
-      hoverPosition.x - dx,
-      0.1, // Slightly above water surface
-      hoverPosition.z - dz
-    ));
-    points.push(new THREE.Vector3(
-      hoverPosition.x + dx,
-      0.1,
-      hoverPosition.z + dz
-    ));
+    for (let i = 0; i < numSteps; i++) {
+      const currentDepth = i * stepDepth;
+      const nextDepth = (i + 1) * stepDepth;
+      const currentHeight = -i * stepHeight;
+      const nextHeight = -(i + 1) * stepHeight;
 
-    return new THREE.BufferGeometry().setFromPoints(points);
-  }, [hoverPosition, hoverRotation, isActive]);
+      const hw = stairWidth / 2;
 
-  if (!isActive || !indicatorGeometry) return null;
+      // Tread (top surface)
+      const treadVerts = [
+        [-hw, currentHeight, currentDepth],
+        [hw, currentHeight, currentDepth],
+        [hw, currentHeight, nextDepth],
+        [-hw, currentHeight, nextDepth]
+      ];
+
+      treadVerts.forEach(v => vertices.push(...v));
+      const treadUVs = [[0, 0], [1, 0], [1, 1], [0, 1]];
+      treadUVs.forEach(uv => uvs.push(...uv));
+      indices.push(vertexIndex, vertexIndex + 1, vertexIndex + 2, vertexIndex, vertexIndex + 2, vertexIndex + 3);
+      vertexIndex += 4;
+
+      // Riser (front vertical surface)
+      const riserVerts = [
+        [-hw, currentHeight, nextDepth],
+        [hw, currentHeight, nextDepth],
+        [hw, nextHeight, nextDepth],
+        [-hw, nextHeight, nextDepth]
+      ];
+
+      riserVerts.forEach(v => vertices.push(...v));
+      const riserUVs = [[0, 0], [1, 0], [1, 1], [0, 1]];
+      riserUVs.forEach(uv => uvs.push(...uv));
+      indices.push(vertexIndex, vertexIndex + 1, vertexIndex + 2, vertexIndex, vertexIndex + 2, vertexIndex + 3);
+      vertexIndex += 4;
+
+      // Left side panel
+      const leftVerts = [
+        [-hw, currentHeight, currentDepth],
+        [-hw, currentHeight, nextDepth],
+        [-hw, nextHeight, nextDepth],
+        [-hw, nextHeight, currentDepth]
+      ];
+      leftVerts.forEach(v => vertices.push(...v));
+      [[0, 0], [1, 0], [1, 1], [0, 1]].forEach(uv => uvs.push(...uv));
+      indices.push(vertexIndex, vertexIndex + 1, vertexIndex + 2, vertexIndex, vertexIndex + 2, vertexIndex + 3);
+      vertexIndex += 4;
+
+      // Right side panel
+      const rightVerts = [
+        [hw, currentHeight, currentDepth],
+        [hw, nextHeight, currentDepth],
+        [hw, nextHeight, nextDepth],
+        [hw, currentHeight, nextDepth]
+      ];
+      rightVerts.forEach(v => vertices.push(...v));
+      [[0, 0], [1, 0], [1, 1], [0, 1]].forEach(uv => uvs.push(...uv));
+      indices.push(vertexIndex, vertexIndex + 1, vertexIndex + 2, vertexIndex, vertexIndex + 2, vertexIndex + 3);
+      vertexIndex += 4;
+    }
+
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+
+    return geometry;
+  }, [numSteps, stepHeight, stepDepth, stairWidth, isActive, hoverPosition]);
+
+  if (!isActive || !hoverPosition || !stairsPreviewGeometry) return null;
 
   return (
-    <primitive object={new THREE.Line(indicatorGeometry, new THREE.LineBasicMaterial({ color: 0x4488ff, linewidth: 3 }))} />
+    <group position={[hoverPosition.x, hoverPosition.y, hoverPosition.z]} rotation={[0, hoverRotation, 0]}>
+      <mesh geometry={stairsPreviewGeometry}>
+        <meshStandardMaterial 
+          color="#4488ff" 
+          transparent 
+          opacity={0.6}
+          roughness={0.8}
+          metalness={0.2}
+        />
+      </mesh>
+    </group>
   );
 };
 

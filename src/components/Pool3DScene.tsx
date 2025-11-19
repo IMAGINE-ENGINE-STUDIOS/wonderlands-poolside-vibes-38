@@ -1191,6 +1191,11 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           isActive={isStairsPlacementMode}
           onPlace={onStairsPlacementComplete}
           onCancel={() => onStairsPlacementComplete([0, 0, 0], 0)}
+          numSteps={Math.ceil((poolDimensions?.depth || 8) / 0.625)}
+          stepHeight={0.625}
+          stepDepth={0.9167}
+          stairWidth={3}
+          stairShape="rectangle"
         />
       )}
 
