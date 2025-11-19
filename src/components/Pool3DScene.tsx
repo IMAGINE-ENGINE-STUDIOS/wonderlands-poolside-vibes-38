@@ -246,9 +246,9 @@ const PoolMesh: React.FC<{
       // Floor at negative Y (below water surface at y=0)
       floorVertices.push(point.x, -depth, point.z);
       
-      // UV mapping: 3ft x 3ft pool finish tiles
-      const u = (point.x - (minX - centerX)) / 3;
-      const v = (point.z - (minY - centerY)) / 3;
+      // UV mapping: 1ft x 1ft pool finish tiles
+      const u = (point.x - (minX - centerX)) / 1;
+      const v = (point.z - (minY - centerY)) / 1;
       floorUVs.push(u, v);
     }
     
@@ -294,13 +294,13 @@ const PoolMesh: React.FC<{
       wallVertices.push(p1.x, -depth1, p1.z);    // Bottom left at floor
       wallVertices.push(p2.x, -depth2, p2.z);    // Bottom right at floor
       
-      // UV mapping: 3ft x 3ft tiles on walls
+      // UV mapping: 1ft x 1ft tiles on walls
       const avgDepth = (depth1 + depth2) / 2;
       wallUVs.push(
         0, 0,
-        wallLength / 3, 0,
-        0, avgDepth / 3,
-        wallLength / 3, avgDepth / 3
+        wallLength / 1, 0,
+        0, avgDepth / 1,
+        wallLength / 1, avgDepth / 1
       );
       
       // Wall face (normals facing inward to pool interior)
@@ -647,9 +647,9 @@ const DeckMesh: React.FC<{
 
   useEffect(() => {
     if (paverTextureUrl) {
-      // Deck paver tiles: scale control
-      const repeatX = (deckDimensions.width / 1) * paverTextureScale;
-      const repeatY = (deckDimensions.length / 1) * paverTextureScale;
+      // Deck paver tiles: 1ft x 1ft base scale
+      const repeatX = (deckDimensions.width / 1.0) * paverTextureScale;
+      const repeatY = (deckDimensions.length / 1.0) * paverTextureScale;
       
       // Check if we already have the correct texture loaded
       const currentTextureUrl = paverTexture?.userData?.url;
