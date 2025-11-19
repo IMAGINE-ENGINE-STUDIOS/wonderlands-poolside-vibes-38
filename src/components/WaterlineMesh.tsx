@@ -123,8 +123,8 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       // UV mapping: tiles are 1ft along perimeter x 6 inches tall
       const numTiles = segmentLength / waterlineWidth;
       
-      // Face UVs (facing pool interior, visible from inside pool)
-      uvs.push(0, 1, numTiles, 1, 0, 0, numTiles, 0);
+      // Face UVs (facing pool interior, visible from inside pool) - Fixed V-coordinates
+      uvs.push(0, 0, numTiles, 0, 0, 1, numTiles, 1);
       
       // Face indices (visible from inside pool, normals facing inward)
       indices.push(

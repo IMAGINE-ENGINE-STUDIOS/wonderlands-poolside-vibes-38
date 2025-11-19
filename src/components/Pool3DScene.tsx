@@ -279,11 +279,12 @@ const PoolMesh: React.FC<{
       
       // UV mapping: 1ft x 1ft tiles on walls
       const avgDepth = (depth1 + depth2) / 2;
+      // Fixed UV V-coordinates for proper texture orientation
       wallUVs.push(
-        0, 0,
-        wallLength / 1, 0,
         0, avgDepth / 1,
-        wallLength / 1, avgDepth / 1
+        wallLength / 1, avgDepth / 1,
+        0, 0,
+        wallLength / 1, 0
       );
       
       // Wall face (normals facing inward to pool interior)
@@ -546,17 +547,51 @@ const CopingMesh: React.FC<{
       vertices.push(p2[0], 0, p2[1]);
       
       // UV mapping: 1ft x 1ft tiles on vertical walls
+      // Fixed UV V-coordinates for proper texture orientation
       uvs.push(
-        0, 0,
-        wallLength / 1.0, 0,
         0, copingHeight / 1.0,
-        wallLength / 1.0, copingHeight / 1.0
+        wallLength / 1.0, copingHeight / 1.0,
+        0, 0,
+        wallLength / 1.0, 0
       );
       
-      // Two triangles for the wall segment
+      // Two triangles for the wall segment (inner face, normals facing inward)
       indices.push(
         baseIdx, baseIdx + 1, baseIdx + 2,
         baseIdx + 1, baseIdx + 3, baseIdx + 2
+      );
+      
+      // Add outer vertical face (visible from outside pool)
+      const outerBaseIdx = vertices.length / 3;
+      
+      // Calculate outer perimeter points (offset outward)
+      const dx = p2[0] - p1[0];
+      const dz = p2[1] - p1[1];
+      const nx = -dz / wallLength;
+      const nz = dx / wallLength;
+      
+      const outerP1 = [p1[0] + nx * copingDimensions.width, p1[1] + nz * copingDimensions.width];
+      const outerP2 = [p2[0] + nx * copingDimensions.width, p2[1] + nz * copingDimensions.width];
+      
+      // Outer wall vertices (from coping height down to below deck)
+      vertices.push(outerP1[0], copingHeight, outerP1[1]);
+      vertices.push(outerP2[0], copingHeight, outerP2[1]);
+      vertices.push(outerP1[0], -0.5, outerP1[1]);
+      vertices.push(outerP2[0], -0.5, outerP2[1]);
+      
+      // Outer wall UVs (same texture orientation)
+      const outerWallHeight = copingHeight + 0.5;
+      uvs.push(
+        0, outerWallHeight / 1.0,
+        wallLength / 1.0, outerWallHeight / 1.0,
+        0, 0,
+        wallLength / 1.0, 0
+      );
+      
+      // Outer wall indices (normals facing outward)
+      indices.push(
+        outerBaseIdx, outerBaseIdx + 2, outerBaseIdx + 1,
+        outerBaseIdx + 1, outerBaseIdx + 2, outerBaseIdx + 3
       );
     }
 
