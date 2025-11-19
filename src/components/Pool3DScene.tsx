@@ -504,11 +504,18 @@ const CopingMesh: React.FC<{
       strip.corners.forEach(([x, y, z], i) => {
         vertices.push(x, y, z);
         
-        // UV mapping: 1ft x 1ft tiles (matching pool bottom pattern)
-        // Map based on actual world position for consistent tile size
-        const uPos = (i < 2) ? strip.length : 0; // Along perimeter
-        const vPos = (i % 2 === 0) ? copingWidth : 0; // Across width (1 ft)
-        uvs.push(uPos / 1.0, vPos / 1.0); // Each foot = 1 tile
+        // UV mapping: EXACTLY 1ft x 1ft sections, then texture scaled at 46x
+        // Calculate actual position along perimeter and across width
+        const isOuterEdge = i < 2;
+        const isRightVertex = i === 1 || i === 2;
+        
+        // U: Position along the perimeter (in feet)
+        const uPos = isRightVertex ? strip.length : 0;
+        // V: Position across coping width (in feet, 0 = inner edge, copingWidth = outer edge)
+        const vPos = isOuterEdge ? copingWidth : 0;
+        
+        // Each 1ft = 1 UV unit (will be scaled 46x by texture)
+        uvs.push(uPos, vPos);
       });
       
       // Two triangles forming the rectangular strip
@@ -546,13 +553,13 @@ const CopingMesh: React.FC<{
       vertices.push(p1[0], 0, p1[1]);
       vertices.push(p2[0], 0, p2[1]);
       
-      // UV mapping: 1ft x 1ft tiles on vertical walls
-      // Fixed UV V-coordinates for proper texture orientation
+      // UV mapping: EXACTLY 1ft x 1ft sections for vertical walls
+      // U: distance along wall (in feet), V: height (in feet)
       uvs.push(
-        0, copingHeight / 1.0,
-        wallLength / 1.0, copingHeight / 1.0,
+        0, copingHeight,
+        wallLength, copingHeight,
         0, 0,
-        wallLength / 1.0, 0
+        wallLength, 0
       );
       
       // Two triangles for the wall segment (inner face, normals facing inward)
@@ -579,13 +586,13 @@ const CopingMesh: React.FC<{
       vertices.push(outerP1[0], -0.5, outerP1[1]);
       vertices.push(outerP2[0], -0.5, outerP2[1]);
       
-      // Outer wall UVs (same texture orientation)
+      // Outer wall UVs: EXACTLY 1ft x 1ft sections
       const outerWallHeight = copingHeight + 0.5;
       uvs.push(
-        0, outerWallHeight / 1.0,
-        wallLength / 1.0, outerWallHeight / 1.0,
+        0, outerWallHeight,
+        wallLength, outerWallHeight,
         0, 0,
-        wallLength / 1.0, 0
+        wallLength, 0
       );
       
       // Outer wall indices (normals facing outward)
@@ -696,24 +703,22 @@ const DeckMesh: React.FC<{
     });
     deckShape.closePath();
 
-    // Create hole that includes coping (1 foot larger than pool)
-    // Debug: log the pool and hole coordinates
-    console.log('[DeckMesh] Pool center:', centerX, centerY);
-    console.log('[DeckMesh] First pool point:', poolPoints[0]);
+    // Create hole that EXACTLY matches coping outer edge (1 foot larger than pool)
+    // This ensures the coping completely cuts through the deck without overlap
+    const copingWidth = 1.0; // Must match coping definition
     
     const copingHole = new THREE.Path();
     poolPoints.forEach((p, i) => {
       const x = p.x - centerX;
       const z = p.y - centerY;
       
-      // Calculate radial offset: move 1 foot outward from pool center
+      // Calculate radial offset: move exactly copingWidth (1 foot) outward from pool center
       const distance = Math.sqrt(x * x + z * z);
-      const offsetX = distance > 0 ? x * (distance + 1) / distance : x;
-      const offsetZ = distance > 0 ? z * (distance + 1) / distance : z;
+      const offsetX = distance > 0 ? x * (distance + copingWidth) / distance : x;
+      const offsetZ = distance > 0 ? z * (distance + copingWidth) / distance : z;
       
       if (i === 0) {
         copingHole.moveTo(offsetX, offsetZ);
-        console.log('[DeckMesh] First hole point:', offsetX, offsetZ);
       }
       else copingHole.lineTo(offsetX, offsetZ);
     });
