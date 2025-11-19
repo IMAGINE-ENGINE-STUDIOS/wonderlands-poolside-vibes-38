@@ -170,7 +170,8 @@ export function productToScene(
         url: copingTextureUrl,
         name: selectedExtras.copingPaverOption || 'Default Coping',
         roughness: 0.6,
-        metalness: 0.0
+        metalness: 0.0,
+        offset: [-0.21, 0]
       },
       waterline: {
         url: linerTextureUrl,
