@@ -88,7 +88,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   };
 
   const currentTexture = getCurrentTexture();
-  const textureScale = currentTexture.scale || 46;
+  const textureScale = currentTexture.scale || 1.8;
   const textureOffsetX = currentTexture.offset?.[0] || 0;
   const textureOffsetY = currentTexture.offset?.[1] || 0;
 
