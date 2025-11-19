@@ -32,11 +32,6 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
 
   useEffect(() => {
     if (waterlineTextureUrl) {
-      // Stability guard: Skip if this texture is already loaded
-      if (waterlineTexture?.userData?.textureUrl === waterlineTextureUrl) {
-        return;
-      }
-
       // Calculate pool perimeter for waterline tiles
       const poolPerimeter = poolPoints.reduce((sum, p, i) => {
         const nextP = poolPoints[(i + 1) % poolPoints.length];
@@ -61,13 +56,7 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
           setWaterlineTexture(null);
         });
     }
-
-    return () => {
-      if (waterlineTexture) {
-        disposeTexture(waterlineTexture);
-      }
-    };
-  }, [waterlineTextureUrl, poolPoints, waterlineWidth, waterlineTextureScale, waterlineTextureOffset, waterlineTexture]);
+  }, [waterlineTextureUrl, poolPoints, waterlineWidth, waterlineTextureScale, waterlineTextureOffset]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
