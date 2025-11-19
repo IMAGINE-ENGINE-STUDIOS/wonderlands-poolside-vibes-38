@@ -3,6 +3,7 @@ import { PerspectiveCamera, Grid, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { textureCache, disposeTexture } from '@/utils/textureCache';
 import { WaterlineMesh } from './WaterlineMesh';
+import WaterSurface from './WaterSurface';
 import earcut from 'earcut';
 import grassTexture from '@/assets/grass-texture.avif';
 
@@ -1046,6 +1047,9 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           waterlineTextureOffset={waterlineTextureOffset}
         />
       </group>
+
+      {/* Realistic Water Surface with Waves, Reflections, and Caustics */}
+      <WaterSurface poolPoints={points} />
 
       {fencePoints && fencePoints.length > 0 && (
         <FenceMesh
