@@ -426,7 +426,7 @@ const CopingMesh: React.FC<{
     copingShape.lineTo(-outerHalfWidth, outerHalfLength);
     copingShape.lineTo(-outerHalfWidth, -outerHalfLength);
 
-    // Inner hole (pool edge)
+    // Inner hole EXACTLY matches pool dimensions (no gap with pool wall)
     const hole = new THREE.Path();
     hole.moveTo(-innerHalfWidth, -innerHalfLength);
     hole.lineTo(-innerHalfWidth, innerHalfLength);
@@ -446,8 +446,9 @@ const CopingMesh: React.FC<{
     // Rotate to be horizontal (XZ plane)
     geometry.rotateX(-Math.PI / 2);
     
-    // Position at correct height (top of coping at y=copingHeight)
-    geometry.translate(0, copingHeight, 0);
+    // Position coping: bottom at y=0 (water surface), top at y=copingHeight
+    // This makes coping sit directly on top of pool wall
+    geometry.translate(0, 0, 0);
 
     // Apply 1x1 ft UV mapping
     const uvAttribute = geometry.getAttribute('uv');
@@ -474,7 +475,7 @@ const CopingMesh: React.FC<{
   const isSelected = selectedCategory === 'coping';
 
   return (
-    <mesh geometry={copingGeometry} position={[0, 0, 0]}>
+    <mesh key={copingTexture?.uuid || 'coping-mesh'} geometry={copingGeometry} position={[0, 0, 0]}>
       <meshStandardMaterial
         map={copingTexture}
         color="#ffffff"
