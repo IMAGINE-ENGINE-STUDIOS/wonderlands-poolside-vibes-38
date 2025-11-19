@@ -112,11 +112,11 @@ const PoolMesh: React.FC<{
 
   useEffect(() => {
     if (linerTextureUrl) {
-      // Pool finish tiles: 3ft x 3ft industry standard
-      const baseRepeatX = poolDimensions.width / 3;
-      const baseRepeatY = poolDimensions.length / 3;
-      const repeatX = baseRepeatX / (linerTextureScale || 1);
-      const repeatY = baseRepeatY / (linerTextureScale || 1);
+      // Pool finish tiles: 1ft x 1ft base scale
+      const baseRepeatX = poolDimensions.width / 1.0;
+      const baseRepeatY = poolDimensions.length / 1.0;
+      const repeatX = baseRepeatX * linerTextureScale;
+      const repeatY = baseRepeatY * linerTextureScale;
       
       // Check if we already have the correct texture loaded
       const currentTextureUrl = linerTexture?.userData?.url;
@@ -348,7 +348,7 @@ const PoolMesh: React.FC<{
           map={linerTexture}
           roughness={0.6}
           metalness={0.0}
-          side={THREE.FrontSide}
+          side={THREE.DoubleSide}
           emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
           emissiveIntensity={pulseIntensity * 0.5}
         />
@@ -721,14 +721,24 @@ const DeckMesh: React.FC<{
     deckShape.closePath();
 
     // Create hole that includes coping (1 foot larger than pool)
+    // Debug: log the pool and hole coordinates
+    console.log('[DeckMesh] Pool center:', centerX, centerY);
+    console.log('[DeckMesh] First pool point:', poolPoints[0]);
+    
     const copingHole = new THREE.Path();
     poolPoints.forEach((p, i) => {
       const x = p.x - centerX;
       const z = p.y - centerY;
-      const angle = Math.atan2(z, x);
-      const offsetX = x + Math.cos(angle) * 1; // 1 foot offset for coping
-      const offsetZ = z + Math.sin(angle) * 1;
-      if (i === 0) copingHole.moveTo(offsetX, offsetZ);
+      
+      // Calculate radial offset: move 1 foot outward from pool center
+      const distance = Math.sqrt(x * x + z * z);
+      const offsetX = distance > 0 ? x * (distance + 1) / distance : x;
+      const offsetZ = distance > 0 ? z * (distance + 1) / distance : z;
+      
+      if (i === 0) {
+        copingHole.moveTo(offsetX, offsetZ);
+        console.log('[DeckMesh] First hole point:', offsetX, offsetZ);
+      }
       else copingHole.lineTo(offsetX, offsetZ);
     });
     copingHole.closePath();
