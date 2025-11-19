@@ -344,11 +344,11 @@ const PoolMesh: React.FC<{
       {/* Pool walls - from water level (y=0) down to floor */}
       <mesh geometry={wallsGeometry} position={[0, 0, 0]}>
         <meshStandardMaterial
-          color={linerTexture ? "#ffffff" : "#2196F3"}
+          color="#ffffff"
           map={linerTexture}
-          roughness={0.7}
-          metalness={0.1}
-          side={THREE.DoubleSide}
+          roughness={0.6}
+          metalness={0.0}
+          side={THREE.FrontSide}
           emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
           emissiveIntensity={pulseIntensity * 0.5}
         />
