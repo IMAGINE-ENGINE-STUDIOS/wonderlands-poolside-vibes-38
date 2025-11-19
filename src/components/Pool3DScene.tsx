@@ -1048,8 +1048,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         />
       </group>
 
-      {/* Realistic Water Surface with Waves, Reflections, and Caustics */}
-      <WaterSurface poolPoints={points} />
+      {/* Realistic Water Surface with Waves, Reflections, God Rays, and Depth-Based Colors */}
+      <WaterSurface poolPoints={points} depthPoints={depthPoints} poolDimensions={poolDimensions} />
 
       {fencePoints && fencePoints.length > 0 && (
         <FenceMesh
