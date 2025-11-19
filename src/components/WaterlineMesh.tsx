@@ -145,12 +145,11 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
   const isSelected = selectedCategory === 'waterline';
 
   return (
-    <mesh geometry={waterlineGeometry} position={[0, 0, 0]}>
-      <meshStandardMaterial
+    <mesh key={waterlineTexture?.uuid || 'no-waterline-texture'} geometry={waterlineGeometry} position={[0, 0, 0]}>
+      <meshPhongMaterial
         map={waterlineTexture}
         color="#ffffff"
-        roughness={0.3}
-        metalness={0.2}
+        shininess={40}
         side={THREE.DoubleSide}
         emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
         emissiveIntensity={pulseIntensity * 0.5}
