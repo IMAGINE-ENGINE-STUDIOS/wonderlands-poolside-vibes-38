@@ -374,19 +374,13 @@ export function UnifiedPoolVisualizer({
         onSunPositionChange={setSunPosition}
         fenceHeight={fenceHeight}
         onFenceHeightChange={setFenceHeight}
+        stairs={scene.stairs}
+        poolDepth={poolDepth}
+        onStairsChange={handleStairsChange}
+        onPlacementModeToggle={setIsStairsPlacementMode}
+        isStairsPlacementMode={isStairsPlacementMode}
+        selectedStairId={selectedStairId}
       />
-
-      {/* Stairs Controls Floating Panel */}
-      <div className="absolute left-4 bottom-20 w-80 bg-background/95 backdrop-blur border rounded-lg shadow-lg p-4 z-10">
-        <StairsControls
-          stairs={scene.stairs}
-          poolDepth={poolDepth}
-          onStairsChange={handleStairsChange}
-          onPlacementModeToggle={setIsStairsPlacementMode}
-          isPlacementMode={isStairsPlacementMode}
-          selectedStairId={selectedStairId}
-        />
-      </div>
     </div>
   );
 }
