@@ -40,6 +40,20 @@ export type FeatureType =
   | 'heater'
   | 'custom';
 
+export type StairShape = 'rectangle' | 'square' | 'rounded';
+
+export interface PoolStair {
+  id: string;
+  position: [number, number, number];
+  rotation: number;
+  shape: StairShape;
+  width: number;
+  numSteps: number;
+  stepHeight: number;
+  stepDepth: number;
+  texture?: TextureConfig;
+}
+
 export interface PoolFeature {
   id: string;
   type: FeatureType;
@@ -88,6 +102,7 @@ export interface Scene3D {
     copingWidth?: number;
   };
   features: PoolFeature[];
+  stairs: PoolStair[];
   annotations: Annotation[];
   camera: {
     position: [number, number, number];

@@ -182,6 +182,7 @@ export function productToScene(
       }
     },
     features: [],
+    stairs: [],
     annotations: [],
     camera: {
       position: [length * 0.8, length * 0.6, width * 0.8],

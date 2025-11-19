@@ -4,6 +4,8 @@ import * as THREE from 'three';
 import { textureCache, disposeTexture } from '@/utils/textureCache';
 import { WaterlineMesh } from './WaterlineMesh';
 import WaterSurface from './WaterSurface';
+import { PoolStairs } from './PoolStairs';
+import { StairsPlacementMode } from './StairsPlacementMode';
 import earcut from 'earcut';
 import grassTexture from '@/assets/grass-texture.avif';
 
@@ -74,6 +76,17 @@ export interface Pool3DSceneProps {
   copingHeight?: number;
   deckHeight?: number;
   copingWidth?: number;
+  stairs?: Array<{
+    id: string;
+    position: [number, number, number];
+    rotation: number;
+    shape: 'rectangle' | 'square' | 'rounded';
+    width: number;
+    numSteps: number;
+    stepHeight: number;
+    stepDepth: number;
+  }>;
+  onStairsChange?: (stairs: Array<any>) => void;
 }
 
 const PoolMesh: React.FC<{
@@ -92,7 +105,11 @@ const PoolMesh: React.FC<{
   selectedCategory, 
   linerTextureScale = 1.8, 
   linerTextureOffset = [0, 0]
-}) => {
+  stairs = [],
+  onStairsChange,
+  isStairsPlacementMode,
+  onStairsPlacementComplete
+}: Pool3DSceneProps & { isStairsPlacementMode?: boolean; onStairsPlacementComplete?: (position: [number, number, number], rotation: number) => void }) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
   const [previousLinerTexture, setPreviousLinerTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
@@ -1040,8 +1057,15 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   poolPosition = [0, 0, 0],
   copingHeight = 2 / 12,
   deckHeight = 2 / 12,
-  copingWidth = 1.1 // Minimum 1.1 ft
+  copingWidth = 1.1, // Minimum 1.1 ft
+  stairs = [],
+  onStairsChange
 }) => {
+  const [linerTexture] = useTexture([linerTextureUrl || '']);
+  const poolDepth = poolDimensions?.depth || (depthPoints.length > 0 
+    ? Math.max(...depthPoints.map(dp => dp.depth)) 
+    : 8);
+  
   return (
     <>
       <PerspectiveCamera makeDefault position={[30, 25, 30]} fov={50} />
@@ -1141,7 +1165,28 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         <PoolFeatures features={features} />
       )}
 
+      {/* Pool Stairs */}
+      {stairs && stairs.map((stair) => (
+        <PoolStairs
+          key={stair.id}
+          stair={stair}
+          poolDepth={poolDepth}
+          texture={linerTexture}
+        />
+      ))}
+
       </group>
+
+      {/* Stairs Placement Mode */}
+      {isStairsPlacementMode && onStairsPlacementComplete && (
+        <StairsPlacementMode
+          poolPoints={points}
+          copingWidth={copingWidth}
+          isActive={isStairsPlacementMode}
+          onPlace={onStairsPlacementComplete}
+          onCancel={() => onStairsPlacementComplete([0, 0, 0], 0)}
+        />
+      )}
 
       <axesHelper args={[5]} />
     </>
