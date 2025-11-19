@@ -724,7 +724,7 @@ const FenceMesh: React.FC<{
 };
 
 // Grass Terrain Component with Precise Pool Cutout
-const GrassTerrain: React.FC<{ poolPoints: Point[] }> = ({ poolPoints }) => {
+const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number }> = ({ poolPoints, copingWidth = 1.0 }) => {
   const texture = useTexture(grassTexture);
   
   const terrainGeometry = useMemo(() => {
@@ -746,15 +746,33 @@ const GrassTerrain: React.FC<{ poolPoints: Point[] }> = ({ poolPoints }) => {
     terrainShape.lineTo(-5000, 5000);
     terrainShape.closePath();
     
-    // Create pool cutout hole - INSIDE THE POOL (at pool boundary, not expanded)
+    // Create pool cutout hole - using INNER edge of coping (pool boundary + coping width)
     const poolHole = new THREE.Path();
     
-    // Use pool points directly for the hole (cuts INSIDE the pool)
+    // Calculate inner edge of coping for each point
     poolPoints.forEach((point, i) => {
+      const nextPoint = poolPoints[(i + 1) % poolPoints.length];
+      const prevPoint = poolPoints[(i - 1 + poolPoints.length) % poolPoints.length];
+      
+      // Calculate normal vector pointing inward (toward pool center)
+      const dx1 = nextPoint.x - point.x;
+      const dy1 = nextPoint.y - point.y;
+      const dx2 = point.x - prevPoint.x;
+      const dy2 = point.y - prevPoint.y;
+      
+      // Average normal from both edges
+      const nx = -(dy1 + dy2) / 2;
+      const ny = (dx1 + dx2) / 2;
+      const len = Math.sqrt(nx * nx + ny * ny);
+      
+      // Offset point inward by coping width to get inner edge
+      const offsetX = point.x + (nx / len) * copingWidth;
+      const offsetY = point.y + (ny / len) * copingWidth;
+      
       if (i === 0) {
-        poolHole.moveTo(point.x, point.y);
+        poolHole.moveTo(offsetX, offsetY);
       } else {
-        poolHole.lineTo(point.x, point.y);
+        poolHole.lineTo(offsetX, offsetY);
       }
     });
     poolHole.closePath();
@@ -959,7 +977,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       <group position={poolPosition}>
 
       {/* Grass Terrain Base - 10000ft x 10000ft with pool cutout */}
-      <GrassTerrain poolPoints={points} />
+      <GrassTerrain poolPoints={points} copingWidth={copingWidth} />
 
       <Grid
         args={[100, 100]}
