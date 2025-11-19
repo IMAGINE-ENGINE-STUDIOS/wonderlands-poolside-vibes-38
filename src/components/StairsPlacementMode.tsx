@@ -73,12 +73,8 @@ export const StairsPlacementMode = ({
 
           if (dist < minDistance) {
             minDistance = dist;
-            // Position slightly inward from coping edge
-            closestPoint = new THREE.Vector3(
-              px + nx * (copingWidth * 0.5),
-              0,
-              pz + nz * (copingWidth * 0.5)
-            );
+            // Position ON the coping edge (not inward)
+            closestPoint = new THREE.Vector3(px, 0, pz);
             closestRotation = Math.atan2(dx, -dy);
           }
         }
@@ -111,7 +107,7 @@ export const StairsPlacementMode = ({
     };
   }, [isActive, poolPoints, copingWidth, camera, raycaster, gl, onPlace, onCancel, hoverPosition, hoverRotation]);
 
-  // Create stairs preview geometry
+  // Create stairs preview geometry with foundation
   const stairsPreviewGeometry = useMemo(() => {
     if (!hoverPosition || !isActive) return null;
 
@@ -120,6 +116,8 @@ export const StairsPlacementMode = ({
     const indices: number[] = [];
     const uvs: number[] = [];
     let vertexIndex = 0;
+
+    const poolBottom = -(numSteps * stepHeight);
 
     for (let i = 0; i < numSteps; i++) {
       const currentDepth = i * stepDepth;
@@ -180,7 +178,62 @@ export const StairsPlacementMode = ({
       [[0, 0], [1, 0], [1, 1], [0, 1]].forEach(uv => uvs.push(...uv));
       indices.push(vertexIndex, vertexIndex + 1, vertexIndex + 2, vertexIndex, vertexIndex + 2, vertexIndex + 3);
       vertexIndex += 4;
+
+      // Back panel
+      if (i > 0) {
+        const backVerts = [
+          [-hw, currentHeight, currentDepth],
+          [-hw, nextHeight, currentDepth],
+          [hw, nextHeight, currentDepth],
+          [hw, currentHeight, currentDepth]
+        ];
+        backVerts.forEach(v => vertices.push(...v));
+        [[0, 0], [1, 0], [1, 1], [0, 1]].forEach(uv => uvs.push(...uv));
+        indices.push(vertexIndex, vertexIndex + 1, vertexIndex + 2, vertexIndex, vertexIndex + 2, vertexIndex + 3);
+        vertexIndex += 4;
+      }
     }
+
+    // Foundation extending to pool bottom
+    const lastStepDepth = numSteps * stepDepth;
+    const lastStepHeight = -numSteps * stepHeight;
+    const hw = stairWidth / 2;
+
+    // Front foundation wall
+    const foundationFront = [
+      [-hw, lastStepHeight, lastStepDepth],
+      [hw, lastStepHeight, lastStepDepth],
+      [hw, poolBottom, lastStepDepth],
+      [-hw, poolBottom, lastStepDepth]
+    ];
+    foundationFront.forEach(v => vertices.push(...v));
+    [[0, 0], [1, 0], [1, 1], [0, 1]].forEach(uv => uvs.push(...uv));
+    indices.push(vertexIndex, vertexIndex + 1, vertexIndex + 2, vertexIndex, vertexIndex + 2, vertexIndex + 3);
+    vertexIndex += 4;
+
+    // Left foundation wall
+    const foundationLeft = [
+      [-hw, lastStepHeight, 0],
+      [-hw, lastStepHeight, lastStepDepth],
+      [-hw, poolBottom, lastStepDepth],
+      [-hw, poolBottom, 0]
+    ];
+    foundationLeft.forEach(v => vertices.push(...v));
+    [[0, 0], [1, 0], [1, 1], [0, 1]].forEach(uv => uvs.push(...uv));
+    indices.push(vertexIndex, vertexIndex + 1, vertexIndex + 2, vertexIndex, vertexIndex + 2, vertexIndex + 3);
+    vertexIndex += 4;
+
+    // Right foundation wall
+    const foundationRight = [
+      [hw, lastStepHeight, 0],
+      [hw, poolBottom, 0],
+      [hw, poolBottom, lastStepDepth],
+      [hw, lastStepHeight, lastStepDepth]
+    ];
+    foundationRight.forEach(v => vertices.push(...v));
+    [[0, 0], [1, 0], [1, 1], [0, 1]].forEach(uv => uvs.push(...uv));
+    indices.push(vertexIndex, vertexIndex + 1, vertexIndex + 2, vertexIndex, vertexIndex + 2, vertexIndex + 3);
+    vertexIndex += 4;
 
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
     geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
