@@ -113,11 +113,9 @@ const PoolMesh: React.FC<{
 
   useEffect(() => {
     if (linerTextureUrl) {
-      // Pool finish tiles: 1ft x 1ft base scale (inverted to fix backwards scaling)
-      const baseRepeatX = poolDimensions.width / 1.0;
-      const baseRepeatY = poolDimensions.length / 1.0;
-      const repeatX = baseRepeatX / linerTextureScale;
-      const repeatY = baseRepeatY / linerTextureScale;
+      // 1ft x 1ft base scale
+      const repeatX = 1.0 / linerTextureScale;
+      const repeatY = 1.0 / linerTextureScale;
       
       textureCache.loadTexture(linerTextureUrl, { x: repeatX, y: repeatY })
         .then(texture => {
@@ -129,11 +127,11 @@ const PoolMesh: React.FC<{
           setLinerTexture(texture);
         })
         .catch(err => {
-          console.error('Failed to load liner texture, using default');
+          console.error('Failed to load liner texture');
           setLinerTexture(null);
         });
     }
-  }, [linerTextureUrl, poolDimensions.width, poolDimensions.length, linerTextureScale, linerTextureOffset]);
+  }, [linerTextureUrl, linerTextureScale, linerTextureOffset]);
 
   // Dispose of previous texture after new one is loaded
   useEffect(() => {
@@ -341,6 +339,7 @@ const PoolMesh: React.FC<{
   );
 };
 
+// NEW COPING: Simple rectangular frame around pool, like a deck section
 const CopingMesh: React.FC<{
   poolPoints: Point[];
   copingTextureUrl?: string;
@@ -355,38 +354,17 @@ const CopingMesh: React.FC<{
   selectedCategory, 
   copingTextureScale = 46, 
   copingTextureOffset = [0, 0], 
-  copingHeight = 2 / 12, // Default 2 inches
-  copingWidth = 1.0, // Default 1 foot
+  copingHeight = 2 / 12,
+  copingWidth = 1.0
 }) => {
   const [copingTexture, setCopingTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
-  // Calculate pool bounds for coping dimensions
-  const copingDimensions = useMemo(() => {
-    if (poolPoints.length < 3) return { width: 0, length: 0, perimeter: 0 };
-    
-    const xs = poolPoints.map(p => p.x);
-    const ys = poolPoints.map(p => p.y);
-    const width = Math.max(...xs) - Math.min(...xs);
-    const length = Math.max(...ys) - Math.min(...ys);
-    
-    // Calculate perimeter for texture mapping
-    let perimeter = 0;
-    for (let i = 0; i < poolPoints.length; i++) {
-      const p1 = poolPoints[i];
-      const p2 = poolPoints[(i + 1) % poolPoints.length];
-      const dx = p2.x - p1.x;
-      const dy = p2.y - p1.y;
-      perimeter += Math.sqrt(dx * dx + dy * dy);
-    }
-    
-    return { width, length, perimeter };
-  }, [poolPoints]);
-
+  // Load texture with 1x1 ft base dimensions
   useEffect(() => {
     if (copingTextureUrl) {
-      // Coping texture: 1x1 ft base scale (inverted to fix backwards scaling)
-      const repeatX = (copingDimensions.perimeter / 1.0) / copingTextureScale;
+      // 1ft x 1ft base scale
+      const repeatX = 1.0 / copingTextureScale;
       const repeatY = 1.0 / copingTextureScale;
       
       textureCache.loadTexture(copingTextureUrl, { x: repeatX, y: repeatY })
@@ -403,29 +381,23 @@ const CopingMesh: React.FC<{
           setCopingTexture(null);
         });
     }
-  }, [copingTextureUrl, copingDimensions.perimeter, copingTextureScale, copingTextureOffset]);
+  }, [copingTextureUrl, copingTextureScale, copingTextureOffset]);
 
-  // Pulsing red effect when selected (8 second cycle)
+  // Pulsing effect when selected
   useEffect(() => {
     if (selectedCategory !== 'coping') return;
     
     const interval = setInterval(() => {
-      setPulseIntensity(prev => {
-        if (prev >= 1) return 0;
-        return prev + 0.0125; // 8 second cycle
-      });
+      setPulseIntensity(prev => prev >= 1 ? 0 : prev + 0.0125);
     }, 50);
     
     return () => clearInterval(interval);
   }, [selectedCategory]);
 
-  // Create rectangular coping frame geometry with vertical walls
+  // Create coping as a simple horizontal rectangle frame
   const copingGeometry = useMemo(() => {
-    if (poolPoints.length < 3) {
-      return new THREE.BoxGeometry(1, 0.5, 0.5);
-    }
+    if (poolPoints.length < 3) return new THREE.BoxGeometry(1, 0.1, 1);
 
-    // Calculate pool bounds
     const xs = poolPoints.map(p => p.x);
     const ys = poolPoints.map(p => p.y);
     const minX = Math.min(...xs);
@@ -438,198 +410,76 @@ const CopingMesh: React.FC<{
     const poolWidth = maxX - minX;
     const poolLength = maxY - minY;
 
-    // COORDINATE SYSTEM:
-    // Origin (0,0,0) = pool center at water surface
-    // X-axis = pool width direction
-    // Y-axis = vertical (up/down), water surface at y=0
-    // Z-axis = pool length direction
-
-    // Use dynamic coping width from props
-
-    // Pool outer edge (at pool perimeter)
+    // Coping frame dimensions
     const innerHalfWidth = poolWidth / 2;
     const innerHalfLength = poolLength / 2;
-    
-    // Coping outer edge (1 foot beyond pool edge)
     const outerHalfWidth = innerHalfWidth + copingWidth;
     const outerHalfLength = innerHalfLength + copingWidth;
 
-    const vertices: number[] = [];
-    const indices: number[] = [];
-    const uvs: number[] = [];
+    // Create shape for coping (outer rectangle with inner hole)
+    const copingShape = new THREE.Shape();
+    
+    // Outer rectangle
+    copingShape.moveTo(-outerHalfWidth, -outerHalfLength);
+    copingShape.lineTo(outerHalfWidth, -outerHalfLength);
+    copingShape.lineTo(outerHalfWidth, outerHalfLength);
+    copingShape.lineTo(-outerHalfWidth, outerHalfLength);
+    copingShape.lineTo(-outerHalfWidth, -outerHalfLength);
 
-    // Create 4 rectangular strips forming a frame - TOP SURFACE at y = copingHeight
-    const topStrips = [
-      // Top strip (along +Z edge)
-      { 
-        corners: [
-          [-outerHalfWidth, copingHeight, outerHalfLength],  // outer top-left
-          [outerHalfWidth, copingHeight, outerHalfLength],   // outer top-right
-          [innerHalfWidth, copingHeight, innerHalfLength],   // inner top-right
-          [-innerHalfWidth, copingHeight, innerHalfLength]   // inner top-left
-        ],
-        uStart: 0,
-        length: poolWidth + copingWidth * 2
-      },
-      // Right strip (along +X edge)
-      {
-        corners: [
-          [outerHalfWidth, copingHeight, outerHalfLength],   // outer top-right
-          [outerHalfWidth, copingHeight, -outerHalfLength],  // outer bottom-right
-          [innerHalfWidth, copingHeight, -innerHalfLength],  // inner bottom-right
-          [innerHalfWidth, copingHeight, innerHalfLength]    // inner top-right
-        ],
-        uStart: (poolWidth + copingWidth * 2),
-        length: poolLength + copingWidth * 2
-      },
-      // Bottom strip (along -Z edge)
-      {
-        corners: [
-          [outerHalfWidth, copingHeight, -outerHalfLength],  // outer bottom-right
-          [-outerHalfWidth, copingHeight, -outerHalfLength], // outer bottom-left
-          [-innerHalfWidth, copingHeight, -innerHalfLength], // inner bottom-left
-          [innerHalfWidth, copingHeight, -innerHalfLength]   // inner bottom-right
-        ],
-        uStart: (poolWidth + copingWidth * 2) + (poolLength + copingWidth * 2),
-        length: poolWidth + copingWidth * 2
-      },
-      // Left strip (along -X edge)
-      {
-        corners: [
-          [-outerHalfWidth, copingHeight, -outerHalfLength], // outer bottom-left
-          [-outerHalfWidth, copingHeight, outerHalfLength],  // outer top-left
-          [-innerHalfWidth, copingHeight, innerHalfLength],  // inner top-left
-          [-innerHalfWidth, copingHeight, -innerHalfLength]  // inner bottom-left
-        ],
-        uStart: (poolWidth + copingWidth * 2) * 2 + (poolLength + copingWidth * 2),
-        length: poolLength + copingWidth * 2
+    // Inner hole (pool edge)
+    const hole = new THREE.Path();
+    hole.moveTo(-innerHalfWidth, -innerHalfLength);
+    hole.lineTo(-innerHalfWidth, innerHalfLength);
+    hole.lineTo(innerHalfWidth, innerHalfLength);
+    hole.lineTo(innerHalfWidth, -innerHalfLength);
+    hole.lineTo(-innerHalfWidth, -innerHalfLength);
+    copingShape.holes.push(hole);
+
+    // Extrude to create 3D geometry
+    const extrudeSettings = {
+      depth: copingHeight,
+      bevelEnabled: false
+    };
+
+    const geometry = new THREE.ExtrudeGeometry(copingShape, extrudeSettings);
+    
+    // Rotate to be horizontal (XZ plane)
+    geometry.rotateX(-Math.PI / 2);
+    
+    // Position at correct height (top of coping at y=copingHeight)
+    geometry.translate(0, copingHeight, 0);
+
+    // Apply 1x1 ft UV mapping
+    const uvAttribute = geometry.getAttribute('uv');
+    if (uvAttribute) {
+      const positions = geometry.getAttribute('position');
+      const uvs = uvAttribute.array;
+      
+      for (let i = 0; i < positions.count; i++) {
+        const x = positions.getX(i);
+        const z = positions.getZ(i);
+        
+        // Map UVs based on world position (1 ft = 1 UV unit)
+        uvs[i * 2] = x;
+        uvs[i * 2 + 1] = z;
       }
-    ];
-
-    // Add top surface vertices
-    topStrips.forEach(strip => {
-      const baseIdx = vertices.length / 3;
       
-      // Add 4 corner vertices for this strip
-      strip.corners.forEach(([x, y, z], i) => {
-        vertices.push(x, y, z);
-        
-        // UV mapping: EXACTLY 1ft x 1ft sections without distortion
-        // Map along the natural direction of the coping strip
-        const isOuterEdge = i < 2;
-        const isEndVertex = i === 1 || i === 2;
-        
-        // U: Distance along perimeter (in feet) - follows the strip direction
-        const uPos = isEndVertex ? strip.length : 0;
-        // V: Distance across width (in feet) - perpendicular to strip
-        const vPos = isOuterEdge ? copingWidth : 0;
-        
-        // Direct 1:1 mapping (1 ft = 1 UV unit)
-        uvs.push(uPos, vPos);
-      });
-      
-      // Two triangles forming the rectangular strip
-      indices.push(
-        baseIdx, baseIdx + 1, baseIdx + 2,
-        baseIdx, baseIdx + 2, baseIdx + 3
-      );
-    });
-
-    // Add INNER VERTICAL WALLS (2-inch drop from coping to water level at y=0)
-    // These walls connect the inner edge of the coping top surface down to the water surface
-    const innerPerimeterPoints = [
-      [-innerHalfWidth, innerHalfLength],   // top-left
-      [innerHalfWidth, innerHalfLength],    // top-right
-      [innerHalfWidth, -innerHalfLength],   // bottom-right
-      [-innerHalfWidth, -innerHalfLength]   // bottom-left
-    ];
-
-    for (let i = 0; i < innerPerimeterPoints.length; i++) {
-      const p1 = innerPerimeterPoints[i];
-      const p2 = innerPerimeterPoints[(i + 1) % innerPerimeterPoints.length];
-      
-      const baseIdx = vertices.length / 3;
-      
-      // Calculate wall segment length for UV mapping
-      const wallLength = Math.sqrt(
-        Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2)
-      );
-      
-      // Top edge vertices (at coping height)
-      vertices.push(p1[0], copingHeight, p1[1]);
-      vertices.push(p2[0], copingHeight, p2[1]);
-      
-      // Bottom edge vertices (at water surface, y=0)
-      vertices.push(p1[0], 0, p1[1]);
-      vertices.push(p2[0], 0, p2[1]);
-      
-      // UV mapping: EXACTLY 1ft x 1ft sections for vertical walls
-      // U: distance along wall (in feet), V: height (in feet)
-      uvs.push(
-        0, copingHeight,
-        wallLength, copingHeight,
-        0, 0,
-        wallLength, 0
-      );
-      
-      // Two triangles for the wall segment (inner face, normals facing inward)
-      indices.push(
-        baseIdx, baseIdx + 1, baseIdx + 2,
-        baseIdx + 1, baseIdx + 3, baseIdx + 2
-      );
-      
-      // Add outer vertical face (visible from outside pool)
-      const outerBaseIdx = vertices.length / 3;
-      
-      // Calculate outer perimeter points (offset outward)
-      const dx = p2[0] - p1[0];
-      const dz = p2[1] - p1[1];
-      const nx = -dz / wallLength;
-      const nz = dx / wallLength;
-      
-      const outerP1 = [p1[0] + nx * copingDimensions.width, p1[1] + nz * copingDimensions.width];
-      const outerP2 = [p2[0] + nx * copingDimensions.width, p2[1] + nz * copingDimensions.width];
-      
-      // Outer wall vertices (from coping height down to below deck)
-      vertices.push(outerP1[0], copingHeight, outerP1[1]);
-      vertices.push(outerP2[0], copingHeight, outerP2[1]);
-      vertices.push(outerP1[0], -0.5, outerP1[1]);
-      vertices.push(outerP2[0], -0.5, outerP2[1]);
-      
-      // Outer wall UVs: EXACTLY 1ft x 1ft sections
-      const outerWallHeight = copingHeight + 0.5;
-      uvs.push(
-        0, outerWallHeight,
-        wallLength, outerWallHeight,
-        0, 0,
-        wallLength, 0
-      );
-      
-      // Outer wall indices (normals facing outward)
-      indices.push(
-        outerBaseIdx, outerBaseIdx + 2, outerBaseIdx + 1,
-        outerBaseIdx + 1, outerBaseIdx + 2, outerBaseIdx + 3
-      );
+      uvAttribute.needsUpdate = true;
     }
-
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-    geometry.setIndex(indices);
+    
     geometry.computeVertexNormals();
-
     return geometry;
-  }, [poolPoints, copingDimensions, copingHeight]);
+  }, [poolPoints, copingHeight, copingWidth]);
 
   const isSelected = selectedCategory === 'coping';
 
   return (
-    <mesh key={copingTexture?.uuid || 'no-coping-texture'} geometry={copingGeometry} position={[0, 0, 0]}>
-      <meshPhongMaterial
+    <mesh geometry={copingGeometry} position={[0, 0, 0]}>
+      <meshStandardMaterial
         map={copingTexture}
-        color={copingTexture ? "#ffffff" : "#8B7355"}
-        shininess={50}
-        side={THREE.DoubleSide}
+        color="#ffffff"
+        roughness={0.8}
+        metalness={0.1}
         emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
         emissiveIntensity={pulseIntensity * 0.5}
       />
@@ -671,9 +521,9 @@ const DeckMesh: React.FC<{
 
   useEffect(() => {
     if (paverTextureUrl) {
-      // Deck paver tiles: 1ft x 1ft base scale (inverted to fix backwards scaling)
-      const repeatX = (deckDimensions.width / 1.0) / paverTextureScale;
-      const repeatY = (deckDimensions.length / 1.0) / paverTextureScale;
+      // 1ft x 1ft base scale
+      const repeatX = 1.0 / paverTextureScale;
+      const repeatY = 1.0 / paverTextureScale;
       
       textureCache.loadTexture(paverTextureUrl, { x: repeatX, y: repeatY })
         .then(texture => {
@@ -685,11 +535,11 @@ const DeckMesh: React.FC<{
           setPaverTexture(texture);
         })
         .catch(err => {
-          console.error('Failed to load paver texture, using default');
+          console.error('Failed to load paver texture');
           setPaverTexture(null);
         });
     }
-  }, [paverTextureUrl, deckDimensions.width, deckDimensions.length, paverTextureScale, paverTextureOffset]);
+  }, [paverTextureUrl, paverTextureScale, paverTextureOffset]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {
@@ -724,17 +574,15 @@ const DeckMesh: React.FC<{
     });
     deckShape.closePath();
 
-    // Create hole that EXACTLY matches coping outer edge with 2 inch buffer
-    // Use dynamic coping width from props, add small buffer to ensure complete cutout
-    const bufferDistance = 2 / 12; // 2 inch buffer = 0.167 ft
-    const totalCutout = copingWidth + bufferDistance;
+    // Create hole matching coping outer edge exactly
+    const totalCutout = copingWidth;
     
     const copingHole = new THREE.Path();
     poolPoints.forEach((p, i) => {
       const x = p.x - centerX;
       const z = p.y - centerY;
       
-      // Calculate radial offset: move outward by coping width + buffer
+      // Move outward by coping width to match coping outer edge
       const distance = Math.sqrt(x * x + z * z);
       const offsetX = distance > 0 ? x * (distance + totalCutout) / distance : x;
       const offsetZ = distance > 0 ? z * (distance + totalCutout) / distance : z;
@@ -915,6 +763,7 @@ const GrassTerrain: React.FC<{ poolPoints: Point[] }> = ({ poolPoints }) => {
     // Create geometry from shape
     const geometry = new THREE.ShapeGeometry(terrainShape);
     geometry.rotateX(-Math.PI / 2);
+    
     
     return geometry;
   }, [poolPoints, texture]);
