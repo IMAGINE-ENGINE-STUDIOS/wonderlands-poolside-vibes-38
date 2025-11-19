@@ -102,31 +102,31 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
         Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2)
       );
       
-      // Calculate normal (pointing OUTWARD from pool center)
+      // Calculate normal (pointing INWARD toward pool center)
       const dx = p2.x - p1.x;
       const dz = p2.z - p1.z;
-      const nx = dz / segmentLength;  // Flipped to point outward
-      const nz = -dx / segmentLength; // Flipped to point outward
+      const nx = -dz / segmentLength;  // Normal pointing INWARD
+      const nz = dx / segmentLength;   // Normal pointing INWARD
       
       const baseIdx = vertices.length / 3;
       
       // Waterline: 1 inch thick ceramic band at water surface (y=0)
       const waterlineTop = 0; // At water surface
-      const waterlineThickness = 1 / 12; // 1 inch thick (depth into pool)
+      const waterlineThickness = 1 / 12; // 1 inch thick
       
-      // Position waterline attached to pool wall with slight offset to prevent z-fighting
-      const zFightingOffset = 0.001; // 0.001 ft offset outward from wall
+      // Position waterline INSIDE the pool wall (visible from inside pool)
+      const wallOffset = 0.76; // 9 inches (wall thickness) + 0.01 ft to be inside
       
-      // Outer edge (slightly outside pool wall to sit ON the wall surface)
-      const outerP1 = { x: p1.x + nx * zFightingOffset, z: p1.z + nz * zFightingOffset };
-      const outerP2 = { x: p2.x + nx * zFightingOffset, z: p2.z + nz * zFightingOffset };
+      // Outer edge (at inner surface of pool wall)
+      const outerP1 = { x: p1.x + nx * wallOffset, z: p1.z + nz * wallOffset };
+      const outerP2 = { x: p2.x + nx * wallOffset, z: p2.z + nz * wallOffset };
       
-      // Inner edge (1 inch inward toward pool center from outer edge)
-      const innerP1 = { x: outerP1.x - nx * waterlineThickness, z: outerP1.z - nz * waterlineThickness };
-      const innerP2 = { x: outerP2.x - nx * waterlineThickness, z: outerP2.z - nz * waterlineThickness };
+      // Inner edge (1 inch further toward pool center)
+      const innerP1 = { x: outerP1.x + nx * waterlineThickness, z: outerP1.z + nz * waterlineThickness };
+      const innerP2 = { x: outerP2.x + nx * waterlineThickness, z: outerP2.z + nz * waterlineThickness };
       
-      // Create waterline face: outer edge (on wall) to inner edge (toward center)
-      // Outer edge vertices (attached to wall surface)
+      // Create waterline face vertices
+      // Outer edge (at wall surface inside pool)
       vertices.push(outerP1.x, waterlineTop, outerP1.z);
       vertices.push(outerP2.x, waterlineTop, outerP2.z);
       vertices.push(outerP1.x, waterlineTop - waterlineHeight, outerP1.z);
@@ -142,10 +142,10 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       // UV coordinates for 1x1 ft tiling
       uvs.push(uStart, vTop, uEnd, vTop, uStart, vBottom, uEnd, vBottom);
       
-      // Face indices (normals facing inward toward pool center)
+      // Face indices (normals facing OUTWARD so visible from inside pool looking out)
       indices.push(
-        baseIdx, baseIdx + 1, baseIdx + 3,
-        baseIdx, baseIdx + 3, baseIdx + 2
+        baseIdx, baseIdx + 3, baseIdx + 1,
+        baseIdx, baseIdx + 2, baseIdx + 3
       );
     }
     
