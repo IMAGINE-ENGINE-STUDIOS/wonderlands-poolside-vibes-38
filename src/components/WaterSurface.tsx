@@ -1,20 +1,76 @@
 import { useMemo, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useLoader } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Point } from './scene3d/types';
+import poolWaterTexture from '@/assets/pool-texture-sapphire.jpg';
+
+interface DepthPoint {
+  position: number;
+  depth: number;
+  id: string;
+}
 
 interface WaterSurfaceProps {
   poolPoints: Point[];
+  depthPoints: DepthPoint[];
+  poolDimensions?: {
+    length: number;
+    width: number;
+    depth: number;
+  };
 }
 
-// Custom shader for realistic water with waves, reflections, and caustics
-const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints }) => {
+// Enhanced Water Surface with dynamic simulation, depth-based colors, god rays, and water color filter
+const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, poolDimensions }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+  
+  // Load water texture
+  const waterTexture = useLoader(THREE.TextureLoader, poolWaterTexture);
 
-  // Create water geometry from pool points
+  // Configure water texture
+  useMemo(() => {
+    if (waterTexture) {
+      waterTexture.wrapS = THREE.RepeatWrapping;
+      waterTexture.wrapT = THREE.RepeatWrapping;
+      waterTexture.repeat.set(4, 4);
+    }
+  }, [waterTexture]);
+
+  // Get depth interpolation function
+  const getDepthAtPosition = useMemo(() => {
+    return (ratio: number): number => {
+      if (depthPoints.length === 0) return 6;
+      
+      const clampedRatio = Math.max(0, Math.min(1, ratio));
+      
+      for (let i = 0; i < depthPoints.length - 1; i++) {
+        const curr = depthPoints[i];
+        const next = depthPoints[i + 1];
+        
+        if (clampedRatio >= curr.position && clampedRatio <= next.position) {
+          const segmentRatio = (clampedRatio - curr.position) / (next.position - curr.position);
+          return curr.depth + (next.depth - curr.depth) * segmentRatio;
+        }
+      }
+      
+      return depthPoints[depthPoints.length - 1].depth;
+    };
+  }, [depthPoints]);
+
+  // Create water geometry from pool points with depth data
   const waterGeometry = useMemo(() => {
     if (poolPoints.length < 3) return null;
+
+    // Calculate pool bounds for depth mapping
+    const minX = Math.min(...poolPoints.map(p => p.x));
+    const maxX = Math.max(...poolPoints.map(p => p.x));
+    const minY = Math.min(...poolPoints.map(p => p.y));
+    const maxY = Math.max(...poolPoints.map(p => p.y));
+    
+    const poolWidth = maxX - minX;
+    const poolLength = maxY - minY;
+    const lengthDirection = poolLength > poolWidth ? 'y' : 'x';
 
     // Create shape from pool points
     const shape = new THREE.Shape();
@@ -27,27 +83,75 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints }) => {
     });
     shape.closePath();
 
-    // Create highly tessellated geometry for smooth wave deformation
+    // Create highly tessellated geometry for smooth wave deformation and depth variation
     const geometry = new THREE.ShapeGeometry(shape, 128);
+    
+    // Add depth attribute for depth-based coloring
+    const positions = geometry.getAttribute('position');
+    const depthArray = new Float32Array(positions.count);
+    
+    for (let i = 0; i < positions.count; i++) {
+      const x = positions.getX(i);
+      const z = positions.getZ(i);
+      
+      // Calculate position ratio along pool length
+      let lengthRatio;
+      if (lengthDirection === 'y') {
+        lengthRatio = (z - minY) / poolLength;
+      } else {
+        lengthRatio = (x - minX) / poolWidth;
+      }
+      
+      lengthRatio = Math.max(0, Math.min(1, lengthRatio));
+      const depth = getDepthAtPosition(lengthRatio);
+      depthArray[i] = depth;
+    }
+    
+    geometry.setAttribute('depth', new THREE.BufferAttribute(depthArray, 1));
     geometry.rotateX(-Math.PI / 2);
     
     return geometry;
-  }, [poolPoints]);
+  }, [poolPoints, getDepthAtPosition]);
 
-  // Water shader material with waves, reflections, and caustics
+  // Enhanced water shader material with depth-based colors, god rays, and water texture
   const waterMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
         time: { value: 0 },
-        waterColor: { value: new THREE.Color(0.01, 0.25, 0.45) }, // Deep blue water
-        foamColor: { value: new THREE.Color(0.8, 0.95, 1.0) },
-        causticScale: { value: 8.0 },
-        causticStrength: { value: 0.4 },
-        waveHeight: { value: 0.08 }, // Wave amplitude in feet
-        waveFrequency: { value: 0.5 }, // Wave frequency
-        waveSpeed: { value: 0.3 }, // Wave animation speed
-        reflectionStrength: { value: 0.6 },
-        transparency: { value: 0.85 },
+        waterTexture: { value: waterTexture },
+        
+        // Depth-based water colors (shallow to deep)
+        shallowColor: { value: new THREE.Color(0.4, 0.85, 0.9) }, // Turquoise
+        mediumColor: { value: new THREE.Color(0.1, 0.5, 0.75) },  // Medium blue
+        deepColor: { value: new THREE.Color(0.01, 0.25, 0.55) },  // Deep blue
+        
+        // Water color filter overlay
+        waterColorFilter: { value: new THREE.Color(0.15, 0.45, 0.75) }, // Blue tint
+        filterStrength: { value: 0.35 },
+        
+        foamColor: { value: new THREE.Color(0.9, 0.95, 1.0) },
+        
+        // Caustics
+        causticScale: { value: 6.0 },
+        causticStrength: { value: 0.5 },
+        
+        // Waves
+        waveHeight: { value: 0.06 },
+        waveFrequency: { value: 0.4 },
+        waveSpeed: { value: 0.25 },
+        
+        // God rays (underwater light shafts)
+        godRayIntensity: { value: 0.7 },
+        godRayScale: { value: 3.0 },
+        godRaySpeed: { value: 0.15 },
+        
+        // Reflections
+        reflectionStrength: { value: 0.5 },
+        transparency: { value: 0.88 },
+        
+        // Depth settings
+        maxDepth: { value: Math.max(...depthPoints.map(d => d.depth)) },
+        minDepth: { value: Math.min(...depthPoints.map(d => d.depth)) },
       },
       vertexShader: `
         uniform float time;
@@ -55,12 +159,15 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints }) => {
         uniform float waveFrequency;
         uniform float waveSpeed;
         
+        attribute float depth;
+        
         varying vec3 vPosition;
         varying vec3 vNormal;
         varying vec2 vUv;
         varying float vWaveHeight;
+        varying float vDepth;
         
-        // Improved wave function with multiple octaves
+        // Multi-octave wave function
         float wave(vec2 pos, float freq, float time) {
           float wave1 = sin(pos.x * freq + time * waveSpeed) * cos(pos.y * freq * 0.8 + time * waveSpeed * 0.7);
           float wave2 = sin((pos.x - pos.y) * freq * 1.3 + time * waveSpeed * 1.5) * 0.5;
@@ -71,6 +178,7 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints }) => {
         void main() {
           vPosition = position;
           vUv = uv;
+          vDepth = depth;
           
           // Calculate wave displacement
           float displacement = wave(position.xz, waveFrequency, time) * waveHeight;
@@ -82,7 +190,7 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints }) => {
           vec3 newPosition = position;
           newPosition.y += displacement;
           
-          // Calculate normal for lighting (approximate based on neighboring wave heights)
+          // Calculate normal for lighting
           float eps = 0.1;
           float dx = wave(position.xz + vec2(eps, 0.0), waveFrequency, time) * waveHeight 
                    - wave(position.xz - vec2(eps, 0.0), waveFrequency, time) * waveHeight;
@@ -98,34 +206,61 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints }) => {
       `,
       fragmentShader: `
         uniform float time;
-        uniform vec3 waterColor;
+        uniform sampler2D waterTexture;
+        
+        uniform vec3 shallowColor;
+        uniform vec3 mediumColor;
+        uniform vec3 deepColor;
+        uniform vec3 waterColorFilter;
+        uniform float filterStrength;
         uniform vec3 foamColor;
+        
         uniform float causticScale;
         uniform float causticStrength;
+        uniform float godRayIntensity;
+        uniform float godRayScale;
+        uniform float godRaySpeed;
         uniform float reflectionStrength;
         uniform float transparency;
+        uniform float maxDepth;
+        uniform float minDepth;
         
         varying vec3 vPosition;
         varying vec3 vNormal;
         varying vec2 vUv;
         varying float vWaveHeight;
+        varying float vDepth;
         
         // Caustic pattern generator
         float caustic(vec2 uv, float time) {
           vec2 p = uv * causticScale;
           
-          // Multiple layers of caustics for realism
           float c1 = abs(sin(p.x + time * 0.5) * cos(p.y - time * 0.3));
           float c2 = abs(sin((p.x + p.y) * 0.7 + time * 0.7) * cos((p.x - p.y) * 0.8 - time * 0.4));
           float c3 = abs(sin(p.x * 1.3 - time * 0.6) * cos(p.y * 1.1 + time * 0.5));
           
           float caustic = (c1 + c2 * 0.7 + c3 * 0.5) / 2.2;
-          caustic = pow(caustic, 3.0); // Sharpen caustic patterns
+          caustic = pow(caustic, 3.0);
           
           return caustic;
         }
         
-        // Fresnel effect for reflections
+        // God rays (underwater light shafts)
+        float godRays(vec2 uv, float time) {
+          vec2 p = uv * godRayScale;
+          
+          // Animated light shafts
+          float ray1 = abs(sin(p.x * 0.5 + time * godRaySpeed + p.y * 0.3));
+          float ray2 = abs(cos(p.x * 0.3 - time * godRaySpeed * 0.7 + p.y * 0.5));
+          float ray3 = abs(sin((p.x + p.y) * 0.4 + time * godRaySpeed * 1.2));
+          
+          float rays = (ray1 + ray2 * 0.8 + ray3 * 0.6) / 2.4;
+          rays = pow(rays, 4.0);
+          
+          return rays;
+        }
+        
+        // Fresnel effect
         float fresnel(vec3 normal, vec3 viewDir, float power) {
           float facing = dot(normal, viewDir);
           return pow(1.0 - abs(facing), power);
@@ -135,49 +270,69 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints }) => {
           // View direction for Fresnel
           vec3 viewDir = normalize(cameraPosition - vPosition);
           
-          // Calculate Fresnel reflection (stronger at grazing angles)
+          // Calculate Fresnel reflection
           float fresnelValue = fresnel(vNormal, viewDir, 3.0);
           
-          // Caustic light patterns
+          // Depth-based color interpolation
+          float depthRatio = (vDepth - minDepth) / (maxDepth - minDepth);
+          depthRatio = clamp(depthRatio, 0.0, 1.0);
+          
+          // Three-stage color gradient: shallow -> medium -> deep
+          vec3 depthColor;
+          if (depthRatio < 0.5) {
+            depthColor = mix(shallowColor, mediumColor, depthRatio * 2.0);
+          } else {
+            depthColor = mix(mediumColor, deepColor, (depthRatio - 0.5) * 2.0);
+          }
+          
+          // Sample water texture
+          vec2 animatedUV = vUv + vec2(time * 0.01, time * 0.015);
+          vec4 texColor = texture2D(waterTexture, animatedUV);
+          
+          // Blend texture with depth color
+          vec3 baseColor = mix(depthColor, texColor.rgb, 0.3);
+          
+          // Apply water color filter
+          baseColor = mix(baseColor, waterColorFilter, filterStrength);
+          
+          // Caustic light patterns (more visible in shallow areas)
           float causticPattern = caustic(vPosition.xz, time);
+          float causticMask = 1.0 - depthRatio * 0.7;
+          vec3 colorWithCaustics = baseColor + causticPattern * causticStrength * causticMask * vec3(1.0, 1.0, 0.95);
           
-          // Sky reflection color (simulated)
+          // God rays (underwater light shafts) - more visible in deeper areas
+          float godRayPattern = godRays(vPosition.xz, time);
+          float godRayMask = depthRatio * 0.8 + 0.2;
+          colorWithCaustics += godRayPattern * godRayIntensity * godRayMask * vec3(0.9, 0.95, 1.0);
+          
+          // Sky reflection
           vec3 skyColor = vec3(0.5, 0.7, 0.9);
-          
-          // Base water color with depth
-          vec3 baseColor = waterColor;
-          
-          // Add caustics to water color
-          vec3 colorWithCaustics = baseColor + causticPattern * causticStrength * vec3(1.0, 1.0, 0.95);
-          
-          // Mix water and sky reflection based on Fresnel
           vec3 finalColor = mix(colorWithCaustics, skyColor, fresnelValue * reflectionStrength);
           
           // Add foam/highlights at wave peaks
-          float foamAmount = smoothstep(0.05, 0.08, abs(vWaveHeight));
-          finalColor = mix(finalColor, foamColor, foamAmount * 0.3);
+          float foamAmount = smoothstep(0.04, 0.06, abs(vWaveHeight));
+          finalColor = mix(finalColor, foamColor, foamAmount * 0.25);
           
-          // Add sparkles/highlights
-          float sparkle = caustic(vPosition.xz * 2.0, time * 2.0);
-          sparkle = pow(sparkle, 8.0) * fresnelValue;
-          finalColor += sparkle * vec3(1.0, 1.0, 0.95) * 0.5;
+          // Sparkles/highlights
+          float sparkle = caustic(vPosition.xz * 2.5, time * 2.0);
+          sparkle = pow(sparkle, 10.0) * fresnelValue;
+          finalColor += sparkle * vec3(1.0, 1.0, 0.98) * 0.4;
           
-          // Lighting (simple directional)
+          // Lighting
           vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));
           float diffuse = max(dot(vNormal, lightDir), 0.0) * 0.3 + 0.7;
           finalColor *= diffuse;
           
-          // Output with transparency
           gl_FragColor = vec4(finalColor, transparency);
         }
       `,
       transparent: true,
       side: THREE.DoubleSide,
-      depthWrite: false, // Important for transparency
+      depthWrite: false,
     });
-  }, []);
+  }, [waterTexture, depthPoints]);
 
-  // Animate water waves
+  // Animate water
   useFrame((state) => {
     if (materialRef.current) {
       materialRef.current.uniforms.time.value = state.clock.elapsedTime;
@@ -191,7 +346,7 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints }) => {
       ref={meshRef}
       geometry={waterGeometry}
       material={waterMaterial}
-      position={[0, 0.01, 0]} // Slightly above y=0 to prevent z-fighting with pool floor
+      position={[0, 0.01, 0]}
       receiveShadow
     >
       <shaderMaterial ref={materialRef} attach="material" {...waterMaterial} />
