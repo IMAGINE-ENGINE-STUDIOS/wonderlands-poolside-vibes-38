@@ -69,6 +69,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   const [gridSize, setGridSize] = useState(1); // Grid snap size in feet
   const [copingHeight, setCopingHeight] = useState(2 / 12); // Default 2 inches in feet
   const [deckHeight, setDeckHeight] = useState(2 / 12); // Default 2 inches in feet
+  const [copingWidth, setCopingWidth] = useState(1.0); // Default 1 foot width
 
   // Get current texture config based on selected category
   const getCurrentTexture = (): TextureConfig => {
@@ -157,6 +158,13 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
     setDeckHeight(height);
     const updatedScene = { ...scene };
     updatedScene.deck.deckHeight = height;
+    onSceneChange(updatedScene);
+  };
+
+  const handleCopingWidthChange = (width: number) => {
+    setCopingWidth(width);
+    const updatedScene = { ...scene };
+    updatedScene.deck.copingWidth = width;
     onSceneChange(updatedScene);
   };
 
@@ -524,20 +532,35 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
 
               <Separator className="my-3" />
               
-              {/* Coping Height Control */}
+              {/* Coping Controls */}
+              <h4 className="font-medium text-sm mb-2">Coping</h4>
               <div className="space-y-2">
-                <Label className="text-xs">Coping Height: {(copingHeight).toFixed(1)} ft</Label>
+                <Label className="text-xs">Height: {(copingHeight * 12).toFixed(1)} inches</Label>
                 <Slider
                   value={[copingHeight]}
                   onValueChange={(value) => handleCopingHeightChange(value[0])}
-                  min={0}
-                  max={40}
-                  step={0.1}
+                  min={1 / 12}
+                  max={6 / 12}
+                  step={0.5 / 12}
                   className="w-full"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs">Deck Height: {(deckHeight).toFixed(1)} ft</Label>
+                <Label className="text-xs">Width (from pool edge): {copingWidth.toFixed(1)} ft</Label>
+                <Slider
+                  value={[copingWidth]}
+                  onValueChange={(value) => handleCopingWidthChange(value[0])}
+                  min={0.5}
+                  max={3}
+                  step={0.1}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Deck Height Control */}
+              <h4 className="font-medium text-sm mt-3 mb-2">Deck</h4>
+              <div className="space-y-2">
+                <Label className="text-xs">Height: {(deckHeight * 12).toFixed(1)} inches</Label>
                 <Slider
                   value={[deckHeight]}
                   onValueChange={(value) => handleDeckHeightChange(value[0])}

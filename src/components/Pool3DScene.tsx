@@ -72,6 +72,7 @@ export interface Pool3DSceneProps {
   poolPosition?: [number, number, number];
   copingHeight?: number;
   deckHeight?: number;
+  copingWidth?: number;
 }
 
 const PoolMesh: React.FC<{
@@ -347,7 +348,16 @@ const CopingMesh: React.FC<{
   copingTextureScale?: number;
   copingTextureOffset?: [number, number];
   copingHeight?: number;
-}> = ({ poolPoints, copingTextureUrl, selectedCategory, copingTextureScale = 46, copingTextureOffset = [0, 0], copingHeight = 2 / 12 }) => {
+  copingWidth?: number;
+}> = ({ 
+  poolPoints, 
+  copingTextureUrl, 
+  selectedCategory, 
+  copingTextureScale = 46, 
+  copingTextureOffset = [0, 0], 
+  copingHeight = 2 / 12, // Default 2 inches
+  copingWidth = 1.0, // Default 1 foot
+}) => {
   const [copingTexture, setCopingTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
@@ -434,7 +444,7 @@ const CopingMesh: React.FC<{
     // Y-axis = vertical (up/down), water surface at y=0
     // Z-axis = pool length direction
 
-    const copingWidth = 1.0; // 1 foot wide coping
+    // Use dynamic coping width from props
 
     // Pool outer edge (at pool perimeter)
     const innerHalfWidth = poolWidth / 2;
@@ -636,7 +646,18 @@ const DeckMesh: React.FC<{
   paverTextureScale?: number;
   paverTextureOffset?: [number, number];
   deckHeight?: number;
-}> = ({ hardscapePoints, poolPoints, features, paverTextureUrl, selectedCategory, paverTextureScale = 46, paverTextureOffset = [0, 0], deckHeight = 2 / 12 }) => {
+  copingWidth?: number;
+}> = ({ 
+  hardscapePoints, 
+  poolPoints, 
+  features, 
+  paverTextureUrl, 
+  selectedCategory, 
+  paverTextureScale = 46, 
+  paverTextureOffset = [0, 0], 
+  deckHeight = 2 / 12,
+  copingWidth = 1.0
+}) => {
   const [paverTexture, setPaverTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
@@ -704,8 +725,7 @@ const DeckMesh: React.FC<{
     deckShape.closePath();
 
     // Create hole that EXACTLY matches coping outer edge with 2 inch buffer
-    // Coping is 1 foot wide, add small buffer to ensure complete cutout
-    const copingWidth = 1.0; // Coping width in feet
+    // Use dynamic coping width from props, add small buffer to ensure complete cutout
     const bufferDistance = 2 / 12; // 2 inch buffer = 0.167 ft
     const totalCutout = copingWidth + bufferDistance;
     
@@ -1073,7 +1093,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   linerTextureOffset = [0, 0],
   poolPosition = [0, 0, 0],
   copingHeight = 2 / 12,
-  deckHeight = 2 / 12
+  deckHeight = 2 / 12,
+  copingWidth = 1.0
 }) => {
   return (
     <>
@@ -1129,6 +1150,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
             paverTextureScale={paverTextureScale}
             paverTextureOffset={paverTextureOffset}
             deckHeight={deckHeight}
+            copingWidth={copingWidth}
           />
         </group>
       )}
@@ -1142,6 +1164,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           copingTextureScale={copingTextureScale}
           copingTextureOffset={copingTextureOffset}
           copingHeight={copingHeight}
+          copingWidth={copingWidth}
         />
       </group>
 

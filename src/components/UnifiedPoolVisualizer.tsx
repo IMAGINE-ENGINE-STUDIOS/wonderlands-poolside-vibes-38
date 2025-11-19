@@ -274,6 +274,7 @@ export function UnifiedPoolVisualizer({
             poolPosition={scene.pool.position}
             copingHeight={scene.deck.copingHeight || 2 / 12}
             deckHeight={scene.deck.deckHeight || 2 / 12}
+            copingWidth={scene.deck.copingWidth || 1.0}
           />
           
           {/* Annotations */}
