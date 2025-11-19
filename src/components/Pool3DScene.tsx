@@ -89,7 +89,7 @@ const PoolMesh: React.FC<{
   linerTextureUrl, 
   poolDimensions: providedDimensions, 
   selectedCategory, 
-  linerTextureScale = 46, 
+  linerTextureScale = 1.8, 
   linerTextureOffset = [0, 0]
 }) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
@@ -352,7 +352,7 @@ const CopingMesh: React.FC<{
   poolPoints, 
   copingTextureUrl, 
   selectedCategory, 
-  copingTextureScale = 46, 
+  copingTextureScale = 1.8, 
   copingTextureOffset = [0, 0], 
   copingHeight = 2 / 12,
   copingWidth = 1.0
@@ -503,7 +503,7 @@ const DeckMesh: React.FC<{
   features, 
   paverTextureUrl, 
   selectedCategory, 
-  paverTextureScale = 46, 
+  paverTextureScale = 1.8, 
   paverTextureOffset = [0, 0], 
   deckHeight = 2 / 12,
   copingWidth = 1.0
@@ -932,10 +932,10 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   selectedCategory,
   onSelectCategory,
   fenceHeight = 6,
-  paverTextureScale = 46,
-  copingTextureScale = 46,
-  waterlineTextureScale = 46,
-  linerTextureScale = 46,
+  paverTextureScale = 1.8,
+  copingTextureScale = 1.8,
+  waterlineTextureScale = 1.8,
+  linerTextureScale = 1.8,
   paverTextureOffset = [0, 0],
   copingTextureOffset = [0, 0],
   waterlineTextureOffset = [0, 0],
