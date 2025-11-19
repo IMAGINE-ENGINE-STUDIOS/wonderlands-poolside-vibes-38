@@ -263,10 +263,10 @@ export function UnifiedPoolVisualizer({
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
             fenceHeight={fenceHeight}
-            paverTextureScale={scene.deck.paver.scale || 1}
-            copingTextureScale={scene.deck.coping.scale || 1}
-            waterlineTextureScale={scene.deck.waterline?.scale || 1}
-            linerTextureScale={scene.pool.finish.scale || 1}
+            paverTextureScale={scene.deck.paver.scale || 46}
+            copingTextureScale={scene.deck.coping.scale || 46}
+            waterlineTextureScale={scene.deck.waterline?.scale || 46}
+            linerTextureScale={scene.pool.finish.scale || 46}
             paverTextureOffset={scene.deck.paver.offset || [0, 0]}
             copingTextureOffset={scene.deck.coping.offset || [0, 0]}
             waterlineTextureOffset={scene.deck.waterline?.offset || [0, 0]}

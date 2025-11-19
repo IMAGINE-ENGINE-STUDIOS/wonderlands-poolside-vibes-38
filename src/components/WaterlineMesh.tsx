@@ -24,7 +24,7 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
   waterlineHeight = 0.5, // 6 inches tall (6/12 feet = 0.5ft)
   waterlineWidth = 1.0,      // 1 foot tile along perimeter
   selectedCategory,
-  waterlineTextureScale = 1,
+  waterlineTextureScale = 46,
   waterlineTextureOffset = [0, 0]
 }) => {
   const [waterlineTexture, setWaterlineTexture] = useState<THREE.Texture | null>(null);
