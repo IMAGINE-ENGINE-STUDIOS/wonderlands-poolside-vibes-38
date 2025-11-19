@@ -213,6 +213,7 @@ export function poolBuilderToScene(data: PoolBuilderData): Scene3D {
       }
     },
     features: scene3DFeatures,
+    stairs: [],
     annotations: [],
     camera: {
       position: [20, 15, 20],
