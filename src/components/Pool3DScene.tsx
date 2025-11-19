@@ -330,7 +330,7 @@ const PoolMesh: React.FC<{
           map={linerTexture}
           color="#ffffff"
           shininess={30}
-          side={THREE.DoubleSide}
+          side={THREE.FrontSide}
           emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
           emissiveIntensity={pulseIntensity * 0.5}
         />
@@ -446,9 +446,9 @@ const CopingMesh: React.FC<{
     // Rotate to be horizontal (XZ plane)
     geometry.rotateX(-Math.PI / 2);
     
-    // Position coping: bottom at y=0 (water surface), top at y=copingHeight
-    // This makes coping sit directly on top of pool wall
-    geometry.translate(0, 0, 0);
+    // Position coping: 1/3 inch (1/36 ft) above deck (y=0) to prevent overlap
+    // Bottom at 1/36, top at 1/36 + copingHeight
+    geometry.translate(0, 1/36, 0);
 
     // Apply 1x1 ft UV mapping
     const uvAttribute = geometry.getAttribute('uv');

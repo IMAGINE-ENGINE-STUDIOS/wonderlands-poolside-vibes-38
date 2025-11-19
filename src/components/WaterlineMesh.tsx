@@ -114,21 +114,23 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       const waterlineTop = 0; // At water surface
       const waterlineThickness = 1 / 12; // 1 inch thick (depth into pool)
       
-      // Position waterline ON the pool wall (no offset, exactly at pool edge)
-      // Pool edge points
-      const wallP1 = { x: p1.x, z: p1.z };
-      const wallP2 = { x: p2.x, z: p2.z };
+      // Position waterline attached to pool wall with slight offset to prevent z-fighting
+      const zFightingOffset = 0.001; // 0.001 ft offset outward from wall
       
-      // Inner edge (1 inch toward pool center from wall)
-      const innerP1 = { x: p1.x - nx * waterlineThickness, z: p1.z - nz * waterlineThickness };
-      const innerP2 = { x: p2.x - nx * waterlineThickness, z: p2.z - nz * waterlineThickness };
+      // Outer edge (slightly outside pool wall to sit ON the wall surface)
+      const outerP1 = { x: p1.x + nx * zFightingOffset, z: p1.z + nz * zFightingOffset };
+      const outerP2 = { x: p2.x + nx * zFightingOffset, z: p2.z + nz * zFightingOffset };
       
-      // Create waterline face ON the pool wall, facing pool center
-      // Outer edge at pool wall
-      vertices.push(wallP1.x, waterlineTop, wallP1.z);
-      vertices.push(wallP2.x, waterlineTop, wallP2.z);
-      vertices.push(wallP1.x, waterlineTop - waterlineHeight, wallP1.z);
-      vertices.push(wallP2.x, waterlineTop - waterlineHeight, wallP2.z);
+      // Inner edge (1 inch inward toward pool center from outer edge)
+      const innerP1 = { x: outerP1.x - nx * waterlineThickness, z: outerP1.z - nz * waterlineThickness };
+      const innerP2 = { x: outerP2.x - nx * waterlineThickness, z: outerP2.z - nz * waterlineThickness };
+      
+      // Create waterline face: outer edge (on wall) to inner edge (toward center)
+      // Outer edge vertices (attached to wall surface)
+      vertices.push(outerP1.x, waterlineTop, outerP1.z);
+      vertices.push(outerP2.x, waterlineTop, outerP2.z);
+      vertices.push(outerP1.x, waterlineTop - waterlineHeight, outerP1.z);
+      vertices.push(outerP2.x, waterlineTop - waterlineHeight, outerP2.z);
       
       // UV mapping: EXACTLY 1ft x 1ft sections (not deformed)
       // U = distance along perimeter (in feet), V = height (in feet)
