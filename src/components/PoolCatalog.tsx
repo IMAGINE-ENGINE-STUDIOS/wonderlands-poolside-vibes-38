@@ -66,8 +66,8 @@ interface Spa {
   warrantyYears?: number | string;
 }
 
-// Pool finish options
-export const poolFinishes = ["Nantuke", "Esagoni", "Whitehaven", "Island Wave", "Durango Gray", "Vintage Blue", "Royal Blue", "Gulf Coast", "Hamper", "Indigo", "Cayman", "Mountain", "Carnegie", "Panama", "Corolla", "Summerwave", "Legends", "Z terrazzo", "Tullism", "Courtstone Gray", "Courtstone Blue"];
+// Pool finish options (removed non-texture options: Mountain, Carnegie, Panama)
+export const poolFinishes = ["Nantuke", "Esagoni", "Whitehaven", "Island Wave", "Durango Gray", "Vintage Blue", "Royal Blue", "Gulf Coast", "Hamper", "Indigo", "Cayman", "Corolla", "Summerwave", "Legends", "Z terrazzo", "Tullism", "Courtstone Gray", "Courtstone Blue"];
 
 // Helper function to get pool price with 10% discount applied (except Cancún Deluxe)
 const getPoolPrice = (pool: Pool) => {

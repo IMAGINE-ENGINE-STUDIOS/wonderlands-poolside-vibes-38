@@ -112,11 +112,11 @@ const PoolMesh: React.FC<{
 
   useEffect(() => {
     if (linerTextureUrl) {
-      // Pool finish tiles: 1ft x 1ft base scale
+      // Pool finish tiles: 1ft x 1ft base scale (inverted to fix backwards scaling)
       const baseRepeatX = poolDimensions.width / 1.0;
       const baseRepeatY = poolDimensions.length / 1.0;
-      const repeatX = baseRepeatX * linerTextureScale;
-      const repeatY = baseRepeatY * linerTextureScale;
+      const repeatX = baseRepeatX / linerTextureScale;
+      const repeatY = baseRepeatY / linerTextureScale;
       
       textureCache.loadTexture(linerTextureUrl, { x: repeatX, y: repeatY })
         .then(texture => {
@@ -375,9 +375,9 @@ const CopingMesh: React.FC<{
 
   useEffect(() => {
     if (copingTextureUrl) {
-      // Coping texture: 1x1 ft base scale
-      const repeatX = (copingDimensions.perimeter / 1.0) * copingTextureScale;
-      const repeatY = 1.0 * copingTextureScale;
+      // Coping texture: 1x1 ft base scale (inverted to fix backwards scaling)
+      const repeatX = (copingDimensions.perimeter / 1.0) / copingTextureScale;
+      const repeatY = 1.0 / copingTextureScale;
       
       textureCache.loadTexture(copingTextureUrl, { x: repeatX, y: repeatY })
         .then(texture => {
@@ -643,9 +643,9 @@ const DeckMesh: React.FC<{
 
   useEffect(() => {
     if (paverTextureUrl) {
-      // Deck paver tiles: 1ft x 1ft base scale
-      const repeatX = (deckDimensions.width / 1.0) * paverTextureScale;
-      const repeatY = (deckDimensions.length / 1.0) * paverTextureScale;
+      // Deck paver tiles: 1ft x 1ft base scale (inverted to fix backwards scaling)
+      const repeatX = (deckDimensions.width / 1.0) / paverTextureScale;
+      const repeatY = (deckDimensions.length / 1.0) / paverTextureScale;
       
       textureCache.loadTexture(paverTextureUrl, { x: repeatX, y: repeatY })
         .then(texture => {
