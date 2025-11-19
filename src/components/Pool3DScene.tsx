@@ -392,9 +392,9 @@ const CopingMesh: React.FC<{
 
   useEffect(() => {
     if (copingTextureUrl) {
-      // Coping texture: 1ft tiles along perimeter, scaled by control
-      const repeatX = (copingDimensions.perimeter / 1) / copingTextureScale;
-      const repeatY = 1 / copingTextureScale;
+      // Coping texture: 1x1 ft base scale
+      const repeatX = (copingDimensions.perimeter / 1.0) * copingTextureScale;
+      const repeatY = 1.0 * copingTextureScale;
       
       // Check if we already have the correct texture loaded
       const currentTextureUrl = copingTexture?.userData?.url;
