@@ -617,7 +617,7 @@ const DeckMesh: React.FC<{
     }
 
     return deckGeom;
-  }, [hardscapePoints, poolPoints, deckHeight]);
+  }, [hardscapePoints, poolPoints, deckHeight, copingWidth]); // Add copingWidth dependency
 
   if (!deckGeometry) return null;
 
@@ -963,7 +963,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   poolPosition = [0, 0, 0],
   copingHeight = 2 / 12,
   deckHeight = 2 / 12,
-  copingWidth = 1.0
+  copingWidth = 1.1 // Minimum 1.1 ft
 }) => {
   return (
     <>

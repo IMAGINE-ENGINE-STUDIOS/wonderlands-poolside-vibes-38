@@ -173,6 +173,7 @@ export function productToScene(
         metalness: 0.0,
         offset: [-0.21, 0]
       },
+      copingWidth: 1.1, // Default coping width in feet (minimum)
       waterline: {
         url: linerTextureUrl,
         name: `${selectedExtras.finish || selectedExtras.linerOption || 'Default'} (Waterline)`,

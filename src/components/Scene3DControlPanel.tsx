@@ -69,7 +69,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   const [gridSize, setGridSize] = useState(1); // Grid snap size in feet
   const [copingHeight, setCopingHeight] = useState(2 / 12); // Default 2 inches in feet
   const [deckHeight, setDeckHeight] = useState(2 / 12); // Default 2 inches in feet
-  const [copingWidth, setCopingWidth] = useState(1.0); // Default 1 foot width
+  const [copingWidth, setCopingWidth] = useState(1.1); // Default 1.1 foot width (minimum)
 
   // Get current texture config based on selected category
   const getCurrentTexture = (): TextureConfig => {
@@ -550,7 +550,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                 <Slider
                   value={[copingWidth]}
                   onValueChange={(value) => handleCopingWidthChange(value[0])}
-                  min={0.5}
+                  min={1.1}
                   max={3}
                   step={0.1}
                   className="w-full"
