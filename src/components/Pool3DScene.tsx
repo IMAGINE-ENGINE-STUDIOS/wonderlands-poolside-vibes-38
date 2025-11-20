@@ -491,7 +491,7 @@ const CopingMesh: React.FC<{
 
   // Load texture with 1x1 ft base dimensions
   useEffect(() => {
-    if (copingTextureUrl && copingTextureUrl !== 'undefined') {
+    if (copingTextureUrl && copingTextureUrl !== '' && copingTextureUrl !== 'undefined') {
       // 1ft x 1ft base scale
       const repeatX = 1.0 / copingTextureScale;
       const repeatY = 1.0 / copingTextureScale;
@@ -650,7 +650,7 @@ const DeckMesh: React.FC<{
   }, [hardscapePoints]);
 
   useEffect(() => {
-    if (paverTextureUrl && paverTextureUrl !== 'undefined') {
+    if (paverTextureUrl && paverTextureUrl !== '' && paverTextureUrl !== 'undefined') {
       // 1ft x 1ft base scale
       const repeatX = 1.0 / paverTextureScale;
       const repeatY = 1.0 / paverTextureScale;
@@ -786,7 +786,7 @@ const FenceMesh: React.FC<{
   }, [fencePoints]);
 
   useEffect(() => {
-    if (fenceTextureUrl && fenceTextureUrl !== 'undefined') {
+    if (fenceTextureUrl && fenceTextureUrl !== '' && fenceTextureUrl !== 'undefined') {
       // Fence texture should fit sections of 6ft tall x 12ft long
       const repeatX = Math.max(1, Math.ceil(fenceLength / 12));
       const repeatY = 1;
