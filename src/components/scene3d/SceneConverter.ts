@@ -175,7 +175,7 @@ export function productToScene(
       },
       copingWidth: 1.1, // Default coping width in feet (minimum)
       waterline: {
-        url: linerTextureUrl,
+        url: linerTextureUrl || '/src/assets/finishes/sapphire-blue-g3.jpg',
         name: `${selectedExtras.finish || selectedExtras.linerOption || 'Default'} (Waterline)`,
         roughness: 0.3,
         metalness: 0.2

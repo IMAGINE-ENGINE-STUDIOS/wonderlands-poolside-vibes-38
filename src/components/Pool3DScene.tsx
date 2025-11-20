@@ -139,7 +139,7 @@ const PoolMesh: React.FC<{
   }, [points, depthPoints, providedDimensions]);
 
   useEffect(() => {
-    if (linerTextureUrl && linerTextureUrl !== 'undefined') {
+    if (linerTextureUrl && linerTextureUrl !== '' && linerTextureUrl !== 'undefined') {
       // 1ft x 1ft base scale
       const repeatX = 1.0 / linerTextureScale;
       const repeatY = 1.0 / linerTextureScale;
