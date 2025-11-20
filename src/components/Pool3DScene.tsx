@@ -307,8 +307,8 @@ const PoolMesh: React.FC<{
     floorGeometry.computeVertexNormals();
 
     // === POOL WALLS GEOMETRY ===
-    // Thick walls (3 inches = 0.25 ft) with inner and outer surfaces
-    const wallThickness = 0.25; // 3 inches
+    // Thick walls (9 inches = 0.75 ft) with inner and outer surfaces - MUCH MORE VISIBLE
+    const wallThickness = 0.75; // 9 inches for better visibility
     const wallVertices: number[] = [];
     const wallIndices: number[] = [];
     const wallUVs: number[] = [];
@@ -1223,11 +1223,13 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           selectedCategory={selectedCategory}
           waterlineTextureScale={waterlineTextureScale}
           waterlineTextureOffset={waterlineTextureOffset}
+          copingHeight={copingHeight}
+          wallThickness={0.75}
         />
       </group>
 
       {/* Realistic Water Surface with Waves, Reflections, God Rays, and Depth-Based Colors */}
-      <WaterSurface poolPoints={points} depthPoints={depthPoints} poolDimensions={poolDimensions} />
+      <WaterSurface poolPoints={points} depthPoints={depthPoints} poolDimensions={poolDimensions} wallThickness={0.75} />
 
       {fencePoints && fencePoints.length > 0 && (
         <FenceMesh
