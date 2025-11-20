@@ -117,71 +117,71 @@ const LinersSection = ({
   return <>
       <section id="liners" className="py-12 px-4 bg-gradient-to-br from-background to-muted/30">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
               Premium Pool Liners
             </h2>
-            <p className="text-xl text-foreground/80 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto px-4">
               Transform your pool with our premium liner collection. Each liner is designed for durability, beauty, and long-lasting performance.
             </p>
           </div>
 
             <div className="flex gap-4 overflow-x-auto pb-4">
               <Carousel className="w-full">
-                <CarouselContent className="-ml-1">
-                  {getProductsByCategory('liner').map((liner, index) => <CarouselItem key={liner.name} className="pl-1 basis-1/3 md:basis-1/2 lg:basis-1/3">
+                <CarouselContent className="-ml-2 md:-ml-1">
+                  {getProductsByCategory('liner').map((liner, index) => <CarouselItem key={liner.name} className="pl-2 md:pl-1 basis-full sm:basis-1/2 lg:basis-1/3">
                       <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer h-full" onClick={() => handleLinerClick(liner)}>
                         {/* Full Background Image */}
-                        <div className="relative h-64 overflow-hidden">
+                        <div className="relative h-56 sm:h-64 overflow-hidden">
                           <img src={liner.image} alt={liner.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent">
-                            <div className="absolute top-4 left-4">
-                              <Badge className={`${getTypeColor(liner.subcategory || 'Glass')} text-white capitalize font-medium px-3 py-1`}>
+                            <div className="absolute top-3 left-3 sm:top-4 sm:left-4">
+                              <Badge className={`${getTypeColor(liner.subcategory || 'Glass')} text-white capitalize font-medium px-2 py-0.5 sm:px-3 sm:py-1 text-xs sm:text-sm`}>
                                 <span className="flex items-center gap-1">
                                   {getTypeIcon(liner.subcategory || 'Glass')}
                                   {liner.subcategory}
                                 </span>
                               </Badge>
                             </div>
-                            <div className="absolute bottom-4 left-4 text-white">
-                              <CardTitle className="text-lg font-semibold mb-2">
+                            <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 text-white">
+                              <CardTitle className="text-base sm:text-lg font-semibold mb-1.5 sm:mb-2 line-clamp-1">
                                 {liner.name}
                               </CardTitle>
-                              <div className="space-y-1 mb-2">
-                                <div className="flex items-center gap-2">
-                                  <DollarSign className="h-4 w-4 text-teal" />
-                                  <span className="text-lg font-bold">
+                              <div className="space-y-0.5 sm:space-y-1 mb-1.5 sm:mb-2">
+                                <div className="flex items-center gap-1.5 sm:gap-2">
+                                  <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-teal flex-shrink-0" />
+                                  <span className="text-sm sm:text-lg font-bold truncate">
                                     ${liner.price}/sqft installed
                                   </span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <DollarSign className="h-4 w-4 text-teal" />
-                                  <span className="text-sm font-medium text-white/90">
-                                    ${liner.originalPrice}/sheet material only
+                                <div className="flex items-center gap-1.5 sm:gap-2">
+                                  <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-teal flex-shrink-0" />
+                                  <span className="text-xs sm:text-sm font-medium text-white/90 truncate">
+                                    ${liner.originalPrice}/sheet material
                                   </span>
                                 </div>
                               </div>
-                              <p className="text-sm text-white/80 line-clamp-2">
+                              <p className="text-xs sm:text-sm text-white/80 line-clamp-2">
                                 {liner.description}
                               </p>
                             </div>
                           </div>
                         </div>
                         
-                        <CardContent className="space-y-4 pt-4">
+                        <CardContent className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 pb-3 sm:pb-4 px-3 sm:px-6">
                           {/* Action Button */}
                           <Button onClick={e => {
                       e.stopPropagation();
                       handleLinerClick(liner);
-                    }} variant="default" className="w-full hover:scale-105 transition-all duration-300" size="sm">
-                            View Detail
+                    }} variant="default" className="w-full hover:scale-105 transition-all duration-300 text-sm sm:text-base py-2 sm:py-2.5" size="sm">
+                            View Details
                           </Button>
                         </CardContent>
                       </Card>
                     </CarouselItem>)}
                 </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
+                <CarouselPrevious className="left-2 sm:left-0 h-8 w-8 sm:h-10 sm:w-10" />
+                <CarouselNext className="right-2 sm:right-0 h-8 w-8 sm:h-10 sm:w-10" />
               </Carousel>
             </div>
         </div>
@@ -189,59 +189,59 @@ const LinersSection = ({
       
       {/* Liner Detail Modal */}
       <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           {selectedLiner && <>
               <DialogHeader>
-                <DialogTitle className="text-2xl">{selectedLiner.name}</DialogTitle>
+                <DialogTitle className="text-xl sm:text-2xl pr-8">{selectedLiner.name}</DialogTitle>
               </DialogHeader>
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <img src={selectedLiner.image} alt={selectedLiner.name} className="w-full h-64 object-cover rounded-lg" />
+                  <img src={selectedLiner.image} alt={selectedLiner.name} className="w-full h-48 sm:h-64 object-cover rounded-lg" />
                 </div>
-                <div className="space-y-4">
-                  <Badge className={`${getTypeColor(selectedLiner.subcategory || 'Glass')} text-white`}>
+                <div className="space-y-3 sm:space-y-4">
+                  <Badge className={`${getTypeColor(selectedLiner.subcategory || 'Glass')} text-white text-xs sm:text-sm`}>
                     {selectedLiner.subcategory}
                   </Badge>
-                  <p className="text-foreground/80">{selectedLiner.description}</p>
+                  <p className="text-sm sm:text-base text-foreground/80">{selectedLiner.description}</p>
                   
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <DollarSign className="h-5 w-5 text-teal" />
-                      <span className="text-2xl font-bold text-foreground">
+                      <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal flex-shrink-0" />
+                      <span className="text-lg sm:text-2xl font-bold text-foreground">
                         ${selectedLiner.price}/sqft installed
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-teal" />
-                      <span className="text-lg font-semibold text-foreground/80">
-                        ${selectedLiner.originalPrice}/sheet material only
+                      <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-teal flex-shrink-0" />
+                      <span className="text-base sm:text-lg font-semibold text-foreground/80">
+                        ${selectedLiner.originalPrice}/sheet material
                       </span>
                     </div>
                   </div>
 
                   <Separator />
 
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div>
-                      <Label className="text-sm font-medium mb-2 block">Purchase Type</Label>
+                      <Label className="text-xs sm:text-sm font-medium mb-2 block">Purchase Type</Label>
                       <RadioGroup value={unitType} onValueChange={(value: 'sqft' | 'sheet') => setUnitType(value)}>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="sqft" id="sqft" />
-                          <Label htmlFor="sqft" className="cursor-pointer">
+                          <Label htmlFor="sqft" className="cursor-pointer text-xs sm:text-sm">
                             Per sqft (installed) - ${selectedLiner.price}/sqft
                           </Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="sheet" id="sheet" />
-                          <Label htmlFor="sheet" className="cursor-pointer">
-                            Per sheet (material only) - ${selectedLiner.originalPrice}/sheet
+                          <Label htmlFor="sheet" className="cursor-pointer text-xs sm:text-sm">
+                            Per sheet (material) - ${selectedLiner.originalPrice}/sheet
                           </Label>
                         </div>
                       </RadioGroup>
                     </div>
 
                     <div>
-                      <Label htmlFor="quantity" className="text-sm font-medium mb-2 block">
+                      <Label htmlFor="quantity" className="text-xs sm:text-sm font-medium mb-2 block">
                         Quantity ({unitType === 'sqft' ? 'square feet' : 'sheets'})
                       </Label>
                       <Input
@@ -250,32 +250,32 @@ const LinersSection = ({
                         min="1"
                         value={quantity}
                         onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                        className="w-full"
+                        className="w-full text-sm sm:text-base"
                       />
                     </div>
 
                     <div className="bg-muted/50 p-3 rounded-lg">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Total:</span>
-                        <span className="text-xl font-bold text-primary">
+                        <span className="text-xs sm:text-sm font-medium">Total:</span>
+                        <span className="text-lg sm:text-xl font-bold text-primary">
                           ${((unitType === 'sqft' ? selectedLiner.price : selectedLiner.originalPrice) * quantity).toFixed(2)}
                         </span>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     {allowSelection && !selectedLinerProp && selectedLiner && <Button onClick={() => {
                   onLinerSelect?.(selectedLiner as Liner);
                   setShowDetailModal(false);
-                }} variant="default" className="flex-1">
+                }} variant="default" className="w-full sm:flex-1 text-sm">
                         Select Liner
                       </Button>}
-                    <Button onClick={handleAddToCart} variant="default" className="flex-1">
+                    <Button onClick={handleAddToCart} variant="default" className="w-full sm:flex-1 text-sm">
                       <ShoppingCart className="mr-2 h-4 w-4" />
                       Add to Cart
                     </Button>
-                    <Button onClick={() => handleRequestQuote(selectedLiner)} variant="gradient" className="flex-1">
+                    <Button onClick={() => handleRequestQuote(selectedLiner)} variant="gradient" className="w-full sm:flex-1 text-sm">
                       Get Quote
                     </Button>
                   </div>
