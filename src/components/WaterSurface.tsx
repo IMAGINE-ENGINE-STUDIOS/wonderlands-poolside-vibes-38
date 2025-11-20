@@ -17,11 +17,10 @@ interface WaterSurfaceProps {
     width: number;
     depth: number;
   };
-  wallThickness?: number;
 }
 
 // Enhanced Water Surface with dynamic simulation, depth-based colors, god rays, and water color filter
-const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, poolDimensions, wallThickness = 0.75 }) => {
+const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, poolDimensions }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
@@ -55,47 +54,15 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
     const maxX = Math.max(...poolPoints.map(p => p.x));
     const minY = Math.min(...poolPoints.map(p => p.y));
     const maxY = Math.max(...poolPoints.map(p => p.y));
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
     
     const poolWidth = maxX - minX;
     const poolLength = maxY - minY;
     const lengthDirection = poolLength > poolWidth ? 'y' : 'x';
 
-    // Offset pool points INWARD by wallThickness to keep water inside pool walls
-    const offsetPoints = poolPoints.map((point, i) => {
-      const prevPoint = poolPoints[(i - 1 + poolPoints.length) % poolPoints.length];
-      const nextPoint = poolPoints[(i + 1) % poolPoints.length];
-      
-      // Calculate normals from adjacent edges (pointing inward)
-      const dx1 = point.x - prevPoint.x;
-      const dy1 = point.y - prevPoint.y;
-      const len1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
-      const n1x = -dy1 / len1;
-      const n1y = dx1 / len1;
-      
-      const dx2 = nextPoint.x - point.x;
-      const dy2 = nextPoint.y - point.y;
-      const len2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-      const n2x = -dy2 / len2;
-      const n2y = dx2 / len2;
-      
-      // Average normal (pointing inward)
-      const nx = (n1x + n2x) / 2;
-      const ny = (n1y + n2y) / 2;
-      const nLen = Math.sqrt(nx * nx + ny * ny);
-      
-      // Offset point inward by wallThickness
-      return {
-        x: point.x + (nx / nLen) * wallThickness,
-        y: point.y + (ny / nLen) * wallThickness,
-        id: point.id
-      };
-    });
-
-    // Create shape from offset pool points
+    // Use pool points directly - water fills to the inner wall boundary
+    // No offset needed since walls now extend OUTWARD from pool boundary
     const shape = new THREE.Shape();
-    offsetPoints.forEach((point, i) => {
+    poolPoints.forEach((point, i) => {
       if (i === 0) {
         shape.moveTo(point.x, point.y);
       } else {
@@ -132,7 +99,7 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
     geometry.rotateX(-Math.PI / 2);
     
     return geometry;
-  }, [poolPoints, getDepthAtPosition, wallThickness]);
+  }, [poolPoints, getDepthAtPosition]);
 
   // Enhanced water shader material with depth-based colors, god rays, and water texture
   const waterMaterial = useMemo(() => {

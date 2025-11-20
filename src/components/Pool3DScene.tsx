@@ -307,7 +307,9 @@ const PoolMesh: React.FC<{
     floorGeometry.computeVertexNormals();
 
     // === POOL WALLS GEOMETRY ===
-    // Thick walls (9 inches = 0.75 ft) with inner and outer surfaces - MUCH MORE VISIBLE
+    // Thick walls (9 inches = 0.75 ft) extending OUTWARD from pool boundary into the ground
+    // Inner face = pool boundary (visible with liner)
+    // Outer face = pool boundary + 0.75ft outward (buried in ground)
     const wallThickness = 0.75; // 9 inches for better visibility
     const wallVertices: number[] = [];
     const wallIndices: number[] = [];
@@ -331,24 +333,24 @@ const PoolMesh: React.FC<{
       
       const wallLength = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2));
       
-      // Calculate inward normal
+      // Calculate OUTWARD normal (pointing away from pool center into the ground)
       const dx = p2.x - p1.x;
       const dz = p2.z - p1.z;
-      const nx = -dz / wallLength;  // Points inward
-      const nz = dx / wallLength;
+      const outwardNx = dz / wallLength;  // Points OUTWARD (reversed from inward)
+      const outwardNz = -dx / wallLength;
       
       const baseIdx = wallVertices.length / 3;
       
-      // OUTER surface (at pool boundary - in ground, not visible)
-      const outerP1 = { x: p1.x, z: p1.z };
-      const outerP2 = { x: p2.x, z: p2.z };
+      // INNER surface (at pool boundary - visible with liner texture)
+      const innerP1 = { x: p1.x, z: p1.z };
+      const innerP2 = { x: p2.x, z: p2.z };
       
-      // INNER surface (0.75 ft inward - visible with liner texture)
-      const innerP1 = { x: p1.x + nx * wallThickness, z: p1.z + nz * wallThickness };
-      const innerP2 = { x: p2.x + nx * wallThickness, z: p2.z + nz * wallThickness };
+      // OUTER surface (wallThickness outward into ground - not visible)
+      const outerP1 = { x: p1.x + outwardNx * wallThickness, z: p1.z + outwardNz * wallThickness };
+      const outerP2 = { x: p2.x + outwardNx * wallThickness, z: p2.z + outwardNz * wallThickness };
       
       // === INNER WALL SURFACE (textured, visible from inside pool) ===
-      // Position walls BELOW coping: start at -copingHeight instead of 0
+      // Position walls starting BELOW deck level (at -copingHeight)
       const wallTopY = -(copingHeight || 2/12);
       wallVertices.push(innerP1.x, wallTopY, innerP1.z);
       wallVertices.push(innerP2.x, wallTopY, innerP2.z);
@@ -366,10 +368,10 @@ const PoolMesh: React.FC<{
       
       perimeterDistance += wallLength;
       
-      // Inner wall face (normals pointing outward so visible from inside)
+      // Inner wall face (normals pointing INWARD so visible from inside pool)
       wallIndices.push(
-        baseIdx, baseIdx + 1, baseIdx + 3,
-        baseIdx, baseIdx + 3, baseIdx + 2
+        baseIdx, baseIdx + 3, baseIdx + 1,
+        baseIdx, baseIdx + 2, baseIdx + 3
       );
       
       // === OUTER WALL SURFACE (concrete, not visible) ===
@@ -1224,12 +1226,11 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           waterlineTextureScale={waterlineTextureScale}
           waterlineTextureOffset={waterlineTextureOffset}
           copingHeight={copingHeight}
-          wallThickness={0.75}
         />
       </group>
 
       {/* Realistic Water Surface with Waves, Reflections, God Rays, and Depth-Based Colors */}
-      <WaterSurface poolPoints={points} depthPoints={depthPoints} poolDimensions={poolDimensions} wallThickness={0.75} />
+      <WaterSurface poolPoints={points} depthPoints={depthPoints} poolDimensions={poolDimensions} />
 
       {fencePoints && fencePoints.length > 0 && (
         <FenceMesh

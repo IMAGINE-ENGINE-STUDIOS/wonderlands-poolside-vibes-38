@@ -17,7 +17,6 @@ interface WaterlineMeshProps {
   waterlineTextureScale?: number;
   waterlineTextureOffset?: [number, number];
   copingHeight?: number;
-  wallThickness?: number;
 }
 
 export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({ 
@@ -28,8 +27,7 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
   selectedCategory,
   waterlineTextureScale = 1.8,
   waterlineTextureOffset = [0, 0],
-  copingHeight = 2 / 12, // Default 2 inches
-  wallThickness = 0.75 // Default 9 inches (match pool walls)
+  copingHeight = 2 / 12 // Default 2 inches
 }) => {
   const [waterlineTexture, setWaterlineTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
@@ -122,18 +120,16 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       const waterlineTop = deckLevel + copingHeight; // Bottom of coping
       const waterlineBottom = deckLevel; // Top of water surface
       
-      // Position waterline INSIDE pool wall, aligned with inner wall face
-      const wallOffset = wallThickness; // Offset inward by wall thickness
+      // Position waterline on the INNER wall surface (at pool boundary, NOT offset)
+      // The inner wall face is AT the pool points, so waterline goes there
+      const waterlineP1 = { x: p1.x, z: p1.z };
+      const waterlineP2 = { x: p2.x, z: p2.z };
       
-      // Position waterline at the inner wall surface
-      const innerWallP1 = { x: p1.x + nx * wallOffset, z: p1.z + nz * wallOffset };
-      const innerWallP2 = { x: p2.x + nx * wallOffset, z: p2.z + nz * wallOffset };
-      
-      // Create waterline face vertices (vertical band on inner wall)
-      vertices.push(innerWallP1.x, waterlineTop, innerWallP1.z);
-      vertices.push(innerWallP2.x, waterlineTop, innerWallP2.z);
-      vertices.push(innerWallP1.x, waterlineBottom, innerWallP1.z);
-      vertices.push(innerWallP2.x, waterlineBottom, innerWallP2.z);
+      // Create waterline face vertices (vertical band on inner wall at pool boundary)
+      vertices.push(waterlineP1.x, waterlineTop, waterlineP1.z);
+      vertices.push(waterlineP2.x, waterlineTop, waterlineP2.z);
+      vertices.push(waterlineP1.x, waterlineBottom, waterlineP1.z);
+      vertices.push(waterlineP2.x, waterlineBottom, waterlineP2.z);
       
       // UV mapping: EXACTLY 1ft x 1ft sections using cumulative perimeter
       // U = cumulative distance along perimeter (in feet)
