@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ShoppingCart, Home, Waves, Sparkles, Palette, Droplets, Shield, Grid3X3, Mountain, Settings } from "lucide-react";
 import { useShoppingCart } from "./ShoppingCartProvider";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import MiniCart from "./MiniCart";
 
 const RightNavigation = () => {
   const [activeSection, setActiveSection] = useState("hero");
@@ -98,7 +100,7 @@ const RightNavigation = () => {
                 <Home className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Home</TooltipContent>
+            <TooltipContent side="left">Home</TooltipContent>
           </Tooltip>
         ) : (
           <>
@@ -113,27 +115,33 @@ const RightNavigation = () => {
                     <Settings className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Admin</TooltipContent>
+                <TooltipContent side="left">Admin Dashboard</TooltipContent>
               </Tooltip>
             )}
 
-            {/* Shopping Cart Button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={() => setIsCartOpen(true)}
-                  className="relative rounded-full w-11 h-11 bg-primary hover:bg-primary/90 shadow-lg"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  {getCartCount() > 0 && (
-                    <Badge className="absolute -top-2 -right-2 bg-coral text-white min-w-5 h-5 flex items-center justify-center text-xs">
-                      {getCartCount()}
-                    </Badge>
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Cart</TooltipContent>
-            </Tooltip>
+            {/* Shopping Cart Button with Mini Preview */}
+            <Popover>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <PopoverTrigger asChild>
+                    <Button
+                      className="relative rounded-full w-11 h-11 bg-primary hover:bg-primary/90 shadow-lg"
+                    >
+                      <ShoppingCart className="h-4 w-4" />
+                      {getCartCount() > 0 && (
+                        <Badge className="absolute -top-2 -right-2 bg-coral text-white min-w-5 h-5 flex items-center justify-center text-xs">
+                          {getCartCount()}
+                        </Badge>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="left">Cart</TooltipContent>
+              </Tooltip>
+              <PopoverContent side="left" align="start" className="p-0">
+                <MiniCart onViewFullCart={() => setIsCartOpen(true)} />
+              </PopoverContent>
+            </Popover>
 
             {/* Navigation Items */}
             {navItems.map((item) => {
@@ -151,7 +159,7 @@ const RightNavigation = () => {
                       <Icon className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>{item.label}</TooltipContent>
+                  <TooltipContent side="left">{item.label}</TooltipContent>
                 </Tooltip>
               );
             })}
