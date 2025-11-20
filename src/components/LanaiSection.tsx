@@ -28,12 +28,14 @@ const lanaiOptions: LanaiOption[] = [
   {
     id: "standard",
     name: "Standard Lanai",
-    basePrice: 16,
+    basePrice: 60,
     image: lanaiStandardImg,
     badge: "Value",
-    description: "Basic aluminum frame patio cover with solid roof panels",
+    description: "Complete aluminum frame patio cover with solid roof, foundation, and framing",
     features: [
+      "Paver or concrete foundation included",
       "Durable aluminum frame construction",
+      "Complete roof framing and installation",
       "Solid roof panels for complete weather protection",
       "Basic hardware and installation",
       "5-year warranty coverage",
@@ -45,12 +47,14 @@ const lanaiOptions: LanaiOption[] = [
   {
     id: "deluxe",
     name: "Deluxe Lanai",
-    basePrice: 22,
+    basePrice: 80,
     image: lanaiDeluxeImg,
     badge: "Popular",
-    description: "Glass roof veranda with enhanced features and lighting",
+    description: "Complete glass roof veranda with foundation, enhanced features, and lighting",
     features: [
+      "Paver or concrete foundation included",
       "Premium aluminum frame construction",
+      "Complete roof framing and installation",
       "Tempered glass roof panels for natural light",
       "Enhanced hardware and installation",
       "Integrated LED lighting system",
@@ -63,12 +67,14 @@ const lanaiOptions: LanaiOption[] = [
   {
     id: "premium",
     name: "Premium Lanai",
-    basePrice: 28,
+    basePrice: 100,
     image: lanaiPremiumImg,
     badge: "Ultimate",
-    description: "Louvered canopy system with motorized adjustable louvers",
+    description: "Complete louvered canopy system with foundation, motorized louvers, and finished ceiling",
     features: [
+      "Paver or concrete foundation included",
       "Heavy-duty aluminum frame construction",
+      "Complete roof framing with finished ceiling",
       "Adjustable motorized louver system",
       "Premium hardware and professional installation",
       "Integrated weather sensors",
@@ -284,12 +290,15 @@ const LanaiSection = () => {
                   </div>
 
                   {squareFootage && (
-                    <div className="bg-muted p-4 rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
+                    <div className="bg-muted p-4 rounded-lg space-y-3">
+                      <div className="text-xs font-medium text-primary bg-primary/10 px-3 py-2 rounded">
+                        ✓ Includes paver or concrete foundation and complete roof installation
+                      </div>
+                      <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Base Price:</span>
                         <span className="font-semibold">${selectedLanai.basePrice}/sq ft</span>
                       </div>
-                      <div className="flex justify-between items-center mb-2">
+                      <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Square Footage:</span>
                         <span className="font-semibold">{squareFootage} sq ft</span>
                       </div>
@@ -327,10 +336,10 @@ const LanaiSection = () => {
 
       {/* Quote Modal */}
       <SurveyQuoteTool
-        pool={selectedLanai ? {
+        pool={selectedLanai && squareFootage ? {
           model: selectedLanai.name,
           category: "standard",
-          price: selectedLanai.basePrice,
+          price: calculatePrice(),
           image: selectedLanai.image,
           dimensions: `${squareFootage} sq ft`,
           warrantyYears: selectedLanai.warranty
