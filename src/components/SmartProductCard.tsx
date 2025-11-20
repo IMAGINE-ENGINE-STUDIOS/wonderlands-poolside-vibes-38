@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Separator } from '@/components/ui/separator';
 import ProductOptionsManager, { ProductCategory } from './ProductOptionsManager';
 import { Edit, ShoppingCart, DollarSign, Waves, Eye, ExternalLink, FileText } from 'lucide-react';
-import { useShoppingCart } from './ShoppingCart';
+import { useShoppingCart } from './ShoppingCartProvider';
 import SurveyQuoteTool from './SurveyQuoteTool';
 
 interface SmartProductCardProps {

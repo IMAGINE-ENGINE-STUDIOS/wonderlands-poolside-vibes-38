@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ShoppingCart, Home, Waves, Sparkles, Palette, Droplets, Shield, Grid3X3, Mountain, Settings } from "lucide-react";
-import { useShoppingCart } from "./ShoppingCart";
+import { useShoppingCart } from "./ShoppingCartProvider";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 

@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ShoppingCart, { useShoppingCart } from "@/components/ShoppingCart";
+import ShoppingCart from "@/components/ShoppingCart";
+import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { ShoppingCart as CartIcon } from "lucide-react";
 import { 
   Edit3, 

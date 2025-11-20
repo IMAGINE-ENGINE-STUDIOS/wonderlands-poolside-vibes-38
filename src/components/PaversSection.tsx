@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { DollarSign, Calculator, Star, Edit, ShoppingCart } from "lucide-react";
 import { paverTypes } from "@/data/paverData";
-import { useShoppingCart } from "./ShoppingCart";
+import { useShoppingCart } from "./ShoppingCartProvider";
 import { toast } from "sonner";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 const PaversSection = () => {

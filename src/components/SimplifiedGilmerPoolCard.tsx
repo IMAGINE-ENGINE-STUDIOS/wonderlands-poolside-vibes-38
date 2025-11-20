@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { useShoppingCart } from "./ShoppingCart";
+import { useShoppingCart } from "./ShoppingCartProvider";
 import { useToast } from "@/hooks/use-toast";
 import { OptimizedImage } from "./OptimizedImage";
 import SurveyQuoteTool from "./SurveyQuoteTool";

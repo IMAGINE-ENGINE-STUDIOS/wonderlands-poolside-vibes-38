@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import { useShoppingCart } from "./ShoppingCart";
+import { useShoppingCart } from "./ShoppingCartProvider";
 import { toast } from "@/components/ui/use-toast";
 import { getProductsByCategory, Product } from "@/data/consolidatedProducts";
 interface Liner extends Product {

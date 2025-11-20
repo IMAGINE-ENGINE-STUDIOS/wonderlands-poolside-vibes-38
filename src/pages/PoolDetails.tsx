@@ -10,7 +10,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart, Search, ChevronDown, Settings, Armchair, Flame, ChefHat, Utensils, Home, Music, Package, Cpu } from "lucide-react";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import { DragDropEditor } from "@/components/DragDropEditor";
-import { useShoppingCart } from "@/components/ShoppingCart";
+import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { spas, pools } from "@/components/PoolCatalog";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
 import { paverTypes } from "@/data/paverData";

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Award, Cpu, Edit, ShoppingCart, Sun, FileText } from "lucide-react";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import ImageEditor from "./ImageEditor";
-import { useShoppingCart } from "./ShoppingCart";
+import { useShoppingCart } from "./ShoppingCartProvider";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { tanningLedges } from "@/data/poolData";
