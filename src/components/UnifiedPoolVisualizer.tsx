@@ -61,6 +61,8 @@ export function UnifiedPoolVisualizer({
   const [fenceHeight, setFenceHeight] = useState(6);
   const [isStairsPlacementMode, setIsStairsPlacementMode] = useState(false);
   const [selectedStairId, setSelectedStairId] = useState<string | null>(null);
+  const [enablePoolSplineEdit, setEnablePoolSplineEdit] = useState(false);
+  const [enableDeckSplineEdit, setEnableDeckSplineEdit] = useState(false);
   const controlsRef = useRef<any>(null);
 
   const FLORIDA_STEP_HEIGHT = 0.625; // 7.5 inches
@@ -248,6 +250,26 @@ export function UnifiedPoolVisualizer({
     }));
   };
 
+  const handlePoolPointsChange = (points: any[]) => {
+    setScene(prev => ({
+      ...prev,
+      pool: {
+        ...prev.pool,
+        points
+      }
+    }));
+  };
+
+  const handleDeckPointsChange = (points: any[]) => {
+    setScene(prev => ({
+      ...prev,
+      deck: {
+        ...prev.deck,
+        points
+      }
+    }));
+  };
+
   return (
     <div className="flex h-full w-full">
       {/* Main 3D Canvas */}
@@ -325,6 +347,10 @@ export function UnifiedPoolVisualizer({
             onStairsPlacementComplete={handleStairsPlacementComplete}
             selectedStairId={selectedStairId}
             onSelectStair={setSelectedStairId}
+            enablePoolSplineEdit={enablePoolSplineEdit}
+            enableDeckSplineEdit={enableDeckSplineEdit}
+            onPoolPointsChange={handlePoolPointsChange}
+            onDeckPointsChange={handleDeckPointsChange}
           />
           
           {/* Annotations */}
@@ -380,6 +406,10 @@ export function UnifiedPoolVisualizer({
         onPlacementModeToggle={setIsStairsPlacementMode}
         isStairsPlacementMode={isStairsPlacementMode}
         selectedStairId={selectedStairId}
+        enablePoolSplineEdit={enablePoolSplineEdit}
+        enableDeckSplineEdit={enableDeckSplineEdit}
+        onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
+        onDeckSplineEditToggle={() => setEnableDeckSplineEdit(!enableDeckSplineEdit)}
       />
     </div>
   );

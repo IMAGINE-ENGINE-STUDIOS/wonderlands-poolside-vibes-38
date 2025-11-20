@@ -114,8 +114,8 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       const waterlineTop = 0; // At water surface
       const waterlineThickness = 1 / 12; // 1 inch thick
       
-      // Position waterline INSIDE the pool wall (visible from inside pool)
-      const wallOffset = 0.76; // 9 inches (wall thickness) + 0.01 ft to be inside
+      // Position waterline INSIDE the pool wall (aligned with inner wall face)
+      const wallOffset = 0.25; // 3 inches (same as wall thickness) to align with inner wall
       
       // Outer edge (at inner surface of pool wall)
       const outerP1 = { x: p1.x + nx * wallOffset, z: p1.z + nz * wallOffset };

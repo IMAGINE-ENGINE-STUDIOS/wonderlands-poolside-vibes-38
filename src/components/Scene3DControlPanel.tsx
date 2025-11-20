@@ -47,6 +47,11 @@ interface Scene3DControlPanelProps {
   onPlacementModeToggle: (active: boolean) => void;
   isStairsPlacementMode: boolean;
   selectedStairId: string | null;
+  // Spline editing props
+  enablePoolSplineEdit: boolean;
+  enableDeckSplineEdit: boolean;
+  onPoolSplineEditToggle: () => void;
+  onDeckSplineEditToggle: () => void;
 }
 
 export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
@@ -72,7 +77,11 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   onStairsChange,
   onPlacementModeToggle,
   isStairsPlacementMode,
-  selectedStairId
+  selectedStairId,
+  enablePoolSplineEdit,
+  enableDeckSplineEdit,
+  onPoolSplineEditToggle,
+  onDeckSplineEditToggle
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [annotationText, setAnnotationText] = useState('');
@@ -331,6 +340,44 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                 </div>
               </>
             )}
+          </div>
+
+          <Separator />
+
+          {/* Spline Editing Controls */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Layers className="h-4 w-4" />
+              Shape Editing
+            </h3>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="pool-spline" className="text-xs">Edit Pool Shape</Label>
+                <Checkbox
+                  id="pool-spline"
+                  checked={enablePoolSplineEdit}
+                  onCheckedChange={onPoolSplineEditToggle}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {enablePoolSplineEdit ? 'Drag green control points to reshape pool' : 'Enable to edit pool boundary'}
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="deck-spline" className="text-xs">Edit Deck Shape</Label>
+                <Checkbox
+                  id="deck-spline"
+                  checked={enableDeckSplineEdit}
+                  onCheckedChange={onDeckSplineEditToggle}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {enableDeckSplineEdit ? 'Drag orange control points to reshape deck' : 'Enable to edit deck boundary'}
+              </p>
+            </div>
           </div>
 
           <Separator />
