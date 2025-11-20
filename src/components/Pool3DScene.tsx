@@ -101,6 +101,7 @@ const PoolMesh: React.FC<{
   selectedCategory?: string | null;
   linerTextureScale?: number;
   linerTextureOffset?: [number, number];
+  copingHeight?: number;
 }> = ({ 
   points, 
   depthPoints, 
@@ -108,7 +109,8 @@ const PoolMesh: React.FC<{
   poolDimensions: providedDimensions, 
   selectedCategory, 
   linerTextureScale = 1.8, 
-  linerTextureOffset = [0, 0]
+  linerTextureOffset = [0, 0],
+  copingHeight = 2 / 12
 }) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
   const [previousLinerTexture, setPreviousLinerTexture] = useState<THREE.Texture | null>(null);
@@ -300,8 +302,8 @@ const PoolMesh: React.FC<{
     floorGeometry.computeVertexNormals();
 
     // === POOL WALLS GEOMETRY ===
-    // Thick walls (9 inches = 0.75 ft) with inner and outer surfaces
-    const wallThickness = 0.75; // 9 inches
+    // Thick walls (3 inches = 0.25 ft) with inner and outer surfaces
+    const wallThickness = 0.25; // 3 inches
     const wallVertices: number[] = [];
     const wallIndices: number[] = [];
     const wallUVs: number[] = [];
@@ -341,8 +343,10 @@ const PoolMesh: React.FC<{
       const innerP2 = { x: p2.x + nx * wallThickness, z: p2.z + nz * wallThickness };
       
       // === INNER WALL SURFACE (textured, visible from inside pool) ===
-      wallVertices.push(innerP1.x, 0, innerP1.z);
-      wallVertices.push(innerP2.x, 0, innerP2.z);
+      // Position walls BELOW coping: start at -copingHeight instead of 0
+      const wallTopY = -(copingHeight || 2/12);
+      wallVertices.push(innerP1.x, wallTopY, innerP1.z);
+      wallVertices.push(innerP2.x, wallTopY, innerP2.z);
       wallVertices.push(innerP1.x, -depth1, innerP1.z);
       wallVertices.push(innerP2.x, -depth2, innerP2.z);
       
@@ -365,8 +369,8 @@ const PoolMesh: React.FC<{
       
       // === OUTER WALL SURFACE (concrete, not visible) ===
       const outerBaseIdx = wallVertices.length / 3;
-      wallVertices.push(outerP1.x, 0, outerP1.z);
-      wallVertices.push(outerP2.x, 0, outerP2.z);
+      wallVertices.push(outerP1.x, wallTopY, outerP1.z);
+      wallVertices.push(outerP2.x, wallTopY, outerP2.z);
       wallVertices.push(outerP1.x, -depth1, outerP1.z);
       wallVertices.push(outerP2.x, -depth2, outerP2.z);
       
@@ -378,12 +382,12 @@ const PoolMesh: React.FC<{
         outerBaseIdx, outerBaseIdx + 2, outerBaseIdx + 3
       );
       
-      // === TOP EDGE (connecting at water surface) ===
+      // === TOP EDGE (connecting below coping) ===
       const topBaseIdx = wallVertices.length / 3;
-      wallVertices.push(innerP1.x, 0, innerP1.z);
-      wallVertices.push(innerP2.x, 0, innerP2.z);
-      wallVertices.push(outerP1.x, 0, outerP1.z);
-      wallVertices.push(outerP2.x, 0, outerP2.z);
+      wallVertices.push(innerP1.x, wallTopY, innerP1.z);
+      wallVertices.push(innerP2.x, wallTopY, innerP2.z);
+      wallVertices.push(outerP1.x, wallTopY, outerP1.z);
+      wallVertices.push(outerP2.x, wallTopY, outerP2.z);
       
       wallUVs.push(0, 0, wallLength, 0, 0, wallThickness, wallLength, wallThickness);
       
@@ -417,7 +421,7 @@ const PoolMesh: React.FC<{
       geometry: floorGeometry,
       wallsGeometry: poolWallsGeometry
     };
-  }, [points, depthPoints, poolDimensions]);
+  }, [points, depthPoints, poolDimensions, copingHeight]);
 
   const isSelected = selectedCategory === 'pool';
 
@@ -1142,6 +1146,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           linerTextureScale={linerTextureScale}
           linerTextureOffset={linerTextureOffset}
           selectedCategory={selectedCategory}
+          copingHeight={copingHeight}
         />
       </group>
 
