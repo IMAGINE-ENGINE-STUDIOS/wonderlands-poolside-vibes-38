@@ -350,8 +350,10 @@ const PoolMesh: React.FC<{
       const outerP2 = { x: p2.x + outwardNx * wallThickness, z: p2.z + outwardNz * wallThickness };
       
       // === INNER WALL SURFACE (textured, visible from inside pool) ===
-      // Position walls starting BELOW deck level (at -copingHeight)
-      const wallTopY = -(copingHeight || 2/12);
+      // Position walls extending from deck level (y = 1/36) down to pool floor
+      // This ensures no gap between wall top and deck/coping
+      const deckLevel = 1 / 36; // 1 inch above water surface
+      const wallTopY = deckLevel; // Wall top touches deck (no gap)
       wallVertices.push(innerP1.x, wallTopY, innerP1.z);
       wallVertices.push(innerP2.x, wallTopY, innerP2.z);
       wallVertices.push(innerP1.x, -depth1, innerP1.z);
