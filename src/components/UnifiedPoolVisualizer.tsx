@@ -66,6 +66,7 @@ export function UnifiedPoolVisualizer({
   const [enableDeckSplineEdit, setEnableDeckSplineEdit] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [poolTransformMode, setPoolTransformMode] = useState(false);
+  const [transformStepSize, setTransformStepSize] = useState(1); // Default 1 ft
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
   const poolGroupRef = useRef<THREE.Group>(null);
@@ -296,6 +297,26 @@ export function UnifiedPoolVisualizer({
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  const handlePoolPositionChange = (axis: 'x' | 'y' | 'z', delta: number) => {
+    setScene(prev => {
+      const currentPos = prev.pool.position;
+      const step = transformStepSize;
+      const newPosition: [number, number, number] = [...currentPos];
+      
+      if (axis === 'x') newPosition[0] += delta * step;
+      if (axis === 'y') newPosition[1] += delta * step;
+      if (axis === 'z') newPosition[2] += delta * step;
+      
+      return {
+        ...prev,
+        pool: {
+          ...prev.pool,
+          position: newPosition
+        }
+      };
+    });
+  };
+
   return (
     <div className="flex h-full w-full">
       {/* Main 3D Canvas */}
@@ -311,7 +332,7 @@ export function UnifiedPoolVisualizer({
 
         {/* Scene Controls Dashboard */}
         <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm p-4 rounded-lg shadow-lg space-y-3 max-w-xs z-10">
-          <h3 className="text-sm font-semibold mb-2">Scene Controls</h3>
+          <h3 className="text-sm font-semibold mb-2">Pool Transform Controls</h3>
           
           {/* Pool Transform Mode Toggle */}
           <div className="flex items-center justify-between">
@@ -326,6 +347,92 @@ export function UnifiedPoolVisualizer({
               <Move className="w-4 h-4" />
             </button>
           </div>
+
+          {/* Step Size Control */}
+          <div className="space-y-2">
+            <label className="text-xs">Movement Step Size</label>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setTransformStepSize(0.00833)} // 0.1 inch (millimeter precision)
+                className={`px-2 py-1 text-xs rounded ${transformStepSize === 0.00833 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
+              >
+                0.1"
+              </button>
+              <button
+                onClick={() => setTransformStepSize(0.0833)} // 1 inch
+                className={`px-2 py-1 text-xs rounded ${transformStepSize === 0.0833 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
+              >
+                1"
+              </button>
+              <button
+                onClick={() => setTransformStepSize(1)} // 1 foot
+                className={`px-2 py-1 text-xs rounded ${transformStepSize === 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
+              >
+                1ft
+              </button>
+            </div>
+          </div>
+
+          {/* Position Controls */}
+          {poolTransformMode && (
+            <div className="space-y-2 pt-2 border-t">
+              <div className="text-xs font-medium">Position (X, Y, Z)</div>
+              
+              {/* X Axis */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs w-4">X:</span>
+                <button
+                  onClick={() => handlePoolPositionChange('x', -1)}
+                  className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
+                >
+                  -
+                </button>
+                <span className="text-xs flex-1 text-center">{scene.pool.position[0].toFixed(3)}</span>
+                <button
+                  onClick={() => handlePoolPositionChange('x', 1)}
+                  className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Y Axis (Elevation) */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs w-4">Y:</span>
+                <button
+                  onClick={() => handlePoolPositionChange('y', -1)}
+                  className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
+                >
+                  -
+                </button>
+                <span className="text-xs flex-1 text-center">{scene.pool.position[1].toFixed(3)}</span>
+                <button
+                  onClick={() => handlePoolPositionChange('y', 1)}
+                  className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Z Axis */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs w-4">Z:</span>
+                <button
+                  onClick={() => handlePoolPositionChange('z', -1)}
+                  className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
+                >
+                  -
+                </button>
+                <span className="text-xs flex-1 text-center">{scene.pool.position[2].toFixed(3)}</span>
+                <button
+                  onClick={() => handlePoolPositionChange('z', 1)}
+                  className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <R3FCanvas
@@ -359,59 +466,124 @@ export function UnifiedPoolVisualizer({
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />
           
-          {/* Pool rendering - wrapped in group for transform controls */}
-          <group ref={poolGroupRef}>
-            <Pool3DScene
-              points={scene.pool.points}
-              depthPoints={scene.pool.depthPoints}
-              hardscapePoints={scene.deck.points}
-              linerTextureUrl={scene.pool.finish.url}
-              paverTextureUrl={scene.deck.paver.url}
-              copingTextureUrl={scene.deck.coping.url}
-              waterlineTextureUrl={scene.deck.waterline?.url}
-              fenceTextureUrl="/src/assets/fence-texture.png"
-              features={scene.features.map(f => ({
-                type: f.type as any,
-                x: f.position[0],
-                y: f.position[2],
-                id: f.id,
-                angle: f.rotation?.[1]
-              }))}
-              fencePoints={[]}
-              scale={1}
-              poolShape="rectangle"
-              poolDimensions={scene.pool.dimensions}
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-              fenceHeight={fenceHeight}
-              paverTextureScale={scene.deck.paver.scale || 1.8}
-              copingTextureScale={scene.deck.coping.scale || 1.8}
-              waterlineTextureScale={scene.deck.waterline?.scale || 1.8}
-              linerTextureScale={scene.pool.finish.scale || 1.8}
-              paverTextureOffset={scene.deck.paver.offset || [0, 0]}
-              copingTextureOffset={scene.deck.coping.offset || [0, 0]}
-              waterlineTextureOffset={scene.deck.waterline?.offset || [0, 0]}
-              linerTextureOffset={scene.pool.finish.offset || [0, 0]}
-              poolPosition={scene.pool.position}
-              copingHeight={scene.deck.copingHeight || 2 / 12}
-              deckHeight={scene.deck.deckHeight || 2 / 12}
-              copingWidth={scene.deck.copingWidth || 1.0}
-              stairs={scene.stairs}
-              onStairsChange={handleStairsChange}
-              isStairsPlacementMode={isStairsPlacementMode}
-              onStairsPlacementComplete={handleStairsPlacementComplete}
-              selectedStairId={selectedStairId}
-              onSelectStair={setSelectedStairId}
-              enablePoolSplineEdit={enablePoolSplineEdit}
-              enableDeckSplineEdit={enableDeckSplineEdit}
-              onPoolPointsChange={handlePoolPointsChange}
-              onDeckPointsChange={handleDeckPointsChange}
-            />
+          {/* Pool rendering - ONLY pool components in this group */}
+          <group ref={poolGroupRef} position={scene.pool.position}>
+            {/* Pool Mesh (walls and floor) */}
+            <group onClick={() => setSelectedCategory('pool')}>
+              <Pool3DScene
+                points={scene.pool.points}
+                depthPoints={scene.pool.depthPoints}
+                hardscapePoints={[]} // Empty - deck stays fixed
+                linerTextureUrl={scene.pool.finish.url}
+                paverTextureUrl=""
+                copingTextureUrl={scene.deck.coping.url}
+                waterlineTextureUrl={scene.deck.waterline?.url}
+                fenceTextureUrl=""
+                features={[]}
+                fencePoints={[]}
+                scale={1}
+                poolShape="rectangle"
+                poolDimensions={scene.pool.dimensions}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+                fenceHeight={fenceHeight}
+                paverTextureScale={1.8}
+                copingTextureScale={scene.deck.coping.scale || 1.8}
+                waterlineTextureScale={scene.deck.waterline?.scale || 1.8}
+                linerTextureScale={scene.pool.finish.scale || 1.8}
+                paverTextureOffset={[0, 0]}
+                copingTextureOffset={scene.deck.coping.offset || [0, 0]}
+                waterlineTextureOffset={scene.deck.waterline?.offset || [0, 0]}
+                linerTextureOffset={scene.pool.finish.offset || [0, 0]}
+                poolPosition={[0, 0, 0]} // Position controlled by parent group
+                copingHeight={scene.deck.copingHeight || 2 / 12}
+                deckHeight={scene.deck.deckHeight || 2 / 12}
+                copingWidth={scene.deck.copingWidth || 1.0}
+                stairs={scene.stairs}
+                onStairsChange={handleStairsChange}
+                isStairsPlacementMode={false}
+                onStairsPlacementComplete={handleStairsPlacementComplete}
+                selectedStairId={selectedStairId}
+                onSelectStair={setSelectedStairId}
+                enablePoolSplineEdit={false}
+                enableDeckSplineEdit={false}
+                onPoolPointsChange={handlePoolPointsChange}
+                onDeckPointsChange={handleDeckPointsChange}
+              />
+            </group>
           </group>
 
-          {/* Transform Controls for Pool */}
+          {/* Deck and terrain - FIXED position */}
+          {scene.deck.points && scene.deck.points.length > 0 && (
+            <group onClick={() => setSelectedCategory('deck')}>
+              <Pool3DScene
+                points={scene.pool.points}
+                depthPoints={[]}
+                hardscapePoints={scene.deck.points}
+                linerTextureUrl=""
+                paverTextureUrl={scene.deck.paver.url}
+                copingTextureUrl=""
+                waterlineTextureUrl=""
+                fenceTextureUrl="/src/assets/fence-texture.png"
+                features={scene.features.map(f => ({
+                  type: f.type as any,
+                  x: f.position[0],
+                  y: f.position[2],
+                  id: f.id,
+                  angle: f.rotation?.[1]
+                }))}
+                fencePoints={[]}
+                scale={1}
+                poolShape="rectangle"
+                poolDimensions={scene.pool.dimensions}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+                fenceHeight={fenceHeight}
+                paverTextureScale={scene.deck.paver.scale || 1.8}
+                copingTextureScale={1.8}
+                waterlineTextureScale={1.8}
+                linerTextureScale={1.8}
+                paverTextureOffset={scene.deck.paver.offset || [0, 0]}
+                copingTextureOffset={[0, 0]}
+                waterlineTextureOffset={[0, 0]}
+                linerTextureOffset={[0, 0]}
+                poolPosition={scene.pool.position}
+                copingHeight={scene.deck.copingHeight || 2 / 12}
+                deckHeight={scene.deck.deckHeight || 2 / 12}
+                copingWidth={scene.deck.copingWidth || 1.0}
+                stairs={[]}
+                onStairsChange={handleStairsChange}
+                isStairsPlacementMode={isStairsPlacementMode}
+                onStairsPlacementComplete={handleStairsPlacementComplete}
+                selectedStairId={selectedStairId}
+                onSelectStair={setSelectedStairId}
+                enablePoolSplineEdit={enablePoolSplineEdit}
+                enableDeckSplineEdit={enableDeckSplineEdit}
+                onPoolPointsChange={handlePoolPointsChange}
+                onDeckPointsChange={handleDeckPointsChange}
+              />
+            </group>
+          )}
+
+          {/* Transform Controls for Pool - with translation snap */}
           {poolTransformMode && poolGroupRef.current && (
-            <TransformControls object={poolGroupRef.current} mode="translate" />
+            <TransformControls 
+              object={poolGroupRef.current} 
+              mode="translate"
+              translationSnap={transformStepSize}
+              onChange={() => {
+                if (poolGroupRef.current) {
+                  const pos = poolGroupRef.current.position;
+                  setScene(prev => ({
+                    ...prev,
+                    pool: {
+                      ...prev.pool,
+                      position: [pos.x, pos.y, pos.z]
+                    }
+                  }));
+                }
+              }}
+            />
           )}
           
           {/* Annotations */}
