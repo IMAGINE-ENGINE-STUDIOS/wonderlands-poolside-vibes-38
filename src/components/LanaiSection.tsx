@@ -419,12 +419,12 @@ const LanaiSection = () => {
                         )}
                       </div>
                       
-                      <Carousel className="w-full">
-                        <CarouselContent className="-ml-1">
+                      <Carousel className="w-full" opts={{ align: "start", loop: false }}>
+                        <CarouselContent className="-ml-2">
                           {paverOptions.map(paver => (
-                            <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3">
+                            <CarouselItem key={paver.name} className="pl-1 basis-1/3 sm:basis-1/4 md:basis-1/5">
                               <div 
-                                className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                                className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
                                   lanaiExtras.paverOption === paver.name 
                                     ? 'border-primary bg-primary/10' 
                                     : 'border-border'
@@ -434,14 +434,14 @@ const LanaiSection = () => {
                                   paverOption: paver.name 
                                 }))}
                               >
-                                <div className="w-full h-16 rounded-md mb-2 overflow-hidden">
+                                <div className="w-full h-12 rounded-md mb-1.5 overflow-hidden">
                                   <img 
                                     src={paver.image} 
                                     alt={paver.name}
                                     className="w-full h-full object-cover"
                                   />
                                 </div>
-                                <p className="text-xs font-medium text-center line-clamp-2">
+                                <p className="text-[10px] font-medium text-center line-clamp-1">
                                   {paver.name}
                                 </p>
                               </div>
@@ -519,6 +519,22 @@ const LanaiSection = () => {
           dimensions: `${squareFootage} sq ft`,
           warrantyYears: selectedLanai.warranty
         } : null}
+        extras={{
+          productType: 'lanai',
+          squareFootage: squareFootage,
+          basePrice: selectedLanai?.basePrice,
+          frameColor: lanaiExtras.color,
+          foundationType: lanaiExtras.foundationType,
+          paverOption: lanaiExtras.paverOption,
+          paverSurfaceArea: lanaiExtras.paverSurfaceArea,
+          paverCost: lanaiExtras.foundationType === 'pavers' && lanaiExtras.paverSurfaceArea 
+            ? parseFloat(lanaiExtras.paverSurfaceArea) * 15 
+            : 0,
+          lanaiBaseCost: selectedLanai && squareFootage 
+            ? parseFloat(squareFootage) * selectedLanai.basePrice 
+            : 0,
+          extrasTotal: calculatePrice()
+        }}
         isOpen={showQuoteModal}
         onClose={() => setShowQuoteModal(false)}
       />
