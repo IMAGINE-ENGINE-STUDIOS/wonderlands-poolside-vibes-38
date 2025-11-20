@@ -113,12 +113,10 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       
       const baseIdx = vertices.length / 3;
       
-      // Waterline positioning: 3 inches BELOW coping bottom, leaving gap for coping's inner face
-      // Deck level (coping bottom): y = 1/36
-      // Waterline should start 3 inches below: y = 1/36 - 3/12
-      const deckLevel = 1 / 36; // 0.028 ft (1 inch above water surface)
-      const gapBelowCoping = 3 / 12; // 3 inches gap below coping
-      const waterlineTop = deckLevel - gapBelowCoping; // 3 inches below coping bottom
+      // Waterline positioning: attached directly below coping bottom
+      // Wall finish is exposed below the waterline
+      const deckLevel = 1 / 36; // 0.028 ft (1 inch above water surface, coping bottom)
+      const waterlineTop = deckLevel; // Attached just below coping
       const waterlineBottom = waterlineTop - waterlineHeight; // waterlineHeight below that
       
       // Position waterline on the INNER wall surface (at pool boundary, NOT offset)
