@@ -22,7 +22,7 @@ class TextureCache {
    */
   async loadTexture(url: string, repeat?: { x: number; y: number }): Promise<THREE.Texture> {
     // Validate URL
-    if (!url || url === 'undefined' || url === 'null') {
+    if (!url || url === '' || url === 'undefined' || url === 'null') {
       console.warn('⚠️ Invalid texture URL provided:', url);
       return Promise.reject(new Error('Invalid texture URL'));
     }

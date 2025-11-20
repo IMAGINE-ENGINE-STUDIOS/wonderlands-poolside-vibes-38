@@ -44,7 +44,7 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       const repeatX = (poolPerimeter / waterlineWidth) / waterlineTextureScale;
       const repeatY = 1 / waterlineTextureScale;
       
-      if (!waterlineTextureUrl || waterlineTextureUrl === 'undefined') {
+      if (!waterlineTextureUrl || waterlineTextureUrl === '' || waterlineTextureUrl === 'undefined') {
         setWaterlineTexture(null);
         return;
       }
