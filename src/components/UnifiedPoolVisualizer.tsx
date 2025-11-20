@@ -317,6 +317,75 @@ export function UnifiedPoolVisualizer({
     });
   };
 
+  const handleDirectPositionInput = (axis: 'x' | 'y' | 'z', value: string) => {
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return;
+    
+    setScene(prev => {
+      const newPosition: [number, number, number] = [...prev.pool.position];
+      if (axis === 'x') newPosition[0] = numValue;
+      if (axis === 'y') newPosition[1] = numValue;
+      if (axis === 'z') newPosition[2] = numValue;
+      
+      return {
+        ...prev,
+        pool: {
+          ...prev.pool,
+          position: newPosition
+        }
+      };
+    });
+  };
+
+  const handleResetPosition = () => {
+    setScene(prev => ({
+      ...prev,
+      pool: {
+        ...prev.pool,
+        position: [0, 0, 0]
+      }
+    }));
+  };
+
+  // Keyboard controls for pool movement
+  useEffect(() => {
+    if (!poolTransformMode) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const step = 0.00833; // Millimeter precision (0.1 inch)
+      
+      switch (e.key.toLowerCase()) {
+        case 'arrowleft':
+          e.preventDefault();
+          handlePoolPositionChange('x', -step / transformStepSize);
+          break;
+        case 'arrowright':
+          e.preventDefault();
+          handlePoolPositionChange('x', step / transformStepSize);
+          break;
+        case 'arrowup':
+          e.preventDefault();
+          handlePoolPositionChange('z', -step / transformStepSize);
+          break;
+        case 'arrowdown':
+          e.preventDefault();
+          handlePoolPositionChange('z', step / transformStepSize);
+          break;
+        case 'q':
+          e.preventDefault();
+          handlePoolPositionChange('y', -step / transformStepSize);
+          break;
+        case 'e':
+          e.preventDefault();
+          handlePoolPositionChange('y', step / transformStepSize);
+          break;
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [poolTransformMode, transformStepSize]);
+
   return (
     <div className="flex h-full w-full">
       {/* Main 3D Canvas */}
@@ -376,7 +445,19 @@ export function UnifiedPoolVisualizer({
           {/* Position Controls */}
           {poolTransformMode && (
             <div className="space-y-2 pt-2 border-t">
-              <div className="text-xs font-medium">Position (X, Y, Z)</div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs font-medium">Position (X, Y, Z)</div>
+                <button
+                  onClick={handleResetPosition}
+                  className="px-2 py-1 bg-destructive/10 hover:bg-destructive/20 text-destructive text-xs rounded"
+                >
+                  Reset
+                </button>
+              </div>
+              
+              <div className="text-xs text-muted-foreground mb-1">
+                Use arrows (↑↓←→), Q (down), E (up)
+              </div>
               
               {/* X Axis */}
               <div className="flex items-center gap-2">
@@ -387,7 +468,13 @@ export function UnifiedPoolVisualizer({
                 >
                   -
                 </button>
-                <span className="text-xs flex-1 text-center">{scene.pool.position[0].toFixed(3)}</span>
+                <input
+                  type="number"
+                  value={scene.pool.position[0].toFixed(3)}
+                  onChange={(e) => handleDirectPositionInput('x', e.target.value)}
+                  className="flex-1 text-center text-xs bg-background border rounded px-1 py-1"
+                  step={transformStepSize}
+                />
                 <button
                   onClick={() => handlePoolPositionChange('x', 1)}
                   className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
@@ -405,7 +492,13 @@ export function UnifiedPoolVisualizer({
                 >
                   -
                 </button>
-                <span className="text-xs flex-1 text-center">{scene.pool.position[1].toFixed(3)}</span>
+                <input
+                  type="number"
+                  value={scene.pool.position[1].toFixed(3)}
+                  onChange={(e) => handleDirectPositionInput('y', e.target.value)}
+                  className="flex-1 text-center text-xs bg-background border rounded px-1 py-1"
+                  step={transformStepSize}
+                />
                 <button
                   onClick={() => handlePoolPositionChange('y', 1)}
                   className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
@@ -423,7 +516,13 @@ export function UnifiedPoolVisualizer({
                 >
                   -
                 </button>
-                <span className="text-xs flex-1 text-center">{scene.pool.position[2].toFixed(3)}</span>
+                <input
+                  type="number"
+                  value={scene.pool.position[2].toFixed(3)}
+                  onChange={(e) => handleDirectPositionInput('z', e.target.value)}
+                  className="flex-1 text-center text-xs bg-background border rounded px-1 py-1"
+                  step={transformStepSize}
+                />
                 <button
                   onClick={() => handlePoolPositionChange('z', 1)}
                   className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
