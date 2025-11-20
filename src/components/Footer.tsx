@@ -10,12 +10,7 @@ const Footer = () => {
           {/* Company Info */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <OptimizedImage 
-                src="/lovable-uploads/155c5b3a-8bd3-4060-8141-7cf76cb9f153.png" 
-                alt="Wonderlands Logo" 
-                className="w-12 h-12"
-                sizeConfig="logoSmall"
-              />
+              <OptimizedImage src="/lovable-uploads/155c5b3a-8bd3-4060-8141-7cf76cb9f153.png" alt="Wonderlands Logo" className="w-12 h-12" sizeConfig="logoSmall" />
               <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
                 Wonderlands
               </h3>
@@ -56,7 +51,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <MapPin className="w-4 h-4 text-coral" />
-                <span className="text-muted-foreground">License #CGC1537275</span>
+                <span className="text-muted-foreground">License by TechcTerra Corp #CGC1537275 startegic construciion partner                                </span>
               </div>
             </div>
           </div>
