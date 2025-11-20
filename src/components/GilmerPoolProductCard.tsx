@@ -22,7 +22,7 @@ import {
   FileText
 } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import { useShoppingCart } from "@/components/ShoppingCart";
+import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { useToast } from "@/hooks/use-toast";
 
 // Helper function to get pool price with 10% discount applied

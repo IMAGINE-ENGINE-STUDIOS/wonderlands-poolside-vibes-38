@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sparkles, Thermometer, Shield, Zap, DollarSign, ShoppingCart, Sun } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import { useShoppingCart } from "./ShoppingCart";
+import { useShoppingCart } from "./ShoppingCartProvider";
 
 interface Spa {
   model: string;

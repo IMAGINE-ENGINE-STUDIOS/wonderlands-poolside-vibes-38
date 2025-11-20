@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Star, DollarSign, ShoppingCart, Sparkles } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import { useShoppingCart } from "./ShoppingCart";
+import { useShoppingCart } from "./ShoppingCartProvider";
 import { getProductsByCategory, Product } from "@/data/consolidatedProducts";
 import { poolTiles as poolTilesData } from "@/data/poolData";
 

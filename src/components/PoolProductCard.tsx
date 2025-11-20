@@ -12,7 +12,7 @@ import { Waves, DollarSign, Thermometer, Shield, Zap, Droplets, Star, Clock, Awa
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import ImageEditor from "./ImageEditor";
 import { OptimizedImage } from "./OptimizedImage";
-import { useShoppingCart } from "./ShoppingCart";
+import { useShoppingCart } from "./ShoppingCartProvider";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ExclusiveSaunaOffer from "./ExclusiveSaunaOffer";
