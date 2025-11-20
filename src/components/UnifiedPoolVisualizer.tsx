@@ -380,7 +380,7 @@ export function UnifiedPoolVisualizer({
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [poolTransformMode, transformStepSize]);
+  }, [poolTransformMode, transformStepSize, handlePoolPositionChange]);
 
   return (
     <div className="flex h-full w-full">
