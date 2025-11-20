@@ -6,6 +6,7 @@ import { WaterlineMesh } from './WaterlineMesh';
 import WaterSurface from './WaterSurface';
 import { PoolStairs } from './PoolStairs';
 import { StairsPlacementMode } from './StairsPlacementMode';
+import { SplineEditor, SplinePoint } from './scene3d/SplineEditor';
 import earcut from 'earcut';
 import grassTexture from '@/assets/grass-texture.avif';
 
@@ -91,6 +92,10 @@ export interface Pool3DSceneProps {
   onStairsPlacementComplete?: (position: [number, number, number], rotation: number) => void;
   selectedStairId?: string | null;
   onSelectStair?: (id: string | null) => void;
+  enablePoolSplineEdit?: boolean;
+  enableDeckSplineEdit?: boolean;
+  onPoolPointsChange?: (points: Point[]) => void;
+  onDeckPointsChange?: (points: HardscapePoint[]) => void;
 }
 
 const PoolMesh: React.FC<{
@@ -1100,12 +1105,42 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   isStairsPlacementMode = false,
   onStairsPlacementComplete,
   selectedStairId,
-  onSelectStair
+  onSelectStair,
+  enablePoolSplineEdit = false,
+  enableDeckSplineEdit = false,
+  onPoolPointsChange,
+  onDeckPointsChange
 }) => {
   const [linerTexture] = useTexture([linerTextureUrl || '']);
   const poolDepth = poolDimensions?.depth || (depthPoints.length > 0 
     ? Math.max(...depthPoints.map(dp => dp.depth)) 
     : 8);
+  
+  // Convert Point[] to SplinePoint[] for pool
+  const poolSplinePoints: SplinePoint[] = useMemo(() => 
+    points.map(p => ({ x: p.x, y: 0, z: p.y, id: p.id })),
+    [points]
+  );
+  
+  // Convert HardscapePoint[] to SplinePoint[] for deck
+  const deckSplinePoints: SplinePoint[] = useMemo(() => 
+    (hardscapePoints || []).map(p => ({ x: p.x, y: deckHeight, z: p.y, id: p.id })),
+    [hardscapePoints, deckHeight]
+  );
+  
+  const handlePoolSplineChange = (splinePoints: SplinePoint[]) => {
+    if (onPoolPointsChange) {
+      const newPoints = splinePoints.map(sp => ({ x: sp.x, y: sp.z, id: sp.id }));
+      onPoolPointsChange(newPoints);
+    }
+  };
+  
+  const handleDeckSplineChange = (splinePoints: SplinePoint[]) => {
+    if (onDeckPointsChange) {
+      const newPoints = splinePoints.map(sp => ({ x: sp.x, y: sp.z, id: sp.id }));
+      onDeckPointsChange(newPoints);
+    }
+  };
   
   return (
     <>
@@ -1234,6 +1269,32 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           stepDepth={0.9167}
           stairWidth={3}
           stairShape="rectangle"
+        />
+      )}
+
+      {/* Pool Spline Editor */}
+      {enablePoolSplineEdit && (
+        <SplineEditor
+          points={poolSplinePoints}
+          onPointsChange={handlePoolSplineChange}
+          color="#00ff00"
+          lineWidth={3}
+          enableDrag={true}
+          name="Pool Boundary"
+          yPosition={0}
+        />
+      )}
+
+      {/* Deck Spline Editor */}
+      {enableDeckSplineEdit && hardscapePoints && hardscapePoints.length > 0 && (
+        <SplineEditor
+          points={deckSplinePoints}
+          onPointsChange={handleDeckSplineChange}
+          color="#ffaa00"
+          lineWidth={3}
+          enableDrag={true}
+          name="Deck Boundary"
+          yPosition={deckHeight}
         />
       )}
 
