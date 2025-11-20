@@ -4,6 +4,16 @@
 @tailwind base;
 
 @layer base {
+  /* Hide scrollbars globally for elegant look */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
   :root {
     /* Essential theme colors only */
     --popover: 0 0% 100%;
