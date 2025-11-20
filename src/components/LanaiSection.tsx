@@ -4,10 +4,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useShoppingCart } from "@/components/ShoppingCart";
 import { toast } from "sonner";
 import SurveyQuoteTool from "./SurveyQuoteTool";
+import { paverTypes } from "@/data/paverData";
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselNext, 
+  CarouselPrevious 
+} from "@/components/ui/carousel";
 import lanaiStandardImg from "@/assets/lanai-standard.jpg";
 import lanaiDeluxeImg from "@/assets/lanai-deluxe.jpg";
 import lanaiPremiumImg from "@/assets/lanai-premium.jpg";
@@ -22,6 +29,13 @@ interface LanaiOption {
   features: string[];
   gradient: string;
   warranty: string;
+}
+
+interface LanaiExtras {
+  foundationType: 'concrete' | 'pavers';
+  paverOption: string;
+  paverSurfaceArea: string;
+  color: 'white' | 'black';
 }
 
 const lanaiOptions: LanaiOption[] = [
@@ -91,20 +105,57 @@ const LanaiSection = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [squareFootage, setSquareFootage] = useState<string>("");
-  const [selectedColor, setSelectedColor] = useState<string>("white");
+  const [lanaiExtras, setLanaiExtras] = useState<LanaiExtras>({
+    foundationType: 'concrete',
+    paverOption: '',
+    paverSurfaceArea: '',
+    color: 'white'
+  });
   const { addToCart } = useShoppingCart();
+
+  const paverOptions = [
+    {
+      name: 'No Pavers',
+      price: 0,
+      image: lanaiStandardImg,
+      description: 'Standard concrete foundation'
+    },
+    ...paverTypes.map(paver => ({
+      name: paver.name,
+      price: 0,
+      image: paver.image || lanaiStandardImg,
+      description: paver.description,
+      collection: paver.id.includes('appian') ? 'appian' : 
+                  paver.id.includes('catalina') ? 'catalina' : 'standard'
+    }))
+  ];
 
   const handleLanaiClick = (lanai: LanaiOption) => {
     setSelectedLanai(lanai);
     setShowDetailModal(true);
     setSquareFootage("");
-    setSelectedColor("white");
+    setLanaiExtras({
+      foundationType: 'concrete',
+      paverOption: '',
+      paverSurfaceArea: '',
+      color: 'white'
+    });
   };
 
   const calculatePrice = () => {
     if (!selectedLanai || !squareFootage) return 0;
     const sqft = parseFloat(squareFootage);
-    return isNaN(sqft) ? 0 : sqft * selectedLanai.basePrice;
+    let total = isNaN(sqft) ? 0 : sqft * selectedLanai.basePrice;
+    
+    // Add paver costs if pavers are selected
+    if (lanaiExtras.foundationType === 'pavers' && lanaiExtras.paverSurfaceArea) {
+      const paverSqft = parseFloat(lanaiExtras.paverSurfaceArea);
+      if (!isNaN(paverSqft)) {
+        total += paverSqft * 15; // $15 per sq ft for pavers
+      }
+    }
+    
+    return total;
   };
 
   const handleAddToCart = () => {
@@ -120,11 +171,14 @@ const LanaiSection = () => {
     }
 
     const totalPrice = calculatePrice();
-    const colorText = selectedColor.charAt(0).toUpperCase() + selectedColor.slice(1);
+    const colorText = lanaiExtras.color.charAt(0).toUpperCase() + lanaiExtras.color.slice(1);
+    const foundationText = lanaiExtras.foundationType === 'pavers' && lanaiExtras.paverOption
+      ? ` with ${lanaiExtras.paverOption} Pavers`
+      : ' with Concrete Foundation';
     
     addToCart({
-      id: `lanai-${selectedLanai.id}-${selectedColor}-${Date.now()}`,
-      name: `${selectedLanai.name} - ${colorText} (${sqft} sq ft)`,
+      id: `lanai-${selectedLanai.id}-${lanaiExtras.color}-${Date.now()}`,
+      name: `${selectedLanai.name} - ${colorText} (${sqft} sq ft)${foundationText}`,
       price: totalPrice,
       category: "Lanai",
       image: selectedLanai.image
@@ -275,33 +329,154 @@ const LanaiSection = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="color" className="text-base font-semibold">
-                      Frame Color
-                    </Label>
-                    <Select value={selectedColor} onValueChange={setSelectedColor}>
-                      <SelectTrigger id="color" className="mt-2">
-                        <SelectValue placeholder="Select color" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="white">White</SelectItem>
-                        <SelectItem value="black">Black</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label className="text-base font-semibold">Frame Color</Label>
+                    <div className="grid grid-cols-2 gap-3 mt-2">
+                      <button
+                        onClick={() => setLanaiExtras(prev => ({ ...prev, color: 'white' }))}
+                        className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
+                          lanaiExtras.color === 'white' 
+                            ? 'border-primary bg-primary/10' 
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <div className="w-12 h-12 rounded-full border-2 border-border" 
+                             style={{ backgroundColor: '#FFFFFF' }} />
+                        <span className="text-sm font-medium">White</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => setLanaiExtras(prev => ({ ...prev, color: 'black' }))}
+                        className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
+                          lanaiExtras.color === 'black' 
+                            ? 'border-primary bg-primary/10' 
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <div className="w-12 h-12 rounded-full border-2 border-border" 
+                             style={{ backgroundColor: '#000000' }} />
+                        <span className="text-sm font-medium">Black</span>
+                      </button>
+                    </div>
                   </div>
+
+                  <div>
+                    <Label className="text-base font-semibold">Foundation Type</Label>
+                    <div className="grid grid-cols-2 gap-3 mt-2">
+                      <button
+                        onClick={() => setLanaiExtras(prev => ({ 
+                          ...prev, 
+                          foundationType: 'concrete',
+                          paverOption: '',
+                          paverSurfaceArea: ''
+                        }))}
+                        className={`p-4 rounded-lg border-2 transition-all ${
+                          lanaiExtras.foundationType === 'concrete' 
+                            ? 'border-primary bg-primary/10' 
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <div className="text-lg font-semibold">Concrete</div>
+                        <div className="text-xs text-muted-foreground mt-1">Standard foundation included</div>
+                      </button>
+                      
+                      <button
+                        onClick={() => setLanaiExtras(prev => ({ ...prev, foundationType: 'pavers' }))}
+                        className={`p-4 rounded-lg border-2 transition-all ${
+                          lanaiExtras.foundationType === 'pavers' 
+                            ? 'border-primary bg-primary/10' 
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <div className="text-lg font-semibold">Pavers</div>
+                        <div className="text-xs text-muted-foreground mt-1">Premium paver foundation</div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {lanaiExtras.foundationType === 'pavers' && (
+                    <div className="space-y-3 border-t pt-4">
+                      <h4 className="font-semibold">Select Paver Type</h4>
+                      
+                      <div>
+                        <Label htmlFor="paverArea">Paver Surface Area (sq ft)</Label>
+                        <Input
+                          id="paverArea"
+                          type="number"
+                          placeholder="Enter surface area"
+                          value={lanaiExtras.paverSurfaceArea}
+                          onChange={(e) => setLanaiExtras(prev => ({ 
+                            ...prev, 
+                            paverSurfaceArea: e.target.value 
+                          }))}
+                          className="mt-2"
+                          min="0"
+                        />
+                        {lanaiExtras.paverSurfaceArea && !isNaN(parseFloat(lanaiExtras.paverSurfaceArea)) && (
+                          <div className="text-xs text-green-600 font-medium mt-2">
+                            Paver Cost: ${(parseFloat(lanaiExtras.paverSurfaceArea) * 15).toLocaleString()} 
+                            ({lanaiExtras.paverSurfaceArea} sq ft × $15/sq ft)
+                          </div>
+                        )}
+                      </div>
+                      
+                      <Carousel className="w-full">
+                        <CarouselContent className="-ml-1">
+                          {paverOptions.map(paver => (
+                            <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3">
+                              <div 
+                                className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                                  lanaiExtras.paverOption === paver.name 
+                                    ? 'border-primary bg-primary/10' 
+                                    : 'border-border'
+                                }`}
+                                onClick={() => setLanaiExtras(prev => ({ 
+                                  ...prev, 
+                                  paverOption: paver.name 
+                                }))}
+                              >
+                                <div className="w-full h-16 rounded-md mb-2 overflow-hidden">
+                                  <img 
+                                    src={paver.image} 
+                                    alt={paver.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <p className="text-xs font-medium text-center line-clamp-2">
+                                  {paver.name}
+                                </p>
+                              </div>
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+                        <CarouselPrevious />
+                        <CarouselNext />
+                      </Carousel>
+                    </div>
+                  )}
 
                   {squareFootage && (
                     <div className="bg-muted p-4 rounded-lg space-y-3">
                       <div className="text-xs font-medium text-primary bg-primary/10 px-3 py-2 rounded">
-                        ✓ Includes paver or concrete foundation and complete roof installation
+                        ✓ Includes {lanaiExtras.foundationType} foundation and complete roof installation
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Base Price:</span>
-                        <span className="font-semibold">${selectedLanai.basePrice}/sq ft</span>
+                        <span className="text-muted-foreground">Lanai Base:</span>
+                        <span className="font-semibold">
+                          ${(parseFloat(squareFootage) * selectedLanai.basePrice).toLocaleString()} 
+                          ({squareFootage} sq ft × ${selectedLanai.basePrice}/sq ft)
+                        </span>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Square Footage:</span>
-                        <span className="font-semibold">{squareFootage} sq ft</span>
-                      </div>
+                      
+                      {lanaiExtras.foundationType === 'pavers' && lanaiExtras.paverSurfaceArea && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Pavers:</span>
+                          <span className="font-semibold">
+                            ${(parseFloat(lanaiExtras.paverSurfaceArea) * 15).toLocaleString()}
+                            ({lanaiExtras.paverSurfaceArea} sq ft × $15/sq ft)
+                          </span>
+                        </div>
+                      )}
+                      
                       <div className="flex justify-between items-center pt-2 border-t border-border">
                         <span className="text-lg font-bold">Total:</span>
                         <span className="text-2xl font-bold text-primary">
