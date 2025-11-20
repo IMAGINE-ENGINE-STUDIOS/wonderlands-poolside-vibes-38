@@ -6,8 +6,11 @@ import { Pool3DScene } from './Pool3DScene';
 import { Scene3DControlPanel } from './Scene3DControlPanel';
 import { StairsControls } from './StairsControls';
 import { Scene3DAnnotations } from './Scene3DAnnotations';
+import { DistanceMeasurements } from './DistanceMeasurements';
 import { Button } from './ui/button';
-import { Maximize2, Minimize2, Move } from 'lucide-react';
+import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useUndoRedo } from '@/hooks/useUndoRedo';
+import { Checkbox } from './ui/checkbox';
 import * as THREE from 'three';
 
 interface UnifiedPoolVisualizerProps {
@@ -52,7 +55,7 @@ export function UnifiedPoolVisualizer({
   textureLibrary,
   onSceneChange
 }: UnifiedPoolVisualizerProps) {
-  const [scene, setScene] = useState<Scene3D>(initialScene);
+  const { state: scene, set: setScene, undo, redo, canUndo, canRedo, reset } = useUndoRedo<Scene3D>(initialScene);
   const [selectedObject, setSelectedObject] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [transformMode, setTransformMode] = useState<TransformMode>('translate');
@@ -67,6 +70,8 @@ export function UnifiedPoolVisualizer({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [poolTransformMode, setPoolTransformMode] = useState(false);
   const [transformStepSize, setTransformStepSize] = useState(1); // Default 1 ft
+  const [showMeasurements, setShowMeasurements] = useState(false);
+  const [controllerCollapsed, setControllerCollapsed] = useState(false);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
   const poolGroupRef = useRef<THREE.Group>(null);
@@ -83,8 +88,8 @@ export function UnifiedPoolVisualizer({
 
   // Sync with initial scene updates
   useEffect(() => {
-    setScene(initialScene);
-  }, [initialScene]);
+    reset(initialScene);
+  }, [initialScene, reset]);
 
   // Auto-snap camera to selected category
   useEffect(() => {
@@ -100,33 +105,30 @@ export function UnifiedPoolVisualizer({
     const config = cameraConfigs[selectedCategory];
     if (config) {
       setCameraPreset(null);
-      setScene(prev => ({
-        ...prev,
+      setScene({
+        ...scene,
         camera: {
           position: config.position,
           target: config.target
         }
-      }));
+      });
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, scene, setScene]);
 
   const handleTextureChange = (category: 'pool' | 'deck' | 'coping' | 'waterline', texture: TextureConfig) => {
-    setScene(prev => {
-      const updated = { ...prev };
-      
-      if (category === 'pool') {
-        updated.pool.finish = texture;
-      } else if (category === 'deck') {
-        updated.deck.paver = texture;
-      } else if (category === 'coping') {
-        updated.deck.coping = texture;
-      } else if (category === 'waterline') {
-        // Store waterline texture in deck for now
-        updated.deck.waterline = texture;
-      }
-      
-      return updated;
-    });
+    const updated = { ...scene };
+    
+    if (category === 'pool') {
+      updated.pool.finish = texture;
+    } else if (category === 'deck') {
+      updated.deck.paver = texture;
+    } else if (category === 'coping') {
+      updated.deck.coping = texture;
+    } else if (category === 'waterline') {
+      updated.deck.waterline = texture;
+    }
+    
+    setScene(updated);
   };
 
   const handleTransformChange = (
@@ -136,17 +138,15 @@ export function UnifiedPoolVisualizer({
   ) => {
     if (!selectedObject) return;
     
-    setScene(prev => {
-      const updated = { ...prev };
-      
-      // Update position/rotation based on selected object
-      if (selectedObject === 'pool') {
-        updated.pool.position = position;
-        updated.pool.rotation = rotation;
-      }
-      
-      return updated;
-    });
+    const updated = { ...scene };
+    
+    // Update position/rotation based on selected object
+    if (selectedObject === 'pool') {
+      updated.pool.position = position;
+      updated.pool.rotation = rotation;
+    }
+    
+    setScene(updated);
   };
 
   const handleCenterCamera = () => {
@@ -163,13 +163,13 @@ export function UnifiedPoolVisualizer({
       ];
     }
     
-    setScene(prev => ({
-      ...prev,
+    setScene({
+      ...scene,
       camera: {
         position: [target[0] + 20, target[1] + 20, target[2] + 20],
         target
       }
-    }));
+    });
     
     setCameraPreset('isometric');
   };
@@ -198,26 +198,26 @@ export function UnifiedPoolVisualizer({
       confirmed: false
     };
     
-    setScene(prev => ({
-      ...prev,
-      annotations: [...prev.annotations, newAnnotation]
-    }));
+    setScene({
+      ...scene,
+      annotations: [...scene.annotations, newAnnotation]
+    });
   };
 
   const handleDeleteAnnotation = (id: string) => {
-    setScene(prev => ({
-      ...prev,
-      annotations: prev.annotations.filter(a => a.id !== id)
-    }));
+    setScene({
+      ...scene,
+      annotations: scene.annotations.filter(a => a.id !== id)
+    });
   };
 
   const handleToggleConfirmAnnotation = (id: string) => {
-    setScene(prev => ({
-      ...prev,
-      annotations: prev.annotations.map(a =>
+    setScene({
+      ...scene,
+      annotations: scene.annotations.map(a =>
         a.id === id ? { ...a, confirmed: !a.confirmed } : a
       )
-    }));
+    });
   };
 
   const handleStairsPlacementComplete = (position: [number, number, number], rotation: number) => {
@@ -240,40 +240,40 @@ export function UnifiedPoolVisualizer({
       stepDepth: DEFAULT_STEP_DEPTH
     };
 
-    setScene(prev => ({
-      ...prev,
-      stairs: [...prev.stairs, newStair]
-    }));
+    setScene({
+      ...scene,
+      stairs: [...scene.stairs, newStair]
+    });
 
     setIsStairsPlacementMode(false);
     setSelectedStairId(newStair.id);
   };
 
   const handleStairsChange = (updatedStairs: any[]) => {
-    setScene(prev => ({
-      ...prev,
+    setScene({
+      ...scene,
       stairs: updatedStairs
-    }));
+    });
   };
 
   const handlePoolPointsChange = (points: any[]) => {
-    setScene(prev => ({
-      ...prev,
+    setScene({
+      ...scene,
       pool: {
-        ...prev.pool,
+        ...scene.pool,
         points
       }
-    }));
+    });
   };
 
   const handleDeckPointsChange = (points: any[]) => {
-    setScene(prev => ({
-      ...prev,
+    setScene({
+      ...scene,
       deck: {
-        ...prev.deck,
+        ...scene.deck,
         points
       }
-    }));
+    });
   };
 
   const toggleFullscreen = () => {
@@ -298,22 +298,20 @@ export function UnifiedPoolVisualizer({
   }, []);
 
   const handlePoolPositionChange = (axis: 'x' | 'y' | 'z', delta: number) => {
-    setScene(prev => {
-      const currentPos = prev.pool.position;
-      const step = transformStepSize;
-      const newPosition: [number, number, number] = [...currentPos];
-      
-      if (axis === 'x') newPosition[0] += delta * step;
-      if (axis === 'y') newPosition[1] += delta * step;
-      if (axis === 'z') newPosition[2] += delta * step;
-      
-      return {
-        ...prev,
-        pool: {
-          ...prev.pool,
-          position: newPosition
-        }
-      };
+    const currentPos = scene.pool.position;
+    const step = transformStepSize;
+    const newPosition: [number, number, number] = [...currentPos];
+    
+    if (axis === 'x') newPosition[0] += delta * step;
+    if (axis === 'y') newPosition[1] += delta * step;
+    if (axis === 'z') newPosition[2] += delta * step;
+    
+    setScene({
+      ...scene,
+      pool: {
+        ...scene.pool,
+        position: newPosition
+      }
     });
   };
 
@@ -321,30 +319,28 @@ export function UnifiedPoolVisualizer({
     const numValue = parseFloat(value);
     if (isNaN(numValue)) return;
     
-    setScene(prev => {
-      const newPosition: [number, number, number] = [...prev.pool.position];
-      if (axis === 'x') newPosition[0] = numValue;
-      if (axis === 'y') newPosition[1] = numValue;
-      if (axis === 'z') newPosition[2] = numValue;
-      
-      return {
-        ...prev,
-        pool: {
-          ...prev.pool,
-          position: newPosition
-        }
-      };
+    const newPosition: [number, number, number] = [...scene.pool.position];
+    if (axis === 'x') newPosition[0] = numValue;
+    if (axis === 'y') newPosition[1] = numValue;
+    if (axis === 'z') newPosition[2] = numValue;
+    
+    setScene({
+      ...scene,
+      pool: {
+        ...scene.pool,
+        position: newPosition
+      }
     });
   };
 
   const handleResetPosition = () => {
-    setScene(prev => ({
-      ...prev,
+    setScene({
+      ...scene,
       pool: {
-        ...prev.pool,
+        ...scene.pool,
         position: [0, 0, 0]
       }
-    }));
+    });
   };
 
   // Keyboard controls for pool movement
@@ -399,136 +395,183 @@ export function UnifiedPoolVisualizer({
           {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
         </button>
 
-        {/* Scene Controls Dashboard */}
-        <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm p-4 rounded-lg shadow-lg space-y-3 max-w-xs z-10">
-          <h3 className="text-sm font-semibold mb-2">Pool Transform Controls</h3>
+        {/* Undo/Redo Controls */}
+        <div className="absolute top-4 left-4 z-10 flex gap-2">
+          <button
+            onClick={undo}
+            disabled={!canUndo}
+            className="bg-background/80 hover:bg-background p-2 rounded-lg shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Undo (Ctrl+Z)"
+          >
+            <Undo2 className="w-5 h-5" />
+          </button>
+          <button
+            onClick={redo}
+            disabled={!canRedo}
+            className="bg-background/80 hover:bg-background p-2 rounded-lg shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Redo (Ctrl+Y)"
+          >
+            <Redo2 className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Scene Controls Dashboard - Collapsible */}
+        <div className={`absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg shadow-lg z-10 transition-all duration-300 ${
+          controllerCollapsed ? 'w-12' : 'max-w-xs'
+        }`}>
+          {/* Collapse/Expand Toggle */}
+          <button
+            onClick={() => setControllerCollapsed(!controllerCollapsed)}
+            className="absolute -right-3 top-4 bg-background rounded-full p-1 shadow-lg hover:bg-muted transition-colors"
+            title={controllerCollapsed ? "Expand Controls" : "Collapse Controls"}
+          >
+            {controllerCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+
+          {!controllerCollapsed && (
+            <div className="p-4 space-y-3">
+              <h3 className="text-sm font-semibold mb-2">Pool Transform Controls</h3>
           
-          {/* Pool Transform Mode Toggle */}
-          <div className="flex items-center justify-between">
-            <label className="text-xs">Move Pool</label>
-            <button
-              onClick={() => setPoolTransformMode(!poolTransformMode)}
-              className={`p-2 rounded transition-colors ${
-                poolTransformMode ? 'bg-primary text-primary-foreground' : 'bg-muted'
-              }`}
-              title="Toggle Pool Transform Mode"
-            >
-              <Move className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Step Size Control */}
-          <div className="space-y-2">
-            <label className="text-xs">Movement Step Size</label>
-            <div className="flex gap-1">
-              <button
-                onClick={() => setTransformStepSize(0.00833)} // 0.1 inch (millimeter precision)
-                className={`px-2 py-1 text-xs rounded ${transformStepSize === 0.00833 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
-              >
-                0.1"
-              </button>
-              <button
-                onClick={() => setTransformStepSize(0.0833)} // 1 inch
-                className={`px-2 py-1 text-xs rounded ${transformStepSize === 0.0833 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
-              >
-                1"
-              </button>
-              <button
-                onClick={() => setTransformStepSize(1)} // 1 foot
-                className={`px-2 py-1 text-xs rounded ${transformStepSize === 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
-              >
-                1ft
-              </button>
-            </div>
-          </div>
-
-          {/* Position Controls */}
-          {poolTransformMode && (
-            <div className="space-y-2 pt-2 border-t">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-xs font-medium">Position (X, Y, Z)</div>
+              {/* Pool Transform Mode Toggle */}
+              <div className="flex items-center justify-between">
+                <label className="text-xs">Move Pool</label>
                 <button
-                  onClick={handleResetPosition}
-                  className="px-2 py-1 bg-destructive/10 hover:bg-destructive/20 text-destructive text-xs rounded"
+                  onClick={() => setPoolTransformMode(!poolTransformMode)}
+                  className={`p-2 rounded transition-colors ${
+                    poolTransformMode ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                  }`}
+                  title="Toggle Pool Transform Mode"
                 >
-                  Reset
+                  <Move className="w-4 h-4" />
                 </button>
               </div>
-              
-              <div className="text-xs text-muted-foreground mb-1">
-                Use arrows (↑↓←→), Q (down), E (up)
+
+              {/* Step Size Control */}
+              <div className="space-y-2">
+                <label className="text-xs">Movement Step Size</label>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setTransformStepSize(0.00833)} // 0.1 inch (millimeter precision)
+                    className={`px-2 py-1 text-xs rounded ${transformStepSize === 0.00833 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
+                  >
+                    0.1"
+                  </button>
+                  <button
+                    onClick={() => setTransformStepSize(0.0833)} // 1 inch
+                    className={`px-2 py-1 text-xs rounded ${transformStepSize === 0.0833 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
+                  >
+                    1"
+                  </button>
+                  <button
+                    onClick={() => setTransformStepSize(1)} // 1 foot
+                    className={`px-2 py-1 text-xs rounded ${transformStepSize === 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
+                  >
+                    1ft
+                  </button>
+                </div>
               </div>
-              
-              {/* X Axis */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs w-4">X:</span>
-                <button
-                  onClick={() => handlePoolPositionChange('x', -1)}
-                  className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  value={scene.pool.position[0].toFixed(3)}
-                  onChange={(e) => handleDirectPositionInput('x', e.target.value)}
-                  className="flex-1 text-center text-xs bg-background border rounded px-1 py-1"
-                  step={transformStepSize}
+
+              {/* Position Controls */}
+              {poolTransformMode && (
+                <div className="space-y-2 pt-2 border-t">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-xs font-medium">Position (X, Y, Z)</div>
+                    <button
+                      onClick={handleResetPosition}
+                      className="px-2 py-1 bg-destructive/10 hover:bg-destructive/20 text-destructive text-xs rounded"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                  
+                  <div className="text-xs text-muted-foreground mb-1">
+                    Use arrows (↑↓←→), Q (down), E (up)
+                  </div>
+                  
+                  {/* X Axis */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs w-4">X:</span>
+                    <button
+                      onClick={() => handlePoolPositionChange('x', -1)}
+                      className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      value={scene.pool.position[0].toFixed(3)}
+                      onChange={(e) => handleDirectPositionInput('x', e.target.value)}
+                      className="flex-1 text-center text-xs bg-background border rounded px-1 py-1"
+                      step={transformStepSize}
+                    />
+                    <button
+                      onClick={() => handlePoolPositionChange('x', 1)}
+                      className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Y Axis (Elevation) */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs w-4">Y:</span>
+                    <button
+                      onClick={() => handlePoolPositionChange('y', -1)}
+                      className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      value={scene.pool.position[1].toFixed(3)}
+                      onChange={(e) => handleDirectPositionInput('y', e.target.value)}
+                      className="flex-1 text-center text-xs bg-background border rounded px-1 py-1"
+                      step={transformStepSize}
+                    />
+                    <button
+                      onClick={() => handlePoolPositionChange('y', 1)}
+                      className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Z Axis */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs w-4">Z:</span>
+                    <button
+                      onClick={() => handlePoolPositionChange('z', -1)}
+                      className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      value={scene.pool.position[2].toFixed(3)}
+                      onChange={(e) => handleDirectPositionInput('z', e.target.value)}
+                      className="flex-1 text-center text-xs bg-background border rounded px-1 py-1"
+                      step={transformStepSize}
+                    />
+                    <button
+                      onClick={() => handlePoolPositionChange('z', 1)}
+                      className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Measurements Toggle */}
+              <div className="pt-2 border-t flex items-center gap-2">
+                <Checkbox
+                  id="show-measurements"
+                  checked={showMeasurements}
+                  onCheckedChange={(checked) => setShowMeasurements(checked as boolean)}
                 />
-                <button
-                  onClick={() => handlePoolPositionChange('x', 1)}
-                  className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
-                >
-                  +
-                </button>
-              </div>
-
-              {/* Y Axis (Elevation) */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs w-4">Y:</span>
-                <button
-                  onClick={() => handlePoolPositionChange('y', -1)}
-                  className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  value={scene.pool.position[1].toFixed(3)}
-                  onChange={(e) => handleDirectPositionInput('y', e.target.value)}
-                  className="flex-1 text-center text-xs bg-background border rounded px-1 py-1"
-                  step={transformStepSize}
-                />
-                <button
-                  onClick={() => handlePoolPositionChange('y', 1)}
-                  className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
-                >
-                  +
-                </button>
-              </div>
-
-              {/* Z Axis */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs w-4">Z:</span>
-                <button
-                  onClick={() => handlePoolPositionChange('z', -1)}
-                  className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  value={scene.pool.position[2].toFixed(3)}
-                  onChange={(e) => handleDirectPositionInput('z', e.target.value)}
-                  className="flex-1 text-center text-xs bg-background border rounded px-1 py-1"
-                  step={transformStepSize}
-                />
-                <button
-                  onClick={() => handlePoolPositionChange('z', 1)}
-                  className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
-                >
-                  +
-                </button>
+                <label htmlFor="show-measurements" className="text-xs cursor-pointer">
+                  Show Distance Measurements
+                </label>
               </div>
             </div>
           )}
@@ -673,17 +716,24 @@ export function UnifiedPoolVisualizer({
               onChange={() => {
                 if (poolGroupRef.current) {
                   const pos = poolGroupRef.current.position;
-                  setScene(prev => ({
-                    ...prev,
+                  setScene({
+                    ...scene,
                     pool: {
-                      ...prev.pool,
+                      ...scene.pool,
                       position: [pos.x, pos.y, pos.z]
                     }
-                  }));
+                  });
                 }
               }}
             />
           )}
+          
+          {/* Distance Measurements */}
+          <DistanceMeasurements
+            poolPoints={scene.pool.points}
+            deckPoints={scene.deck.points}
+            showMeasurements={showMeasurements}
+          />
           
           {/* Annotations */}
           <Scene3DAnnotations
