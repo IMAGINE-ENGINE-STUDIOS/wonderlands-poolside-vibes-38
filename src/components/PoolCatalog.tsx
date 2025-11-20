@@ -80,7 +80,7 @@ const pools: Pool[] = [
 // Premium Infinity Concrete Pool
 {
   model: "Madre Perla",
-  price: 175000,
+  price: 192500,
   category: 'premium',
   image: madrePerlaImage,
   dimensions: "20' x 40'",
@@ -95,12 +95,12 @@ const pools: Pool[] = [
 // Maxima Premium Fiberglass Pool
 {
   model: "Maxima",
-  price: 150000,
+  price: 165000,
   category: 'premium',
   image: maximaImage,
   dimensions: "16' × 40'",
   depth: "3'9\" - 8'6\"",
-  installationTimeWeeks: 12,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Premium Fiberglass Construction", "Wonderlands World Collection", "Luxury Design", "Low Maintenance"],
   heater: false,
@@ -110,7 +110,7 @@ const pools: Pool[] = [
 // Pacific Ridge Concrete Pool
 {
   model: "Pacific Ridge",
-  price: 79000,
+  price: 89000,
   category: 'premium',
   image: pacificRidgeImage,
   dimensions: "14' x 32'",
@@ -140,12 +140,12 @@ const pools: Pool[] = [
 // Most Popular - Standard Series (Special Offers & Best Value)
 {
   model: "Astoria",
-  price: 89999,
+  price: 98999,
   category: 'standard',
   image: astoriaImage,
   dimensions: "14' x 35'",
   depth: "3'-6\" to 6'6\"; Spa 3′",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Life Warranty",
   features: ["Space-Efficient Design", "Integrated Seating", "Easy Entry Steps", "Compact Footprint", "Special Offer"],
   heater: false,
@@ -153,12 +153,12 @@ const pools: Pool[] = [
   carbonFiber: false
 }, {
   model: "Milan",
-  price: 45300,
+  price: 49830,
   category: 'standard',
   image: "/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png",
   dimensions: "10′ × 16′",
   depth: "4′",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Classic Design", "Perfect for Small Yards"],
   heater: false,
@@ -166,12 +166,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Jamaica",
-  price: 46100,
+  price: 50710,
   category: 'standard',
   image: "/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png",
   dimensions: "10′ × 20′",
   depth: "3′ 2″ – 5′",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Family Friendly", "Shallow End"],
   heater: false,
@@ -179,12 +179,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Aruba",
-  price: 51300,
+  price: 56430,
   category: 'standard',
   image: "/lovable-uploads/ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5.png",
   dimensions: "11′ × 22′",
   depth: "3′ 6″ – 5′",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Mid-Size Pool", "Great for Swimming"],
   heater: false,
@@ -192,12 +192,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Pleasant Cove",
-  price: 51300,
+  price: 56430,
   category: 'standard',
   image: "/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.png",
   dimensions: "11′ × 22′",
   depth: "3′ 6″ – 5′ 6″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Elegant Design", "Versatile Depth"],
   heater: false,
@@ -207,12 +207,12 @@ const pools: Pool[] = [
 // Popular Compact Series - Enchantment
 {
   model: "Enchantment 9.17",
-  price: 47900,
+  price: 52690,
   category: 'compact',
   image: enchantment917Image,
   dimensions: "9′ 1″ × 17′ 5″",
   depth: "~4′ 9″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Compact Design", "Energy Efficient"],
   heater: false,
@@ -220,12 +220,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Enchantment 9.21",
-  price: 54400,
+  price: 59840,
   category: 'compact',
   image: enchantment921Image,
   dimensions: "9′ 1″ × 20′ 7″",
   depth: "~4′ 9″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Compact Design", "Energy Efficient"],
   heater: false,
@@ -233,12 +233,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Enchantment 9.24",
-  price: 60800,
+  price: 66880,
   category: 'compact',
   image: enchantment924Image,
   dimensions: "9′ 1″ × 23′ 10″",
   depth: "~4′ 9″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Compact Design", "Energy Efficient"],
   heater: false,
@@ -248,12 +248,12 @@ const pools: Pool[] = [
 // Tuscan Series
 {
   model: "Tuscan 11.20",
-  price: 59430,
+  price: 65373,
   category: 'deluxe',
   image: tuscan1120Image,
   dimensions: "11′ 1″ × 20′ 3″",
   depth: "3′ 11″ – 5′ 2″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Tuscan Design", "Premium Finish"],
   heater: false,
@@ -261,12 +261,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Tuscan 13.24",
-  price: 72870,
+  price: 80157,
   category: 'deluxe',
   image: tuscan1324Image,
   dimensions: "12′ 10″ × 23′ 7″",
   depth: "3′ 11″ – 5′ 5″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Tuscan Design", "Premium Finish"],
   heater: false,
@@ -274,12 +274,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Tuscan 14.27",
-  price: 84000,
+  price: 92400,
   category: 'deluxe',
   image: tuscan1427Image,
   dimensions: "13′ 9″ × 26′ 10″",
   depth: "3′ 11″ – 5′ 9″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Tuscan Design", "Premium Finish"],
   heater: false,
@@ -287,12 +287,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Tuscan 14.30",
-  price: 92610,
+  price: 101871,
   category: 'deluxe',
   image: tuscan1430Image,
   dimensions: "13′ 9″ × 30′ 1″",
   depth: "3′ 11″ – 5′ 11″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Tuscan Design", "Premium Finish"],
   heater: false,
@@ -300,12 +300,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Tuscan 14.40",
-  price: 116550,
+  price: 128205,
   category: 'deluxe',
   image: tuscan1440Image,
   dimensions: "13′ 9″ × 39′ 11″",
   depth: "3′ 7″ – 6′ 2″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Tuscan Design", "Premium Finish"],
   heater: false,
@@ -315,12 +315,12 @@ const pools: Pool[] = [
 // Premium Series
 {
   model: "St. Lucia",
-  price: 59640,
+  price: 65604,
   category: 'deluxe',
   image: "/lovable-uploads/03b6750e-bed3-41df-abcb-6657d36cfa62.png",
   dimensions: "12′ × 24′",
   depth: "3′ 6″ – 5′",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Caribbean Inspired", "Perfect for Families"],
   heater: false,
@@ -328,12 +328,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Delray",
-  price: 62265,
+  price: 68492,
   category: 'deluxe',
   image: "/lovable-uploads/f549e4e8-647d-4b21-8d48-441f83955c73.png",
   dimensions: "12′ × 25′",
   depth: "~4′ 6″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Modern Design", "Consistent Depth"],
   heater: false,
@@ -341,12 +341,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Java",
-  price: 63000,
+  price: 69300,
   category: 'deluxe',
   image: "/lovable-uploads/bca99a48-ba6b-42d0-96d0-bf5ecfc2e4fd.png",
   dimensions: "12′ × 27′",
   depth: "3′ 6″ – 5′ 6″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Sleek Design", "Great for Lap Swimming"],
   heater: false,
@@ -354,12 +354,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Bermuda",
-  price: 64575,
+  price: 71033,
   category: 'deluxe',
   image: "/lovable-uploads/311a7002-2a40-4c59-a143-9f0236ece5d4.png",
   dimensions: "12′ × 26′",
   depth: "3′ 6″ – 5′ 6″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Island Style", "Relaxing Design"],
   heater: false,
@@ -367,12 +367,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Key West",
-  price: 67515,
+  price: 74267,
   category: 'deluxe',
   image: "/lovable-uploads/4e43c832-af03-4cf4-9104-0117e5f3321c.png",
   dimensions: "12′ × 25′ 7″",
   depth: "3′ 7″ – 6′",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Tropical Design", "Deep End Swimming"],
   heater: false,
@@ -380,12 +380,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Valencia",
-  price: 68775,
+  price: 75653,
   category: 'deluxe',
   image: "/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.png",
   dimensions: "14′ 6″ × 28′",
   depth: "3′ 7″ – 5′ 10″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Spanish Style", "Large Swimming Area"],
   heater: false,
@@ -393,12 +393,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Vista Isle",
-  price: 70000,
+  price: 77000,
   category: 'premium',
   image: "/lovable-uploads/6a41df5e-d6f6-4e49-aa1a-b457ac1902a0.png",
   dimensions: "12′ × 28′ 6″",
   depth: "3′ 6″ – 5′ 10″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Panoramic Design", "Extended Length"],
   heater: false,
@@ -408,12 +408,12 @@ const pools: Pool[] = [
 // Corinthian Series
 {
   model: "Corinthian 12",
-  price: 75400,
+  price: 82940,
   category: 'premium',
   image: "/lovable-uploads/221a9844-ee7c-4fe3-b421-a9fe99bccabf.png",
   dimensions: "12′ × 25′",
   depth: "3′ 6″ – 5′ 5″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Classical Design", "Premium Materials"],
   heater: false,
@@ -421,12 +421,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Corinthian 12 BME",
-  price: 79400,
+  price: 87340,
   category: 'premium',
   image: "/lovable-uploads/86678699-3f2c-4863-8a81-d8c63721e03c.png",
   dimensions: "12′ × 25′",
   depth: "3′ 6″ – 5′ 5″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Beach Modified Entry", "Classical Design"],
   heater: false,
@@ -434,12 +434,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Corinthian 14",
-  price: 94500,
+  price: 103950,
   category: 'premium',
   image: "/lovable-uploads/3ae37221-0f97-48df-addd-632c423868e2.png",
   dimensions: "14′ × 30′",
   depth: "3′ 6″ – 6′",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Classical Design", "Premium Materials"],
   heater: false,
@@ -447,12 +447,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Corinthian 14 BME",
-  price: 98500,
+  price: 108350,
   category: 'premium',
   image: "/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.png",
   dimensions: "14′ × 30′",
   depth: "3′ 6″ – 6′",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Beach Modified Entry", "Classical Design"],
   heater: false,
@@ -462,12 +462,12 @@ const pools: Pool[] = [
 // Olympia Series
 {
   model: "Olympia 12",
-  price: 76300,
+  price: 83930,
   category: 'premium',
   image: "/lovable-uploads/0aa90de6-b1eb-43a4-91ec-10c05388c900.png",
   dimensions: "12′ × 26′",
   depth: "3′ 6″ – 5′ 6″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Olympic Inspired", "Performance Design"],
   heater: false,
@@ -475,12 +475,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Olympia 14",
-  price: 96400,
+  price: 106040,
   category: 'premium',
   image: "/lovable-uploads/d707c6e1-8471-404f-9312-bd6773152617.png",
   dimensions: "14′ × 30′",
   depth: "3′ 6″ – 6′",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Olympic Inspired", "Performance Design"],
   heater: false,
@@ -490,12 +490,12 @@ const pools: Pool[] = [
 // Large Premium Series
 {
   model: "Bay Isle",
-  price: 80400,
+  price: 88440,
   category: 'premium',
   image: "/lovable-uploads/a91d91f2-51f8-470c-9894-4a1cf8b1f2c0.png",
   dimensions: "14′ 6″ × 30′",
   depth: "3′ – 6′ 6″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Beach Entry", "Large Swimming Area"],
   heater: false,
@@ -503,12 +503,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Laguna",
-  price: 82600,
+  price: 90860,
   category: 'premium',
   image: "/lovable-uploads/ee464b25-683d-4367-a208-2159c2bd13f3.png",
   dimensions: "14′ × 30′",
   depth: "3′ 6″ – 6′",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Lagoon Style", "Natural Design"],
   heater: false,
@@ -516,12 +516,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Claremont",
-  price: 83400,
+  price: 91740,
   category: 'premium',
   image: "/lovable-uploads/6b7b34a3-03f7-4179-b34a-3458dc881efd.png",
   dimensions: "14′ × 33′",
   depth: "3′ 6″ – 5′ 4″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "L-Shaped Design", "Extended Length"],
   heater: false,
@@ -529,12 +529,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Axiom 14",
-  price: 87500,
+  price: 96250,
   category: 'premium',
   image: "/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png",
   dimensions: "14′ × 30′",
   depth: "4′ 6″ – 6′",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Geometric Design", "Deep Swimming"],
   heater: false,
@@ -542,12 +542,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Laguna Deluxe",
-  price: 95300,
+  price: 104830,
   category: 'premium',
   image: "/lovable-uploads/46d142d3-b106-406d-9867-9bf7b63fd469.png",
   dimensions: "14′ × 30′",
   depth: "4′ – 6′",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Deluxe Lagoon Style", "Premium Features"],
   heater: false,
@@ -555,12 +555,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Providence 14",
-  price: 95600,
+  price: 105160,
   category: 'premium',
   image: "/lovable-uploads/3929943c-2e46-426f-b155-3d79c96d7eb4.png",
   dimensions: "14′ × 30′",
   depth: "3′ 6″ – 6′ 1″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Providence Design", "Premium Construction"],
   heater: false,
@@ -568,12 +568,12 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Genesis",
-  price: 112600,
+  price: 123860,
   category: 'premium',
   image: "/lovable-uploads/2a611c90-6445-41af-aa15-7d223e357e64.png",
   dimensions: "16′ × 40′ 2″",
   depth: "3′ 9″ – 8′ 6″",
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included in final price", "Freeform Design", "Large Swimming Area", "10% Discount Applied"],
   heater: false,
@@ -585,47 +585,47 @@ const pools: Pool[] = [
 // Spa models
 const spas: Spa[] = [{
   model: "Mystic",
-  price: 26500,
+  price: 29150,
   category: 'premium',
   image: "/lovable-uploads/3bdd9802-26f9-47ab-8498-e0e66344685c.png",
   dimensions: "8′ × 8′",
   depth: "3′ 6″",
   features: ["Spillover Option", "LED Lighting", "Premium Jets", "Heater Ready"],
   spilloverFeature: true,
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime"
 }, {
   model: "Regal",
-  price: 24500,
+  price: 26950,
   category: 'deluxe',
   image: "/lovable-uploads/31da0c59-77d4-4fa1-838b-cb525acd404b.png",
   dimensions: "7′ × 7′",
   depth: "3′ 2″",
   features: ["Spillover Option", "Therapeutic Jets", "Easy Controls", "Energy Efficient"],
   spilloverFeature: true,
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "Lifetime"
 }, {
   model: "Royal",
-  price: 24000,
+  price: 26400,
   category: 'standard',
   image: "/lovable-uploads/62676335-6a09-4389-9a8a-cba74d583c53.png",
   dimensions: "6′ × 8′",
   depth: "3′",
   features: ["Spillover Option", "Modern Design", "Durable Construction", "Low Maintenance"],
   spilloverFeature: true,
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "10 Years"
 }, {
   model: "Shafta",
-  price: 24000,
+  price: 26400,
   category: 'standard',
   image: "/lovable-uploads/1a143a47-5e78-46a8-8172-426b7644bea8.png",
   dimensions: "7′ diameter",
   depth: "3′",
   features: ["Spillover Option", "Circular Design", "Compact Footprint", "Easy Entry"],
   spilloverFeature: true,
-  installationTimeWeeks: 8,
+  installationTimeWeeks: 16,
   warrantyYears: "10 Years"
 }];
 const getSpaTypeColor = (category: string) => {
