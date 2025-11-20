@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
-import { PerspectiveCamera, Grid, useTexture } from '@react-three/drei';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { PerspectiveCamera, Grid, useTexture, TransformControls, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { textureCache, disposeTexture } from '@/utils/textureCache';
 import { WaterlineMesh } from './WaterlineMesh';
@@ -9,6 +9,8 @@ import { StairsPlacementMode } from './StairsPlacementMode';
 import { SplineEditor, SplinePoint } from './scene3d/SplineEditor';
 import earcut from 'earcut';
 import grassTexture from '@/assets/grass-texture.avif';
+import { Maximize2, Minimize2, Move } from 'lucide-react';
+import { Canvas } from '@react-three/fiber';
 
 interface Point {
   x: number;

@@ -7,6 +7,7 @@ import { Scene3DControlPanel } from './Scene3DControlPanel';
 import { StairsControls } from './StairsControls';
 import { Scene3DAnnotations } from './Scene3DAnnotations';
 import { Button } from './ui/button';
+import { Maximize2, Minimize2, Move } from 'lucide-react';
 import * as THREE from 'three';
 
 interface UnifiedPoolVisualizerProps {
@@ -63,7 +64,11 @@ export function UnifiedPoolVisualizer({
   const [selectedStairId, setSelectedStairId] = useState<string | null>(null);
   const [enablePoolSplineEdit, setEnablePoolSplineEdit] = useState(false);
   const [enableDeckSplineEdit, setEnableDeckSplineEdit] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [poolTransformMode, setPoolTransformMode] = useState(false);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
+  const poolGroupRef = useRef<THREE.Group>(null);
 
   const FLORIDA_STEP_HEIGHT = 0.625; // 7.5 inches
   const DEFAULT_STEP_DEPTH = 0.9167; // 11 inches
@@ -270,10 +275,59 @@ export function UnifiedPoolVisualizer({
     }));
   };
 
+  const toggleFullscreen = () => {
+    if (!canvasContainerRef.current) return;
+    
+    if (!isFullscreen) {
+      canvasContainerRef.current.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   return (
     <div className="flex h-full w-full">
       {/* Main 3D Canvas */}
-      <div className="flex-1 relative">
+      <div ref={canvasContainerRef} className="flex-1 relative">
+        {/* Fullscreen Toggle Button */}
+        <button
+          onClick={toggleFullscreen}
+          className="absolute top-4 right-4 z-10 bg-background/80 hover:bg-background p-2 rounded-lg shadow-lg transition-colors"
+          title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+        >
+          {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+        </button>
+
+        {/* Scene Controls Dashboard */}
+        <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm p-4 rounded-lg shadow-lg space-y-3 max-w-xs z-10">
+          <h3 className="text-sm font-semibold mb-2">Scene Controls</h3>
+          
+          {/* Pool Transform Mode Toggle */}
+          <div className="flex items-center justify-between">
+            <label className="text-xs">Move Pool</label>
+            <button
+              onClick={() => setPoolTransformMode(!poolTransformMode)}
+              className={`p-2 rounded transition-colors ${
+                poolTransformMode ? 'bg-primary text-primary-foreground' : 'bg-muted'
+              }`}
+              title="Toggle Pool Transform Mode"
+            >
+              <Move className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
         <R3FCanvas
           shadows
           camera={{
@@ -305,53 +359,60 @@ export function UnifiedPoolVisualizer({
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />
           
-          {/* Pool rendering */}
-          <Pool3DScene
-            points={scene.pool.points}
-            depthPoints={scene.pool.depthPoints}
-            hardscapePoints={scene.deck.points}
-            linerTextureUrl={scene.pool.finish.url}
-            paverTextureUrl={scene.deck.paver.url}
-            copingTextureUrl={scene.deck.coping.url}
-            waterlineTextureUrl={scene.deck.waterline?.url}
-            fenceTextureUrl="/src/assets/fence-texture.png"
-            features={scene.features.map(f => ({
-              type: f.type as any,
-              x: f.position[0],
-              y: f.position[2],
-              id: f.id,
-              angle: f.rotation?.[1]
-            }))}
-            fencePoints={[]}
-            scale={1}
-            poolShape="rectangle"
-            poolDimensions={scene.pool.dimensions}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-            fenceHeight={fenceHeight}
-            paverTextureScale={scene.deck.paver.scale || 1.8}
-            copingTextureScale={scene.deck.coping.scale || 1.8}
-            waterlineTextureScale={scene.deck.waterline?.scale || 1.8}
-            linerTextureScale={scene.pool.finish.scale || 1.8}
-            paverTextureOffset={scene.deck.paver.offset || [0, 0]}
-            copingTextureOffset={scene.deck.coping.offset || [0, 0]}
-            waterlineTextureOffset={scene.deck.waterline?.offset || [0, 0]}
-            linerTextureOffset={scene.pool.finish.offset || [0, 0]}
-            poolPosition={scene.pool.position}
-            copingHeight={scene.deck.copingHeight || 2 / 12}
-            deckHeight={scene.deck.deckHeight || 2 / 12}
-            copingWidth={scene.deck.copingWidth || 1.0}
-            stairs={scene.stairs}
-            onStairsChange={handleStairsChange}
-            isStairsPlacementMode={isStairsPlacementMode}
-            onStairsPlacementComplete={handleStairsPlacementComplete}
-            selectedStairId={selectedStairId}
-            onSelectStair={setSelectedStairId}
-            enablePoolSplineEdit={enablePoolSplineEdit}
-            enableDeckSplineEdit={enableDeckSplineEdit}
-            onPoolPointsChange={handlePoolPointsChange}
-            onDeckPointsChange={handleDeckPointsChange}
-          />
+          {/* Pool rendering - wrapped in group for transform controls */}
+          <group ref={poolGroupRef}>
+            <Pool3DScene
+              points={scene.pool.points}
+              depthPoints={scene.pool.depthPoints}
+              hardscapePoints={scene.deck.points}
+              linerTextureUrl={scene.pool.finish.url}
+              paverTextureUrl={scene.deck.paver.url}
+              copingTextureUrl={scene.deck.coping.url}
+              waterlineTextureUrl={scene.deck.waterline?.url}
+              fenceTextureUrl="/src/assets/fence-texture.png"
+              features={scene.features.map(f => ({
+                type: f.type as any,
+                x: f.position[0],
+                y: f.position[2],
+                id: f.id,
+                angle: f.rotation?.[1]
+              }))}
+              fencePoints={[]}
+              scale={1}
+              poolShape="rectangle"
+              poolDimensions={scene.pool.dimensions}
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
+              fenceHeight={fenceHeight}
+              paverTextureScale={scene.deck.paver.scale || 1.8}
+              copingTextureScale={scene.deck.coping.scale || 1.8}
+              waterlineTextureScale={scene.deck.waterline?.scale || 1.8}
+              linerTextureScale={scene.pool.finish.scale || 1.8}
+              paverTextureOffset={scene.deck.paver.offset || [0, 0]}
+              copingTextureOffset={scene.deck.coping.offset || [0, 0]}
+              waterlineTextureOffset={scene.deck.waterline?.offset || [0, 0]}
+              linerTextureOffset={scene.pool.finish.offset || [0, 0]}
+              poolPosition={scene.pool.position}
+              copingHeight={scene.deck.copingHeight || 2 / 12}
+              deckHeight={scene.deck.deckHeight || 2 / 12}
+              copingWidth={scene.deck.copingWidth || 1.0}
+              stairs={scene.stairs}
+              onStairsChange={handleStairsChange}
+              isStairsPlacementMode={isStairsPlacementMode}
+              onStairsPlacementComplete={handleStairsPlacementComplete}
+              selectedStairId={selectedStairId}
+              onSelectStair={setSelectedStairId}
+              enablePoolSplineEdit={enablePoolSplineEdit}
+              enableDeckSplineEdit={enableDeckSplineEdit}
+              onPoolPointsChange={handlePoolPointsChange}
+              onDeckPointsChange={handleDeckPointsChange}
+            />
+          </group>
+
+          {/* Transform Controls for Pool */}
+          {poolTransformMode && poolGroupRef.current && (
+            <TransformControls object={poolGroupRef.current} mode="translate" />
+          )}
           
           {/* Annotations */}
           <Scene3DAnnotations
@@ -369,16 +430,6 @@ export function UnifiedPoolVisualizer({
             dampingFactor={0.05}
           />
         </R3FCanvas>
-        
-
-        {/* Selected object indicator */}
-        {(selectedObject || selectedCategory) && (
-          <div className="absolute bottom-4 left-4 bg-background/80 backdrop-blur px-4 py-2 rounded-lg shadow-lg">
-            <p className="text-sm font-medium">
-              Selected: <span className="text-primary capitalize">{selectedObject || selectedCategory}</span>
-            </p>
-          </div>
-        )}
       </div>
       
       {/* Right Control Panel */}
