@@ -10,6 +10,7 @@ import PoolFinishesSection from "@/components/PoolFinishesSection";
 import LinersSection from "@/components/LinersSection";
 import AutomaticCoversSection from "@/components/AutomaticCoversSection";
 import ScreenEnclosureSection from "@/components/ScreenEnclosureSection";
+import LanaiSection from "@/components/LanaiSection";
 import PaversSection from "@/components/PaversSection";
 import Footer from "@/components/Footer";
 
@@ -115,6 +116,18 @@ const EditableIndex = () => {
         onEdit={() => handleSectionEdit('screen-enclosures')}
       >
         <ScreenEnclosureSection />
+      </EditableSection>
+
+      <div id="lanai" />
+      <EditableSection
+        sectionId="lanai"
+        sectionTitle="Lanai Covers"
+        isBuilderMode={builderContext.isBuilderMode}
+        onMove={(direction) => handleSectionMove('lanai', direction)}
+        onDelete={() => handleSectionDelete('lanai')}
+        onEdit={() => handleSectionEdit('lanai')}
+      >
+        <LanaiSection />
       </EditableSection>
 
       <div id="pavers" />

@@ -10,6 +10,7 @@ import PoolFinishesSection from "@/components/PoolFinishesSection";
 import LinersSection from "@/components/LinersSection";
 import AutomaticCoversSection from "@/components/AutomaticCoversSection";
 import ScreenEnclosureSection from "@/components/ScreenEnclosureSection";
+import LanaiSection from "@/components/LanaiSection";
 import PaversSection from "@/components/PaversSection";
 import DrivewayGateSection from "@/components/DrivewayGateSection";
 import SaunaSection from "@/components/SaunaSection";
@@ -74,6 +75,10 @@ const Index = () => {
       <div id="screen-enclosures" />
       <LazySection>
         <ScreenEnclosureSection />
+      </LazySection>
+      <div id="lanai" />
+      <LazySection>
+        <LanaiSection />
       </LazySection>
       <div id="pavers" />
       <LazySection>
