@@ -200,7 +200,7 @@ const LanaiSection = () => {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-coral bg-clip-text text-transparent">
-            Lanai Covers
+            Roof & Lanai Spaces
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Create the perfect outdoor living space with our premium aluminum frame lanai systems
@@ -411,7 +411,7 @@ const LanaiSection = () => {
 
         {/* Information Section */}
         <div className="bg-card border rounded-2xl p-8 shadow-lg">
-          <h3 className="text-2xl font-bold mb-6 text-center">Why Choose Our Lanai Covers?</h3>
+          <h3 className="text-2xl font-bold mb-6 text-center">Why Choose Our Roof & Lanai Covers?</h3>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 transition-all hover:bg-primary/20 hover:scale-105">
