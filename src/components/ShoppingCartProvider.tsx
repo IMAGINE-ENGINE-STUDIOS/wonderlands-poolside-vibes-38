@@ -16,7 +16,7 @@ const ShoppingCartContext = createContext<ShoppingCartContextType | undefined>(u
 
 export const useShoppingCart = () => {
   const context = useContext(ShoppingCartContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useShoppingCart must be used within a ShoppingCartProvider');
   }
   return context;
