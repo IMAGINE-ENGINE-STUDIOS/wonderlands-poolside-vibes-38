@@ -54,22 +54,22 @@ export const getFinishTextureUrl = (finishName?: string): string => {
   
   if (!finishName || finishName === 'None' || finishName === '' || finishName === 'undefined') {
     console.log('   → Returning fallback (invalid input)');
-    return '/src/assets/finishes/sapphire-blue-g3.jpg';
+    return '/textures/finishes/sapphire-blue-g3.jpg';
   }
   
   const finishMap: Record<string, string> = {
-    'Aquamarine': '/src/assets/finishes/aquamarine-g3.jpg',
-    'Ocean Blue': '/src/assets/finishes/ocean-blue-g3.jpg',
-    'Sapphire Blue': '/src/assets/finishes/sapphire-blue-g3.jpg',
-    'Night Sky': '/src/assets/finishes/night-sky-g3.jpg',
-    'Athens Pearl White': '/src/assets/finishes/athens-pearl-white-g3.jpg',
-    'Lagoon Blue': '/src/assets/finishes/lagoon-blue-g2.jpg',
-    'Azure Blue': '/src/assets/finishes/azure-blue-g2.jpg',
-    'Coastal Bronze': '/src/assets/finishes/coastal-bronze-g3.jpg',
-    'Shale Gray': '/src/assets/finishes/shale-gray-g3.jpg',
+    'Aquamarine': '/textures/finishes/aquamarine-g3.jpg',
+    'Ocean Blue': '/textures/finishes/ocean-blue-g3.jpg',
+    'Sapphire Blue': '/textures/finishes/sapphire-blue-g3.jpg',
+    'Night Sky': '/textures/finishes/night-sky-g3.jpg',
+    'Athens Pearl White': '/textures/finishes/athens-pearl-white-g3.jpg',
+    'Lagoon Blue': '/textures/finishes/lagoon-blue-g2.jpg',
+    'Azure Blue': '/textures/finishes/azure-blue-g2.jpg',
+    'Coastal Bronze': '/textures/finishes/coastal-bronze-g3.jpg',
+    'Shale Gray': '/textures/finishes/shale-gray-g3.jpg',
   };
   
-  const result = finishMap[finishName] || '/src/assets/finishes/sapphire-blue-g3.jpg';
+  const result = finishMap[finishName] || '/textures/finishes/sapphire-blue-g3.jpg';
   console.log('   → Returning:', result);
   return result;
 };
@@ -125,7 +125,7 @@ export function productToScene(
     ? getFinishTextureUrl(selectedExtras.finish)
     : selectedExtras.linerOption 
       ? getFinishTextureUrl(selectedExtras.linerOption)
-      : '/src/assets/finishes/sapphire-blue-g3.jpg';
+      : '/textures/finishes/sapphire-blue-g3.jpg';
       
   const paverTextureUrl = getPaverTextureUrl(selectedExtras.paverOption, paverTypes);
   const copingTextureUrl = getPaverTextureUrl(selectedExtras.copingPaverOption, paverTypes);

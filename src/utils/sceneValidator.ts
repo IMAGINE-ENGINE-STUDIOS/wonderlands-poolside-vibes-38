@@ -4,7 +4,7 @@ import { Scene3D, TextureConfig } from '@/components/scene3d/types';
  * Default texture configuration for fallback
  */
 const DEFAULT_FINISH_TEXTURE: TextureConfig = {
-  url: '/src/assets/finishes/sapphire-blue-g3.jpg',
+  url: '/textures/finishes/sapphire-blue-g3.jpg',
   name: 'Default Finish',
   roughness: 0.3,
   metalness: 0.2,

@@ -156,7 +156,7 @@ export function poolBuilderToScene(data: PoolBuilderData): Scene3D {
         metalness: 0.1,
         color: '#0088cc'
       } : {
-        url: '/src/assets/pool-texture-sapphire.jpg',
+        url: '/textures/finishes/sapphire-blue-g3.jpg',
         name: 'Sapphire Blue',
         roughness: 0.2,
         metalness: 0.1,
@@ -181,7 +181,7 @@ export function poolBuilderToScene(data: PoolBuilderData): Scene3D {
         roughness: 0.8,
         metalness: 0.0
       } : {
-        url: paverTypes[0]?.image || '/src/assets/finishes/shale-gray-g3.jpg',
+        url: paverTypes[0]?.image || '/lovable-uploads/6f65c8d2-ad09-4fef-b01f-cb3c2e96cf11.png',
         name: 'Default Paver',
         roughness: 0.8,
         metalness: 0.0
@@ -195,7 +195,7 @@ export function poolBuilderToScene(data: PoolBuilderData): Scene3D {
         roughness: 0.6,
         metalness: 0.0
       } : {
-        url: paverTypes[0]?.image || '/src/assets/finishes/shale-gray-g3.jpg',
+        url: paverTypes[0]?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
         name: 'Default Coping',
         roughness: 0.6,
         metalness: 0.0
@@ -206,7 +206,7 @@ export function poolBuilderToScene(data: PoolBuilderData): Scene3D {
         roughness: 0.3,
         metalness: 0.2
       } : {
-        url: '/src/assets/finishes/sapphire-blue-g3.jpg',
+        url: '/textures/finishes/sapphire-blue-g3.jpg',
         name: 'Sapphire Blue',
         roughness: 0.3,
         metalness: 0.2
@@ -255,15 +255,15 @@ export function buildTextureLibrary(
 
   // Premium liners for pool finish and waterline
   const premiumLiners = [
-    { url: '/src/assets/finishes/sapphire-blue-g3.jpg', name: 'Sapphire Blue G3' },
-    { url: '/src/assets/finishes/aquamarine-g3.jpg', name: 'Aquamarine G3' },
-    { url: '/src/assets/finishes/ocean-blue-g3.jpg', name: 'Ocean Blue G3' },
-    { url: '/src/assets/finishes/coastal-bronze-g3.jpg', name: 'Coastal Bronze G3' },
-    { url: '/src/assets/finishes/athens-pearl-white-g3.jpg', name: 'Athens Pearl White G3' },
-    { url: '/src/assets/finishes/night-sky-g3.jpg', name: 'Night Sky G3' },
-    { url: '/src/assets/finishes/shale-gray-g3.jpg', name: 'Shale Gray G3' },
-    { url: '/src/assets/finishes/azure-blue-g2.jpg', name: 'Azure Blue G2' },
-    { url: '/src/assets/finishes/lagoon-blue-g2.jpg', name: 'Lagoon Blue G2' }
+    { url: '/textures/finishes/sapphire-blue-g3.jpg', name: 'Sapphire Blue G3' },
+    { url: '/textures/finishes/aquamarine-g3.jpg', name: 'Aquamarine G3' },
+    { url: '/textures/finishes/ocean-blue-g3.jpg', name: 'Ocean Blue G3' },
+    { url: '/textures/finishes/coastal-bronze-g3.jpg', name: 'Coastal Bronze G3' },
+    { url: '/textures/finishes/athens-pearl-white-g3.jpg', name: 'Athens Pearl White G3' },
+    { url: '/textures/finishes/night-sky-g3.jpg', name: 'Night Sky G3' },
+    { url: '/textures/finishes/shale-gray-g3.jpg', name: 'Shale Gray G3' },
+    { url: '/textures/finishes/azure-blue-g2.jpg', name: 'Azure Blue G2' },
+    { url: '/textures/finishes/lagoon-blue-g2.jpg', name: 'Lagoon Blue G2' }
   ];
 
   // Pool tiles for waterline borders (Mountain, Carnegie, Panama from poolTilesData)
