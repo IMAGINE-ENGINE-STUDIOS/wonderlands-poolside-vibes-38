@@ -1,4 +1,4 @@
-
+import * as React from "react";
 import { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
