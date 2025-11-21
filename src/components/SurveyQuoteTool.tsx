@@ -188,13 +188,20 @@ const SurveyQuoteTool = ({
                 * {
                   print-color-adjust: exact;
                   -webkit-print-color-adjust: exact;
+                  background: white !important;
                 }
-                .bg-gradient-to-r {
+                .bg-gradient-to-r, .bg-gradient-to-br, .bg-gradient-to-l {
                   background: linear-gradient(to right, var(--tw-gradient-stops)) !important;
                 }
                 .from-orange-500 { --tw-gradient-from: #f97316; }
                 .via-pink-500 { --tw-gradient-via: #ec4899; }
                 .to-teal-500 { --tw-gradient-to: #14b8a6; }
+                .from-orange-50, .from-orange-100, .from-teal-50, .from-teal-100, .from-coral-50, .from-coral-100,
+                .to-orange-50, .to-orange-100, .to-teal-50, .to-teal-100, .to-coral-50, .to-coral-100,
+                .from-blue-100, .to-purple-100, .from-green-100, .to-blue-100,
+                .dark\\:from-gray-800, .dark\\:from-gray-700, .dark\\:to-gray-800, .dark\\:to-gray-700 {
+                  background: white !important;
+                }
                 .text-white { color: white !important; }
                 .rounded-lg { border-radius: 0.5rem; }
                 .p-6 { padding: 1.5rem; }
@@ -207,6 +214,9 @@ const SurveyQuoteTool = ({
                 .gap-4 { gap: 1rem; }
                 .border { border: 1px solid #e5e7eb; }
                 .shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+                .border-orange-200, .border-teal-200, .border-coral-200 { border-color: #fed7aa !important; }
+                p, span, div, h1, h2, h3, h4, h5, h6 { color: #1f2937 !important; }
+                .text-orange-600, .text-teal-600, .text-coral-600, .text-muted-foreground { color: #1f2937 !important; }
               }
               @page {
                 margin: 0.5in;
@@ -232,14 +242,23 @@ const SurveyQuoteTool = ({
   };
   const calculateQuote = () => {
     if (!pool && !customProduct) return 0;
+    
+    // Check if this is a lanai product
+    const isLanaiProduct = extras?.productType === 'lanai';
+    
+    // For lanai products, use the pre-calculated total price from LanaiSection
+    if (isLanaiProduct && extras?.totalPrice) {
+      return Math.round(extras.totalPrice);
+    }
+    
     let basePrice = pool?.price || customProduct?.price || 0;
     
-    // Apply 10% discount to all pools
+    // Apply 10% discount to all pools (NOT lanai)
     if (pool) {
       basePrice = Math.round(basePrice * 0.90); // 10% discount for all pools
     }
 
-    // Apply No Pavers discount if applicable (matching product cards)
+    // Apply No Pavers discount if applicable (matching product cards) - NOT for lanai
     const hasNoPaversDiscount = extras && (extras as any).paverOption === 'No Pavers';
     if (hasNoPaversDiscount) {
       basePrice -= 2000;
@@ -719,8 +738,12 @@ const SurveyQuoteTool = ({
                   <div className="flex items-center gap-4">
                     <ImageCard src="/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.png" alt="Wonderlands Logo" className="h-16 w-16" enableZoom={false} />
                     <div>
-                      <h1 className="text-2xl font-bold">POOL QUOTATION</h1>
-                      <p className="text-orange-100">Your Dream Pool Awaits</p>
+                      <h1 className="text-2xl font-bold">
+                        {extras?.productType === 'lanai' ? 'LANAI QUOTATION' : 'POOL QUOTATION'}
+                      </h1>
+                      <p className="text-orange-100">
+                        {extras?.productType === 'lanai' ? 'Your Dream Outdoor Living Space Awaits' : 'Your Dream Pool Awaits'}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -765,32 +788,100 @@ const SurveyQuoteTool = ({
               <div className="p-6">
                 {(() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                  const isLanaiProduct = extras?.productType === 'lanai';
                   
                   return (
                     <>
                       <h3 className="font-bold text-xl mb-4 text-orange-600">
-                        {isPoolProduct ? 'Pool Specifications' : 'Product Details'}
+                        {isLanaiProduct ? 'Lanai Specifications' : isPoolProduct ? 'Pool Specifications' : 'Product Details'}
                       </h3>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div className="space-y-4">
-                          <div className="bg-gradient-to-br from-orange-100 to-teal-100 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg">
-                            <h4 className="font-semibold mb-2">
-                              {isPoolProduct ? 'Pool Model' : 'Product'}: {pool?.model || customProduct?.name}
-                            </h4>
-                            {pool?.dimensions && <p className="text-sm">Dimensions: {pool.dimensions}</p>}
-                            {pool?.depth && <p className="text-sm">Depth: {pool.depth}</p>}
-                            {customProduct && !isPoolProduct && customProduct.type && (
-                              <p className="text-sm">Type: {customProduct.type}</p>
-                            )}
-                            <div className="flex justify-between mt-2 pt-2 border-t border-orange-200 dark:border-gray-600">
-                              <span>Base Price:</span>
-                              <span className="font-semibold">${(pool?.price || customProduct?.price || 0).toLocaleString()}</span>
+                          {/* Lanai-specific details */}
+                          {isLanaiProduct ? (
+                            <div className="bg-gradient-to-br from-orange-100 to-teal-100 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg space-y-3">
+                              <h4 className="font-semibold mb-2">
+                                Lanai Type: {customProduct?.name || 'Custom Lanai'}
+                              </h4>
+                              
+                              {extras?.squareFootage && (
+                                <div className="flex justify-between py-1 border-b border-orange-200">
+                                  <span className="text-sm">Coverage Area:</span>
+                                  <span className="text-sm font-semibold">{extras.squareFootage} sq ft</span>
+                                </div>
+                              )}
+                              
+                              {extras?.pricePerSqFt && (
+                                <div className="flex justify-between py-1 border-b border-orange-200">
+                                  <span className="text-sm">Price Per Sq Ft:</span>
+                                  <span className="text-sm font-semibold">${extras.pricePerSqFt}</span>
+                                </div>
+                              )}
+                              
+                              {extras?.frameColor && (
+                                <div className="flex justify-between py-1 border-b border-orange-200">
+                                  <span className="text-sm">Frame Color:</span>
+                                  <div className="flex items-center gap-2">
+                                    <div 
+                                      className="w-4 h-4 rounded border border-gray-300"
+                                      style={{ backgroundColor: extras.frameColor.toLowerCase() }}
+                                    />
+                                    <span className="text-sm font-semibold capitalize">{extras.frameColor}</span>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {extras?.foundationType && (
+                                <div className="flex justify-between py-1 border-b border-orange-200">
+                                  <span className="text-sm">Foundation Type:</span>
+                                  <span className="text-sm font-semibold capitalize">{extras.foundationType}</span>
+                                </div>
+                              )}
+                              
+                              {extras?.paverOption && extras.foundationType === 'pavers' && (
+                                <div className="py-1">
+                                  <p className="text-sm font-medium mb-1">Paver Selection:</p>
+                                  <div className="flex items-center gap-2">
+                                    {extras.paverImage && (
+                                      <div className="w-12 h-12 rounded border overflow-hidden">
+                                        <OptimizedImage 
+                                          src={extras.paverImage} 
+                                          alt={extras.paverOption}
+                                          className="w-full h-full object-cover"
+                                          sizeConfig="thumbnail"
+                                        />
+                                      </div>
+                                    )}
+                                    <span className="text-sm font-semibold">{extras.paverOption}</span>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              <div className="flex justify-between mt-2 pt-2 border-t border-orange-200 dark:border-gray-600">
+                                <span className="font-medium">Total Price:</span>
+                                <span className="font-semibold text-lg">${(extras?.totalPrice || customProduct?.price || 0).toLocaleString()}</span>
+                              </div>
                             </div>
-                          </div>
+                          ) : (
+                            <div className="bg-gradient-to-br from-orange-100 to-teal-100 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg">
+                              <h4 className="font-semibold mb-2">
+                                {isPoolProduct ? 'Pool Model' : 'Product'}: {pool?.model || customProduct?.name}
+                              </h4>
+                              {pool?.dimensions && <p className="text-sm">Dimensions: {pool.dimensions}</p>}
+                              {pool?.depth && <p className="text-sm">Depth: {pool.depth}</p>}
+                              {customProduct && !isPoolProduct && customProduct.type && (
+                                <p className="text-sm">Type: {customProduct.type}</p>
+                              )}
+                              <div className="flex justify-between mt-2 pt-2 border-t border-orange-200 dark:border-gray-600">
+                                <span>Base Price:</span>
+                                <span className="font-semibold">${(pool?.price || customProduct?.price || 0).toLocaleString()}</span>
+                              </div>
+                            </div>
+                          )}
                           
-                          {/* Delivery & Installation - Only for non-pool products */}
-                          {!isPoolProduct && (
+                          {/* Delivery & Installation - Only for non-pool, non-lanai products */}
+                          {!isPoolProduct && !isLanaiProduct && (
                             <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
                               <h4 className="font-semibold mb-2 text-teal-600">Delivery & Installation</h4>
                               <div className="space-y-2 text-sm">
@@ -809,8 +900,8 @@ const SurveyQuoteTool = ({
                             </div>
                           )}
                           
-                          {/* Pavers Calculation with Image - Only for pool products */}
-                          {isPoolProduct && (
+                          {/* Pavers Calculation with Image - Only for pool products, NOT lanai */}
+                          {isPoolProduct && !isLanaiProduct && (
                             <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
                               <h4 className="font-semibold mb-2">Paver Deck ({surveyData.deckWidth || 3}ft Width)</h4>
                               <p className="text-sm text-muted-foreground mb-2">
@@ -1137,30 +1228,43 @@ const SurveyQuoteTool = ({
                   );
                 })()}
 
-                {/* Items Included - Only for pool products */}
+                {/* Items Included - For pool products OR lanai with included features */}
                 {(() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                  const isLanaiProduct = extras?.productType === 'lanai';
+                  const lanaiIncludedFeatures = extras?.includedFeatures || [];
                   
-                  if (!isPoolProduct) return null;
+                  if (!isPoolProduct && !isLanaiProduct) return null;
                   
                   return (
                     <div className="mb-6">
                       <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg">
-                        <h4 className="font-bold text-lg mb-3 text-orange-600">ALL POOLS INCLUDE</h4>
-                        <p className="text-sm">
-                          {getIncludedItems().filter(item => !item.startsWith("FREE")).join(", ")}
-                        </p>
+                        <h4 className="font-bold text-lg mb-3 text-orange-600">
+                          {isLanaiProduct ? 'LANAI INCLUDES' : 'ALL POOLS INCLUDE'}
+                        </h4>
+                        {isLanaiProduct && lanaiIncludedFeatures.length > 0 ? (
+                          <ul className="text-sm space-y-1">
+                            {lanaiIncludedFeatures.map((feature: string, idx: number) => (
+                              <li key={idx}>• {feature}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm">
+                            {getIncludedItems().filter(item => !item.startsWith("FREE")).join(", ")}
+                          </p>
+                        )}
                         <p className="text-xs mt-2 opacity-80">Architectural Design, Construction and permiting is included in all products, unless project scope is modified.</p>
                       </div>
                     </div>
                   );
                 })()}
 
-                {/* Pool Construction Details - Only for pool products */}
+                {/* Pool Construction Details - Only for pool products, NOT lanai */}
                 {(() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                  const isLanaiProduct = extras?.productType === 'lanai';
                   
-                  if (!isPoolProduct || !extras?.concreteConstruction) return null;
+                  if (!isPoolProduct || isLanaiProduct || !extras?.concreteConstruction) return null;
                   
                   return (
                     <div className="mb-6">
@@ -1180,11 +1284,12 @@ const SurveyQuoteTool = ({
                   );
                 })()}
 
-                {/* Warranty Information - Only for pool products */}
+                {/* Warranty Information - Only for pool products, NOT lanai */}
                 {(() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                  const isLanaiProduct = extras?.productType === 'lanai';
                   
-                  if (!isPoolProduct) return null;
+                  if (!isPoolProduct || isLanaiProduct) return null;
                   
                   return (
                     <div className="mb-6">
