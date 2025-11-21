@@ -36,6 +36,7 @@ interface Scene3DControlPanelProps {
   onAddAnnotation: (text: string, price?: number) => void;
   onAutoRotateToggle: () => void;
   onSceneChange: (scene: Scene3D) => void;
+  onSelectCategory?: (category: string | null) => void;
   sunPosition: [number, number, number];
   onSunPositionChange: (position: [number, number, number]) => void;
   fenceHeight: number;
@@ -68,6 +69,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   onAddAnnotation,
   onAutoRotateToggle,
   onSceneChange,
+  onSelectCategory,
   sunPosition,
   onSunPositionChange,
   fenceHeight,
@@ -409,6 +411,92 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                 <Paintbrush className="h-4 w-4" />
                 <h4 className="font-medium">Textures</h4>
               </div>
+
+              {/* Component Selection */}
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold">Select Component</Label>
+                <div className="grid grid-cols-2 gap-1">
+                  <Button
+                    variant={selectedCategory === 'pool' ? 'default' : 'outline'}
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => {
+                      if (onSelectCategory) onSelectCategory('pool');
+                    }}
+                  >
+                    Pool Finish
+                  </Button>
+                  <Button
+                    variant={selectedCategory === 'deck' ? 'default' : 'outline'}
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => {
+                      if (onSelectCategory) onSelectCategory('deck');
+                    }}
+                  >
+                    Deck Pavers
+                  </Button>
+                  <Button
+                    variant={selectedCategory === 'coping' ? 'default' : 'outline'}
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => {
+                      if (onSelectCategory) onSelectCategory('coping');
+                    }}
+                  >
+                    Coping
+                  </Button>
+                  <Button
+                    variant={selectedCategory === 'waterline' ? 'default' : 'outline'}
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => {
+                      if (onSelectCategory) onSelectCategory('waterline');
+                    }}
+                  >
+                    Waterline
+                  </Button>
+                  <Button
+                    variant={selectedCategory === 'water' ? 'default' : 'outline'}
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => {
+                      if (onSelectCategory) onSelectCategory('water');
+                    }}
+                  >
+                    Water
+                  </Button>
+                </div>
+              </div>
+
+              {/* Pool Sub-selections */}
+              {selectedCategory === 'pool' && (
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold">Pool Sub-Component</Label>
+                  <div className="grid grid-cols-2 gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => {
+                        // Select pool walls
+                      }}
+                    >
+                      Walls
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => {
+                        // Select pool floor
+                      }}
+                    >
+                      Floor
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {/* Texture Category Tabs */}
               <div className="grid grid-cols-2 gap-2">
