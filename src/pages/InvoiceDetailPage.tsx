@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Printer, Send, Edit2, Save, X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Printer, Send, Edit2, Save, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Invoice {
   id: string;
@@ -51,21 +51,17 @@ const InvoiceDetailPage = () => {
   const fetchInvoice = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('invoices')
-        .select('*')
-        .eq('id', invoiceId)
-        .single();
+      const { data, error } = await supabase.from("invoices").select("*").eq("id", invoiceId).single();
 
       if (error) throw error;
       const invoiceData = {
         ...data,
-        line_items: Array.isArray(data.line_items) ? data.line_items : JSON.parse(data.line_items as string)
+        line_items: Array.isArray(data.line_items) ? data.line_items : JSON.parse(data.line_items as string),
       };
       setInvoice(invoiceData as Invoice);
       setEditedInvoice(invoiceData as Invoice);
     } catch (error) {
-      console.error('Error fetching invoice:', error);
+      console.error("Error fetching invoice:", error);
       toast({
         title: "Error",
         description: "Failed to fetch invoice details",
@@ -77,7 +73,7 @@ const InvoiceDetailPage = () => {
   };
 
   const handlePrint = async () => {
-    const invoiceElement = document.querySelector('[data-invoice-content]') as HTMLElement;
+    const invoiceElement = document.querySelector("[data-invoice-content]") as HTMLElement;
     if (!invoiceElement) {
       // Fallback to window.print if element not found
       window.print();
@@ -86,28 +82,28 @@ const InvoiceDetailPage = () => {
 
     try {
       // @ts-ignore - html2pdf is loaded via CDN
-      const html2pdf = (await import('html2pdf.js')).default;
-      
+      const html2pdf = (await import("html2pdf.js")).default;
+
       const opt = {
         margin: 0.5,
         filename: `invoice-${invoice?.invoice_number || Date.now()}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
+        image: { type: "jpeg" as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' as const }
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" as const },
       };
 
       await html2pdf().set(opt).from(invoiceElement).save();
-      
+
       toast({
         title: "Success!",
-        description: "Invoice downloaded as PDF."
+        description: "Invoice downloaded as PDF.",
       });
     } catch (error) {
       console.error("PDF generation failed:", error);
       toast({
         title: "Error",
         description: "Failed to generate PDF. Falling back to print...",
-        variant: "destructive"
+        variant: "destructive",
       });
       window.print();
     }
@@ -117,7 +113,7 @@ const InvoiceDetailPage = () => {
     if (!invoice) return;
 
     try {
-      await supabase.functions.invoke('send-invoice-email', {
+      await supabase.functions.invoke("send-invoice-email", {
         body: {
           invoiceId: invoice.id,
           customerEmail: invoice.customer_email,
@@ -125,10 +121,7 @@ const InvoiceDetailPage = () => {
         },
       });
 
-      await supabase
-        .from('invoices')
-        .update({ sent_at: new Date().toISOString() })
-        .eq('id', invoice.id);
+      await supabase.from("invoices").update({ sent_at: new Date().toISOString() }).eq("id", invoice.id);
 
       toast({
         title: "Success",
@@ -150,7 +143,7 @@ const InvoiceDetailPage = () => {
 
     try {
       const { error } = await supabase
-        .from('invoices')
+        .from("invoices")
         .update({
           customer_name: editedInvoice.customer_name,
           customer_email: editedInvoice.customer_email,
@@ -159,7 +152,7 @@ const InvoiceDetailPage = () => {
           notes: editedInvoice.notes,
           terms_conditions: editedInvoice.terms_conditions,
         })
-        .eq('id', invoiceId);
+        .eq("id", invoiceId);
 
       if (error) throw error;
 
@@ -181,11 +174,16 @@ const InvoiceDetailPage = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'draft': return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'sent': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'paid': return 'bg-green-100 text-green-800 border-green-200';
-      case 'overdue': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case "draft":
+        return "bg-gray-100 text-gray-800 border-gray-200";
+      case "sent":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "paid":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "overdue":
+        return "bg-red-100 text-red-800 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -203,7 +201,7 @@ const InvoiceDetailPage = () => {
         <Card>
           <CardContent className="text-center py-12">
             <p className="text-muted-foreground">Invoice not found</p>
-            <Button onClick={() => navigate('/admin')} className="mt-4">
+            <Button onClick={() => navigate("/admin")} className="mt-4">
               Go Back
             </Button>
           </CardContent>
@@ -215,7 +213,7 @@ const InvoiceDetailPage = () => {
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-6 flex items-center justify-between no-print">
-        <Button onClick={() => navigate('/admin')} variant="outline">
+        <Button onClick={() => navigate("/admin")} variant="outline">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
@@ -238,7 +236,13 @@ const InvoiceDetailPage = () => {
           )}
           {editMode && (
             <>
-              <Button onClick={() => { setEditMode(false); setEditedInvoice(invoice); }} variant="outline">
+              <Button
+                onClick={() => {
+                  setEditMode(false);
+                  setEditedInvoice(invoice);
+                }}
+                variant="outline"
+              >
                 <X className="h-4 w-4 mr-2" />
                 Cancel
               </Button>
@@ -257,9 +261,9 @@ const InvoiceDetailPage = () => {
           <div className="bg-gradient-to-r from-primary to-coral p-8 text-white">
             <div className="flex justify-between items-start">
               <div>
-                <img 
-                  src="/lovable-uploads/8ba4beaa-5f82-4e93-9c4e-6bdbf959c46a.png" 
-                  alt="Wonderlands Logo" 
+                <img
+                  src="/lovable-uploads/8ba4beaa-5f82-4e93-9c4e-6bdbf959c46a.png"
+                  alt="Wonderlands Logo"
                   className="h-16 mb-4"
                 />
                 <h1 className="text-4xl font-bold mb-2">INVOICE</h1>
@@ -269,7 +273,9 @@ const InvoiceDetailPage = () => {
                 <Badge className={getStatusColor(invoice.payment_status) + " text-sm px-3 py-1 mb-2"}>
                   {invoice.payment_status.toUpperCase()}
                 </Badge>
-                <p className="text-sm opacity-90 mt-2">Invoice Date: {new Date(invoice.invoice_date).toLocaleDateString()}</p>
+                <p className="text-sm opacity-90 mt-2">
+                  Invoice Date: {new Date(invoice.invoice_date).toLocaleDateString()}
+                </p>
                 <p className="text-sm opacity-90">Due Date: {new Date(invoice.due_date).toLocaleDateString()}</p>
               </div>
             </div>
@@ -283,21 +289,29 @@ const InvoiceDetailPage = () => {
                 {editMode ? (
                   <div className="space-y-2">
                     <Input
-                      value={editedInvoice?.customer_name || ''}
-                      onChange={(e) => setEditedInvoice(prev => prev ? {...prev, customer_name: e.target.value} : null)}
+                      value={editedInvoice?.customer_name || ""}
+                      onChange={(e) =>
+                        setEditedInvoice((prev) => (prev ? { ...prev, customer_name: e.target.value } : null))
+                      }
                       className="font-semibold"
                     />
                     <Input
-                      value={editedInvoice?.customer_email || ''}
-                      onChange={(e) => setEditedInvoice(prev => prev ? {...prev, customer_email: e.target.value} : null)}
+                      value={editedInvoice?.customer_email || ""}
+                      onChange={(e) =>
+                        setEditedInvoice((prev) => (prev ? { ...prev, customer_email: e.target.value } : null))
+                      }
                     />
                     <Input
-                      value={editedInvoice?.customer_phone || ''}
-                      onChange={(e) => setEditedInvoice(prev => prev ? {...prev, customer_phone: e.target.value} : null)}
+                      value={editedInvoice?.customer_phone || ""}
+                      onChange={(e) =>
+                        setEditedInvoice((prev) => (prev ? { ...prev, customer_phone: e.target.value } : null))
+                      }
                     />
                     <Textarea
-                      value={editedInvoice?.customer_address || ''}
-                      onChange={(e) => setEditedInvoice(prev => prev ? {...prev, customer_address: e.target.value} : null)}
+                      value={editedInvoice?.customer_address || ""}
+                      onChange={(e) =>
+                        setEditedInvoice((prev) => (prev ? { ...prev, customer_address: e.target.value } : null))
+                      }
                       rows={2}
                     />
                   </div>
@@ -305,7 +319,9 @@ const InvoiceDetailPage = () => {
                   <>
                     <p className="font-semibold text-lg">{invoice.customer_name}</p>
                     <p className="text-sm text-muted-foreground">{invoice.customer_email}</p>
-                    {invoice.customer_phone && <p className="text-sm text-muted-foreground">{invoice.customer_phone}</p>}
+                    {invoice.customer_phone && (
+                      <p className="text-sm text-muted-foreground">{invoice.customer_phone}</p>
+                    )}
                     <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">{invoice.customer_address}</p>
                   </>
                 )}
@@ -331,14 +347,19 @@ const InvoiceDetailPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {invoice.line_items && invoice.line_items.map((item: any, index: number) => (
-                    <tr key={index} className="border-b border-gray-200">
-                      <td className="py-3">{item.description}</td>
-                      <td className="text-center py-3">{item.quantity || 1}</td>
-                      <td className="text-right py-3">${(item.unit_price || item.rate || item.total || 0).toLocaleString()}</td>
-                      <td className="text-right py-3 font-semibold">${(item.total || item.amount || 0).toLocaleString()}</td>
-                    </tr>
-                  ))}
+                  {invoice.line_items &&
+                    invoice.line_items.map((item: any, index: number) => (
+                      <tr key={index} className="border-b border-gray-200">
+                        <td className="py-3">{item.description}</td>
+                        <td className="text-center py-3">{item.quantity || 1}</td>
+                        <td className="text-right py-3">
+                          ${(item.unit_price || item.rate || item.total || 0).toLocaleString()}
+                        </td>
+                        <td className="text-right py-3 font-semibold">
+                          ${(item.total || item.amount || 0).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -389,8 +410,8 @@ const InvoiceDetailPage = () => {
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Notes</h3>
                 {editMode ? (
                   <Textarea
-                    value={editedInvoice?.notes || ''}
-                    onChange={(e) => setEditedInvoice(prev => prev ? {...prev, notes: e.target.value} : null)}
+                    value={editedInvoice?.notes || ""}
+                    onChange={(e) => setEditedInvoice((prev) => (prev ? { ...prev, notes: e.target.value } : null))}
                     rows={3}
                   />
                 ) : (
@@ -405,8 +426,10 @@ const InvoiceDetailPage = () => {
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Terms & Conditions</h3>
                 {editMode ? (
                   <Textarea
-                    value={editedInvoice?.terms_conditions || ''}
-                    onChange={(e) => setEditedInvoice(prev => prev ? {...prev, terms_conditions: e.target.value} : null)}
+                    value={editedInvoice?.terms_conditions || ""}
+                    onChange={(e) =>
+                      setEditedInvoice((prev) => (prev ? { ...prev, terms_conditions: e.target.value } : null))
+                    }
                     rows={3}
                   />
                 ) : (
@@ -418,7 +441,7 @@ const InvoiceDetailPage = () => {
             {/* Footer */}
             <div className="text-center pt-6 border-t">
               <p className="text-sm text-muted-foreground">Thank you for your business!</p>
-              <p className="text-xs text-muted-foreground mt-1">Questions? Contact us at contact@wonderlandspools.com</p>
+              <p className="text-xs text-muted-foreground mt-1">Questions? Contact us at sales@wonderlandsworld.com</p>
             </div>
           </div>
         </CardContent>
