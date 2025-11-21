@@ -182,41 +182,13 @@ const SurveyQuoteTool = ({
                 body { 
                   margin: 0; 
                   padding: 20px;
-                  background: white !important;
                   font-family: system-ui, -apple-system, sans-serif;
                 }
                 * {
-                  print-color-adjust: exact;
-                  -webkit-print-color-adjust: exact;
-                  background: white !important;
+                  print-color-adjust: exact !important;
+                  -webkit-print-color-adjust: exact !important;
+                  color-adjust: exact !important;
                 }
-                .bg-gradient-to-r, .bg-gradient-to-br, .bg-gradient-to-l {
-                  background: linear-gradient(to right, var(--tw-gradient-stops)) !important;
-                }
-                .from-orange-500 { --tw-gradient-from: #f97316; }
-                .via-pink-500 { --tw-gradient-via: #ec4899; }
-                .to-teal-500 { --tw-gradient-to: #14b8a6; }
-                .from-orange-50, .from-orange-100, .from-teal-50, .from-teal-100, .from-coral-50, .from-coral-100,
-                .to-orange-50, .to-orange-100, .to-teal-50, .to-teal-100, .to-coral-50, .to-coral-100,
-                .from-blue-100, .to-purple-100, .from-green-100, .to-blue-100,
-                .dark\\:from-gray-800, .dark\\:from-gray-700, .dark\\:to-gray-800, .dark\\:to-gray-700 {
-                  background: white !important;
-                }
-                .text-white { color: white !important; }
-                .rounded-lg { border-radius: 0.5rem; }
-                .p-6 { padding: 1.5rem; }
-                .text-center { text-align: center; }
-                .text-2xl { font-size: 1.5rem; line-height: 2rem; }
-                .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
-                .font-bold { font-weight: 700; }
-                .mb-2 { margin-bottom: 0.5rem; }
-                .grid { display: grid; }
-                .gap-4 { gap: 1rem; }
-                .border { border: 1px solid #e5e7eb; }
-                .shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
-                .border-orange-200, .border-teal-200, .border-coral-200 { border-color: #fed7aa !important; }
-                p, span, div, h1, h2, h3, h4, h5, h6 { color: #1f2937 !important; }
-                .text-orange-600, .text-teal-600, .text-coral-600, .text-muted-foreground { color: #1f2937 !important; }
               }
               @page {
                 margin: 0.5in;
@@ -238,6 +210,85 @@ const SurveyQuoteTool = ({
         </html>
       `);
       printWindow.document.close();
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    const quoteElement = document.querySelector('[data-quote-content]') as HTMLElement;
+    if (!quoteElement) return;
+
+    try {
+      // @ts-ignore - html2pdf is loaded via CDN
+      const html2pdf = (await import('html2pdf.js')).default;
+      
+      const opt = {
+        margin: 0.5,
+        filename: `pool-quote-${Date.now()}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+
+      await html2pdf().set(opt).from(quoteElement).save();
+      
+      toast({
+        title: "Success!",
+        description: "Your quote has been downloaded as PDF."
+      });
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try printing instead.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const [emailAddress, setEmailAddress] = useState("");
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+
+  const handleEmailQuote = async () => {
+    if (!emailAddress) {
+      toast({
+        title: "Email required",
+        description: "Please enter an email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      const quoteData = {
+        customerEmail: emailAddress,
+        customerName: surveyData.name,
+        poolModel: pool?.model || customProduct?.name || "Custom Product",
+        totalAmount: calculateQuote(),
+        selectedOptions: selectedOptions,
+        extras: extras,
+      };
+
+      const { data, error } = await supabase.functions.invoke('send-quote-email', {
+        body: quoteData
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Email sent!",
+        description: `Quote has been sent to ${emailAddress}`
+      });
+      setEmailAddress("");
+    } catch (error) {
+      console.error("Email sending failed:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send email. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSendingEmail(false);
     }
   };
   const calculateQuote = () => {
@@ -1377,17 +1428,52 @@ const SurveyQuoteTool = ({
                  </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-wrap gap-3 mt-6 justify-center print-hide">
-                  <Button variant="default" className="bg-gradient-to-r from-orange-500 to-teal-500 hover:from-orange-600 hover:to-teal-600 text-white" onClick={handlePrintQuote}>
-                    <Printer className="h-4 w-4 mr-2" />
-                    Print Quote
-                  </Button>
-                  <Button variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-50" onClick={() => setCurrentStep('options')}>
-                    Modify Options
-                  </Button>
-                  <Button variant="default" className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white" onClick={handleScheduleInstallation}>
-                    Schedule Installation
-                  </Button>
+                <div className="space-y-4 mt-6 print-hide">
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    <Button variant="default" className="bg-gradient-to-r from-orange-500 to-teal-500 hover:from-orange-600 hover:to-teal-600 text-white" onClick={handlePrintQuote}>
+                      <Printer className="h-4 w-4 mr-2" />
+                      Print Quote
+                    </Button>
+                    <Button variant="default" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white" onClick={handleDownloadPDF}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download PDF
+                    </Button>
+                    <Button variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-50" onClick={() => setCurrentStep('options')}>
+                      Modify Options
+                    </Button>
+                    <Button variant="default" className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white" onClick={handleScheduleInstallation}>
+                      Schedule Installation
+                    </Button>
+                  </div>
+                  
+                  {/* Email Quote Section */}
+                  <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
+                    <Input
+                      type="email"
+                      placeholder="Enter email address"
+                      value={emailAddress}
+                      onChange={(e) => setEmailAddress(e.target.value)}
+                      className="max-w-xs"
+                    />
+                    <Button 
+                      variant="default" 
+                      className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
+                      onClick={handleEmailQuote}
+                      disabled={isSendingEmail}
+                    >
+                      {isSendingEmail ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="h-4 w-4 mr-2" />
+                          Email Quote
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
