@@ -252,166 +252,174 @@ const InvoiceDetailPage = () => {
       </div>
 
       <Card className="print:shadow-none" data-invoice-content>
-        <CardContent className="p-8">
-          {/* Header */}
-          <div className="flex justify-between items-start mb-8">
-            <div>
-              <img 
-                src="/lovable-uploads/8ba4beaa-5f82-4e93-9c4e-6bdbf959c46a.png" 
-                alt="Wonderlands Logo" 
-                className="h-16 mb-2"
-              />
-              <h1 className="text-3xl font-bold text-primary">INVOICE</h1>
-            </div>
-            <div className="text-right">
-              <p className="font-semibold text-lg">{invoice.invoice_number}</p>
-              <Badge className={getStatusColor(invoice.payment_status)}>
-                {invoice.payment_status.toUpperCase()}
-              </Badge>
-            </div>
-          </div>
-
-          {/* Company & Customer Info */}
-          <div className="grid grid-cols-2 gap-8 mb-8">
-            <div>
-              <h3 className="font-semibold mb-2">From:</h3>
-              <p className="font-bold">Wonderlands Pools & Spas</p>
-              <p className="text-sm text-muted-foreground">Florida, USA</p>
-              <p className="text-sm text-muted-foreground">info@wonderlands.com</p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">Bill To:</h3>
-              {editMode && editedInvoice ? (
-                <div className="space-y-2">
-                  <Input
-                    value={editedInvoice.customer_name}
-                    onChange={(e) => setEditedInvoice({ ...editedInvoice, customer_name: e.target.value })}
-                    className="font-semibold"
-                  />
-                  <Input
-                    value={editedInvoice.customer_email}
-                    onChange={(e) => setEditedInvoice({ ...editedInvoice, customer_email: e.target.value })}
-                  />
-                  <Input
-                    value={editedInvoice.customer_phone || ""}
-                    onChange={(e) => setEditedInvoice({ ...editedInvoice, customer_phone: e.target.value })}
-                  />
-                  <Input
-                    value={editedInvoice.customer_address}
-                    onChange={(e) => setEditedInvoice({ ...editedInvoice, customer_address: e.target.value })}
-                  />
-                </div>
-              ) : (
-                <>
-                  <p className="font-semibold">{invoice.customer_name}</p>
-                  <p className="text-sm text-muted-foreground">{invoice.customer_email}</p>
-                  {invoice.customer_phone && (
-                    <p className="text-sm text-muted-foreground">{invoice.customer_phone}</p>
-                  )}
-                  <p className="text-sm text-muted-foreground">{invoice.customer_address}</p>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Invoice Details */}
-          <div className="grid grid-cols-3 gap-4 mb-8 p-4 bg-muted rounded-lg">
-            <div>
-              <p className="text-sm text-muted-foreground">Invoice Date</p>
-              <p className="font-semibold">{new Date(invoice.invoice_date).toLocaleDateString()}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Due Date</p>
-              <p className="font-semibold">{new Date(invoice.due_date).toLocaleDateString()}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Payment Terms</p>
-              <p className="font-semibold">{invoice.payment_terms}</p>
-            </div>
-          </div>
-
-          {/* Line Items Table */}
-          <div className="mb-8">
-            <table className="w-full">
-              <thead className="border-b-2 border-primary">
-                <tr>
-                  <th className="text-left py-3 font-semibold">Description</th>
-                  <th className="text-center py-3 font-semibold">Qty</th>
-                  <th className="text-right py-3 font-semibold">Rate</th>
-                  <th className="text-right py-3 font-semibold">Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {(Array.isArray(invoice.line_items) ? invoice.line_items : []).map((item: any, index: number) => (
-                  <tr key={index}>
-                    <td className="py-3">{item.description}</td>
-                    <td className="py-3 text-center">{item.quantity}</td>
-                    <td className="py-3 text-right">${item.rate.toFixed(2)}</td>
-                    <td className="py-3 text-right font-semibold">${item.amount.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Totals */}
-          <div className="flex justify-end mb-8">
-            <div className="w-64 space-y-2">
-              <div className="flex justify-between">
-                <span>Subtotal:</span>
-                <span className="font-semibold">${invoice.subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Tax ({invoice.tax_rate}%):</span>
-                <span className="font-semibold">${invoice.tax_amount.toFixed(2)}</span>
-              </div>
-              {invoice.discount_amount > 0 && (
-                <div className="flex justify-between">
-                  <span>Discount:</span>
-                  <span className="font-semibold">-${invoice.discount_amount.toFixed(2)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-lg font-bold border-t-2 border-primary pt-2">
-                <span>Total:</span>
-                <span className="text-primary">${invoice.total_amount.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Notes */}
-          {(invoice.notes || editMode) && (
-            <div className="mb-6">
-              <h3 className="font-semibold mb-2">Notes:</h3>
-              {editMode && editedInvoice ? (
-                <Textarea
-                  value={editedInvoice.notes || ""}
-                  onChange={(e) => setEditedInvoice({ ...editedInvoice, notes: e.target.value })}
-                  rows={3}
+        <CardContent className="p-0">
+          {/* Invoice Header - Company Info */}
+          <div className="bg-gradient-to-r from-primary to-coral p-8 text-white">
+            <div className="flex justify-between items-start">
+              <div>
+                <img 
+                  src="/lovable-uploads/8ba4beaa-5f82-4e93-9c4e-6bdbf959c46a.png" 
+                  alt="Wonderlands Logo" 
+                  className="h-16 mb-4"
                 />
-              ) : (
-                <p className="text-sm text-muted-foreground">{invoice.notes}</p>
-              )}
+                <h1 className="text-4xl font-bold mb-2">INVOICE</h1>
+                <p className="text-xl opacity-90">{invoice.invoice_number}</p>
+              </div>
+              <div className="text-right">
+                <Badge className={getStatusColor(invoice.payment_status) + " text-sm px-3 py-1 mb-2"}>
+                  {invoice.payment_status.toUpperCase()}
+                </Badge>
+                <p className="text-sm opacity-90 mt-2">Invoice Date: {new Date(invoice.invoice_date).toLocaleDateString()}</p>
+                <p className="text-sm opacity-90">Due Date: {new Date(invoice.due_date).toLocaleDateString()}</p>
+              </div>
             </div>
-          )}
-
-          {/* Terms */}
-          <div className="border-t pt-6">
-            <h3 className="font-semibold mb-2">Terms & Conditions:</h3>
-            {editMode && editedInvoice ? (
-              <Textarea
-                value={editedInvoice.terms_conditions || ""}
-                onChange={(e) => setEditedInvoice({ ...editedInvoice, terms_conditions: e.target.value })}
-                rows={3}
-              />
-            ) : (
-              <p className="text-sm text-muted-foreground">{invoice.terms_conditions}</p>
-            )}
           </div>
 
-          {/* Footer */}
-          <div className="mt-8 pt-6 border-t text-center text-sm text-muted-foreground">
-            <p>Thank you for your business!</p>
-            <p>For questions, contact us at info@wonderlands.com</p>
+          <div className="p-8">
+            {/* Bill To Section */}
+            <div className="grid grid-cols-2 gap-8 mb-8">
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Bill To</h3>
+                {editMode ? (
+                  <div className="space-y-2">
+                    <Input
+                      value={editedInvoice?.customer_name || ''}
+                      onChange={(e) => setEditedInvoice(prev => prev ? {...prev, customer_name: e.target.value} : null)}
+                      className="font-semibold"
+                    />
+                    <Input
+                      value={editedInvoice?.customer_email || ''}
+                      onChange={(e) => setEditedInvoice(prev => prev ? {...prev, customer_email: e.target.value} : null)}
+                    />
+                    <Input
+                      value={editedInvoice?.customer_phone || ''}
+                      onChange={(e) => setEditedInvoice(prev => prev ? {...prev, customer_phone: e.target.value} : null)}
+                    />
+                    <Textarea
+                      value={editedInvoice?.customer_address || ''}
+                      onChange={(e) => setEditedInvoice(prev => prev ? {...prev, customer_address: e.target.value} : null)}
+                      rows={2}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <p className="font-semibold text-lg">{invoice.customer_name}</p>
+                    <p className="text-sm text-muted-foreground">{invoice.customer_email}</p>
+                    {invoice.customer_phone && <p className="text-sm text-muted-foreground">{invoice.customer_phone}</p>}
+                    <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">{invoice.customer_address}</p>
+                  </>
+                )}
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">From</h3>
+                <p className="font-semibold text-lg">Wonderlands Pools & Spas</p>
+                <p className="text-sm text-muted-foreground">Florida's Premier Pool Installation</p>
+                <p className="text-sm text-muted-foreground">contact@wonderlandspools.com</p>
+                <p className="text-sm text-muted-foreground">(555) 123-4567</p>
+              </div>
+            </div>
+
+            {/* Line Items Table */}
+            <div className="mb-8">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b-2 border-primary">
+                    <th className="text-left py-3 font-semibold">Description</th>
+                    <th className="text-center py-3 font-semibold w-24">Qty</th>
+                    <th className="text-right py-3 font-semibold w-32">Rate</th>
+                    <th className="text-right py-3 font-semibold w-32">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoice.line_items && invoice.line_items.map((item: any, index: number) => (
+                    <tr key={index} className="border-b border-gray-200">
+                      <td className="py-3">{item.description}</td>
+                      <td className="text-center py-3">{item.quantity || 1}</td>
+                      <td className="text-right py-3">${(item.unit_price || item.rate || item.total || 0).toLocaleString()}</td>
+                      <td className="text-right py-3 font-semibold">${(item.total || item.amount || 0).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Totals */}
+            <div className="flex justify-end mb-8">
+              <div className="w-80">
+                <div className="flex justify-between py-2 border-b">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="font-semibold">${invoice.subtotal.toLocaleString()}</span>
+                </div>
+                {invoice.tax_amount > 0 && (
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-muted-foreground">Tax ({invoice.tax_rate}%)</span>
+                    <span className="font-semibold">${invoice.tax_amount.toLocaleString()}</span>
+                  </div>
+                )}
+                {invoice.discount_amount > 0 && (
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-muted-foreground">Discount</span>
+                    <span className="font-semibold text-green-600">-${invoice.discount_amount.toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="flex justify-between py-3 bg-gradient-to-r from-primary/10 to-coral/10 px-4 rounded-lg mt-2">
+                  <span className="text-lg font-bold">Total Due</span>
+                  <span className="text-2xl font-bold text-primary">${invoice.total_amount.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Terms */}
+            <div className="grid grid-cols-2 gap-8 mb-8 pb-8 border-b">
+              <div>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Payment Terms</h3>
+                <p className="text-sm">{invoice.payment_terms}</p>
+              </div>
+              {invoice.sent_at && (
+                <div>
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Sent Date</h3>
+                  <p className="text-sm">{new Date(invoice.sent_at).toLocaleDateString()}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Notes */}
+            {(invoice.notes || editMode) && (
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Notes</h3>
+                {editMode ? (
+                  <Textarea
+                    value={editedInvoice?.notes || ''}
+                    onChange={(e) => setEditedInvoice(prev => prev ? {...prev, notes: e.target.value} : null)}
+                    rows={3}
+                  />
+                ) : (
+                  <p className="text-sm whitespace-pre-line">{invoice.notes}</p>
+                )}
+              </div>
+            )}
+
+            {/* Terms & Conditions */}
+            {(invoice.terms_conditions || editMode) && (
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Terms & Conditions</h3>
+                {editMode ? (
+                  <Textarea
+                    value={editedInvoice?.terms_conditions || ''}
+                    onChange={(e) => setEditedInvoice(prev => prev ? {...prev, terms_conditions: e.target.value} : null)}
+                    rows={3}
+                  />
+                ) : (
+                  <p className="text-sm whitespace-pre-line">{invoice.terms_conditions}</p>
+                )}
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="text-center pt-6 border-t">
+              <p className="text-sm text-muted-foreground">Thank you for your business!</p>
+              <p className="text-xs text-muted-foreground mt-1">Questions? Contact us at contact@wonderlandspools.com</p>
+            </div>
           </div>
         </CardContent>
       </Card>
