@@ -59,7 +59,21 @@ export function UnifiedPoolVisualizer({
 }: UnifiedPoolVisualizerProps) {
   // Validate scene before using it
   const validatedScene = validateScene(initialScene);
+  
+  console.log('🎬 UnifiedPoolVisualizer: Initializing with scene', {
+    poolFinish: validatedScene.pool.finish?.url,
+    paver: validatedScene.deck.paver?.url,
+    coping: validatedScene.deck.coping?.url,
+    waterline: validatedScene.deck.waterline?.url,
+    timestamp: new Date().toISOString()
+  });
+  
   const { state: scene, set: setScene, undo, redo, canUndo, canRedo, reset } = useUndoRedo<Scene3D>(validatedScene);
+  
+  const handleSceneRecover = (recoveredScene: Scene3D) => {
+    console.log('🛡️ Scene recovered with fallback textures');
+    reset(recoveredScene);
+  };
   const [selectedObject, setSelectedObject] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [transformMode, setTransformMode] = useState<TransformMode>('translate');
@@ -581,7 +595,7 @@ export function UnifiedPoolVisualizer({
           )}
         </div>
 
-        <Scene3DErrorBoundary>
+        <Scene3DErrorBoundary scene={scene} onRecover={handleSceneRecover}>
           <Suspense fallback={
             <div className="absolute inset-0 flex items-center justify-center bg-background/95">
               <div className="text-center space-y-4">

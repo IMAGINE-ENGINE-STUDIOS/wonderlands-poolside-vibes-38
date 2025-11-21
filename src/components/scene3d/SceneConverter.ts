@@ -86,6 +86,13 @@ export function productToScene(
   paverTypes: any[],
   finishOptions: any[]
 ): Scene3D {
+  console.log('🔄 SceneConverter: productToScene called', {
+    product: product?.model || product?.name,
+    extras: selectedExtras,
+    paverTypesCount: paverTypes?.length || 0,
+    finishOptionsCount: finishOptions?.length || 0
+  });
+
   // Parse dimensions from product data (e.g., "16' × 40'")
   const { length, width } = parseDimensions(product.dimensions);
   
@@ -101,6 +108,16 @@ export function productToScene(
       
   const paverTextureUrl = getPaverTextureUrl(selectedExtras.paverOption, paverTypes);
   const copingTextureUrl = getPaverTextureUrl(selectedExtras.copingPaverOption, paverTypes);
+
+  console.log('🎨 SceneConverter: Texture URLs resolved', {
+    linerTextureUrl,
+    paverTextureUrl,
+    copingTextureUrl,
+    finish: selectedExtras.finish,
+    linerOption: selectedExtras.linerOption,
+    paverOption: selectedExtras.paverOption,
+    copingPaverOption: selectedExtras.copingPaverOption
+  });
 
   // Create basic pool shape points (rectangle)
   const poolPoints: Point[] = [
