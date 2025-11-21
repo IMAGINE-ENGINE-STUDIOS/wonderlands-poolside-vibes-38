@@ -821,11 +821,11 @@ export function UnifiedPoolVisualizer({
             />
           </group>
 
-          {/* Deck only - attached to coping */}
+          {/* Deck only - attached to coping, NO pool mesh */}
           {scene.deck.points && scene.deck.points.length > 0 && (
             <group position={[0, 0, 0]} onClick={() => setSelectedCategory('deck')}>
               <Pool3DScene
-                points={scene.pool.points}
+                points={[]} // Empty points = no pool mesh rendered
                 depthPoints={[]} // No pool walls/floor in this group
                 hardscapePoints={scene.deck.points}
                 linerTextureUrl={linerTextureUrl}
@@ -855,7 +855,7 @@ export function UnifiedPoolVisualizer({
                 copingTextureOffset={[0, 0]}
                 waterlineTextureOffset={[0, 0]}
                 linerTextureOffset={[0, 0]}
-                poolPosition={scene.pool.position} // Pass pool offset for proper coping/waterline alignment
+                poolPosition={[0, 0, 0]}
                 copingHeight={scene.deck.copingHeight || 2 / 12}
                 deckHeight={scene.deck.deckHeight || 2 / 12}
                 copingWidth={scene.deck.copingWidth || 1.0}
