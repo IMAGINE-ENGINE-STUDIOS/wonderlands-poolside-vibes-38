@@ -604,7 +604,15 @@ const CopingMesh: React.FC<{
   const isSelected = selectedCategory === 'coping';
 
   return (
-    <mesh key={copingTexture?.uuid || 'coping-mesh'} geometry={copingGeometry} position={[0, 0, 0]}>
+    <mesh 
+      key={copingTexture?.uuid || 'coping-mesh'} 
+      geometry={copingGeometry} 
+      position={[0, 0, 0]}
+      onClick={(e) => {
+        e.stopPropagation();
+        // This makes coping selectable
+      }}
+    >
       <meshStandardMaterial
         map={copingTexture}
         color="#ffffff"
