@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import * as React from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -375,23 +375,23 @@ const PoolDetails = () => {
   const {
     toast
   } = useToast();
-  const [activePanel, setActivePanel] = useState<ActivePanel>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [marketplaceProducts, setMarketplaceProducts] = useState<MarketplaceProduct[]>([]);
-  const [searchResults, setSearchResults] = useState<MarketplaceProduct[]>([]);
-  const [selectedProducts, setSelectedProducts] = useState<MarketplaceProduct[]>([]);
-  const [paverArea, setPaverArea] = useState<number>(100); // square feet
-  const [copingLength, setCopingLength] = useState<number>(50); // linear feet
-  const [paverQuantity, setPaverQuantity] = useState<number>(50); // quantity of pavers
-  const [copingQuantity, setCopingQuantity] = useState<number>(25); // quantity of coping pieces
-  const [showPriceDropdown, setShowPriceDropdown] = useState(false);
-  const [coverColor, setCoverColor] = useState<string>('Light Blue');
-  const [coverEngine, setCoverEngine] = useState<string>('');
-  const [editorActive, setEditorActive] = useState(false);
-  const [showFinancing, setShowFinancing] = useState(false);
-  const [paverSurfaceArea, setPaverSurfaceArea] = useState<string>('');
-  const [showQuoteModal, setShowQuoteModal] = useState(false);
-  const [selectedExtras, setSelectedExtras] = useState<any>(null);
+  const [activePanel, setActivePanel] = React.useState<ActivePanel>(null);
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [marketplaceProducts, setMarketplaceProducts] = React.useState<MarketplaceProduct[]>([]);
+  const [searchResults, setSearchResults] = React.useState<MarketplaceProduct[]>([]);
+  const [selectedProducts, setSelectedProducts] = React.useState<MarketplaceProduct[]>([]);
+  const [paverArea, setPaverArea] = React.useState<number>(100); // square feet
+  const [copingLength, setCopingLength] = React.useState<number>(50); // linear feet
+  const [paverQuantity, setPaverQuantity] = React.useState<number>(50); // quantity of pavers
+  const [copingQuantity, setCopingQuantity] = React.useState<number>(25); // quantity of coping pieces
+  const [showPriceDropdown, setShowPriceDropdown] = React.useState(false);
+  const [coverColor, setCoverColor] = React.useState<string>('Light Blue');
+  const [coverEngine, setCoverEngine] = React.useState<string>('');
+  const [editorActive, setEditorActive] = React.useState(false);
+  const [showFinancing, setShowFinancing] = React.useState(false);
+  const [paverSurfaceArea, setPaverSurfaceArea] = React.useState<string>('');
+  const [showQuoteModal, setShowQuoteModal] = React.useState(false);
+  const [selectedExtras, setSelectedExtras] = React.useState<any>(null);
 
   // Remove config item function
   const removeConfigItem = (item: any) => {
@@ -465,7 +465,7 @@ const PoolDetails = () => {
 
   // Cache key for user selections
   const cacheKey = `pool_studio_${pool.model}_selections`;
-  const [extras, setExtras] = useState<PoolExtras>({
+  const [extras, setExtras] = React.useState<PoolExtras>({
     liner: true,
     heater: false,
     cover: false,
@@ -491,7 +491,7 @@ const PoolDetails = () => {
   });
 
   // Load cached selections and marketplace products on mount
-  useEffect(() => {
+  React.useEffect(() => {
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       try {
@@ -518,7 +518,7 @@ const PoolDetails = () => {
   };
 
   // Save selections to cache whenever extras change
-  useEffect(() => {
+  React.useEffect(() => {
     localStorage.setItem(cacheKey, JSON.stringify(extras));
   }, [extras, cacheKey]);
   const calculateTotalPrice = () => {
@@ -1191,7 +1191,7 @@ const PoolDetails = () => {
   };
 
   // Enhanced search functionality - exclude pools
-  useEffect(() => {
+  React.useEffect(() => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       const filtered = marketplaceProducts.filter(product => {
