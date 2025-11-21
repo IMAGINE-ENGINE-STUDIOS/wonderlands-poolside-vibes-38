@@ -454,7 +454,15 @@ const PoolMesh: React.FC<{
       </mesh>
 
       {/* Pool walls - from water level (y=0) down to floor */}
-      <mesh key={linerTexture?.uuid || 'no-liner-texture'} geometry={wallsGeometry} position={[0, 0, 0]}>
+      <mesh 
+        key={linerTexture?.uuid || 'no-liner-texture'} 
+        geometry={wallsGeometry} 
+        position={[0, 0, 0]}
+        onClick={(e) => {
+          e.stopPropagation();
+          // Auto-select when clicking on pool
+        }}
+      >
         <meshPhongMaterial
           map={linerTexture}
           color="#ffffff"
