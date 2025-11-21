@@ -38,18 +38,35 @@ export class Scene3DErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    const isTextureError = error.message.includes('Could not load');
+    const urlMatch = error.message.match(/Could not load\s*:\s*(.+)/);
+    const extractedUrl = urlMatch?.[1];
+    
     console.error('🔴 3D Viewer Error Details:', {
       error: error.message,
       componentStack: errorInfo.componentStack,
-      errorInfo
+      errorInfo,
+      isTextureError,
+      extractedUrl,
+      urlIsUndefined: extractedUrl === 'undefined',
+      urlType: typeof extractedUrl,
+      currentScene: this.props.scene,
+      sceneTextureUrls: this.props.scene ? {
+        finish: this.props.scene.pool.finish?.url,
+        paver: this.props.scene.deck.paver?.url,
+        coping: this.props.scene.deck.coping?.url,
+        waterline: this.props.scene.deck.waterline?.url
+      } : 'No scene provided'
     });
     
     // Log specifically for texture loading errors
-    if (error.message.includes('Could not load')) {
+    if (isTextureError) {
       console.error('❌ TEXTURE LOADING ERROR DETECTED:', {
         errorMessage: error.message,
-        likelyUrl: error.message.split(':')[1]?.trim(),
-        tip: 'Check all texture URLs in the scene object for undefined/null/empty values'
+        extractedUrl,
+        urlIsUndefined: extractedUrl === 'undefined',
+        tip: 'Check all texture URLs in the scene object for undefined/null/empty values',
+        stack: error.stack
       });
     }
     

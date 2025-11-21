@@ -81,11 +81,18 @@ export const getPaverTextureUrl = (paverName?: string, paverTypes?: any[]): stri
 
 // Convert product configurator data to Scene3D
 export function productToScene(
-  product: any,
-  selectedExtras: any,
-  paverTypes: any[],
+  product: any, 
+  selectedExtras: any, 
+  paverTypes: any[], 
   finishOptions: any[]
 ): Scene3D {
+  console.log('🔄 SceneConverter: productToScene called', {
+    product,
+    selectedExtras,
+    paverTypesCount: paverTypes.length,
+    finishOptionsCount: finishOptions.length
+  });
+  
   console.log('🔄 SceneConverter: productToScene called', {
     product: product?.model || product?.name,
     extras: selectedExtras,
@@ -109,14 +116,22 @@ export function productToScene(
   const paverTextureUrl = getPaverTextureUrl(selectedExtras.paverOption, paverTypes);
   const copingTextureUrl = getPaverTextureUrl(selectedExtras.copingPaverOption, paverTypes);
 
-  console.log('🎨 SceneConverter: Texture URLs resolved', {
-    linerTextureUrl,
-    paverTextureUrl,
-    copingTextureUrl,
-    finish: selectedExtras.finish,
-    linerOption: selectedExtras.linerOption,
-    paverOption: selectedExtras.paverOption,
-    copingPaverOption: selectedExtras.copingPaverOption
+  console.log('🔍 SceneConverter: Texture URL resolution', {
+    selectedExtras: {
+      finish: selectedExtras.finish,
+      paverOption: selectedExtras.paverOption,
+      copingPaverOption: selectedExtras.copingPaverOption
+    },
+    resolvedUrls: {
+      liner: linerTextureUrl,
+      paver: paverTextureUrl,
+      coping: copingTextureUrl
+    },
+    issues: {
+      linerInvalid: !linerTextureUrl || linerTextureUrl === '' || linerTextureUrl === 'undefined',
+      paverInvalid: !paverTextureUrl || paverTextureUrl === '' || paverTextureUrl === 'undefined',
+      copingInvalid: !copingTextureUrl || copingTextureUrl === '' || copingTextureUrl === 'undefined'
+    }
   });
 
   // Create basic pool shape points (rectangle)
