@@ -50,7 +50,10 @@ export const parseDepth = (depthStr?: string): number => {
 
 // Map finish names to texture URLs
 export const getFinishTextureUrl = (finishName?: string): string => {
-  if (!finishName || finishName === 'None') {
+  console.log('🎨 getFinishTextureUrl called with:', { finishName, type: typeof finishName });
+  
+  if (!finishName || finishName === 'None' || finishName === '' || finishName === 'undefined') {
+    console.log('   → Returning fallback (invalid input)');
     return '/src/assets/finishes/sapphire-blue-g3.jpg';
   }
   
@@ -66,17 +69,28 @@ export const getFinishTextureUrl = (finishName?: string): string => {
     'Shale Gray': '/src/assets/finishes/shale-gray-g3.jpg',
   };
   
-  return finishMap[finishName] || '/src/assets/finishes/sapphire-blue-g3.jpg';
+  const result = finishMap[finishName] || '/src/assets/finishes/sapphire-blue-g3.jpg';
+  console.log('   → Returning:', result);
+  return result;
 };
 
 // Map paver names to texture URLs
 export const getPaverTextureUrl = (paverName?: string, paverTypes?: any[]): string => {
-  if (!paverName || paverName === 'None' || paverName === 'No Pavers') {
+  console.log('🧱 getPaverTextureUrl called with:', { 
+    paverName, 
+    type: typeof paverName, 
+    paverTypesLength: paverTypes?.length 
+  });
+  
+  if (!paverName || paverName === 'None' || paverName === 'No Pavers' || paverName === '' || paverName === 'undefined') {
+    console.log('   → Returning fallback (invalid input)');
     return '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
   }
   
   const paver = paverTypes?.find(p => p.name === paverName);
-  return paver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
+  const result = paver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
+  console.log('   → Found paver:', paver?.name, '→ Returning:', result);
+  return result;
 };
 
 // Convert product configurator data to Scene3D
@@ -115,6 +129,29 @@ export function productToScene(
       
   const paverTextureUrl = getPaverTextureUrl(selectedExtras.paverOption, paverTypes);
   const copingTextureUrl = getPaverTextureUrl(selectedExtras.copingPaverOption, paverTypes);
+  
+  console.log('🔍 SceneConverter: DETAILED Texture Resolution', {
+    inputs: {
+      finish: selectedExtras.finish,
+      finishType: typeof selectedExtras.finish,
+      linerOption: selectedExtras.linerOption,
+      linerOptionType: typeof selectedExtras.linerOption,
+      paverOption: selectedExtras.paverOption,
+      paverOptionType: typeof selectedExtras.paverOption,
+      copingPaverOption: selectedExtras.copingPaverOption,
+      copingPaverOptionType: typeof selectedExtras.copingPaverOption,
+      paverTypesArray: paverTypes,
+      paverTypesLength: paverTypes?.length
+    },
+    outputs: {
+      linerTextureUrl,
+      linerIsValid: linerTextureUrl && linerTextureUrl !== '' && linerTextureUrl !== 'undefined',
+      paverTextureUrl,
+      paverIsValid: paverTextureUrl && paverTextureUrl !== '' && paverTextureUrl !== 'undefined',
+      copingTextureUrl,
+      copingIsValid: copingTextureUrl && copingTextureUrl !== '' && copingTextureUrl !== 'undefined'
+    }
+  });
 
   console.log('🔍 SceneConverter: Texture URL resolution', {
     selectedExtras: {
@@ -173,7 +210,7 @@ export function productToScene(
     { x: -deckWidth, y: length + deckWidth, id: 'h4' },
   ];
 
-  return {
+  const scene: Scene3D = {
     pool: {
       points: poolPoints,
       depthPoints: depthPoints,
@@ -208,12 +245,9 @@ export function productToScene(
         scale: 1.8,
         offset: [-0.21, 0]
       },
-      copingWidth: 1.1, // Default coping width in feet (minimum)
-      // CRITICAL: Always ensure waterline has a valid URL
+      copingWidth: 1.1,
       waterline: {
-        url: (linerTextureUrl && linerTextureUrl !== '' && linerTextureUrl !== 'undefined') 
-          ? linerTextureUrl 
-          : '/src/assets/finishes/sapphire-blue-g3.jpg',
+        url: linerTextureUrl,
         name: `${selectedExtras.finish || selectedExtras.linerOption || 'Default'} (Waterline)`,
         roughness: 0.3,
         metalness: 0.2,
@@ -229,6 +263,21 @@ export function productToScene(
       target: [width / 2, 0, length / 2]
     }
   };
+  
+  console.log('✅ SceneConverter: Scene created with textures:', {
+    poolFinishUrl: scene.pool.finish.url,
+    deckPaverUrl: scene.deck.paver.url,
+    copingUrl: scene.deck.coping.url,
+    waterlineUrl: scene.deck.waterline.url,
+    allValid: [
+      scene.pool.finish.url,
+      scene.deck.paver.url,
+      scene.deck.coping.url,
+      scene.deck.waterline.url
+    ].every(url => url && url !== '' && url !== 'undefined')
+  });
+  
+  return scene;
 }
 
 // Export scene to JSON
