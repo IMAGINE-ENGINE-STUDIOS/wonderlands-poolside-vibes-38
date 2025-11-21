@@ -299,7 +299,25 @@ const SurveyQuoteTool = ({
   const handleEnterEditMode = () => {
     if (passcodeInput === "WONDERMAGIC") {
       setIsEditMode(true);
-      setEditableQuoteAmount(calculateQuote());
+      // Initialize editableQuoteAmount with current calculated value
+      const currentQuote = calculateQuote();
+      setEditableQuoteAmount(currentQuote);
+      
+      // Initialize all editable texts with current values if not already set
+      setEditableTexts(prev => ({
+        'customer-info-title': prev['customer-info-title'] || 'Customer Information',
+        'contact-info-title': prev['contact-info-title'] || 'Contact Information',
+        'contact-phone': prev['contact-phone'] || '(407) 760-4873',
+        'contact-email': prev['contact-email'] || 'sales@wonderlandsworld.com',
+        'business-hours': prev['business-hours'] || 'Business Hours: Mon-Fri 8AM-6PM, Sat 9AM-4PM',
+        'product-title': prev['product-title'] || (extras?.productType === 'lanai' ? 'Lanai Specifications' : pool ? 'Pool Specifications' : 'Product Details'),
+        'includes-title': prev['includes-title'] || (extras?.productType === 'lanai' ? 'LANAI INCLUDES' : 'ALL POOLS INCLUDE'),
+        'includes-content': prev['includes-content'] || getIncludedItems().filter(item => !item.startsWith("FREE")).join(", "),
+        'disclaimer': prev['disclaimer'] || 'Architectural Design, Construction and permiting is included in all products, unless project scope is modified.',
+        'total-title': prev['total-title'] || 'Total Investment',
+        ...prev
+      }));
+      
       setPasscodeInput("");
       toast({
         title: "Edit Mode Enabled",
@@ -524,7 +542,8 @@ const SurveyQuoteTool = ({
   const handleContinueToQuote = async () => {
     // Save the quotation to database before showing the quote
     await saveQuotationToDatabase();
-    setEditableQuoteAmount(calculateQuote());
+    const quoteAmount = calculateQuote();
+    setEditableQuoteAmount(quoteAmount);
     setCurrentStep('quote');
   };
   const handleGetQuote = async () => {
@@ -550,7 +569,8 @@ const SurveyQuoteTool = ({
 
     // Save the quotation to database and proceed to quote
     await saveQuotationToDatabase();
-    setEditableQuoteAmount(calculateQuote());
+    const quoteAmount = calculateQuote();
+    setEditableQuoteAmount(quoteAmount);
     setCurrentStep('quote');
   };
   const handleScheduleInstallation = async () => {
@@ -1746,7 +1766,7 @@ const SurveyQuoteTool = ({
                        className="text-4xl font-bold bg-white text-gray-900 px-4 py-2 rounded w-full text-center"
                      />
                    ) : (
-                     <div className="text-4xl font-bold">${(isEditMode ? editableQuoteAmount : calculateQuote()).toLocaleString()}</div>
+                     <div className="text-4xl font-bold">${(editableQuoteAmount || calculateQuote()).toLocaleString()}</div>
                    )}
                  </div>
 
