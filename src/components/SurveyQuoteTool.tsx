@@ -1493,7 +1493,14 @@ const SurveyQuoteTool = ({
                                   sizeConfig="quoteImage"
                                 />
                               </div>}
-                            <h5 className="font-semibold text-sm">{option.name}</h5>
+                            <h5 className="font-semibold text-sm">
+                              {option.name}
+                              {option.category === 'screen-enclosure' && (
+                                <span className="ml-2 text-xs font-normal text-blue-600">
+                                  ({option.id.includes('1-story') ? '1-Story' : '2-Story'})
+                                </span>
+                              )}
+                            </h5>
                             <p className="text-xs text-muted-foreground mb-2">{option.description}</p>
                             {option.category === 'screen-enclosure' && <p className="text-xs text-blue-600 mb-2">
                                 Calculated area: {getEnclosureArea()} sq ft
@@ -1881,12 +1888,8 @@ const SurveyQuoteTool = ({
                           return "Arrives October 24, 2025 • Installation same day";
                         }
                         
-                        // Pool product logic
-                        if (extras?.concreteConstruction) {
-                          return "18+ weeks";
-                        }
-                        
-                        if (pool?.model === "Madre Perla") {
+                        // Pool product logic - concrete pools are ALWAYS 18+ weeks
+                        if (extras?.concreteConstruction || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima") {
                           return "18+ weeks";
                         }
                         
@@ -1898,7 +1901,7 @@ const SurveyQuoteTool = ({
                       
                       if (!isPoolProduct) return null;
                       
-                      if (extras?.concreteConstruction || pool?.model === "Madre Perla") {
+                      if (extras?.concreteConstruction || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima") {
                         return (
                           <p className="text-xs mt-1 text-muted-foreground">
                             Extended timeline due to custom concrete construction and engineering requirements
