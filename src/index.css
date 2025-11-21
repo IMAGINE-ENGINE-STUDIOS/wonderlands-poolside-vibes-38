@@ -14,12 +14,18 @@
     display: none; /* Chrome, Safari, Opera */
   }
 
-  /* Ensure colors and backgrounds print correctly */
+  /* Print styles - remove all backgrounds except gradients */
   @media print {
     * {
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
       color-adjust: exact !important;
+    }
+    
+    /* Remove white overlays by forcing transparent backgrounds on all elements */
+    body *, body *::before, body *::after {
+      box-shadow: none !important;
+      text-shadow: none !important;
     }
   }
 
