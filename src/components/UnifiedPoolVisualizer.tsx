@@ -757,8 +757,8 @@ export function UnifiedPoolVisualizer({
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />
           
-          {/* Pool hole and water - at S25 position [-10, 0, 20] */}
-          <group ref={poolGroupRef} position={scene.pool.position} key={`pool-${scene.pool.position.join('-')}`}>
+          {/* Pool hole centered at world origin */}
+          <group ref={poolGroupRef} position={[0, 0, 0]} key={`pool-${scene.pool.position.join('-')}`}>
             {/* Pool Mesh (walls and floor) AND Water Surface - both at S25 */}
             <group onClick={() => setSelectedCategory('pool')}>
               <Pool3DScene
@@ -804,19 +804,19 @@ export function UnifiedPoolVisualizer({
             </group>
           </group>
 
-          {/* Independent Water Surface - positioned at Q21-S21-Q29-S29 */}
-          <group position={[-15, 0, 20]}>
+          {/* Water and Pool Hole - Q21 to U29 centered at world origin */}
+          <group position={[0, 0, 0]}>
             <WaterSurface 
               poolPoints={[
-                { x: -5, y: -20, id: 'w1' },  // Q21 (relative to center)
-                { x: 5, y: -20, id: 'w2' },   // S21
-                { x: 5, y: 20, id: 'w3' },    // S29
-                { x: -5, y: 20, id: 'w4' }    // Q29
+                { x: -12.5, y: -20, id: 'w1' },  // Q21
+                { x: 12.5, y: -20, id: 'w2' },   // U21
+                { x: 12.5, y: 20, id: 'w3' },    // U29
+                { x: -12.5, y: 20, id: 'w4' }    // Q29
               ]}
               depthPoints={scene.pool.depthPoints}
               poolDimensions={{ 
-                length: 40,  // 8 tiles × 5ft = 40ft
-                width: 10,   // 2 tiles × 5ft = 10ft  
+                length: 40,  // 8 rows × 5ft = 40ft (21-29)
+                width: 25,   // 5 columns × 5ft = 25ft (Q-U)
                 depth: scene.pool.dimensions.depth 
               }}
             />
