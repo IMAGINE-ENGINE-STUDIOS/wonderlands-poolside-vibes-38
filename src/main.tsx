@@ -10,6 +10,7 @@ import App from "./App.tsx";
 import "./styles/critical.css";
 import "./styles/components.css";
 import "./styles/animations.css";
+import "./styles/print.css";
 
 // Error Boundary for debugging white screen issues
 interface ErrorBoundaryState {

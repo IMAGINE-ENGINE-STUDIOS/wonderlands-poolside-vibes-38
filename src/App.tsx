@@ -19,6 +19,7 @@ const WonderlandsStudio = lazy(() => import("./pages/WonderlandsStudio"));
 const ContentEditor = lazy(() => import("./pages/ContentEditor"));
 const ReferralPortal = lazy(() => import("./pages/ReferralPortal"));
 const QuoteDetailPage = lazy(() => import("./pages/QuoteDetailPage"));
+const InvoiceDetailPage = lazy(() => import("./pages/InvoiceDetailPage"));
 const QuotationTool = lazy(() => import("./pages/QuotationTool"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -61,6 +62,14 @@ const App = () => {
                element={
                  <ProtectedRoute requireAuth={true}>
                    <QuoteDetailPage />
+                 </ProtectedRoute>
+               } 
+             />
+             <Route 
+               path="/admin/invoices/:invoiceId" 
+               element={
+                 <ProtectedRoute requireAuth={true}>
+                   <InvoiceDetailPage />
                  </ProtectedRoute>
                } 
              />

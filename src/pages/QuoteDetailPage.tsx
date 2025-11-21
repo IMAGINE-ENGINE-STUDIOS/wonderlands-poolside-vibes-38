@@ -3,12 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Phone, Mail, Printer, Calendar, DollarSign } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, Printer, Calendar, DollarSign, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { OptimizedImage } from '@/components/OptimizedImage';
 import ImageCard from '@/components/ImageCard';
 import poolHeaterImg from '@/assets/pool-heater.png';
+import InvoiceGenerator from '@/components/InvoiceGenerator';
 
 interface UserQuotation {
   id: string;
@@ -38,6 +39,7 @@ const QuoteDetailPage = () => {
   const navigate = useNavigate();
   const [quote, setQuote] = useState<UserQuotation | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showInvoiceGenerator, setShowInvoiceGenerator] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -129,7 +131,7 @@ const QuoteDetailPage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Navigation Header */}
-      <div className="mb-6 flex items-center justify-between print:hidden">
+      <div className="mb-6 flex items-center justify-between print:hidden no-print">
         <Button
           variant="outline"
           onClick={() => navigate('/admin')}
