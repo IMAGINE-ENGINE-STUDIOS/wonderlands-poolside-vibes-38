@@ -1371,17 +1371,9 @@ const SurveyQuoteTool = ({
                   </div>
                 </div>
 
-                 <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center">
+                 <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center print:bg-gradient-to-r print:from-orange-500 print:via-pink-500 print:to-teal-500 print:text-white">
                    <h3 className="text-2xl font-bold mb-2">Total Investment</h3>
-                   <div className="text-4xl font-bold mb-2">${calculateQuote().toLocaleString()}</div>
-                   <p className="text-orange-100">
-                     {(() => {
-                       const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
-                       return isPoolProduct 
-                         ? `Complete installation including permits, excavation, and ${surveyData.deckWidth || 3}ft paver deck`
-                         : 'Complete installation including delivery and professional setup';
-                     })()}
-                   </p>
+                   <div className="text-4xl font-bold">${calculateQuote().toLocaleString()}</div>
                  </div>
 
                 {/* Action Buttons */}
