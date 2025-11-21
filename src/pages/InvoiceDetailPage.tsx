@@ -60,7 +60,9 @@ const InvoiceDetailPage = () => {
       if (error) throw error;
       const invoiceData = {
         ...data,
-        line_items: Array.isArray(data.line_items) ? data.line_items : JSON.parse(data.line_items as string)
+        line_items: Array.isArray(data.line_items) ? data.line_items : JSON.parse(data.line_items as string),
+        // Calculate due date as 15 days after invoice date if not set
+        due_date: data.due_date || new Date(new Date(data.invoice_date).getTime() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
       };
       setInvoice(invoiceData as Invoice);
       setEditedInvoice(invoiceData as Invoice);
@@ -336,9 +338,9 @@ const InvoiceDetailPage = () => {
                     <span className="text-muted-foreground">Tax ({invoice.tax_rate}%)</span>
                     <span className="font-semibold">${invoice.tax_amount.toLocaleString()}</span>
                   </div>}
-                {invoice.discount_amount > 0 && <div className="flex justify-between py-2 border-b">
-                    <span className="text-muted-foreground">Discount</span>
-                    <span className="font-semibold text-green-600">-${invoice.discount_amount.toLocaleString()}</span>
+                {invoice.subtotal > invoice.total_amount && <div className="flex justify-between py-2 border-b bg-green-50">
+                    <span className="text-green-700 font-semibold">💰 Your Savings</span>
+                    <span className="font-bold text-green-600">-${(invoice.subtotal - invoice.total_amount).toLocaleString()}</span>
                   </div>}
                 <div className="flex justify-between py-3 bg-gradient-to-r from-primary/10 to-coral/10 px-4 rounded-lg mt-2">
                   <span className="text-lg font-bold">Total Due</span>
