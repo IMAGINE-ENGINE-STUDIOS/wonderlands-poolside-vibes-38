@@ -112,6 +112,10 @@ const SurveyQuoteTool = ({
   const [isSaving, setIsSaving] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [saunaSelected, setSaunaSelected] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [passcodeInput, setPasscodeInput] = useState("");
+  const [editableQuoteAmount, setEditableQuoteAmount] = useState<number>(0);
+  const [hiddenSections, setHiddenSections] = useState<Set<string>>(new Set());
   const {
     toast
   } = useToast();
@@ -291,6 +295,36 @@ const SurveyQuoteTool = ({
       setIsSendingEmail(false);
     }
   };
+  const handleEnterEditMode = () => {
+    if (passcodeInput === "WONDERMAGIC") {
+      setIsEditMode(true);
+      setEditableQuoteAmount(calculateQuote());
+      setPasscodeInput("");
+      toast({
+        title: "Edit Mode Enabled",
+        description: "You can now edit the quote details."
+      });
+    } else {
+      toast({
+        title: "Invalid Passcode",
+        description: "Please enter the correct passcode.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleToggleSection = (sectionId: string) => {
+    setHiddenSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionId)) {
+        newSet.delete(sectionId);
+      } else {
+        newSet.add(sectionId);
+      }
+      return newSet;
+    });
+  };
+
   const calculateQuote = () => {
     if (!pool && !customProduct) return 0;
     
@@ -475,6 +509,7 @@ const SurveyQuoteTool = ({
   const handleContinueToQuote = async () => {
     // Save the quotation to database before showing the quote
     await saveQuotationToDatabase();
+    setEditableQuoteAmount(calculateQuote());
     setCurrentStep('quote');
   };
   const handleGetQuote = async () => {
@@ -500,6 +535,7 @@ const SurveyQuoteTool = ({
 
     // Save the quotation to database and proceed to quote
     await saveQuotationToDatabase();
+    setEditableQuoteAmount(calculateQuote());
     setCurrentStep('quote');
   };
   const handleScheduleInstallation = async () => {
@@ -805,35 +841,76 @@ const SurveyQuoteTool = ({
               </div>
 
               {/* Customer Information */}
-              <div className="p-6 bg-gradient-to-r from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="font-bold text-lg mb-3 text-orange-600">Customer Information</h3>
-                    <div className="space-y-2 text-sm">
-                      <p><span className="font-medium">Name:</span> {surveyData.name}</p>
-                      <p><span className="font-medium">Email:</span> {surveyData.email}</p>
-                      <p><span className="font-medium">Phone:</span> {surveyData.phone}</p>
-                      <p><span className="font-medium">Property Address:</span> {surveyData.address}</p>
+              {!hiddenSections.has('customer-info') && (
+                <div className="p-6 bg-gradient-to-r from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700 relative">
+                  {isEditMode && (
+                    <button
+                      onClick={() => handleToggleSection('customer-info')}
+                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                      title="Remove section"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="font-bold text-lg mb-3 text-orange-600">Customer Information</h3>
+                      <div className="space-y-2 text-sm">
+                        <p><span className="font-medium">Name:</span> {isEditMode ? (
+                          <input
+                            type="text"
+                            value={surveyData.name}
+                            onChange={(e) => setSurveyData({...surveyData, name: e.target.value})}
+                            className="ml-2 px-2 py-1 border rounded"
+                          />
+                        ) : surveyData.name}</p>
+                        <p><span className="font-medium">Email:</span> {isEditMode ? (
+                          <input
+                            type="email"
+                            value={surveyData.email}
+                            onChange={(e) => setSurveyData({...surveyData, email: e.target.value})}
+                            className="ml-2 px-2 py-1 border rounded"
+                          />
+                        ) : surveyData.email}</p>
+                        <p><span className="font-medium">Phone:</span> {isEditMode ? (
+                          <input
+                            type="text"
+                            value={surveyData.phone}
+                            onChange={(e) => setSurveyData({...surveyData, phone: e.target.value})}
+                            className="ml-2 px-2 py-1 border rounded"
+                          />
+                        ) : surveyData.phone}</p>
+                        <p><span className="font-medium">Property Address:</span> {isEditMode ? (
+                          <input
+                            type="text"
+                            value={surveyData.address}
+                            onChange={(e) => setSurveyData({...surveyData, address: e.target.value})}
+                            className="ml-2 px-2 py-1 border rounded w-full"
+                          />
+                        ) : surveyData.address}</p>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-3 text-teal-600">Contact Information</h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-orange-500" />
-                        <span>(407) 760-4873</span>
+                    <div>
+                      <h3 className="font-bold text-lg mb-3 text-teal-600">Contact Information</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-orange-500" />
+                          <span>(407) 760-4873</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-teal-500" />
+                          <span>sales@wonderlandsworld.com</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Business Hours: Mon-Fri 8AM-6PM, Sat 9AM-4PM
+                        </p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-teal-500" />
-                        <span>sales@wonderlandsworld.com</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Business Hours: Mon-Fri 8AM-6PM, Sat 9AM-4PM
-                      </p>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Product Details with Images */}
               <div className="p-6">
@@ -1424,11 +1501,51 @@ const SurveyQuoteTool = ({
 
                  <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center">
                    <h3 className="text-2xl font-bold mb-2">Total Investment</h3>
-                   <div className="text-4xl font-bold">${calculateQuote().toLocaleString()}</div>
+                   {isEditMode ? (
+                     <input
+                       type="number"
+                       value={editableQuoteAmount}
+                       onChange={(e) => setEditableQuoteAmount(Number(e.target.value))}
+                       className="text-4xl font-bold bg-white text-gray-900 px-4 py-2 rounded w-full text-center"
+                     />
+                   ) : (
+                     <div className="text-4xl font-bold">${(isEditMode ? editableQuoteAmount : calculateQuote()).toLocaleString()}</div>
+                   )}
                  </div>
 
                 {/* Action Buttons */}
                 <div className="space-y-4 mt-6 print-hide">
+                  {/* Edit Mode Controls */}
+                  {!isEditMode ? (
+                    <div className="flex gap-3 justify-center items-center mb-4">
+                      <Input
+                        type="password"
+                        placeholder="Enter passcode to edit"
+                        value={passcodeInput}
+                        onChange={(e) => setPasscodeInput(e.target.value)}
+                        className="max-w-xs"
+                        onKeyDown={(e) => e.key === 'Enter' && handleEnterEditMode()}
+                      />
+                      <Button 
+                        variant="outline" 
+                        onClick={handleEnterEditMode}
+                        className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                      >
+                        Edit Quote
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-3 justify-center mb-4">
+                      <Button 
+                        variant="default"
+                        onClick={() => setIsEditMode(false)}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        Done Editing
+                      </Button>
+                    </div>
+                  )}
+                  
                   <div className="flex flex-wrap gap-3 justify-center">
                     <Button variant="default" className="bg-gradient-to-r from-orange-500 to-teal-500 hover:from-orange-600 hover:to-teal-600 text-white" onClick={handlePrintQuote}>
                       <Printer className="h-4 w-4 mr-2" />
