@@ -702,47 +702,26 @@ const DeckMesh: React.FC<{
   }, [selectedCategory]);
 
   const deckGeometry = useMemo(() => {
-    if (hardscapePoints.length < 3 || poolPoints.length < 3) return null;
-
-    const minX = Math.min(...poolPoints.map(p => p.x));
-    const maxX = Math.max(...poolPoints.map(p => p.x));
-    const minY = Math.min(...poolPoints.map(p => p.y));
-    const maxY = Math.max(...poolPoints.map(p => p.y));
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
+    if (hardscapePoints.length < 3) return null;
 
     const deckShape = new THREE.Shape();
     hardscapePoints.forEach((p, i) => {
-      const x = p.x - centerX;
-      const z = p.y - centerY;
-      if (i === 0) deckShape.moveTo(x, z);
-      else deckShape.lineTo(x, z);
+      if (i === 0) deckShape.moveTo(p.x, p.y);
+      else deckShape.lineTo(p.x, p.y);
     });
     deckShape.closePath();
 
-    // Create hole matching coping outer edge exactly
-    const totalCutout = copingWidth;
-    
-    const copingHole = new THREE.Path();
-    poolPoints.forEach((p, i) => {
-      const x = p.x - centerX;
-      const z = p.y - centerY;
-      
-      // Move outward by coping width to match coping outer edge
-      const distance = Math.sqrt(x * x + z * z);
-      const offsetX = distance > 0 ? x * (distance + totalCutout) / distance : x;
-      const offsetZ = distance > 0 ? z * (distance + totalCutout) / distance : z;
-      
-      if (i === 0) {
-        copingHole.moveTo(offsetX, offsetZ);
-      }
-      else copingHole.lineTo(offsetX, offsetZ);
-    });
-    copingHole.closePath();
-    deckShape.holes.push(copingHole);
+    // Create hole at EXACT water coordinates S17-W25
+    const poolHole = new THREE.Path();
+    poolHole.moveTo(-10, -20);  // S17
+    poolHole.lineTo(10, -20);   // W17
+    poolHole.lineTo(10, 20);    // W25
+    poolHole.lineTo(-10, 20);   // S25
+    poolHole.closePath();
+    deckShape.holes.push(poolHole);
 
     const deckGeom = new THREE.ExtrudeGeometry(deckShape, {
-      depth: deckHeight, // Use deckHeight for thickness
+      depth: deckHeight,
       bevelEnabled: false
     });
     deckGeom.rotateX(-Math.PI / 2);
@@ -754,14 +733,13 @@ const DeckMesh: React.FC<{
       for (let i = 0; i < positionAttribute.count; i++) {
         const x = positionAttribute.getX(i);
         const z = positionAttribute.getZ(i);
-        // Each 1 foot = 1 tile (UV coordinates directly from position)
         uvAttribute.setXY(i, x / 1.0, z / 1.0);
       }
       uvAttribute.needsUpdate = true;
     }
 
     return deckGeom;
-  }, [hardscapePoints, poolPoints, deckHeight, copingWidth]); // Add copingWidth dependency
+  }, [hardscapePoints, deckHeight]);
 
   if (!deckGeometry) return null;
 
@@ -868,20 +846,13 @@ const FenceMesh: React.FC<{
   );
 };
 
-// Grass Terrain Component with Precise Pool Cutout
+// Grass Terrain Component with Simple Rectangular Pool Cutout
 const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPosition?: [number, number, number] }> = ({ poolPoints, copingWidth = 1.0, poolPosition = [0, 0, 0] }) => {
   const texture = useTexture(grassTexture);
   
   const terrainGeometry = useMemo(() => {
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(200, 200);
-    
-    if (poolPoints.length < 3) {
-      // No pool, just flat terrain
-      const geo = new THREE.PlaneGeometry(10000, 10000);
-      geo.rotateX(-Math.PI / 2);
-      return geo;
-    }
     
     // Create terrain shape (10000ft x 10000ft centered at origin)
     const terrainShape = new THREE.Shape();
@@ -891,49 +862,13 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPo
     terrainShape.lineTo(-5000, 5000);
     terrainShape.closePath();
     
-    // Create pool cutout hole - use outer edge (coping boundary)
+    // Create rectangular hole matching EXACT water mesh coordinates
+    // Water is at S17-W25: x from -10 to 10 (20ft), y from -20 to 20 (40ft)
     const poolHole = new THREE.Path();
-    
-    // Calculate coping outer boundary
-    const copingOuterPoints: Array<{x: number, y: number}> = [];
-    
-    for (let i = 0; i < poolPoints.length; i++) {
-      const p1 = poolPoints[i];
-      const p2 = poolPoints[(i + 1) % poolPoints.length];
-      const p0 = poolPoints[(i - 1 + poolPoints.length) % poolPoints.length];
-      
-      // Calculate normals for both edges meeting at this point
-      const dx1 = p1.x - p0.x;
-      const dy1 = p1.y - p0.y;
-      const len1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
-      const nx1 = -dy1 / len1;
-      const nz1 = dx1 / len1;
-      
-      const dx2 = p2.x - p1.x;
-      const dy2 = p2.y - p1.y;
-      const len2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-      const nx2 = -dy2 / len2;
-      const nz2 = dx2 / len2;
-      
-      // Average normal at corner
-      const avgNx = (nx1 + nx2) / 2;
-      const avgNz = (nz1 + nz2) / 2;
-      const avgLen = Math.sqrt(avgNx * avgNx + avgNz * avgNz);
-      
-      // Push point outward by coping width
-      copingOuterPoints.push({
-        x: p1.x - (avgNx / avgLen) * copingWidth + poolPosition[0],
-        y: p1.y - (avgNz / avgLen) * copingWidth + poolPosition[2]
-      });
-    }
-    
-    copingOuterPoints.forEach((point, i) => {
-      if (i === 0) {
-        poolHole.moveTo(point.x, point.y);
-      } else {
-        poolHole.lineTo(point.x, point.y);
-      }
-    });
+    poolHole.moveTo(-10, -20);  // S17
+    poolHole.lineTo(10, -20);   // W17
+    poolHole.lineTo(10, 20);    // W25
+    poolHole.lineTo(-10, 20);   // S25
     poolHole.closePath();
     
     terrainShape.holes.push(poolHole);
@@ -942,9 +877,8 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPo
     const geometry = new THREE.ShapeGeometry(terrainShape);
     geometry.rotateX(-Math.PI / 2);
     
-    
     return geometry;
-  }, [poolPoints, texture, copingWidth, poolPosition]);
+  }, [texture]);
   
   return (
     <mesh geometry={terrainGeometry} position={[0, -0.02, 0]} receiveShadow>
