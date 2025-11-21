@@ -23,7 +23,7 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
   poolPoints, 
   waterlineTextureUrl,
   waterlineHeight = 0.5, // 6 inches tall (6/12 feet = 0.5ft)
-  waterlineWidth = 1.0,      // 1 foot tile along perimeter
+  waterlineWidth = 0.25,      // 3 inch depth into wall (makes it 3D)
   selectedCategory,
   waterlineTextureScale = 1.8,
   waterlineTextureOffset = [0, 0],
@@ -100,7 +100,7 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
     const uvs: number[] = [];
     let cumulativePerimeter = 0; // Track cumulative distance for UV mapping
     
-    // Create waterline tiles around the pool perimeter
+    // Create 3D waterline band around the pool perimeter
     for (let i = 0; i < normalizedPoints.length; i++) {
       const p1 = normalizedPoints[i];
       const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
@@ -118,40 +118,82 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       const baseIdx = vertices.length / 3;
       
       // Waterline positioning: attached directly below coping bottom
-      // Wall finish is exposed below the waterline
       const deckLevel = 1 / 36; // 0.028 ft (1 inch above water surface, coping bottom)
       const waterlineTop = deckLevel; // Attached just below coping
       const waterlineBottom = waterlineTop - waterlineHeight; // waterlineHeight below that
       
-      // Position waterline on the INNER wall surface (at pool boundary, NOT offset)
-      // The inner wall face is AT the pool points, so waterline goes there
-      const waterlineP1 = { x: p1.x, z: p1.z };
-      const waterlineP2 = { x: p2.x, z: p2.z };
+      // Create OUTER edge (at pool boundary)
+      const outerP1 = { x: p1.x, z: p1.z };
+      const outerP2 = { x: p2.x, z: p2.z };
       
-      // Create waterline face vertices (vertical band on inner wall at pool boundary)
-      vertices.push(waterlineP1.x, waterlineTop, waterlineP1.z);
-      vertices.push(waterlineP2.x, waterlineTop, waterlineP2.z);
-      vertices.push(waterlineP1.x, waterlineBottom, waterlineP1.z);
-      vertices.push(waterlineP2.x, waterlineBottom, waterlineP2.z);
+      // Create INNER edge (offset inward by waterlineWidth for 3D depth)
+      const innerP1 = { x: p1.x + nx * waterlineWidth, z: p1.z + nz * waterlineWidth };
+      const innerP2 = { x: p2.x + nx * waterlineWidth, z: p2.z + nz * waterlineWidth };
       
-      // UV mapping: EXACTLY 1ft x 1ft sections using cumulative perimeter
-      // U = cumulative distance along perimeter (in feet)
-      // V = normalized height within waterline band (0 to 1 for proper tiling)
+      // Front face (outer wall - visible from pool)
+      vertices.push(outerP1.x, waterlineTop, outerP1.z);
+      vertices.push(outerP2.x, waterlineTop, outerP2.z);
+      vertices.push(outerP1.x, waterlineBottom, outerP1.z);
+      vertices.push(outerP2.x, waterlineBottom, outerP2.z);
+      
+      // Back face (inner wall - visible from water)
+      vertices.push(innerP1.x, waterlineTop, innerP1.z);
+      vertices.push(innerP2.x, waterlineTop, innerP2.z);
+      vertices.push(innerP1.x, waterlineBottom, innerP1.z);
+      vertices.push(innerP2.x, waterlineBottom, innerP2.z);
+      
+      // Top face
+      vertices.push(outerP1.x, waterlineTop, outerP1.z);
+      vertices.push(outerP2.x, waterlineTop, outerP2.z);
+      vertices.push(innerP1.x, waterlineTop, innerP1.z);
+      vertices.push(innerP2.x, waterlineTop, innerP2.z);
+      
+      // Bottom face
+      vertices.push(outerP1.x, waterlineBottom, outerP1.z);
+      vertices.push(outerP2.x, waterlineBottom, outerP2.z);
+      vertices.push(innerP1.x, waterlineBottom, innerP1.z);
+      vertices.push(innerP2.x, waterlineBottom, innerP2.z);
+      
+      // UV mapping for all faces
       const uStart = cumulativePerimeter;
       const uEnd = cumulativePerimeter + segmentLength;
-      const vTop = 1.0; // Top of 1ft tile
-      const vBottom = 1.0 - ((waterlineTop - waterlineBottom) / 1.0); // Scale height within 1ft tile
+      const vTop = 1.0;
+      const vBottom = 1.0 - ((waterlineTop - waterlineBottom) / 1.0);
       
-      // UV coordinates for perfect 1x1 ft tiling
+      // UVs for front face (4 vertices)
       uvs.push(uStart, vTop, uEnd, vTop, uStart, vBottom, uEnd, vBottom);
+      // UVs for back face (4 vertices)
+      uvs.push(uStart, vTop, uEnd, vTop, uStart, vBottom, uEnd, vBottom);
+      // UVs for top face (4 vertices)
+      uvs.push(uStart, 0, uEnd, 0, uStart, 1, uEnd, 1);
+      // UVs for bottom face (4 vertices)
+      uvs.push(uStart, 0, uEnd, 0, uStart, 1, uEnd, 1);
       
       // Update cumulative perimeter for next segment
       cumulativePerimeter += segmentLength;
       
-      // Face indices (normals facing OUTWARD so visible from inside pool looking out)
+      // Front face indices (outer wall)
       indices.push(
         baseIdx, baseIdx + 3, baseIdx + 1,
         baseIdx, baseIdx + 2, baseIdx + 3
+      );
+      
+      // Back face indices (inner wall)
+      indices.push(
+        baseIdx + 4, baseIdx + 5, baseIdx + 7,
+        baseIdx + 4, baseIdx + 7, baseIdx + 6
+      );
+      
+      // Top face indices
+      indices.push(
+        baseIdx + 8, baseIdx + 10, baseIdx + 9,
+        baseIdx + 9, baseIdx + 10, baseIdx + 11
+      );
+      
+      // Bottom face indices
+      indices.push(
+        baseIdx + 12, baseIdx + 13, baseIdx + 14,
+        baseIdx + 13, baseIdx + 15, baseIdx + 14
       );
     }
     
