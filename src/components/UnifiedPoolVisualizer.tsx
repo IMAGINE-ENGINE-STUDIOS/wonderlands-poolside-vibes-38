@@ -515,18 +515,28 @@ export function UnifiedPoolVisualizer({
           </button>
         </div>
 
-        {/* Scene Controls Dashboard - Collapsible */}
+        {/* Scene Controls Dashboard - Inside 3D Viewer with Arrow Toggle */}
         <div className={`absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg shadow-lg z-10 transition-all duration-300 ${
-          controllerCollapsed ? 'w-12' : 'max-w-xs'
+          controllerCollapsed ? 'w-auto' : 'max-w-xs'
         }`}>
-          {/* Collapse/Expand Toggle */}
-          <button
-            onClick={() => setControllerCollapsed(!controllerCollapsed)}
-            className="absolute -right-3 top-4 bg-background rounded-full p-1 shadow-lg hover:bg-muted transition-colors"
-            title={controllerCollapsed ? "Expand Controls" : "Collapse Controls"}
-          >
-            {controllerCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-          </button>
+          {/* Collapse/Expand Toggle - Arrow Button */}
+          {controllerCollapsed ? (
+            <button
+              onClick={() => setControllerCollapsed(false)}
+              className="p-3 bg-background rounded-lg shadow-lg hover:bg-muted transition-colors"
+              title="Expand Controls"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          ) : (
+            <button
+              onClick={() => setControllerCollapsed(true)}
+              className="absolute -right-3 top-4 bg-background rounded-full p-1 shadow-lg hover:bg-muted transition-colors"
+              title="Collapse Controls"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          )}
 
           {!controllerCollapsed && (
             <div className="p-4 space-y-3">
@@ -746,14 +756,14 @@ export function UnifiedPoolVisualizer({
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />
           
-          {/* Pool rendering - Pool hole and water at S25 position */}
+          {/* Pool hole and water - at S25 position [-10, 0, 20] */}
           <group ref={poolGroupRef} position={scene.pool.position}>
-            {/* Pool Mesh (walls and floor) */}
+            {/* Pool Mesh (walls and floor) - matches water position */}
             <group onClick={() => setSelectedCategory('pool')}>
               <Pool3DScene
                 points={scene.pool.points}
                 depthPoints={scene.pool.depthPoints}
-                hardscapePoints={[]} // Empty - deck stays fixed
+                hardscapePoints={[]} // Empty - deck rendered separately
                 linerTextureUrl={linerTextureUrl}
                 paverTextureUrl={paverTextureUrl}
                 copingTextureUrl={copingTextureUrl}
@@ -793,7 +803,7 @@ export function UnifiedPoolVisualizer({
             </group>
           </group>
 
-          {/* Deck and terrain - FIXED at center position [0,0,0] */}
+          {/* Deck, coping, and waterline - centered at U21 [0, 0, 0] */}
           {scene.deck.points && scene.deck.points.length > 0 && (
             <group position={[0, 0, 0]} onClick={() => setSelectedCategory('deck')}>
               <Pool3DScene
