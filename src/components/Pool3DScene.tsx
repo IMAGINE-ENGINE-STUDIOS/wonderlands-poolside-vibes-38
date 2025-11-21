@@ -7,6 +7,7 @@ import WaterSurface from './WaterSurface';
 import { PoolStairs } from './PoolStairs';
 import { StairsPlacementMode } from './StairsPlacementMode';
 import { SplineEditor, SplinePoint } from './scene3d/SplineEditor';
+import { ComponentRuler } from './scene3d/ComponentRuler';
 import earcut from 'earcut';
 import grassTexture from '@/assets/grass-texture.avif';
 import { Maximize2, Minimize2, Move } from 'lucide-react';
@@ -98,6 +99,8 @@ export interface Pool3DSceneProps {
   enableDeckSplineEdit?: boolean;
   onPoolPointsChange?: (points: Point[]) => void;
   onDeckPointsChange?: (points: HardscapePoint[]) => void;
+  showWireframe?: boolean;
+  showRulers?: boolean;
 }
 
 const PoolMesh: React.FC<{
@@ -109,7 +112,8 @@ const PoolMesh: React.FC<{
   linerTextureScale?: number;
   linerTextureOffset?: [number, number];
   copingHeight?: number;
-}> = ({ 
+  setSelectedComponent?: (comp: 'pool' | 'water' | 'deck' | null) => void;
+}> = ({
   points, 
   depthPoints, 
   linerTextureUrl = '/textures/finishes/sapphire-blue-g3.jpg',
@@ -117,7 +121,8 @@ const PoolMesh: React.FC<{
   selectedCategory, 
   linerTextureScale = 1.8, 
   linerTextureOffset = [0, 0],
-  copingHeight = 2 / 12
+  copingHeight = 2 / 12,
+  setSelectedComponent
 }) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
   const [previousLinerTexture, setPreviousLinerTexture] = useState<THREE.Texture | null>(null);
@@ -439,7 +444,14 @@ const PoolMesh: React.FC<{
   return (
     <>
       {/* Pool floor - positioned at world origin, vertices have depth baked in */}
-      <mesh geometry={geometry} position={[0, 0, 0]}>
+      <mesh 
+        geometry={geometry} 
+        position={[0, 0, 0]}
+        onClick={(e) => {
+          e.stopPropagation();
+          setSelectedComponent('pool');
+        }}
+      >
         <meshPhongMaterial
           color={linerTexture ? "#ffffff" : "#4DD0E1"}
           map={linerTexture}
@@ -460,7 +472,7 @@ const PoolMesh: React.FC<{
         position={[0, 0, 0]}
         onClick={(e) => {
           e.stopPropagation();
-          // Auto-select when clicking on pool
+          setSelectedComponent('pool');
         }}
       >
         <meshPhongMaterial
@@ -643,7 +655,9 @@ const DeckMesh: React.FC<{
   paverTextureOffset?: [number, number];
   deckHeight?: number;
   copingWidth?: number;
-}> = ({ 
+  setSelectedComponent?: (comp: 'pool' | 'water' | 'deck' | null) => void;
+  showWireframe?: boolean;
+}> = ({
   hardscapePoints, 
   poolPoints, 
   features, 
@@ -652,7 +666,9 @@ const DeckMesh: React.FC<{
   paverTextureScale = 1.8, 
   paverTextureOffset = [0, 0], 
   deckHeight = 2 / 12,
-  copingWidth = 1.0
+  copingWidth = 1.0,
+  setSelectedComponent,
+  showWireframe = false
 }) => {
   const [paverTexture, setPaverTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
@@ -704,41 +720,67 @@ const DeckMesh: React.FC<{
   const deckGeometry = useMemo(() => {
     if (hardscapePoints.length < 3) return null;
 
-    const deckShape = new THREE.Shape();
-    hardscapePoints.forEach((p, i) => {
-      if (i === 0) deckShape.moveTo(p.x, p.y);
-      else deckShape.lineTo(p.x, p.y);
-    });
-    deckShape.closePath();
+    try {
+      // Deck extends 3 feet (0.9144 meters) outward from coping outer edge
+      const deckExtension = 0.9144;
+      
+      // Coping outer edge bounds
+      const copingMinX = -10;
+      const copingMaxX = 10;
+      const copingMinY = -20;
+      const copingMaxY = 20;
+      
+      // Deck outer bounds (3ft beyond coping)
+      const deckMinX = copingMinX - deckExtension;
+      const deckMaxX = copingMaxX + deckExtension;
+      const deckMinY = copingMinY - deckExtension;
+      const deckMaxY = copingMaxY + deckExtension;
 
-    // Create hole at EXACT water coordinates S17-W25
-    const poolHole = new THREE.Path();
-    poolHole.moveTo(-10, -20);  // S17
-    poolHole.lineTo(10, -20);   // W17
-    poolHole.lineTo(10, 20);    // W25
-    poolHole.lineTo(-10, 20);   // S25
-    poolHole.closePath();
-    deckShape.holes.push(poolHole);
+      // Create the outer boundary for the deck
+      const outerShape = new THREE.Shape();
+      outerShape.moveTo(deckMinX, deckMinY);
+      outerShape.lineTo(deckMaxX, deckMinY);
+      outerShape.lineTo(deckMaxX, deckMaxY);
+      outerShape.lineTo(deckMinX, deckMaxY);
+      outerShape.closePath();
 
-    const deckGeom = new THREE.ExtrudeGeometry(deckShape, {
-      depth: deckHeight,
-      bevelEnabled: false
-    });
-    deckGeom.rotateX(-Math.PI / 2);
+      // Create the inner hole matching coping outer edge
+      const copingHole = new THREE.Path();
+      copingHole.moveTo(copingMinX, copingMinY);
+      copingHole.lineTo(copingMaxX, copingMinY);
+      copingHole.lineTo(copingMaxX, copingMaxY);
+      copingHole.lineTo(copingMinX, copingMaxY);
+      copingHole.closePath();
 
-    // Fix UV mapping for EXACT 1 sq ft tiles
-    const positionAttribute = deckGeom.getAttribute('position');
-    const uvAttribute = deckGeom.getAttribute('uv');
-    if (positionAttribute && uvAttribute) {
-      for (let i = 0; i < positionAttribute.count; i++) {
-        const x = positionAttribute.getX(i);
-        const z = positionAttribute.getZ(i);
-        uvAttribute.setXY(i, x / 1.0, z / 1.0);
+      outerShape.holes.push(copingHole);
+
+      const geometry = new THREE.ExtrudeGeometry(outerShape, {
+        depth: deckHeight,
+        bevelEnabled: false
+      });
+
+      geometry.rotateX(-Math.PI / 2);
+
+      // UV mapping for 1 sq ft tiles (0.3048m = 1ft)
+      const positions = geometry.attributes.position;
+      const uvs = new Float32Array(positions.count * 2);
+      const tileSize = 0.3048; // 1 square foot in meters
+      
+      for (let i = 0; i < positions.count; i++) {
+        const x = positions.getX(i);
+        const z = positions.getZ(i);
+        
+        uvs[i * 2] = x / tileSize;
+        uvs[i * 2 + 1] = z / tileSize;
       }
-      uvAttribute.needsUpdate = true;
-    }
+      
+      geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
 
-    return deckGeom;
+      return geometry;
+    } catch (error) {
+      console.error('Error creating deck geometry:', error);
+      return null;
+    }
   }, [hardscapePoints, deckHeight]);
 
   if (!deckGeometry) return null;
@@ -1195,6 +1237,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           linerTextureOffset={linerTextureOffset}
           selectedCategory={selectedCategory}
           copingHeight={copingHeight}
+          setSelectedComponent={setSelectedComponent}
         />
       </group>
 
@@ -1211,6 +1254,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
             paverTextureOffset={paverTextureOffset}
             deckHeight={deckHeight}
             copingWidth={copingWidth}
+            setSelectedComponent={setSelectedComponent}
+            showWireframe={showWireframe}
           />
         </group>
       )}
@@ -1309,6 +1354,17 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           name="Deck Boundary"
           yPosition={deckHeight}
         />
+      )}
+      
+      {/* Component Rulers */}
+      {showWireframe && showRulers && selectedComponent === 'pool' && (
+        <ComponentRuler bounds={{ minX: -10, maxX: 10, minY: -20, maxY: 20 }} height={0.1} />
+      )}
+      {showWireframe && showRulers && selectedComponent === 'water' && (
+        <ComponentRuler bounds={{ minX: -10, maxX: 10, minY: -20, maxY: 20 }} height={0.05} />
+      )}
+      {showWireframe && showRulers && selectedComponent === 'deck' && (
+        <ComponentRuler bounds={{ minX: -10.9144, maxX: 10.9144, minY: -20.9144, maxY: 20.9144 }} height={0.15} />
       )}
 
       <axesHelper args={[5]} />

@@ -11,7 +11,7 @@ import { DistanceMeasurements } from './DistanceMeasurements';
 import { GridLabels } from './GridLabels';
 import { AssetManager, Asset3DRenderer } from './AssetManager';
 import { Button } from './ui/button';
-import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
+import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3 } from 'lucide-react';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { Checkbox } from './ui/checkbox';
 import * as THREE from 'three';
@@ -100,6 +100,7 @@ export function UnifiedPoolVisualizer({
   const [controllerCollapsed, setControllerCollapsed] = useState(false);
   const [assets3D, setAssets3D] = useState<any[]>([]);
   const [showGrid, setShowGrid] = useState(true);
+  const [showRulers, setShowRulers] = useState(false);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
   const poolGroupRef = useRef<THREE.Group>(null);
