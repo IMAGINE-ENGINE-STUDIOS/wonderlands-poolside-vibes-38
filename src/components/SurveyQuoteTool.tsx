@@ -1237,8 +1237,8 @@ const SurveyQuoteTool = ({
                   if (!isPoolProduct && !isLanaiProduct) return null;
                   
                   return (
-                    <div className="mb-6">
-                      <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg">
+                     <div className="mb-6">
+                      <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
                         <h4 className="font-bold text-lg mb-3 text-orange-600">
                           {isLanaiProduct ? 'LANAI INCLUDES' : 'ALL POOLS INCLUDE'}
                         </h4>
@@ -1267,8 +1267,8 @@ const SurveyQuoteTool = ({
                   if (!isPoolProduct || isLanaiProduct || !extras?.concreteConstruction) return null;
                   
                   return (
-                    <div className="mb-6">
-                      <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-blue-200">
+                     <div className="mb-6">
+                      <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-blue-200" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
                         <h4 className="font-bold text-lg mb-2 text-blue-600">Pool Construction</h4>
                         <p className="text-sm mb-2">
                           Selected concrete construction: reinforced concrete with steel rebar and a high-quality interior finish. It offers full design flexibility for shapes, steps, benches, and features. Like all pools, it performs best with proper maintenance and balanced water chemistry.
@@ -1292,8 +1292,8 @@ const SurveyQuoteTool = ({
                   if (!isPoolProduct || isLanaiProduct) return null;
                   
                   return (
-                    <div className="mb-6">
-                      <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200">
+                     <div className="mb-6">
+                      <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
                         <div className="text-sm space-y-2">
                           {extras?.concreteConstruction ? <div>
                               <p className="font-semibold">Concrete Pool Construction:</p>
@@ -1316,7 +1316,7 @@ const SurveyQuoteTool = ({
 
                 {/* Estimated Build/Installation Time */}
                 <div className="mb-6">
-                  <div className="bg-gradient-to-br from-blue-100 to-green-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
+                  <div className="bg-gradient-to-br from-blue-100 to-green-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
                     <h4 className="font-bold text-lg mb-2 text-blue-600">
                       {(() => {
                         const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
@@ -1371,7 +1371,7 @@ const SurveyQuoteTool = ({
                   </div>
                 </div>
 
-                 <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center print:bg-gradient-to-r print:from-orange-500 print:via-pink-500 print:to-teal-500 print:text-white">
+                 <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
                    <h3 className="text-2xl font-bold mb-2">Total Investment</h3>
                    <div className="text-4xl font-bold">${calculateQuote().toLocaleString()}</div>
                  </div>
