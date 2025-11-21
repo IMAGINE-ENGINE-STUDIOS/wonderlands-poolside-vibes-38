@@ -316,10 +316,7 @@ const SurveyQuoteTool = ({
         'disclaimer': prev['disclaimer'] || 'Architectural Design, Construction and permiting is included in all products, unless project scope is modified.',
         'total-title': prev['total-title'] || 'Total Investment',
         'paver-deck-title': prev['paver-deck-title'] || `Paver Deck (${surveyData.deckWidth || 3}ft Width)`,
-        'paver-deck-description': prev['paver-deck-description'] || (() => {
-          const hasPavers = extras?.extrasBreakdown?.some((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
-          return hasPavers ? "Custom paver selection with chargeable area" : "Standard 3-foot paver deck included in base price";
-        })(),
+        'paver-deck-description': prev['paver-deck-description'] || "Custom paver selection with full area pricing",
         ...prev
       }));
       
@@ -1162,17 +1159,11 @@ const SurveyQuoteTool = ({
                                 {isEditMode ? (
                                   <input
                                     type="text"
-                                    value={editableTexts['paver-deck-description'] || (() => {
-                                      const hasPavers = extras?.extrasBreakdown?.some((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
-                                      return hasPavers ? "Custom paver selection with chargeable area" : "Standard 3-foot paver deck included in base price";
-                                    })()}
+                                    value={editableTexts['paver-deck-description'] || "Custom paver selection with full area pricing"}
                                     onChange={(e) => setEditableTexts({...editableTexts, 'paver-deck-description': e.target.value})}
                                     className="bg-white text-gray-900 border rounded px-2 py-1 w-full text-sm"
                                   />
-                                ) : (editableTexts['paver-deck-description'] || (() => {
-                                  const hasPavers = extras?.extrasBreakdown?.some((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
-                                  return hasPavers ? "Custom paver selection with chargeable area" : "Standard 3-foot paver deck included in base price";
-                                })())}
+                                ) : (editableTexts['paver-deck-description'] || "Custom paver selection with full area pricing")}
                               </p>
                               {pool?.dimensions && (() => {
                             // Parse pool dimensions - handle formats like "21' x 9'" or "21x9"
@@ -1195,32 +1186,19 @@ const SurveyQuoteTool = ({
                             
                             console.log('Pool calculations:', { poolLength, poolWidth, poolArea, deckWidth });
                             
-                            // Check if this pool model includes free 3ft pavers
-                            // Models that DO NOT include free pavers (user mentioned)
-                            const modelsWithoutFreePavers = ['Extreme 27', 'Astoria', 'Genesis']; // Add models here
-                            const includesFreePavers = !modelsWithoutFreePavers.includes(pool.model || '');
-                            
-                            // CORRECTED CALCULATION
+                            // NO MORE FREE PAVERS - ALL DECK AREA IS CHARGEABLE
                             // Total area with selected deck width
                             const totalAreaWithDeck = (poolLength + 2 * deckWidth) * (poolWidth + 2 * deckWidth);
                             
-                            // Total deck area (excluding pool)
+                            // Total deck area (excluding pool) - ALL CHARGEABLE
                             const totalDeckArea = totalAreaWithDeck - poolArea;
-                            
-                            // Free deck area (3ft perimeter included in base price ONLY for certain models)
-                            const freeDeckArea = includesFreePavers 
-                              ? ((poolLength + 6) * (poolWidth + 6)) - poolArea
-                              : 0;
-                            
-                            // Chargeable deck area (only the area beyond the free 3ft)
-                            const chargeableDeckArea = totalDeckArea - freeDeckArea;
                             
                             return <div className="text-xs space-y-1 bg-teal-50 dark:bg-gray-700 p-2 rounded border mb-2">
                                     <p className="font-medium">Area Calculation:</p>
                                     <p>• Pool area: {poolArea} sq ft</p>
+                                    <p>• Deck width: {deckWidth} ft</p>
                                     <p>• Total deck area: {totalDeckArea} sq ft</p>
-                                    <p>• Free 3ft perimeter: {freeDeckArea} sq ft</p>
-                                    <p>• Chargeable area: {Math.max(0, chargeableDeckArea)} sq ft</p>
+                                    <p className="font-semibold text-teal-600">• Chargeable area: {totalDeckArea} sq ft</p>
                                   </div>;
                           })()}
                               
