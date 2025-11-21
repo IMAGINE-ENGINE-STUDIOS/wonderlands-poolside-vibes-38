@@ -502,19 +502,21 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
               )}
             </div>
 
-            {/* Concrete Construction */}
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <Checkbox 
-                  checked={extras.concreteConstruction} 
-                  onCheckedChange={() => toggleExtra('concreteConstruction')} 
-                />
-                <div className="flex items-center space-x-1">
-                  <Home size={16} className="text-gray-600" />
-                  <span className="font-medium">Concrete Construction (+$15,000) - {pool.concreteInstallationWeeks || 18} weeks</span>
-                </div>
-              </label>
-            </div>
+            {/* Concrete Construction - Hide for Winderview (already concrete) */}
+            {pool.model !== "Winderview" && (
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <Checkbox 
+                    checked={extras.concreteConstruction} 
+                    onCheckedChange={() => toggleExtra('concreteConstruction')} 
+                  />
+                  <div className="flex items-center space-x-1">
+                    <Home size={16} className="text-gray-600" />
+                    <span className="font-medium">Concrete Construction (+$15,000) - {pool.concreteInstallationWeeks || 18} weeks</span>
+                  </div>
+                </label>
+              </div>
+            )}
 
             {/* Add Spa */}
             <div className="space-y-2">
