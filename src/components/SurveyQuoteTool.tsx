@@ -464,7 +464,7 @@ const SurveyQuoteTool = ({
       const quoteAmount = calculateQuote();
       const recommendations = getIncludedItems();
       const quotationData = {
-        user_id: user?.id || null, // Allow NULL for guest quotes
+        user_id: user?.id || null,
         name: surveyData.name,
         email: surveyData.email,
         phone: surveyData.phone || null,
@@ -476,7 +476,6 @@ const SurveyQuoteTool = ({
         special_requests: surveyData.specialRequests || null,
         timeline: surveyData.timeline || null,
         budget: surveyData.budget || null,
-        deck_width: surveyData.deckWidth || null,
         pool_model: pool?.model || customProduct?.name || null,
         pool_price: pool?.price || customProduct?.price || null,
         pool_category: pool?.category || customProduct?.type || null,
