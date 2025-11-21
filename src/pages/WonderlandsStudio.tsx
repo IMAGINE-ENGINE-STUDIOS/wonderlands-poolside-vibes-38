@@ -1087,7 +1087,7 @@ const WonderlandsStudio = () => {
                     )}
                     
                     <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
-                      {show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') ? (
+                      {show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && paverTypes.length > 0 && finishOptions.length > 0 ? (
                         <UnifiedPoolVisualizer
                           scene={productToScene(
                             selectedProduct,

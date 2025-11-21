@@ -1,6 +1,6 @@
 import { Canvas as R3FCanvas, useThree } from '@react-three/fiber';
 import { OrbitControls, TransformControls, Sky } from '@react-three/drei';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation } from './scene3d/types';
 import { Pool3DScene } from './Pool3DScene';
 import { Scene3DControlPanel } from './Scene3DControlPanel';
@@ -12,6 +12,8 @@ import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight } f
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { Checkbox } from './ui/checkbox';
 import * as THREE from 'three';
+import { Scene3DErrorBoundary } from './scene3d/Scene3DErrorBoundary';
+import { validateScene } from '@/utils/sceneValidator';
 
 interface UnifiedPoolVisualizerProps {
   scene: Scene3D;
@@ -55,7 +57,9 @@ export function UnifiedPoolVisualizer({
   textureLibrary,
   onSceneChange
 }: UnifiedPoolVisualizerProps) {
-  const { state: scene, set: setScene, undo, redo, canUndo, canRedo, reset } = useUndoRedo<Scene3D>(initialScene);
+  // Validate scene before using it
+  const validatedScene = validateScene(initialScene);
+  const { state: scene, set: setScene, undo, redo, canUndo, canRedo, reset } = useUndoRedo<Scene3D>(validatedScene);
   const [selectedObject, setSelectedObject] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [transformMode, setTransformMode] = useState<TransformMode>('translate');
@@ -577,13 +581,22 @@ export function UnifiedPoolVisualizer({
           )}
         </div>
 
-        <R3FCanvas
-          shadows
-          camera={{
-            position: scene.camera.position,
-            fov: 50
-          }}
-        >
+        <Scene3DErrorBoundary>
+          <Suspense fallback={
+            <div className="absolute inset-0 flex items-center justify-center bg-background/95">
+              <div className="text-center space-y-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                <p className="text-sm text-muted-foreground">Loading 3D Viewer...</p>
+              </div>
+            </div>
+          }>
+            <R3FCanvas
+              shadows
+              camera={{
+                position: scene.camera.position,
+                fov: 50
+              }}
+            >
           {/* Dynamic Sky with Clouds */}
           <Sky 
             distance={450000}
@@ -751,6 +764,8 @@ export function UnifiedPoolVisualizer({
             dampingFactor={0.05}
           />
         </R3FCanvas>
+        </Suspense>
+        </Scene3DErrorBoundary>
       </div>
       
       {/* Right Control Panel */}
