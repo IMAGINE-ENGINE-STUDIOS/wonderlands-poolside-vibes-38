@@ -469,10 +469,10 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                 </div>
               </div>
 
-              {/* Pool Sub-selections */}
+              {/* Pool Sub-Component - Walls & Floor */}
               {selectedCategory === 'pool' && (
                 <div className="space-y-2">
-                  <Label className="text-xs font-semibold">Pool Sub-Component</Label>
+                  <Label className="text-xs font-semibold">Pool Parts</Label>
                   <div className="grid grid-cols-2 gap-1">
                     <Button
                       variant="outline"

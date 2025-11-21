@@ -7,8 +7,9 @@ import { Scene3DControlPanel } from './Scene3DControlPanel';
 import { StairsControls } from './StairsControls';
 import { Scene3DAnnotations } from './Scene3DAnnotations';
 import { DistanceMeasurements } from './DistanceMeasurements';
+import { AssetManager, Asset3DRenderer } from './AssetManager';
 import { Button } from './ui/button';
-import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { Checkbox } from './ui/checkbox';
 import * as THREE from 'three';
@@ -95,6 +96,7 @@ export function UnifiedPoolVisualizer({
   const [transformStepSize, setTransformStepSize] = useState(1); // Default 1 ft
   const [showMeasurements, setShowMeasurements] = useState(false);
   const [controllerCollapsed, setControllerCollapsed] = useState(false);
+  const [assets3D, setAssets3D] = useState<any[]>([]);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
   const poolGroupRef = useRef<THREE.Group>(null);
@@ -167,29 +169,32 @@ export function UnifiedPoolVisualizer({
     preloadTextures();
   }, [linerTextureUrl, paverTextureUrl, copingTextureUrl, waterlineTextureUrl]);
 
-  // Auto-snap camera to selected category
+  // Camera centering when category is selected
   useEffect(() => {
     if (!selectedCategory || !controlsRef.current) return;
     
     const cameraConfigs: Record<string, { position: [number, number, number], target: [number, number, number] }> = {
       pool: { position: [0, 40, 0], target: [0, -3, 0] },
       deck: { position: [25, 15, 25], target: [0, 0, 0] },
-      coping: { position: [15, 5, 15], target: [0, 0, 0] },
-      waterline: { position: [20, 2, 20], target: [0, -0.2, 0] }
+      coping: { position: [15, 5, 15], target: [0, 0.1, 0] },
+      waterline: { position: [20, 2, 20], target: [0, -0.2, 0] },
+      water: { position: [0, 30, 30], target: [0, 0, 0] }
     };
     
     const config = cameraConfigs[selectedCategory];
-    if (config) {
-      setCameraPreset(null);
-      setScene({
-        ...scene,
-        camera: {
-          position: config.position,
-          target: config.target
-        }
-      });
+    if (config && controlsRef.current) {
+      // Smoothly animate camera
+      const controls = controlsRef.current;
+      controls.target.set(...config.target);
+      
+      // Update camera position
+      const camera = controls.object;
+      camera.position.set(...config.position);
+      camera.lookAt(new THREE.Vector3(...config.target));
+      
+      controls.update();
     }
-  }, [selectedCategory, scene, setScene]);
+  }, [selectedCategory]);
 
   const handleTextureChange = (category: 'pool' | 'deck' | 'coping' | 'waterline', texture: TextureConfig) => {
     const updated = { ...scene };
@@ -471,7 +476,7 @@ export function UnifiedPoolVisualizer({
           {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
         </button>
 
-        {/* Undo/Redo Controls */}
+        {/* Undo/Redo & Reset View Controls */}
         <div className="absolute top-4 left-4 z-10 flex gap-2">
           <button
             onClick={undo}
@@ -488,6 +493,23 @@ export function UnifiedPoolVisualizer({
             title="Redo (Ctrl+Y)"
           >
             <Redo2 className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => {
+              if (controlsRef.current) {
+                // Reset camera to default isometric view
+                const controls = controlsRef.current;
+                controls.target.set(0, 0, 0);
+                const camera = controls.object;
+                camera.position.set(40, 30, 40);
+                camera.lookAt(0, 0, 0);
+                controls.update();
+              }
+            }}
+            className="bg-background/80 hover:bg-background p-2 rounded-lg shadow-lg transition-colors"
+            title="Reset View"
+          >
+            <RotateCcw className="w-5 h-5" />
           </button>
         </div>
 
@@ -809,6 +831,11 @@ export function UnifiedPoolVisualizer({
             </group>
           )}
 
+          {/* 3D Assets */}
+          {assets3D.map((asset) => (
+            <Asset3DRenderer key={asset.id} asset={asset} />
+          ))}
+
           {/* Transform Controls for Pool - with translation snap */}
           {poolTransformMode && poolGroupRef.current && (
             <TransformControls 
@@ -852,14 +879,22 @@ export function UnifiedPoolVisualizer({
             enableDamping
             dampingFactor={0.05}
           />
-              </R3FCanvas>
+               </R3FCanvas>
             )}
           </Suspense>
         </Scene3DErrorBoundary>
+
+        {/* Asset Manager - Visible in fullscreen */}
+        <AssetManager 
+          assets={assets3D}
+          onAddAsset={(asset) => setAssets3D([...assets3D, asset])}
+          onRemoveAsset={(id) => setAssets3D(assets3D.filter(a => a.id !== id))}
+        />
       </div>
       
-      {/* Right Control Panel */}
-      <Scene3DControlPanel
+      {/* Right Control Panel - Visible in fullscreen */}
+      {!controllerCollapsed && (
+        <Scene3DControlPanel
         scene={scene}
         selectedObject={selectedObject}
         selectedCategory={selectedCategory}
@@ -887,7 +922,9 @@ export function UnifiedPoolVisualizer({
         enableDeckSplineEdit={enableDeckSplineEdit}
         onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
         onDeckSplineEditToggle={() => setEnableDeckSplineEdit(!enableDeckSplineEdit)}
+        onSelectCategory={setSelectedCategory}
       />
+      )}
     </div>
   );
 }
