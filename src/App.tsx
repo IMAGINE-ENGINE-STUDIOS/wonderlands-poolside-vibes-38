@@ -21,6 +21,7 @@ const ReferralPortal = lazy(() => import("./pages/ReferralPortal"));
 const QuoteDetailPage = lazy(() => import("./pages/QuoteDetailPage"));
 const InvoiceDetailPage = lazy(() => import("./pages/InvoiceDetailPage"));
 const QuotationTool = lazy(() => import("./pages/QuotationTool"));
+const PoolCalculatorPage = lazy(() => import("./pages/PoolCalculatorPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -90,6 +91,7 @@ const App = () => {
               } 
             />
             <Route path="/quote" element={<QuotationTool />} />
+            <Route path="/pool-calculator" element={<PoolCalculatorPage />} />
             <Route path="/wonderlands-studio" element={<WonderlandsStudio />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
