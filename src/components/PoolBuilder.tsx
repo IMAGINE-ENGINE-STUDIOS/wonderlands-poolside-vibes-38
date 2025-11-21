@@ -308,13 +308,13 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
 
   // Available finishes
   const finishes = [
-    { id: 'aquamarine', name: 'Aquamarine', image: '/src/assets/finishes/aquamarine-g3.jpg' },
-    { id: 'azure', name: 'Azure Blue', image: '/src/assets/finishes/azure-blue-g2.jpg' },
-    { id: 'lagoon', name: 'Lagoon Blue', image: '/src/assets/finishes/lagoon-blue-g2.jpg' },
-    { id: 'ocean', name: 'Ocean Blue', image: '/src/assets/finishes/ocean-blue-g3.jpg' },
-    { id: 'sapphire', name: 'Sapphire Blue', image: '/src/assets/finishes/sapphire-blue-g3.jpg' },
-    { id: 'coastal', name: 'Coastal Bronze', image: '/src/assets/finishes/coastal-bronze-g3.jpg' },
-    { id: 'pearl', name: 'Athens Pearl White', image: '/src/assets/finishes/athens-pearl-white-g3.jpg' },
+    { id: 'aquamarine', name: 'Aquamarine', image: '/textures/finishes/aquamarine-g3.jpg' },
+    { id: 'azure', name: 'Azure Blue', image: '/textures/finishes/azure-blue-g2.jpg' },
+    { id: 'lagoon', name: 'Lagoon Blue', image: '/textures/finishes/lagoon-blue-g2.jpg' },
+    { id: 'ocean', name: 'Ocean Blue', image: '/textures/finishes/ocean-blue-g3.jpg' },
+    { id: 'sapphire', name: 'Sapphire Blue', image: '/textures/finishes/sapphire-blue-g3.jpg' },
+    { id: 'coastal', name: 'Coastal Bronze', image: '/textures/finishes/coastal-bronze-g3.jpg' },
+    { id: 'pearl', name: 'Athens Pearl White', image: '/textures/finishes/athens-pearl-white-g3.jpg' },
   ];
 
   // Load textures with LOD system

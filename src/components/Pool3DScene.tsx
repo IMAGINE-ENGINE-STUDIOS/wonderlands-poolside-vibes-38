@@ -112,7 +112,7 @@ const PoolMesh: React.FC<{
 }> = ({ 
   points, 
   depthPoints, 
-  linerTextureUrl = '/src/assets/finishes/sapphire-blue-g3.jpg', 
+  linerTextureUrl = '/textures/finishes/sapphire-blue-g3.jpg',
   poolDimensions: providedDimensions, 
   selectedCategory, 
   linerTextureScale = 1.8, 
