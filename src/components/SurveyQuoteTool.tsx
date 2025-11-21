@@ -453,7 +453,7 @@ const SurveyQuoteTool = ({
     return totalArea; // enclosure covers entire footprint
   };
   const getIncludedItems = () => {
-    return ["LED lights", "Water pump", "Waterfall", "Salt system", "FREE Finish of choice (included in pool price - promotional offer)"];
+    return ["LED lights", "Pentair pool equipment", "Salt system", "FREE Finish of choice (included in pool price - promotional offer)"];
   };
   const saveQuotationToDatabase = async () => {
     if (!surveyData.name || !surveyData.email || !surveyData.address) {
@@ -1551,13 +1551,20 @@ const SurveyQuoteTool = ({
                       ) : (editableTexts['added-features-title'] || 'Added Features from Product Card')}
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {extras.extrasBreakdown.filter((item: any) => !(item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'))).map((item: any, index: number) => <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
+                      {extras.extrasBreakdown.filter((item: any) => !(item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'))).map((item: any, index: number) => {
+                        // Update item name to specify 2 Story for Premium Screen Enclosure
+                        let displayName = item.name;
+                        if (displayName.toLowerCase().includes('premium screen enclosure') && !displayName.includes('2 Story')) {
+                          displayName = displayName.replace(/premium screen enclosure/i, 'Premium Screen Enclosure - 2 Story');
+                        }
+                        
+                        return <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
                           {/* Display item image - use actual image if available or fallback based on type */}
                           {(() => {
                     // First check if item has its own image property
                     if (item.image) {
                       return <div className="mb-3">
-                                 <ImageCard src={item.image} alt={item.name} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
+                                 <ImageCard src={item.image} alt={displayName} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
                                </div>;
                     }
 
@@ -1627,15 +1634,16 @@ const SurveyQuoteTool = ({
                       itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
                     }
                     return itemImage ? <div className="mb-3">
-                                 <ImageCard src={itemImage} alt={item.name} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
+                                 <ImageCard src={itemImage} alt={displayName} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
                                </div> : null;
                   })()}
-                          <h5 className="font-semibold text-sm">{item.name}</h5>
+                          <h5 className="font-semibold text-sm">{displayName}</h5>
                           <div className="flex justify-between text-sm mt-2">
                             <span>Price:</span>
                             <span className="font-semibold text-coral-600">+${item.price.toLocaleString()}</span>
                           </div>
-                        </div>)}
+                        </div>;
+                      })}
                     </div>
                     <div className="mt-4 p-3 bg-gradient-to-r from-coral-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 rounded-lg">
                       <div className="flex justify-between items-center">

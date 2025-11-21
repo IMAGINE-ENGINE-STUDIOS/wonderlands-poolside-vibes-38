@@ -267,9 +267,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             <ul className="text-xs space-y-0.5">
               <li>• 3 ft of pavers</li>
               <li>• Salt system</li>
-              <li>• Pool equipment</li>
+              <li>• Pentair pool equipment</li>
               <li>• LED light</li>
-              <li>• Waterfall/fountain</li>
             </ul>
           </div>
           <div className="flex items-center gap-1">
