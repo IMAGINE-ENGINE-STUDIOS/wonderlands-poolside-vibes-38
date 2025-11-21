@@ -350,12 +350,19 @@ const InvoiceDetailPage = () => {
             </div>
 
             {/* Payment Terms */}
-            <div className="grid grid-cols-2 gap-8 mb-8 pb-8 border-b">
-              <div>
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Payment Terms</h3>
-                <p className="text-sm">As specified in contract</p>
+            <div className="mb-8 pb-8 border-b">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-3">Payment Terms</h3>
+              <div className="bg-muted/30 p-4 rounded-lg space-y-2">
+                <p className="text-sm font-semibold mb-2">Payment will be broken down into 4 payments:</p>
+                <div className="space-y-1.5 text-sm">
+                  <p>• <span className="font-semibold">20%</span> due same day of signing the contract</p>
+                  <p>• <span className="font-semibold">35%</span> due same day after permits are approved and when the excavator arrives to the house</p>
+                  <p>• <span className="font-semibold">40%</span> before concrete machine arrives and same day after excavations are completed</p>
+                  <p>• <span className="font-semibold">10%</span> due same day when the last inspection is approved</p>
+                </div>
+                <p className="text-sm italic mt-3 text-muted-foreground">It will be fully explained in the contract.</p>
               </div>
-              {invoice.sent_at && <div>
+              {invoice.sent_at && <div className="mt-4">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Sent Date</h3>
                   <p className="text-sm">{new Date(invoice.sent_at).toLocaleDateString()}</p>
                 </div>}
