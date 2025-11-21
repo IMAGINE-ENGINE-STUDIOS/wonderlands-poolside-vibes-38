@@ -1,4 +1,5 @@
-import { useState } from "react";
+import * as React from "react";
+const { useState } = React;
 import { gilmerPools } from "@/data/gilmerPools";
 import SimplifiedGilmerPoolCard from "./SimplifiedGilmerPoolCard";
 import { Card, CardContent } from "@/components/ui/card";

@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import * as React from 'react';
+const { useState, useMemo, useEffect, useRef } = React;
 import { PerspectiveCamera, Grid, useTexture, TransformControls, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { textureCache, disposeTexture } from '@/utils/textureCache';

@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import * as React from "react";
+const { useState, useEffect } = React;
 import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
 import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
 import { useNavigate } from "react-router-dom";
