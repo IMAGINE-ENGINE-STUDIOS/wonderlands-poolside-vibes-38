@@ -421,7 +421,7 @@ export function UnifiedPoolVisualizer({
       ...scene,
       pool: {
         ...scene.pool,
-        position: [0, 0, 0]
+        position: [-10, 0, 20] // S25 grid position
       }
     });
   };
