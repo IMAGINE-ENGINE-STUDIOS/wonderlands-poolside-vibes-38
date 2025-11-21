@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import * as React from 'react';
+const { useState, useEffect } = React;
 import { getImageConfig, generateSrcSet } from '@/utils/imageOptimization';
 import olympia12Webp from '@/assets/pools/olympia-12-optimized.webp';
 import olympia14Webp from '@/assets/pools/olympia-14-optimized.webp';

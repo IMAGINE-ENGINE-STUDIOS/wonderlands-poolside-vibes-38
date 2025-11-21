@@ -1,5 +1,6 @@
 
-import { memo, useState, useEffect } from 'react';
+import * as React from 'react';
+const { memo, useState, useEffect } = React;
 import { OptimizedImage } from './OptimizedImage';
 import heroImage1 from '../assets/hero-carousel-1.jpg';
 import heroImage2 from '../assets/hero-carousel-2.jpg';

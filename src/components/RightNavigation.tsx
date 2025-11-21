@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import * as React from "react";
+const { useState, useEffect } = React;
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
