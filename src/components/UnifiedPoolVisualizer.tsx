@@ -665,6 +665,22 @@ export function UnifiedPoolVisualizer({
             {texturesReady && (
               <R3FCanvas
                 shadows
+                gl={{ 
+                  preserveDrawingBuffer: true,
+                  antialias: true,
+                  alpha: true,
+                  powerPreference: "high-performance"
+                }}
+                onCreated={({ gl }) => {
+                  console.log('✅ WebGL Context Created');
+                  gl.domElement.addEventListener('webglcontextlost', (event) => {
+                    event.preventDefault();
+                    console.error('❌ WebGL Context Lost - attempting recovery');
+                  });
+                  gl.domElement.addEventListener('webglcontextrestored', () => {
+                    console.log('✅ WebGL Context Restored');
+                  });
+                }}
                 camera={{
                   position: scene.camera.position,
                   fov: 50

@@ -1088,14 +1088,15 @@ const WonderlandsStudio = () => {
                     
                     <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
                       {show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && paverTypes.length > 0 && finishOptions.length > 0 ? (
-                        <UnifiedPoolVisualizer
-                          scene={productToScene(
-                            selectedProduct,
-                            selectedExtras,
-                            paverTypes,
-                            finishOptions
-                          )}
-                          textureLibrary={{
+                        <div className="w-full h-full" key={`3d-viewer-${selectedProduct.model || selectedProduct.name}`}>
+                          <UnifiedPoolVisualizer
+                            scene={productToScene(
+                              selectedProduct,
+                              selectedExtras,
+                              paverTypes,
+                              finishOptions
+                            )}
+                            textureLibrary={{
                             finishes: [
                               // Pool Finishes (Crystite Crystal collection)
                               ...poolFinishesData.map(f => ({
@@ -1135,7 +1136,8 @@ const WonderlandsStudio = () => {
                           onSceneChange={(updatedScene) => {
                             // Handle scene updates if needed
                           }}
-                        />
+                          />
+                        </div>
                       ) : (selectedProduct.media || selectedProduct.image) ? (
                         <ProductMediaGallery 
                           media={selectedProduct.media || selectedProduct.image || ''} 
