@@ -394,7 +394,7 @@ const InvoiceDetailPage = () => {
             <div className="grid grid-cols-2 gap-8 mb-8 pb-8 border-b">
               <div>
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Payment Terms</h3>
-                <p className="text-sm">{invoice.payment_terms}</p>
+                <p className="text-sm">As specified in contract</p>
               </div>
               {invoice.sent_at && (
                 <div>
@@ -433,7 +433,9 @@ const InvoiceDetailPage = () => {
                     rows={3}
                   />
                 ) : (
-                  <p className="text-sm whitespace-pre-line">{invoice.terms_conditions}</p>
+                  <p className="text-sm whitespace-pre-line">
+                    {invoice.terms_conditions || "First payment is due on the date of contract signature. Subsequent payments as specified in contract. Late payments may incur additional fees."}
+                  </p>
                 )}
               </div>
             )}
