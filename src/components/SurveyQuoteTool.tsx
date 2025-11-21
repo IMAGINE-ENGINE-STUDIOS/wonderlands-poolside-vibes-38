@@ -579,7 +579,8 @@ const SurveyQuoteTool = ({
           </DialogDescription>
         </DialogHeader>
 
-        {currentStep === 'survey' ? <div className="space-y-6">
+        {currentStep === 'survey' ? (
+          <div className="space-y-6">
             {/* Contact Information */}
             <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-teal/5">
               <CardHeader>
@@ -801,8 +802,9 @@ const SurveyQuoteTool = ({
                 * By submitting, you agree to receive follow-up communications about your pool project
               </p>
             </div>
-          </div> : currentStep === 'options' ? (/* Pool Customization Options */
-      <div className="space-y-6">
+          </div>
+        ) : currentStep === 'options' ? (
+          <div className="space-y-6">
             <PoolCustomizationOptions onSelectionChange={options => setSelectedOptions(options)} />
             
             {/* Exclusive Sauna Offer for eligible pools */}
@@ -826,9 +828,9 @@ const SurveyQuoteTool = ({
                   </> : 'Generate Quote'}
               </Button>
             </div>
-          </div>) : (
-            /* Professional Quotation Display */
-            <div className="space-y-6 bg-white p-6" data-quote-content>
+          </div>
+        ) : (
+          <div className="space-y-6 bg-white p-6" data-quote-content>
             <div className="bg-white border-2 border-orange-400 rounded-lg overflow-hidden">
               
               {/* Header with Logo */}
@@ -1759,7 +1761,6 @@ const SurveyQuoteTool = ({
                 </div>
               </div>
             </div>
-          </div>
         )}
 
         {/* Authentication Prompt */}
