@@ -70,12 +70,30 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
       if (error) throw error;
 
       if (data) {
+        // Calculate discount based on difference between sum of items and total quote
+        const selectedOptions = data.selected_options ? (
+          typeof data.selected_options === 'string' 
+            ? JSON.parse(data.selected_options) 
+            : data.selected_options
+        ) : {};
+        
+        const optionsTotal: number = (Object.values(selectedOptions) as any[]).reduce((sum: number, opt: any) => {
+          return sum + (Number(opt?.price) || 0);
+        }, 0);
+        
+        const poolPrice: number = Number(data.pool_price) || 0;
+        const itemsSubtotal: number = poolPrice + optionsTotal;
+        
+        const totalQuote: number = Number(data.total_quote_amount) || itemsSubtotal;
+        const calculatedDiscount: number = itemsSubtotal > totalQuote ? itemsSubtotal - totalQuote : 0;
+        
         setFormData({
           ...formData,
           customerName: data.name || "",
           customerEmail: data.email || "",
           customerPhone: data.phone || "",
           customerAddress: data.address || "",
+          discountAmount: calculatedDiscount,
         });
 
         // Convert quote to line items

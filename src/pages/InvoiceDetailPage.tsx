@@ -339,7 +339,7 @@ const InvoiceDetailPage = () => {
                     <span className="font-semibold">${invoice.tax_amount.toLocaleString()}</span>
                   </div>}
                 {invoice.subtotal > invoice.total_amount && <div className="flex justify-between py-2 border-b bg-green-50">
-                    <span className="text-green-700 font-semibold">💰 Your Savings</span>
+                    <span className="text-green-700 font-semibold">💰 Your Savings ({((invoice.subtotal - invoice.total_amount) / invoice.subtotal * 100).toFixed(1)}% OFF)</span>
                     <span className="font-bold text-green-600">-${(invoice.subtotal - invoice.total_amount).toLocaleString()}</span>
                   </div>}
                 <div className="flex justify-between py-3 bg-gradient-to-r from-primary/10 to-coral/10 px-4 rounded-lg mt-2">
