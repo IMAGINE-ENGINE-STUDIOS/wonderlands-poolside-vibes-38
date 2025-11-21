@@ -364,6 +364,107 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_address: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          discount_amount: number | null
+          due_date: string
+          id: string
+          invoice_date: string
+          invoice_number: string
+          line_items: Json
+          notes: string | null
+          paid_amount: number | null
+          paid_date: string | null
+          payment_method: string | null
+          payment_status: string
+          payment_terms: string | null
+          quotation_id: string | null
+          sent_at: string | null
+          status: string
+          subtotal: number
+          tax_amount: number | null
+          tax_rate: number | null
+          terms_conditions: string | null
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_address: string
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          discount_amount?: number | null
+          due_date: string
+          id?: string
+          invoice_date?: string
+          invoice_number: string
+          line_items?: Json
+          notes?: string | null
+          paid_amount?: number | null
+          paid_date?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          payment_terms?: string | null
+          quotation_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subtotal?: number
+          tax_amount?: number | null
+          tax_rate?: number | null
+          terms_conditions?: string | null
+          total_amount: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_address?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          discount_amount?: number | null
+          due_date?: string
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          line_items?: Json
+          notes?: string | null
+          paid_amount?: number | null
+          paid_date?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          payment_terms?: string | null
+          quotation_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subtotal?: number
+          tax_amount?: number | null
+          tax_rate?: number | null
+          terms_conditions?: string | null
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "user_quotations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_attachments: {
         Row: {
           created_at: string
@@ -1740,6 +1841,7 @@ export type Database = {
         }[]
       }
       cleanup_expired_sessions: { Args: never; Returns: number }
+      generate_invoice_number: { Args: never; Returns: string }
       get_installer_profile_safe: {
         Args: { installer_uuid: string }
         Returns: Json
