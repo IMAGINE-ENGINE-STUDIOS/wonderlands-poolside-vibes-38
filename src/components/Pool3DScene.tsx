@@ -1097,7 +1097,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   poolPosition = [0, 0, 0],
   copingHeight = 2 / 12,
   deckHeight = 2 / 12,
-  copingWidth = 1.1, // Minimum 1.1 ft
+  copingWidth = 1.1,
   stairs = [],
   onStairsChange,
   isStairsPlacementMode = false,
@@ -1107,8 +1107,11 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   enablePoolSplineEdit = false,
   enableDeckSplineEdit = false,
   onPoolPointsChange,
-  onDeckPointsChange
+  onDeckPointsChange,
+  showWireframe = false,
+  showRulers = false
 }) => {
+  const [selectedComponent, setSelectedComponent] = useState<'pool' | 'water' | 'deck' | null>(null);
   // CRITICAL: Normalize empty strings to fallback URLs
   const normalizedLinerUrl = linerTextureUrl && linerTextureUrl.trim() !== '' && linerTextureUrl !== 'undefined' 
     ? linerTextureUrl 
