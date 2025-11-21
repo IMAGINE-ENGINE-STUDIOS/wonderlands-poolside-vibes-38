@@ -1,0 +1,73 @@
+/* Print-specific styles */
+@media print {
+  /* Hide elements that shouldn't be printed */
+  .no-print,
+  .print\\:hidden,
+  button:not(.print\\:block),
+  nav,
+  aside,
+  .sidebar,
+  header:not(.invoice-header),
+  footer:not(.invoice-footer) {
+    display: none !important;
+  }
+
+  /* Optimize page breaks */
+  .page-break {
+    page-break-before: always;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+  }
+
+  /* Remove shadows and backgrounds for cleaner prints */
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Ensure proper margins */
+  @page {
+    margin: 1cm;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Make sure links are visible */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 80%;
+  }
+
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+
+  /* Optimize table printing */
+  table {
+    border-collapse: collapse !important;
+  }
+
+  table td,
+  table th {
+    background-color: #fff !important;
+  }
+
+  /* Make images fit */
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  /* Ensure text is black for better print quality */
+  h1, h2, h3, h4, h5, h6, p {
+    color: #000 !important;
+  }
+}

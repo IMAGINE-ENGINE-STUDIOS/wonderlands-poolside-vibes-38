@@ -23,6 +23,7 @@ import {
   Gift,
   Building2,
   Key,
+  FileText,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -50,6 +51,8 @@ import ApiKeyManager from '@/components/ApiKeyManager';
 import SampleDataSetup from '@/components/SampleDataSetup';
 import SetupDemoUsers from '@/components/SetupDemoUsers';
 import AdminQuoteTool from '@/components/AdminQuoteTool';
+import AdminInvoiceTool from '@/components/AdminInvoiceTool';
+import AdminInvoicesManager from '@/components/AdminInvoicesManager';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -221,6 +224,16 @@ const AdminDashboard = () => {
                     <span className="hidden sm:inline">Quote Tool</span>
                   </TabsTrigger>
                   
+                  <TabsTrigger value="invoices" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Invoices</span>
+                  </TabsTrigger>
+                  
+                  <TabsTrigger value="invoice-tool" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Invoice Tool</span>
+                  </TabsTrigger>
+                  
                   <TabsTrigger value="orders" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                     <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="hidden sm:inline">Orders</span>
@@ -344,6 +357,29 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <AdminQuoteTool />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Invoices Tab */}
+          <TabsContent value="invoices" className="space-y-6">
+            <AdminInvoicesManager />
+          </TabsContent>
+
+          {/* Invoice Tool Tab */}
+          <TabsContent value="invoice-tool" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Invoice Generator
+                </CardTitle>
+                <CardDescription>
+                  Create and send professional invoices to customers
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AdminInvoiceTool />
               </CardContent>
             </Card>
           </TabsContent>
