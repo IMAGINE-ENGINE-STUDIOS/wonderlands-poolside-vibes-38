@@ -1143,21 +1143,57 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     ? Math.max(...depthPoints.map(dp => dp.depth)) 
     : 8);
   
-  // Convert Point[] to SplinePoint[] for pool
-  const poolSplinePoints: SplinePoint[] = useMemo(() => 
-    points.map(p => ({ x: p.x, y: 0, z: p.y, id: p.id })),
-    [points]
-  );
+  // Convert pool points to spline editor format
+  // Pool points should be INSIDE the coping (offset inward by coping width)
+  const poolSplinePoints: SplinePoint[] = useMemo(() => {
+    if (points.length < 3) return points.map((p, i) => ({ x: p.x, y: 0, z: p.y, id: p.id || `pool-${i}` }));
+    
+    // Calculate center of pool
+    const centerX = points.reduce((sum, p) => sum + p.x, 0) / points.length;
+    const centerY = points.reduce((sum, p) => sum + p.y, 0) / points.length;
+    
+    // Offset each point INWARD by coping width
+    return points.map((p, i) => {
+      const dx = centerX - p.x;
+      const dy = centerY - p.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      // Move point toward center by coping width
+      const offsetX = p.x + (dx / dist) * (copingWidth || 1.0);
+      const offsetY = p.y + (dy / dist) * (copingWidth || 1.0);
+      
+      return { x: offsetX, y: 0, z: offsetY, id: p.id || `pool-${i}` };
+    });
+  }, [points, copingWidth]);
   
   // Convert HardscapePoint[] to SplinePoint[] for deck
+  // Deck points should be on OUTER perimeter
   const deckSplinePoints: SplinePoint[] = useMemo(() => 
     (hardscapePoints || []).map(p => ({ x: p.x, y: deckHeight, z: p.y, id: p.id })),
     [hardscapePoints, deckHeight]
   );
   
+  // Handle pool spline changes
+  // When user drags pool points, offset them OUTWARD by coping width to get actual pool boundary
   const handlePoolSplineChange = (splinePoints: SplinePoint[]) => {
     if (onPoolPointsChange) {
-      const newPoints = splinePoints.map(sp => ({ x: sp.x, y: sp.z, id: sp.id }));
+      // Calculate center
+      const centerX = splinePoints.reduce((sum, p) => sum + p.x, 0) / splinePoints.length;
+      const centerZ = splinePoints.reduce((sum, p) => sum + p.z, 0) / splinePoints.length;
+      
+      // Offset each point OUTWARD by coping width to get actual pool boundary
+      const newPoints = splinePoints.map(sp => {
+        const dx = sp.x - centerX;
+        const dz = sp.z - centerZ;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        
+        // Move point away from center by coping width
+        const actualX = sp.x + (dx / dist) * (copingWidth || 1.0);
+        const actualY = sp.z + (dz / dist) * (copingWidth || 1.0);
+        
+        return { x: actualX, y: actualY, id: sp.id };
+      });
+      
       onPoolPointsChange(newPoints);
     }
   };

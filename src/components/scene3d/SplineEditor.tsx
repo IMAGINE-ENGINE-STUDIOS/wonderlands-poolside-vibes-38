@@ -82,10 +82,11 @@ export function SplineEditor({
         const isHovered = hoverPoint === point.id;
         const isDragged = draggedPoint === point.id;
         const pointColor = isDragged ? '#ff0000' : isHovered ? '#ffff00' : color;
-        const pointSize = isDragged ? 0.4 : isHovered ? 0.35 : 0.25;
+        const pointSize = isDragged ? 0.6 : isHovered ? 0.5 : 0.4;
 
         return (
-          <group key={point.id} position={[point.x, yPosition, point.z]}>
+          <group key={point.id} position={[point.x, yPosition + 1.5, point.z]}>
+            {/* Main control sphere */}
             <mesh
               onPointerDown={handlePointerDown(point.id)}
               onPointerMove={handlePointerMove}
@@ -93,16 +94,49 @@ export function SplineEditor({
               onPointerOver={() => setHoverPoint(point.id)}
               onPointerOut={() => setHoverPoint(null)}
             >
-              <sphereGeometry args={[pointSize, 16, 16]} />
-              <meshBasicMaterial color={pointColor} />
+              <sphereGeometry args={[pointSize, 32, 32]} />
+              <meshStandardMaterial 
+                color={pointColor} 
+                emissive={pointColor}
+                emissiveIntensity={0.5}
+                metalness={0.3}
+                roughness={0.4}
+              />
+            </mesh>
+            
+            {/* Vertical indicator line to surface */}
+            <line>
+              <bufferGeometry>
+                <bufferAttribute
+                  attach="attributes-position"
+                  count={2}
+                  array={new Float32Array([0, 0, 0, 0, -1.5, 0])}
+                  itemSize={3}
+                />
+              </bufferGeometry>
+              <lineBasicMaterial color={pointColor} linewidth={2} opacity={0.6} transparent />
+            </line>
+            
+            {/* Surface marker */}
+            <mesh position={[0, -1.5, 0]}>
+              <cylinderGeometry args={[0.15, 0.15, 0.05, 16]} />
+              <meshStandardMaterial 
+                color={pointColor}
+                emissive={pointColor}
+                emissiveIntensity={0.3}
+              />
             </mesh>
             
             {(isHovered || isDragged) && (
               <Html distanceFactor={10}>
-                <div className="bg-black/80 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
-                  {name} Point {index + 1}
-                  <br />
-                  X: {point.x.toFixed(2)} Z: {point.z.toFixed(2)}
+                <div className="bg-black/90 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap shadow-xl border border-white/20">
+                  <div className="font-bold mb-1">{name} Point {index + 1}</div>
+                  <div className="text-xs opacity-80">
+                    X: {point.x.toFixed(2)} ft | Z: {point.z.toFixed(2)} ft
+                  </div>
+                  <div className="text-xs opacity-60 mt-1">
+                    Drag to reposition
+                  </div>
                 </div>
               </Html>
             )}
