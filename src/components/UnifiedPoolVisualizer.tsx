@@ -746,7 +746,7 @@ export function UnifiedPoolVisualizer({
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />
           
-          {/* Pool rendering - ONLY pool components in this group */}
+          {/* Pool rendering - Pool hole and water at S25 position */}
           <group ref={poolGroupRef} position={scene.pool.position}>
             {/* Pool Mesh (walls and floor) */}
             <group onClick={() => setSelectedCategory('pool')}>
@@ -793,9 +793,9 @@ export function UnifiedPoolVisualizer({
             </group>
           </group>
 
-          {/* Deck and terrain - FIXED position */}
+          {/* Deck and terrain - FIXED at center position [0,0,0] */}
           {scene.deck.points && scene.deck.points.length > 0 && (
-            <group onClick={() => setSelectedCategory('deck')}>
+            <group position={[0, 0, 0]} onClick={() => setSelectedCategory('deck')}>
               <Pool3DScene
                 points={scene.pool.points}
                 depthPoints={[]}
@@ -827,7 +827,7 @@ export function UnifiedPoolVisualizer({
                 copingTextureOffset={[0, 0]}
                 waterlineTextureOffset={[0, 0]}
                 linerTextureOffset={[0, 0]}
-                poolPosition={scene.pool.position}
+                poolPosition={scene.pool.position} // Pass pool offset for proper coping/waterline alignment
                 copingHeight={scene.deck.copingHeight || 2 / 12}
                 deckHeight={scene.deck.deckHeight || 2 / 12}
                 copingWidth={scene.deck.copingWidth || 1.0}
