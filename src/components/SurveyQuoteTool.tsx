@@ -1311,23 +1311,35 @@ const SurveyQuoteTool = ({
                             
                             const poolLength = dims[1] || 0;
                             const poolWidth = dims[0] || 0;
-                            const deckWidth = parseInt(surveyData.deckWidth || "3");
                             const poolArea = poolLength * poolWidth;
                             
-                            console.log('Pool calculations:', { poolLength, poolWidth, poolArea, deckWidth });
+                            // Use actual deck area from product customization
+                            const paverItem = extras?.extrasBreakdown?.find((item: any) => 
+                              item.name.includes('sq ft') && !item.name.includes('Screen Enclosure')
+                            );
                             
-                            // Calculate total area with selected deck width
-                            const totalAreaWithDeck = (poolLength + 2 * deckWidth) * (poolWidth + 2 * deckWidth);
+                            let totalDeckArea = 0;
+                            let totalAreaWithDeck = poolArea;
                             
-                            // Total deck area (excluding pool)
-                            const totalDeckArea = totalAreaWithDeck - poolArea;
+                            if (paverItem) {
+                              // Extract deck area from paver item (e.g., "Appian Adobe (1100 sq ft)")
+                              const match = paverItem.name.match(/\((\d+)\s*sq\s*ft\)/i);
+                              if (match) {
+                                totalDeckArea = parseInt(match[1]);
+                                totalAreaWithDeck = poolArea + totalDeckArea;
+                              }
+                            }
                             
-                            return <div className="text-xs space-y-1 bg-teal-50 dark:bg-gray-700 p-2 rounded border mb-2">
-                                    <p className="font-medium">Area Calculation:</p>
-                                    <p>• Pool area: {poolArea.toFixed(0)} sq ft</p>
-                                    <p>• Deck area: {totalDeckArea.toFixed(0)} sq ft</p>
-                                    <p className="font-semibold text-teal-600">• Total area: {totalAreaWithDeck.toFixed(0)} sq ft</p>
-                                  </div>;
+                            // Only show if we have deck area from customization
+                            if (totalDeckArea > 0) {
+                              return <div className="text-xs space-y-1 bg-teal-50 dark:bg-gray-700 p-2 rounded border mb-2">
+                                      <p className="font-medium">Area Calculation:</p>
+                                      <p>• Pool area: {poolArea.toFixed(0)} sq ft</p>
+                                      <p>• Deck area: {totalDeckArea.toFixed(0)} sq ft</p>
+                                      <p className="font-semibold text-teal-600">• Total area: {totalAreaWithDeck.toFixed(0)} sq ft</p>
+                                    </div>;
+                            }
+                            return null;
                           })()}
                               
                               {extras?.extrasBreakdown && (() => {
