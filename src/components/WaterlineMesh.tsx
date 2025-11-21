@@ -33,36 +33,35 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
   const [pulseIntensity, setPulseIntensity] = useState(0);
 
   useEffect(() => {
-    if (waterlineTextureUrl) {
-      // Calculate pool perimeter for waterline tiles
-      const poolPerimeter = poolPoints.reduce((sum, p, i) => {
-        const nextP = poolPoints[(i + 1) % poolPoints.length];
-        return sum + Math.sqrt(Math.pow(nextP.x - p.x, 2) + Math.pow(nextP.y - p.y, 2));
-      }, 0);
-      
-      // Waterline tiles: scale control (inverted to fix backwards scaling)
-      const repeatX = (poolPerimeter / waterlineWidth) / waterlineTextureScale;
-      const repeatY = 1 / waterlineTextureScale;
-      
-      if (!waterlineTextureUrl || waterlineTextureUrl === '' || waterlineTextureUrl === 'undefined') {
-        setWaterlineTexture(null);
-        return;
-      }
-      
-      textureCache.loadTexture(waterlineTextureUrl, { x: repeatX, y: repeatY })
-        .then(texture => {
-          texture.offset.set(waterlineTextureOffset[0], waterlineTextureOffset[1]);
-          texture.wrapS = THREE.RepeatWrapping;
-          texture.wrapT = THREE.RepeatWrapping;
-          texture.userData.textureUrl = waterlineTextureUrl;
-          texture.needsUpdate = true;
-          setWaterlineTexture(texture);
-        })
-        .catch(err => {
-          console.error('Failed to load waterline texture');
-          setWaterlineTexture(null);
-        });
+    // CRITICAL: Validate URL BEFORE any processing
+    if (!waterlineTextureUrl || waterlineTextureUrl === '' || waterlineTextureUrl === 'undefined' || waterlineTextureUrl === 'null') {
+      setWaterlineTexture(null);
+      return;
     }
+    
+    // Calculate pool perimeter for waterline tiles
+    const poolPerimeter = poolPoints.reduce((sum, p, i) => {
+      const nextP = poolPoints[(i + 1) % poolPoints.length];
+      return sum + Math.sqrt(Math.pow(nextP.x - p.x, 2) + Math.pow(nextP.y - p.y, 2));
+    }, 0);
+    
+    // Waterline tiles: scale control (inverted to fix backwards scaling)
+    const repeatX = (poolPerimeter / waterlineWidth) / waterlineTextureScale;
+    const repeatY = 1 / waterlineTextureScale;
+    
+    textureCache.loadTexture(waterlineTextureUrl, { x: repeatX, y: repeatY })
+      .then(texture => {
+        texture.offset.set(waterlineTextureOffset[0], waterlineTextureOffset[1]);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.userData.textureUrl = waterlineTextureUrl;
+        texture.needsUpdate = true;
+        setWaterlineTexture(texture);
+      })
+      .catch(err => {
+        console.error('Failed to load waterline texture');
+        setWaterlineTexture(null);
+      });
   }, [waterlineTextureUrl, poolPoints, waterlineWidth, waterlineTextureScale, waterlineTextureOffset]);
 
   // Pulsing red effect when selected (8 second cycle)
