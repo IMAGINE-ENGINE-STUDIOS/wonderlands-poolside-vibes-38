@@ -757,8 +757,8 @@ export function UnifiedPoolVisualizer({
           <CameraController preset={cameraPreset} target={scene.camera.target} />
           
           {/* Pool hole and water - at S25 position [-10, 0, 20] */}
-          <group ref={poolGroupRef} position={scene.pool.position}>
-            {/* Pool Mesh (walls and floor) - matches water position */}
+          <group ref={poolGroupRef} position={scene.pool.position} key={`pool-${scene.pool.position.join('-')}`}>
+            {/* Pool Mesh (walls and floor) AND Water Surface - both at S25 */}
             <group onClick={() => setSelectedCategory('pool')}>
               <Pool3DScene
                 points={scene.pool.points}
