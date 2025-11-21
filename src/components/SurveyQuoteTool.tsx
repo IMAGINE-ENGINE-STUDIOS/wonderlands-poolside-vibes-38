@@ -116,6 +116,7 @@ const SurveyQuoteTool = ({
   const [passcodeInput, setPasscodeInput] = useState("");
   const [editableQuoteAmount, setEditableQuoteAmount] = useState<number>(0);
   const [hiddenSections, setHiddenSections] = useState<Set<string>>(new Set());
+  const [editableTexts, setEditableTexts] = useState<Record<string, string>>({});
   const {
     toast
   } = useToast();
@@ -311,6 +312,16 @@ const SurveyQuoteTool = ({
         variant: "destructive"
       });
     }
+  };
+
+  const handleSaveEditedQuote = async () => {
+    setIsEditMode(false);
+    // Regenerate the PDF with the new modifications
+    await new Promise(resolve => setTimeout(resolve, 100)); // Wait for state update
+    toast({
+      title: "Quote Updated",
+      description: "Your quote has been updated with the new modifications."
+    });
   };
 
   const handleToggleSection = (sectionId: string) => {
@@ -815,8 +826,9 @@ const SurveyQuoteTool = ({
                   </> : 'Generate Quote'}
               </Button>
             </div>
-          </div>) : (/* Professional Quotation Display */
-      <div className="space-y-6 bg-white p-6" data-quote-content>
+          </div>) : (
+            /* Professional Quotation Display */
+            <div className="space-y-6 bg-white p-6" data-quote-content>
             <div className="bg-white border-2 border-orange-400 rounded-lg overflow-hidden">
               
               {/* Header with Logo */}
@@ -846,7 +858,7 @@ const SurveyQuoteTool = ({
                   {isEditMode && (
                     <button
                       onClick={() => handleToggleSection('customer-info')}
-                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors no-print print:hidden"
                       title="Remove section"
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -913,7 +925,19 @@ const SurveyQuoteTool = ({
               )}
 
               {/* Product Details with Images */}
-              <div className="p-6">
+              {!hiddenSections.has('product-details') && (
+              <div className="p-6 relative">
+                {isEditMode && (
+                  <button
+                    onClick={() => handleToggleSection('product-details')}
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors no-print print:hidden z-10"
+                    title="Remove section"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
                 {(() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
                   const isLanaiProduct = extras?.productType === 'lanai';
@@ -921,7 +945,14 @@ const SurveyQuoteTool = ({
                   return (
                     <>
                       <h3 className="font-bold text-xl mb-4 text-orange-600">
-                        {isLanaiProduct ? 'Lanai Specifications' : isPoolProduct ? 'Pool Specifications' : 'Product Details'}
+                        {isEditMode ? (
+                          <input
+                            type="text"
+                            value={editableTexts['product-title'] || (isLanaiProduct ? 'Lanai Specifications' : isPoolProduct ? 'Pool Specifications' : 'Product Details')}
+                            onChange={(e) => setEditableTexts({...editableTexts, 'product-title': e.target.value})}
+                            className="bg-white border rounded px-2 py-1 w-full"
+                          />
+                        ) : (editableTexts['product-title'] || (isLanaiProduct ? 'Lanai Specifications' : isPoolProduct ? 'Pool Specifications' : 'Product Details'))}
                       </h3>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -1132,9 +1163,11 @@ const SurveyQuoteTool = ({
                     </>
                   );
                 })()}
+              </div>
+              )}
 
                 {/* Exclusive Sauna Offer for Eligible Pools */}
-                {(() => {
+                {!hiddenSections.has('sauna-offer') && (() => {
                   const eligibleModels = ["Astoria", "Genesis", "Claremont"];
                   const poolModel = pool?.model || "";
                   const poolPrice = pool?.price || 0;
@@ -1142,28 +1175,53 @@ const SurveyQuoteTool = ({
                   
                   if (!isEligible) return null;
                   
-                  const handleAddSaunaToQuote = () => {
-                    setSaunaSelected(true);
-                    toast({
-                      title: "Sauna Added",
-                      description: "Barrel Sauna has been added to your quote.",
-                    });
-                  };
-                  
                   return (
-                    <div className="mb-6">
+                    <div className="mb-6 relative">
+                      {isEditMode && (
+                        <button
+                          onClick={() => handleToggleSection('sauna-offer')}
+                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors no-print print:hidden z-10"
+                          title="Remove section"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
                       <ExclusiveSaunaOffer 
                         poolModel={poolModel} 
                         poolPrice={poolPrice} 
-                        onAddToQuote={handleAddSaunaToQuote}
+                        onAddToQuote={() => setSaunaSelected(!saunaSelected)}
+                        isSelected={saunaSelected}
                       />
                     </div>
                   );
                 })()}
 
                 {/* Selected Options with Images */}
-                {selectedOptions.length > 0 && <div className="mb-6">
-                    <h4 className="font-bold text-lg mb-3 text-teal-600">Selected Features</h4>
+                {!hiddenSections.has('selected-features') && selectedOptions.length > 0 && (
+                <div className="mb-6 relative">
+                    {isEditMode && (
+                      <button
+                        onClick={() => handleToggleSection('selected-features')}
+                        className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors no-print print:hidden z-10"
+                        title="Remove section"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                    <h4 className="font-bold text-lg mb-3 text-teal-600">
+                      {isEditMode ? (
+                        <input
+                          type="text"
+                          value={editableTexts['selected-features-title'] || 'Selected Features'}
+                          onChange={(e) => setEditableTexts({...editableTexts, 'selected-features-title': e.target.value})}
+                          className="bg-white border rounded px-2 py-1"
+                        />
+                      ) : (editableTexts['selected-features-title'] || 'Selected Features')}
+                    </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {selectedOptions.map((option, index) => {
                   let displayPrice = option.price;
@@ -1203,11 +1261,33 @@ const SurveyQuoteTool = ({
                           </div>;
                 })}
                     </div>
-                  </div>}
+                  </div>
+                )}
 
                 {/* Product Card Selected Items */}
-                {extras?.extrasBreakdown && extras.extrasBreakdown.length > 0 && <div className="mb-6">
-                    <h4 className="font-bold text-lg mb-3 text-coral-600">Added Features from Product Card</h4>
+                {!hiddenSections.has('added-features') && extras?.extrasBreakdown && extras.extrasBreakdown.length > 0 && (
+                <div className="mb-6 relative">
+                    {isEditMode && (
+                      <button
+                        onClick={() => handleToggleSection('added-features')}
+                        className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors no-print print:hidden z-10"
+                        title="Remove section"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                    <h4 className="font-bold text-lg mb-3 text-coral-600">
+                      {isEditMode ? (
+                        <input
+                          type="text"
+                          value={editableTexts['added-features-title'] || 'Added Features from Product Card'}
+                          onChange={(e) => setEditableTexts({...editableTexts, 'added-features-title': e.target.value})}
+                          className="bg-white border rounded px-2 py-1"
+                        />
+                      ) : (editableTexts['added-features-title'] || 'Added Features from Product Card')}
+                    </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {extras.extrasBreakdown.filter((item: any) => !(item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'))).map((item: any, index: number) => <div key={index} className="border border-coral-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-coral-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
                           {/* Display item image - use actual image if available or fallback based on type */}
@@ -1301,10 +1381,11 @@ const SurveyQuoteTool = ({
                         <span className="font-bold text-coral-600 text-lg">+${extras.extrasTotal.toLocaleString()}</span>
                       </div>
                     </div>
-                  </div>}
+                  </div>
+                )}
 
                 {/* Sauna Selection */}
-                {saunaSelected && (() => {
+                {!hiddenSections.has('sauna-addon') && saunaSelected && (() => {
                   const eligibleModels = ["Astoria", "Genesis", "Claremont", "Extreme 38"];
                   const poolModel = pool?.model || "";
                   const poolPrice = pool?.price || 0;
@@ -1313,8 +1394,28 @@ const SurveyQuoteTool = ({
                   if (!isEligible) return null;
                   
                   return (
-                    <div className="mb-6">
-                      <h4 className="font-bold text-lg mb-3 text-amber-600">🔥 Exclusive Sauna Add-On</h4>
+                    <div className="mb-6 relative">
+                      {isEditMode && (
+                        <button
+                          onClick={() => handleToggleSection('sauna-addon')}
+                          className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors no-print print:hidden z-10"
+                          title="Remove section"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                      <h4 className="font-bold text-lg mb-3 text-amber-600">
+                        {isEditMode ? (
+                          <input
+                            type="text"
+                            value={editableTexts['sauna-title'] || '🔥 Exclusive Sauna Add-On'}
+                            onChange={(e) => setEditableTexts({...editableTexts, 'sauna-title': e.target.value})}
+                            className="bg-white border rounded px-2 py-1 w-full"
+                          />
+                        ) : (editableTexts['sauna-title'] || '🔥 Exclusive Sauna Add-On')}
+                      </h4>
                       <div className="border border-amber-200 dark:border-gray-600 rounded-lg p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
                         <div className="flex items-center gap-4">
                           <div className="w-20 h-20 rounded-md overflow-hidden border">
@@ -1357,7 +1458,7 @@ const SurveyQuoteTool = ({
                 })()}
 
                 {/* Items Included - For pool products OR lanai with included features */}
-                {(() => {
+                {!hiddenSections.has('included-items') && (() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
                   const isLanaiProduct = extras?.productType === 'lanai';
                   const lanaiIncludedFeatures = extras?.includedFeatures || [];
@@ -1365,7 +1466,18 @@ const SurveyQuoteTool = ({
                   if (!isPoolProduct && !isLanaiProduct) return null;
                   
                   return (
-                     <div className="mb-6">
+                     <div className="mb-6 relative">
+                      {isEditMode && (
+                        <button
+                          onClick={() => handleToggleSection('included-items')}
+                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors no-print print:hidden z-10"
+                          title="Remove section"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
                       <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg">
                         <h4 className="font-bold text-lg mb-3 text-orange-600">
                           {isLanaiProduct ? 'LANAI INCLUDES' : 'ALL POOLS INCLUDE'}
@@ -1388,16 +1500,36 @@ const SurveyQuoteTool = ({
                 })()}
 
                 {/* Pool Construction Details - Only for pool products, NOT lanai */}
-                {(() => {
+                {!hiddenSections.has('construction-details') && (() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
                   const isLanaiProduct = extras?.productType === 'lanai';
                   
                   if (!isPoolProduct || isLanaiProduct || !extras?.concreteConstruction) return null;
                   
                   return (
-                     <div className="mb-6">
+                     <div className="mb-6 relative">
+                      {isEditMode && (
+                        <button
+                          onClick={() => handleToggleSection('construction-details')}
+                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors no-print print:hidden z-10"
+                          title="Remove section"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
                       <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-blue-200">
-                        <h4 className="font-bold text-lg mb-2 text-blue-600">Pool Construction</h4>
+                        <h4 className="font-bold text-lg mb-2 text-blue-600">
+                          {isEditMode ? (
+                            <input
+                              type="text"
+                              value={editableTexts['construction-title'] || 'Pool Construction'}
+                              onChange={(e) => setEditableTexts({...editableTexts, 'construction-title': e.target.value})}
+                              className="bg-white border rounded px-2 py-1 w-full"
+                            />
+                          ) : (editableTexts['construction-title'] || 'Pool Construction')}
+                        </h4>
                         <p className="text-sm mb-2">
                           Selected concrete construction: reinforced concrete with steel rebar and a high-quality interior finish. It offers full design flexibility for shapes, steps, benches, and features. Like all pools, it performs best with proper maintenance and balanced water chemistry.
                         </p>
@@ -1413,14 +1545,25 @@ const SurveyQuoteTool = ({
                 })()}
 
                 {/* Warranty Information - Only for pool products, NOT lanai */}
-                {(() => {
+                {!hiddenSections.has('warranty') && (() => {
                   const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
                   const isLanaiProduct = extras?.productType === 'lanai';
                   
                   if (!isPoolProduct || isLanaiProduct) return null;
                   
                   return (
-                     <div className="mb-6">
+                     <div className="mb-6 relative">
+                      {isEditMode && (
+                        <button
+                          onClick={() => handleToggleSection('warranty')}
+                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors no-print print:hidden z-10"
+                          title="Remove section"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
                       <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg border border-green-200">
                         <div className="text-sm space-y-2">
                           {extras?.concreteConstruction ? <div>
@@ -1443,7 +1586,19 @@ const SurveyQuoteTool = ({
                 })()}
 
                 {/* Estimated Build/Installation Time */}
-                <div className="mb-6">
+                {!hiddenSections.has('build-time') && (
+                <div className="mb-6 relative">
+                  {isEditMode && (
+                    <button
+                      onClick={() => handleToggleSection('build-time')}
+                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors no-print print:hidden z-10"
+                      title="Remove section"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
                   <div className="bg-gradient-to-br from-blue-100 to-green-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
                     <h4 className="font-bold text-lg mb-2 text-blue-600">
                       {(() => {
@@ -1498,9 +1653,19 @@ const SurveyQuoteTool = ({
                     })()}
                   </div>
                 </div>
+                )}
 
                  <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-teal-500 p-6 rounded-lg text-white text-center">
-                   <h3 className="text-2xl font-bold mb-2">Total Investment</h3>
+                   <h3 className="text-2xl font-bold mb-2">
+                     {isEditMode ? (
+                       <input
+                         type="text"
+                         value={editableTexts['total-title'] || 'Total Investment'}
+                         onChange={(e) => setEditableTexts({...editableTexts, 'total-title': e.target.value})}
+                         className="bg-white text-gray-900 border rounded px-2 py-1 w-full text-center"
+                       />
+                     ) : (editableTexts['total-title'] || 'Total Investment')}
+                   </h3>
                    {isEditMode ? (
                      <input
                        type="number"
@@ -1514,7 +1679,7 @@ const SurveyQuoteTool = ({
                  </div>
 
                 {/* Action Buttons */}
-                <div className="space-y-4 mt-6 print-hide">
+                <div className="space-y-4 mt-6 no-print print:hidden">
                   {/* Edit Mode Controls */}
                   {!isEditMode ? (
                     <div className="flex gap-3 justify-center items-center mb-4">
@@ -1538,10 +1703,10 @@ const SurveyQuoteTool = ({
                     <div className="flex gap-3 justify-center mb-4">
                       <Button 
                         variant="default"
-                        onClick={() => setIsEditMode(false)}
+                        onClick={handleSaveEditedQuote}
                         className="bg-green-600 hover:bg-green-700 text-white"
                       >
-                        Done Editing
+                        Save & Update Quote
                       </Button>
                     </div>
                   )}
@@ -1594,7 +1759,8 @@ const SurveyQuoteTool = ({
                 </div>
               </div>
             </div>
-          </div>)}
+          </div>
+        )}
 
         {/* Authentication Prompt */}
         {showAuthPrompt && <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
