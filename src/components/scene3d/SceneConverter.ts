@@ -149,7 +149,7 @@ export function productToScene(
       finish: {
         url: linerTextureUrl,
         name: selectedExtras.finish || selectedExtras.linerOption || 'Default',
-        scale: 1,
+        scale: 1.8,
         offset: [0, 0],
         roughness: 0.2,
         metalness: 0.1
@@ -164,13 +164,16 @@ export function productToScene(
         url: paverTextureUrl,
         name: selectedExtras.paverOption || 'Default Paver',
         roughness: 0.8,
-        metalness: 0.0
+        metalness: 0.0,
+        scale: 1.8,
+        offset: [0, 0]
       },
       coping: {
         url: copingTextureUrl,
         name: selectedExtras.copingPaverOption || 'Default Coping',
         roughness: 0.6,
         metalness: 0.0,
+        scale: 1.8,
         offset: [-0.21, 0]
       },
       copingWidth: 1.1, // Default coping width in feet (minimum)
