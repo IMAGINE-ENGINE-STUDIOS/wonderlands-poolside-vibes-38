@@ -1,6 +1,7 @@
+import * as React from "react";
+const { useState } = React;
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { useState } from "react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import AnimatedLandscape from "./AnimatedLandscape";
 import AdvancedSearch from "./AdvancedSearch";

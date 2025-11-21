@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import * as React from "react";
+const { useState, useEffect } = React;
 import { Button } from "@/components/ui/button";
 import { Shield, User, LogOut, Briefcase, Moon, Sun } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
