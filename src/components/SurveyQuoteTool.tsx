@@ -316,11 +316,15 @@ const SurveyQuoteTool = ({
 
   const handleSaveEditedQuote = async () => {
     setIsEditMode(false);
-    // Regenerate the PDF with the new modifications
-    await new Promise(resolve => setTimeout(resolve, 100)); // Wait for state update
+    // Wait for state to update so the DOM reflects the changes
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Auto-download the updated PDF
+    await handleDownloadPDF();
+    
     toast({
-      title: "Quote Updated",
-      description: "Your quote has been updated with the new modifications."
+      title: "Quote Updated & Downloaded",
+      description: "Your updated quote has been saved and downloaded as a new PDF file."
     });
   };
 
@@ -870,7 +874,16 @@ const SurveyQuoteTool = ({
                   )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <h3 className="font-bold text-lg mb-3 text-orange-600">Customer Information</h3>
+                      <h3 className="font-bold text-lg mb-3 text-orange-600">
+                        {isEditMode ? (
+                          <input
+                            type="text"
+                            value={editableTexts['customer-info-title'] || 'Customer Information'}
+                            onChange={(e) => setEditableTexts({...editableTexts, 'customer-info-title': e.target.value})}
+                            className="bg-white border rounded px-2 py-1 w-full"
+                          />
+                        ) : (editableTexts['customer-info-title'] || 'Customer Information')}
+                      </h3>
                       <div className="space-y-2 text-sm">
                         <p><span className="font-medium">Name:</span> {isEditMode ? (
                           <input
@@ -907,18 +920,52 @@ const SurveyQuoteTool = ({
                       </div>
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg mb-3 text-teal-600">Contact Information</h3>
+                      <h3 className="font-bold text-lg mb-3 text-teal-600">
+                        {isEditMode ? (
+                          <input
+                            type="text"
+                            value={editableTexts['contact-info-title'] || 'Contact Information'}
+                            onChange={(e) => setEditableTexts({...editableTexts, 'contact-info-title': e.target.value})}
+                            className="bg-white border rounded px-2 py-1 w-full"
+                          />
+                        ) : (editableTexts['contact-info-title'] || 'Contact Information')}
+                      </h3>
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2">
                           <Phone className="h-4 w-4 text-orange-500" />
-                          <span>(407) 760-4873</span>
+                          {isEditMode ? (
+                            <input
+                              type="text"
+                              value={editableTexts['contact-phone'] || '(407) 760-4873'}
+                              onChange={(e) => setEditableTexts({...editableTexts, 'contact-phone': e.target.value})}
+                              className="px-2 py-1 border rounded flex-1"
+                            />
+                          ) : (
+                            <span>{editableTexts['contact-phone'] || '(407) 760-4873'}</span>
+                          )}
                         </div>
                         <div className="flex items-center gap-2">
                           <Mail className="h-4 w-4 text-teal-500" />
-                          <span>sales@wonderlandsworld.com</span>
+                          {isEditMode ? (
+                            <input
+                              type="text"
+                              value={editableTexts['contact-email'] || 'sales@wonderlandsworld.com'}
+                              onChange={(e) => setEditableTexts({...editableTexts, 'contact-email': e.target.value})}
+                              className="px-2 py-1 border rounded flex-1"
+                            />
+                          ) : (
+                            <span>{editableTexts['contact-email'] || 'sales@wonderlandsworld.com'}</span>
+                          )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-2">
-                          Business Hours: Mon-Fri 8AM-6PM, Sat 9AM-4PM
+                          {isEditMode ? (
+                            <input
+                              type="text"
+                              value={editableTexts['business-hours'] || 'Business Hours: Mon-Fri 8AM-6PM, Sat 9AM-4PM'}
+                              onChange={(e) => setEditableTexts({...editableTexts, 'business-hours': e.target.value})}
+                              className="px-2 py-1 border rounded w-full text-xs"
+                            />
+                          ) : (editableTexts['business-hours'] || 'Business Hours: Mon-Fri 8AM-6PM, Sat 9AM-4PM')}
                         </p>
                       </div>
                     </div>
@@ -1482,7 +1529,14 @@ const SurveyQuoteTool = ({
                       )}
                       <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-6 rounded-lg">
                         <h4 className="font-bold text-lg mb-3 text-orange-600">
-                          {isLanaiProduct ? 'LANAI INCLUDES' : 'ALL POOLS INCLUDE'}
+                          {isEditMode ? (
+                            <input
+                              type="text"
+                              value={editableTexts['includes-title'] || (isLanaiProduct ? 'LANAI INCLUDES' : 'ALL POOLS INCLUDE')}
+                              onChange={(e) => setEditableTexts({...editableTexts, 'includes-title': e.target.value})}
+                              className="bg-white border rounded px-2 py-1 w-full"
+                            />
+                          ) : (editableTexts['includes-title'] || (isLanaiProduct ? 'LANAI INCLUDES' : 'ALL POOLS INCLUDE'))}
                         </h4>
                         {isLanaiProduct && lanaiIncludedFeatures.length > 0 ? (
                           <ul className="text-sm space-y-1">
@@ -1490,12 +1544,28 @@ const SurveyQuoteTool = ({
                               <li key={idx}>• {feature}</li>
                             ))}
                           </ul>
+                        ) : isEditMode ? (
+                          <textarea
+                            value={editableTexts['includes-content'] || getIncludedItems().filter(item => !item.startsWith("FREE")).join(", ")}
+                            onChange={(e) => setEditableTexts({...editableTexts, 'includes-content': e.target.value})}
+                            className="w-full px-2 py-1 border rounded text-sm"
+                            rows={2}
+                          />
                         ) : (
                           <p className="text-sm">
-                            {getIncludedItems().filter(item => !item.startsWith("FREE")).join(", ")}
+                            {editableTexts['includes-content'] || getIncludedItems().filter(item => !item.startsWith("FREE")).join(", ")}
                           </p>
                         )}
-                        <p className="text-xs mt-2 opacity-80">Architectural Design, Construction and permiting is included in all products, unless project scope is modified.</p>
+                        <p className="text-xs mt-2 opacity-80">
+                          {isEditMode ? (
+                            <input
+                              type="text"
+                              value={editableTexts['disclaimer'] || 'Architectural Design, Construction and permiting is included in all products, unless project scope is modified.'}
+                              onChange={(e) => setEditableTexts({...editableTexts, 'disclaimer': e.target.value})}
+                              className="w-full px-2 py-1 border rounded text-xs"
+                            />
+                          ) : (editableTexts['disclaimer'] || 'Architectural Design, Construction and permiting is included in all products, unless project scope is modified.')}
+                        </p>
                       </div>
                     </div>
                   );
