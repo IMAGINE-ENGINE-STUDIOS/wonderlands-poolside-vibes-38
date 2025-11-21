@@ -1,6 +1,6 @@
 import { Canvas as R3FCanvas, useThree } from '@react-three/fiber';
 import { OrbitControls, TransformControls, Sky } from '@react-three/drei';
-import { useState, useEffect, useRef, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation } from './scene3d/types';
 import { Pool3DScene } from './Pool3DScene';
 import { Scene3DControlPanel } from './Scene3DControlPanel';
@@ -14,6 +14,7 @@ import { Checkbox } from './ui/checkbox';
 import * as THREE from 'three';
 import { Scene3DErrorBoundary } from './scene3d/Scene3DErrorBoundary';
 import { validateScene } from '@/utils/sceneValidator';
+import { textureCache } from '@/utils/textureCache';
 
 interface UnifiedPoolVisualizerProps {
   scene: Scene3D;
@@ -70,10 +71,14 @@ export function UnifiedPoolVisualizer({
   
   const { state: scene, set: setScene, undo, redo, canUndo, canRedo, reset } = useUndoRedo<Scene3D>(validatedScene);
   
-  const handleSceneRecover = (recoveredScene: Scene3D) => {
-    console.log('🛡️ Scene recovered with fallback textures');
+  // Texture preloading state
+  const [texturesReady, setTexturesReady] = useState(false);
+  
+  // Recovery handler for error boundary
+  const handleSceneRecover = useCallback((recoveredScene: Scene3D) => {
+    console.log('🛡️ Applying recovered scene with fallback textures');
     reset(recoveredScene);
-  };
+  }, [reset]);
   const [selectedObject, setSelectedObject] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [transformMode, setTransformMode] = useState<TransformMode>('translate');
@@ -108,6 +113,59 @@ export function UnifiedPoolVisualizer({
   useEffect(() => {
     reset(initialScene);
   }, [initialScene, reset]);
+  
+  // Helper to safely extract texture URLs with fallbacks
+  const safeGetTextureUrl = useCallback((textureConfig: TextureConfig | undefined, fallback: string): string => {
+    const url = textureConfig?.url;
+    const isValid = url && url !== '' && url !== 'undefined' && url !== 'null';
+    const result = isValid ? url : fallback;
+    
+    if (!isValid) {
+      console.warn('⚠️ Invalid texture URL detected:', {
+        received: url,
+        receivedType: typeof url,
+        fallback,
+        textureConfig
+      });
+    }
+    
+    return result;
+  }, []);
+  
+  // Extract safe texture URLs
+  const linerTextureUrl = safeGetTextureUrl(scene.pool.finish, '/src/assets/finishes/sapphire-blue-g3.jpg');
+  const paverTextureUrl = safeGetTextureUrl(scene.deck.paver, '/lovable-uploads/6f65c8d2-ad09-4fef-b01f-cb3c2e96cf11.png');
+  const copingTextureUrl = safeGetTextureUrl(scene.deck.coping, '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png');
+  const waterlineTextureUrl = safeGetTextureUrl(scene.deck.waterline, scene.pool.finish.url);
+  
+  // Log extracted texture URLs for debugging
+  console.log('🎨 UnifiedPoolVisualizer Safe Texture URLs:', {
+    liner: linerTextureUrl,
+    paver: paverTextureUrl,
+    coping: copingTextureUrl,
+    waterline: waterlineTextureUrl
+  });
+  
+  // Preload textures before rendering 3D scene
+  useEffect(() => {
+    const preloadTextures = async () => {
+      console.log('🔄 Preloading textures...');
+      try {
+        const urls = [linerTextureUrl, paverTextureUrl, copingTextureUrl, waterlineTextureUrl];
+        
+        console.log('📦 Texture URLs to preload:', urls);
+        await Promise.all(urls.map(url => textureCache.loadTexture(url)));
+        console.log('✅ All textures preloaded successfully');
+        setTexturesReady(true);
+      } catch (error) {
+        console.error('❌ Texture preload failed:', error);
+        // Still set ready to show error boundary instead of infinite loading
+        setTexturesReady(true);
+      }
+    };
+    
+    preloadTextures();
+  }, [linerTextureUrl, paverTextureUrl, copingTextureUrl, waterlineTextureUrl]);
 
   // Auto-snap camera to selected category
   useEffect(() => {
@@ -604,13 +662,14 @@ export function UnifiedPoolVisualizer({
               </div>
             </div>
           }>
-            <R3FCanvas
-              shadows
-              camera={{
-                position: scene.camera.position,
-                fov: 50
-              }}
-            >
+            {texturesReady && (
+              <R3FCanvas
+                shadows
+                camera={{
+                  position: scene.camera.position,
+                  fov: 50
+                }}
+              >
           {/* Dynamic Sky with Clouds */}
           <Sky 
             distance={450000}
@@ -643,10 +702,10 @@ export function UnifiedPoolVisualizer({
                 points={scene.pool.points}
                 depthPoints={scene.pool.depthPoints}
                 hardscapePoints={[]} // Empty - deck stays fixed
-                linerTextureUrl={scene.pool.finish.url || '/src/assets/finishes/sapphire-blue-g3.jpg'}
+                linerTextureUrl={linerTextureUrl}
                 paverTextureUrl=""
-                copingTextureUrl={scene.deck.coping.url || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png'}
-                waterlineTextureUrl={(scene.deck.waterline?.url && scene.deck.waterline.url !== '' && scene.deck.waterline.url !== 'undefined') ? scene.deck.waterline.url : (scene.pool.finish.url || '/src/assets/finishes/sapphire-blue-g3.jpg')}
+                copingTextureUrl={copingTextureUrl}
+                waterlineTextureUrl={waterlineTextureUrl}
                 fenceTextureUrl=""
                 features={[]}
                 fencePoints={[]}
@@ -690,7 +749,7 @@ export function UnifiedPoolVisualizer({
                 depthPoints={[]}
                 hardscapePoints={scene.deck.points}
                 linerTextureUrl=""
-                paverTextureUrl={scene.deck.paver.url || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png'}
+                paverTextureUrl={paverTextureUrl}
                 copingTextureUrl=""
                 waterlineTextureUrl=""
                 fenceTextureUrl="/src/assets/fence-texture.png"
@@ -777,8 +836,9 @@ export function UnifiedPoolVisualizer({
             enableDamping
             dampingFactor={0.05}
           />
-        </R3FCanvas>
-        </Suspense>
+              </R3FCanvas>
+            )}
+          </Suspense>
         </Scene3DErrorBoundary>
       </div>
       

@@ -58,10 +58,10 @@ export interface Pool3DSceneProps {
   hardscapePoints?: HardscapePoint[];
   fencePoints?: FencePoint[];
   features?: PoolFeature[];
-  paverTextureUrl?: string;
-  linerTextureUrl?: string;
-  copingTextureUrl?: string;
-  waterlineTextureUrl?: string;
+  paverTextureUrl: string;
+  linerTextureUrl: string;
+  copingTextureUrl: string;
+  waterlineTextureUrl: string;
   fenceTextureUrl?: string;
   poolDimensions?: { length: number; width: number; depth: number };
   selectedCategory?: string | null;
@@ -103,7 +103,7 @@ export interface Pool3DSceneProps {
 const PoolMesh: React.FC<{
   points: Point[];
   depthPoints: DepthPoint[];
-  linerTextureUrl?: string;
+  linerTextureUrl: string;
   poolDimensions?: { length: number; width: number; depth: number };
   selectedCategory?: string | null;
   linerTextureScale?: number;
@@ -112,7 +112,7 @@ const PoolMesh: React.FC<{
 }> = ({ 
   points, 
   depthPoints, 
-  linerTextureUrl, 
+  linerTextureUrl = '/src/assets/finishes/sapphire-blue-g3.jpg', 
   poolDimensions: providedDimensions, 
   selectedCategory, 
   linerTextureScale = 1.8, 
