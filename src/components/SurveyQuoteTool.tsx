@@ -316,7 +316,7 @@ const SurveyQuoteTool = ({
         'includes-content': prev['includes-content'] || getIncludedItems().filter(item => !item.startsWith("FREE")).join(", "),
         'disclaimer': prev['disclaimer'] || 'Architectural Design, Construction and permiting is included in all products, unless project scope is modified.',
         'total-title': prev['total-title'] || 'Total Investment',
-        'paver-deck-title': prev['paver-deck-title'] || `Paver Deck (${surveyData.deckWidth || 3}ft Width)`,
+        'paver-deck-title': prev['paver-deck-title'] || 'Paver Deck',
         'paver-deck-description': prev['paver-deck-description'] || "Custom paver selection with full area pricing",
         ...prev
       }));
@@ -1278,11 +1278,11 @@ const SurveyQuoteTool = ({
                                 {isEditMode ? (
                                   <input
                                     type="text"
-                                    value={editableTexts['paver-deck-title'] || `Paver Deck (${surveyData.deckWidth || 3}ft Width)`}
+                                    value={editableTexts['paver-deck-title'] || 'Paver Deck'}
                                     onChange={(e) => setEditableTexts({...editableTexts, 'paver-deck-title': e.target.value})}
                                     className="bg-white text-gray-900 border rounded px-2 py-1 w-full"
                                   />
-                                ) : (editableTexts['paver-deck-title'] || `Paver Deck (${surveyData.deckWidth || 3}ft Width)`)}
+                                ) : (editableTexts['paver-deck-title'] || 'Paver Deck')}
                               </h4>
                               <p className="text-sm text-muted-foreground mb-2">
                                 {isEditMode ? (
@@ -1295,7 +1295,7 @@ const SurveyQuoteTool = ({
                                 ) : (editableTexts['paver-deck-description'] || "Custom paver selection with full area pricing")}
                               </p>
                               {pool?.dimensions && (() => {
-                            // Parse pool dimensions - handle formats like "21' x 9'" or "21x9"
+                            // Parse pool dimensions - handle formats like "15.5' × 31'" with decimals
                             const dimensionString = pool.dimensions.toString();
                             console.log('Pool dimensions string:', dimensionString);
                             
@@ -1303,31 +1303,29 @@ const SurveyQuoteTool = ({
                               .split(/[xX×]/)
                               .map(d => {
                                 const cleaned = d.trim().replace(/['"ftFT\s]/g, '');
-                                const num = parseInt(cleaned);
+                                const num = parseFloat(cleaned);
                                 console.log('Parsed dimension:', d, '->', num);
                                 return num;
                               });
                             
-                            const poolLength = dims[0] || 0;
-                            const poolWidth = dims[1] || 0;
+                            const poolLength = dims[1] || 0;
+                            const poolWidth = dims[0] || 0;
                             const deckWidth = parseInt(surveyData.deckWidth || "3");
                             const poolArea = poolLength * poolWidth;
                             
                             console.log('Pool calculations:', { poolLength, poolWidth, poolArea, deckWidth });
                             
-                            // NO MORE FREE PAVERS - ALL DECK AREA IS CHARGEABLE
-                            // Total area with selected deck width
+                            // Calculate total area with selected deck width
                             const totalAreaWithDeck = (poolLength + 2 * deckWidth) * (poolWidth + 2 * deckWidth);
                             
-                            // Total deck area (excluding pool) - ALL CHARGEABLE
+                            // Total deck area (excluding pool)
                             const totalDeckArea = totalAreaWithDeck - poolArea;
                             
                             return <div className="text-xs space-y-1 bg-teal-50 dark:bg-gray-700 p-2 rounded border mb-2">
                                     <p className="font-medium">Area Calculation:</p>
-                                    <p>• Pool area: {poolArea} sq ft</p>
-                                    <p>• Deck width: {deckWidth} ft</p>
-                                    <p>• Total deck area: {totalDeckArea} sq ft</p>
-                                    <p className="font-semibold text-teal-600">• Chargeable area: {totalDeckArea} sq ft</p>
+                                    <p>• Pool area: {poolArea.toFixed(0)} sq ft</p>
+                                    <p>• Deck area: {totalDeckArea.toFixed(0)} sq ft</p>
+                                    <p className="font-semibold text-teal-600">• Total area: {totalAreaWithDeck.toFixed(0)} sq ft</p>
                                   </div>;
                           })()}
                               

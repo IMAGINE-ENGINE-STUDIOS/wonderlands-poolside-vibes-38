@@ -6,12 +6,12 @@ import { Scene3D, TextureConfig, Point, DepthPoint, HardscapePoint } from './typ
 export const parseDimensions = (dimensionsStr?: string): { length: number; width: number } => {
   if (!dimensionsStr) return { length: 30, width: 15 };
   
-  // Handle various formats: "14' x 28'", "16' × 40'", "16 feet x 32 feet"
-  const matches = dimensionsStr.match(/(\d+)\s*(?:'|ft|feet)?\s*[x×]\s*(\d+)/i);
+  // Handle various formats: "14' x 28'", "15.5' × 31'", "16 feet x 32 feet"
+  const matches = dimensionsStr.match(/(\d+\.?\d*)\s*(?:'|ft|feet)?\s*[x×]\s*(\d+\.?\d*)/i);
   if (matches) {
     return {
-      width: parseInt(matches[1]),
-      length: parseInt(matches[2])
+      width: parseFloat(matches[1]),
+      length: parseFloat(matches[2])
     };
   }
   
