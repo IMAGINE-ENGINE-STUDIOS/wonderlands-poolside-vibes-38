@@ -1175,11 +1175,30 @@ const SurveyQuoteTool = ({
                                 })())}
                               </p>
                               {pool?.dimensions && (() => {
-                            const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
+                            // Parse pool dimensions - handle formats like "21' x 9'" or "21x9"
+                            const dimensionString = pool.dimensions.toString();
+                            console.log('Pool dimensions string:', dimensionString);
+                            
+                            const dims = dimensionString
+                              .split(/[xX×]/)
+                              .map(d => {
+                                const cleaned = d.trim().replace(/['"ftFT\s]/g, '');
+                                const num = parseInt(cleaned);
+                                console.log('Parsed dimension:', d, '->', num);
+                                return num;
+                              });
+                            
                             const poolLength = dims[0] || 0;
                             const poolWidth = dims[1] || 0;
                             const deckWidth = parseInt(surveyData.deckWidth || "3");
                             const poolArea = poolLength * poolWidth;
+                            
+                            console.log('Pool calculations:', { poolLength, poolWidth, poolArea, deckWidth });
+                            
+                            // Check if this pool model includes free 3ft pavers
+                            // Models that DO NOT include free pavers (user mentioned)
+                            const modelsWithoutFreePavers = ['Extreme 27', 'Astoria', 'Genesis']; // Add models here
+                            const includesFreePavers = !modelsWithoutFreePavers.includes(pool.model || '');
                             
                             // CORRECTED CALCULATION
                             // Total area with selected deck width
@@ -1188,9 +1207,10 @@ const SurveyQuoteTool = ({
                             // Total deck area (excluding pool)
                             const totalDeckArea = totalAreaWithDeck - poolArea;
                             
-                            // Free deck area (3ft perimeter included in base price)
-                            const totalAreaWith3ftDeck = (poolLength + 6) * (poolWidth + 6);
-                            const freeDeckArea = totalAreaWith3ftDeck - poolArea;
+                            // Free deck area (3ft perimeter included in base price ONLY for certain models)
+                            const freeDeckArea = includesFreePavers 
+                              ? ((poolLength + 6) * (poolWidth + 6)) - poolArea
+                              : 0;
                             
                             // Chargeable deck area (only the area beyond the free 3ft)
                             const chargeableDeckArea = totalDeckArea - freeDeckArea;
