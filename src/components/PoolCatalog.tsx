@@ -18,7 +18,7 @@ import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
 
 // Import Madre Perla pool image
 import madrePerlaImage from "@/assets/pools/madre-perla.jpg";
-import pacificRidgeImage from "@/assets/pools/pacific-ridge.jpg";
+import pacificRidgeImage from "@/assets/pools/pacific-ridge-new.jpg";
 import cancunDeluxeImage from "@/assets/cancun-deluxe.png";
 import maximaImage from "@/assets/maxima-pool.jpg";
 
