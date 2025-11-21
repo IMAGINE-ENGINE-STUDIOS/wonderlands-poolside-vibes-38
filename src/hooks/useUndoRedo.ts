@@ -1,4 +1,6 @@
 import { useState, useCallback } from 'react';
+import { validateScene } from '@/utils/sceneValidator';
+import type { Scene3D } from '@/components/scene3d/types';
 
 export interface UndoRedoState<T> {
   past: T[];
@@ -17,11 +19,18 @@ export function useUndoRedo<T>(initialState: T) {
   const canRedo = state.future.length > 0;
 
   const set = useCallback((newPresent: T) => {
-    setState((currentState) => ({
-      past: [...currentState.past, currentState.present],
-      present: newPresent,
-      future: [],
-    }));
+    setState((currentState) => {
+      // Validate Scene3D objects before storing
+      const validatedPresent = typeof newPresent === 'object' && newPresent !== null && 'pool' in newPresent
+        ? validateScene(newPresent as unknown as Scene3D) as unknown as T
+        : newPresent;
+      
+      return {
+        past: [...currentState.past, currentState.present],
+        present: validatedPresent,
+        future: [],
+      };
+    });
   }, []);
 
   const undo = useCallback(() => {
@@ -55,9 +64,14 @@ export function useUndoRedo<T>(initialState: T) {
   }, []);
 
   const reset = useCallback((newPresent: T) => {
+    // Validate Scene3D objects before storing
+    const validatedPresent = typeof newPresent === 'object' && newPresent !== null && 'pool' in newPresent
+      ? validateScene(newPresent as unknown as Scene3D) as unknown as T
+      : newPresent;
+      
     setState({
       past: [],
-      present: newPresent,
+      present: validatedPresent,
       future: [],
     });
   }, []);

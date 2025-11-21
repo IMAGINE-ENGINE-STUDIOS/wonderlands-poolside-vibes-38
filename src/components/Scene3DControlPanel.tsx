@@ -130,7 +130,17 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
         updatedScene.deck.coping = { ...updatedScene.deck.coping, scale: newScale };
         break;
       case 'waterline':
-        if (updatedScene.deck.waterline) {
+        // Create waterline if it doesn't exist
+        if (!updatedScene.deck.waterline) {
+          updatedScene.deck.waterline = {
+            url: updatedScene.pool.finish.url,
+            name: `${updatedScene.pool.finish.name} (Waterline)`,
+            roughness: 0.3,
+            metalness: 0.2,
+            scale: newScale,
+            offset: [0, 0]
+          };
+        } else {
           updatedScene.deck.waterline = { ...updatedScene.deck.waterline, scale: newScale };
         }
         break;
@@ -151,7 +161,17 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
         updatedScene.deck.coping = { ...updatedScene.deck.coping, offset: [offsetX, offsetY] };
         break;
       case 'waterline':
-        if (updatedScene.deck.waterline) {
+        // Create waterline if it doesn't exist
+        if (!updatedScene.deck.waterline) {
+          updatedScene.deck.waterline = {
+            url: updatedScene.pool.finish.url,
+            name: `${updatedScene.pool.finish.name} (Waterline)`,
+            roughness: 0.3,
+            metalness: 0.2,
+            scale: 1.8,
+            offset: [offsetX, offsetY]
+          };
+        } else {
           updatedScene.deck.waterline = { ...updatedScene.deck.waterline, offset: [offsetX, offsetY] };
         }
         break;
