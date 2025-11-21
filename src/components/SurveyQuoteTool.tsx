@@ -315,6 +315,11 @@ const SurveyQuoteTool = ({
         'includes-content': prev['includes-content'] || getIncludedItems().filter(item => !item.startsWith("FREE")).join(", "),
         'disclaimer': prev['disclaimer'] || 'Architectural Design, Construction and permiting is included in all products, unless project scope is modified.',
         'total-title': prev['total-title'] || 'Total Investment',
+        'paver-deck-title': prev['paver-deck-title'] || `Paver Deck (${surveyData.deckWidth || 3}ft Width)`,
+        'paver-deck-description': prev['paver-deck-description'] || (() => {
+          const hasPavers = extras?.extrasBreakdown?.some((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
+          return hasPavers ? "Custom paver selection with chargeable area" : "Standard 3-foot paver deck included in base price";
+        })(),
         ...prev
       }));
       
@@ -854,7 +859,8 @@ const SurveyQuoteTool = ({
             </div>
           </div>
         ) : (
-          <div className="space-y-6 bg-white p-6" data-quote-content>
+          <div>
+            <div className="space-y-6 bg-white p-6" data-quote-content>
             <div className="bg-white border-2 border-orange-400 rounded-lg overflow-hidden">
               
               {/* Header with Logo */}
@@ -1129,14 +1135,44 @@ const SurveyQuoteTool = ({
                           )}
                           
                           {/* Pavers Calculation with Image - Only for pool products, NOT lanai */}
-                          {isPoolProduct && !isLanaiProduct && (
-                            <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
-                              <h4 className="font-semibold mb-2">Paver Deck ({surveyData.deckWidth || 3}ft Width)</h4>
+                          {!hiddenSections.has('paver-deck') && isPoolProduct && !isLanaiProduct && (
+                            <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg relative">
+                              {isEditMode && (
+                                <button
+                                  onClick={() => handleToggleSection('paver-deck')}
+                                  className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors no-print print:hidden z-10"
+                                  title="Remove section"
+                                >
+                                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              )}
+                              <h4 className="font-semibold mb-2">
+                                {isEditMode ? (
+                                  <input
+                                    type="text"
+                                    value={editableTexts['paver-deck-title'] || `Paver Deck (${surveyData.deckWidth || 3}ft Width)`}
+                                    onChange={(e) => setEditableTexts({...editableTexts, 'paver-deck-title': e.target.value})}
+                                    className="bg-white text-gray-900 border rounded px-2 py-1 w-full"
+                                  />
+                                ) : (editableTexts['paver-deck-title'] || `Paver Deck (${surveyData.deckWidth || 3}ft Width)`)}
+                              </h4>
                               <p className="text-sm text-muted-foreground mb-2">
-                                {(() => {
-                              const hasPavers = extras?.extrasBreakdown?.some((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
-                              return hasPavers ? "Custom paver selection with chargeable area" : "Standard 3-foot paver deck included in base price";
-                            })()}
+                                {isEditMode ? (
+                                  <input
+                                    type="text"
+                                    value={editableTexts['paver-deck-description'] || (() => {
+                                      const hasPavers = extras?.extrasBreakdown?.some((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
+                                      return hasPavers ? "Custom paver selection with chargeable area" : "Standard 3-foot paver deck included in base price";
+                                    })()}
+                                    onChange={(e) => setEditableTexts({...editableTexts, 'paver-deck-description': e.target.value})}
+                                    className="bg-white text-gray-900 border rounded px-2 py-1 w-full text-sm"
+                                  />
+                                ) : (editableTexts['paver-deck-description'] || (() => {
+                                  const hasPavers = extras?.extrasBreakdown?.some((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
+                                  return hasPavers ? "Custom paver selection with chargeable area" : "Standard 3-foot paver deck included in base price";
+                                })())}
                               </p>
                               {pool?.dimensions && (() => {
                             const dims = pool.dimensions.split('x').map(d => parseInt(d.trim().replace(/['"]/g, '')));
@@ -1144,15 +1180,27 @@ const SurveyQuoteTool = ({
                             const poolWidth = dims[1] || 0;
                             const deckWidth = parseInt(surveyData.deckWidth || "3");
                             const poolArea = poolLength * poolWidth;
-                            const totalArea = (poolLength + 2 * deckWidth) * (poolWidth + 2 * deckWidth);
-                            const freeArea = (poolLength + 6) * (poolWidth + 6) - poolArea;
-                            const chargeableArea = totalArea - poolArea - freeArea;
+                            
+                            // CORRECTED CALCULATION
+                            // Total area with selected deck width
+                            const totalAreaWithDeck = (poolLength + 2 * deckWidth) * (poolWidth + 2 * deckWidth);
+                            
+                            // Total deck area (excluding pool)
+                            const totalDeckArea = totalAreaWithDeck - poolArea;
+                            
+                            // Free deck area (3ft perimeter included in base price)
+                            const totalAreaWith3ftDeck = (poolLength + 6) * (poolWidth + 6);
+                            const freeDeckArea = totalAreaWith3ftDeck - poolArea;
+                            
+                            // Chargeable deck area (only the area beyond the free 3ft)
+                            const chargeableDeckArea = totalDeckArea - freeDeckArea;
+                            
                             return <div className="text-xs space-y-1 bg-teal-50 dark:bg-gray-700 p-2 rounded border mb-2">
                                     <p className="font-medium">Area Calculation:</p>
                                     <p>• Pool area: {poolArea} sq ft</p>
-                                    <p>• Total deck area: {totalArea - poolArea} sq ft</p>
-                                    <p>• Free 3ft perimeter: {freeArea} sq ft</p>
-                                    <p>• Chargeable area: {Math.max(0, chargeableArea)} sq ft</p>
+                                    <p>• Total deck area: {totalDeckArea} sq ft</p>
+                                    <p>• Free 3ft perimeter: {freeDeckArea} sq ft</p>
+                                    <p>• Chargeable area: {Math.max(0, chargeableDeckArea)} sq ft</p>
                                   </div>;
                           })()}
                               
@@ -1770,87 +1818,92 @@ const SurveyQuoteTool = ({
                    )}
                  </div>
 
-                {/* Action Buttons */}
-                <div className="space-y-4 mt-6 no-print print:hidden">
-                  {/* Edit Mode Controls */}
-                  {!isEditMode ? (
-                    <div className="flex gap-3 justify-center items-center mb-4">
-                      <Input
-                        type="password"
-                        placeholder="Enter passcode to edit"
-                        value={passcodeInput}
-                        onChange={(e) => setPasscodeInput(e.target.value)}
-                        className="max-w-xs"
-                        onKeyDown={(e) => e.key === 'Enter' && handleEnterEditMode()}
-                      />
-                      <Button 
-                        variant="outline" 
-                        onClick={handleEnterEditMode}
-                        className="border-orange-500 text-orange-600 hover:bg-orange-50"
-                      >
-                        Edit Quote
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-3 justify-center mb-4">
-                      <Button 
-                        variant="default"
-                        onClick={handleSaveEditedQuote}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        Save & Update Quote
-                      </Button>
-                    </div>
-                  )}
-                  
-                  <div className="flex flex-wrap gap-3 justify-center">
-                    <Button variant="default" className="bg-gradient-to-r from-orange-500 to-teal-500 hover:from-orange-600 hover:to-teal-600 text-white" onClick={handlePrintQuote}>
-                      <Printer className="h-4 w-4 mr-2" />
-                      Print Quote
-                    </Button>
-                    <Button variant="default" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white" onClick={handleDownloadPDF}>
-                      <Download className="h-4 w-4 mr-2" />
-                      Download PDF
-                    </Button>
-                    <Button variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-50" onClick={() => setCurrentStep('options')}>
-                      Modify Options
-                    </Button>
-                    <Button variant="default" className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white" onClick={handleScheduleInstallation}>
-                      Schedule Installation
-                    </Button>
-                  </div>
-                  
-                  {/* Email Quote Section */}
-                  <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
+              </div>
+            </div>
+            
+            {/* Controller Panel - Fixed at bottom, outside quote content */}
+            <div className="sticky bottom-0 left-0 right-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-t-2 border-orange-500 shadow-2xl p-4 no-print print:hidden z-50">
+              <div className="max-w-5xl mx-auto space-y-3">
+                {/* Edit Mode Controls */}
+                {!isEditMode ? (
+                  <div className="flex gap-3 justify-center items-center">
                     <Input
-                      type="email"
-                      placeholder="Enter email address"
-                      value={emailAddress}
-                      onChange={(e) => setEmailAddress(e.target.value)}
+                      type="password"
+                      placeholder="Enter passcode to edit"
+                      value={passcodeInput}
+                      onChange={(e) => setPasscodeInput(e.target.value)}
                       className="max-w-xs"
+                      onKeyDown={(e) => e.key === 'Enter' && handleEnterEditMode()}
                     />
                     <Button 
-                      variant="default" 
-                      className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
-                      onClick={handleEmailQuote}
-                      disabled={isSendingEmail}
+                      variant="outline" 
+                      onClick={handleEnterEditMode}
+                      className="border-orange-500 text-orange-600 hover:bg-orange-50"
                     >
-                      {isSendingEmail ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Sending...
-                        </>
-                      ) : (
-                        <>
-                          <Mail className="h-4 w-4 mr-2" />
-                          Email Quote
-                        </>
-                      )}
+                      Edit Quote
                     </Button>
                   </div>
+                ) : (
+                  <div className="flex gap-3 justify-center">
+                    <Button 
+                      variant="default"
+                      onClick={handleSaveEditedQuote}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      Save & Update Quote
+                    </Button>
+                  </div>
+                )}
+                
+                {/* Main Action Buttons */}
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <Button variant="default" className="bg-gradient-to-r from-orange-500 to-teal-500 hover:from-orange-600 hover:to-teal-600 text-white" onClick={handlePrintQuote}>
+                    <Printer className="h-4 w-4 mr-2" />
+                    Print
+                  </Button>
+                  <Button variant="default" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white" onClick={handleDownloadPDF}>
+                    <Download className="h-4 w-4 mr-2" />
+                    PDF
+                  </Button>
+                  <Button variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-50" onClick={() => setCurrentStep('options')}>
+                    Modify Options
+                  </Button>
+                  <Button variant="default" className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white" onClick={handleScheduleInstallation}>
+                    Schedule
+                  </Button>
+                </div>
+                
+                {/* Email Quote Section */}
+                <div className="flex flex-col sm:flex-row gap-2 items-center justify-center">
+                  <Input
+                    type="email"
+                    placeholder="Enter email address"
+                    value={emailAddress}
+                    onChange={(e) => setEmailAddress(e.target.value)}
+                    className="max-w-xs"
+                  />
+                  <Button 
+                    variant="default" 
+                    className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
+                    onClick={handleEmailQuote}
+                    disabled={isSendingEmail}
+                  >
+                    {isSendingEmail ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Email Quote
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
             </div>
+          </div>
         )}
 
         {/* Authentication Prompt */}
