@@ -330,7 +330,7 @@ const InvoiceDetailPage = () => {
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">From</h3>
                 <p className="font-semibold text-lg">Wonderlands Pools & Spas</p>
                 <p className="text-sm text-muted-foreground">Florida's Premier Pool Installation</p>
-                <p className="text-sm text-muted-foreground">contact@wonderlandspools.com</p>
+                <p className="text-sm text-muted-foreground">sales@wonderlandsworld.com</p>
                 <p className="text-sm text-muted-foreground">(555) 123-4567</p>
               </div>
             </div>
@@ -434,7 +434,8 @@ const InvoiceDetailPage = () => {
                   />
                 ) : (
                   <p className="text-sm whitespace-pre-line">
-                    {invoice.terms_conditions || "First payment is due on the date of contract signature. Subsequent payments as specified in contract. Late payments may incur additional fees."}
+                    {invoice.terms_conditions ||
+                      "First payment is due on the date of contract signature. Subsequent payments as specified in contract. Late payments may incur additional fees."}
                   </p>
                 )}
               </div>
