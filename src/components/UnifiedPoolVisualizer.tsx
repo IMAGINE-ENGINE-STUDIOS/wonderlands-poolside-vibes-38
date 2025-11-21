@@ -619,7 +619,7 @@ export function UnifiedPoolVisualizer({
                 linerTextureUrl={scene.pool.finish.url || '/src/assets/finishes/sapphire-blue-g3.jpg'}
                 paverTextureUrl=""
                 copingTextureUrl={scene.deck.coping.url || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png'}
-                waterlineTextureUrl={scene.deck.waterline?.url || scene.pool.finish.url || '/src/assets/finishes/sapphire-blue-g3.jpg'}
+                waterlineTextureUrl={(scene.deck.waterline?.url && scene.deck.waterline.url !== '' && scene.deck.waterline.url !== 'undefined') ? scene.deck.waterline.url : (scene.pool.finish.url || '/src/assets/finishes/sapphire-blue-g3.jpg')}
                 fenceTextureUrl=""
                 features={[]}
                 fencePoints={[]}

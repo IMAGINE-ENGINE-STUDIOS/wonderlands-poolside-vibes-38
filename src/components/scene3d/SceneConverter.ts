@@ -174,11 +174,16 @@ export function productToScene(
         offset: [-0.21, 0]
       },
       copingWidth: 1.1, // Default coping width in feet (minimum)
+      // CRITICAL: Always ensure waterline has a valid URL
       waterline: {
-        url: linerTextureUrl || '/src/assets/finishes/sapphire-blue-g3.jpg',
+        url: (linerTextureUrl && linerTextureUrl !== '' && linerTextureUrl !== 'undefined') 
+          ? linerTextureUrl 
+          : '/src/assets/finishes/sapphire-blue-g3.jpg',
         name: `${selectedExtras.finish || selectedExtras.linerOption || 'Default'} (Waterline)`,
         roughness: 0.3,
-        metalness: 0.2
+        metalness: 0.2,
+        scale: 1.8,
+        offset: [0, 0]
       }
     },
     features: [],

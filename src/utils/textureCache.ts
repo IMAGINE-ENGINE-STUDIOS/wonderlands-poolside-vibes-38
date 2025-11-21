@@ -21,10 +21,14 @@ class TextureCache {
    * Load a texture with caching
    */
   async loadTexture(url: string, repeat?: { x: number; y: number }): Promise<THREE.Texture> {
-    // Validate URL
+    // Validate URL with detailed error logging
     if (!url || url === '' || url === 'undefined' || url === 'null') {
-      console.warn('⚠️ Invalid texture URL provided:', url);
-      return Promise.reject(new Error('Invalid texture URL'));
+      const stack = new Error().stack;
+      console.error('❌ TEXTURE LOAD ERROR: Invalid URL provided!');
+      console.error('   URL value:', JSON.stringify(url));
+      console.error('   URL type:', typeof url);
+      console.error('   Called from:', stack?.split('\n').slice(1, 4).join('\n'));
+      return Promise.reject(new Error(`Invalid texture URL: ${JSON.stringify(url)}`));
     }
 
     // Check cache first
