@@ -1,4 +1,4 @@
-import { useState } from "react";
+import * as React from "react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -10,23 +10,23 @@ import { Calculator, Droplets, Flame, FlaskConical } from "lucide-react";
 type PoolShape = "rectangular" | "oval" | "kidney" | "freeform";
 
 export const PoolCalculator = () => {
-  const [shape, setShape] = useState<PoolShape>("rectangular");
-  const [length, setLength] = useState("");
-  const [width, setWidth] = useState("");
-  const [shallowDepth, setShallowDepth] = useState("");
-  const [deepDepth, setDeepDepth] = useState("");
+  const [shape, setShape] = React.useState<PoolShape>("rectangular");
+  const [length, setLength] = React.useState("");
+  const [width, setWidth] = React.useState("");
+  const [shallowDepth, setShallowDepth] = React.useState("");
+  const [deepDepth, setDeepDepth] = React.useState("");
   
   // Heating parameters
-  const [currentTemp, setCurrentTemp] = useState("");
-  const [desiredTemp, setDesiredTemp] = useState("");
-  const [heaterType, setHeaterType] = useState("gas");
-  const [gasCost, setGasCost] = useState("1.50");
-  const [electricCost, setElectricCost] = useState("0.12");
+  const [currentTemp, setCurrentTemp] = React.useState("");
+  const [desiredTemp, setDesiredTemp] = React.useState("");
+  const [heaterType, setHeaterType] = React.useState("gas");
+  const [gasCost, setGasCost] = React.useState("1.50");
+  const [electricCost, setElectricCost] = React.useState("0.12");
   
   // Chemical parameters
-  const [currentChlorine, setCurrentChlorine] = useState("");
-  const [currentPH, setCurrentPH] = useState("");
-  const [currentAlkalinity, setCurrentAlkalinity] = useState("");
+  const [currentChlorine, setCurrentChlorine] = React.useState("");
+  const [currentPH, setCurrentPH] = React.useState("");
+  const [currentAlkalinity, setCurrentAlkalinity] = React.useState("");
 
   const calculateVolume = (): number => {
     const l = parseFloat(length);
