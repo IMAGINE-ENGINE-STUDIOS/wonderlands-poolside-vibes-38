@@ -1,4 +1,5 @@
-import { useState } from "react";
+import * as React from "react";
+const { useState } = React;
 import HeroTemplate from "@/components/HeroTemplate";
 import ProductCatalog from "@/components/ProductCatalog";
 import ServiceSection from "@/components/ServiceSection";

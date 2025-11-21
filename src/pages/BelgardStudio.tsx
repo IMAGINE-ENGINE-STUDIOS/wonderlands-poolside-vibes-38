@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import * as React from "react";
+const { useState, useEffect } = React;
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
