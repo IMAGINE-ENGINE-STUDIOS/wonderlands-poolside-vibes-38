@@ -3,6 +3,7 @@ import { OrbitControls, TransformControls, Sky, Grid } from '@react-three/drei';
 import { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation } from './scene3d/types';
 import { Pool3DScene } from './Pool3DScene';
+import WaterSurface from './WaterSurface';
 import { Scene3DControlPanel } from './Scene3DControlPanel';
 import { StairsControls } from './StairsControls';
 import { Scene3DAnnotations } from './Scene3DAnnotations';
@@ -801,6 +802,24 @@ export function UnifiedPoolVisualizer({
                 onDeckPointsChange={handleDeckPointsChange}
               />
             </group>
+          </group>
+
+          {/* Independent Water Surface - positioned at Q21-S21-Q29-S29 */}
+          <group position={[-15, 0, 20]}>
+            <WaterSurface 
+              poolPoints={[
+                { x: -5, y: -20, id: 'w1' },  // Q21 (relative to center)
+                { x: 5, y: -20, id: 'w2' },   // S21
+                { x: 5, y: 20, id: 'w3' },    // S29
+                { x: -5, y: 20, id: 'w4' }    // Q29
+              ]}
+              depthPoints={scene.pool.depthPoints}
+              poolDimensions={{ 
+                length: 40,  // 8 tiles × 5ft = 40ft
+                width: 10,   // 2 tiles × 5ft = 10ft  
+                depth: scene.pool.dimensions.depth 
+              }}
+            />
           </group>
 
           {/* Deck, coping, and waterline - centered at U21 [0, 0, 0] */}

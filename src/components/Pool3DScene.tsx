@@ -1306,8 +1306,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         />
       </group>
 
-      {/* Realistic Water Surface with Waves, Reflections, God Rays, and Depth-Based Colors */}
-      <WaterSurface poolPoints={points} depthPoints={depthPoints} poolDimensions={poolDimensions} />
+      {/* Water is now rendered independently in UnifiedPoolVisualizer */}
 
       {fencePoints && fencePoints.length > 0 && (
         <FenceMesh
