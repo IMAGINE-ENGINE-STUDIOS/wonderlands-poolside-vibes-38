@@ -76,8 +76,41 @@ const InvoiceDetailPage = () => {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = async () => {
+    const invoiceElement = document.querySelector('[data-invoice-content]') as HTMLElement;
+    if (!invoiceElement) {
+      // Fallback to window.print if element not found
+      window.print();
+      return;
+    }
+
+    try {
+      // @ts-ignore - html2pdf is loaded via CDN
+      const html2pdf = (await import('html2pdf.js')).default;
+      
+      const opt = {
+        margin: 0.5,
+        filename: `invoice-${invoice?.invoice_number || Date.now()}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' as const }
+      };
+
+      await html2pdf().set(opt).from(invoiceElement).save();
+      
+      toast({
+        title: "Success!",
+        description: "Invoice downloaded as PDF."
+      });
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Falling back to print...",
+        variant: "destructive"
+      });
+      window.print();
+    }
   };
 
   const handleSendEmail = async () => {
@@ -218,7 +251,7 @@ const InvoiceDetailPage = () => {
         </div>
       </div>
 
-      <Card className="print:shadow-none">
+      <Card className="print:shadow-none" data-invoice-content>
         <CardContent className="p-8">
           {/* Header */}
           <div className="flex justify-between items-start mb-8">
