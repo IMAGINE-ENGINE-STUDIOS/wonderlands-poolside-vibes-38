@@ -719,10 +719,10 @@ export function UnifiedPoolVisualizer({
                 depthPoints={scene.pool.depthPoints}
                 hardscapePoints={[]} // Empty - deck stays fixed
                 linerTextureUrl={linerTextureUrl}
-                paverTextureUrl=""
+                paverTextureUrl={paverTextureUrl}
                 copingTextureUrl={copingTextureUrl}
                 waterlineTextureUrl={waterlineTextureUrl}
-                fenceTextureUrl=""
+                fenceTextureUrl="/src/assets/fence-texture.png"
                 features={[]}
                 fencePoints={[]}
                 scale={1}
@@ -764,10 +764,10 @@ export function UnifiedPoolVisualizer({
                 points={scene.pool.points}
                 depthPoints={[]}
                 hardscapePoints={scene.deck.points}
-                linerTextureUrl=""
+                linerTextureUrl={linerTextureUrl}
                 paverTextureUrl={paverTextureUrl}
-                copingTextureUrl=""
-                waterlineTextureUrl=""
+                copingTextureUrl={copingTextureUrl}
+                waterlineTextureUrl={waterlineTextureUrl}
                 fenceTextureUrl="/src/assets/fence-texture.png"
                 features={scene.features.map(f => ({
                   type: f.type as any,

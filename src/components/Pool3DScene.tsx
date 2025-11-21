@@ -58,10 +58,10 @@ export interface Pool3DSceneProps {
   hardscapePoints?: HardscapePoint[];
   fencePoints?: FencePoint[];
   features?: PoolFeature[];
-  paverTextureUrl: string;
-  linerTextureUrl: string;
-  copingTextureUrl: string;
-  waterlineTextureUrl: string;
+  paverTextureUrl?: string;
+  linerTextureUrl?: string;
+  copingTextureUrl?: string;
+  waterlineTextureUrl?: string;
   fenceTextureUrl?: string;
   poolDimensions?: { length: number; width: number; depth: number };
   selectedCategory?: string | null;
@@ -1081,11 +1081,11 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   points,
   depthPoints,
   hardscapePoints,
-  linerTextureUrl,
-  paverTextureUrl,
-  copingTextureUrl,
-  waterlineTextureUrl,
-  fenceTextureUrl,
+  linerTextureUrl = '/src/assets/finishes/sapphire-blue-g3.jpg',
+  paverTextureUrl = '/lovable-uploads/6f65c8d2-ad09-4fef-b01f-cb3c2e96cf11.png',
+  copingTextureUrl = '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
+  waterlineTextureUrl = '/src/assets/finishes/sapphire-blue-g3.jpg',
+  fenceTextureUrl = '/src/assets/fence-texture.png',
   features,
   fencePoints,
   scale = 1,
@@ -1117,7 +1117,28 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   onPoolPointsChange,
   onDeckPointsChange
 }) => {
-  const [linerTexture] = useTexture([linerTextureUrl || '']);
+  // CRITICAL: Normalize empty strings to fallback URLs
+  const normalizedLinerUrl = linerTextureUrl && linerTextureUrl.trim() !== '' && linerTextureUrl !== 'undefined' 
+    ? linerTextureUrl 
+    : '/src/assets/finishes/sapphire-blue-g3.jpg';
+    
+  const normalizedPaverUrl = paverTextureUrl && paverTextureUrl.trim() !== '' && paverTextureUrl !== 'undefined'
+    ? paverTextureUrl 
+    : '/lovable-uploads/6f65c8d2-ad09-4fef-b01f-cb3c2e96cf11.png';
+    
+  const normalizedCopingUrl = copingTextureUrl && copingTextureUrl.trim() !== '' && copingTextureUrl !== 'undefined'
+    ? copingTextureUrl 
+    : '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
+    
+  const normalizedWaterlineUrl = waterlineTextureUrl && waterlineTextureUrl.trim() !== '' && waterlineTextureUrl !== 'undefined'
+    ? waterlineTextureUrl 
+    : '/src/assets/finishes/sapphire-blue-g3.jpg';
+    
+  const normalizedFenceUrl = fenceTextureUrl && fenceTextureUrl.trim() !== '' && fenceTextureUrl !== 'undefined'
+    ? fenceTextureUrl 
+    : '/src/assets/fence-texture.png';
+
+  const [linerTexture] = useTexture([normalizedLinerUrl || '']);
   const poolDepth = poolDimensions?.depth || (depthPoints.length > 0 
     ? Math.max(...depthPoints.map(dp => dp.depth)) 
     : 8);
@@ -1182,7 +1203,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         <PoolMesh
           points={points}
           depthPoints={depthPoints}
-          linerTextureUrl={linerTextureUrl}
+          linerTextureUrl={normalizedLinerUrl}
           poolDimensions={poolDimensions}
           linerTextureScale={linerTextureScale}
           linerTextureOffset={linerTextureOffset}
@@ -1198,7 +1219,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
             hardscapePoints={hardscapePoints}
             poolPoints={points}
             features={features || []}
-            paverTextureUrl={paverTextureUrl}
+            paverTextureUrl={normalizedPaverUrl}
             selectedCategory={selectedCategory}
             paverTextureScale={paverTextureScale}
             paverTextureOffset={paverTextureOffset}
@@ -1212,7 +1233,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       <group onClick={() => onSelectCategory?.('coping')}>
         <CopingMesh
           poolPoints={points}
-          copingTextureUrl={copingTextureUrl}
+          copingTextureUrl={normalizedCopingUrl}
           selectedCategory={selectedCategory}
           copingTextureScale={copingTextureScale}
           copingTextureOffset={copingTextureOffset}
@@ -1225,7 +1246,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       <group onClick={() => onSelectCategory?.('waterline')}>
         <WaterlineMesh
           poolPoints={points}
-          waterlineTextureUrl={waterlineTextureUrl}
+          waterlineTextureUrl={normalizedWaterlineUrl}
           selectedCategory={selectedCategory}
           waterlineTextureScale={waterlineTextureScale}
           waterlineTextureOffset={waterlineTextureOffset}
@@ -1239,7 +1260,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       {fencePoints && fencePoints.length > 0 && (
         <FenceMesh
           fencePoints={fencePoints}
-          fenceTextureUrl={fenceTextureUrl}
+          fenceTextureUrl={normalizedFenceUrl}
           fenceHeight={fenceHeight}
         />
       )}
