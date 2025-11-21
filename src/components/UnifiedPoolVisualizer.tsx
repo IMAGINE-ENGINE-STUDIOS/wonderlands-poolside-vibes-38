@@ -757,9 +757,8 @@ export function UnifiedPoolVisualizer({
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />
           
-          {/* Pool hole centered at world origin */}
+          {/* Pool walls, floor, coping, and waterline centered at world origin */}
           <group ref={poolGroupRef} position={[0, 0, 0]} key={`pool-${scene.pool.position.join('-')}`}>
-            {/* Pool Mesh (walls and floor) AND Water Surface - both at S25 */}
             <group onClick={() => setSelectedCategory('pool')}>
               <Pool3DScene
                 points={scene.pool.points}
@@ -786,7 +785,7 @@ export function UnifiedPoolVisualizer({
                 copingTextureOffset={scene.deck.coping.offset || [0, 0]}
                 waterlineTextureOffset={scene.deck.waterline?.offset || [0, 0]}
                 linerTextureOffset={scene.pool.finish.offset || [0, 0]}
-                poolPosition={[0, 0, 0]} // Position controlled by parent group
+                poolPosition={[0, 0, 0]}
                 copingHeight={scene.deck.copingHeight || 2 / 12}
                 deckHeight={scene.deck.deckHeight || 2 / 12}
                 copingWidth={scene.deck.copingWidth || 1.0}
@@ -804,30 +803,30 @@ export function UnifiedPoolVisualizer({
             </group>
           </group>
 
-          {/* Water and Pool Hole - Q21 to U29 centered at world origin */}
+          {/* Water surface - S17 to W25 centered at world origin */}
           <group position={[0, 0, 0]}>
             <WaterSurface 
               poolPoints={[
-                { x: -12.5, y: -20, id: 'w1' },  // Q21
-                { x: 12.5, y: -20, id: 'w2' },   // U21
-                { x: 12.5, y: 20, id: 'w3' },    // U29
-                { x: -12.5, y: 20, id: 'w4' }    // Q29
+                { x: -10, y: -20, id: 'w1' },  // S17 (column S = -10, row 17 = -20)
+                { x: 10, y: -20, id: 'w2' },   // W17 (column W = 10, row 17 = -20)
+                { x: 10, y: 20, id: 'w3' },    // W25 (column W = 10, row 25 = 20)
+                { x: -10, y: 20, id: 'w4' }    // S25 (column S = -10, row 25 = 20)
               ]}
               depthPoints={scene.pool.depthPoints}
               poolDimensions={{ 
-                length: 40,  // 8 rows × 5ft = 40ft (21-29)
-                width: 25,   // 5 columns × 5ft = 25ft (Q-U)
+                length: 40,  // 8 rows × 5ft = 40ft (17-25)
+                width: 20,   // 4 columns × 5ft = 20ft (S-W)
                 depth: scene.pool.dimensions.depth 
               }}
             />
           </group>
 
-          {/* Deck, coping, and waterline - centered at U21 [0, 0, 0] */}
+          {/* Deck only - attached to coping */}
           {scene.deck.points && scene.deck.points.length > 0 && (
             <group position={[0, 0, 0]} onClick={() => setSelectedCategory('deck')}>
               <Pool3DScene
                 points={scene.pool.points}
-                depthPoints={[]}
+                depthPoints={[]} // No pool walls/floor in this group
                 hardscapePoints={scene.deck.points}
                 linerTextureUrl={linerTextureUrl}
                 paverTextureUrl={paverTextureUrl}
