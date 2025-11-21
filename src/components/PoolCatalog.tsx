@@ -122,6 +122,21 @@ const pools: Pool[] = [
   saltSystem: false,
   carbonFiber: false
 },
+// Winderview Concrete Pool by Wonderlands
+{
+  model: "Winderview",
+  price: 90000,
+  category: 'premium',
+  image: "/lovable-uploads/winderview-pool.jpg",
+  dimensions: "15.5' × 31'",
+  depth: "3'6\" - 6'",
+  installationTimeWeeks: 18,
+  warrantyYears: 25,
+  features: ["Tanning Ledge", "Rectangular Design", "Concrete Construction", "Custom Finish Options"],
+  heater: false,
+  saltSystem: false,
+  carbonFiber: false
+},
 // Cancún Deluxe - Latham Pool with Integrated Spa
 {
   model: "Cancún Deluxe",
