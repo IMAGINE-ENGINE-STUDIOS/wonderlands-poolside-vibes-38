@@ -226,7 +226,7 @@ const SurveyQuoteTool = ({
         filename: `pool-quote-${Date.now()}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' as const }
       };
 
       await html2pdf().set(opt).from(quoteElement).save();
