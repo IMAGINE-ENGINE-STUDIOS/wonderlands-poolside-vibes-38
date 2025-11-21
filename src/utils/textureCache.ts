@@ -21,19 +21,31 @@ class TextureCache {
    * Load a texture with caching
    */
   async loadTexture(url: string, repeat?: { x: number; y: number }): Promise<THREE.Texture> {
-    // Validate URL with detailed error logging
+    // CRITICAL: Validate URL before attempting to load
     if (!url || url === '' || url === 'undefined' || url === 'null') {
+      const fallbackUrl = '/src/assets/finishes/sapphire-blue-g3.jpg';
       const stack = new Error().stack;
-      console.error('❌ TEXTURE LOAD ERROR: Invalid URL provided!');
-      console.error('   URL value:', JSON.stringify(url));
-      console.error('   URL type:', typeof url);
-      console.error('   Called from:', stack?.split('\n').slice(1, 4).join('\n'));
-      return Promise.reject(new Error(`Invalid texture URL: ${JSON.stringify(url)}`));
+      console.error('❌ TEXTURE CACHE: Invalid URL detected!', {
+        receivedUrl: url,
+        urlType: typeof url,
+        fallbackUrl,
+        stackTrace: stack?.split('\n').slice(1, 4).join('\n')
+      });
+      
+      // Load fallback instead of crashing
+      url = fallbackUrl;
     }
+
+    console.log('🎨 Texture Cache: Loading texture', {
+      url,
+      cached: this.cache.has(url),
+      cacheSize: this.cache.size
+    });
 
     // Check cache first
     const cached = this.cache.get(url);
     if (cached) {
+      console.log('✅ Texture Cache: Hit', { url });
       cached.lastUsed = Date.now();
       // Clone texture and preserve repeat settings
       const clonedTexture = cached.texture.clone();
@@ -41,15 +53,18 @@ class TextureCache {
         clonedTexture.repeat.set(repeat.x, repeat.y);
         clonedTexture.needsUpdate = true;
       }
-      console.log(`✓ Loaded texture from cache: ${url.substring(0, 50)}...`, repeat);
       return clonedTexture;
     }
 
     // Load new texture
+    console.log('⏳ Texture Cache: Starting load', { url });
+    
     return new Promise((resolve, reject) => {
       this.loader.load(
         url,
         (texture) => {
+          console.log('✅ Texture Cache: Load successful', { url });
+          
           // Configure texture for optimal performance
           texture.wrapS = THREE.RepeatWrapping;
           texture.wrapT = THREE.RepeatWrapping;
@@ -76,7 +91,8 @@ class TextureCache {
           this.currentCacheSize += size;
           this.cleanupCache();
           
-          console.log(`✓ Loaded new texture: ${url.substring(0, 50)}...`, { 
+          console.log(`✅ Cached new texture`, { 
+            url: url.substring(0, 50),
             size: `${(size / 1024).toFixed(0)}KB`, 
             repeat,
             dimensions: `${texture.image?.width}x${texture.image?.height}`
@@ -86,7 +102,17 @@ class TextureCache {
         },
         undefined,
         (error) => {
-          console.warn(`⚠️ Failed to load texture: ${url.substring(0, 50)}...`, error);
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          console.error('❌ Texture Cache: Load failed', {
+            url,
+            error: errorMsg,
+            errorType: error?.constructor?.name || 'Unknown',
+            timestamp: new Date().toISOString()
+          });
+          
+          // Log the calling code
+          console.error('🔍 Texture Load Failure Stack Trace:', new Error().stack);
+          
           reject(error);
         }
       );
