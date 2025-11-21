@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import * as React from "react";
+const { useEffect } = React;
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import PoolCatalog from "@/components/PoolCatalog";

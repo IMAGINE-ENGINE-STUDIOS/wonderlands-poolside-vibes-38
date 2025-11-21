@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, lazy, Suspense, createContext } from "react";
+import * as React from "react";
+const { useState, useRef, useEffect, lazy, Suspense, createContext } = React;
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
