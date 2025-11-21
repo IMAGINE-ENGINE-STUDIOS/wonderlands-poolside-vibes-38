@@ -230,22 +230,13 @@ export const copingTypes: PaverType[] = [
 
 // Helper function to calculate paver area for a pool deck
 export const calculatePaverArea = (poolLength: number, poolWidth: number, deckWidth: number): number => {
-  if (deckWidth <= 3) return 0; // 3ft is standard and included
-  
   const totalLength = poolLength + (2 * deckWidth);
   const totalWidth = poolWidth + (2 * deckWidth);
   const totalArea = totalLength * totalWidth;
   const poolArea = poolLength * poolWidth;
   const deckArea = totalArea - poolArea;
   
-  // Subtract the standard 3ft deck area that's included
-  const standardDeckWidth = 3;
-  const standardTotalLength = poolLength + (2 * standardDeckWidth);
-  const standardTotalWidth = poolWidth + (2 * standardDeckWidth);
-  const standardTotalArea = standardTotalLength * standardTotalWidth;
-  const standardDeckArea = standardTotalArea - poolArea;
-  
-  return Math.max(0, deckArea - standardDeckArea);
+  return deckArea;
 };
 
 // Helper function to calculate price for pavers based on pool dimensions and deck width
