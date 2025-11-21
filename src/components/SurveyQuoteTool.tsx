@@ -1391,7 +1391,7 @@ const SurveyQuoteTool = ({
                           return "18+ weeks";
                         }
                         
-                        return "8+ weeks";
+                        return "16+ weeks";
                       })()}
                     </p>
                     {(() => {

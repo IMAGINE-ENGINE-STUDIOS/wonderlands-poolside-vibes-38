@@ -53,7 +53,7 @@ const InteractiveLandscape = () => {
             className="hill-front"
           />
 
-          {/* Waterfall Pool */}
+          {/* Pool */}
           <ellipse 
             cx="500" 
             cy="680" 
@@ -61,35 +61,6 @@ const InteractiveLandscape = () => {
             ry="40" 
             fill="#4fd0ff"
             className="pool"
-          />
-
-          {/* Main Waterfall Streams */}
-          <rect 
-            x="470" 
-            y="400" 
-            width="20" 
-            height="280" 
-            fill="#3fdfff" 
-            className="waterfall-main"
-            rx="10"
-          />
-          <rect 
-            x="500" 
-            y="400" 
-            width="15" 
-            height="280" 
-            fill="#9ff" 
-            className="waterfall-highlight"
-            rx="7"
-          />
-          <rect 
-            x="520" 
-            y="400" 
-            width="18" 
-            height="280" 
-            fill="#66ccff" 
-            className="waterfall-main"
-            rx="9"
           />
 
           {/* Distant Purple Valley */}
