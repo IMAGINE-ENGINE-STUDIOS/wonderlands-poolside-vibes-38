@@ -1,5 +1,5 @@
 import { Canvas as R3FCanvas, useThree } from '@react-three/fiber';
-import { OrbitControls, TransformControls, Sky } from '@react-three/drei';
+import { OrbitControls, TransformControls, Sky, Grid } from '@react-three/drei';
 import { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation } from './scene3d/types';
 import { Pool3DScene } from './Pool3DScene';
@@ -7,6 +7,7 @@ import { Scene3DControlPanel } from './Scene3DControlPanel';
 import { StairsControls } from './StairsControls';
 import { Scene3DAnnotations } from './Scene3DAnnotations';
 import { DistanceMeasurements } from './DistanceMeasurements';
+import { GridLabels } from './GridLabels';
 import { AssetManager, Asset3DRenderer } from './AssetManager';
 import { Button } from './ui/button';
 import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
@@ -97,6 +98,7 @@ export function UnifiedPoolVisualizer({
   const [showMeasurements, setShowMeasurements] = useState(false);
   const [controllerCollapsed, setControllerCollapsed] = useState(false);
   const [assets3D, setAssets3D] = useState<any[]>([]);
+  const [showGrid, setShowGrid] = useState(true);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
   const poolGroupRef = useRef<THREE.Group>(null);
@@ -671,6 +673,18 @@ export function UnifiedPoolVisualizer({
                   Show Distance Measurements
                 </label>
               </div>
+
+              {/* Grid Toggle */}
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="show-grid"
+                  checked={showGrid}
+                  onCheckedChange={(checked) => setShowGrid(checked as boolean)}
+                />
+                <label htmlFor="show-grid" className="text-xs cursor-pointer">
+                  Show Grid Labels
+                </label>
+              </div>
             </div>
           )}
         </div>
@@ -835,6 +849,26 @@ export function UnifiedPoolVisualizer({
           {assets3D.map((asset) => (
             <Asset3DRenderer key={asset.id} asset={asset} />
           ))}
+
+          {/* Grid with Labels */}
+          {showGrid && (
+            <>
+              <Grid
+                args={[200, 200]}
+                cellSize={5}
+                cellThickness={0.5}
+                cellColor="#6f6f6f"
+                sectionSize={10}
+                sectionThickness={1}
+                sectionColor="#9d4b4b"
+                fadeDistance={400}
+                fadeStrength={1}
+                followCamera={false}
+                infiniteGrid
+              />
+              <GridLabels gridSize={200} cellSize={5} visible={showGrid} />
+            </>
+          )}
 
           {/* Transform Controls for Pool - with translation snap */}
           {poolTransformMode && poolGroupRef.current && (
