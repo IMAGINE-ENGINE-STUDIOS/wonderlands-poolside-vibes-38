@@ -223,7 +223,7 @@ export function productToScene(
         roughness: 0.2,
         metalness: 0.1
       },
-      position: [-10, 0, 20], // S25 grid position
+      position: [-10, 0, 20], // Pool hole at S25 grid position
       rotation: [0, 0, 0],
       dimensions: { length, width, depth: deepDepth }
     },
