@@ -303,178 +303,171 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
           <div className="space-y-4 animate-fade-in">
             <Separator className="my-4" />
 
-            {/* Color Selection */}
+            {/* Gelcoat Color Selection */}
             <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Palette className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold">Gelcoat Color (Included)</span>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {colorOptions.map((color) => (
-                  <label
-                    key={color.name}
-                    className={`flex items-center space-x-2 cursor-pointer p-2 rounded-lg border transition-all text-xs ${
-                      options.colorFinish === color.name
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    <div 
-                      className="w-4 h-4 rounded-full border-2 border-gray-300 flex-shrink-0"
-                      style={{ backgroundColor: color.color }}
-                    />
-                    <span className="font-medium truncate">{color.name}</span>
-                    <input
-                      type="radio"
-                      name="colorFinish"
-                      value={color.name}
-                      checked={options.colorFinish === color.name}
-                      onChange={(e) => updateOption('colorFinish', e.target.value)}
-                      className="sr-only"
-                    />
-                  </label>
-                ))}
-              </div>
+              <h4 className="font-semibold text-foreground">Gelcoat Color (Included)</h4>
+              <Carousel 
+                className="w-full"
+                opts={{
+                  align: "start",
+                  loop: false,
+                  duration: 25,
+                }}
+              >
+                <CarouselContent className="-ml-1">
+                  {colorOptions.map((color, idx) => (
+                    <CarouselItem
+                      key={`gelcoat-${color.name}-${idx}`}
+                      className="pl-1 basis-1/2"
+                    >
+                      <div
+                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${options.colorFinish === color.name ? "border-primary bg-primary/10" : "border-border"}`}
+                        onClick={() => updateOption('colorFinish', color.name)}
+                      >
+                        <div 
+                          className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0"
+                          style={{ backgroundColor: color.color }}
+                        />
+                        <div className="flex-1 flex flex-col justify-between min-h-0">
+                          <p className="text-xs font-medium text-center line-clamp-2">{color.name}</p>
+                          <p className="text-xs text-primary text-center font-semibold">Included</p>
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0 animate-pulse" />
+                <CarouselNext className="right-0 animate-pulse" />
+              </Carousel>
             </div>
 
             <Separator />
 
-            {/* Optional Features */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-foreground">Additional Features</h4>
-              
-              <div className="grid grid-cols-1 gap-3">
-                {/* Pavers */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox 
-                    checked={options.pavers} 
-                    onCheckedChange={() => toggleOption('pavers')} 
-                    className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
-                  />
-                  <div className="flex items-center space-x-1">
-                    <Home size={16} className="text-coral" />
-                    <span className="text-sm">Premium Pavers (+${options.pavers && options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) ? (parseFloat(options.paverSurfaceArea) * 15).toLocaleString() : '0'})</span>
-                  </div>
+            {/* Pavers Options - matching Latham format */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-foreground">Pavers Surface Area - Calculator</h4>
+              <div className="mb-3">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                  Paver Surface Area (sq ft)
                 </label>
-                {options.pavers && (
-                  <div className="ml-6 space-y-2">
-                    <h4 className="font-semibold text-foreground">Pavers Surface Area Calculator</h4>
-                    <div className="mb-3">
-                      <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                        Paver Surface Area (sq ft)
-                      </label>
-                      <Input 
-                        type="number" 
-                        placeholder="Enter surface area for pavers" 
-                        value={options.paverSurfaceArea} 
-                        onChange={(e) => updateOption('paverSurfaceArea', e.target.value)} 
-                        className="mb-2" 
-                      />
-                      {options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) && (
-                        <div className="text-xs text-green-600 font-medium">
-                          Calculated Cost: ${(parseFloat(options.paverSurfaceArea) * 15).toLocaleString()} (${options.paverSurfaceArea} sq ft × $15/sq ft)
-                        </div>
-                      )}
-                    </div>
-                    <Carousel className="w-full">
-                      <CarouselContent className="-ml-1">
-                        {paverOptions.map((paver) => (
-                          <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
-                            <div 
-                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                                options.paverOption === paver.name ? 'border-primary bg-primary/10' : 'border-border'
-                              }`} 
-                              onClick={() => updateOption('paverOption', paver.name)}
-                            >
-                              <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                <OptimizedImage 
-                                  src={paver.image} 
-                                  alt={paver.name} 
-                                  className="w-full h-full object-cover" 
-                                  loading="lazy"
-                                />
-                              </div>
-                              <div className="flex-1 flex flex-col justify-between min-h-0">
-                                <p className="text-xs font-medium text-center line-clamp-2">{paver.name}</p>
-                                <p className="text-xs text-primary font-semibold text-center mt-1">
-                                  ${paver.pricePerSqFt}/sq ft
-                                </p>
-                              </div>
-                            </div>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      <CarouselPrevious className="left-0" />
-                      <CarouselNext className="right-0" />
-                    </Carousel>
+                <Input 
+                  type="number" 
+                  placeholder="Enter surface area for pavers" 
+                  value={options.paverSurfaceArea} 
+                  onChange={(e) => {
+                    updateOption('paverSurfaceArea', e.target.value);
+                    if (e.target.value && !isNaN(parseFloat(e.target.value)) && parseFloat(e.target.value) > 0) {
+                      updateOption('pavers', true);
+                    }
+                  }} 
+                  className="mb-2" 
+                />
+                {options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) && (
+                  <div className="text-xs text-green-600 font-medium">
+                    Calculated Cost: ${(parseFloat(options.paverSurfaceArea) * 15).toLocaleString()} (${options.paverSurfaceArea} sq ft × $15/sq ft)
                   </div>
                 )}
+              </div>
+              <Carousel 
+                className="w-full"
+                opts={{
+                  align: "start",
+                  loop: false,
+                  duration: 25,
+                }}
+              >
+                <CarouselContent className="-ml-1">
+                  {paverOptions.map((paver, idx) => (
+                    <CarouselItem key={`paver-${paver.name}-${idx}`} className="pl-1 basis-1/2">
+                      <div 
+                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                          options.paverOption === paver.name ? 'border-primary bg-primary/10' : 'border-border'
+                        }`} 
+                        onClick={() => updateOption('paverOption', paver.name)}
+                      >
+                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                          <OptimizedImage 
+                            src={paver.image} 
+                            alt={paver.name} 
+                            className="w-full h-full object-cover" 
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="flex-1 flex flex-col justify-between min-h-0">
+                          <p className="text-xs font-medium text-center line-clamp-2">{paver.name}</p>
+                          {paver.pricePerSqFt > 0 && (
+                            <p className="text-xs text-primary font-semibold text-center mt-1">
+                              ${paver.pricePerSqFt}/sq ft
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0 animate-pulse" />
+                <CarouselNext className="right-0 animate-pulse" />
+              </Carousel>
+            </div>
 
-                {/* Screen Enclosure */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox 
-                    checked={options.screenEnclosure} 
-                    onCheckedChange={() => toggleOption('screenEnclosure')} 
-                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                  />
-                  <div className="flex items-center space-x-1">
-                    <Shield size={16} className="text-primary" />
-                    <span className="text-sm">Screen Enclosure (+${options.screenEnclosure && options.screenEnclosureArea > 0 ? (() => {
+            {/* Screen Enclosure Options - matching Latham format */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-foreground">Screen Enclosure Surface Area - Calculator</h4>
+              <div className="mb-3">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                  Screen Enclosure Area (sq ft)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Enter surface area for screen enclosure"
+                  value={options.screenEnclosureArea || ''}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value) || 0;
+                    updateOption('screenEnclosureArea', value);
+                    if (value > 0) {
+                      updateOption('screenEnclosure', true);
+                    }
+                  }}
+                  className="mb-2"
+                />
+                {options.screenEnclosureArea > 0 && (
+                  <div className="text-xs text-green-600 font-medium">
+                    Calculated Cost: ${(() => {
                       let pricePerSqFt = 15;
                       if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
                       if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
                       return (options.screenEnclosureArea * pricePerSqFt).toLocaleString();
-                    })() : '0'})</span>
-                  </div>
-                </label>
-                {options.screenEnclosure && (
-                  <div className="ml-6 space-y-2">
-                    <h4 className="font-semibold text-foreground">Screen Enclosure Surface Area Calculator</h4>
-                    <div className="mb-3">
-                      <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                        Screen Enclosure Area (sq ft)
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="Enter surface area for screen enclosure"
-                        value={options.screenEnclosureArea || ''}
-                        onChange={(e) => updateOption('screenEnclosureArea', parseFloat(e.target.value) || 0)}
-                        className="mb-2"
-                      />
-                      {options.screenEnclosureArea > 0 && (
-                        <div className="text-xs text-green-600 font-medium">
-                          Calculated Cost: ${(() => {
-                            let pricePerSqFt = 15;
-                            if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
-                            if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
-                            return (options.screenEnclosureArea * pricePerSqFt).toLocaleString();
-                          })()} (${options.screenEnclosureArea} sq ft × ${(() => {
-                            if (options.screenEnclosureQuality === 'deluxe') return '$22';
-                            if (options.screenEnclosureQuality === 'premium') return '$28';
-                            return '$15';
-                          })()}/sq ft)
-                        </div>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      {screenEnclosureQualities.map((quality) => (
-                        <div
-                          key={quality.key}
-                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md text-center ${
-                            options.screenEnclosureQuality === quality.key ? 'border-primary bg-primary/10' : 'border-border'
-                          }`}
-                          onClick={() => updateOption('screenEnclosureQuality', quality.key)}
-                        >
-                          <p className="text-sm font-medium">{quality.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            ${quality.price}/sq ft
-                          </p>
-                        </div>
-                      ))}
-                    </div>
+                    })()} (${options.screenEnclosureArea} sq ft × ${(() => {
+                      if (options.screenEnclosureQuality === 'deluxe') return '$22';
+                      if (options.screenEnclosureQuality === 'premium') return '$28';
+                      return '$15';
+                    })()}/sq ft)
                   </div>
                 )}
-                
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {screenEnclosureQualities.map((quality) => (
+                  <div
+                    key={quality.key}
+                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                      options.screenEnclosureQuality === quality.key ? 'border-primary bg-primary/10' : 'border-border'
+                    }`}
+                    onClick={() => updateOption('screenEnclosureQuality', quality.key)}
+                  >
+                    <p className="text-sm font-medium">{quality.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      ${quality.price}/sq ft
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Additional Features - matching Latham format */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-foreground">Additional Features</h4>
+
+              <div className="grid grid-cols-1 gap-3">
                 {/* Pool Tiles */}
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox 
