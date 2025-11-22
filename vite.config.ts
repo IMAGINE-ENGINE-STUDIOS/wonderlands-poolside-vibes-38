@@ -55,21 +55,6 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('date-fns') || id.includes('zod')) {
             return 'utils-vendor';
           }
-          
-          // Admin-related components
-          if (id.includes('/components/Admin') || id.includes('/pages/AdminDashboard')) {
-            return 'admin';
-          }
-          
-          // Procurement system
-          if (id.includes('/components/procurement') || id.includes('/pages/ProcurementSystem')) {
-            return 'procurement';
-          }
-          
-          // Pool-related components
-          if (id.includes('/components/Pool') || id.includes('/components/Spa') || id.includes('/pages/PoolDetails')) {
-            return 'pools';
-          }
         },
         assetFileNames: (assetInfo) => {
           if (assetInfo.name && assetInfo.name.endsWith('.css')) {
