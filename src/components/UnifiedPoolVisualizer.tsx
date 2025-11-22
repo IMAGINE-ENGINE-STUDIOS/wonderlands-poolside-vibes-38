@@ -368,12 +368,29 @@ export function UnifiedPoolVisualizer({
   const toggleFullscreen = () => {
     if (!canvasContainerRef.current) return;
     
+    const elem = canvasContainerRef.current as any;
+    
     if (!isFullscreen) {
-      canvasContainerRef.current.requestFullscreen();
-      setIsFullscreen(true);
+      // Try different browser-prefixed versions
+      const requestFullscreen = elem.requestFullscreen || 
+                                elem.webkitRequestFullscreen || 
+                                elem.mozRequestFullScreen || 
+                                elem.msRequestFullscreen;
+      
+      if (requestFullscreen) {
+        requestFullscreen.call(elem);
+        setIsFullscreen(true);
+      }
     } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
+      const exitFullscreen = (document as any).exitFullscreen || 
+                            (document as any).webkitExitFullscreen || 
+                            (document as any).mozCancelFullScreen || 
+                            (document as any).msExitFullscreen;
+      
+      if (exitFullscreen) {
+        exitFullscreen.call(document);
+        setIsFullscreen(false);
+      }
     }
   };
 
