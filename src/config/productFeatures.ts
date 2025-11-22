@@ -64,26 +64,22 @@ const spas: FeatureOption[] = [
 ];
 
 const poolHeaters: FeatureOption[] = [
-  { name: 'Heat Pump - Eco Series', price: 4500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Heat Pump - Pro Series', price: 5500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Heat/Cool Pump 127K BTU 230V Pentair Ultratemp', price: 8000, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Gas Heater - Standard', price: 3200, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Gas Heater - High Efficiency', price: 4200, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Solar Heater - Basic', price: 2800, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Solar Heater - Premium', price: 3800, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" }
+  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 2000, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair MasterTemp 250 (250K BTU)', price: 3200, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair MasterTemp 400 (400K BTU)', price: 4200, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair UltraTemp 90 Heat Pump', price: 4500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair UltraTemp 110 Heat Pump', price: 5500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair UltraTemp 140 Heat Pump', price: 6500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" }
 ];
 
 const spaHeaters: FeatureOption[] = [
-  { name: 'Spa Heat Pump - Compact', price: 3500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Spa Heat Pump - Premium', price: 4500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Spa Gas Heater', price: 2800, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Solar Spa Heater', price: 2200, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" }
+  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 2000, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair UltraTemp 90 Heat Pump', price: 4500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" }
 ];
 
 const ledgeHeaters: FeatureOption[] = [
-  { name: 'Compact Heat Pump', price: 2800, image: azureBlueFinish },
-  { name: 'Solar Heater', price: 2200, image: azureBlueFinish },
-  { name: 'Electric Heater', price: 1800, image: azureBlueFinish }
+  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 2000, image: azureBlueFinish },
+  { name: 'Pentair UltraTemp 90 Heat Pump', price: 4500, image: azureBlueFinish }
 ];
 
 const finishOptions: FeatureOption[] = getProductsByCategory('finish').map(finish => ({
