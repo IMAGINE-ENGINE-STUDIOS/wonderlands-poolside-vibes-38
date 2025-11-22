@@ -22,8 +22,9 @@ export interface Product {
   stripePriceId?: string; // For Stripe integration
 }
 
-// Pool Finishes
+// Pool Finishes - Organized by Collection
 export const poolFinishes: Product[] = [
+  // Crystite Crystal Collection
   {
     id: "sapphire-blue-crystal",
     name: "Sapphire Blue",
@@ -101,6 +102,88 @@ export const poolFinishes: Product[] = [
     description: "Elegant white with pearl-like crystal finish for timeless sophistication",
     features: ["Pearl Luster", "Crystal Clarity", "Timeless Elegance", "25-Year Warranty"],
     warranty: "25-Year Warranty",
+    isActive: true
+  },
+
+  // Wonderlands World Collection - Exclusive Premium Finishes
+  {
+    id: "tahoe-blue-wonderlands",
+    name: "Tahoe Blue",
+    category: "finish",
+    subcategory: "Deep & Dramatic",
+    collection: "Wonderlands World",
+    price: 4200,
+    image: "/images/finishes/wonderlands-tahoe-blue.webp",
+    description: "Rich blend of blue, beige, and black aggregates inspired by Lake Tahoe's pristine waters",
+    features: ["Multi-Color Aggregate", "Premium Sparkle", "UV Resistant", "30-Year Warranty"],
+    warranty: "30-Year Warranty",
+    isActive: true,
+    isPopular: true
+  },
+  {
+    id: "tropics-blue-wonderlands",
+    name: "Tropics Blue",
+    category: "finish",
+    subcategory: "Deep & Dramatic",
+    collection: "Wonderlands World",
+    price: 4200,
+    image: "/images/finishes/wonderlands-tropics-blue.webp",
+    description: "Vibrant tropical blue with white and navy aggregates for an exotic paradise feel",
+    features: ["Tropical Blue", "Deep Color Depth", "Premium Finish", "30-Year Warranty"],
+    warranty: "30-Year Warranty",
+    isActive: true,
+    isPopular: true
+  },
+  {
+    id: "yosemite-wonderlands",
+    name: "Yosemite",
+    category: "finish",
+    subcategory: "Deep & Dramatic",
+    collection: "Wonderlands World",
+    price: 4200,
+    image: "/images/finishes/wonderlands-yosemite.webp",
+    description: "Bold blue with dramatic navy and white accents inspired by Yosemite's granite formations",
+    features: ["Granite-Inspired", "Deep Blue", "High Contrast", "30-Year Warranty"],
+    warranty: "30-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "aqua-white-wonderlands",
+    name: "Aqua White",
+    category: "finish",
+    subcategory: "Light & Tranquil",
+    collection: "Wonderlands World",
+    price: 4200,
+    image: "/images/finishes/wonderlands-aqua-white.webp",
+    description: "Serene aqua blue with white aggregates creating a tranquil, spa-like atmosphere",
+    features: ["Spa-Like", "Soft Aqua", "White Accents", "30-Year Warranty"],
+    warranty: "30-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "marina-blue-wonderlands",
+    name: "Marina Blue",
+    category: "finish",
+    subcategory: "Deep & Dramatic",
+    collection: "Wonderlands World",
+    price: 4200,
+    image: "/images/finishes/wonderlands-marina-blue.webp",
+    description: "Brilliant azure blue with crystalline white aggregates reminiscent of luxurious marinas",
+    features: ["Azure Blue", "Crystal White", "Premium Luster", "30-Year Warranty"],
+    warranty: "30-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "midnight-blue-wonderlands",
+    name: "Midnight Blue",
+    category: "finish",
+    subcategory: "Deep & Dramatic",
+    collection: "Wonderlands World",
+    price: 4200,
+    image: "/images/finishes/wonderlands-midnight-blue.webp",
+    description: "Sophisticated blend of blue, beige, and black creating a mysterious midnight water effect",
+    features: ["Midnight Effect", "Multi-Tone", "Sophisticated", "30-Year Warranty"],
+    warranty: "30-Year Warranty",
     isActive: true
   }
 ];
