@@ -23,14 +23,15 @@ export const ProductImageModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl p-0 overflow-hidden">
         <div className="relative">
-          {/* Close button */}
+          {/* Close button - prominent in right corner */}
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-2 right-2 z-10 bg-background/80 backdrop-blur-sm hover:bg-background"
+            className="absolute top-4 right-4 z-10 bg-background/90 backdrop-blur-sm hover:bg-background border-2 border-border shadow-lg h-10 w-10 rounded-full"
             onClick={onClose}
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
+            <span className="sr-only">Close</span>
           </Button>
 
           {/* Image */}
