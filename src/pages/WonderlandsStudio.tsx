@@ -1479,6 +1479,59 @@ const WonderlandsStudio = () => {
                     ) : (
                       // Pool configuration options using same format as PoolProductCard
                       <>
+                        {/* Gelcoat Color for GlimmerGlass pools */}
+                        {selectedProduct && !["Madre Perla", "Pacific Ridge", "Winderview", "Maxima", "Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9'17\"", "Enchantment 9'21\"", "Enchantment 9'24\"", "Cancún Deluxe"].includes(selectedProduct.model || "") && (
+                          <div className="space-y-3">
+                            <h4 className="font-semibold text-foreground">Gelcoat Color (Included)</h4>
+                            <Carousel 
+                              className="w-full"
+                              opts={{
+                                align: "start",
+                                loop: false,
+                                duration: 25,
+                              }}
+                            >
+                              <CarouselContent className="-ml-1">
+                                {[
+                                  { name: 'Ocean Blue', color: '#1E40AF' },
+                                  { name: 'Sapphire Blue', color: '#2563EB' },
+                                  { name: 'Coastal Bronze', color: '#A16207' },
+                                  { name: 'Snow White', color: '#FFFFFF' },
+                                  { name: 'Steel Grey', color: '#6B7280' },
+                                  { name: 'Arctic White', color: '#F8FAFC' },
+                                  { name: 'Glacier Blue', color: '#0EA5E9' }
+                                ].map((gelcoat, idx) => (
+                                  <CarouselItem
+                                    key={`gelcoat-${gelcoat.name}-${idx}`}
+                                    className="pl-1 basis-1/2"
+                                  >
+                                    <div
+                                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.gelcoatColor === gelcoat.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                      onClick={() =>
+                                        setSelectedExtras((prev: any) => ({
+                                          ...prev,
+                                          gelcoatColor: gelcoat.name,
+                                        }))
+                                      }
+                                    >
+                                      <div 
+                                        className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0"
+                                        style={{ backgroundColor: gelcoat.color }}
+                                      />
+                                      <div className="flex-1 flex flex-col justify-between min-h-0">
+                                        <p className="text-xs font-medium text-center line-clamp-2">{gelcoat.name}</p>
+                                        <p className="text-xs text-primary text-center font-semibold">Included</p>
+                                      </div>
+                                    </div>
+                                  </CarouselItem>
+                                ))}
+                              </CarouselContent>
+                              <CarouselPrevious className="left-0 animate-pulse" />
+                              <CarouselNext className="right-0 animate-pulse" />
+                            </Carousel>
+                          </div>
+                        )}
+
                         {/* Pool Finishes */}
                         <div className="space-y-3">
                           <h4 className="font-semibold text-foreground">Pool Finish</h4>
