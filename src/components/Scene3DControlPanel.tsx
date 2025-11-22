@@ -412,46 +412,50 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                 <h4 className="font-medium">Textures</h4>
               </div>
 
-              {/* Component Selection */}
+              {/* Unified Texture & Component Selection */}
               <div className="space-y-2">
-                <Label className="text-xs font-semibold">Select Component</Label>
-                <div className="grid grid-cols-2 gap-1">
+                <Label className="text-xs font-semibold">Select Surface & Texture</Label>
+                <div className="grid grid-cols-2 gap-2">
                   <Button
-                    variant={selectedCategory === 'pool' ? 'default' : 'outline'}
+                    variant={selectedCategory === 'pool' || selectedTextureCategory === 'finishes' ? 'default' : 'outline'}
                     size="sm"
                     className="text-xs"
                     onClick={() => {
                       if (onSelectCategory) onSelectCategory('pool');
+                      setSelectedTextureCategory('finishes');
                     }}
                   >
                     Pool Finish
                   </Button>
                   <Button
-                    variant={selectedCategory === 'deck' ? 'default' : 'outline'}
+                    variant={selectedCategory === 'deck' || selectedTextureCategory === 'pavers' ? 'default' : 'outline'}
                     size="sm"
                     className="text-xs"
                     onClick={() => {
                       if (onSelectCategory) onSelectCategory('deck');
+                      setSelectedTextureCategory('pavers');
                     }}
                   >
                     Deck Pavers
                   </Button>
                   <Button
-                    variant={selectedCategory === 'coping' ? 'default' : 'outline'}
+                    variant={selectedCategory === 'coping' || selectedTextureCategory === 'coping' ? 'default' : 'outline'}
                     size="sm"
                     className="text-xs"
                     onClick={() => {
                       if (onSelectCategory) onSelectCategory('coping');
+                      setSelectedTextureCategory('coping');
                     }}
                   >
                     Coping
                   </Button>
                   <Button
-                    variant={selectedCategory === 'waterline' ? 'default' : 'outline'}
+                    variant={selectedCategory === 'waterline' || selectedTextureCategory === 'waterline' ? 'default' : 'outline'}
                     size="sm"
                     className="text-xs"
                     onClick={() => {
                       if (onSelectCategory) onSelectCategory('waterline');
+                      setSelectedTextureCategory('waterline');
                     }}
                   >
                     Waterline
@@ -467,71 +471,6 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                     Water
                   </Button>
                 </div>
-              </div>
-
-              {/* Pool Sub-Component - Walls & Floor */}
-              {selectedCategory === 'pool' && (
-                <div className="space-y-2">
-                  <Label className="text-xs font-semibold">Pool Parts</Label>
-                  <div className="grid grid-cols-2 gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs"
-                      onClick={() => {
-                        // Select pool walls
-                      }}
-                    >
-                      Walls
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs"
-                      onClick={() => {
-                        // Select pool floor
-                      }}
-                    >
-                      Floor
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Texture Category Tabs */}
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant={selectedTextureCategory === 'finishes' ? 'default' : 'outline'}
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => setSelectedTextureCategory('finishes')}
-                >
-                  Pool Finishes
-                </Button>
-                <Button
-                  variant={selectedTextureCategory === 'pavers' ? 'default' : 'outline'}
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => setSelectedTextureCategory('pavers')}
-                >
-                  Deck Pavers
-                </Button>
-                <Button
-                  variant={selectedTextureCategory === 'coping' ? 'default' : 'outline'}
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => setSelectedTextureCategory('coping')}
-                >
-                  Coping
-                </Button>
-                <Button
-                  variant={selectedTextureCategory === 'waterline' ? 'default' : 'outline'}
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => setSelectedTextureCategory('waterline')}
-                >
-                  Waterline (Liners)
-                </Button>
               </div>
 
               {/* Texture Scale Control */}
