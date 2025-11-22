@@ -24,6 +24,7 @@ import {
   Building2,
   Key,
   FileText,
+  Activity,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -54,6 +55,7 @@ import AdminQuoteTool from '@/components/AdminQuoteTool';
 import AdminInvoiceTool from '@/components/AdminInvoiceTool';
 import AdminInvoicesManager from '@/components/AdminInvoicesManager';
 import { PoolCalculator } from '@/components/PoolCalculator';
+import { PerformanceMonitoring } from '@/components/admin/PerformanceMonitoring';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -290,6 +292,11 @@ const AdminDashboard = () => {
                   <TabsTrigger value="calculator" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                     <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="hidden sm:inline">Pool Calculator</span>
+                  </TabsTrigger>
+
+                  <TabsTrigger value="performance" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Performance</span>
                   </TabsTrigger>
                 </>
               )}
@@ -697,6 +704,13 @@ const AdminDashboard = () => {
           {isMainAdmin && (
             <TabsContent value="calculator" className="space-y-6">
               <PoolCalculator />
+            </TabsContent>
+          )}
+
+          {/* Performance Monitoring Tab */}
+          {isMainAdmin && (
+            <TabsContent value="performance" className="space-y-6">
+              <PerformanceMonitoring />
             </TabsContent>
           )}
         </Tabs>

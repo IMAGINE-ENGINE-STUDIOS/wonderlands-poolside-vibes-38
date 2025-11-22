@@ -11,6 +11,7 @@ import "./styles/critical.css";
 import "./styles/components.css";
 import "./styles/animations.css";
 import "./styles/print.css";
+import { initializePerformanceMonitoring } from "@/utils/performanceMonitor";
 
 // Error Boundary for debugging white screen issues
 interface ErrorBoundaryState {
@@ -106,6 +107,9 @@ if (false && 'serviceWorker' in navigator && import.meta.env.PROD && import.meta
       });
   });
 }
+
+// Initialize performance monitoring
+initializePerformanceMonitoring();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -833,6 +833,72 @@ export type Database = {
         }
         Relationships: []
       }
+      performance_metrics: {
+        Row: {
+          browser: string | null
+          connection_type: string | null
+          created_at: string
+          device_type: string | null
+          dom_content_loaded_ms: number | null
+          effective_connection_type: string | null
+          error_message: string | null
+          error_stack: string | null
+          error_type: string | null
+          first_contentful_paint_ms: number | null
+          id: string
+          largest_contentful_paint_ms: number | null
+          load_time_ms: number | null
+          os: string | null
+          page_url: string
+          session_id: string | null
+          time_to_interactive_ms: number | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          connection_type?: string | null
+          created_at?: string
+          device_type?: string | null
+          dom_content_loaded_ms?: number | null
+          effective_connection_type?: string | null
+          error_message?: string | null
+          error_stack?: string | null
+          error_type?: string | null
+          first_contentful_paint_ms?: number | null
+          id?: string
+          largest_contentful_paint_ms?: number | null
+          load_time_ms?: number | null
+          os?: string | null
+          page_url: string
+          session_id?: string | null
+          time_to_interactive_ms?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          connection_type?: string | null
+          created_at?: string
+          device_type?: string | null
+          dom_content_loaded_ms?: number | null
+          effective_connection_type?: string | null
+          error_message?: string | null
+          error_stack?: string | null
+          error_type?: string | null
+          first_contentful_paint_ms?: number | null
+          id?: string
+          largest_contentful_paint_ms?: number | null
+          load_time_ms?: number | null
+          os?: string | null
+          page_url?: string
+          session_id?: string | null
+          time_to_interactive_ms?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       pools: {
         Row: {
           carbon_fiber: boolean | null
