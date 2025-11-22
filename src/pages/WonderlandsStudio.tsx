@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SurveyQuoteTool from "@/components/SurveyQuoteTool";
 import { DynamicFeatureRenderer } from "@/components/DynamicFeatureRenderer";
 import { PoolBuilder } from "@/components/PoolBuilder";
+import HeaterSizeCalculator from "@/components/HeaterSizeCalculator";
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
 import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
@@ -1722,6 +1723,21 @@ const WonderlandsStudio = () => {
                               }
                             />
                           </div>
+                          
+                          {/* Heater Size Calculator */}
+                          {selectedExtras.heater && selectedProduct && (
+                            <HeaterSizeCalculator 
+                              onSelectHeater={(heaterName) => {
+                                setSelectedExtras((prev: any) => ({
+                                  ...prev,
+                                  heater: true,
+                                  heaterModel: heaterName,
+                                }));
+                              }}
+                              currentSelection={selectedExtras.heaterModel}
+                            />
+                          )}
+                          
                           {selectedExtras.heater && (
                             <Carousel 
                               className="w-full"
