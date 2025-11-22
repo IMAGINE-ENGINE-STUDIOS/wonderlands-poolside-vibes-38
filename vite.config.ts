@@ -21,9 +21,10 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    cssCodeSplit: true,
+    cssCodeSplit: false,
     sourcemap: false,
     minify: 'esbuild',
+    target: 'es2015',
     rollupOptions: {
       output: {
         manualChunks: undefined,
