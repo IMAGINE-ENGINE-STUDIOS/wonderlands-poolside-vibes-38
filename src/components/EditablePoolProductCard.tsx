@@ -53,6 +53,7 @@ interface Pool {
   finishes?: string[];
   liners?: string[];
   covers?: string[];
+  type?: string; // Pool type: "Fiber Pool" or "Concrete Pool"
 }
 
 interface EditablePoolProductCardProps {
@@ -105,19 +106,33 @@ const getExtraPrice = (extra: string) => {
   }
 };
 
-// Convert pool finishes data to finish options format
-const finishOptions = getProductsByCategory('finish').map(finish => ({
-  name: finish.name,
-  color: '#4169E1',
-  image: finish.image,
-  // Force Crystite Crystals finishes to $4,500 in product card
-  price: (finish.collection && /crystite/i.test(finish.collection)) || (finish.category && /crystite/i.test(finish.category))
-    ? 4500
-    : finish.price,
-  collection: finish.collection,
-  category: finish.category,
-  description: finish.description
-}));
+// Helper to get finish options based on pool type
+const getFinishOptionsForPool = (poolType?: string) => {
+  const isConcretePool = poolType === "Concrete Pool";
+  const allFinishes = getProductsByCategory('finish');
+  
+  // Filter finishes: concrete pools get mini pebble, fiberglass pools get standard
+  const filteredFinishes = allFinishes.filter(finish => {
+    if (isConcretePool) {
+      return finish.type === "Concrete Pool";
+    } else {
+      return finish.type === "Fiber Pool";
+    }
+  });
+  
+  return filteredFinishes.map(finish => ({
+    name: finish.name,
+    color: '#4169E1',
+    image: finish.image,
+    // Force Crystite Crystals finishes to $4,500 in product card
+    price: (finish.collection && /crystite/i.test(finish.collection)) || (finish.category && /crystite/i.test(finish.category))
+      ? 4500
+      : finish.price,
+    collection: finish.collection,
+    category: finish.category,
+    description: finish.description
+  }));
+};
 
 // Convert pool liners to liner options format
 const linerOptions = [
@@ -161,6 +176,9 @@ const EditablePoolProductCard = ({
 }: EditablePoolProductCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Get finish options based on pool type
+  const finishOptions = getFinishOptionsForPool(pool.type);
   const [editedPool, setEditedPool] = useState({ ...pool });
   const [showDetails, setShowDetails] = useState(false);
   const [currentPoolImage, setCurrentPoolImage] = useState(pool.image);
