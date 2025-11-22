@@ -109,18 +109,17 @@ const getExtraPrice = (extra: string) => {
 // Import pool finishes from consolidated products
 import { getProductsByCategory } from '@/data/consolidatedProducts';
 
-// Convert pool finishes data to finish options format - Spas default to Fiber Pool finishes
-const finishOptions = getProductsByCategory('finish')
-  .filter(finish => finish.type === "Fiber Pool") // Spas use fiberglass finishes
-  .map(finish => ({
-    name: finish.name,
-    color: '#4169E1',
-    image: finish.image,
-    price: finish.price,
-    collection: finish.collection,
-    category: finish.category,
-    description: finish.description
-  }));
+// Convert pool finishes data to finish options format
+const finishOptions = getProductsByCategory('finish').map(finish => ({
+  name: finish.name,
+  color: '#4169E1',
+  // fallback color
+  image: finish.image,
+  price: finish.price,
+  collection: finish.collection,
+  category: finish.category,
+  description: finish.description
+}));
 
 // Import pool liners from PoolCatalog
 import { poolLiners, poolTiles } from '@/data/poolData';

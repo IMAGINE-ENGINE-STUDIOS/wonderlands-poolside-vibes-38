@@ -100,18 +100,17 @@ const ledgeHeaters = [{
 // Import pool finishes from consolidated products
 import { getProductsByCategory } from '@/data/consolidatedProducts';
 
-// Convert pool finishes data to finish options format - Tanning Ledges default to Fiber Pool finishes
-const finishOptions = getProductsByCategory('finish')
-  .filter(finish => finish.type === "Fiber Pool") // Tanning ledges use fiberglass finishes
-  .map(finish => ({
-    name: finish.name,
-    color: '#4169E1',
-    image: finish.image,
-    price: finish.price / 2, // Tanning ledge pricing is half of pool pricing
-    collection: finish.collection,
-    category: finish.category,
-    description: finish.description
-  }));
+// Convert pool finishes data to finish options format
+const finishOptions = getProductsByCategory('finish').map(finish => ({
+  name: finish.name,
+  color: '#4169E1',
+  image: finish.image,
+  price: finish.price / 2,
+  // Tanning ledge pricing is half of pool pricing
+  collection: finish.collection,
+  category: finish.category,
+  description: finish.description
+}));
 
 // Convert paver data to options format
 const paverOptions = [{
