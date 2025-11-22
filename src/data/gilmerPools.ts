@@ -40,7 +40,8 @@ export const gilmerPools = [
     type: "Fiber Pool",
     category: "compact",
     installationTimeWeeks: 16,
-    concreteInstallationWeeks: 18
+    concreteInstallationWeeks: 18,
+    websiteUrl: "https://glimmerglasspools.com/pool-models/serafina"
   },
   {
     model: "Coral Cove",

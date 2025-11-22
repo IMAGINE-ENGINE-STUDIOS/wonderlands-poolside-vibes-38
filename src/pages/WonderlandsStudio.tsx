@@ -1490,16 +1490,22 @@ const WonderlandsStudio = () => {
                             <CarouselContent className="-ml-1">
                               {finishOptions
                                 .filter((finish) => {
-                                  // Wonderlands World concrete pools (Madre Perla, Pacific Ridge, Winderview, Maxima)
-                                  const concretePoolModels = ["Madre Perla", "Pacific Ridge", "Winderview", "Maxima"];
-                                  const isConcretePool = concretePoolModels.includes(selectedProduct?.model || "");
+                                  // Define pool type categories
+                                  const wonderlandsWorldModels = ["Madre Perla", "Pacific Ridge", "Winderview", "Maxima"];
+                                  const lathamModels = ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9'17\"", "Enchantment 9'21\"", "Enchantment 9'24\"", "Cancún Deluxe"];
                                   
-                                  if (isConcretePool) {
-                                    // Only show Mini Pebbles collection for concrete pools
+                                  const isWonderlandsWorld = wonderlandsWorldModels.includes(selectedProduct?.model || "");
+                                  const isLathamPool = lathamModels.includes(selectedProduct?.model || "");
+                                  
+                                  if (isWonderlandsWorld) {
+                                    // Wonderlands World concrete pools: Only Mini Pebbles collection
                                     return finish.collection === "Mini Pebbles";
-                                  } else {
-                                    // Only show Crystite Crystal collection for fiberglass pools (Latham)
+                                  } else if (isLathamPool) {
+                                    // Latham fiberglass pools: Only Crystite Crystal collection
                                     return finish.collection === "Crystite Crystal";
+                                  } else {
+                                    // GlimmerGlass and other pools: Show all except Crystite Crystal and Mini Pebbles
+                                    return finish.collection !== "Crystite Crystal" && finish.collection !== "Mini Pebbles";
                                   }
                                 })
                                 .map((finish, idx) => (
