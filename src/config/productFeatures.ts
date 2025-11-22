@@ -247,7 +247,7 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       label: 'Concrete Construction',
       type: 'boolean',
       icon: 'Building',
-      pricingModifier: (basePrice) => basePrice * 1.2
+      basePrice: 15000
     }
   ],
   'spa': [
