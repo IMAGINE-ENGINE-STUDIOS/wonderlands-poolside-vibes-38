@@ -27,6 +27,7 @@ interface SimplifiedGilmerPoolCardProps {
     type: string;
     installationTimeWeeks?: number;
     concreteInstallationWeeks?: number;
+    websiteUrl?: string;
   };
 }
 
@@ -222,8 +223,13 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
 
   return (
     <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
-      {/* Wide Pool Image at top - edge to edge */}
-      <div className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 overflow-hidden group/image">
+      {/* Wide Pool Image at top - edge to edge with hyperlink */}
+      <a 
+        href={pool.websiteUrl || `https://glimmerglasspools.com/pool-models/${pool.model.toLowerCase().replace(/\s+/g, '-')}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 overflow-hidden group/image"
+      >
         <OptimizedImage
           src={pool.image}
           alt={pool.model}
@@ -237,7 +243,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             {pool.brand}
           </Badge>
         </div>
-      </div>
+      </a>
 
       <CardContent className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
         {/* Pool Title under image */}
