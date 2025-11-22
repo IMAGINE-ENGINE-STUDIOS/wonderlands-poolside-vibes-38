@@ -149,12 +149,14 @@ const InvoiceDetailPage = () => {
       const { error } = await supabase
         .from("invoices")
         .update({
+          invoice_number: editedInvoice.invoice_number,
+          invoice_date: editedInvoice.invoice_date,
+          due_date: editedInvoice.due_date,
           customer_name: editedInvoice.customer_name,
           customer_email: editedInvoice.customer_email,
           customer_phone: editedInvoice.customer_phone,
           customer_address: editedInvoice.customer_address,
           notes: editedInvoice.notes,
-          terms_conditions: editedInvoice.terms_conditions,
         })
         .eq("id", invoiceId);
       if (error) throw error;
@@ -259,21 +261,66 @@ const InvoiceDetailPage = () => {
             <div className="flex justify-between items-start">
               <div>
                 <img
-                  src="/lovable-uploads/8ba4beaa-5f82-4e93-9c4e-6bdbf959c46a.png"
+                  src="/lovable-uploads/wonderlands-logo.png"
                   alt="Wonderlands Logo"
                   className="h-16 mb-4"
                 />
                 <h1 className="text-4xl font-bold mb-2">INVOICE</h1>
-                <p className="text-xl opacity-90">{invoice.invoice_number}</p>
+                {editMode ? (
+                  <Input
+                    value={editedInvoice?.invoice_number || ""}
+                    onChange={(e) =>
+                      setEditedInvoice((prev) =>
+                        prev ? { ...prev, invoice_number: e.target.value } : null
+                      )
+                    }
+                    className="text-xl bg-white/20 text-white border-white/30"
+                  />
+                ) : (
+                  <p className="text-xl opacity-90">{invoice.invoice_number}</p>
+                )}
               </div>
               <div className="text-right">
                 <Badge className={getStatusColor(invoice.payment_status) + " text-sm px-3 py-1 mb-2"}>
                   {invoice.payment_status.toUpperCase()}
                 </Badge>
-                <p className="text-sm opacity-90 mt-2">
-                  Invoice Date: {new Date(invoice.invoice_date).toLocaleDateString()}
-                </p>
-                <p className="text-sm opacity-90">Due Date: {new Date(invoice.due_date).toLocaleDateString()}</p>
+                {editMode ? (
+                  <div className="space-y-2 mt-2">
+                    <div>
+                      <label className="text-xs opacity-75">Invoice Date:</label>
+                      <Input
+                        type="date"
+                        value={editedInvoice?.invoice_date || ""}
+                        onChange={(e) =>
+                          setEditedInvoice((prev) =>
+                            prev ? { ...prev, invoice_date: e.target.value } : null
+                          )
+                        }
+                        className="text-sm bg-white/20 text-white border-white/30"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs opacity-75">Due Date:</label>
+                      <Input
+                        type="date"
+                        value={editedInvoice?.due_date || ""}
+                        onChange={(e) =>
+                          setEditedInvoice((prev) =>
+                            prev ? { ...prev, due_date: e.target.value } : null
+                          )
+                        }
+                        className="text-sm bg-white/20 text-white border-white/30"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm opacity-90 mt-2">
+                      Invoice Date: {new Date(invoice.invoice_date).toLocaleDateString()}
+                    </p>
+                    <p className="text-sm opacity-90">Due Date: {new Date(invoice.due_date).toLocaleDateString()}</p>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -405,8 +452,7 @@ const InvoiceDetailPage = () => {
                 {invoice.subtotal > invoice.total_amount && (
                   <div className="flex justify-between py-2 border-b bg-green-50">
                     <span className="text-green-700 font-semibold">
-                      {" "}
-                      Your Savings ({(((invoice.subtotal - invoice.total_amount) / invoice.subtotal) * 100).toFixed(1)}%
+                      Discount ({(((invoice.subtotal - invoice.total_amount) / invoice.subtotal) * 100).toFixed(1)}%
                       OFF)
                     </span>
                     <span className="font-bold text-green-600">
