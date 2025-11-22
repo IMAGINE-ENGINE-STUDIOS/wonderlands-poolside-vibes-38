@@ -8,6 +8,7 @@ export interface Product {
   subcategory?: string;
   collection?: string;
   poolType?: 'fiberglass' | 'concrete' | 'both'; // Which pool type this product is compatible with
+  compatiblePools?: string[]; // Specific pool models/brands this finish is compatible with
   price: number;
   originalPrice?: number; // For discount calculations
   image: string;
@@ -25,7 +26,7 @@ export interface Product {
 
 // Pool Finishes - Organized by Collection
 export const poolFinishes: Product[] = [
-  // Crystite Crystal Collection - FIBERGLASS POOLS ONLY
+  // Crystite Crystal Collection - LATHAM POOLS ONLY (Fiberglass)
   {
     id: "sapphire-blue-crystal",
     name: "Sapphire Blue",
@@ -33,6 +34,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Deep & Dramatic",
     collection: "Crystite Crystal",
     poolType: "fiberglass",
+    compatiblePools: ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9'17\"", "Enchantment 9'21\"", "Enchantment 9'24\"", "Cancún Deluxe"], // Latham pools only
     price: 3500,
     image: "/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png",
     description: "A stunning deep blue with crystalline sparkle that creates a luxurious Caribbean feel",
@@ -48,6 +50,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Deep & Dramatic",
     collection: "Crystite Crystal",
     poolType: "fiberglass",
+    compatiblePools: ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9'17\"", "Enchantment 9'21\"", "Enchantment 9'24\"", "Cancún Deluxe"],
     price: 3500,
     image: "/lovable-uploads/2103693f-cf54-423d-99c7-68d6f3951388.png",
     description: "Deep ocean blue with crystal aggregates for a premium tropical look",
@@ -62,6 +65,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Deep & Dramatic",
     collection: "Crystite Crystal",
     poolType: "fiberglass",
+    compatiblePools: ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9'17\"", "Enchantment 9'21\"", "Enchantment 9'24\"", "Cancún Deluxe"],
     price: 3500,
     image: "/lovable-uploads/90fe0136-31f1-4fa3-b816-56a7a74484fa.png",
     description: "Dark blue with brilliant crystal flecks that shimmer like stars in the night sky",
@@ -76,6 +80,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Light & Tranquil",
     collection: "Crystite Crystal",
     poolType: "fiberglass",
+    compatiblePools: ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9'17\"", "Enchantment 9'21\"", "Enchantment 9'24\"", "Cancún Deluxe"],
     price: 3500,
     image: "/lovable-uploads/15032ed4-f745-4152-ae9b-c26fdb52f68c.png",
     description: "Sophisticated gray with crystal accents for a modern, refined appearance",
@@ -90,6 +95,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Rich & Vibrant",
     collection: "Crystite Crystal",
     poolType: "fiberglass",
+    compatiblePools: ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9'17\"", "Enchantment 9'21\"", "Enchantment 9'24\"", "Cancún Deluxe"],
     price: 3500,
     image: "/lovable-uploads/b1abd5c3-af2e-46fa-82be-5db27d20a388.png",
     description: "Warm bronze tones with crystal sparkle reminiscent of coastal sunsets",
@@ -104,6 +110,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Light & Tranquil",
     collection: "Crystite Crystal",
     poolType: "fiberglass",
+    compatiblePools: ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9'17\"", "Enchantment 9'21\"", "Enchantment 9'24\"", "Cancún Deluxe"],
     price: 3500,
     image: "/lovable-uploads/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.png",
     description: "Elegant white with pearl-like crystal finish for timeless sophistication",
@@ -112,7 +119,7 @@ export const poolFinishes: Product[] = [
     isActive: true
   },
 
-  // Wonderlands World Collection - CONCRETE POOLS ONLY (Mini Pebbles)
+  // Wonderlands World Collection - WONDERLANDS WORLD POOLS ONLY (Mini Pebbles - Concrete)
   {
     id: "tahoe-blue-wonderlands",
     name: "Tahoe Blue",
@@ -120,6 +127,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Deep & Dramatic",
     collection: "Wonderlands World",
     poolType: "concrete",
+    compatiblePools: ["Madre Perla", "Pacific Ridge", "Winderview", "Maxima"], // Wonderlands World pools only
     price: 4200,
     image: "/images/finishes/wonderlands-tahoe-blue.webp",
     description: "Rich blend of blue, beige, and black aggregates inspired by Lake Tahoe's pristine waters",
@@ -135,6 +143,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Deep & Dramatic",
     collection: "Wonderlands World",
     poolType: "concrete",
+    compatiblePools: ["Madre Perla", "Pacific Ridge", "Winderview", "Maxima"],
     price: 4200,
     image: "/images/finishes/wonderlands-tropics-blue.webp",
     description: "Vibrant tropical blue with white and navy aggregates for an exotic paradise feel",
@@ -150,6 +159,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Deep & Dramatic",
     collection: "Wonderlands World",
     poolType: "concrete",
+    compatiblePools: ["Madre Perla", "Pacific Ridge", "Winderview", "Maxima"],
     price: 4200,
     image: "/images/finishes/wonderlands-yosemite.webp",
     description: "Bold blue with dramatic navy and white accents inspired by Yosemite's granite formations",
@@ -164,6 +174,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Light & Tranquil",
     collection: "Wonderlands World",
     poolType: "concrete",
+    compatiblePools: ["Madre Perla", "Pacific Ridge", "Winderview", "Maxima"],
     price: 4200,
     image: "/images/finishes/wonderlands-aqua-white.webp",
     description: "Serene aqua blue with white aggregates creating a tranquil, spa-like atmosphere",
@@ -178,6 +189,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Deep & Dramatic",
     collection: "Wonderlands World",
     poolType: "concrete",
+    compatiblePools: ["Madre Perla", "Pacific Ridge", "Winderview", "Maxima"],
     price: 4200,
     image: "/images/finishes/wonderlands-marina-blue.webp",
     description: "Brilliant azure blue with crystalline white aggregates reminiscent of luxurious marinas",
@@ -192,6 +204,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Deep & Dramatic",
     collection: "Wonderlands World",
     poolType: "concrete",
+    compatiblePools: ["Madre Perla", "Pacific Ridge", "Winderview", "Maxima"],
     price: 4200,
     image: "/images/finishes/wonderlands-midnight-blue.webp",
     description: "Sophisticated blend of blue, beige, and black creating a mysterious midnight water effect",
@@ -528,6 +541,14 @@ export const getProductsByPoolType = (category: Product['category'], poolType: '
   return allProducts.filter(product => 
     product.category === category && 
     (product.poolType === poolType || product.poolType === 'both') &&
+    product.isActive
+  );
+};
+
+export const getProductsByCompatiblePool = (category: Product['category'], poolModel: string): Product[] => {
+  return allProducts.filter(product => 
+    product.category === category && 
+    (!product.compatiblePools || product.compatiblePools.includes(poolModel)) &&
     product.isActive
   );
 };
