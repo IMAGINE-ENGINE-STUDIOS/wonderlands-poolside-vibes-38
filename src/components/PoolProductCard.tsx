@@ -877,7 +877,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                   {finishOptions.map((finish, idx) => (
                     <CarouselItem
                       key={`pool-${finish.name}-${idx}`}
-                      className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4"
+                      className="pl-1 basis-1/2"
                     >
                       <div
                         className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? "border-primary bg-primary/10" : "border-border"}`}
@@ -911,8 +911,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
+                <CarouselPrevious className="left-0 animate-pulse" />
+                <CarouselNext className="right-0 animate-pulse" />
               </Carousel>
             </div>
 
