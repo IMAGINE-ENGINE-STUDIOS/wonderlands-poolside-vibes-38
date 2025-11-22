@@ -477,33 +477,6 @@ const InvoiceDetailPage = () => {
               </div>
             )}
 
-            {/* Terms & Conditions */}
-            {(invoice.terms_conditions || editMode) && (
-              <div className="mb-6">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Terms & Conditions</h3>
-                {editMode ? (
-                  <Textarea
-                    value={editedInvoice?.terms_conditions || ""}
-                    onChange={(e) =>
-                      setEditedInvoice((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              terms_conditions: e.target.value,
-                            }
-                          : null,
-                      )
-                    }
-                    rows={3}
-                  />
-                ) : (
-                  <p className="text-sm whitespace-pre-line">
-                    {invoice.terms_conditions ||
-                      "First payment is due on the date of contract signature. Subsequent payments as specified in contract. Late payments may incur additional fees."}
-                  </p>
-                )}
-              </div>
-            )}
 
             {/* Footer */}
             <div className="text-center pt-6 border-t">

@@ -39,10 +39,11 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
     customerPhone: "",
     customerAddress: "",
     invoiceDate: new Date().toISOString().split('T')[0],
-    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     paymentTerms: "Net 30",
     taxRate: 0,
     discountAmount: 0,
+    discountPercent: 0,
     notes: "",
     termsConditions: "Payment is due within 30 days. Late payments may incur additional fees.",
   });
@@ -86,6 +87,7 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
         
         const totalQuote: number = Number(data.total_quote_amount) || itemsSubtotal;
         const calculatedDiscount: number = itemsSubtotal > totalQuote ? itemsSubtotal - totalQuote : 0;
+        const discountPercent: number = itemsSubtotal > 0 ? (calculatedDiscount / itemsSubtotal) * 100 : 0;
         
         setFormData({
           ...formData,
@@ -94,6 +96,7 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
           customerPhone: data.phone || "",
           customerAddress: data.address || "",
           discountAmount: calculatedDiscount,
+          discountPercent: discountPercent,
         });
 
         // Convert quote to line items
@@ -165,9 +168,10 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
 
   const calculateTotals = () => {
     const subtotal = lineItems.reduce((sum, item) => sum + item.amount, 0);
+    const discountAmount = formData.discountPercent > 0 ? (subtotal * formData.discountPercent) / 100 : formData.discountAmount;
     const taxAmount = (subtotal * formData.taxRate) / 100;
-    const total = subtotal + taxAmount - formData.discountAmount;
-    return { subtotal, taxAmount, total };
+    const total = subtotal + taxAmount - discountAmount;
+    return { subtotal, taxAmount, total, discountAmount };
   };
 
   const generateInvoiceNumber = async () => {
@@ -181,10 +185,10 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
       if (sendEmail) {
         setSending(true);
       } else {
-        setLoading(true);
+      setLoading(true);
       }
 
-      const { subtotal, taxAmount, total } = calculateTotals();
+      const { subtotal, taxAmount, total, discountAmount } = calculateTotals();
       const invoiceNumber = await generateInvoiceNumber();
 
       const invoiceData = {
@@ -201,7 +205,7 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
         subtotal: subtotal,
         tax_rate: formData.taxRate,
         tax_amount: taxAmount,
-        discount_amount: formData.discountAmount,
+        discount_amount: discountAmount,
         total_amount: total,
         payment_terms: formData.paymentTerms,
         notes: formData.notes,
@@ -254,7 +258,7 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
     }
   };
 
-  const { subtotal, taxAmount, total } = calculateTotals();
+  const { subtotal, taxAmount, total, discountAmount } = calculateTotals();
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -437,13 +441,18 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
                     <Input
                       type="number"
                       min="0"
-                      step="0.01"
-                      value={formData.discountAmount}
-                      onChange={(e) => setFormData({ ...formData, discountAmount: parseFloat(e.target.value) || 0 })}
-                      className="w-32"
+                      max="100"
+                      step="0.1"
+                      value={formData.discountPercent}
+                      onChange={(e) => {
+                        const percent = parseFloat(e.target.value) || 0;
+                        setFormData({ ...formData, discountPercent: percent, discountAmount: 0 });
+                      }}
+                      className="w-20"
                     />
+                    <span>%</span>
                   </div>
-                  <span className="font-semibold">-${formData.discountAmount.toFixed(2)}</span>
+                  <span className="font-semibold">-${discountAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold border-t pt-2">
                   <span>Total:</span>
@@ -453,24 +462,15 @@ const InvoiceGenerator = ({ isOpen, onClose, quotationId }: InvoiceGeneratorProp
             </CardContent>
           </Card>
 
-          {/* Notes and Terms */}
+          {/* Notes */}
           <Card>
-            <CardContent className="pt-6 space-y-4">
+            <CardContent className="pt-6">
               <div>
                 <Label>Notes</Label>
                 <Textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="Additional notes or special instructions..."
-                  rows={3}
-                />
-              </div>
-              <div>
-                <Label>Terms & Conditions</Label>
-                <Textarea
-                  value={formData.termsConditions}
-                  onChange={(e) => setFormData({ ...formData, termsConditions: e.target.value })}
-                  placeholder="Payment terms and conditions..."
                   rows={3}
                 />
               </div>
