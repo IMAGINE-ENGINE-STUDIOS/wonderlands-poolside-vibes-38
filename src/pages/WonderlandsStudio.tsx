@@ -353,6 +353,9 @@ const WonderlandsStudio = () => {
 
   // Handle URL parameters for product search integration
   useEffect(() => {
+    // Scroll to top when component mounts to show product image
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    
     const urlParams = new URLSearchParams(window.location.search);
     
     // Check for pool builder scene data
