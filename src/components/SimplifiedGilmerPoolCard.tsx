@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { poolTiles } from "@/data/poolData";
@@ -47,6 +48,7 @@ interface GilmerOptions {
 }
 
 const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
+  const navigate = useNavigate();
   const { addToCart } = useShoppingCart();
   const { toast } = useToast();
   
@@ -223,12 +225,12 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
 
   return (
     <Card className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 border-2 hover:border-primary/40 overflow-hidden">
-      {/* Wide Pool Image at top - edge to edge with hyperlink */}
-      <a 
-        href={pool.websiteUrl || `https://glimmerglasspools.com/pool-models/${pool.model.toLowerCase().replace(/\s+/g, '-')}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 overflow-hidden group/image"
+      {/* Wide Pool Image at top - edge to edge with click to Wonderlands Studio */}
+      <div 
+        className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 overflow-hidden group/image cursor-pointer"
+        onClick={() => {
+          navigate(`/wonderlands-studio?model=${encodeURIComponent(pool.model)}&price=${pool.price}&category=premium&image=${encodeURIComponent(pool.image)}`);
+        }}
       >
         <OptimizedImage
           src={pool.image}
@@ -243,7 +245,14 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             {pool.brand}
           </Badge>
         </div>
-      </a>
+
+        {/* Hover overlay with text */}
+        <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+          <div className="opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 text-white font-medium">
+            Open in Studio
+          </div>
+        </div>
+      </div>
 
       <CardContent className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
         {/* Pool Title under image */}
