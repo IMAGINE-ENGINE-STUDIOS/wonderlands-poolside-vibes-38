@@ -72,8 +72,9 @@ interface Pool {
 }
 interface PoolProductCardProps {
   pool: Pool;
-  variant?: "default" | "compact";
-  className?: string;
+  onViewDetails: (pool: Pool) => void;
+  onRequestQuote: (pool: Pool, extras?: PoolExtras) => void;
+  isAdmin?: boolean;
 }
 interface PoolExtras {
   liner: boolean;
@@ -224,8 +225,80 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
     })),
   ];
 
-  // Cover options - using real automatic covers from AutomaticCoversSection with short surnames
+  // Cover options - using real automatic covers
   const coverOptions = [
+    { name: "NO COVER", surname: "None", color: "#808080", price: 0, image: shaleGrayFinish, category: "cover", description: "No pool cover needed", colors: [] },
+    { 
+      name: "Eclipse Automatic Cover", 
+      surname: "Eclipse", 
+      color: "#2F4F4F", 
+      price: 16000, 
+      image: "/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png", 
+      category: "cover", 
+      description: "High-grade PVC with dual track system",
+      colors: [
+        { name: "Light Blue", value: "#87CEEB", hex: "#87CEEB" },
+        { name: "Royal Blue", value: "#4169E1", hex: "#4169E1" },
+        { name: "Navy Blue", value: "#000080", hex: "#000080" },
+        { name: "Forest Green", value: "#228B22", hex: "#228B22" },
+        { name: "Light Gray", value: "#D3D3D3", hex: "#D3D3D3" },
+        { name: "Charcoal Gray", value: "#36454F", hex: "#36454F" },
+        { name: "Brown", value: "#964B00", hex: "#964B00" },
+        { name: "Black", value: "#000000", hex: "#000000" }
+      ]
+    },
+    { 
+      name: "CS3000 Automatic Cover", 
+      surname: "CS3000", 
+      color: "#2F4F4F", 
+      price: 20000, 
+      image: "/lovable-uploads/af4bf30f-30a2-42bc-aa71-2b3bdc25b0bc.png", 
+      category: "cover", 
+      description: "Commercial-grade with solar heating benefits",
+      colors: [
+        { name: "Light Blue", value: "#87CEEB", hex: "#87CEEB" },
+        { name: "Royal Blue", value: "#4169E1", hex: "#4169E1" },
+        { name: "Navy Blue", value: "#000080", hex: "#000080" }
+      ]
+    },
+    { 
+      name: "Infinity 4000 Automatic Cover", 
+      surname: "Infinity 4000", 
+      color: "#2F4F4F", 
+      price: 28000, 
+      image: "/lovable-uploads/3adb0804-f3a6-4d17-a38e-feb05f6fbdf9.png", 
+      category: "cover", 
+      description: "Premium with advanced safety features",
+      colors: [
+        { name: "Light Blue", value: "#87CEEB", hex: "#87CEEB" },
+        { name: "Royal Blue", value: "#4169E1", hex: "#4169E1" }
+      ]
+    },
+    { 
+      name: "Atom Automatic Cover", 
+      surname: "Atom", 
+      color: "#2F4F4F", 
+      price: 14000, 
+      image: "/lovable-uploads/ba0e311a-ab2a-4b2a-82ce-dfb8f97c33bd.png", 
+      category: "cover", 
+      description: "Compact and efficient design",
+      colors: [
+        { name: "Light Blue", value: "#87CEEB", hex: "#87CEEB" },
+        { name: "Royal Blue", value: "#4169E1", hex: "#4169E1" }
+      ]
+    }
+  ];
+
+  const tileOptions = [
+    { name: "Standard Waterline", color: "#4682B4", price: 0, image: azureBlueFinish, description: undefined },
+    ...poolTiles.map((tile) => ({ name: tile.name, color: "#4682B4", price: tile.price, image: tile.image, description: tile.description })),
+  ];
+
+  const paverOptions = [
+    { name: "No Pavers", color: "#808080", price: 0, image: azureBlueFinish, description: "No additional pavers", collection: "none" },
+    ...paverTypes.map((paver) => ({ name: paver.name, color: "#D3D3D3", price: 0, image: paver.image || azureBlueFinish, description: paver.description, collection: paver.id.includes("appian") ? "appian" : paver.id.includes("catalina") ? "catalina" : "standard" })),
+  ];
+
   const navigate = useNavigate();
   const [showDetails, setShowDetails] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);

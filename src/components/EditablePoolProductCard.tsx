@@ -105,7 +105,14 @@ const getExtraPrice = (extra: string) => {
   }
 };
 
-const EditablePoolProductCard = ({ pool, isEditable = false, isAdmin = false, onUpdate, onViewDetails, onRequestQuote }: EditablePoolProductCardProps) => {
+const EditablePoolProductCard = ({ 
+  pool, 
+  isEditable = false, 
+  isAdmin = false,
+  onUpdate, 
+  onViewDetails, 
+  onRequestQuote 
+}: EditablePoolProductCardProps) => {
   // Filter finishes based on pool model compatibility
   const compatibleFinishes = getProductsByCompatiblePool('finish', pool.model);
   
@@ -123,46 +130,37 @@ const EditablePoolProductCard = ({ pool, isEditable = false, isAdmin = false, on
     description: finish.description
   }));
 
-// Convert pool liners to liner options format
-const linerOptions = [
-  { name: 'Standard Blue', color: '#4169E1', price: 4500, image: azureBlueFinish, type: 'Standard', description: undefined },
-  ...poolLiners.map(liner => ({
-    name: liner.name,
-    color: '#4169E1',
-    price: 4500, // All liners are $4,500
-    image: liner.image,
-    type: liner.type,
-    description: liner.description
-  }))
-];
+  // Convert pool liners to liner options format
+  const linerOptions = [
+    { name: 'Standard Blue', color: '#4169E1', price: 4500, image: azureBlueFinish, type: 'Standard', description: undefined },
+    ...poolLiners.map(liner => ({
+      name: liner.name,
+      color: '#4169E1',
+      price: 4500, // All liners are $4,500
+      image: liner.image,
+      type: liner.type,
+      description: liner.description
+    }))
+  ];
 
-const coverOptions = [
-  { name: 'Eclipse', color: '#2F4F4F', price: 22000 },
-  { name: 'CS3000', color: '#2F4F4F', price: 24000 },
-  { name: 'Infinity 4000', color: '#2F4F4F', price: 32000 },
-  { name: 'Atom', color: '#2F4F4F', price: 19000 }
-];
+  const coverOptions = [
+    { name: 'Eclipse', color: '#2F4F4F', price: 22000 },
+    { name: 'CS3000', color: '#2F4F4F', price: 24000 },
+    { name: 'Infinity 4000', color: '#2F4F4F', price: 32000 },
+    { name: 'Atom', color: '#2F4F4F', price: 19000 }
+  ];
 
-// Convert pool tiles to tile options format
-const tileOptions = [
-  { name: 'Standard Waterline', color: '#4682B4', price: 0, image: azureBlueFinish, description: undefined },
-  ...poolTiles.map(tile => ({
-    name: tile.name,
-    color: '#4682B4',
-    price: tile.price,
-    image: tile.image,
-    description: tile.description
-  }))
-];
-
-const EditablePoolProductCard = ({ 
-  pool, 
-  isEditable = false, 
-  isAdmin = false,
-  onUpdate, 
-  onViewDetails, 
-  onRequestQuote 
-}: EditablePoolProductCardProps) => {
+  // Convert pool tiles to tile options format
+  const tileOptions = [
+    { name: 'Standard Waterline', color: '#4682B4', price: 0, image: azureBlueFinish, description: undefined },
+    ...poolTiles.map(tile => ({
+      name: tile.name,
+      color: '#4682B4',
+      price: tile.price,
+      image: tile.image,
+      description: tile.description
+    }))
+  ];
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editedPool, setEditedPool] = useState({ ...pool });
