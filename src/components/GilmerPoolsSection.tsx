@@ -18,11 +18,12 @@ const GilmerPoolsSection = () => {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     // Scroll to top of section
-    document.getElementById('gilmer-pools')?.scrollIntoView({
-      behavior: 'smooth'
+    document.getElementById("gilmer-pools")?.scrollIntoView({
+      behavior: "smooth",
     });
   };
-  return <section className="py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-primary/5 to-background">
+  return (
+    <section className="py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-primary/5 to-background">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12 space-y-4">
@@ -33,11 +34,12 @@ const GilmerPoolsSection = () => {
             </h2>
             <Waves className="h-8 w-8 text-primary" />
           </div>
-          
+
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Premium fiberglass pools built to last. Experience the durability and beauty of Gilmer Glass construction with our lifetime warranty guarantee.
+            Premium fiberglass pools built to last. Experience the durability and beauty of Gilmer Glass construction
+            with our lifetime warranty guarantee.
           </p>
-          
+
           {/* Feature Badges */}
           <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
             <Badge className="bg-gradient-to-r from-primary to-teal text-white border-0 px-4 py-2 text-sm font-semibold shadow-md">
@@ -50,10 +52,10 @@ const GilmerPoolsSection = () => {
             </Badge>
             <Badge className="bg-gradient-to-r from-primary to-teal text-white border-0 px-4 py-2 text-sm font-semibold shadow-md">
               <Clock className="h-4 w-4 mr-2" />
-              8-Week Installation
+              16+-Week Installation
             </Badge>
           </div>
-          
+
           {/* Page indicator */}
           <p className="text-sm text-muted-foreground mt-4">
             Showing {startIndex + 1}-{Math.min(endIndex, gilmerPools.length)} of {gilmerPools.length} models
@@ -62,37 +64,66 @@ const GilmerPoolsSection = () => {
 
         {/* Pool Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {currentPools.map(pool => <SimplifiedGilmerPoolCard key={pool.model} pool={pool} />)}
+          {currentPools.map((pool) => (
+            <SimplifiedGilmerPoolCard key={pool.model} pool={pool} />
+          ))}
         </div>
 
         {/* Pagination Controls */}
-        {totalPages > 1 && <div className="flex items-center justify-center gap-2 mt-8">
-            <Button variant="outline" size="icon" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="h-10 w-10">
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-8">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="h-10 w-10"
+            >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            
-            {Array.from({
-          length: totalPages
-        }, (_, i) => i + 1).map(page => <Button key={page} variant={currentPage === page ? "default" : "outline"} size="icon" onClick={() => handlePageChange(page)} className={`h-10 w-10 ${currentPage === page ? "bg-gradient-to-r from-primary to-teal text-white border-0" : ""}`}>
+
+            {Array.from(
+              {
+                length: totalPages,
+              },
+              (_, i) => i + 1,
+            ).map((page) => (
+              <Button
+                key={page}
+                variant={currentPage === page ? "default" : "outline"}
+                size="icon"
+                onClick={() => handlePageChange(page)}
+                className={`h-10 w-10 ${currentPage === page ? "bg-gradient-to-r from-primary to-teal text-white border-0" : ""}`}
+              >
                 {page}
-              </Button>)}
-            
-            <Button variant="outline" size="icon" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="h-10 w-10">
+              </Button>
+            ))}
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="h-10 w-10"
+            >
               <ChevronRight className="h-4 w-4" />
             </Button>
-          </div>}
+          </div>
+        )}
 
         {/* Info Banner */}
         <div className="mt-12 p-6 rounded-lg bg-gradient-to-r from-primary/10 via-teal/10 to-primary/10 border border-primary/20">
           <div className="text-center space-y-2">
             <h3 className="text-xl font-bold text-foreground">Why Choose Gilmerglass Pools?</h3>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Gilmer Glass Pools combine cutting-edge fiberglass technology with timeless design. Each pool comes with a lifetime structural warranty, 
-              quick 8-week installation, and low-maintenance durability that saves you time and money for years to come.
+              Gilmer Glass Pools combine cutting-edge fiberglass technology with timeless design. Each pool comes with a
+              lifetime structural warranty, quick 8-week installation, and low-maintenance durability that saves you
+              time and money for years to come.
             </p>
           </div>
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };
 export default GilmerPoolsSection;
