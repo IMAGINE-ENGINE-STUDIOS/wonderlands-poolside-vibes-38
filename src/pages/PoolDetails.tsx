@@ -480,7 +480,7 @@ const PoolDetails = () => {
     spaModel: 'Mystic',
     tanningLedge: false,
     tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
-    heaterModel: poolHeaters[0]?.name || 'Heat Pump - Eco Series',
+    heaterModel: poolHeaters[0]?.name || 'Pentair MasterTemp 125 (125K BTU)',
     pavers: false,
     paverOption: 'No Pavers',
     copingPaverOption: 'No Coping',

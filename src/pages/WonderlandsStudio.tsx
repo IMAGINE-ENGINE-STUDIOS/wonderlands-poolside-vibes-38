@@ -138,26 +138,30 @@ const finishOptions = poolFinishesData.map(finish => ({
   description: finish.description
 }));
 
-// Pool heaters with models
+// Pool heaters with models - Pentair only
 const poolHeaters = [{
-  name: 'Hayward H400FDN Natural Gas',
-  price: 4500,
+  name: 'Pentair MasterTemp 125 (125K BTU)',
+  price: 2000,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
-  name: 'Pentair MasterTemp 400',
+  name: 'Pentair MasterTemp 250 (250K BTU)',
+  price: 3200,
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
+}, {
+  name: 'Pentair MasterTemp 400 (400K BTU)',
   price: 4200,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
-  name: 'Raypak 406A Natural Gas',
-  price: 3800,
+  name: 'Pentair UltraTemp 90 Heat Pump',
+  price: 4500,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
-  name: 'Jandy JXi 400N',
-  price: 5200,
+  name: 'Pentair UltraTemp 110 Heat Pump',
+  price: 5500,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
-  name: 'Heat/Cool Pump 127K BTU 230V Pentair Ultratemp',
-  price: 8000,
+  name: 'Pentair UltraTemp 140 Heat Pump',
+  price: 6500,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }];
 

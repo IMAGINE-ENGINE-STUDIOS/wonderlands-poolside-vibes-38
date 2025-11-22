@@ -32,8 +32,8 @@ const getCategoryColor = (category: string) => {
 const spaHeaters = [
   { name: 'Spa Heat Pump - Compact', price: 3500, description: 'Compact heat pump designed for spas' },
   { name: 'Spa Heat Pump - Premium', price: 4500, description: 'Premium spa heat pump with digital controls' },
-  { name: 'Spa Gas Heater', price: 2800, description: 'Efficient gas heater for quick spa heating' },
-  { name: 'Solar Spa Heater', price: 2200, description: 'Eco-friendly solar heating for spas' }
+  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 2000, description: 'Compact high-efficiency gas heater' },
+  { name: 'Pentair UltraTemp 90 Heat Pump', price: 4500, description: 'Energy-efficient heat pump for spas' }
 ];
 
 // Paver options
