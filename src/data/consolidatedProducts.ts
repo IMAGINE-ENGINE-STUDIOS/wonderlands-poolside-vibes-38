@@ -22,14 +22,16 @@ export interface Product {
   stripePriceId?: string; // For Stripe integration
 }
 
-// Pool Finishes - Mini Pebble Natural Stone Collection
+// Pool Finishes - Mini Pebble Natural Stone Collection (CONCRETE POOLS ONLY)
 export const poolFinishes: Product[] = [
+  // Mini Pebble Natural Stone - For Concrete Pools (Wonderlands World Collection)
   {
     id: "marina-blue-pebble",
     name: "Marina Blue",
     category: "finish",
     subcategory: "Deep & Dramatic",
     collection: "Mini Pebble Natural Stone",
+    type: "Concrete Pool",
     price: 3500,
     image: "/src/assets/finishes/marina-blue.webp",
     description: "Vibrant blue mini pebbles creating a stunning Mediterranean pool aesthetic with natural stone beauty",
@@ -44,6 +46,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Rich & Vibrant",
     collection: "Mini Pebble Natural Stone",
+    type: "Concrete Pool",
     price: 3500,
     image: "/src/assets/finishes/kingfisher.webp",
     description: "Multi-colored pebble blend with blue, gray, and golden tones for a natural river rock appearance",
@@ -57,6 +60,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Rich & Vibrant",
     collection: "Mini Pebble Natural Stone",
+    type: "Concrete Pool",
     price: 3500,
     image: "/src/assets/finishes/tropics-blue.webp",
     description: "Tropical blue pebble blend with natural stone variations creating an exotic paradise feel",
@@ -70,6 +74,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Deep & Dramatic",
     collection: "Mini Pebble Natural Stone",
+    type: "Concrete Pool",
     price: 3500,
     image: "/src/assets/finishes/midnight-blue.webp",
     description: "Deep blue and gray pebble mix creating dramatic depth and sophisticated natural elegance",
@@ -83,6 +88,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Deep & Dramatic",
     collection: "Mini Pebble Natural Stone",
+    type: "Concrete Pool",
     price: 3500,
     image: "/src/assets/finishes/yosemite.webp",
     description: "Rich blue and silver pebble blend inspired by mountain lakes with brilliant natural sparkle",
@@ -96,6 +102,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Light & Tranquil",
     collection: "Mini Pebble Natural Stone",
+    type: "Concrete Pool",
     price: 3500,
     image: "/src/assets/finishes/aqua-white.webp",
     description: "Light aqua and white pebble mix for a bright, refreshing coastal lagoon appearance",
@@ -109,6 +116,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Light & Tranquil",
     collection: "Mini Pebble Natural Stone",
+    type: "Concrete Pool",
     price: 3500,
     image: "/src/assets/finishes/twizel.webp",
     description: "Soft blue and cream pebble blend creating a serene, natural stone sanctuary",
@@ -122,11 +130,99 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Rich & Vibrant",
     collection: "Mini Pebble Natural Stone",
+    type: "Concrete Pool",
     price: 3500,
     image: "/src/assets/finishes/tahoe-blue.webp",
     description: "Natural pebble mix with gray and blue tones reminiscent of Lake Tahoe's pristine waters",
     features: ["Lake-Inspired", "Natural Gray & Blue", "Premium Stone", "25-Year Warranty"],
     warranty: "25-Year Warranty",
+    isActive: true
+  },
+  
+  // Standard Finishes - For Fiberglass Pools (Latham & Glimmerglass)
+  {
+    id: "sapphire-blue",
+    name: "Sapphire Blue",
+    category: "finish",
+    subcategory: "Classic",
+    collection: "Standard Fiberglass",
+    type: "Fiber Pool",
+    price: 3500,
+    image: "/lovable-uploads/sapphire-blue-finish.jpg",
+    description: "Classic deep blue finish for timeless elegance",
+    features: ["UV Resistant", "Smooth Surface", "Easy Maintenance", "15-Year Warranty"],
+    warranty: "15-Year Warranty",
+    isActive: true,
+    isPopular: true
+  },
+  {
+    id: "ocean-blue",
+    name: "Ocean Blue",
+    category: "finish",
+    subcategory: "Classic",
+    collection: "Standard Fiberglass",
+    type: "Fiber Pool",
+    price: 3500,
+    image: "/lovable-uploads/ocean-blue-finish.jpg",
+    description: "Vibrant ocean-inspired blue finish",
+    features: ["UV Resistant", "Color Stability", "Durable", "15-Year Warranty"],
+    warranty: "15-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "night-sky",
+    name: "Night Sky",
+    category: "finish",
+    subcategory: "Classic",
+    collection: "Standard Fiberglass",
+    type: "Fiber Pool",
+    price: 3500,
+    image: "/lovable-uploads/night-sky-finish.jpg",
+    description: "Dark blue finish with subtle shimmer",
+    features: ["Deep Color", "Shimmer Effect", "Premium Look", "15-Year Warranty"],
+    warranty: "15-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "shale-gray",
+    name: "Shale Gray",
+    category: "finish",
+    subcategory: "Modern",
+    collection: "Standard Fiberglass",
+    type: "Fiber Pool",
+    price: 3500,
+    image: "/lovable-uploads/shale-gray-finish.jpg",
+    description: "Contemporary gray finish for modern pools",
+    features: ["Neutral Tone", "Modern Aesthetic", "Heat Reflective", "15-Year Warranty"],
+    warranty: "15-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "coastal-bronze",
+    name: "Coastal Bronze",
+    category: "finish",
+    subcategory: "Warm Tones",
+    collection: "Standard Fiberglass",
+    type: "Fiber Pool",
+    price: 3500,
+    image: "/lovable-uploads/coastal-bronze-finish.jpg",
+    description: "Warm bronze finish with coastal charm",
+    features: ["Warm Aesthetic", "Natural Look", "Fade Resistant", "15-Year Warranty"],
+    warranty: "15-Year Warranty",
+    isActive: true
+  },
+  {
+    id: "pearl-white",
+    name: "Pearl White",
+    category: "finish",
+    subcategory: "Light & Bright",
+    collection: "Standard Fiberglass",
+    type: "Fiber Pool",
+    price: 3500,
+    image: "/lovable-uploads/pearl-white-finish.jpg",
+    description: "Elegant white finish with pearl shimmer",
+    features: ["Bright Appearance", "Pearl Shimmer", "Light Reflective", "15-Year Warranty"],
+    warranty: "15-Year Warranty",
     isActive: true
   }
 ];
