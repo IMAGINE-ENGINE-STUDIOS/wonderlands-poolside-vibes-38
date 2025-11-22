@@ -517,7 +517,7 @@ export function UnifiedPoolVisualizer({
         </div>
 
         {/* Full Scene Control Panel - Inside 3D Viewer */}
-        <div className={`absolute top-4 right-4 bg-background/95 backdrop-blur-sm rounded-lg shadow-2xl z-20 transition-all duration-300 ${
+        <div className={`absolute top-4 right-16 bg-background/95 backdrop-blur-sm rounded-lg shadow-2xl z-20 transition-all duration-300 ${
           controllerCollapsed ? 'w-auto' : 'w-80 max-h-[90vh] overflow-y-auto'
         }`}>
           {/* Collapse/Expand Toggle */}
@@ -533,10 +533,10 @@ export function UnifiedPoolVisualizer({
             <>
               <button
                 onClick={() => setControllerCollapsed(true)}
-                className="absolute -left-3 top-4 bg-background rounded-full p-1 shadow-lg hover:bg-muted transition-colors z-10"
+                className="absolute -left-10 top-4 bg-primary text-primary-foreground rounded-full p-2 shadow-xl hover:bg-primary/90 transition-all z-30 border-2 border-background"
                 title="Collapse Controls"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-5 h-5" />
               </button>
               
               {/* Scene3DControlPanel integrated inside */}
