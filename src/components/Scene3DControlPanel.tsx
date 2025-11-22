@@ -41,6 +41,9 @@ interface Scene3DControlPanelProps {
   onSunPositionChange: (position: [number, number, number]) => void;
   fenceHeight: number;
   onFenceHeightChange: (height: number) => void;
+  deckWidth: number;
+  onDeckWidthChange: (width: number) => void;
+  poolCategory?: string;
   // Stairs props
   stairs: PoolStair[];
   poolDepth: number;
@@ -74,6 +77,9 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   onSunPositionChange,
   fenceHeight,
   onFenceHeightChange,
+  deckWidth,
+  onDeckWidthChange,
+  poolCategory = 'deluxe',
   stairs,
   poolDepth,
   onStairsChange,
@@ -96,6 +102,22 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   const [copingHeight, setCopingHeight] = useState(2 / 12); // Default 2 inches in feet
   const [deckHeight, setDeckHeight] = useState(2 / 12); // Default 2 inches in feet
   const [copingWidth, setCopingWidth] = useState(1.1); // Default 1.1 foot width (minimum)
+
+  // Filter finishes based on pool category
+  const getFilteredFinishes = () => {
+    const categoryFinishesMap: Record<string, string[]> = {
+      'premium': ['sapphire-blue-g3', 'aquamarine-g3', 'crystal-blue-g3', 'midnight-blue-g3', 'caribbean-blue-g3', 'diamond-sand-g3'],
+      'deluxe': ['sapphire-blue-g3', 'aquamarine-g3', 'crystal-blue-g3', 'midnight-blue-g3'],
+      'standard': ['sapphire-blue-g3', 'aquamarine-g3'],
+      'compact': ['sapphire-blue-g3']
+    };
+
+    const allowedFinishes = categoryFinishesMap[poolCategory] || categoryFinishesMap['deluxe'];
+    
+    return textureLibrary.finishes.filter(finish => 
+      allowedFinishes.some(allowed => finish.url.includes(allowed))
+    );
+  };
 
   // Get current texture config based on selected category
   const getCurrentTexture = (): TextureConfig => {
@@ -520,7 +542,12 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
 
               {/* Texture Grid */}
               <div className="grid grid-cols-3 gap-2">
-                {textureLibrary[selectedTextureCategory === 'waterline' ? 'finishes' : selectedTextureCategory]?.map((texture) => (
+                {(selectedTextureCategory === 'finishes' 
+                  ? getFilteredFinishes()
+                  : selectedTextureCategory === 'waterline' 
+                    ? getFilteredFinishes()
+                    : textureLibrary[selectedTextureCategory]
+                )?.map((texture) => (
                   <button
                     key={texture.url}
                     onClick={() => {
@@ -666,8 +693,20 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                 />
               </div>
 
-              {/* Deck Height Control */}
+              {/* Deck Controls */}
               <h4 className="font-medium text-sm mt-3 mb-2">Deck</h4>
+              <div className="space-y-2">
+                <Label className="text-xs">Width (from coping edge): {deckWidth.toFixed(1)} ft</Label>
+                <Slider
+                  value={[deckWidth]}
+                  onValueChange={(value) => onDeckWidthChange(value[0])}
+                  min={0}
+                  max={20}
+                  step={0.5}
+                  className="w-full"
+                />
+                <p className="text-xs text-muted-foreground">Default: 3 ft | No limit</p>
+              </div>
               <div className="space-y-2">
                 <Label className="text-xs">Height: {(deckHeight * 12).toFixed(1)} inches</Label>
                 <Slider

@@ -101,6 +101,7 @@ export function UnifiedPoolVisualizer({
   const [assets3D, setAssets3D] = useState<any[]>([]);
   const [showGrid, setShowGrid] = useState(true);
   const [showRulers, setShowRulers] = useState(false);
+  const [deckWidth, setDeckWidth] = useState(3); // Default 3 feet
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
   const poolGroupRef = useRef<THREE.Group>(null);
@@ -790,6 +791,7 @@ export function UnifiedPoolVisualizer({
                 copingHeight={scene.deck.copingHeight || 2 / 12}
                 deckHeight={scene.deck.deckHeight || 2 / 12}
                 copingWidth={scene.deck.copingWidth || 1.0}
+                deckWidth={deckWidth}
                 stairs={scene.stairs}
                 onStairsChange={handleStairsChange}
                 isStairsPlacementMode={false}
@@ -860,6 +862,7 @@ export function UnifiedPoolVisualizer({
                 copingHeight={scene.deck.copingHeight || 2 / 12}
                 deckHeight={scene.deck.deckHeight || 2 / 12}
                 copingWidth={scene.deck.copingWidth || 1.0}
+                deckWidth={deckWidth}
                 stairs={[]}
                 onStairsChange={handleStairsChange}
                 isStairsPlacementMode={isStairsPlacementMode}
@@ -975,6 +978,8 @@ export function UnifiedPoolVisualizer({
         onSunPositionChange={setSunPosition}
         fenceHeight={fenceHeight}
         onFenceHeightChange={setFenceHeight}
+        deckWidth={deckWidth}
+        onDeckWidthChange={setDeckWidth}
         stairs={scene.stairs}
         poolDepth={poolDepth}
         onStairsChange={handleStairsChange}
