@@ -7,6 +7,7 @@ export interface Product {
   category: 'pool' | 'finish' | 'liner' | 'tile' | 'ledge' | 'spa' | 'cover' | 'heater' | 'addon';
   subcategory?: string;
   collection?: string;
+  poolType?: 'fiberglass' | 'concrete' | 'both'; // Which pool type this product is compatible with
   price: number;
   originalPrice?: number; // For discount calculations
   image: string;
@@ -24,13 +25,14 @@ export interface Product {
 
 // Pool Finishes - Organized by Collection
 export const poolFinishes: Product[] = [
-  // Crystite Crystal Collection
+  // Crystite Crystal Collection - FIBERGLASS POOLS ONLY
   {
     id: "sapphire-blue-crystal",
     name: "Sapphire Blue",
     category: "finish",
     subcategory: "Deep & Dramatic",
     collection: "Crystite Crystal",
+    poolType: "fiberglass",
     price: 3500,
     image: "/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png",
     description: "A stunning deep blue with crystalline sparkle that creates a luxurious Caribbean feel",
@@ -45,6 +47,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Deep & Dramatic",
     collection: "Crystite Crystal",
+    poolType: "fiberglass",
     price: 3500,
     image: "/lovable-uploads/2103693f-cf54-423d-99c7-68d6f3951388.png",
     description: "Deep ocean blue with crystal aggregates for a premium tropical look",
@@ -58,6 +61,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Deep & Dramatic",
     collection: "Crystite Crystal",
+    poolType: "fiberglass",
     price: 3500,
     image: "/lovable-uploads/90fe0136-31f1-4fa3-b816-56a7a74484fa.png",
     description: "Dark blue with brilliant crystal flecks that shimmer like stars in the night sky",
@@ -71,6 +75,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Light & Tranquil",
     collection: "Crystite Crystal",
+    poolType: "fiberglass",
     price: 3500,
     image: "/lovable-uploads/15032ed4-f745-4152-ae9b-c26fdb52f68c.png",
     description: "Sophisticated gray with crystal accents for a modern, refined appearance",
@@ -84,6 +89,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Rich & Vibrant",
     collection: "Crystite Crystal",
+    poolType: "fiberglass",
     price: 3500,
     image: "/lovable-uploads/b1abd5c3-af2e-46fa-82be-5db27d20a388.png",
     description: "Warm bronze tones with crystal sparkle reminiscent of coastal sunsets",
@@ -97,6 +103,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Light & Tranquil",
     collection: "Crystite Crystal",
+    poolType: "fiberglass",
     price: 3500,
     image: "/lovable-uploads/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.png",
     description: "Elegant white with pearl-like crystal finish for timeless sophistication",
@@ -105,13 +112,14 @@ export const poolFinishes: Product[] = [
     isActive: true
   },
 
-  // Wonderlands World Collection - Exclusive Premium Finishes
+  // Wonderlands World Collection - CONCRETE POOLS ONLY (Mini Pebbles)
   {
     id: "tahoe-blue-wonderlands",
     name: "Tahoe Blue",
     category: "finish",
     subcategory: "Deep & Dramatic",
     collection: "Wonderlands World",
+    poolType: "concrete",
     price: 4200,
     image: "/images/finishes/wonderlands-tahoe-blue.webp",
     description: "Rich blend of blue, beige, and black aggregates inspired by Lake Tahoe's pristine waters",
@@ -126,6 +134,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Deep & Dramatic",
     collection: "Wonderlands World",
+    poolType: "concrete",
     price: 4200,
     image: "/images/finishes/wonderlands-tropics-blue.webp",
     description: "Vibrant tropical blue with white and navy aggregates for an exotic paradise feel",
@@ -140,6 +149,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Deep & Dramatic",
     collection: "Wonderlands World",
+    poolType: "concrete",
     price: 4200,
     image: "/images/finishes/wonderlands-yosemite.webp",
     description: "Bold blue with dramatic navy and white accents inspired by Yosemite's granite formations",
@@ -153,6 +163,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Light & Tranquil",
     collection: "Wonderlands World",
+    poolType: "concrete",
     price: 4200,
     image: "/images/finishes/wonderlands-aqua-white.webp",
     description: "Serene aqua blue with white aggregates creating a tranquil, spa-like atmosphere",
@@ -166,6 +177,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Deep & Dramatic",
     collection: "Wonderlands World",
+    poolType: "concrete",
     price: 4200,
     image: "/images/finishes/wonderlands-marina-blue.webp",
     description: "Brilliant azure blue with crystalline white aggregates reminiscent of luxurious marinas",
@@ -179,6 +191,7 @@ export const poolFinishes: Product[] = [
     category: "finish",
     subcategory: "Deep & Dramatic",
     collection: "Wonderlands World",
+    poolType: "concrete",
     price: 4200,
     image: "/images/finishes/wonderlands-midnight-blue.webp",
     description: "Sophisticated blend of blue, beige, and black creating a mysterious midnight water effect",
@@ -507,6 +520,14 @@ export const getProductsBySubcategory = (category: Product['category'], subcateg
   return allProducts.filter(product => 
     product.category === category && 
     product.subcategory === subcategory && 
+    product.isActive
+  );
+};
+
+export const getProductsByPoolType = (category: Product['category'], poolType: 'fiberglass' | 'concrete'): Product[] => {
+  return allProducts.filter(product => 
+    product.category === category && 
+    (product.poolType === poolType || product.poolType === 'both') &&
     product.isActive
   );
 };
