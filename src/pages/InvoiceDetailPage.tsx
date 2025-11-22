@@ -156,6 +156,11 @@ const InvoiceDetailPage = () => {
           customer_email: editedInvoice.customer_email,
           customer_phone: editedInvoice.customer_phone,
           customer_address: editedInvoice.customer_address,
+          subtotal: editedInvoice.subtotal,
+          tax_rate: editedInvoice.tax_rate,
+          tax_amount: editedInvoice.tax_amount,
+          discount_amount: editedInvoice.discount_amount,
+          total_amount: editedInvoice.total_amount,
           notes: editedInvoice.notes,
         })
         .eq("id", invoiceId);
@@ -261,9 +266,9 @@ const InvoiceDetailPage = () => {
             <div className="flex justify-between items-start">
               <div>
                 <img
-                  src="/lovable-uploads/wonderlands-logo.png"
+                  src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png"
                   alt="Wonderlands Logo"
-                  className="h-16 mb-4"
+                  className="h-16 mb-4 object-contain"
                 />
                 <h1 className="text-4xl font-bold mb-2">INVOICE</h1>
                 {editMode ? (
@@ -439,31 +444,103 @@ const InvoiceDetailPage = () => {
             {/* Totals */}
             <div className="flex justify-end mb-8">
               <div className="w-80">
-                <div className="flex justify-between py-2 border-b">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-semibold">${invoice.subtotal.toLocaleString()}</span>
-                </div>
-                {invoice.tax_amount > 0 && (
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-muted-foreground">Tax ({invoice.tax_rate}%)</span>
-                    <span className="font-semibold">${invoice.tax_amount.toLocaleString()}</span>
-                  </div>
+                {editMode ? (
+                  <>
+                    <div className="flex justify-between py-2 border-b items-center">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <Input
+                        type="number"
+                        value={editedInvoice?.subtotal || 0}
+                        onChange={(e) =>
+                          setEditedInvoice((prev) =>
+                            prev ? { ...prev, subtotal: parseFloat(e.target.value) || 0 } : null
+                          )
+                        }
+                        className="w-32 text-right"
+                      />
+                    </div>
+                    <div className="flex justify-between py-2 border-b items-center bg-green-50">
+                      <span className="text-green-700 font-semibold">Discount</span>
+                      <Input
+                        type="number"
+                        value={editedInvoice?.discount_amount || 0}
+                        onChange={(e) =>
+                          setEditedInvoice((prev) =>
+                            prev ? { ...prev, discount_amount: parseFloat(e.target.value) || 0 } : null
+                          )
+                        }
+                        className="w-32 text-right"
+                      />
+                    </div>
+                    <div className="flex justify-between py-2 border-b items-center">
+                      <span className="text-muted-foreground">Tax Rate (%)</span>
+                      <Input
+                        type="number"
+                        value={editedInvoice?.tax_rate || 0}
+                        onChange={(e) =>
+                          setEditedInvoice((prev) =>
+                            prev ? { ...prev, tax_rate: parseFloat(e.target.value) || 0 } : null
+                          )
+                        }
+                        className="w-32 text-right"
+                      />
+                    </div>
+                    <div className="flex justify-between py-2 border-b items-center">
+                      <span className="text-muted-foreground">Tax Amount</span>
+                      <Input
+                        type="number"
+                        value={editedInvoice?.tax_amount || 0}
+                        onChange={(e) =>
+                          setEditedInvoice((prev) =>
+                            prev ? { ...prev, tax_amount: parseFloat(e.target.value) || 0 } : null
+                          )
+                        }
+                        className="w-32 text-right"
+                      />
+                    </div>
+                    <div className="flex justify-between py-3 bg-gradient-to-r from-primary/10 to-coral/10 px-4 rounded-lg mt-2 items-center">
+                      <span className="text-lg font-bold">Total Due</span>
+                      <Input
+                        type="number"
+                        value={editedInvoice?.total_amount || 0}
+                        onChange={(e) =>
+                          setEditedInvoice((prev) =>
+                            prev ? { ...prev, total_amount: parseFloat(e.target.value) || 0 } : null
+                          )
+                        }
+                        className="w-40 text-right text-xl font-bold"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex justify-between py-2 border-b">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="font-semibold">${invoice.subtotal.toLocaleString()}</span>
+                    </div>
+                    {invoice.subtotal > invoice.total_amount && (
+                      <div className="flex justify-between py-2 border-b bg-green-50">
+                        <span className="text-green-700 font-semibold">
+                          Discount ({(((invoice.subtotal - invoice.total_amount) / invoice.subtotal) * 100).toFixed(1)}%
+                          OFF)
+                        </span>
+                        <span className="font-bold text-green-600">
+                          -${(invoice.subtotal - invoice.total_amount).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                    {invoice.tax_amount > 0 && (
+                      <div className="flex justify-between py-2 border-b">
+                        <span className="text-muted-foreground">Tax ({invoice.tax_rate}%)</span>
+                        <span className="font-semibold">${invoice.tax_amount.toLocaleString()}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between py-3 bg-gradient-to-r from-primary/10 to-coral/10 px-4 rounded-lg mt-2">
+                      <span className="text-lg font-bold">Total Due</span>
+                      <span className="text-2xl font-bold text-primary">${invoice.total_amount.toLocaleString()}</span>
+                    </div>
+                  </>
                 )}
-                {invoice.subtotal > invoice.total_amount && (
-                  <div className="flex justify-between py-2 border-b bg-green-50">
-                    <span className="text-green-700 font-semibold">
-                      Discount ({(((invoice.subtotal - invoice.total_amount) / invoice.subtotal) * 100).toFixed(1)}%
-                      OFF)
-                    </span>
-                    <span className="font-bold text-green-600">
-                      -${(invoice.subtotal - invoice.total_amount).toLocaleString()}
-                    </span>
-                  </div>
-                )}
-                <div className="flex justify-between py-3 bg-gradient-to-r from-primary/10 to-coral/10 px-4 rounded-lg mt-2">
-                  <span className="text-lg font-bold">Total Due</span>
-                  <span className="text-2xl font-bold text-primary">${invoice.total_amount.toLocaleString()}</span>
-                </div>
               </div>
             </div>
 
