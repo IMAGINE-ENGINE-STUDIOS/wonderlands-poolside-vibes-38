@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { X, Paintbrush, Move, Layers } from 'lucide-react';
+import { X, Paintbrush, Move, Layers, Edit3 } from 'lucide-react';
 import { Scene3D, TextureConfig } from './scene3d/types';
 import { Separator } from './ui/separator';
 import { Checkbox } from './ui/checkbox';
@@ -18,8 +18,11 @@ interface ComponentControlPanelProps {
     coping: TextureConfig[];
   };
   poolCategory?: string;
+  poolModel?: string;
   deckWidth: number;
   onDeckWidthChange: (width: number) => void;
+  enablePoolSplineEdit?: boolean;
+  onPoolSplineEditToggle?: () => void;
 }
 
 export function ComponentControlPanel({
@@ -29,24 +32,53 @@ export function ComponentControlPanel({
   onSceneChange,
   textureLibrary,
   poolCategory = 'deluxe',
+  poolModel = '',
   deckWidth,
-  onDeckWidthChange
+  onDeckWidthChange,
+  enablePoolSplineEdit = false,
+  onPoolSplineEditToggle
 }: ComponentControlPanelProps) {
   if (!selectedComponent) return null;
 
-  // Filter finishes based on pool category
+  // Filter finishes based on pool type and brand
   const getFilteredFinishes = () => {
-    const categoryMap: Record<string, string[]> = {
-      'premium': ['Aqua Blue', 'Caribbean Blue', 'Ocean Blue', 'Midnight Blue', 'Crystal Blue', 'Pacific Blue', 'Turquoise', 'Sapphire Blue'],
-      'deluxe': ['Aqua Blue', 'Caribbean Blue', 'Ocean Blue', 'Midnight Blue', 'Crystal Blue', 'Sapphire Blue'],
-      'standard': ['Aqua Blue', 'Ocean Blue', 'Crystal Blue'],
-      'compact': ['Aqua Blue', 'Ocean Blue']
-    };
-
-    const allowedFinishes = categoryMap[poolCategory] || categoryMap['deluxe'];
-    return textureLibrary.finishes.filter(f => 
-      allowedFinishes.some(allowed => f.name.includes(allowed))
-    );
+    // Wonderlands World concrete pools (Maxima, Madre Perla, Pacific Ridge, Winderview)
+    const wonderlandsWorldPools = ['Maxima', 'Madre Perla', 'Pacific Ridge', 'Winderview'];
+    
+    // Latham fiberglass pools
+    const lathamPools = ['Astoria', 'Milan', 'Jamaica', 'Aruba', 'St. Croix', 'Rio', 'Apollo 12', 'Apollo 14', 
+                         'Enchantment 9\'17"', 'Enchantment 9\'21"', 'Enchantment 9\'24"', 'Cancún Deluxe'];
+    
+    const isWonderlandsWorld = wonderlandsWorldPools.some(p => poolModel.includes(p));
+    const isLatham = lathamPools.some(p => poolModel.includes(p));
+    
+    return textureLibrary.finishes.filter(finish => {
+      if (isWonderlandsWorld) {
+        // Wonderlands World concrete pools: Only Mini Pebbles collection (no Crystite)
+        return finish.name.includes('Mini Pebbles') || 
+               finish.name.includes('Tahoe') || 
+               finish.name.includes('Tropics') ||
+               finish.name.includes('Pacific') ||
+               finish.name.includes('Caribbean Sands') ||
+               finish.name.includes('Moonlight') ||
+               finish.name.includes('Onyx');
+      } else if (isLatham) {
+        // Latham fiberglass pools: Only Crystite Crystal collection
+        return finish.name.includes('Crystal') || 
+               finish.name.includes('Sapphire') ||
+               finish.name.includes('Ocean') ||
+               finish.name.includes('Night Sky') ||
+               finish.name.includes('Shale Gray') ||
+               finish.name.includes('Coastal Bronze') ||
+               finish.name.includes('Pearl White');
+      } else {
+        // Other pools: Show all non-exclusive finishes (no Crystite, no Mini Pebbles)
+        return !finish.name.includes('Crystal') && 
+               !finish.name.includes('Mini Pebbles') &&
+               !finish.name.includes('Tahoe') &&
+               !finish.name.includes('Tropics');
+      }
+    });
   };
 
   const handleTextureChange = (texture: TextureConfig) => {
@@ -302,6 +334,47 @@ export function ComponentControlPanel({
         {selectedComponent === 'pool' && (
           <>
             <Separator />
+            
+            {/* Pool Shape Editing */}
+            {onPoolSplineEditToggle && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Edit3 className="h-4 w-4 text-primary" />
+                  <Label className="text-sm font-semibold">Pool Shape Editor</Label>
+                </div>
+                
+                <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
+                  <div className="flex-1">
+                    <Label htmlFor="pool-spline-edit" className="text-xs font-medium">Edit Pool Walls</Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {enablePoolSplineEdit ? 'Drag points to reshape pool outline' : 'Enable to edit pool shape with spline editor'}
+                    </p>
+                  </div>
+                  <Checkbox
+                    id="pool-spline-edit"
+                    checked={enablePoolSplineEdit}
+                    onCheckedChange={onPoolSplineEditToggle}
+                  />
+                </div>
+                
+                {enablePoolSplineEdit && (
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+                    <p className="text-xs text-foreground">
+                      <strong>Spline Editor Active:</strong>
+                    </p>
+                    <ul className="text-xs text-muted-foreground mt-1 space-y-1">
+                      <li>• Drag control points to reshape</li>
+                      <li>• Click + to add new points</li>
+                      <li>• Click X to remove points</li>
+                      <li>• Change point types for curves</li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <Separator />
+            
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
               <p className="text-xs text-muted-foreground">
                 <strong className="text-foreground">Pool Category:</strong> {poolCategory.charAt(0).toUpperCase() + poolCategory.slice(1)}

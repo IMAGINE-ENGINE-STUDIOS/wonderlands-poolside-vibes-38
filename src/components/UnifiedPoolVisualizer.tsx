@@ -599,8 +599,11 @@ export function UnifiedPoolVisualizer({
            onSceneChange={setScene}
            textureLibrary={textureLibrary}
            poolCategory={new URLSearchParams(window.location.search).get('category') || 'deluxe'}
+           poolModel={new URLSearchParams(window.location.search).get('model') || ''}
            deckWidth={deckWidth}
            onDeckWidthChange={setDeckWidth}
+           enablePoolSplineEdit={enablePoolSplineEdit}
+           onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
          />
 
         <Scene3DErrorBoundary scene={scene} onRecover={handleSceneRecover}>
