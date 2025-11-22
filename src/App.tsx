@@ -1,5 +1,4 @@
-import * as React from "react";
-const { Suspense, lazy } = React;
+import React, { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ShoppingCartProvider } from "@/components/ShoppingCartProvider";
