@@ -92,8 +92,8 @@ interface SaunaExtras {
 const poolHeaters = [
   { name: "Heat Pump - Standard", price: 3500, image: "/lovable-uploads/pool-heater.png" },
   { name: "Heat Pump - Premium", price: 4500, image: "/lovable-uploads/pool-heater.png" },
-  { name: "Pentair MasterTemp 125 (125K BTU)", price: 2000, image: "/lovable-uploads/pool-heater.png" },
-  { name: "Pentair UltraTemp 90 Heat Pump", price: 4500, image: "/lovable-uploads/pool-heater.png" }
+  { name: "Pentair MasterTemp 125 (125K BTU)", price: 2300, image: "/lovable-uploads/pool-heater.png" },
+  { name: "Pentair UltraTemp 90 Heat Pump", price: 5175, image: "/lovable-uploads/pool-heater.png" }
 ];
 
 const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {

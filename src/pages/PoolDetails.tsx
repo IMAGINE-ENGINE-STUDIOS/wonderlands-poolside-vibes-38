@@ -69,42 +69,37 @@ interface PoolExtras {
   concreteConstruction: boolean;
 }
 
-// Pool heater options
+// Pool heater options - Pentair only with 15% increase
 const poolHeaters = [{
-  name: 'Heat Pump - Eco Series',
-  price: 4500,
-  image: azureBlueFinish,
-  description: 'Energy-efficient heat pump, ideal for mild climates'
+  name: 'Pentair MasterTemp 125 (125K BTU)',
+  price: 2300,
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  description: 'Compact high-efficiency gas heater for pools up to 15,000 gallons'
 }, {
-  name: 'Heat Pump - Pro Series',
-  price: 5500,
-  image: oceanBlueFinish,
-  description: 'Professional grade heat pump with advanced controls'
+  name: 'Pentair MasterTemp 250 (250K BTU)',
+  price: 3680,
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  description: 'Mid-size high-performance gas heater for medium pools'
 }, {
-  name: 'Heat/Cool Pump 127K BTU 230V Pentair Ultratemp',
-  price: 8000,
-  image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-  description: 'High-capacity heat/cool pump for year-round comfort'
+  name: 'Pentair MasterTemp 400 (400K BTU)',
+  price: 4830,
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  description: 'High-capacity gas heater for large pools and quick heating'
 }, {
-  name: 'Gas Heater - Standard',
-  price: 3200,
-  image: sapphireBlueFinish,
-  description: 'Traditional gas heater for quick heating'
+  name: 'Pentair UltraTemp 90 Heat Pump',
+  price: 5175,
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  description: 'Energy-efficient heat pump for pools up to 20,000 gallons'
 }, {
-  name: 'Gas Heater - High Efficiency',
-  price: 4200,
-  image: nightSkyFinish,
-  description: 'High-efficiency gas heater with digital controls'
+  name: 'Pentair UltraTemp 110 Heat Pump',
+  price: 6325,
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  description: 'High-efficiency heat pump for medium to large pools'
 }, {
-  name: 'Solar Heater - Basic',
-  price: 2800,
-  image: lagoonBlueFinish,
-  description: 'Eco-friendly solar heating system'
-}, {
-  name: 'Solar Heater - Premium',
-  price: 3800,
-  image: coastalBronzeFinish,
-  description: 'Advanced solar system with backup heating'
+  name: 'Pentair UltraTemp 140 Heat Pump',
+  price: 7475,
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  description: 'Premium heat pump for large pools with maximum efficiency'
 }];
 
 // Convert pool finishes data to finish options format
