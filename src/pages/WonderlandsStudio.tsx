@@ -1488,7 +1488,21 @@ const WonderlandsStudio = () => {
                             }}
                           >
                             <CarouselContent className="-ml-1">
-                              {finishOptions.map((finish, idx) => (
+                              {finishOptions
+                                .filter((finish) => {
+                                  // Wonderlands World concrete pools (Madre Perla, Pacific Ridge, Winderview, Maxima)
+                                  const concretePoolModels = ["Madre Perla", "Pacific Ridge", "Winderview", "Maxima"];
+                                  const isConcretePool = concretePoolModels.includes(selectedProduct?.model || "");
+                                  
+                                  if (isConcretePool) {
+                                    // Only show Mini Pebbles collection for concrete pools
+                                    return finish.collection === "Mini Pebbles";
+                                  } else {
+                                    // Only show Crystite Crystal collection for fiberglass pools (Latham)
+                                    return finish.collection === "Crystite Crystal";
+                                  }
+                                })
+                                .map((finish, idx) => (
                                 <CarouselItem
                                   key={`pool-${finish.name}-${idx}`}
                                   className="pl-1 basis-1/2"
