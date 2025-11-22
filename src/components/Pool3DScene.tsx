@@ -81,6 +81,7 @@ export interface Pool3DSceneProps {
   copingHeight?: number;
   deckHeight?: number;
   copingWidth?: number;
+  deckWidth?: number;
   stairs?: Array<{
     id: string;
     position: [number, number, number];
@@ -504,8 +505,9 @@ const DeckCopingMesh: React.FC<{
   copingHeight?: number;
   copingWidth?: number;
   deckHeight?: number;
+  deckWidth?: number;
   onSelectCategory?: (cat: string | null) => void;
-}> = ({ 
+}> = ({
   poolPoints,
   hardscapePoints,
   copingTextureUrl, 
@@ -518,6 +520,7 @@ const DeckCopingMesh: React.FC<{
   copingHeight = 2 / 12,
   copingWidth = 1.0,
   deckHeight = 2 / 12,
+  deckWidth = 3, // Default 3 feet
   onSelectCategory
 }) => {
   const [copingTexture, setCopingTexture] = useState<THREE.Texture | null>(null);
@@ -675,8 +678,8 @@ const DeckCopingMesh: React.FC<{
     try {
       const { width, length } = poolBounds;
       
-      // Deck extends 3 feet outward from coping
-      const deckExtension = 0.9144;
+      // Deck extends by deckWidth (default 3 feet) outward from coping
+      const deckExtension = deckWidth * 0.3048; // Convert feet to meters
       
       // Coping outer edge (this is where deck starts)
       const copingOuterHalfWidth = (width / 2) + copingWidth;
@@ -1083,6 +1086,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   copingHeight = 2 / 12,
   deckHeight = 2 / 12,
   copingWidth = 1.1,
+  deckWidth = 3,
   stairs = [],
   onStairsChange,
   isStairsPlacementMode = false,
@@ -1244,6 +1248,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           copingHeight={copingHeight}
           copingWidth={copingWidth}
           deckHeight={deckHeight}
+          deckWidth={deckWidth}
           onSelectCategory={onSelectCategory}
         />
       )}
