@@ -1,9 +1,12 @@
 // Types for the unified 3D scene system
 
+export type PointType = 'linear' | 'curve' | 'smooth' | 'corner';
+
 export interface Point {
   x: number;
   y: number;
   id: string;
+  type?: PointType;
 }
 
 export interface DepthPoint {
