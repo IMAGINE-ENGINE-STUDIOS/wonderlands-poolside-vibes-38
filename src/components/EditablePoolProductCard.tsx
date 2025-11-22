@@ -21,7 +21,7 @@ const getPoolPrice = (pool: Pool) => {
 // Import the same data sources as PoolProductCard
 import { spas } from "./PoolCatalog";
 import { tanningLedges } from "@/data/poolData";
-import { getProductsByCategory } from '@/data/consolidatedProducts';
+import { getProductsByCompatiblePool } from '@/data/consolidatedProducts';
 import { poolLiners, poolTiles } from '@/data/poolData';
 
 // Import finish images
@@ -105,19 +105,23 @@ const getExtraPrice = (extra: string) => {
   }
 };
 
-// Convert pool finishes data to finish options format
-const finishOptions = getProductsByCategory('finish').map(finish => ({
-  name: finish.name,
-  color: '#4169E1',
-  image: finish.image,
-  // Force Crystite Crystals finishes to $4,500 in product card
-  price: (finish.collection && /crystite/i.test(finish.collection)) || (finish.category && /crystite/i.test(finish.category))
-    ? 4500
-    : finish.price,
-  collection: finish.collection,
-  category: finish.category,
-  description: finish.description
-}));
+const EditablePoolProductCard = ({ pool, isEditable = false, isAdmin = false, onUpdate, onViewDetails, onRequestQuote }: EditablePoolProductCardProps) => {
+  // Filter finishes based on pool model compatibility
+  const compatibleFinishes = getProductsByCompatiblePool('finish', pool.model);
+  
+  // Convert pool finishes data to finish options format
+  const finishOptions = compatibleFinishes.map(finish => ({
+    name: finish.name,
+    color: '#4169E1',
+    image: finish.image,
+    // Force Crystite Crystals finishes to $4,500 in product card
+    price: (finish.collection && /crystite/i.test(finish.collection)) || (finish.category && /crystite/i.test(finish.category))
+      ? 4500
+      : finish.price,
+    collection: finish.collection,
+    category: finish.category,
+    description: finish.description
+  }));
 
 // Convert pool liners to liner options format
 const linerOptions = [
