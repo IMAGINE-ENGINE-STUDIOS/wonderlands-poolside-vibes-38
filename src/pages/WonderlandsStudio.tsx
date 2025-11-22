@@ -133,7 +133,9 @@ const getProductPrice = (product: Product) => {
 const finishOptions = poolFinishesData.map(finish => ({
   name: finish.name,
   price: finish.price,
-  image: finish.image
+  image: finish.image,
+  collection: finish.collection || 'Standard',
+  description: finish.description
 }));
 
 // Pool heaters with models
@@ -163,11 +165,13 @@ const poolHeaters = [{
 const linerOptions = [{
   name: 'Standard Blue',
   price: 0,
-  image: azureBlueFinish
+  image: azureBlueFinish,
+  type: 'Standard'
 }, ...poolLinersData.map(liner => ({
   name: liner.name,
   price: liner.price,
-  image: liner.image
+  image: liner.image,
+  type: liner.type || 'Premium'
 }))];
 
 // Cover options
@@ -1470,12 +1474,548 @@ const WonderlandsStudio = () => {
                         </div>
                       </>
                     ) : (
-                      // Dynamic feature rendering for all other product types
-                      <DynamicFeatureRenderer 
-                        productType={selectedProduct.type || 'pool'}
-                        selectedExtras={selectedExtras}
-                        onExtrasChange={setSelectedExtras}
-                      />
+                      // Pool configuration options using same format as PoolProductCard
+                      <>
+                        {/* Pool Finishes */}
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-foreground">Pool Finish</h4>
+                          <Carousel 
+                            className="w-full"
+                            opts={{
+                              align: "start",
+                              loop: false,
+                              duration: 25,
+                            }}
+                          >
+                            <CarouselContent className="-ml-1">
+                              {finishOptions.map((finish, idx) => (
+                                <CarouselItem
+                                  key={`pool-${finish.name}-${idx}`}
+                                  className="pl-1 basis-1/2"
+                                >
+                                  <div
+                                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.finish === finish.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                    onClick={() =>
+                                      setSelectedExtras((prev: any) => ({
+                                        ...prev,
+                                        finish: finish.name,
+                                      }))
+                                    }
+                                  >
+                                    <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                      <img
+                                        src={finish.image}
+                                        alt={finish.name}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                    <div className="flex-1 flex flex-col justify-between min-h-0">
+                                      <p className="text-xs font-medium text-center line-clamp-2">{finish.name}</p>
+                                      <div className="mt-1 space-y-1">
+                                        <p className="text-xs text-primary text-center font-semibold">{finish.collection}</p>
+                                        {finish.price && (
+                                          <p className="text-xs text-foreground font-semibold text-center">
+                                            +${finish.price.toLocaleString()}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </CarouselItem>
+                              ))}
+                            </CarouselContent>
+                            <CarouselPrevious className="left-0 animate-pulse" />
+                            <CarouselNext className="right-0 animate-pulse" />
+                          </Carousel>
+                        </div>
+
+                        {/* Pool Liners */}
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-foreground">Pool Liner</h4>
+                          <Carousel 
+                            className="w-full"
+                            opts={{
+                              align: "start",
+                              loop: false,
+                              duration: 25,
+                            }}
+                          >
+                            <CarouselContent className="-ml-1">
+                              {linerOptions.map((liner) => (
+                                <CarouselItem key={liner.name} className="pl-1 basis-1/2">
+                                  <div
+                                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.linerOption === liner.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                    onClick={() =>
+                                      setSelectedExtras((prev: any) => ({
+                                        ...prev,
+                                        linerOption: liner.name,
+                                      }))
+                                    }
+                                  >
+                                    <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                      <img
+                                        src={liner.image}
+                                        alt={liner.name}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                    <div className="flex-1 flex flex-col justify-between min-h-0">
+                                      <p className="text-xs font-medium text-center line-clamp-2">{liner.name}</p>
+                                      <div className="mt-1 space-y-1">
+                                        {liner.type && liner.type !== "Standard" && (
+                                          <p className="text-xs text-primary text-center font-semibold">{liner.type}</p>
+                                        )}
+                                        {liner.name !== "Standard Blue" && (
+                                          <p className="text-xs text-foreground font-semibold text-center">+$4,500</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </CarouselItem>
+                              ))}
+                            </CarouselContent>
+                            <CarouselPrevious className="left-0 animate-pulse" />
+                            <CarouselNext className="right-0 animate-pulse" />
+                          </Carousel>
+                        </div>
+
+                        {/* Pool Tiles */}
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-foreground">Pool Tiles</h4>
+                          <Carousel 
+                            className="w-full"
+                            opts={{
+                              align: "start",
+                              loop: false,
+                              duration: 25,
+                            }}
+                          >
+                            <CarouselContent className="-ml-1">
+                              {tileOptions.map((tile) => (
+                                <CarouselItem key={tile.name} className="pl-1 basis-1/2">
+                                  <div
+                                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.tileOption === tile.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                    onClick={() =>
+                                      setSelectedExtras((prev: any) => ({
+                                        ...prev,
+                                        tiles: true,
+                                        tileOption: tile.name,
+                                      }))
+                                    }
+                                  >
+                                    <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                      <img
+                                        src={tile.image}
+                                        alt={tile.name}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                    <div className="flex-1 flex flex-col justify-between min-h-0">
+                                      <p className="text-xs font-medium text-center line-clamp-2">{tile.name}</p>
+                                      {tile.price > 0 && (
+                                        <p className="text-xs text-primary font-semibold text-center mt-1">
+                                          +${tile.price.toLocaleString()}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                </CarouselItem>
+                              ))}
+                            </CarouselContent>
+                            <CarouselPrevious className="left-0 animate-pulse" />
+                            <CarouselNext className="right-0 animate-pulse" />
+                          </Carousel>
+                        </div>
+
+                        {/* Pool Heater */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-foreground">Pool Heater</h4>
+                            <Checkbox
+                              checked={selectedExtras.heater}
+                              onCheckedChange={() =>
+                                setSelectedExtras((prev: any) => ({
+                                  ...prev,
+                                  heater: !prev.heater,
+                                }))
+                              }
+                            />
+                          </div>
+                          {selectedExtras.heater && (
+                            <Carousel 
+                              className="w-full"
+                              opts={{
+                                align: "start",
+                                loop: false,
+                                duration: 25,
+                              }}
+                            >
+                              <CarouselContent className="-ml-1">
+                                {poolHeaters.map((heater) => (
+                                  <CarouselItem key={heater.name} className="pl-1 basis-1/2">
+                                    <div
+                                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.heaterModel === heater.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                      onClick={() =>
+                                        setSelectedExtras((prev: any) => ({
+                                          ...prev,
+                                          heaterModel: heater.name,
+                                        }))
+                                      }
+                                    >
+                                      <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                        <img
+                                          src={heater.image}
+                                          alt={heater.name}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                      <div className="flex-1 flex flex-col justify-between min-h-0">
+                                        <p className="text-xs font-medium text-center line-clamp-2">{heater.name}</p>
+                                        <p className="text-xs text-primary font-semibold text-center mt-1">
+                                          +${heater.price.toLocaleString()}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </CarouselItem>
+                                ))}
+                              </CarouselContent>
+                              <CarouselPrevious className="left-0 animate-pulse" />
+                              <CarouselNext className="right-0 animate-pulse" />
+                            </Carousel>
+                          )}
+                        </div>
+
+                        {/* Automatic Cover */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-foreground">Automatic Cover</h4>
+                            <Checkbox
+                              checked={selectedExtras.cover}
+                              onCheckedChange={() =>
+                                setSelectedExtras((prev: any) => ({
+                                  ...prev,
+                                  cover: !prev.cover,
+                                }))
+                              }
+                            />
+                          </div>
+                          {selectedExtras.cover && (
+                            <Carousel 
+                              className="w-full"
+                              opts={{
+                                align: "start",
+                                loop: false,
+                                duration: 25,
+                              }}
+                            >
+                              <CarouselContent className="-ml-1">
+                                {coverOptions.map((cover) => (
+                                  <CarouselItem key={cover.name} className="pl-1 basis-1/2">
+                                    <div
+                                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.coverOption === cover.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                      onClick={() =>
+                                        setSelectedExtras((prev: any) => ({
+                                          ...prev,
+                                          coverOption: cover.name,
+                                        }))
+                                      }
+                                    >
+                                      <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                        <img
+                                          src={cover.image}
+                                          alt={cover.name}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                      <div className="flex-1 flex flex-col justify-between min-h-0">
+                                        <p className="text-xs font-medium text-center line-clamp-2">{cover.name}</p>
+                                        {cover.price > 0 && (
+                                          <p className="text-xs text-primary font-semibold text-center mt-1">
+                                            +${cover.price.toLocaleString()}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </CarouselItem>
+                                ))}
+                              </CarouselContent>
+                              <CarouselPrevious className="left-0 animate-pulse" />
+                              <CarouselNext className="right-0 animate-pulse" />
+                            </Carousel>
+                          )}
+                        </div>
+
+                        {/* Jets */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-foreground">Jets</h4>
+                            <Checkbox
+                              checked={selectedExtras.jets}
+                              onCheckedChange={() =>
+                                setSelectedExtras((prev: any) => ({
+                                  ...prev,
+                                  jets: !prev.jets,
+                                }))
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        {/* Add a Spa */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-foreground">Add a Spa</h4>
+                            <Checkbox
+                              checked={selectedExtras.spa}
+                              onCheckedChange={() =>
+                                setSelectedExtras((prev: any) => ({
+                                  ...prev,
+                                  spa: !prev.spa,
+                                }))
+                              }
+                            />
+                          </div>
+                          {selectedExtras.spa && (
+                            <Carousel 
+                              className="w-full"
+                              opts={{
+                                align: "start",
+                                loop: false,
+                                duration: 25,
+                              }}
+                            >
+                              <CarouselContent className="-ml-1">
+                                {spas.map((spa: any) => (
+                                  <CarouselItem key={spa.model} className="pl-1 basis-1/2">
+                                    <div
+                                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.spaModel === spa.model ? "border-primary bg-primary/10" : "border-border"}`}
+                                      onClick={() =>
+                                        setSelectedExtras((prev: any) => ({
+                                          ...prev,
+                                          spaModel: spa.model,
+                                        }))
+                                      }
+                                    >
+                                      <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                        <img
+                                          src={spa.image}
+                                          alt={spa.model}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                      <div className="flex-1 flex flex-col justify-between min-h-0">
+                                        <p className="text-xs font-medium text-center line-clamp-2">{spa.model}</p>
+                                        <p className="text-xs text-primary font-semibold text-center mt-1">
+                                          +${spa.price.toLocaleString()}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </CarouselItem>
+                                ))}
+                              </CarouselContent>
+                              <CarouselPrevious className="left-0 animate-pulse" />
+                              <CarouselNext className="right-0 animate-pulse" />
+                            </Carousel>
+                          )}
+                        </div>
+
+                        {/* Tanning Ledge */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-foreground">Tanning Ledge</h4>
+                            <Checkbox
+                              checked={selectedExtras.tanningLedge}
+                              onCheckedChange={() =>
+                                setSelectedExtras((prev: any) => ({
+                                  ...prev,
+                                  tanningLedge: !prev.tanningLedge,
+                                }))
+                              }
+                            />
+                          </div>
+                          {selectedExtras.tanningLedge && (
+                            <Carousel 
+                              className="w-full"
+                              opts={{
+                                align: "start",
+                                loop: false,
+                                duration: 25,
+                              }}
+                            >
+                              <CarouselContent className="-ml-1">
+                                {tanningLedges.map((ledge: any) => (
+                                  <CarouselItem key={ledge.name} className="pl-1 basis-1/2">
+                                    <div
+                                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.tanningLedgeModel === ledge.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                      onClick={() =>
+                                        setSelectedExtras((prev: any) => ({
+                                          ...prev,
+                                          tanningLedgeModel: ledge.name,
+                                        }))
+                                      }
+                                    >
+                                      <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                        <img
+                                          src={ledge.image}
+                                          alt={ledge.name}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                      <div className="flex-1 flex flex-col justify-between min-h-0">
+                                        <p className="text-xs font-medium text-center line-clamp-2">{ledge.name}</p>
+                                        <p className="text-xs text-primary font-semibold text-center mt-1">
+                                          +${ledge.price.toLocaleString()}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </CarouselItem>
+                                ))}
+                              </CarouselContent>
+                              <CarouselPrevious className="left-0 animate-pulse" />
+                              <CarouselNext className="right-0 animate-pulse" />
+                            </Carousel>
+                          )}
+                        </div>
+
+                        {/* Deck Pavers */}
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-foreground">Deck Pavers</h4>
+                          <div className="mb-3">
+                            <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                              Paver Surface Area (sq ft)
+                            </label>
+                            <Input
+                              type="number"
+                              placeholder="Enter surface area"
+                              value={selectedExtras.paverSurfaceArea || ""}
+                              onChange={(e) =>
+                                setSelectedExtras((prev: any) => ({
+                                  ...prev,
+                                  paverSurfaceArea: e.target.value,
+                                }))
+                              }
+                              className="mb-2"
+                            />
+                            {selectedExtras.paverSurfaceArea && !isNaN(parseFloat(selectedExtras.paverSurfaceArea)) && (
+                              <div className="text-xs text-green-600 font-medium">
+                                Calculated Cost: ${(parseFloat(selectedExtras.paverSurfaceArea) * 15).toLocaleString()} (${selectedExtras.paverSurfaceArea} sq ft × $15/sq ft)
+                              </div>
+                            )}
+                          </div>
+                          <Carousel 
+                            className="w-full"
+                            opts={{
+                              align: "start",
+                              loop: false,
+                              duration: 25,
+                            }}
+                          >
+                            <CarouselContent className="-ml-1">
+                              {paverOptions.map((paver) => (
+                                <CarouselItem key={paver.name} className="pl-1 basis-1/2">
+                                  <div
+                                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.paverOption === paver.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                    onClick={() =>
+                                      setSelectedExtras((prev: any) => ({
+                                        ...prev,
+                                        paverOption: paver.name,
+                                      }))
+                                    }
+                                  >
+                                    <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                      <img
+                                        src={paver.image}
+                                        alt={paver.name}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                    <div className="flex-1 flex flex-col justify-between min-h-0">
+                                      <p className="text-xs font-medium text-center line-clamp-2">{paver.name}</p>
+                                    </div>
+                                  </div>
+                                </CarouselItem>
+                              ))}
+                            </CarouselContent>
+                            <CarouselPrevious className="left-0 animate-pulse" />
+                            <CarouselNext className="right-0 animate-pulse" />
+                          </Carousel>
+                        </div>
+
+                        {/* Screen Enclosure */}
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-foreground">Screen Enclosure</h4>
+                          <div className="mb-3">
+                            <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                              Screen Enclosure Area (sq ft)
+                            </label>
+                            <Input
+                              type="number"
+                              placeholder="Enter surface area"
+                              value={selectedExtras.screenEnclosureArea || ""}
+                              onChange={(e) =>
+                                setSelectedExtras((prev: any) => ({
+                                  ...prev,
+                                  screenEnclosureArea: parseFloat(e.target.value) || 0,
+                                }))
+                              }
+                              className="mb-2"
+                            />
+                            {selectedExtras.screenEnclosureArea > 0 && (
+                              <div className="text-xs text-green-600 font-medium">
+                                Calculated Cost: ${(() => {
+                                  let pricePerSqFt = 15;
+                                  if (selectedExtras.screenEnclosureQuality === "deluxe") pricePerSqFt = 22;
+                                  if (selectedExtras.screenEnclosureQuality === "premium") pricePerSqFt = 28;
+                                  return (selectedExtras.screenEnclosureArea * pricePerSqFt).toLocaleString();
+                                })()} ({selectedExtras.screenEnclosureArea} sq ft × ${(() => {
+                                  if (selectedExtras.screenEnclosureQuality === "deluxe") return "22";
+                                  if (selectedExtras.screenEnclosureQuality === "premium") return "28";
+                                  return "15";
+                                })()}/sq ft)
+                              </div>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            {[
+                              { key: "standard", name: "Wonder Cage" },
+                              { key: "deluxe", name: "Deluxe" },
+                              { key: "premium", name: "2 stories" },
+                            ].map((quality) => (
+                              <div
+                                key={quality.key}
+                                className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md ${selectedExtras.screenEnclosureQuality === quality.key ? "border-primary bg-primary/10" : "border-border"}`}
+                                onClick={() =>
+                                  setSelectedExtras((prev: any) => ({
+                                    ...prev,
+                                    screenEnclosureQuality: quality.key,
+                                  }))
+                                }
+                              >
+                                <p className="text-sm font-medium">{quality.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  ${quality.key === "standard" ? "15" : quality.key === "deluxe" ? "22" : "28"}/sq ft
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Concrete Construction */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-foreground">Concrete Construction</h4>
+                            <Checkbox
+                              checked={selectedExtras.concreteConstruction}
+                              onCheckedChange={() =>
+                                setSelectedExtras((prev: any) => ({
+                                  ...prev,
+                                  concreteConstruction: !prev.concreteConstruction,
+                                }))
+                              }
+                            />
+                          </div>
+                        </div>
+                      </>
                     )}
 
                     <Separator />
