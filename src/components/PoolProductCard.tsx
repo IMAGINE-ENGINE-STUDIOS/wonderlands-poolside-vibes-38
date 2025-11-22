@@ -72,9 +72,8 @@ interface Pool {
 }
 interface PoolProductCardProps {
   pool: Pool;
-  onViewDetails: (pool: Pool) => void;
-  onRequestQuote: (pool: Pool, extras?: PoolExtras) => void;
-  isAdmin?: boolean;
+  variant?: "default" | "compact";
+  className?: string;
 }
 interface PoolExtras {
   liner: boolean;
@@ -140,312 +139,93 @@ const getExtraPrice = (extra: string) => {
   }
 };
 
-// Import pool finishes from consolidated products
-import { getProductsByCategory } from "@/data/consolidatedProducts";
-
-// Convert pool finishes data to finish options format
-const finishOptions = getProductsByCategory("finish").map((finish) => ({
-  name: finish.name,
-  color: "#4169E1",
-  // fallback color
-  image: finish.image,
-  price: finish.price,
-  collection: finish.collection,
-  category: finish.category,
-  description: finish.description,
-}));
-
-// Import pool liners from PoolCatalog
+// Import pool finishes and liners from consolidated products
+import { getProductsByCompatiblePool } from "@/data/consolidatedProducts";
 import { poolLiners, poolTiles } from "@/data/poolData";
 
-// Pool heater options
-const poolHeaters = [
-  {
-    name: "Heat Pump - Eco Series",
-    price: 4500,
-    image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-    description: "Energy-efficient heat pump, ideal for mild climates",
-  },
-  {
-    name: "Heat Pump - Pro Series",
-    price: 5500,
-    image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-    description: "Professional grade heat pump with advanced controls",
-  },
-  {
-    name: "Heat/Cool Pump 127K BTU 230V Pentair Ultratemp",
-    price: 8000,
-    image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-    description: "High-capacity heat/cool pump for year-round comfort",
-  },
-  {
-    name: "Gas Heater - Standard",
-    price: 3200,
-    image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-    description: "Traditional gas heater for quick heating",
-  },
-  {
-    name: "Gas Heater - High Efficiency",
-    price: 4200,
-    image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-    description: "High-efficiency gas heater with digital controls",
-  },
-  {
-    name: "Solar Heater - Basic",
-    price: 2800,
-    image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-    description: "Eco-friendly solar heating system",
-  },
-  {
-    name: "Solar Heater - Premium",
-    price: 3800,
-    image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-    description: "Advanced solar system with backup heating",
-  },
-];
-
-// Convert pool liners to liner options format
-const linerOptions = [
-  {
-    name: "Standard Blue",
-    color: "#4169E1",
-    price: 0,
-    image: azureBlueFinish,
-    type: "Standard",
-    description: undefined,
-  },
-  ...poolLiners.map((liner) => ({
-    name: liner.name,
-    color: "#4169E1",
-    // fallback color
-    price: liner.price,
-    image: liner.image,
-    type: liner.type,
-    description: liner.description,
-  })),
-];
-
-// Cover options - using real automatic covers from AutomaticCoversSection with short surnames
-const coverOptions = [
-  {
-    name: "NO COVER",
-    surname: "None",
-    color: "#808080",
-    price: 0,
-    image: shaleGrayFinish,
-    category: "cover",
-    description: "No pool cover needed",
-  },
-  {
-    name: "Eclipse Automatic Cover",
-    surname: "Eclipse",
-    color: "#2F4F4F",
-    price: 16000,
-    image: "/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png",
-    category: "cover",
-    description: "High-grade PVC with dual track system and emergency manual override",
-    colors: [
-      {
-        name: "Light Blue",
-        value: "#87CEEB",
-        hex: "#87CEEB",
-      },
-      {
-        name: "Royal Blue",
-        value: "#4169E1",
-        hex: "#4169E1",
-      },
-      {
-        name: "Navy Blue",
-        value: "#000080",
-        hex: "#000080",
-      },
-      {
-        name: "Forest Green",
-        value: "#228B22",
-        hex: "#228B22",
-      },
-      {
-        name: "Light Gray",
-        value: "#D3D3D3",
-        hex: "#D3D3D3",
-      },
-      {
-        name: "Charcoal Gray",
-        value: "#36454F",
-        hex: "#36454F",
-      },
-      {
-        name: "Brown",
-        value: "#964B00",
-        hex: "#964B00",
-      },
-      {
-        name: "Beige",
-        value: "#F5F5DC",
-        hex: "#F5F5DC",
-      },
-    ],
-  },
-  {
-    name: "CS3000 Safety Cover",
-    surname: "CS3000",
-    color: "#2F4F4F",
-    price: 24000,
-    image: "/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png",
-    category: "cover",
-    description: "Multi-layer vinyl with smart automation and weather sensors",
-    colors: [
-      {
-        name: "Light Blue",
-        value: "#87CEEB",
-        hex: "#87CEEB",
-      },
-      {
-        name: "Royal Blue",
-        value: "#4169E1",
-        hex: "#4169E1",
-      },
-      {
-        name: "Navy Blue",
-        value: "#000080",
-        hex: "#000080",
-      },
-      {
-        name: "Forest Green",
-        value: "#228B22",
-        hex: "#228B22",
-      },
-      {
-        name: "Light Gray",
-        value: "#D3D3D3",
-        hex: "#D3D3D3",
-      },
-      {
-        name: "Charcoal Gray",
-        value: "#36454F",
-        hex: "#36454F",
-      },
-      {
-        name: "Brown",
-        value: "#964B00",
-        hex: "#964B00",
-      },
-      {
-        name: "Beige",
-        value: "#F5F5DC",
-        hex: "#F5F5DC",
-      },
-    ],
-  },
-  {
-    name: "Infinity 4000 Smart Cover",
-    surname: "Infinity",
-    color: "#2F4F4F",
-    price: 32000,
-    image: "/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png",
-    category: "cover",
-    description: "Premium composite with AI-powered automation and solar integration",
-    colors: [
-      {
-        name: "Light Blue",
-        value: "#87CEEB",
-        hex: "#87CEEB",
-      },
-      {
-        name: "Royal Blue",
-        value: "#4169E1",
-        hex: "#4169E1",
-      },
-      {
-        name: "Navy Blue",
-        value: "#000080",
-        hex: "#000080",
-      },
-      {
-        name: "Forest Green",
-        value: "#228B22",
-        hex: "#228B22",
-      },
-      {
-        name: "Light Gray",
-        value: "#D3D3D3",
-        hex: "#D3D3D3",
-      },
-      {
-        name: "Charcoal Gray",
-        value: "#36454F",
-        hex: "#36454F",
-      },
-      {
-        name: "Brown",
-        value: "#964B00",
-        hex: "#964B00",
-      },
-      {
-        name: "Beige",
-        value: "#F5F5DC",
-        hex: "#F5F5DC",
-      },
-    ],
-  },
-  {
-    name: "Atom Loop-Loc Cover",
-    surname: "Loop-Loc",
-    color: "#2F4F4F",
-    price: 19000,
-    image: "/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png",
-    category: "cover",
-    description: "Insulated fabric with compact design and temperature sensors",
-  },
-];
-
-// Convert pool tiles to tile options format
-const tileOptions = [
-  {
-    name: "Standard Waterline",
-    color: "#4682B4",
-    price: 0,
-    image: azureBlueFinish,
-    description: undefined,
-  },
-  ...poolTiles.map((tile) => ({
-    name: tile.name,
-    color: "#4682B4",
-    // fallback color
-    price: tile.price,
-    image: tile.image,
-    description: tile.description,
-  })),
-];
-
-// Convert paver data to options format with exact same pavers from PaversSection
-const paverOptions = [
-  {
-    name: "No Pavers",
-    color: "#808080",
-    price: 0,
-    image: azureBlueFinish,
-    description: "No additional pavers",
-    collection: "none",
-  },
-  ...paverTypes.map((paver) => ({
-    name: paver.name,
-    color: "#D3D3D3",
-    // Default color for all pavers
-    price: 0,
-    // Base price is 0, actual cost calculated by surface area × $15/sq ft
-    image: paver.image || azureBlueFinish,
-    description: paver.description,
-    collection: paver.id.includes("appian") ? "appian" : paver.id.includes("catalina") ? "catalina" : "standard",
-  })),
-];
-
-// Remove coping pavers entirely - no longer needed per user request
-// Convert coping data to options format with consistent $15/sq ft pricing
-// const copingPaverOptions = [];
-
 const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false }: PoolProductCardProps) => {
+  // Filter finishes based on pool model compatibility
+  const compatibleFinishes = getProductsByCompatiblePool("finish", pool.model);
+  
+  // Convert pool finishes data to finish options format
+  const finishOptions = compatibleFinishes.map((finish) => ({
+    name: finish.name,
+    color: "#4169E1",
+    image: finish.image,
+    price: finish.price,
+    collection: finish.collection,
+    category: finish.category,
+    description: finish.description,
+  }));
+
+  // Pool heater options
+  const poolHeaters = [
+    {
+      name: "Heat Pump - Eco Series",
+      price: 4500,
+      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+      description: "Energy-efficient heat pump, ideal for mild climates",
+    },
+    {
+      name: "Heat Pump - Pro Series",
+      price: 5500,
+      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+      description: "Professional grade heat pump with advanced controls",
+    },
+    {
+      name: "Heat/Cool Pump 127K BTU 230V Pentair Ultratemp",
+      price: 8000,
+      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+      description: "High-capacity heat/cool pump for year-round comfort",
+    },
+    {
+      name: "Gas Heater - Standard",
+      price: 3200,
+      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+      description: "Traditional gas heater for quick heating",
+    },
+    {
+      name: "Gas Heater - High Efficiency",
+      price: 4200,
+      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+      description: "High-efficiency gas heater with digital controls",
+    },
+    {
+      name: "Solar Heater - Basic",
+      price: 2800,
+      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+      description: "Eco-friendly solar heating system",
+    },
+    {
+      name: "Solar Heater - Premium",
+      price: 3800,
+      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
+      description: "Advanced solar system with backup heating",
+    },
+  ];
+
+  // Convert pool liners to liner options format
+  const linerOptions = [
+    {
+      name: "Standard Blue",
+      color: "#4169E1",
+      price: 0,
+      image: azureBlueFinish,
+      type: "Standard",
+      description: undefined,
+    },
+    ...poolLiners.map((liner) => ({
+      name: liner.name,
+      color: "#4169E1",
+      price: liner.price,
+      image: liner.image,
+      type: liner.type,
+      description: liner.description,
+    })),
+  ];
+
+  // Cover options - using real automatic covers from AutomaticCoversSection with short surnames
+  const coverOptions = [
   const navigate = useNavigate();
   const [showDetails, setShowDetails] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
