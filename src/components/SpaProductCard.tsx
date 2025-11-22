@@ -11,6 +11,7 @@ import ImageEditor from "./ImageEditor";
 import { useShoppingCart } from "./ShoppingCartProvider";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { ProductImageModal } from "./ProductImageModal";
 import { tanningLedges } from "@/data/poolData";
 import { paverTypes, copingTypes } from "@/data/paverData";
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
@@ -235,6 +236,21 @@ const SpaProductCard = ({
   const {
     addToCart
   } = useShoppingCart();
+  
+  // Image popup state
+  const [imagePopup, setImagePopup] = useState<{
+    isOpen: boolean;
+    imageSrc: string;
+    name: string;
+    price?: number;
+    description?: string;
+  }>({
+    isOpen: false,
+    imageSrc: "",
+    name: "",
+    price: undefined,
+    description: undefined,
+  });
   const handleImageClick = () => {
     setShowDetails(!showDetails);
   };
@@ -490,14 +506,33 @@ const SpaProductCard = ({
                 <Droplets size={16} />
                 Spa Finishes
               </h4>
-              <Carousel className="w-full">
+              <Carousel 
+                className="w-full"
+                opts={{
+                  align: "start",
+                  loop: false,
+                  duration: 25,
+                }}
+              >
                 <CarouselContent className="-ml-1">
                   {finishOptions.map((finish, idx) => <CarouselItem key={`spa-${finish.name}-${idx}`} className="pl-1 basis-1/2">
                       <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   finish: finish.name
                 }))}>
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden">
+                        <div 
+                          className="w-full h-16 rounded-md mb-2 overflow-hidden hover:ring-2 hover:ring-primary transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setImagePopup({
+                              isOpen: true,
+                              imageSrc: finish.image,
+                              name: finish.name,
+                              price: finish.price,
+                              description: finish.description,
+                            });
+                          }}
+                        >
                           <img src={finish.image} alt={finish.name} className="w-full h-full object-cover" loading="lazy" />
                         </div>
                         <p className="text-xs font-medium text-center">{finish.name}</p>
@@ -516,14 +551,35 @@ const SpaProductCard = ({
             {/* Tiles */}
             {extras.tiles && <div className="space-y-3">
                 <h4 className="font-semibold text-foreground">Spa Tiles</h4>
-                <Carousel className="w-full">
+                <Carousel 
+                  className="w-full"
+                  opts={{
+                    align: "start",
+                    loop: false,
+                    duration: 25,
+                  }}
+                >
                   <CarouselContent className="-ml-1">
                     {tileOptions.map(tile => <CarouselItem key={tile.name} className="pl-1 basis-1/2">
                         <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tileOption === tile.name ? 'border-teal bg-teal/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   tileOption: tile.name
                 }))}>
-                          <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
+                          <div 
+                            className="w-full h-12 rounded-md mb-2 overflow-hidden hover:ring-2 hover:ring-primary transition-all"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (tile.image) {
+                                setImagePopup({
+                                  isOpen: true,
+                                  imageSrc: tile.image,
+                                  name: tile.name,
+                                  price: tile.price,
+                                  description: tile.description,
+                                });
+                              }
+                            }}
+                          >
                             {tile.image ? <img src={tile.image} alt={tile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-teal/20 to-primary/20 flex items-center justify-center">
                                 <div className="w-3 h-3 bg-teal rounded-full"></div>
                               </div>}
@@ -541,14 +597,35 @@ const SpaProductCard = ({
             {/* Liners */}
             {extras.liner && <div className="space-y-3">
                 <h4 className="font-semibold text-foreground">Spa Liners</h4>
-                <Carousel className="w-full">
+                <Carousel 
+                  className="w-full"
+                  opts={{
+                    align: "start",
+                    loop: false,
+                    duration: 25,
+                  }}
+                >
                   <CarouselContent className="-ml-1">
                     {linerOptions.map(liner => <CarouselItem key={liner.name} className="pl-1 basis-1/2">
                         <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.linerOption === liner.name ? 'border-secondary bg-secondary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   linerOption: liner.name
                 }))}>
-                          <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
+                          <div 
+                            className="w-full h-12 rounded-md mb-2 overflow-hidden hover:ring-2 hover:ring-primary transition-all"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (liner.image) {
+                                setImagePopup({
+                                  isOpen: true,
+                                  imageSrc: liner.image,
+                                  name: liner.name,
+                                  price: liner.price,
+                                  description: liner.description,
+                                });
+                              }
+                            }}
+                          >
                             {liner.image ? <img src={liner.image} alt={liner.name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center">
                                 <div className="w-3 h-3 bg-secondary rounded-full"></div>
                               </div>}
@@ -569,14 +646,33 @@ const SpaProductCard = ({
                   <Thermometer size={16} />
                   Spa Heaters
                 </h4>
-                <Carousel className="w-full">
+                <Carousel 
+                  className="w-full"
+                  opts={{
+                    align: "start",
+                    loop: false,
+                    duration: 25,
+                  }}
+                >
                   <CarouselContent className="-ml-1">
                     {spaHeaters.map(heater => <CarouselItem key={heater.name} className="pl-1 basis-1/2">
                         <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.heaterModel === heater.name ? 'border-teal bg-teal/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   heaterModel: heater.name
                 }))}>
-                          <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
+                          <div 
+                            className="w-full h-12 rounded-md mb-2 overflow-hidden hover:ring-2 hover:ring-primary transition-all"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setImagePopup({
+                                isOpen: true,
+                                imageSrc: heater.image,
+                                name: heater.name,
+                                price: heater.price,
+                                description: heater.description,
+                              });
+                            }}
+                          >
                             <img src={heater.image} alt={heater.name} className="w-full h-full object-cover" />
                           </div>
                           <p className="text-xs font-medium text-center">{heater.name}</p>
@@ -602,14 +698,33 @@ const SpaProductCard = ({
                     Calculated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()} ({paverSurfaceArea} sq ft × $15/sq ft)
                   </div>}
               </div>
-              <Carousel className="w-full">
+              <Carousel 
+                className="w-full"
+                opts={{
+                  align: "start",
+                  loop: false,
+                  duration: 25,
+                }}
+              >
                 <CarouselContent className="-ml-1">
                   {paverOptions.map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/2">
                       <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.paverOption === paver.name ? 'border-secondary bg-secondary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   paverOption: paver.name
                 }))}>
-                        <div className="w-full h-12 rounded-md mb-2 overflow-hidden">
+                        <div 
+                          className="w-full h-12 rounded-md mb-2 overflow-hidden hover:ring-2 hover:ring-primary transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setImagePopup({
+                              isOpen: true,
+                              imageSrc: paver.image,
+                              name: paver.name,
+                              price: paver.price,
+                              description: paver.description,
+                            });
+                          }}
+                        >
                           <img src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
                         </div>
                         <p className="text-xs font-medium text-center">{paver.name}</p>
@@ -741,6 +856,16 @@ const SpaProductCard = ({
       
       {/* Quote Tool Modal */}
       <SurveyQuoteTool pool={spa} isOpen={showQuoteTool} onClose={() => setShowQuoteTool(false)} extras={extras} />
+      
+      {/* Product Image Popup Modal */}
+      <ProductImageModal
+        isOpen={imagePopup.isOpen}
+        onClose={() => setImagePopup({ ...imagePopup, isOpen: false })}
+        imageSrc={imagePopup.imageSrc}
+        productName={imagePopup.name}
+        productPrice={imagePopup.price}
+        productDescription={imagePopup.description}
+      />
     </Card>;
 };
 export default SpaProductCard;

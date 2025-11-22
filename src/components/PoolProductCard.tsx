@@ -31,6 +31,7 @@ import { OptimizedImage } from "./OptimizedImage";
 import { useShoppingCart } from "./ShoppingCartProvider";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { ProductImageModal } from "./ProductImageModal";
 import ExclusiveSaunaOffer from "./ExclusiveSaunaOffer";
 import { spas } from "./PoolCatalog";
 import { tanningLedges } from "@/data/poolData";
@@ -479,6 +480,21 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
   const [showFinancing, setShowFinancing] = useState(false);
   const [coverColor, setCoverColor] = useState("Light Blue");
   const { addToCart } = useShoppingCart();
+  
+  // Image popup state
+  const [imagePopup, setImagePopup] = useState<{
+    isOpen: boolean;
+    imageSrc: string;
+    name: string;
+    price?: number;
+    description?: string;
+  }>({
+    isOpen: false,
+    imageSrc: "",
+    name: "",
+    price: undefined,
+    description: undefined,
+  });
 
   // No need to fetch from database - using static paver data with $15/sq ft pricing
 
@@ -872,7 +888,14 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
             {/* Pool Finishing Options */}
             <div className="space-y-3">
               <h4 className="font-semibold text-foreground">Pool Finishes</h4>
-              <Carousel className="w-full">
+              <Carousel 
+                className="w-full"
+                opts={{
+                  align: "start",
+                  loop: false,
+                  duration: 25,
+                }}
+              >
                 <CarouselContent className="-ml-1">
                   {finishOptions.map((finish, idx) => (
                     <CarouselItem
@@ -888,7 +911,19 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                           }))
                         }
                       >
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                        <div 
+                          className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setImagePopup({
+                              isOpen: true,
+                              imageSrc: finish.image,
+                              name: finish.name,
+                              price: finish.price,
+                              description: finish.description,
+                            });
+                          }}
+                        >
                           <OptimizedImage
                             src={finish.image}
                             alt={finish.name}
@@ -919,7 +954,14 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
             {/* Pool Liner Options */}
             <div className="space-y-3">
               <h4 className="font-semibold text-foreground">Premium Pool Liners</h4>
-              <Carousel className="w-full">
+              <Carousel 
+                className="w-full"
+                opts={{
+                  align: "start",
+                  loop: false,
+                  duration: 25,
+                }}
+              >
                 <CarouselContent className="-ml-1">
                   {linerOptions.map((liner) => (
                     <CarouselItem key={liner.name} className="pl-1 basis-1/2">
@@ -932,7 +974,19 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                           }))
                         }
                       >
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                        <div 
+                          className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setImagePopup({
+                              isOpen: true,
+                              imageSrc: liner.image,
+                              name: liner.name,
+                              price: liner.price,
+                              description: liner.description,
+                            });
+                          }}
+                        >
                           <img
                             src={liner.image}
                             alt={liner.name}
@@ -988,7 +1042,14 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                   </div>
                 )}
               </div>
-              <Carousel className="w-full">
+              <Carousel 
+                className="w-full"
+                opts={{
+                  align: "start",
+                  loop: false,
+                  duration: 25,
+                }}
+              >
                 <CarouselContent className="-ml-1">
                   {paverOptions.map((paver) => (
                     <CarouselItem key={paver.name} className="pl-1 basis-1/2">
@@ -1001,7 +1062,19 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                           }))
                         }
                       >
-                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                        <div 
+                          className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setImagePopup({
+                              isOpen: true,
+                              imageSrc: paver.image,
+                              name: paver.name,
+                              price: paver.price,
+                              description: paver.description,
+                            });
+                          }}
+                        >
                           <OptimizedImage
                             src={paver.image}
                             alt={paver.name}
@@ -1424,7 +1497,14 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                 {extras.tiles && (
                   <div className="ml-6 space-y-2">
                     <label className="text-xs font-medium text-muted-foreground">Select Tile Option:</label>
-                    <Carousel className="w-full">
+                    <Carousel 
+                      className="w-full"
+                      opts={{
+                        align: "start",
+                        loop: false,
+                        duration: 25,
+                      }}
+                    >
                       <CarouselContent className="-ml-1">
                         {tileOptions.map((tile) => (
                           <CarouselItem key={tile.name} className="pl-1 basis-1/2">
@@ -1437,7 +1517,19 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                                 }))
                               }
                             >
-                              <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <div 
+                                className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setImagePopup({
+                                    isOpen: true,
+                                    imageSrc: tile.image,
+                                    name: tile.name,
+                                    price: tile.price,
+                                    description: tile.description,
+                                  });
+                                }}
+                              >
                                 <OptimizedImage
                                   src={tile.image}
                                   alt={tile.name}
@@ -1925,6 +2017,16 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
 
       {/* Quote Tool Modal */}
       <SurveyQuoteTool pool={pool} isOpen={showQuoteTool} onClose={() => setShowQuoteTool(false)} extras={extras} />
+
+      {/* Product Image Popup Modal */}
+      <ProductImageModal
+        isOpen={imagePopup.isOpen}
+        onClose={() => setImagePopup({ ...imagePopup, isOpen: false })}
+        imageSrc={imagePopup.imageSrc}
+        productName={imagePopup.name}
+        productPrice={imagePopup.price}
+        productDescription={imagePopup.description}
+      />
     </Card>
   );
 };
