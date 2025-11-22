@@ -1,7 +1,7 @@
 import { Canvas as R3FCanvas, useThree } from '@react-three/fiber';
 import { OrbitControls, TransformControls, Sky, Grid } from '@react-three/drei';
 import { useState, useEffect, useRef, Suspense, useCallback } from 'react';
-import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation } from './scene3d/types';
+import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation, Point } from './scene3d/types';
 import { Pool3DScene } from './Pool3DScene';
 import WaterSurface from './WaterSurface';
 import { Scene3DControlPanel } from './Scene3DControlPanel';
@@ -10,6 +10,8 @@ import { Scene3DAnnotations } from './Scene3DAnnotations';
 import { DistanceMeasurements } from './DistanceMeasurements';
 import { GridLabels } from './GridLabels';
 import { AssetManager, Asset3DRenderer } from './AssetManager';
+import { PoolSplineEditor, SplinePoint } from './scene3d/PoolSplineEditor';
+import { SplineLegend } from './SplineLegend';
 import { Button } from './ui/button';
 import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3 } from 'lucide-react';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
@@ -340,7 +342,8 @@ export function UnifiedPoolVisualizer({
     });
   };
 
-  const handlePoolPointsChange = (points: any[]) => {
+  const handlePoolPointsChange = (points: Point[]) => {
+    console.log('Pool points updated:', points);
     setScene({
       ...scene,
       pool: {
@@ -578,8 +581,9 @@ export function UnifiedPoolVisualizer({
         </div>
 
          {/* Quick Controls Bar - Bottom Left */}
-         <div className="absolute bottom-4 left-4 flex gap-2 z-10">
-            {/* Quick action buttons can go here if needed */}
+         <div className="absolute bottom-4 left-4 flex flex-col gap-2 z-10">
+           {/* Spline Editor Legend */}
+           {(enablePoolSplineEdit || enableDeckSplineEdit) && <SplineLegend />}
          </div>
 
         <Scene3DErrorBoundary scene={scene} onRecover={handleSceneRecover}>
@@ -678,12 +682,40 @@ export function UnifiedPoolVisualizer({
                 onStairsPlacementComplete={handleStairsPlacementComplete}
                 selectedStairId={selectedStairId}
                 onSelectStair={setSelectedStairId}
-                enablePoolSplineEdit={false}
-                enableDeckSplineEdit={false}
+                enablePoolSplineEdit={enablePoolSplineEdit}
+                enableDeckSplineEdit={enableDeckSplineEdit}
                 onPoolPointsChange={handlePoolPointsChange}
                 onDeckPointsChange={handleDeckPointsChange}
               />
             </group>
+            
+            {/* Pool Spline Editor - Editable Wall Outline */}
+            {enablePoolSplineEdit && (
+              <PoolSplineEditor
+                points={scene.pool.points.map(p => ({
+                  x: p.x,
+                  y: 0,
+                  z: p.y,
+                  id: p.id,
+                  type: p.type || 'linear'
+                }))}
+                onPointsChange={(splinePoints) => {
+                  const updatedPoints: Point[] = splinePoints.map(sp => ({
+                    x: sp.x,
+                    y: sp.z,
+                    id: sp.id,
+                    type: sp.type
+                  }));
+                  handlePoolPointsChange(updatedPoints);
+                }}
+                color="#00ff00"
+                lineWidth={4}
+                enableEdit={true}
+                name="Pool Wall"
+                yPosition={scene.deck.copingHeight || 0.17}
+                showControls={true}
+              />
+            )}
           </group>
 
           {/* Water surface - S17 to W25 centered at world origin */}
@@ -754,6 +786,34 @@ export function UnifiedPoolVisualizer({
                 onPoolPointsChange={handlePoolPointsChange}
                 onDeckPointsChange={handleDeckPointsChange}
               />
+              
+              {/* Deck Spline Editor */}
+              {enableDeckSplineEdit && (
+                <PoolSplineEditor
+                  points={scene.deck.points.map(p => ({
+                    x: p.x,
+                    y: 0,
+                    z: p.y,
+                    id: p.id,
+                    type: (p as any).type || 'linear'
+                  }))}
+                  onPointsChange={(splinePoints) => {
+                    const updatedPoints = splinePoints.map(sp => ({
+                      x: sp.x,
+                      y: sp.z,
+                      id: sp.id,
+                      type: sp.type
+                    }));
+                    handleDeckPointsChange(updatedPoints);
+                  }}
+                  color="#00aaff"
+                  lineWidth={4}
+                  enableEdit={true}
+                  name="Deck Edge"
+                  yPosition={(scene.deck.deckHeight || 0.17) + 0.1}
+                  showControls={true}
+                />
+              )}
             </group>
           )}
 
