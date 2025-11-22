@@ -237,8 +237,8 @@ export function ComponentControlPanel({
                   value={[deckWidth]}
                   onValueChange={(value) => onDeckWidthChange(value[0])}
                   min={0}
-                  max={20}
-                  step={0.5}
+                  max={10000}
+                  step={1}
                   className="w-full"
                 />
                 <p className="text-xs text-muted-foreground">
