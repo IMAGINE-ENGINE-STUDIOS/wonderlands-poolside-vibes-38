@@ -489,31 +489,45 @@ const PoolMesh: React.FC<{
   );
 };
 
-// NEW COPING: Simple rectangular frame around pool, like a deck section
-const CopingMesh: React.FC<{
+// UNIFIED DECK + COPING COMPONENT
+// Two separate meshes (coping and deck) that are always perfectly aligned
+const DeckCopingMesh: React.FC<{
   poolPoints: Point[];
+  hardscapePoints: HardscapePoint[];
   copingTextureUrl?: string;
+  paverTextureUrl?: string;
   selectedCategory?: string | null;
   copingTextureScale?: number;
   copingTextureOffset?: [number, number];
+  paverTextureScale?: number;
+  paverTextureOffset?: [number, number];
   copingHeight?: number;
   copingWidth?: number;
+  deckHeight?: number;
+  onSelectCategory?: (cat: string | null) => void;
 }> = ({ 
-  poolPoints, 
+  poolPoints,
+  hardscapePoints,
   copingTextureUrl, 
+  paverTextureUrl,
   selectedCategory, 
   copingTextureScale = 1.8, 
-  copingTextureOffset = [0, 0], 
+  copingTextureOffset = [0, 0],
+  paverTextureScale = 1.8,
+  paverTextureOffset = [0, 0],
   copingHeight = 2 / 12,
-  copingWidth = 1.0
+  copingWidth = 1.0,
+  deckHeight = 2 / 12,
+  onSelectCategory
 }) => {
   const [copingTexture, setCopingTexture] = useState<THREE.Texture | null>(null);
-  const [pulseIntensity, setPulseIntensity] = useState(0);
+  const [paverTexture, setPaverTexture] = useState<THREE.Texture | null>(null);
+  const [copingPulseIntensity, setCopingPulseIntensity] = useState(0);
+  const [deckPulseIntensity, setDeckPulseIntensity] = useState(0);
 
-  // Load texture with 1x1 ft base dimensions
+  // Load coping texture
   useEffect(() => {
     if (copingTextureUrl && copingTextureUrl !== '' && copingTextureUrl !== 'undefined') {
-      // 1ft x 1ft base scale
       const repeatX = 1.0 / copingTextureScale;
       const repeatY = 1.0 / copingTextureScale;
       
@@ -533,158 +547,9 @@ const CopingMesh: React.FC<{
     }
   }, [copingTextureUrl, copingTextureScale, copingTextureOffset]);
 
-  // Pulsing effect when selected
-  useEffect(() => {
-    if (selectedCategory !== 'coping') return;
-    
-    const interval = setInterval(() => {
-      setPulseIntensity(prev => prev >= 1 ? 0 : prev + 0.0125);
-    }, 50);
-    
-    return () => clearInterval(interval);
-  }, [selectedCategory]);
-
-  // Create coping as a simple horizontal rectangle frame
-  const copingGeometry = useMemo(() => {
-    if (poolPoints.length < 3) return new THREE.BoxGeometry(1, 0.1, 1);
-
-    const xs = poolPoints.map(p => p.x);
-    const ys = poolPoints.map(p => p.y);
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
-    const minY = Math.min(...ys);
-    const maxY = Math.max(...ys);
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
-    
-    const poolWidth = maxX - minX;
-    const poolLength = maxY - minY;
-
-    // Coping frame dimensions
-    const innerHalfWidth = poolWidth / 2;
-    const innerHalfLength = poolLength / 2;
-    const outerHalfWidth = innerHalfWidth + copingWidth;
-    const outerHalfLength = innerHalfLength + copingWidth;
-
-    // Create shape for coping (outer rectangle with inner hole)
-    const copingShape = new THREE.Shape();
-    
-    // Outer rectangle
-    copingShape.moveTo(-outerHalfWidth, -outerHalfLength);
-    copingShape.lineTo(outerHalfWidth, -outerHalfLength);
-    copingShape.lineTo(outerHalfWidth, outerHalfLength);
-    copingShape.lineTo(-outerHalfWidth, outerHalfLength);
-    copingShape.lineTo(-outerHalfWidth, -outerHalfLength);
-
-    // Inner hole EXACTLY matches pool dimensions (no gap with pool wall)
-    const hole = new THREE.Path();
-    hole.moveTo(-innerHalfWidth, -innerHalfLength);
-    hole.lineTo(-innerHalfWidth, innerHalfLength);
-    hole.lineTo(innerHalfWidth, innerHalfLength);
-    hole.lineTo(innerHalfWidth, -innerHalfLength);
-    hole.lineTo(-innerHalfWidth, -innerHalfLength);
-    copingShape.holes.push(hole);
-
-    // Extrude to create 3D geometry
-    const extrudeSettings = {
-      depth: copingHeight,
-      bevelEnabled: false
-    };
-
-    const geometry = new THREE.ExtrudeGeometry(copingShape, extrudeSettings);
-    
-    // Rotate to be horizontal (XZ plane)
-    geometry.rotateX(-Math.PI / 2);
-    
-    // Position coping: 1/3 inch (1/36 ft) above deck (y=0) to prevent overlap
-    // Bottom at 1/36, top at 1/36 + copingHeight
-    geometry.translate(0, 1/36, 0);
-
-    // Apply 1x1 ft UV mapping
-    const uvAttribute = geometry.getAttribute('uv');
-    if (uvAttribute) {
-      const positions = geometry.getAttribute('position');
-      const uvs = uvAttribute.array;
-      
-      for (let i = 0; i < positions.count; i++) {
-        const x = positions.getX(i);
-        const z = positions.getZ(i);
-        
-        // Map UVs based on world position (1 ft = 1 UV unit)
-        uvs[i * 2] = x;
-        uvs[i * 2 + 1] = z;
-      }
-      
-      uvAttribute.needsUpdate = true;
-    }
-    
-    geometry.computeVertexNormals();
-    return geometry;
-  }, [poolPoints, copingHeight, copingWidth]);
-
-  const isSelected = selectedCategory === 'coping';
-
-  return (
-    <mesh 
-      key={copingTexture?.uuid || 'coping-mesh'} 
-      geometry={copingGeometry} 
-      position={[0, 0, 0]}
-      onClick={(e) => {
-        e.stopPropagation();
-        // This makes coping selectable
-      }}
-    >
-      <meshStandardMaterial
-        map={copingTexture}
-        color="#ffffff"
-        roughness={0.8}
-        metalness={0.1}
-        emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
-        emissiveIntensity={pulseIntensity * 0.5}
-      />
-    </mesh>
-  );
-};
-
-const DeckMesh: React.FC<{
-  hardscapePoints: HardscapePoint[];
-  poolPoints: Point[];
-  features: PoolFeature[];
-  paverTextureUrl?: string;
-  selectedCategory?: string | null;
-  paverTextureScale?: number;
-  paverTextureOffset?: [number, number];
-  deckHeight?: number;
-  copingWidth?: number;
-  setSelectedComponent?: (comp: 'pool' | 'water' | 'deck' | null) => void;
-  showWireframe?: boolean;
-}> = ({
-  hardscapePoints, 
-  poolPoints, 
-  features, 
-  paverTextureUrl, 
-  selectedCategory, 
-  paverTextureScale = 1.8, 
-  paverTextureOffset = [0, 0], 
-  deckHeight = 2 / 12,
-  copingWidth = 1.0,
-  setSelectedComponent,
-  showWireframe = false
-}) => {
-  const [paverTexture, setPaverTexture] = useState<THREE.Texture | null>(null);
-  const [pulseIntensity, setPulseIntensity] = useState(0);
-
-  const deckDimensions = useMemo(() => {
-    const xs = hardscapePoints.map(p => p.x);
-    const ys = hardscapePoints.map(p => p.y);
-    const width = Math.max(...xs) - Math.min(...xs);
-    const length = Math.max(...ys) - Math.min(...ys);
-    return { width, length };
-  }, [hardscapePoints]);
-
+  // Load paver texture
   useEffect(() => {
     if (paverTextureUrl && paverTextureUrl !== '' && paverTextureUrl !== 'undefined') {
-      // 1ft x 1ft base scale
       const repeatX = 1.0 / paverTextureScale;
       const repeatY = 1.0 / paverTextureScale;
       
@@ -704,53 +569,137 @@ const DeckMesh: React.FC<{
     }
   }, [paverTextureUrl, paverTextureScale, paverTextureOffset]);
 
-  // Pulsing red effect when selected (8 second cycle)
+  // Pulsing effect for coping when selected
   useEffect(() => {
-    if (selectedCategory !== 'deck') return;
+    if (selectedCategory !== 'coping') return;
     
     const interval = setInterval(() => {
-      setPulseIntensity(prev => {
-        if (prev >= 1) return 0;
-        return prev + 0.0125; // 8 second cycle
-      });
+      setCopingPulseIntensity(prev => prev >= 1 ? 0 : prev + 0.0125);
     }, 50);
     
     return () => clearInterval(interval);
   }, [selectedCategory]);
 
+  // Pulsing effect for deck when selected
+  useEffect(() => {
+    if (selectedCategory !== 'deck') return;
+    
+    const interval = setInterval(() => {
+      setDeckPulseIntensity(prev => prev >= 1 ? 0 : prev + 0.0125);
+    }, 50);
+    
+    return () => clearInterval(interval);
+  }, [selectedCategory]);
+
+  // Calculate pool bounds (inner perimeter for water)
+  const poolBounds = useMemo(() => {
+    if (poolPoints.length < 3) return { minX: -10, maxX: 10, minY: -20, maxY: 20, width: 20, length: 40 };
+
+    const xs = poolPoints.map(p => p.x);
+    const ys = poolPoints.map(p => p.y);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    const width = maxX - minX;
+    const length = maxY - minY;
+
+    return { minX, maxX, minY, maxY, width, length };
+  }, [poolPoints]);
+
+  // COPING GEOMETRY - Inner edge matches pool exactly (no gap with water)
+  const copingGeometry = useMemo(() => {
+    const { width, length } = poolBounds;
+    
+    const innerHalfWidth = width / 2;
+    const innerHalfLength = length / 2;
+    const outerHalfWidth = innerHalfWidth + copingWidth;
+    const outerHalfLength = innerHalfLength + copingWidth;
+
+    // Create shape for coping (outer rectangle with inner hole)
+    const copingShape = new THREE.Shape();
+    
+    // Outer rectangle
+    copingShape.moveTo(-outerHalfWidth, -outerHalfLength);
+    copingShape.lineTo(outerHalfWidth, -outerHalfLength);
+    copingShape.lineTo(outerHalfWidth, outerHalfLength);
+    copingShape.lineTo(-outerHalfWidth, outerHalfLength);
+    copingShape.lineTo(-outerHalfWidth, -outerHalfLength);
+
+    // Inner hole EXACTLY matches pool dimensions - water fits perfectly inside
+    const hole = new THREE.Path();
+    hole.moveTo(-innerHalfWidth, -innerHalfLength);
+    hole.lineTo(-innerHalfWidth, innerHalfLength);
+    hole.lineTo(innerHalfWidth, innerHalfLength);
+    hole.lineTo(innerHalfWidth, -innerHalfLength);
+    hole.lineTo(-innerHalfWidth, -innerHalfLength);
+    copingShape.holes.push(hole);
+
+    // Extrude to create 3D geometry
+    const geometry = new THREE.ExtrudeGeometry(copingShape, {
+      depth: copingHeight,
+      bevelEnabled: false
+    });
+    
+    // Rotate to be horizontal (XZ plane)
+    geometry.rotateX(-Math.PI / 2);
+    
+    // Position at deck level (y = 0)
+    geometry.translate(0, 0, 0);
+
+    // Apply 1x1 ft UV mapping
+    const uvAttribute = geometry.getAttribute('uv');
+    if (uvAttribute) {
+      const positions = geometry.getAttribute('position');
+      const uvs = uvAttribute.array;
+      
+      for (let i = 0; i < positions.count; i++) {
+        const x = positions.getX(i);
+        const z = positions.getZ(i);
+        
+        uvs[i * 2] = x;
+        uvs[i * 2 + 1] = z;
+      }
+      
+      uvAttribute.needsUpdate = true;
+    }
+    
+    geometry.computeVertexNormals();
+    return geometry;
+  }, [poolBounds, copingHeight, copingWidth]);
+
+  // DECK GEOMETRY - Inner edge EXACTLY matches coping outer edge (no gap)
   const deckGeometry = useMemo(() => {
     if (hardscapePoints.length < 3) return null;
 
     try {
-      // Deck extends 3 feet (0.9144 meters) outward from coping outer edge
+      const { width, length } = poolBounds;
+      
+      // Deck extends 3 feet outward from coping
       const deckExtension = 0.9144;
       
-      // Coping outer edge bounds
-      const copingMinX = -10;
-      const copingMaxX = 10;
-      const copingMinY = -20;
-      const copingMaxY = 20;
+      // Coping outer edge (this is where deck starts)
+      const copingOuterHalfWidth = (width / 2) + copingWidth;
+      const copingOuterHalfLength = (length / 2) + copingWidth;
       
-      // Deck outer bounds (3ft beyond coping)
-      const deckMinX = copingMinX - deckExtension;
-      const deckMaxX = copingMaxX + deckExtension;
-      const deckMinY = copingMinY - deckExtension;
-      const deckMaxY = copingMaxY + deckExtension;
+      // Deck outer bounds
+      const deckOuterHalfWidth = copingOuterHalfWidth + deckExtension;
+      const deckOuterHalfLength = copingOuterHalfLength + deckExtension;
 
       // Create the outer boundary for the deck
       const outerShape = new THREE.Shape();
-      outerShape.moveTo(deckMinX, deckMinY);
-      outerShape.lineTo(deckMaxX, deckMinY);
-      outerShape.lineTo(deckMaxX, deckMaxY);
-      outerShape.lineTo(deckMinX, deckMaxY);
+      outerShape.moveTo(-deckOuterHalfWidth, -deckOuterHalfLength);
+      outerShape.lineTo(deckOuterHalfWidth, -deckOuterHalfLength);
+      outerShape.lineTo(deckOuterHalfWidth, deckOuterHalfLength);
+      outerShape.lineTo(-deckOuterHalfWidth, deckOuterHalfLength);
       outerShape.closePath();
 
-      // Create the inner hole matching coping outer edge
+      // Create hole that EXACTLY matches coping outer edge - no gap between coping and deck
       const copingHole = new THREE.Path();
-      copingHole.moveTo(copingMinX, copingMinY);
-      copingHole.lineTo(copingMaxX, copingMinY);
-      copingHole.lineTo(copingMaxX, copingMaxY);
-      copingHole.lineTo(copingMinX, copingMaxY);
+      copingHole.moveTo(-copingOuterHalfWidth, -copingOuterHalfLength);
+      copingHole.lineTo(copingOuterHalfWidth, -copingOuterHalfLength);
+      copingHole.lineTo(copingOuterHalfWidth, copingOuterHalfLength);
+      copingHole.lineTo(-copingOuterHalfWidth, copingOuterHalfLength);
       copingHole.closePath();
 
       outerShape.holes.push(copingHole);
@@ -762,7 +711,7 @@ const DeckMesh: React.FC<{
 
       geometry.rotateX(-Math.PI / 2);
 
-      // UV mapping for 1 sq ft tiles (0.3048m = 1ft)
+      // UV mapping for 1 sq ft tiles
       const positions = geometry.attributes.position;
       const uvs = new Float32Array(positions.count * 2);
       const tileSize = 0.3048; // 1 square foot in meters
@@ -776,31 +725,66 @@ const DeckMesh: React.FC<{
       }
       
       geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+      geometry.computeVertexNormals();
 
       return geometry;
     } catch (error) {
       console.error('Error creating deck geometry:', error);
       return null;
     }
-  }, [hardscapePoints, deckHeight]);
+  }, [poolBounds, hardscapePoints, deckHeight, copingWidth]);
 
-  if (!deckGeometry) return null;
-
-  const isSelected = selectedCategory === 'deck';
-  const redTint = isSelected ? Math.sin(pulseIntensity * Math.PI) : 0;
+  const isCopingSelected = selectedCategory === 'coping';
+  const isDeckSelected = selectedCategory === 'deck';
 
   return (
-    <mesh key={paverTexture?.uuid || 'no-paver-texture'} geometry={deckGeometry} position={[0, 0, 0]} receiveShadow castShadow>
-      <meshPhongMaterial
-        map={paverTexture}
-        color={paverTexture ? "#ffffff" : "#D4C4B0"}
-        shininess={20}
-        emissive={isSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
-        emissiveIntensity={pulseIntensity * 0.3}
-      />
-    </mesh>
+    <group>
+      {/* COPING MESH */}
+      <mesh 
+        key={copingTexture?.uuid || 'coping-mesh'} 
+        geometry={copingGeometry} 
+        position={[0, 0, 0]}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelectCategory?.('coping');
+        }}
+      >
+        <meshStandardMaterial
+          map={copingTexture}
+          color="#ffffff"
+          roughness={0.8}
+          metalness={0.1}
+          emissive={isCopingSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
+          emissiveIntensity={copingPulseIntensity * 0.5}
+        />
+      </mesh>
+
+      {/* DECK MESH */}
+      {deckGeometry && (
+        <mesh 
+          key={paverTexture?.uuid || 'deck-mesh'} 
+          geometry={deckGeometry} 
+          position={[0, 0, 0]} 
+          receiveShadow 
+          castShadow
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelectCategory?.('deck');
+          }}
+        >
+          <meshPhongMaterial
+            map={paverTexture}
+            color={paverTexture ? "#ffffff" : "#D4C4B0"}
+            shininess={20}
+            emissive={isDeckSelected ? new THREE.Color(1, 0, 0) : new THREE.Color(0, 0, 0)}
+            emissiveIntensity={deckPulseIntensity * 0.3}
+          />
+        </mesh>
+      )}
+    </group>
   );
 };
+
 
 const FenceMesh: React.FC<{
   fencePoints: FencePoint[];
@@ -1245,37 +1229,24 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         />
       </group>
 
-      {/* Deck */}
+      {/* Unified Deck + Coping (no gaps between them, water stays within coping) */}
       {hardscapePoints && hardscapePoints.length > 0 && (
-        <group onClick={() => onSelectCategory?.('deck')}>
-          <DeckMesh
-            hardscapePoints={hardscapePoints}
-            poolPoints={points}
-            features={features || []}
-            paverTextureUrl={normalizedPaverUrl}
-            selectedCategory={selectedCategory}
-            paverTextureScale={paverTextureScale}
-            paverTextureOffset={paverTextureOffset}
-            deckHeight={deckHeight}
-            copingWidth={copingWidth}
-            setSelectedComponent={setSelectedComponent}
-            showWireframe={showWireframe}
-          />
-        </group>
-      )}
-
-      {/* Coping */}
-      <group onClick={() => onSelectCategory?.('coping')}>
-        <CopingMesh
+        <DeckCopingMesh
           poolPoints={points}
+          hardscapePoints={hardscapePoints}
           copingTextureUrl={normalizedCopingUrl}
+          paverTextureUrl={normalizedPaverUrl}
           selectedCategory={selectedCategory}
           copingTextureScale={copingTextureScale}
           copingTextureOffset={copingTextureOffset}
+          paverTextureScale={paverTextureScale}
+          paverTextureOffset={paverTextureOffset}
           copingHeight={copingHeight}
           copingWidth={copingWidth}
+          deckHeight={deckHeight}
+          onSelectCategory={onSelectCategory}
         />
-      </group>
+      )}
 
       {/* Waterline Tile */}
       <group onClick={() => onSelectCategory?.('waterline')}>
