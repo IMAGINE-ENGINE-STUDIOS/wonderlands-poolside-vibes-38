@@ -922,7 +922,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
                   {linerOptions.map((liner) => (
-                    <CarouselItem key={liner.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                    <CarouselItem key={liner.name} className="pl-1 basis-1/2">
                       <div
                         className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.linerOption === liner.name ? "border-primary bg-primary/10" : "border-border"}`}
                         onClick={() =>
@@ -962,8 +962,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
+                <CarouselPrevious className="left-0 animate-pulse" />
+                <CarouselNext className="right-0 animate-pulse" />
               </Carousel>
             </div>
 
@@ -991,7 +991,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
                   {paverOptions.map((paver) => (
-                    <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                    <CarouselItem key={paver.name} className="pl-1 basis-1/2">
                       <div
                         className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.paverOption === paver.name ? "border-primary bg-primary/10" : "border-border"}`}
                         onClick={() =>
@@ -1021,8 +1021,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="left-0" />
-                <CarouselNext className="right-0" />
+                <CarouselPrevious className="left-0 animate-pulse" />
+                <CarouselNext className="right-0 animate-pulse" />
               </Carousel>
             </div>
 
@@ -1427,7 +1427,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                     <Carousel className="w-full">
                       <CarouselContent className="-ml-1">
                         {tileOptions.map((tile) => (
-                          <CarouselItem key={tile.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                          <CarouselItem key={tile.name} className="pl-1 basis-1/2">
                             <div
                               className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tileOption === tile.name ? "border-primary bg-primary/10" : "border-border"}`}
                               onClick={() =>
@@ -1457,8 +1457,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                           </CarouselItem>
                         ))}
                       </CarouselContent>
-                      <CarouselPrevious className="left-0" />
-                      <CarouselNext className="right-0" />
+                        <CarouselPrevious className="left-0 animate-pulse" />
+                        <CarouselNext className="right-0 animate-pulse" />
                     </Carousel>
                   </div>
                 )}
