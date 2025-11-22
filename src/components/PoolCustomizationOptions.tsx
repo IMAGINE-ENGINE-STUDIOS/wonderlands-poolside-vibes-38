@@ -80,46 +80,47 @@ const poolOptions: PoolOption[] = [
   })),
   
   // Real Pool Heating Options
+  // Pool Heaters - Pentair only with 15% increase
   { 
-    id: 'heat-pump-eco', 
-    name: 'Heat Pump - Eco Series', 
-    description: 'Energy-efficient heat pump, ideal for mild climates',
-    price: 4500, 
+    id: 'pentair-mt125', 
+    name: 'Pentair MasterTemp 125 (125K BTU)', 
+    description: 'Compact high-efficiency gas heater for pools up to 15,000 gallons',
+    price: 2300, 
     category: 'heating' 
   },
   { 
-    id: 'heat-pump-pro', 
-    name: 'Heat Pump - Pro Series', 
-    description: 'Professional grade heat pump with advanced controls',
-    price: 5500, 
+    id: 'pentair-mt250', 
+    name: 'Pentair MasterTemp 250 (250K BTU)', 
+    description: 'Mid-size high-performance gas heater for medium pools',
+    price: 3680, 
     category: 'heating' 
   },
   { 
-    id: 'heat-gas-standard', 
-    name: 'Gas Heater - Standard', 
-    description: 'Traditional gas heater for quick heating',
-    price: 3200, 
+    id: 'pentair-mt400', 
+    name: 'Pentair MasterTemp 400 (400K BTU)', 
+    description: 'High-capacity gas heater for large pools and quick heating',
+    price: 4830, 
     category: 'heating' 
   },
   { 
-    id: 'heat-gas-efficiency', 
-    name: 'Gas Heater - High Efficiency', 
-    description: 'High-efficiency gas heater with digital controls',
-    price: 4200, 
+    id: 'pentair-ut90', 
+    name: 'Pentair UltraTemp 90 Heat Pump', 
+    description: 'Energy-efficient heat pump for pools up to 20,000 gallons',
+    price: 5175, 
     category: 'heating' 
   },
   { 
-    id: 'heat-solar-basic', 
-    name: 'Solar Heater - Basic', 
-    description: 'Eco-friendly solar heating system',
-    price: 2800, 
+    id: 'pentair-ut110', 
+    name: 'Pentair UltraTemp 110 Heat Pump', 
+    description: 'High-efficiency heat pump for medium to large pools',
+    price: 6325, 
     category: 'heating' 
   },
   { 
-    id: 'heat-solar-premium', 
-    name: 'Solar Heater - Premium', 
-    description: 'Advanced solar system with backup heating',
-    price: 3800, 
+    id: 'pentair-ut140', 
+    name: 'Pentair UltraTemp 140 Heat Pump', 
+    description: 'Premium heat pump for large pools with maximum efficiency',
+    price: 7475, 
     category: 'heating' 
   },
   

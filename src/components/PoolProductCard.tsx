@@ -46,6 +46,7 @@ import lagoonBlueFinish from "@/assets/finishes/lagoon-blue-g2.jpg";
 import azureBlueFinish from "@/assets/finishes/azure-blue-g2.jpg";
 import coastalBronzeFinish from "@/assets/finishes/coastal-bronze-g3.jpg";
 import shaleGrayFinish from "@/assets/finishes/shale-gray-g3.jpg";
+import noCoverBlack from "@/assets/no-cover-black.png";
 
 // Helper function to get pool price with 10% discount applied
 const getPoolPrice = (pool: Pool) => {
@@ -162,46 +163,40 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
   // Pool heater options
   const poolHeaters = [
     {
-      name: "Heat Pump - Eco Series",
-      price: 4500,
+      name: "Pentair MasterTemp 125 (125K BTU)",
+      price: 2300,
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-      description: "Energy-efficient heat pump, ideal for mild climates",
+      description: "Compact high-efficiency gas heater for pools up to 15,000 gallons",
     },
     {
-      name: "Heat Pump - Pro Series",
-      price: 5500,
+      name: "Pentair MasterTemp 250 (250K BTU)",
+      price: 3680,
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-      description: "Professional grade heat pump with advanced controls",
+      description: "Mid-size high-performance gas heater for medium pools",
     },
     {
-      name: "Heat/Cool Pump 127K BTU 230V Pentair Ultratemp",
-      price: 8000,
+      name: "Pentair MasterTemp 400 (400K BTU)",
+      price: 4830,
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-      description: "High-capacity heat/cool pump for year-round comfort",
+      description: "High-capacity gas heater for large pools and quick heating",
     },
     {
-      name: "Gas Heater - Standard",
-      price: 3200,
+      name: "Pentair UltraTemp 90 Heat Pump",
+      price: 5175,
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-      description: "Traditional gas heater for quick heating",
+      description: "Energy-efficient heat pump for pools up to 20,000 gallons",
     },
     {
-      name: "Gas Heater - High Efficiency",
-      price: 4200,
+      name: "Pentair UltraTemp 110 Heat Pump",
+      price: 6325,
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-      description: "High-efficiency gas heater with digital controls",
+      description: "High-efficiency heat pump for medium to large pools",
     },
     {
-      name: "Solar Heater - Basic",
-      price: 2800,
+      name: "Pentair UltraTemp 140 Heat Pump",
+      price: 7475,
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-      description: "Eco-friendly solar heating system",
-    },
-    {
-      name: "Solar Heater - Premium",
-      price: 3800,
-      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-      description: "Advanced solar system with backup heating",
+      description: "Premium heat pump for large pools with maximum efficiency",
     },
   ];
 
@@ -227,7 +222,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
 
   // Cover options - using real automatic covers
   const coverOptions = [
-    { name: "NO COVER", surname: "None", color: "#808080", price: 0, image: shaleGrayFinish, category: "cover", description: "No pool cover needed", colors: [] },
+    { name: "NO COVER", surname: "None", color: "#808080", price: 0, image: noCoverBlack, category: "cover", description: "No pool cover needed", colors: [] },
     { 
       name: "Eclipse Automatic Cover", 
       surname: "Eclipse", 

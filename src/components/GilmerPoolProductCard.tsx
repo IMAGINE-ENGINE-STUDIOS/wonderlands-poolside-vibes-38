@@ -119,12 +119,12 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
 
   // Pool heater options
   const heaterOptions = [
-    { name: 'Pentair MasterTemp 125 (125K BTU)', price: 2000 },
-    { name: 'Pentair MasterTemp 250 (250K BTU)', price: 3200 },
-    { name: 'Pentair MasterTemp 400 (400K BTU)', price: 4200 },
-    { name: 'Pentair UltraTemp 90 Heat Pump', price: 4500 },
-    { name: 'Pentair UltraTemp 110 Heat Pump', price: 5500 },
-    { name: 'Pentair UltraTemp 140 Heat Pump', price: 6500 }
+    { name: 'Pentair MasterTemp 125 (125K BTU)', price: 2300 },
+    { name: 'Pentair MasterTemp 250 (250K BTU)', price: 3680 },
+    { name: 'Pentair MasterTemp 400 (400K BTU)', price: 4830 },
+    { name: 'Pentair UltraTemp 90 Heat Pump', price: 5175 },
+    { name: 'Pentair UltraTemp 110 Heat Pump', price: 6325 },
+    { name: 'Pentair UltraTemp 140 Heat Pump', price: 7475 }
   ];
 
   // Pool cover options

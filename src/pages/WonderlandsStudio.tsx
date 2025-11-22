@@ -33,6 +33,7 @@ import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
 import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
+import noCoverBlack from '@/assets/no-cover-black.png';
 import ProductMediaGallery, { MediaItem } from '@/components/ProductMediaGallery';
 import { getProductFeatures, getDefaultExtras, calculateFeaturePrice, type ProductType } from '@/config/productFeatures';
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
@@ -141,27 +142,27 @@ const finishOptions = poolFinishesData.map(finish => ({
 // Pool heaters with models - Pentair only
 const poolHeaters = [{
   name: 'Pentair MasterTemp 125 (125K BTU)',
-  price: 2000,
+  price: 2300,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
   name: 'Pentair MasterTemp 250 (250K BTU)',
-  price: 3200,
+  price: 3680,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
   name: 'Pentair MasterTemp 400 (400K BTU)',
-  price: 4200,
+  price: 4830,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
   name: 'Pentair UltraTemp 90 Heat Pump',
-  price: 4500,
+  price: 5175,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
   name: 'Pentair UltraTemp 110 Heat Pump',
-  price: 5500,
+  price: 6325,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
   name: 'Pentair UltraTemp 140 Heat Pump',
-  price: 6500,
+  price: 7475,
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }];
 

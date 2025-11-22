@@ -3,6 +3,7 @@ import { paverTypes } from '@/data/paverData';
 import { getProductsByCategory } from '@/data/consolidatedProducts';
 import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
+import noCoverBlack from '@/assets/no-cover-black.png';
 
 // Product type definitions
 export type ProductType = 'pool' | 'spa' | 'sauna' | 'tanning-ledge' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate' | 'scene';
@@ -64,22 +65,22 @@ const spas: FeatureOption[] = [
 ];
 
 const poolHeaters: FeatureOption[] = [
-  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 2000, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair MasterTemp 250 (250K BTU)', price: 3200, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair MasterTemp 400 (400K BTU)', price: 4200, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair UltraTemp 90 Heat Pump', price: 4500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair UltraTemp 110 Heat Pump', price: 5500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair UltraTemp 140 Heat Pump', price: 6500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" }
+  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 2300, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair MasterTemp 250 (250K BTU)', price: 3680, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair MasterTemp 400 (400K BTU)', price: 4830, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair UltraTemp 90 Heat Pump', price: 5175, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair UltraTemp 110 Heat Pump', price: 6325, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair UltraTemp 140 Heat Pump', price: 7475, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" }
 ];
 
 const spaHeaters: FeatureOption[] = [
-  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 2000, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
-  { name: 'Pentair UltraTemp 90 Heat Pump', price: 4500, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" }
+  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 2300, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" },
+  { name: 'Pentair UltraTemp 90 Heat Pump', price: 5175, image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png" }
 ];
 
 const ledgeHeaters: FeatureOption[] = [
-  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 2000, image: azureBlueFinish },
-  { name: 'Pentair UltraTemp 90 Heat Pump', price: 4500, image: azureBlueFinish }
+  { name: 'Pentair MasterTemp 125 (125K BTU)', price: 2300, image: azureBlueFinish },
+  { name: 'Pentair UltraTemp 90 Heat Pump', price: 5175, image: azureBlueFinish }
 ];
 
 const finishOptions: FeatureOption[] = getProductsByCategory('finish').map(finish => ({
@@ -116,7 +117,7 @@ const tileOptions: FeatureOption[] = [
 ];
 
 const coverOptions: FeatureOption[] = [
-  { name: 'NO COVER', price: 0, image: shaleGrayFinish },
+  { name: 'NO COVER', price: 0, image: noCoverBlack },
   { name: 'Eclipse Automatic Cover', price: 16000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png' },
   { name: 'CS3000 Safety Cover', price: 24000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png' },
   { name: 'Infinity 4000 Smart Cover', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png' },

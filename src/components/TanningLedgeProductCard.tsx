@@ -81,20 +81,15 @@ const getExtraPrice = (extra: string) => {
 
 // Tanning ledge heater options
 const ledgeHeaters = [{
-  name: 'Compact Heat Pump',
-  price: 2800,
-  image: azureBlueFinish,
-  description: 'Compact heat pump for tanning ledges'
+  name: 'Pentair MasterTemp 125 (125K BTU)',
+  price: 2300,
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  description: 'Compact high-efficiency gas heater'
 }, {
-  name: 'Solar Heater',
-  price: 2200,
-  image: lagoonBlueFinish,
-  description: 'Eco-friendly solar heating'
-}, {
-  name: 'Electric Heater',
-  price: 1800,
-  image: sapphireBlueFinish,
-  description: 'Electric heating element'
+  name: 'Pentair UltraTemp 90 Heat Pump',
+  price: 5175,
+  image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png',
+  description: 'Energy-efficient heat pump for tanning ledges'
 }];
 
 // Import pool finishes from consolidated products
