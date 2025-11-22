@@ -202,7 +202,7 @@ export function PoolSplineEditor({
       {/* Main spline curve */}
       <line>
         <primitive object={lineGeometry} attach="geometry" />
-        <lineBasicMaterial color={color} linewidth={lineWidth} />
+        <lineBasicMaterial color={color} />
       </line>
 
       {/* Thicker invisible line for easier segment hovering */}
@@ -223,7 +223,6 @@ export function PoolSplineEditor({
             <primitive object={segmentGeometry} attach="geometry" />
             <lineBasicMaterial 
               color={hoverSegment === index ? '#ffff00' : color} 
-              linewidth={hoverSegment === index ? 8 : 6}
               transparent
               opacity={0.3}
             />
@@ -295,7 +294,7 @@ export function PoolSplineEditor({
                   itemSize={3}
                 />
               </bufferGeometry>
-              <lineBasicMaterial color={pointColor} linewidth={2} opacity={0.7} transparent />
+              <lineBasicMaterial color={pointColor} opacity={0.7} transparent />
             </line>
             
             {/* Surface marker */}

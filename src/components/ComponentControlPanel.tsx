@@ -54,17 +54,21 @@ export function ComponentControlPanel({
     
     return textureLibrary.finishes.filter(finish => {
       if (isWonderlandsWorld) {
-        // Wonderlands World concrete pools: Only Mini Pebbles collection (no Crystite)
-        return finish.name.includes('Mini Pebbles') || 
-               finish.name.includes('Tahoe') || 
-               finish.name.includes('Tropics') ||
-               finish.name.includes('Pacific') ||
-               finish.name.includes('Caribbean Sands') ||
-               finish.name.includes('Moonlight') ||
-               finish.name.includes('Onyx');
+        // Wonderlands World concrete pools: ALL Mini Pebbles finishes (Tahoe Blue, Tropics, Pacific Blue, Caribbean Sands, Moonlight, Onyx)
+        // Plus any non-Crystite finishes
+        return (finish.name.includes('Mini Pebbles') || 
+                finish.name.includes('Tahoe') || 
+                finish.name.includes('Tropics') ||
+                finish.name.includes('Pacific') ||
+                finish.name.includes('Caribbean') ||
+                finish.name.includes('Moonlight') ||
+                finish.name.includes('Onyx')) &&
+               !finish.name.includes('Crystal') &&
+               !finish.name.includes('Crystite');
       } else if (isLatham) {
-        // Latham fiberglass pools: Only Crystite Crystal collection
+        // Latham fiberglass pools: ALL Crystite Crystal collection finishes
         return finish.name.includes('Crystal') || 
+               finish.name.includes('Crystite') ||
                finish.name.includes('Sapphire') ||
                finish.name.includes('Ocean') ||
                finish.name.includes('Night Sky') ||
@@ -74,8 +78,9 @@ export function ComponentControlPanel({
       } else {
         // Other pools: Show all non-exclusive finishes (no Crystite, no Mini Pebbles)
         return !finish.name.includes('Crystal') && 
+               !finish.name.includes('Crystite') &&
                !finish.name.includes('Mini Pebbles') &&
-               !finish.name.includes('Tahoe') &&
+               !finish.name.includes('Tahoe Blue') &&
                !finish.name.includes('Tropics');
       }
     });
