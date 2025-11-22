@@ -2000,21 +2000,23 @@ const WonderlandsStudio = () => {
                           </div>
                         </div>
 
-                        {/* Concrete Construction */}
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-foreground">Concrete Construction</h4>
-                            <Checkbox
-                              checked={selectedExtras.concreteConstruction}
-                              onCheckedChange={() =>
-                                setSelectedExtras((prev: any) => ({
-                                  ...prev,
-                                  concreteConstruction: !prev.concreteConstruction,
-                                }))
-                              }
-                            />
+                        {/* Concrete Construction - Hidden for Wonderlands World pools */}
+                        {!["Madre Perla", "Pacific Ridge", "Winderview", "Maxima"].includes(selectedProduct?.model || "") && (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-semibold text-foreground">Concrete Construction</h4>
+                              <Checkbox
+                                checked={selectedExtras.concreteConstruction}
+                                onCheckedChange={() =>
+                                  setSelectedExtras((prev: any) => ({
+                                    ...prev,
+                                    concreteConstruction: !prev.concreteConstruction,
+                                  }))
+                                }
+                              />
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </>
                     )}
 
