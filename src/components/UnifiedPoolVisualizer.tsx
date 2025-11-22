@@ -12,6 +12,7 @@ import { GridLabels } from './GridLabels';
 import { AssetManager, Asset3DRenderer } from './AssetManager';
 import { PoolSplineEditor, SplinePoint } from './scene3d/PoolSplineEditor';
 import { SplineLegend } from './SplineLegend';
+import { ComponentControlPanel } from './ComponentControlPanel';
 import { Button } from './ui/button';
 import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3 } from 'lucide-react';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
@@ -86,6 +87,7 @@ export function UnifiedPoolVisualizer({
   }, [reset]);
   const [selectedObject, setSelectedObject] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedComponent, setSelectedComponent] = useState<'pool' | 'deck' | 'coping' | 'waterline' | null>(null);
   const [transformMode, setTransformMode] = useState<TransformMode>('translate');
   const [cameraPreset, setCameraPreset] = useState<CameraPreset | null>(null);
   const [autoRotate, setAutoRotate] = useState(false);
@@ -586,6 +588,21 @@ export function UnifiedPoolVisualizer({
            {(enablePoolSplineEdit || enableDeckSplineEdit) && <SplineLegend />}
          </div>
 
+         {/* Component-Specific Control Panel */}
+         <ComponentControlPanel
+           selectedComponent={selectedComponent}
+           scene={scene}
+           onClose={() => {
+             setSelectedComponent(null);
+             setSelectedCategory(null);
+           }}
+           onSceneChange={setScene}
+           textureLibrary={textureLibrary}
+           poolCategory={new URLSearchParams(window.location.search).get('category') || 'deluxe'}
+           deckWidth={deckWidth}
+           onDeckWidthChange={setDeckWidth}
+         />
+
         <Scene3DErrorBoundary scene={scene} onRecover={handleSceneRecover}>
           <Suspense fallback={
             <div className="absolute inset-0 flex items-center justify-center bg-background/95">
@@ -645,7 +662,11 @@ export function UnifiedPoolVisualizer({
           
           {/* Pool walls, floor, coping, and waterline centered at world origin */}
           <group ref={poolGroupRef} position={[0, 0, 0]} key={`pool-${scene.pool.position.join('-')}`}>
-            <group onClick={() => setSelectedCategory('pool')}>
+            <group onClick={(e) => {
+              e.stopPropagation();
+              setSelectedCategory('pool');
+              setSelectedComponent('pool');
+            }}>
               <Pool3DScene
                 points={scene.pool.points}
                 depthPoints={scene.pool.depthPoints}
@@ -662,6 +683,7 @@ export function UnifiedPoolVisualizer({
                 poolDimensions={scene.pool.dimensions}
                 selectedCategory={selectedCategory}
                 onSelectCategory={setSelectedCategory}
+                onSelectComponent={setSelectedComponent}
                 fenceHeight={fenceHeight}
                 paverTextureScale={1.8}
                 copingTextureScale={scene.deck.coping.scale || 1.8}
@@ -738,7 +760,11 @@ export function UnifiedPoolVisualizer({
 
           {/* Deck only - attached to coping, NO pool mesh */}
           {scene.deck.points && scene.deck.points.length > 0 && (
-            <group position={[0, 0, 0]} onClick={() => setSelectedCategory('deck')}>
+            <group position={[0, 0, 0]} onClick={(e) => {
+              e.stopPropagation();
+              setSelectedCategory('deck');
+              setSelectedComponent('deck');
+            }}>
               <Pool3DScene
                 points={[]} // Empty points = no pool mesh rendered
                 depthPoints={[]} // No pool walls/floor in this group
@@ -761,6 +787,7 @@ export function UnifiedPoolVisualizer({
                 poolDimensions={scene.pool.dimensions}
                 selectedCategory={selectedCategory}
                 onSelectCategory={setSelectedCategory}
+                onSelectComponent={setSelectedComponent}
                 fenceHeight={fenceHeight}
                 paverTextureScale={scene.deck.paver.scale || 1.8}
                 copingTextureScale={1.8}

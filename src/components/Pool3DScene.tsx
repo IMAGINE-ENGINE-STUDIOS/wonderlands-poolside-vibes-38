@@ -68,6 +68,7 @@ export interface Pool3DSceneProps {
   poolDimensions?: { length: number; width: number; depth: number };
   selectedCategory?: string | null;
   onSelectCategory?: (category: string | null) => void;
+  onSelectComponent?: (component: 'pool' | 'deck' | 'coping' | 'waterline' | null) => void;
   fenceHeight?: number;
   paverTextureScale?: number;
   copingTextureScale?: number;
@@ -507,6 +508,7 @@ const DeckCopingMesh: React.FC<{
   deckHeight?: number;
   deckWidth?: number;
   onSelectCategory?: (cat: string | null) => void;
+  onSelectComponent?: (component: 'deck' | 'coping' | null) => void;
 }> = ({
   poolPoints,
   hardscapePoints,
@@ -521,7 +523,8 @@ const DeckCopingMesh: React.FC<{
   copingWidth = 1.0,
   deckHeight = 2 / 12,
   deckWidth = 3, // Default 3 feet
-  onSelectCategory
+  onSelectCategory,
+  onSelectComponent
 }) => {
   const [copingTexture, setCopingTexture] = useState<THREE.Texture | null>(null);
   const [paverTexture, setPaverTexture] = useState<THREE.Texture | null>(null);
@@ -750,6 +753,7 @@ const DeckCopingMesh: React.FC<{
         onClick={(e) => {
           e.stopPropagation();
           onSelectCategory?.('coping');
+          onSelectComponent?.('coping');
         }}
       >
         <meshStandardMaterial
@@ -773,6 +777,7 @@ const DeckCopingMesh: React.FC<{
           onClick={(e) => {
             e.stopPropagation();
             onSelectCategory?.('deck');
+            onSelectComponent?.('deck');
           }}
         >
           <meshPhongMaterial
@@ -1073,6 +1078,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   poolDimensions,
   selectedCategory,
   onSelectCategory,
+  onSelectComponent,
   fenceHeight = 6,
   paverTextureScale = 1.8,
   copingTextureScale = 1.8,
@@ -1250,11 +1256,16 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           deckHeight={deckHeight}
           deckWidth={deckWidth}
           onSelectCategory={onSelectCategory}
+          onSelectComponent={onSelectComponent}
         />
       )}
 
       {/* Waterline Tile */}
-      <group onClick={() => onSelectCategory?.('waterline')}>
+      <group onClick={(e) => {
+        e.stopPropagation();
+        onSelectCategory?.('waterline');
+        onSelectComponent?.('waterline');
+      }}>
         <WaterlineMesh
           poolPoints={points}
           waterlineTextureUrl={normalizedWaterlineUrl}
