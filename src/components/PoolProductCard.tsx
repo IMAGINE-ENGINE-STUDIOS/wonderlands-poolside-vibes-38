@@ -53,6 +53,7 @@ interface Pool {
   finishes?: string[];
   liners?: string[];
   covers?: string[];
+  type?: string; // Pool type: "Fiber Pool" or "Concrete Pool"
 }
 interface PoolProductCardProps {
   pool: Pool;
@@ -127,17 +128,30 @@ const getExtraPrice = (extra: string) => {
 // Import pool finishes from consolidated products
 import { getProductsByCategory } from '@/data/consolidatedProducts';
 
-// Convert pool finishes data to finish options format
-const finishOptions = getProductsByCategory('finish').map(finish => ({
-  name: finish.name,
-  color: '#4169E1',
-  // fallback color
-  image: finish.image,
-  price: finish.price,
-  collection: finish.collection,
-  category: finish.category,
-  description: finish.description
-}));
+// Helper to get finish options based on pool type
+const getFinishOptionsForPool = (poolType?: string) => {
+  const isConcretePool = poolType === "Concrete Pool";
+  const allFinishes = getProductsByCategory('finish');
+  
+  // Filter finishes: concrete pools get mini pebble, fiberglass pools get standard
+  const filteredFinishes = allFinishes.filter(finish => {
+    if (isConcretePool) {
+      return finish.type === "Concrete Pool";
+    } else {
+      return finish.type === "Fiber Pool";
+    }
+  });
+  
+  return filteredFinishes.map(finish => ({
+    name: finish.name,
+    color: '#4169E1',
+    image: finish.image,
+    price: finish.price,
+    collection: finish.collection,
+    category: finish.category,
+    description: finish.description
+  }));
+};
 
 // Import pool liners from PoolCatalog
 import { poolLiners, poolTiles } from '@/data/poolData';
@@ -391,6 +405,10 @@ const PoolProductCard = ({
   const [showQuoteTool, setShowQuoteTool] = useState(false);
   const [currentPoolImage, setCurrentPoolImage] = useState(pool.image);
   const [isEditable, setIsEditable] = useState(isAdmin);
+  
+  // Get finish options based on pool type
+  const finishOptions = getFinishOptionsForPool(pool.type);
+  
   const [extras, setExtras] = useState<PoolExtras>({
     liner: false,
     heater: false,
