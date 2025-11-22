@@ -236,28 +236,26 @@ export function UnifiedPoolVisualizer({
   };
 
   const handleCenterCamera = () => {
-    if (!selectedObject) return;
+    // Reset camera to default isometric view centered on pool
+    const target: [number, number, number] = [0, 0, 0];
+    const position: [number, number, number] = [30, 25, 30];
     
-    // Calculate target based on selected object
-    let target: [number, number, number] = [0, 0, 0];
-    
-    if (selectedObject === 'pool' && scene.pool.dimensions) {
-      target = [
-        scene.pool.dimensions.width / 2,
-        0,
-        scene.pool.dimensions.length / 2
-      ];
+    // Update camera via controls ref
+    if (controlsRef.current) {
+      controlsRef.current.target.set(target[0], target[1], target[2]);
+      controlsRef.current.object.position.set(position[0], position[1], position[2]);
+      controlsRef.current.update();
     }
     
     setScene({
       ...scene,
       camera: {
-        position: [target[0] + 20, target[1] + 20, target[2] + 20],
+        position,
         target
       }
     });
     
-    setCameraPreset('isometric');
+    setCameraPreset(null);
   };
 
   const handleAddAnnotation = (text: string, price?: number) => {
@@ -518,189 +516,71 @@ export function UnifiedPoolVisualizer({
           </button>
         </div>
 
-        {/* Scene Controls Dashboard - Inside 3D Viewer with Arrow Toggle */}
-        <div className={`absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg shadow-lg z-10 transition-all duration-300 ${
-          controllerCollapsed ? 'w-auto' : 'max-w-xs'
+        {/* Full Scene Control Panel - Inside 3D Viewer */}
+        <div className={`absolute top-4 right-4 bg-background/95 backdrop-blur-sm rounded-lg shadow-2xl z-20 transition-all duration-300 ${
+          controllerCollapsed ? 'w-auto' : 'w-80 max-h-[90vh] overflow-y-auto'
         }`}>
-          {/* Collapse/Expand Toggle - Arrow Button */}
+          {/* Collapse/Expand Toggle */}
           {controllerCollapsed ? (
             <button
               onClick={() => setControllerCollapsed(false)}
               className="p-3 bg-background rounded-lg shadow-lg hover:bg-muted transition-colors"
-              title="Expand Controls"
+              title="Expand Scene Controls"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
           ) : (
-            <button
-              onClick={() => setControllerCollapsed(true)}
-              className="absolute -right-3 top-4 bg-background rounded-full p-1 shadow-lg hover:bg-muted transition-colors"
-              title="Collapse Controls"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-          )}
-
-          {!controllerCollapsed && (
-            <div className="p-4 space-y-3">
-              <h3 className="text-sm font-semibold mb-2">Pool Transform Controls</h3>
-          
-              {/* Pool Transform Mode Toggle */}
-              <div className="flex items-center justify-between">
-                <label className="text-xs">Move Pool</label>
-                <button
-                  onClick={() => setPoolTransformMode(!poolTransformMode)}
-                  className={`p-2 rounded transition-colors ${
-                    poolTransformMode ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                  }`}
-                  title="Toggle Pool Transform Mode"
-                >
-                  <Move className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Step Size Control */}
-              <div className="space-y-2">
-                <label className="text-xs">Movement Step Size</label>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => setTransformStepSize(0.00833)} // 0.1 inch (millimeter precision)
-                    className={`px-2 py-1 text-xs rounded ${transformStepSize === 0.00833 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
-                  >
-                    0.1"
-                  </button>
-                  <button
-                    onClick={() => setTransformStepSize(0.0833)} // 1 inch
-                    className={`px-2 py-1 text-xs rounded ${transformStepSize === 0.0833 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
-                  >
-                    1"
-                  </button>
-                  <button
-                    onClick={() => setTransformStepSize(1)} // 1 foot
-                    className={`px-2 py-1 text-xs rounded ${transformStepSize === 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
-                  >
-                    1ft
-                  </button>
-                </div>
-              </div>
-
-              {/* Position Controls */}
-              {poolTransformMode && (
-                <div className="space-y-2 pt-2 border-t">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-xs font-medium">Position (X, Y, Z)</div>
-                    <button
-                      onClick={handleResetPosition}
-                      className="px-2 py-1 bg-destructive/10 hover:bg-destructive/20 text-destructive text-xs rounded"
-                    >
-                      Reset
-                    </button>
-                  </div>
-                  
-                  <div className="text-xs text-muted-foreground mb-1">
-                    Use arrows (↑↓←→), Q (down), E (up)
-                  </div>
-                  
-                  {/* X Axis */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs w-4">X:</span>
-                    <button
-                      onClick={() => handlePoolPositionChange('x', -1)}
-                      className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
-                    >
-                      -
-                    </button>
-                    <input
-                      type="number"
-                      value={scene.pool.position[0].toFixed(3)}
-                      onChange={(e) => handleDirectPositionInput('x', e.target.value)}
-                      className="flex-1 text-center text-xs bg-background border rounded px-1 py-1"
-                      step={transformStepSize}
-                    />
-                    <button
-                      onClick={() => handlePoolPositionChange('x', 1)}
-                      className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  {/* Y Axis (Elevation) */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs w-4">Y:</span>
-                    <button
-                      onClick={() => handlePoolPositionChange('y', -1)}
-                      className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
-                    >
-                      -
-                    </button>
-                    <input
-                      type="number"
-                      value={scene.pool.position[1].toFixed(3)}
-                      onChange={(e) => handleDirectPositionInput('y', e.target.value)}
-                      className="flex-1 text-center text-xs bg-background border rounded px-1 py-1"
-                      step={transformStepSize}
-                    />
-                    <button
-                      onClick={() => handlePoolPositionChange('y', 1)}
-                      className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  {/* Z Axis */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs w-4">Z:</span>
-                    <button
-                      onClick={() => handlePoolPositionChange('z', -1)}
-                      className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
-                    >
-                      -
-                    </button>
-                    <input
-                      type="number"
-                      value={scene.pool.position[2].toFixed(3)}
-                      onChange={(e) => handleDirectPositionInput('z', e.target.value)}
-                      className="flex-1 text-center text-xs bg-background border rounded px-1 py-1"
-                      step={transformStepSize}
-                    />
-                    <button
-                      onClick={() => handlePoolPositionChange('z', 1)}
-                      className="px-2 py-1 bg-muted hover:bg-muted/80 rounded text-xs"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Measurements Toggle */}
-              <div className="pt-2 border-t flex items-center gap-2">
-                <Checkbox
-                  id="show-measurements"
-                  checked={showMeasurements}
-                  onCheckedChange={(checked) => setShowMeasurements(checked as boolean)}
-                />
-                <label htmlFor="show-measurements" className="text-xs cursor-pointer">
-                  Show Distance Measurements
-                </label>
-              </div>
-
-              {/* Grid Toggle */}
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="show-grid"
-                  checked={showGrid}
-                  onCheckedChange={(checked) => setShowGrid(checked as boolean)}
-                />
-                <label htmlFor="show-grid" className="text-xs cursor-pointer">
-                  Show Grid Labels
-                </label>
-              </div>
-            </div>
+            <>
+              <button
+                onClick={() => setControllerCollapsed(true)}
+                className="absolute -left-3 top-4 bg-background rounded-full p-1 shadow-lg hover:bg-muted transition-colors z-10"
+                title="Collapse Controls"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              
+              {/* Scene3DControlPanel integrated inside */}
+              <Scene3DControlPanel
+                scene={scene}
+                selectedObject={selectedObject}
+                selectedCategory={selectedCategory}
+                textureLibrary={textureLibrary}
+                transformMode={transformMode}
+                autoRotate={autoRotate}
+                onTextureChange={handleTextureChange}
+                onTransformChange={handleTransformChange}
+                onTransformModeChange={setTransformMode}
+                onCenterCamera={handleCenterCamera}
+                onAddAnnotation={handleAddAnnotation}
+                onAutoRotateToggle={() => setAutoRotate(!autoRotate)}
+                onSceneChange={setScene}
+                sunPosition={sunPosition}
+                onSunPositionChange={setSunPosition}
+                fenceHeight={fenceHeight}
+                onFenceHeightChange={setFenceHeight}
+                deckWidth={deckWidth}
+                onDeckWidthChange={setDeckWidth}
+                poolCategory={new URLSearchParams(window.location.search).get('category') || 'deluxe'}
+                stairs={scene.stairs}
+                poolDepth={poolDepth}
+                onStairsChange={handleStairsChange}
+                onPlacementModeToggle={setIsStairsPlacementMode}
+                isStairsPlacementMode={isStairsPlacementMode}
+                selectedStairId={selectedStairId}
+                enablePoolSplineEdit={enablePoolSplineEdit}
+                enableDeckSplineEdit={enableDeckSplineEdit}
+                onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
+                onDeckSplineEditToggle={() => setEnableDeckSplineEdit(!enableDeckSplineEdit)}
+                onSelectCategory={setSelectedCategory}
+              />
+            </>
           )}
         </div>
+
+         {/* Quick Controls Bar - Bottom Left */}
+         <div className="absolute bottom-4 left-4 flex gap-2 z-10">
+            {/* Quick action buttons can go here if needed */}
+         </div>
 
         <Scene3DErrorBoundary scene={scene} onRecover={handleSceneRecover}>
           <Suspense fallback={
@@ -957,42 +837,6 @@ export function UnifiedPoolVisualizer({
           onRemoveAsset={(id) => setAssets3D(assets3D.filter(a => a.id !== id))}
         />
       </div>
-      
-      {/* Right Control Panel - Visible in fullscreen */}
-      {!controllerCollapsed && (
-        <Scene3DControlPanel
-        scene={scene}
-        selectedObject={selectedObject}
-        selectedCategory={selectedCategory}
-        textureLibrary={textureLibrary}
-        transformMode={transformMode}
-        autoRotate={autoRotate}
-        onTextureChange={handleTextureChange}
-        onTransformChange={handleTransformChange}
-        onTransformModeChange={setTransformMode}
-        onCenterCamera={handleCenterCamera}
-        onAddAnnotation={handleAddAnnotation}
-        onAutoRotateToggle={() => setAutoRotate(!autoRotate)}
-        onSceneChange={setScene}
-        sunPosition={sunPosition}
-        onSunPositionChange={setSunPosition}
-        fenceHeight={fenceHeight}
-        onFenceHeightChange={setFenceHeight}
-        deckWidth={deckWidth}
-        onDeckWidthChange={setDeckWidth}
-        stairs={scene.stairs}
-        poolDepth={poolDepth}
-        onStairsChange={handleStairsChange}
-        onPlacementModeToggle={setIsStairsPlacementMode}
-        isStairsPlacementMode={isStairsPlacementMode}
-        selectedStairId={selectedStairId}
-        enablePoolSplineEdit={enablePoolSplineEdit}
-        enableDeckSplineEdit={enableDeckSplineEdit}
-        onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
-        onDeckSplineEditToggle={() => setEnableDeckSplineEdit(!enableDeckSplineEdit)}
-        onSelectCategory={setSelectedCategory}
-      />
-      )}
     </div>
   );
 }
