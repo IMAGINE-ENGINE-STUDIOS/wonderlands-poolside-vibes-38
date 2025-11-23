@@ -368,10 +368,63 @@ export function UnifiedPoolVisualizer({
     });
   };
 
-  const toggleFullscreen = () => {
-    // For mobile, simply toggle the fullscreen state
+  const toggleFullscreen = async () => {
+    // For mobile, toggle fullscreen and rotate screen to landscape
     if (isMobile) {
-      setIsFullscreen(!isFullscreen);
+      if (!isFullscreen) {
+        // Entering fullscreen - lock to landscape
+        try {
+          const orientation = screen.orientation as any;
+          if (orientation && orientation.lock) {
+            await orientation.lock('landscape');
+          }
+          
+          // Also try native fullscreen API if available
+          if (canvasContainerRef.current) {
+            const elem = canvasContainerRef.current as any;
+            const requestFullscreen = elem.requestFullscreen || 
+                                      elem.webkitRequestFullscreen || 
+                                      elem.mozRequestFullScreen || 
+                                      elem.msRequestFullscreen;
+            
+            if (requestFullscreen) {
+              try {
+                await requestFullscreen.call(elem);
+              } catch (err) {
+                console.log('Fullscreen API not available, using CSS fallback');
+              }
+            }
+          }
+        } catch (err) {
+          console.log('Screen orientation lock not available, using CSS fallback');
+        }
+        
+        setIsFullscreen(true);
+      } else {
+        // Exiting fullscreen - unlock orientation
+        try {
+          const orientation = screen.orientation as any;
+          if (orientation && orientation.unlock) {
+            orientation.unlock();
+          }
+          
+          // Exit native fullscreen if active
+          if (document.fullscreenElement) {
+            const exitFullscreen = (document as any).exitFullscreen || 
+                                  (document as any).webkitExitFullscreen || 
+                                  (document as any).mozCancelFullScreen || 
+                                  (document as any).msExitFullscreen;
+            
+            if (exitFullscreen) {
+              await exitFullscreen.call(document);
+            }
+          }
+        } catch (err) {
+          console.log('Screen orientation unlock not needed');
+        }
+        
+        setIsFullscreen(false);
+      }
       return;
     }
     
