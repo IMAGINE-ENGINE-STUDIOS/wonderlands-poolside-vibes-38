@@ -171,13 +171,34 @@ export function productToScene(
     }
   });
 
-  // Create basic pool shape points (rectangle)
-  const poolPoints: Point[] = [
-    { x: 0, y: 0, id: 'p1' },
-    { x: width, y: 0, id: 'p2' },
-    { x: width, y: length, id: 'p3' },
-    { x: 0, y: length, id: 'p4' },
-  ];
+  // Create pool shape points - use custom shape if provided, otherwise default rectangle
+  let poolPoints: Point[];
+  
+  if (selectedExtras.customPoolShape && Array.isArray(selectedExtras.customPoolShape) && selectedExtras.customPoolShape.length >= 3) {
+    // Convert 2D editor points to 3D pool points
+    // Scale from pixels to feet (assuming 800px canvas = ~40 feet width)
+    const canvasToFeet = 40 / 800;
+    
+    poolPoints = selectedExtras.customPoolShape.map((pt: any, idx: number) => ({
+      x: pt.x * canvasToFeet,
+      y: pt.y * canvasToFeet,
+      id: `p${idx + 1}`
+    }));
+    
+    console.log('🎨 Using custom pool shape from 2D editor:', {
+      originalPoints: selectedExtras.customPoolShape.length,
+      convertedPoints: poolPoints.length,
+      scale: canvasToFeet
+    });
+  } else {
+    // Create basic pool shape points (rectangle)
+    poolPoints = [
+      { x: 0, y: 0, id: 'p1' },
+      { x: width, y: 0, id: 'p2' },
+      { x: width, y: length, id: 'p3' },
+      { x: 0, y: length, id: 'p4' },
+    ];
+  }
 
   // Parse shallow end depth from product depth string
   // Extract shallow end from depth range like "3'9\" - 8'6\""
@@ -201,13 +222,22 @@ export function productToScene(
     { position: 1, depth: deepDepth, id: 'd5' },                        // Deep end
   ];
 
-  // Create deck points (5 feet wider on all sides)
+  // Create deck points (5 feet wider on all sides) - adapt to custom shape
   const deckWidth = 5;
+  
+  // Calculate bounds of pool shape
+  const poolXs = poolPoints.map(p => p.x);
+  const poolYs = poolPoints.map(p => p.y);
+  const minPoolX = Math.min(...poolXs);
+  const maxPoolX = Math.max(...poolXs);
+  const minPoolY = Math.min(...poolYs);
+  const maxPoolY = Math.max(...poolYs);
+  
   const deckPoints: HardscapePoint[] = [
-    { x: -deckWidth, y: -deckWidth, id: 'h1' },
-    { x: width + deckWidth, y: -deckWidth, id: 'h2' },
-    { x: width + deckWidth, y: length + deckWidth, id: 'h3' },
-    { x: -deckWidth, y: length + deckWidth, id: 'h4' },
+    { x: minPoolX - deckWidth, y: minPoolY - deckWidth, id: 'h1' },
+    { x: maxPoolX + deckWidth, y: minPoolY - deckWidth, id: 'h2' },
+    { x: maxPoolX + deckWidth, y: maxPoolY + deckWidth, id: 'h3' },
+    { x: minPoolX - deckWidth, y: maxPoolY + deckWidth, id: 'h4' },
   ];
 
   const scene: Scene3D = {

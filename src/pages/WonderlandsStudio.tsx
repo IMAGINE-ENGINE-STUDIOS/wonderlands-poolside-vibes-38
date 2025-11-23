@@ -357,6 +357,7 @@ const WonderlandsStudio = () => {
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
   const [activeFeatureCarousel, setActiveFeatureCarousel] = useState<string | null>(null);
   const [show3DView, setShow3DView] = useState(false);
+  const [customPoolShape, setCustomPoolShape] = useState<any[] | null>(null);
 
   // Handle URL parameters for product search integration
   useEffect(() => {
@@ -1091,7 +1092,15 @@ const WonderlandsStudio = () => {
                           <Button
                             variant={show3DView ? "secondary" : "ghost"}
                             size="sm"
-                            onClick={() => setShow3DView(true)}
+                            onClick={() => {
+                              setShow3DView(true);
+                              if (customPoolShape && customPoolShape.length > 0) {
+                                toast({
+                                  title: "Custom Shape Loaded",
+                                  description: `Your custom pool design with ${customPoolShape.length} points is now in 3D!`,
+                                });
+                              }
+                            }}
                             className="h-7 text-xs"
                           >
                             <Box className="h-3 w-3 mr-1" />
@@ -1108,6 +1117,7 @@ const WonderlandsStudio = () => {
                           height={600}
                           onPointsChange={(points) => {
                             console.log('Pool shape changed:', points);
+                            setCustomPoolShape(points);
                           }}
                         />
                       ) : show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && paverTypes.length > 0 && finishOptions.length > 0 ? (
@@ -1115,7 +1125,7 @@ const WonderlandsStudio = () => {
                           <UnifiedPoolVisualizer
                             scene={productToScene(
                               selectedProduct,
-                              selectedExtras,
+                              { ...selectedExtras, customPoolShape },
                               paverTypes,
                               finishOptions
                             )}
