@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
-import { X, Plus, Circle, Square, Maximize2, Minimize2 } from 'lucide-react';
+import { X, Plus, Circle, Square, Maximize2, Minimize2, Save, Upload, Ruler } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export type PointType = 'linear' | 'curve' | 'smooth' | 'corner';
 
@@ -30,6 +31,8 @@ export function Pool2DSplineEditor({
   backgroundColor = '#f5f5f5'
 }: Pool2DSplineEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
   const [points, setPoints] = useState<Point2D[]>(initialPoints || [
     { x: 200, y: 200, id: '1', type: 'linear' },
     { x: 600, y: 200, id: '2', type: 'linear' },
@@ -40,9 +43,39 @@ export function Pool2DSplineEditor({
   const [hoveredPoint, setHoveredPoint] = useState<string | null>(null);
   const [hoveredSegment, setHoveredSegment] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [unit, setUnit] = useState<'feet' | 'meters'>('feet');
+  const [showMeasurements, setShowMeasurements] = useState(true);
 
   const canvasWidth = isFullscreen ? window.innerWidth : width;
   const canvasHeight = isFullscreen ? window.innerHeight : height;
+
+  // Conversion: 1 pixel = 0.1 feet (or ~0.03 meters)
+  const pixelsToFeet = (pixels: number) => pixels * 0.1;
+  const pixelsToMeters = (pixels: number) => pixels * 0.03048;
+  const convertPixels = (pixels: number) => unit === 'feet' ? pixelsToFeet(pixels) : pixelsToMeters(pixels);
+
+  const calculateDimensions = () => {
+    if (points.length < 3) return { width: 0, length: 0, perimeter: 0 };
+
+    const xs = points.map(p => p.x);
+    const ys = points.map(p => p.y);
+    const width = Math.max(...xs) - Math.min(...xs);
+    const length = Math.max(...ys) - Math.min(...ys);
+
+    let perimeter = 0;
+    for (let i = 0; i < points.length; i++) {
+      const curr = points[i];
+      const next = points[(i + 1) % points.length];
+      const dist = Math.sqrt((next.x - curr.x) ** 2 + (next.y - curr.y) ** 2);
+      perimeter += dist;
+    }
+
+    return {
+      width: convertPixels(width),
+      length: convertPixels(length),
+      perimeter: convertPixels(perimeter)
+    };
+  };
 
   useEffect(() => {
     drawCanvas();
@@ -182,6 +215,67 @@ export function Pool2DSplineEditor({
       ctx.textBaseline = 'middle';
       ctx.fillText((i + 1).toString(), point.x, point.y);
     });
+
+    // Draw measurements
+    if (showMeasurements && points.length >= 3) {
+      const dims = calculateDimensions();
+      const xs = points.map(p => p.x);
+      const ys = points.map(p => p.y);
+      const minX = Math.min(...xs);
+      const maxX = Math.max(...xs);
+      const minY = Math.min(...ys);
+      const maxY = Math.max(...ys);
+
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillStyle = '#2563eb';
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 3;
+
+      // Width measurement (top)
+      const widthText = `${dims.width.toFixed(1)} ${unit}`;
+      const widthX = (minX + maxX) / 2;
+      const widthY = minY - 30;
+      ctx.strokeText(widthText, widthX, widthY);
+      ctx.fillText(widthText, widthX, widthY);
+
+      // Draw width line
+      ctx.beginPath();
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.moveTo(minX, minY - 20);
+      ctx.lineTo(maxX, minY - 20);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Length measurement (left)
+      const lengthText = `${dims.length.toFixed(1)} ${unit}`;
+      const lengthX = minX - 40;
+      const lengthY = (minY + maxY) / 2;
+      ctx.save();
+      ctx.translate(lengthX, lengthY);
+      ctx.rotate(-Math.PI / 2);
+      ctx.strokeText(lengthText, 0, 0);
+      ctx.fillText(lengthText, 0, 0);
+      ctx.restore();
+
+      // Draw length line
+      ctx.beginPath();
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.moveTo(minX - 30, minY);
+      ctx.lineTo(minX - 30, maxY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Perimeter (bottom right)
+      const perimeterText = `Perimeter: ${dims.perimeter.toFixed(1)} ${unit}`;
+      ctx.font = 'bold 16px sans-serif';
+      ctx.fillStyle = '#059669';
+      ctx.strokeText(perimeterText, maxX - 100, maxY + 40);
+      ctx.fillText(perimeterText, maxX - 100, maxY + 40);
+    }
   };
 
   const getCanvasCoordinates = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -319,6 +413,60 @@ export function Pool2DSplineEditor({
     onPointsChange?.(newPoints);
   };
 
+  const saveShape = () => {
+    const shapeData = {
+      points,
+      timestamp: new Date().toISOString(),
+      dimensions: calculateDimensions()
+    };
+    const blob = new Blob([JSON.stringify(shapeData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pool-shape-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({
+      title: "Shape Saved",
+      description: "Pool shape has been downloaded successfully."
+    });
+  };
+
+  const loadShape = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const data = JSON.parse(content);
+        if (data.points && Array.isArray(data.points)) {
+          setPoints(data.points);
+          onPointsChange?.(data.points);
+          toast({
+            title: "Shape Loaded",
+            description: "Pool shape has been loaded successfully."
+          });
+        } else {
+          throw new Error('Invalid shape file format');
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load shape file. Please check the file format.",
+          variant: "destructive"
+        });
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const selectedPoint = points.find(p => p.id === (hoveredPoint || draggedPoint));
 
   return (
@@ -327,7 +475,47 @@ export function Pool2DSplineEditor({
         <div className={`flex justify-between items-center ${isFullscreen ? 'p-4 border-b border-border' : 'mb-4'}`}>
           <h3 className="text-lg font-semibold">Pool Shape Designer</h3>
           <div className="flex items-center gap-4">
-            <div className="flex gap-2 text-xs">
+            <div className="flex gap-2">
+              <Button
+                variant={showMeasurements ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowMeasurements(!showMeasurements)}
+              >
+                <Ruler className="w-4 h-4 mr-1" />
+                Measurements
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setUnit(unit === 'feet' ? 'meters' : 'feet')}
+              >
+                {unit === 'feet' ? 'ft' : 'm'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={saveShape}
+              >
+                <Save className="w-4 h-4 mr-1" />
+                Save
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="w-4 h-4 mr-1" />
+                Load
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                onChange={loadShape}
+                className="hidden"
+              />
+            </div>
+            <div className="flex gap-2 text-xs border-l border-border pl-4">
               <div className="flex items-center gap-1">
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
                 <span>Linear</span>
