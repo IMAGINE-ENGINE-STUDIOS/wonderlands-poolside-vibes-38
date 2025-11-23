@@ -369,49 +369,27 @@ export function UnifiedPoolVisualizer({
   };
 
   const toggleFullscreen = () => {
-    console.log('🔘 Fullscreen button clicked', { isMobile, isFullscreen });
-    
-    if (!canvasContainerRef.current) {
-      console.log('⚠️ Canvas container ref not found');
-      return;
-    }
-    
-    const elem = canvasContainerRef.current as any;
-    
-    // Check if Fullscreen API is supported
-    const supportsFullscreenAPI = !!(
-      elem.requestFullscreen || 
-      elem.webkitRequestFullscreen || 
-      elem.mozRequestFullScreen || 
-      elem.msRequestFullscreen
-    );
-    
-    console.log('📱 Fullscreen support:', { isMobile, supportsFullscreenAPI });
-    
-    // For mobile or unsupported browsers, use CSS-based fullscreen
-    if (isMobile || !supportsFullscreenAPI) {
-      console.log('📱 Using CSS fullscreen');
+    // For mobile, simply toggle the fullscreen state
+    if (isMobile) {
       setIsFullscreen(!isFullscreen);
       return;
     }
     
-    // For desktop with Fullscreen API support
+    // For desktop, use Fullscreen API
+    if (!canvasContainerRef.current) return;
+    
+    const elem = canvasContainerRef.current as any;
+    
     if (!isFullscreen) {
-      console.log('🔼 Entering fullscreen');
       const requestFullscreen = elem.requestFullscreen || 
                                 elem.webkitRequestFullscreen || 
                                 elem.mozRequestFullScreen || 
                                 elem.msRequestFullscreen;
       
       if (requestFullscreen) {
-        requestFullscreen.call(elem).then(() => {
-          console.log('✅ Fullscreen entered');
-        }).catch((err: any) => {
-          console.error('❌ Fullscreen failed:', err);
-        });
+        requestFullscreen.call(elem);
       }
     } else {
-      console.log('🔽 Exiting fullscreen');
       const exitFullscreen = (document as any).exitFullscreen || 
                             (document as any).webkitExitFullscreen || 
                             (document as any).mozCancelFullScreen || 
@@ -522,9 +500,9 @@ export function UnifiedPoolVisualizer({
       {/* Main 3D Canvas */}
       <div 
         ref={canvasContainerRef} 
-        className={`flex-1 relative transition-all duration-300 ${
+        className={`flex-1 relative ${
           isFullscreen && isMobile 
-            ? 'fixed inset-0 z-[9999] bg-background' 
+            ? 'fixed inset-0 z-[99999] bg-background' 
             : ''
         }`}
       >
