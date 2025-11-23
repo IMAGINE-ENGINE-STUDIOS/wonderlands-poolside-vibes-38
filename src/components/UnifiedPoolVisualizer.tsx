@@ -21,6 +21,7 @@ import * as THREE from 'three';
 import { Scene3DErrorBoundary } from './scene3d/Scene3DErrorBoundary';
 import { validateScene } from '@/utils/sceneValidator';
 import { textureCache } from '@/utils/textureCache';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UnifiedPoolVisualizerProps {
   scene: Scene3D;
@@ -64,6 +65,8 @@ export function UnifiedPoolVisualizer({
   textureLibrary,
   onSceneChange
 }: UnifiedPoolVisualizerProps) {
+  const isMobile = useIsMobile();
+  
   // Validate scene before using it
   const validatedScene = validateScene(initialScene);
   
@@ -368,6 +371,13 @@ export function UnifiedPoolVisualizer({
   const toggleFullscreen = () => {
     if (!canvasContainerRef.current) return;
     
+    // For mobile devices, use CSS-based fullscreen
+    if (isMobile) {
+      setIsFullscreen(!isFullscreen);
+      return;
+    }
+    
+    // For desktop, use Fullscreen API
     const elem = canvasContainerRef.current as any;
     
     if (!isFullscreen) {
@@ -491,7 +501,10 @@ export function UnifiedPoolVisualizer({
   return (
     <div className="flex h-full w-full">
       {/* Main 3D Canvas */}
-      <div ref={canvasContainerRef} className="flex-1 relative">
+      <div 
+        ref={canvasContainerRef} 
+        className={`flex-1 relative ${isFullscreen && isMobile ? 'fixed inset-0 z-50 bg-background' : ''}`}
+      >
         {/* Fullscreen Toggle Button */}
         <button
           onClick={toggleFullscreen}
