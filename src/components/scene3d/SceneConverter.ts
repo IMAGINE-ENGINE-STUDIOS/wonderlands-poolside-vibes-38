@@ -200,30 +200,38 @@ export function productToScene(
     ];
   }
 
-  // Parse shallow end depth from product depth string
-  // Extract shallow end from depth range like "3'9\" - 8'6\""
-  let shallowDepth = 3.75; // Default 3'9"
-  if (product.depth) {
-    const shallowMatches = product.depth.match(/(\d+)[''](\d+)?[""]?\s*[-–]/);
-    if (shallowMatches) {
-      const shallowFeet = parseInt(shallowMatches[1]);
-      const shallowInches = shallowMatches[2] ? parseInt(shallowMatches[2]) : 0;
-      shallowDepth = shallowFeet + (shallowInches / 12);
+  // Parse shallow end depth from product depth string OR use depthProfile from selectedExtras
+  let depthPoints: DepthPoint[];
+  
+  if (selectedExtras.depthProfile && Array.isArray(selectedExtras.depthProfile) && selectedExtras.depthProfile.length > 0) {
+    // Use depth profile from 2D designer
+    depthPoints = selectedExtras.depthProfile;
+    console.log('🎨 Using custom depth profile from 2D designer:', depthPoints);
+  } else {
+    // Extract shallow end from depth range like "3'9\" - 8'6\""
+    let shallowDepth = 3.75; // Default 3'9"
+    if (product.depth) {
+      const shallowMatches = product.depth.match(/(\d+)[''](\d+)?[""]?\s*[-–]/);
+      if (shallowMatches) {
+        const shallowFeet = parseInt(shallowMatches[1]);
+        const shallowInches = shallowMatches[2] ? parseInt(shallowMatches[2]) : 0;
+        shallowDepth = shallowFeet + (shallowInches / 12);
+      }
     }
+    
+    const deepDepth = deepEndDepth || 6.6;  // Use parsed product depth or fallback
+    
+    depthPoints = [
+      { position: 0, depth: shallowDepth, id: 'd1' },                    // Shallow end
+      { position: 0.25, depth: shallowDepth + (deepDepth - shallowDepth) * 0.25, id: 'd2' },
+      { position: 0.5, depth: shallowDepth + (deepDepth - shallowDepth) * 0.5, id: 'd3' },
+      { position: 0.75, depth: shallowDepth + (deepDepth - shallowDepth) * 0.75, id: 'd4' },
+      { position: 1, depth: deepDepth, id: 'd5' },                        // Deep end
+    ];
   }
-  
-  const deepDepth = deepEndDepth || 6.6;  // Use parsed product depth or fallback
-  
-  const depthPoints: DepthPoint[] = [
-    { position: 0, depth: shallowDepth, id: 'd1' },                    // Shallow end
-    { position: 0.25, depth: shallowDepth + (deepDepth - shallowDepth) * 0.25, id: 'd2' },
-    { position: 0.5, depth: shallowDepth + (deepDepth - shallowDepth) * 0.5, id: 'd3' },
-    { position: 0.75, depth: shallowDepth + (deepDepth - shallowDepth) * 0.75, id: 'd4' },
-    { position: 1, depth: deepDepth, id: 'd5' },                        // Deep end
-  ];
 
-  // Create deck points (5 feet wider on all sides) - adapt to custom shape
-  const deckWidth = 5;
+  // Create deck points - use deck width from selectedExtras if available
+  const deckWidth = selectedExtras.deckWidth || 5;
   
   // Calculate bounds of pool shape
   const poolXs = poolPoints.map(p => p.x);
@@ -255,7 +263,7 @@ export function productToScene(
       },
       position: [-10, 0, 20], // Pool hole at S25 grid position
       rotation: [0, 0, 0],
-      dimensions: { length, width, depth: deepDepth }
+      dimensions: { length, width, depth: deepEndDepth || 6.6 }
     },
     deck: {
       points: deckPoints,
@@ -275,7 +283,7 @@ export function productToScene(
         scale: 1.8,
         offset: [-0.21, 0]
       },
-      copingWidth: 1.1,
+      copingWidth: selectedExtras.copingWidth || 1.1,
       waterline: {
         url: linerTextureUrl,
         name: `${selectedExtras.finish || selectedExtras.linerOption || 'Default'} (Waterline)`,
