@@ -68,8 +68,8 @@ export function Sims4StylePoolDesigner({
 
   // State
   const [canvasSize, setCanvasSize] = useState({
-    width: typeof window !== 'undefined' ? Math.min(window.innerWidth - 400, 1200) : 1200,
-    height: typeof window !== 'undefined' ? Math.min(window.innerHeight - 200, 800) : 800
+    width: 1400,
+    height: 900
   });
 
   const [buildMode, setBuildMode] = useState<BuildMode>('draw');
@@ -92,6 +92,48 @@ export function Sims4StylePoolDesigner({
   const [showDeck, setShowDeck] = useState(true);
   const [showDepth, setShowDepth] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Responsive sizing based on fullscreen mode
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      if (isFullscreen) {
+        setCanvasSize({
+          width: window.innerWidth - 450,
+          height: window.innerHeight - 150
+        });
+      } else {
+        setCanvasSize({
+          width: Math.min(1400, window.innerWidth - 500),
+          height: Math.min(900, window.innerHeight - 300)
+        });
+      }
+    };
+
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, [isFullscreen]);
+
+  // Handle fullscreen and responsive sizing
+  useEffect(() => {
+    const updateSize = () => {
+      if (isFullscreen) {
+        setCanvasSize({
+          width: window.innerWidth - 400,
+          height: window.innerHeight - 100
+        });
+      } else {
+        setCanvasSize({
+          width: Math.min(window.innerWidth - 400, 1400),
+          height: Math.min(window.innerHeight - 200, 900)
+        });
+      }
+    };
+
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, [isFullscreen]);
   
   const [deckWidth, setDeckWidth] = useState(5); // feet
   const [copingWidth, setCopingWidth] = useState(1.1); // feet
@@ -547,7 +589,7 @@ export function Sims4StylePoolDesigner({
   const c = costs();
 
   return (
-    <div className={isFullscreen ? "fixed inset-0 z-50 bg-background p-2" : "w-full"}>
+    <div className={isFullscreen ? "fixed inset-0 z-50 bg-background" : "w-full min-h-[800px]"}>
       <Card className="h-full flex flex-col">
         {/* Top Toolbar - Sims 4 Style */}
         <div className="flex items-center justify-between p-2 border-b bg-muted/30">
