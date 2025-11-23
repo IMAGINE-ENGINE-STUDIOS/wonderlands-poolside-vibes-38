@@ -202,7 +202,7 @@ export function PoolSplineEditor({
       {/* Main spline curve */}
       <line>
         <primitive object={lineGeometry} attach="geometry" />
-        <lineBasicMaterial color={color} linewidth={lineWidth} />
+        <lineBasicMaterial color={color} />
       </line>
 
       {/* Thicker invisible line for easier segment hovering */}
