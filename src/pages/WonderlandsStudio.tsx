@@ -1153,7 +1153,7 @@ const WonderlandsStudio = () => {
                           }}
                         />
                       ) : viewMode === '3d-viewer' && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && paverTypes.length > 0 && finishOptions.length > 0 ? (
-                        <div className="w-full h-full" key={`3d-viewer-${selectedProduct.model || selectedProduct.name}`}>
+                        <div className="w-full h-[700px]" key={`3d-viewer-${selectedProduct.model || selectedProduct.name}`}>
                           <UnifiedPoolVisualizer
                             scene={productToScene(
                               selectedProduct,

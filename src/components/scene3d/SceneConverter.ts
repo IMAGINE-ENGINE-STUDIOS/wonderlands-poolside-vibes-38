@@ -233,20 +233,48 @@ export function productToScene(
   // Create deck points - use deck width from selectedExtras if available
   const deckWidth = selectedExtras.deckWidth || 5;
   
-  // Calculate bounds of pool shape
-  const poolXs = poolPoints.map(p => p.x);
-  const poolYs = poolPoints.map(p => p.y);
-  const minPoolX = Math.min(...poolXs);
-  const maxPoolX = Math.max(...poolXs);
-  const minPoolY = Math.min(...poolYs);
-  const maxPoolY = Math.max(...poolYs);
-  
-  const deckPoints: HardscapePoint[] = [
-    { x: minPoolX - deckWidth, y: minPoolY - deckWidth, id: 'h1' },
-    { x: maxPoolX + deckWidth, y: minPoolY - deckWidth, id: 'h2' },
-    { x: maxPoolX + deckWidth, y: maxPoolY + deckWidth, id: 'h3' },
-    { x: minPoolX - deckWidth, y: maxPoolY + deckWidth, id: 'h4' },
-  ];
+  // Generate deck points that follow the pool shape
+  // For each pool point, calculate an offset point along the outward normal
+  const deckPoints: HardscapePoint[] = poolPoints.map((pt, i) => {
+    const prevPt = poolPoints[(i - 1 + poolPoints.length) % poolPoints.length];
+    const nextPt = poolPoints[(i + 1) % poolPoints.length];
+    
+    // Calculate edge vectors
+    const v1x = pt.x - prevPt.x;
+    const v1y = pt.y - prevPt.y;
+    const v2x = nextPt.x - pt.x;
+    const v2y = nextPt.y - pt.y;
+    
+    // Calculate normals (perpendicular to edges, pointing outward)
+    const n1x = -v1y;
+    const n1y = v1x;
+    const n2x = -v2y;
+    const n2y = v2x;
+    
+    // Normalize the normals
+    const len1 = Math.sqrt(n1x * n1x + n1y * n1y);
+    const len2 = Math.sqrt(n2x * n2x + n2y * n2y);
+    
+    const norm1x = n1x / len1;
+    const norm1y = n1y / len1;
+    const norm2x = n2x / len2;
+    const norm2y = n2y / len2;
+    
+    // Average the two normals to get the offset direction
+    const avgNx = (norm1x + norm2x) / 2;
+    const avgNy = (norm1y + norm2y) / 2;
+    const avgLen = Math.sqrt(avgNx * avgNx + avgNy * avgNy);
+    
+    const finalNx = avgNx / avgLen;
+    const finalNy = avgNy / avgLen;
+    
+    // Offset the point by deckWidth in the outward normal direction
+    return {
+      x: pt.x + finalNx * deckWidth,
+      y: pt.y + finalNy * deckWidth,
+      id: `h${i + 1}`
+    };
+  });
 
   const scene: Scene3D = {
     pool: {
