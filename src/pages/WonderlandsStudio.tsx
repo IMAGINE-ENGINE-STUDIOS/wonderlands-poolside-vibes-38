@@ -40,6 +40,7 @@ import { getProductFeatures, getDefaultExtras, calculateFeaturePrice, type Produ
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
+import { Pool2DSplineEditor } from "@/components/Pool2DSplineEditor";
 
 interface Product {
   model?: string;
@@ -1074,7 +1075,7 @@ const WonderlandsStudio = () => {
                 {/* Large Product Media Gallery */}
                 <Card>
                   <CardContent className="p-3 sm:p-6">
-                    {/* 3D/2D View Toggle */}
+                     {/* 3D/2D View Toggle */}
                     {(selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && (
                       <div className="flex justify-end mb-3">
                         <div className="inline-flex rounded-lg border border-border p-1 bg-muted/50">
@@ -1085,7 +1086,7 @@ const WonderlandsStudio = () => {
                             className="h-7 text-xs"
                           >
                             <Camera className="h-3 w-3 mr-1" />
-                            2D View
+                            2D Designer
                           </Button>
                           <Button
                             variant={show3DView ? "secondary" : "ghost"}
@@ -1100,8 +1101,16 @@ const WonderlandsStudio = () => {
                       </div>
                     )}
                     
-                    <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
-                      {show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && paverTypes.length > 0 && finishOptions.length > 0 ? (
+                    <div className="relative rounded-lg overflow-hidden bg-muted">
+                      {!show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') ? (
+                        <Pool2DSplineEditor 
+                          width={800}
+                          height={600}
+                          onPointsChange={(points) => {
+                            console.log('Pool shape changed:', points);
+                          }}
+                        />
+                      ) : show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && paverTypes.length > 0 && finishOptions.length > 0 ? (
                         <div className="w-full h-full" key={`3d-viewer-${selectedProduct.model || selectedProduct.name}`}>
                           <UnifiedPoolVisualizer
                             scene={productToScene(
