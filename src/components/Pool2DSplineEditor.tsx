@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
-import { X, Plus, Circle, Square } from 'lucide-react';
+import { X, Plus, Circle, Square, Maximize2, Minimize2 } from 'lucide-react';
 
 export type PointType = 'linear' | 'curve' | 'smooth' | 'corner';
 
@@ -39,6 +39,10 @@ export function Pool2DSplineEditor({
   const [draggedPoint, setDraggedPoint] = useState<string | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<string | null>(null);
   const [hoveredSegment, setHoveredSegment] = useState<number | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const canvasWidth = isFullscreen ? window.innerWidth : width;
+  const canvasHeight = isFullscreen ? window.innerHeight : height;
 
   useEffect(() => {
     drawCanvas();
@@ -53,21 +57,21 @@ export function Pool2DSplineEditor({
 
     // Clear canvas
     ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     // Draw grid
     ctx.strokeStyle = '#e0e0e0';
     ctx.lineWidth = 0.5;
-    for (let x = 0; x <= width; x += gridSize) {
+    for (let x = 0; x <= canvasWidth; x += gridSize) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
+      ctx.lineTo(x, canvasHeight);
       ctx.stroke();
     }
-    for (let y = 0; y <= height; y += gridSize) {
+    for (let y = 0; y <= canvasHeight; y += gridSize) {
       ctx.beginPath();
       ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
+      ctx.lineTo(canvasWidth, y);
       ctx.stroke();
     }
 
@@ -310,35 +314,44 @@ export function Pool2DSplineEditor({
   const selectedPoint = points.find(p => p.id === (hoveredPoint || draggedPoint));
 
   return (
-    <div className="space-y-4">
-      <Card className="p-4">
-        <div className="flex justify-between items-center mb-4">
+    <div className={isFullscreen ? "fixed inset-0 z-50 bg-background" : "space-y-4"}>
+      <Card className={isFullscreen ? "h-full rounded-none border-0" : "p-4"}>
+        <div className={`flex justify-between items-center ${isFullscreen ? 'p-4 border-b border-border' : 'mb-4'}`}>
           <h3 className="text-lg font-semibold">Pool Shape Designer</h3>
-          <div className="flex gap-2 text-xs">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <span>Linear</span>
+          <div className="flex items-center gap-4">
+            <div className="flex gap-2 text-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <span>Linear</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
+                <span>Curve</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                <span>Smooth</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-orange-500"></div>
+                <span>Corner</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
-              <span>Curve</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-              <span>Smooth</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-orange-500"></div>
-              <span>Corner</span>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsFullscreen(!isFullscreen)}
+            >
+              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </Button>
           </div>
         </div>
 
-        <div className="relative inline-block">
+        <div className={`relative ${isFullscreen ? 'flex items-center justify-center h-[calc(100%-5rem)]' : 'inline-block'}`}>
           <canvas
             ref={canvasRef}
-            width={width}
-            height={height}
+            width={canvasWidth}
+            height={canvasHeight}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -348,7 +361,7 @@ export function Pool2DSplineEditor({
           />
         </div>
 
-        {selectedPoint && (
+        {selectedPoint && !isFullscreen && (
           <Card className="mt-4 p-3">
             <div className="flex items-center justify-between mb-2">
               <h4 className="font-medium text-sm">
