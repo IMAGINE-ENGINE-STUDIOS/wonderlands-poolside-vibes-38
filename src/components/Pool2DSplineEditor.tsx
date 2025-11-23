@@ -46,7 +46,15 @@ export function Pool2DSplineEditor({
 
   useEffect(() => {
     drawCanvas();
-  }, [points, hoveredPoint, hoveredSegment, draggedPoint]);
+  }, [points, hoveredPoint, hoveredSegment, draggedPoint, isFullscreen, canvasWidth, canvasHeight]);
+
+  useEffect(() => {
+    if (isFullscreen) {
+      const handleResize = () => drawCanvas();
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, [isFullscreen]);
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
