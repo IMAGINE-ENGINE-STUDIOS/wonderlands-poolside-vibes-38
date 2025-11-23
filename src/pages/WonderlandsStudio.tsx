@@ -10,6 +10,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, Award, Palette, Camera, Layers, Plus, Minus, Download, Printer, ShoppingCart, Search, ChevronDown, Settings, Package, ChevronRight, ChevronLeft } from "lucide-react";
+import { parseDimensions, parseDepth } from "@/components/scene3d/SceneConverter";
 import { Label } from "@/components/ui/label";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
@@ -41,6 +42,7 @@ import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
 import { Pool2DSplineEditor } from "@/components/Pool2DSplineEditor";
+import { EnhancedPool2DDesigner } from "@/components/EnhancedPool2DDesigner";
 
 interface Product {
   model?: string;
@@ -1112,13 +1114,28 @@ const WonderlandsStudio = () => {
                     
                     <div className="relative rounded-lg overflow-hidden bg-muted">
                       {!show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') ? (
-                        <Pool2DSplineEditor 
-                          width={800}
-                          height={600}
-                          onPointsChange={(points) => {
-                            console.log('Pool shape changed:', points);
-                            setCustomPoolShape(points);
+                        <EnhancedPool2DDesigner
+                          initialDimensions={
+                            selectedProduct.dimensions ? {
+                              width: parseDimensions(selectedProduct.dimensions).width,
+                              length: parseDimensions(selectedProduct.dimensions).length,
+                              depth: parseDepth(selectedProduct.depth)
+                            } : undefined
+                          }
+                          onDesignChange={(design) => {
+                            console.log('Pool design changed:', design);
+                            setCustomPoolShape(design.poolPoints);
                           }}
+                          availableFinishes={finishOptions.map(f => ({
+                            id: f.name,
+                            name: f.name,
+                            image: f.image
+                          }))}
+                          availablePavers={paverTypes.map(p => ({
+                            id: p.id,
+                            name: p.name,
+                            image: p.image
+                          }))}
                         />
                       ) : show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && paverTypes.length > 0 && finishOptions.length > 0 ? (
                         <div className="w-full h-full" key={`3d-viewer-${selectedProduct.model || selectedProduct.name}`}>
