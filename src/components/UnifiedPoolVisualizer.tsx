@@ -10,7 +10,6 @@ import { Scene3DAnnotations } from './Scene3DAnnotations';
 import { DistanceMeasurements } from './DistanceMeasurements';
 import { GridLabels } from './GridLabels';
 import { AssetManager, Asset3DRenderer } from './AssetManager';
-import { PoolShapeEditor } from './scene3d/PoolShapeEditor';
 import { SplineLegend } from './SplineLegend';
 import { ComponentControlPanel } from './ComponentControlPanel';
 import { Button } from './ui/button';
@@ -797,32 +796,6 @@ export function UnifiedPoolVisualizer({
                 onDeckPointsChange={handleDeckPointsChange}
               />
             </group>
-            
-            {/* Pool Shape Editor */}
-            {enablePoolSplineEdit && (
-              <PoolShapeEditor
-                points={scene.pool.points.map(p => ({
-                  x: p.x,
-                  y: 0,
-                  z: p.y,
-                  id: p.id,
-                  type: p.type || 'linear'
-                }))}
-                onPointsChange={(shapePoints) => {
-                  const updatedPoints: Point[] = shapePoints.map(sp => ({
-                    x: sp.x,
-                    y: sp.z,
-                    id: sp.id,
-                    type: sp.type
-                  }));
-                  handlePoolPointsChange(updatedPoints);
-                }}
-                color="#00ff00"
-                yPosition={scene.deck.copingHeight || 0.17}
-                enabled={enablePoolSplineEdit}
-                name="Pool Wall"
-              />
-            )}
           </group>
 
           {/* Water surface - S17 to W25 centered at world origin */}
