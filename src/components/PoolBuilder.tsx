@@ -2552,7 +2552,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
   };
 
   return (
-    <div ref={containerRef} className="h-screen flex flex-col bg-gradient-to-br from-background to-muted/20">
+    <div ref={containerRef} className="h-full flex flex-col bg-gradient-to-br from-background to-muted/20">
       {/* Top Control Bar */}
       <div className="flex items-center gap-2 px-3 py-2 border-b bg-background/95 backdrop-blur">
         <div className="flex items-center gap-2">
