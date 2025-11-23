@@ -357,7 +357,7 @@ const WonderlandsStudio = () => {
   const [showExtrasDropdown, setShowExtrasDropdown] = useState(false);
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false);
   const [activeFeatureCarousel, setActiveFeatureCarousel] = useState<string | null>(null);
-  const [show3DView, setShow3DView] = useState(false);
+  const [viewMode, setViewMode] = useState<'product-image' | '2d-designer' | '3d-viewer'>('product-image');
   const [customPoolShape, setCustomPoolShape] = useState<any[] | null>(null);
 
   // Handle URL parameters for product search integration
@@ -372,13 +372,13 @@ const WonderlandsStudio = () => {
     const sceneDataParam = urlParams.get('sceneData');
     const textureLibParam = urlParams.get('textureLib');
     
-    if (fromBuilder === 'true' && sceneDataParam && textureLibParam) {
+      if (fromBuilder === 'true' && sceneDataParam && textureLibParam) {
       try {
         const sceneData = JSON.parse(decodeURIComponent(sceneDataParam));
         const textureLib = JSON.parse(decodeURIComponent(textureLibParam));
         setSceneFromBuilder(sceneData);
         setTextureLibFromBuilder(textureLib);
-        setShow3DView(true);
+        setViewMode('3d-viewer');
         setActiveTab('build-a-pool');
         return;
       } catch (err) {
@@ -1077,24 +1077,33 @@ const WonderlandsStudio = () => {
                 {/* Large Product Media Gallery */}
                 <Card>
                   <CardContent className="p-3 sm:p-6">
-                     {/* 3D/2D View Toggle */}
+                     {/* View Mode Carousel - Product Image / 2D Designer / 3D Viewer */}
                     {(selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && (
-                      <div className="flex justify-end mb-3">
-                        <div className="inline-flex rounded-lg border border-border p-1 bg-muted/50">
+                      <div className="flex justify-center mb-4">
+                        <div className="inline-flex rounded-lg border border-border p-1 bg-muted/50 gap-1">
                           <Button
-                            variant={!show3DView ? "secondary" : "ghost"}
+                            variant={viewMode === 'product-image' ? "secondary" : "ghost"}
                             size="sm"
-                            onClick={() => setShow3DView(false)}
-                            className="h-7 text-xs"
+                            onClick={() => setViewMode('product-image')}
+                            className="h-8 text-xs gap-1.5"
                           >
-                            <Camera className="h-3 w-3 mr-1" />
+                            <Camera className="h-3.5 w-3.5" />
+                            Product Image
+                          </Button>
+                          <Button
+                            variant={viewMode === '2d-designer' ? "secondary" : "ghost"}
+                            size="sm"
+                            onClick={() => setViewMode('2d-designer')}
+                            className="h-8 text-xs gap-1.5"
+                          >
+                            <Layers className="h-3.5 w-3.5" />
                             2D Designer
                           </Button>
                           <Button
-                            variant={show3DView ? "secondary" : "ghost"}
+                            variant={viewMode === '3d-viewer' ? "secondary" : "ghost"}
                             size="sm"
                             onClick={() => {
-                              setShow3DView(true);
+                              setViewMode('3d-viewer');
                               if (customPoolShape && customPoolShape.length > 0) {
                                 toast({
                                   title: "Custom Shape Loaded",
@@ -1102,17 +1111,23 @@ const WonderlandsStudio = () => {
                                 });
                               }
                             }}
-                            className="h-7 text-xs"
+                            className="h-8 text-xs gap-1.5"
                           >
-                            <Box className="h-3 w-3 mr-1" />
-                            3D View
+                            <Box className="h-3.5 w-3.5" />
+                            3D Viewer
                           </Button>
                         </div>
                       </div>
                     )}
                     
                     <div className="relative rounded-lg overflow-hidden bg-muted" style={{ height: '700px' }}>
-                      {!show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') ? (
+                      {viewMode === 'product-image' && (selectedProduct.media || selectedProduct.image) ? (
+                        <ProductMediaGallery 
+                          media={selectedProduct.media || selectedProduct.image || ''} 
+                          productName={selectedProduct.model || selectedProduct.name || 'Product'}
+                          className="w-full h-full"
+                        />
+                      ) : viewMode === '2d-designer' && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') ? (
                         <PoolBuilder
                           onPoolDataChange={(data) => {
                             console.log('Pool builder data changed:', data);
@@ -1126,7 +1141,7 @@ const WonderlandsStudio = () => {
                             }));
                           }}
                         />
-                      ) : show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && paverTypes.length > 0 && finishOptions.length > 0 ? (
+                      ) : viewMode === '3d-viewer' && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && paverTypes.length > 0 && finishOptions.length > 0 ? (
                         <div className="w-full h-full" key={`3d-viewer-${selectedProduct.model || selectedProduct.name}`}>
                           <UnifiedPoolVisualizer
                             scene={productToScene(
@@ -1136,7 +1151,7 @@ const WonderlandsStudio = () => {
                               finishOptions
                             )}
                             textureLibrary={{
-                            finishes: [
+                              finishes: [
                               // Pool Finishes (Crystite Crystal collection)
                               ...poolFinishesData.map(f => ({
                                 url: f.image,
@@ -2172,7 +2187,8 @@ const WonderlandsStudio = () => {
               </Card>}
           </div>
 
-          {/* Right Sidebar - Price Summary */}
+          {/* Right Sidebar - Price Summary (Hidden when viewing 2D Designer or 3D Viewer) */}
+          {viewMode === 'product-image' && (
           <div className="w-full lg:w-80 flex-shrink-0 min-w-0">
             <Card className="sticky top-4">
               <CardHeader className="pb-3 sm:pb-4 p-3 sm:p-6">
@@ -2419,6 +2435,7 @@ const WonderlandsStudio = () => {
               </CardContent>
             </Card>
           </div>
+          )}
         </div>
       </div>
 
