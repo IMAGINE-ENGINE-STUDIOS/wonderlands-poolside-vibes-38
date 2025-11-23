@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -151,6 +151,13 @@ function ControlPoint({
   const size = isDragged ? 0.7 : isHovered ? 0.6 : 0.5;
   const color = getColor();
   
+  const verticalLineGeo = useMemo(() => {
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array([0, 0, 0, 0, -1.5, 0]);
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    return geometry;
+  }, []);
+  
   const handlePointerDown = useCallback((e: any) => {
     e.stopPropagation();
     onDragStart(point.id);
@@ -192,17 +199,12 @@ function ControlPoint({
       </mesh>
       
       {/* Vertical line */}
-      <line>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            count={2}
-            array={new Float32Array([0, 0, 0, 0, -1.5, 0])}
-            itemSize={3}
-          />
-        </bufferGeometry>
-        <lineBasicMaterial color={color} transparent opacity={0.7} />
-      </line>
+      <primitive 
+        object={new THREE.Line(
+          verticalLineGeo,
+          new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.7 })
+        )}
+      />
       
       {/* Surface marker */}
       <mesh position={[0, -1.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
@@ -280,26 +282,27 @@ function SegmentLine({
   const midX = (p1.x + p2.x) / 2;
   const midZ = (p1.z + p2.z) / 2;
   
+  const segmentGeo = useMemo(() => {
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array([p1.x, yPos, p1.z, p2.x, yPos, p2.z]);
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    return geometry;
+  }, [p1.x, p1.z, p2.x, p2.z, yPos]);
+  
   return (
     <>
-      <line
+      <primitive 
+        object={new THREE.Line(
+          segmentGeo,
+          new THREE.LineBasicMaterial({ 
+            color: isHovered ? '#ffff00' : color, 
+            transparent: true, 
+            opacity: 0.3 
+          })
+        )}
         onPointerOver={() => onHover(index)}
         onPointerOut={() => onHover(null)}
-      >
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            count={2}
-            array={new Float32Array([p1.x, yPos, p1.z, p2.x, yPos, p2.z])}
-            itemSize={3}
-          />
-        </bufferGeometry>
-        <lineBasicMaterial
-          color={isHovered ? '#ffff00' : color}
-          transparent
-          opacity={0.3}
-        />
-      </line>
+      />
       
       {isHovered && (
         <group position={[midX, yPos + 2, midZ]}>
