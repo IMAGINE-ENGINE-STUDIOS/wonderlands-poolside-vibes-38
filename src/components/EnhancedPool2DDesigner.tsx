@@ -81,7 +81,11 @@ export function EnhancedPool2DDesigner({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   
-  const [containerSize, setContainerSize] = useState({ width: width, height: height });
+  // Responsive canvas sizing based on viewport
+  const [containerSize, setContainerSize] = useState({ 
+    width: typeof window !== 'undefined' ? Math.min(window.innerWidth - 400, 1000) : width, 
+    height: typeof window !== 'undefined' ? Math.min(window.innerHeight - 200, 700) : height 
+  });
   
   const scale = 10; // pixels per foot
   const POOL_COST_PER_SQFT = 190;
@@ -141,19 +145,41 @@ export function EnhancedPool2DDesigner({
   const canvasWidth = isFullscreen ? window.innerWidth : containerSize.width;
   const canvasHeight = isFullscreen ? window.innerHeight : containerSize.height;
   
-  // Resize observer to make canvas responsive
+  // Resize observer + viewport resize handler for true responsiveness
   useEffect(() => {
-    if (!containerRef.current || isFullscreen) return;
-    
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        setContainerSize({ width, height });
+    const updateSize = () => {
+      if (isFullscreen) return;
+      
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setContainerSize({ 
+          width: rect.width, 
+          height: Math.min(rect.height, window.innerHeight - 200) 
+        });
+      } else {
+        // Fallback based on viewport
+        const availableWidth = window.innerWidth > 1024 ? window.innerWidth - 400 : window.innerWidth - 40;
+        const availableHeight = window.innerHeight - 250;
+        setContainerSize({ 
+          width: Math.min(availableWidth, 1200), 
+          height: Math.min(availableHeight, 800) 
+        });
       }
-    });
+    };
     
-    resizeObserver.observe(containerRef.current);
-    return () => resizeObserver.disconnect();
+    updateSize();
+    
+    const resizeObserver = containerRef.current ? new ResizeObserver(updateSize) : null;
+    if (resizeObserver && containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+    
+    window.addEventListener('resize', updateSize);
+    
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
   }, [isFullscreen]);
 
   // Conversion functions
@@ -792,30 +818,33 @@ export function EnhancedPool2DDesigner({
   const selectedPoint = poolPoints.find(p => p.id === (hoveredPoint || draggedPoint));
 
   return (
-    <div className={isFullscreen ? "fixed inset-0 z-50 bg-background" : "w-full h-full"}>
-      <Card className={isFullscreen ? "h-full rounded-none border-0" : "h-full"}>
+    <div className={isFullscreen ? "fixed inset-0 z-50 bg-background overflow-auto" : "w-full min-h-screen"}>
+      <Card className={isFullscreen ? "min-h-screen rounded-none border-0 p-3 sm:p-4" : "p-3 sm:p-6"}>
         {/* Header */}
-        <div className={`flex justify-between items-center ${isFullscreen ? 'p-4 border-b border-border' : 'p-4'}`}>
-          <div className="flex items-center gap-4">
-            <h3 className="text-lg font-semibold">Pool Design Studio</h3>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3 pb-3 border-b">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+            <h2 className="text-lg sm:text-xl font-bold">Pool Design Studio</h2>
             {initialDimensions && (
-              <Badge variant="secondary">
-                {initialDimensions.width}' × {initialDimensions.length}' • {initialDimensions.depth}' deep
+              <Badge variant="secondary" className="text-xs hidden sm:inline-flex">
+                {initialDimensions.width}' × {initialDimensions.length}'
               </Badge>
             )}
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={() => setUnit(unit === 'feet' ? 'meters' : 'feet')}>
-              {unit === 'feet' ? 'ft' : 'm'}
+              <span className="text-xs sm:text-sm font-medium">{unit === 'feet' ? 'ft' : 'm'}</span>
             </Button>
             <Button variant="outline" size="sm" onClick={saveShape}>
-              <Save className="w-4 h-4 mr-1" />
-              Save
+              <Save className="w-4 h-4 mr-1 hidden sm:inline" />
+              <span className="hidden sm:inline text-sm">Save</span>
+              <Save className="w-4 h-4 sm:hidden" />
             </Button>
             <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-              <Upload className="w-4 h-4 mr-1" />
-              Load
+              <Upload className="w-4 h-4 mr-1 hidden sm:inline" />
+              <span className="hidden sm:inline text-sm">Load</span>
+              <Upload className="w-4 h-4 sm:hidden" />
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setIsFullscreen(!isFullscreen)}>
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -825,17 +854,17 @@ export function EnhancedPool2DDesigner({
           <input ref={fileInputRef} type="file" accept=".json" onChange={loadShape} className="hidden" />
         </div>
 
-        {/* Main Content - Side by side layout */}
-        <div className={`grid ${isFullscreen ? 'grid-cols-[320px,1fr]' : 'grid-cols-1 lg:grid-cols-[320px,1fr]'} gap-4 p-4 ${isFullscreen ? 'h-[calc(100%-80px)]' : 'h-[calc(100%-80px)]'}`}>
-          {/* Left Panel - Controls - Scrollable */}
-          <div className="space-y-4 overflow-y-auto max-h-full pr-2"  style={{ maxHeight: isFullscreen ? 'calc(100vh - 120px)' : '600px' }}>
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-              <TabsList className="grid grid-cols-5 w-full">
-                <TabsTrigger value="pool">Pool</TabsTrigger>
-                <TabsTrigger value="deck">Deck</TabsTrigger>
-                <TabsTrigger value="depth">Depth</TabsTrigger>
-                <TabsTrigger value="textures">Textures</TabsTrigger>
-                <TabsTrigger value="cost">Cost</TabsTrigger>
+        {/* Main Content - Responsive layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-[260px,1fr] xl:grid-cols-[300px,1fr] gap-4">
+          {/* Left Panel - Scrollable Controls */}
+          <div className="space-y-3 max-h-[50vh] sm:max-h-[60vh] lg:max-h-[calc(100vh-200px)] overflow-y-auto pr-2"  style={{ scrollbarWidth: 'thin' }}>
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+              <TabsList className="grid grid-cols-5 w-full text-xs sm:text-sm">
+                <TabsTrigger value="pool" className="px-1 sm:px-3">Pool</TabsTrigger>
+                <TabsTrigger value="deck" className="px-1 sm:px-3">Deck</TabsTrigger>
+                <TabsTrigger value="depth" className="px-1 sm:px-3">Depth</TabsTrigger>
+                <TabsTrigger value="textures" className="px-1 sm:px-3">Finish</TabsTrigger>
+                <TabsTrigger value="cost" className="px-1 sm:px-3">Cost</TabsTrigger>
               </TabsList>
 
               <TabsContent value="pool" className="space-y-4 mt-4">
@@ -1071,11 +1100,15 @@ export function EnhancedPool2DDesigner({
             </Card>
           </div>
 
-          {/* Canvas - Responsive Container */}
+          {/* Canvas - Fully Responsive Container */}
           <div 
             ref={containerRef}
-            className="relative flex items-center justify-center bg-muted rounded-lg w-full"
-            style={{ height: isFullscreen ? 'calc(100vh - 120px)' : '600px' }}
+            className="relative flex items-center justify-center bg-muted rounded-lg w-full min-h-[400px] sm:min-h-[500px]"
+            style={{ 
+              height: isFullscreen 
+                ? 'calc(100vh - 100px)' 
+                : 'clamp(400px, calc(100vh - 300px), 800px)' 
+            }}
           >
             <canvas
               ref={canvasRef}
@@ -1086,7 +1119,13 @@ export function EnhancedPool2DDesigner({
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
               onClick={handleClick}
-              className="cursor-crosshair shadow-lg rounded-lg"
+              className="cursor-crosshair shadow-lg rounded-lg max-w-full max-h-full"
+              style={{ 
+                width: `${canvasWidth}px`,
+                height: `${canvasHeight}px`,
+                maxWidth: '100%',
+                maxHeight: '100%'
+              }}
             />
           </div>
         </div>
