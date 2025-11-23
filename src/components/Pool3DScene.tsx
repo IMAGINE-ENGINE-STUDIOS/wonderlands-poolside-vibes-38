@@ -613,9 +613,11 @@ const DeckCopingMesh: React.FC<{
     return { minX, maxX, minY, maxY, width, length };
   }, [poolPoints]);
 
-  // COPING GEOMETRY - Inner edge matches pool exactly (no gap with water)
+  // COPING GEOMETRY - Uses spline mesh that follows pool shape exactly
   const copingGeometry = useMemo(() => {
-    const { width, length } = poolBounds;
+    if (poolPoints.length < 3) return null;
+    
+    // Create spline following pool perimeter
     
     const innerHalfWidth = width / 2;
     const innerHalfLength = length / 2;
