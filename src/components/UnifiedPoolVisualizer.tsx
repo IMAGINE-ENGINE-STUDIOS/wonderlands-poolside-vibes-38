@@ -818,7 +818,6 @@ export function UnifiedPoolVisualizer({
                   handlePoolPointsChange(updatedPoints);
                 }}
                 color="#00ff00"
-                lineWidth={4}
                 enableEdit={true}
                 name="Pool Wall"
                 yPosition={scene.deck.copingHeight || 0.17}
