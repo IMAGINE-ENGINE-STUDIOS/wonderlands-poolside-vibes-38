@@ -1,5 +1,4 @@
-import { useState, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useState, useMemo } from 'react';
 import * as THREE from 'three';
 import { Html } from '@react-three/drei';
 
@@ -57,25 +56,39 @@ export function SplineEditor({
     setDraggedPoint(null);
   };
 
-  // Create line geometry from points
-  const lineGeometry = new THREE.BufferGeometry();
-  const positions: number[] = [];
-  
-  points.forEach(p => {
-    positions.push(p.x, yPosition, p.z);
-  });
-  
-  // Close the loop
-  if (points.length > 0) {
-    positions.push(points[0].x, yPosition, points[0].z);
-  }
-  
-  lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  // Create line geometry from points (memoized)
+  const lineGeometry = useMemo(() => {
+    const geometry = new THREE.BufferGeometry();
+    const positions: number[] = [];
+    
+    points.forEach(p => {
+      positions.push(p.x, yPosition, p.z);
+    });
+    
+    // Close the loop
+    if (points.length > 0) {
+      positions.push(points[0].x, yPosition, points[0].z);
+    }
+    
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    return geometry;
+  }, [points, yPosition]);
+
+  // Create vertical line geometry for indicators (shared)
+  const verticalLineGeometry = useMemo(() => {
+    const geo = new THREE.BufferGeometry();
+    const positions = new Float32Array([0, 0, 0, 0, -1.5, 0]);
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    return geo;
+  }, []);
 
   return (
     <group>
       {/* Spline curve line */}
-      <primitive object={new THREE.Line(lineGeometry, new THREE.LineBasicMaterial({ color, linewidth: lineWidth }))} />
+      <line>
+        <primitive object={lineGeometry} attach="geometry" />
+        <lineBasicMaterial color={color} />
+      </line>
 
       {/* Control points */}
       {points.map((point, index) => {
@@ -106,15 +119,8 @@ export function SplineEditor({
             
             {/* Vertical indicator line to surface */}
             <line>
-              <bufferGeometry>
-                <bufferAttribute
-                  attach="attributes-position"
-                  count={2}
-                  array={new Float32Array([0, 0, 0, 0, -1.5, 0])}
-                  itemSize={3}
-                />
-              </bufferGeometry>
-              <lineBasicMaterial color={pointColor} linewidth={2} opacity={0.6} transparent />
+              <primitive object={verticalLineGeometry} attach="geometry" />
+              <lineBasicMaterial color={pointColor} opacity={0.6} transparent />
             </line>
             
             {/* Surface marker */}
