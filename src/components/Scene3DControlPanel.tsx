@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import { Scene3D, TextureConfig, TextureLibrary, TransformMode, PoolStair } from './scene3d/types';
 import { StairsControls } from './StairsControls';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MobileTexturePanel } from './MobileTexturePanel';
 
 interface Scene3DControlPanelProps {
   scene: Scene3D;
@@ -91,6 +93,7 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   onPoolSplineEditToggle,
   onDeckSplineEditToggle
 }) => {
+  const isMobile = useIsMobile();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [annotationText, setAnnotationText] = useState('');
   const [annotationPrice, setAnnotationPrice] = useState('');
@@ -426,8 +429,71 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
 
           <Separator />
 
-          {/* Texture Editor */}
-          {(selectedObject || selectedCategory) && (
+          {/* Mobile-Optimized Texture Editor */}
+          {isMobile && (selectedObject || selectedCategory) ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Paintbrush className="h-4 w-4" />
+                <h4 className="font-medium text-sm">Textures</h4>
+              </div>
+
+              <MobileTexturePanel
+                textures={getFilteredFinishes()}
+                currentTexture={scene.pool.finish}
+                textureScale={scene.pool.finish.scale || 1.8}
+                onTextureChange={(texture) => onTextureChange('pool', texture)}
+                onScaleChange={(scale) => handleTextureScaleChange(scale)}
+                label="Pool Finish"
+              />
+
+              <MobileTexturePanel
+                textures={textureLibrary.pavers}
+                currentTexture={scene.deck.paver}
+                textureScale={scene.deck.paver.scale || 1.8}
+                onTextureChange={(texture) => onTextureChange('deck', texture)}
+                onScaleChange={(scale) => {
+                  const updatedScene = { ...scene };
+                  updatedScene.deck.paver = { ...updatedScene.deck.paver, scale };
+                  onSceneChange(updatedScene);
+                }}
+                label="Deck Pavers"
+              />
+
+              <MobileTexturePanel
+                textures={textureLibrary.coping}
+                currentTexture={scene.deck.coping}
+                textureScale={scene.deck.coping.scale || 1.8}
+                onTextureChange={(texture) => onTextureChange('coping', texture)}
+                onScaleChange={(scale) => {
+                  const updatedScene = { ...scene };
+                  updatedScene.deck.coping = { ...updatedScene.deck.coping, scale };
+                  onSceneChange(updatedScene);
+                }}
+                label="Coping"
+              />
+
+              <MobileTexturePanel
+                textures={getFilteredFinishes()}
+                currentTexture={scene.deck.waterline || scene.pool.finish}
+                textureScale={scene.deck.waterline?.scale || 1.8}
+                onTextureChange={(texture) => onTextureChange('waterline', texture)}
+                onScaleChange={(scale) => {
+                  const updatedScene = { ...scene };
+                  if (!updatedScene.deck.waterline) {
+                    updatedScene.deck.waterline = {
+                      ...updatedScene.pool.finish,
+                      scale
+                    };
+                  } else {
+                    updatedScene.deck.waterline = { ...updatedScene.deck.waterline, scale };
+                  }
+                  onSceneChange(updatedScene);
+                }}
+                label="Waterline"
+              />
+            </div>
+          ) : (selectedObject || selectedCategory) && (
+            /* Desktop Texture Editor */
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Paintbrush className="h-4 w-4" />
