@@ -2,19 +2,19 @@
 const allSizes = [
   {
     dimensions: "12 ft. x 6 ft.",
-    price: 6800
+    price: 7820
   },
   {
     dimensions: "14 ft. x 6 ft.",
-    price: 5900
+    price: 6785
   },
   {
     dimensions: "16 ft. x 6 ft.",
-    price: 7000
+    price: 8050
   },
   {
     dimensions: "18 ft. x 6 ft.",
-    price: 7800
+    price: 8970
   }
 ];
 
@@ -31,7 +31,7 @@ const baseGateInfo = {
   addons: [
     {
       name: "Automatic Gate Opener",
-      price: 2000,
+      price: 2300,
       description: "Automated gate opening system for convenient access"
     }
   ]
