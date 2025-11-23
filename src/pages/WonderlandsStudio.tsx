@@ -41,8 +41,7 @@ import { getProductFeatures, getDefaultExtras, calculateFeaturePrice, type Produ
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
-import { Pool2DSplineEditor } from "@/components/Pool2DSplineEditor";
-import { EnhancedPool2DDesigner } from "@/components/EnhancedPool2DDesigner";
+import { Pool2DDesigner } from "@/components/pool-designer/Pool2DDesigner";
 
 interface Product {
   model?: string;
@@ -1114,7 +1113,7 @@ const WonderlandsStudio = () => {
                     
                     <div className="relative rounded-lg overflow-hidden bg-muted" style={{ height: '700px' }}>
                       {!show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') ? (
-                        <EnhancedPool2DDesigner
+                        <Pool2DDesigner
                           initialDimensions={
                             selectedProduct.dimensions ? {
                               width: parseDimensions(selectedProduct.dimensions).width,
