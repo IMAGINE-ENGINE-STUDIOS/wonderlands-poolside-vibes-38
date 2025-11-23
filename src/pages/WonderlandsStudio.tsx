@@ -1131,7 +1131,7 @@ const WonderlandsStudio = () => {
                       </div>
                     )}
                     
-                    <div className="relative rounded-lg overflow-auto bg-muted min-h-[700px] flex flex-col">
+                    <div className="relative rounded-lg overflow-hidden bg-muted" style={{ height: '700px' }}>
                       {viewMode === 'product-image' && (selectedProduct.media || selectedProduct.image) ? (
                         <ProductMediaGallery 
                           media={selectedProduct.media || selectedProduct.image || ''} 
