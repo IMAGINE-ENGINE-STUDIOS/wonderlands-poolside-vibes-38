@@ -41,7 +41,7 @@ import { getProductFeatures, getDefaultExtras, calculateFeaturePrice, type Produ
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
-import { Pool2DDesigner } from "@/components/pool-designer";
+
 
 interface Product {
   model?: string;
@@ -1113,30 +1113,18 @@ const WonderlandsStudio = () => {
                     
                     <div className="relative rounded-lg overflow-hidden bg-muted" style={{ height: '700px' }}>
                       {!show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') ? (
-                        <Pool2DDesigner
-                          initialDimensions={
-                            selectedProduct.dimensions ? {
-                              width: parseDimensions(selectedProduct.dimensions).width,
-                              length: parseDimensions(selectedProduct.dimensions).length,
-                              depth: parseDepth(selectedProduct.depth)
-                            } : undefined
-                          }
-                          onDesignChange={(design) => {
-                            console.log('Pool design changed:', design);
-                            setCustomPoolShape(design.poolPoints);
+                        <PoolBuilder
+                          onPoolDataChange={(data) => {
+                            console.log('Pool builder data changed:', data);
+                            setPoolBuilderData(data);
+                            setCustomPoolShape(data.points);
                             
-                            // Update selectedExtras with textures from 2D designer
+                            // Update selectedExtras with design data
                             setSelectedExtras((prev: any) => ({
                               ...prev,
-                              finish: design.finish,
-                              paverOption: design.paver,
-                              copingPaverOption: design.coping,
-                              deckWidth: design.deckWidth,
-                              copingWidth: design.copingWidth,
-                              depthProfile: design.depthPoints
+                              poolBuilderData: data
                             }));
                           }}
-                          onOpen3DView={() => setShow3DView(true)}
                         />
                       ) : show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && paverTypes.length > 0 && finishOptions.length > 0 ? (
                         <div className="w-full h-full" key={`3d-viewer-${selectedProduct.model || selectedProduct.name}`}>
