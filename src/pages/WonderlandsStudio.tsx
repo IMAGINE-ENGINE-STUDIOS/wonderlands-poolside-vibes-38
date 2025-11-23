@@ -41,7 +41,7 @@ import { getProductFeatures, getDefaultExtras, calculateFeaturePrice, type Produ
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
-import { Pool2DDesigner } from "@/components/pool-designer/Pool2DDesigner";
+import { Pool2DDesigner } from "@/components/pool-designer";
 
 interface Product {
   model?: string;
@@ -1136,16 +1136,7 @@ const WonderlandsStudio = () => {
                               depthProfile: design.depthPoints
                             }));
                           }}
-                          availableFinishes={finishOptions.map(f => ({
-                            id: f.name,
-                            name: f.name,
-                            image: f.image
-                          }))}
-                          availablePavers={paverTypes.map(p => ({
-                            id: p.id,
-                            name: p.name,
-                            image: p.image
-                          }))}
+                          onOpen3DView={() => setShow3DView(true)}
                         />
                       ) : show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && paverTypes.length > 0 && finishOptions.length > 0 ? (
                         <div className="w-full h-full" key={`3d-viewer-${selectedProduct.model || selectedProduct.name}`}>
