@@ -202,7 +202,7 @@ export function PoolSplineEditor({
       {/* Main spline curve */}
       <line>
         <primitive object={lineGeometry} attach="geometry" />
-        <lineBasicMaterial color={color} />
+        <lineBasicMaterial color={color} linewidth={lineWidth} />
       </line>
 
       {/* Thicker invisible line for easier segment hovering */}
@@ -288,7 +288,7 @@ export function PoolSplineEditor({
             <line>
               <bufferGeometry>
                 <bufferAttribute
-                  attach="attributes-position"
+                  attach="attributes.position"
                   count={2}
                   array={new Float32Array([0, 0, 0, 0, -1.5, 0])}
                   itemSize={3}
