@@ -3249,12 +3249,13 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
               onMouseMove={handleCanvasMouseMove}
               onMouseUp={handleCanvasMouseUp}
               onMouseLeave={handleCanvasMouseUp}
-              className="border-2 border-border rounded-lg shadow-2xl touch-none bg-gradient-to-br from-background to-muted/10"
+              className="border-2 border-border rounded-lg shadow-2xl bg-gradient-to-br from-background to-muted/10"
               style={{ 
                 cursor: fenceAddMode ? 'crosshair'
                   : pendingFeature === 'jet' ? 'crosshair' 
                   : activeTool === 'add' ? 'crosshair'
-                  : 'default'
+                  : 'default',
+                pointerEvents: 'auto'
               }}
             />
           </div>
