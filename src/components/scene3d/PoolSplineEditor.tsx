@@ -261,6 +261,14 @@ export function PoolSplineEditor({
         const pointSize = isDragged ? 0.7 : isHovered ? 0.6 : 0.5;
         const shape = getPointShape(point.type);
 
+        // Create vertical indicator line geometry
+        const verticalLineGeometry = useMemo(() => {
+          const geo = new THREE.BufferGeometry();
+          const positions = new Float32Array([0, 0, 0, 0, -1.5, 0]);
+          geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+          return geo;
+        }, []);
+
         return (
           <group key={point.id} position={[point.x, yPosition + 1.5, point.z]}>
             {/* Control point geometry based on type */}
@@ -286,14 +294,7 @@ export function PoolSplineEditor({
             
             {/* Vertical indicator line */}
             <line>
-              <bufferGeometry>
-                <bufferAttribute
-                  attach="attributes.position"
-                  count={2}
-                  array={new Float32Array([0, 0, 0, 0, -1.5, 0])}
-                  itemSize={3}
-                />
-              </bufferGeometry>
+              <primitive object={verticalLineGeometry} attach="geometry" />
               <lineBasicMaterial color={pointColor} opacity={0.7} transparent />
             </line>
             
