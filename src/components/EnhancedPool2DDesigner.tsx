@@ -77,8 +77,11 @@ export function EnhancedPool2DDesigner({
   availablePavers = paverTypes
 }: EnhancedPool2DDesignerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  
+  const [containerSize, setContainerSize] = useState({ width: width, height: height });
   
   const scale = 10; // pixels per foot
   const POOL_COST_PER_SQFT = 190;
@@ -135,13 +138,34 @@ export function EnhancedPool2DDesigner({
   
   const [activeTab, setActiveTab] = useState<'pool' | 'deck' | 'depth' | 'textures' | 'cost'>('pool');
 
-  const canvasWidth = isFullscreen ? window.innerWidth : width;
-  const canvasHeight = isFullscreen ? window.innerHeight : height;
+  const canvasWidth = isFullscreen ? window.innerWidth : containerSize.width;
+  const canvasHeight = isFullscreen ? window.innerHeight : containerSize.height;
+  
+  // Resize observer to make canvas responsive
+  useEffect(() => {
+    if (!containerRef.current || isFullscreen) return;
+    
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        setContainerSize({ width, height });
+      }
+    });
+    
+    resizeObserver.observe(containerRef.current);
+    return () => resizeObserver.disconnect();
+  }, [isFullscreen]);
 
   // Conversion functions
   const pixelsToFeet = (pixels: number) => pixels / scale;
   const feetToPixels = (feet: number) => feet * scale;
   const convertPixels = (pixels: number) => unit === 'feet' ? pixelsToFeet(pixels) : pixelsToFeet(pixels) * 0.3048;
+  
+  // Area conversion function - CRITICAL: area needs scale squared
+  const convertArea = (areaInPixels: number) => {
+    const areaInSqFt = areaInPixels / (scale * scale);
+    return unit === 'feet' ? areaInSqFt : areaInSqFt * 0.09290304; // 1 sq ft = 0.09290304 sq m
+  };
 
   // Generate deck points from pool points
   const generateDeckPoints = useCallback((poolPts: Point2D[], deckWidthFeet: number): DeckPoint[] => {
@@ -200,8 +224,8 @@ export function EnhancedPool2DDesigner({
     
     return {
       poolPerimeter: convertPixels(poolPerimeter),
-      poolArea: convertPixels(poolArea) / (unit === 'feet' ? 1 : 0.3048),
-      deckArea: convertPixels(deckArea) / (unit === 'feet' ? 1 : 0.3048)
+      poolArea: convertArea(poolArea),  // Use correct area conversion
+      deckArea: convertArea(deckArea)   // Use correct area conversion
     };
   }, [poolPoints, deckPoints, unit]);
 
@@ -768,8 +792,8 @@ export function EnhancedPool2DDesigner({
   const selectedPoint = poolPoints.find(p => p.id === (hoveredPoint || draggedPoint));
 
   return (
-    <div className={isFullscreen ? "fixed inset-0 z-50 bg-background" : "space-y-4"}>
-      <Card className={isFullscreen ? "h-full rounded-none border-0" : ""}>
+    <div className={isFullscreen ? "fixed inset-0 z-50 bg-background" : "w-full h-full"}>
+      <Card className={isFullscreen ? "h-full rounded-none border-0" : "h-full"}>
         {/* Header */}
         <div className={`flex justify-between items-center ${isFullscreen ? 'p-4 border-b border-border' : 'p-4'}`}>
           <div className="flex items-center gap-4">
@@ -801,10 +825,10 @@ export function EnhancedPool2DDesigner({
           <input ref={fileInputRef} type="file" accept=".json" onChange={loadShape} className="hidden" />
         </div>
 
-        {/* Main Content */}
-        <div className={`grid ${isFullscreen ? 'grid-cols-[300px,1fr]' : 'grid-cols-1'} gap-4 p-4`}>
-          {/* Left Panel - Controls */}
-          <div className="space-y-4">
+        {/* Main Content - Side by side layout */}
+        <div className={`grid ${isFullscreen ? 'grid-cols-[320px,1fr]' : 'grid-cols-1 lg:grid-cols-[320px,1fr]'} gap-4 p-4 ${isFullscreen ? 'h-[calc(100%-80px)]' : 'h-[calc(100%-80px)]'}`}>
+          {/* Left Panel - Controls - Scrollable */}
+          <div className="space-y-4 overflow-y-auto max-h-full pr-2"  style={{ maxHeight: isFullscreen ? 'calc(100vh - 120px)' : '600px' }}>
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
               <TabsList className="grid grid-cols-5 w-full">
                 <TabsTrigger value="pool">Pool</TabsTrigger>
@@ -1047,8 +1071,12 @@ export function EnhancedPool2DDesigner({
             </Card>
           </div>
 
-          {/* Canvas */}
-          <div className="relative flex items-center justify-center bg-muted rounded-lg">
+          {/* Canvas - Responsive Container */}
+          <div 
+            ref={containerRef}
+            className="relative flex items-center justify-center bg-muted rounded-lg w-full"
+            style={{ height: isFullscreen ? 'calc(100vh - 120px)' : '600px' }}
+          >
             <canvas
               ref={canvasRef}
               width={canvasWidth}

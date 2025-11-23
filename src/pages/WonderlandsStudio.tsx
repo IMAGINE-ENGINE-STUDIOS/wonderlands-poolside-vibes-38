@@ -1112,7 +1112,7 @@ const WonderlandsStudio = () => {
                       </div>
                     )}
                     
-                    <div className="relative rounded-lg overflow-hidden bg-muted">
+                    <div className="relative rounded-lg overflow-hidden bg-muted" style={{ height: '700px' }}>
                       {!show3DView && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') ? (
                         <EnhancedPool2DDesigner
                           initialDimensions={
@@ -1125,6 +1125,17 @@ const WonderlandsStudio = () => {
                           onDesignChange={(design) => {
                             console.log('Pool design changed:', design);
                             setCustomPoolShape(design.poolPoints);
+                            
+                            // Update selectedExtras with textures from 2D designer
+                            setSelectedExtras((prev: any) => ({
+                              ...prev,
+                              finish: design.finish,
+                              paverOption: design.paver,
+                              copingPaverOption: design.coping,
+                              deckWidth: design.deckWidth,
+                              copingWidth: design.copingWidth,
+                              depthProfile: design.depthPoints
+                            }));
                           }}
                           availableFinishes={finishOptions.map(f => ({
                             id: f.name,
