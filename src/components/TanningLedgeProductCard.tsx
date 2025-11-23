@@ -309,23 +309,7 @@ const TanningLedgeProductCard = ({
           </div>}
         
         {/* Feature Checkboxes */}
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <Checkbox checked={extras.jets} onCheckedChange={() => toggleExtra('jets')} className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" />
-            <span className="flex items-center gap-1">
-              <Zap size={14} className="text-coral" />
-              Jets
-            </span>
-          </label>
-          
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <Checkbox checked={extras.heater} onCheckedChange={() => toggleExtra('heater')} className="data-[state=checked]:bg-coral data-[state=checked]:border-coral" />
-            <span className="flex items-center gap-1">
-              <Thermometer size={14} className="text-orange" />
-              Heater
-            </span>
-          </label>
-        </div>
+        
         
         {/* Expanded Details */}
         {showDetails && <div className="space-y-4 animate-fade-in-up">
