@@ -17,7 +17,7 @@ interface PoolSplineEditorProps {
   points: SplinePoint[];
   onPointsChange: (points: SplinePoint[]) => void;
   color?: string;
-  lineWidth?: number;
+  lineWidth?: number; // Accepted but ignored
   enableEdit?: boolean;
   name?: string;
   yPosition?: number;
@@ -28,7 +28,7 @@ export function PoolSplineEditor({
   points,
   onPointsChange,
   color = '#00ff00',
-  lineWidth = 3,
+  lineWidth, // Accepted but not used
   enableEdit = true,
   name = 'Pool Edge',
   yPosition = 0,
