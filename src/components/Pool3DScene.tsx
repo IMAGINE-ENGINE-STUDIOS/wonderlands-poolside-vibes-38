@@ -1321,8 +1321,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         />
       )}
 
-      {/* Pool Spline Editor */}
-      {enablePoolSplineEdit && (
+      {/* SPLINE EDITORS TEMPORARILY DISABLED */}
+      {/* {enablePoolSplineEdit && (
         <SplineEditor
           points={poolSplinePoints}
           onPointsChange={handlePoolSplineChange}
@@ -1333,7 +1333,6 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         />
       )}
 
-      {/* Deck Spline Editor */}
       {enableDeckSplineEdit && hardscapePoints && hardscapePoints.length > 0 && (
         <SplineEditor
           points={deckSplinePoints}
@@ -1343,7 +1342,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           name="Deck Boundary"
           yPosition={deckHeight}
         />
-      )}
+      )} */}
       
       {/* Component Rulers */}
       {showWireframe && showRulers && selectedComponent === 'pool' && (

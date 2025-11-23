@@ -798,8 +798,8 @@ export function UnifiedPoolVisualizer({
               />
             </group>
             
-            {/* Pool Spline Editor - Editable Wall Outline */}
-            {enablePoolSplineEdit && (
+            {/* Pool Spline Editor - TEMPORARILY DISABLED DUE TO CRASH */}
+            {/* {enablePoolSplineEdit && (
               <PoolSplineEditor
                 points={scene.pool.points.map(p => ({
                   x: p.x,
@@ -823,7 +823,7 @@ export function UnifiedPoolVisualizer({
                 yPosition={scene.deck.copingHeight || 0.17}
                 showControls={true}
               />
-            )}
+            )} */}
           </group>
 
           {/* Water surface - S17 to W25 centered at world origin */}
