@@ -197,6 +197,29 @@ export function PoolSplineEditor({
     }
   };
 
+  // Create segment geometries for hover detection (memoized)
+  const segmentGeometries = useMemo(() => {
+    if (!enableEdit || points.length < 2) return [];
+    
+    return points.map((point, index) => {
+      const next = points[(index + 1) % points.length];
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute([
+        point.x, yPosition, point.z,
+        next.x, yPosition, next.z
+      ], 3));
+      return geometry;
+    });
+  }, [points, yPosition, enableEdit]);
+
+  // Create vertical indicator line geometry (shared across all points)
+  const verticalLineGeometry = useMemo(() => {
+    const geo = new THREE.BufferGeometry();
+    const positions = new Float32Array([0, 0, 0, 0, -1.5, 0]);
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    return geo;
+  }, []);
+
   return (
     <group>
       {/* Main spline curve */}
@@ -206,14 +229,7 @@ export function PoolSplineEditor({
       </line>
 
       {/* Thicker invisible line for easier segment hovering */}
-      {enableEdit && points.map((point, index) => {
-        const next = points[(index + 1) % points.length];
-        const segmentGeometry = new THREE.BufferGeometry();
-        segmentGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
-          point.x, yPosition, point.z,
-          next.x, yPosition, next.z
-        ], 3));
-        
+      {enableEdit && segmentGeometries.map((segmentGeometry, index) => {
         return (
           <line
             key={`segment-${index}`}
@@ -260,14 +276,6 @@ export function PoolSplineEditor({
         const pointColor = getPointColor(point, isHovered, isDragged);
         const pointSize = isDragged ? 0.7 : isHovered ? 0.6 : 0.5;
         const shape = getPointShape(point.type);
-
-        // Create vertical indicator line geometry
-        const verticalLineGeometry = useMemo(() => {
-          const geo = new THREE.BufferGeometry();
-          const positions = new Float32Array([0, 0, 0, 0, -1.5, 0]);
-          geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-          return geo;
-        }, []);
 
         return (
           <group key={point.id} position={[point.x, yPosition + 1.5, point.z]}>
