@@ -17,7 +17,7 @@ interface PoolSplineEditorProps {
   points: SplinePoint[];
   onPointsChange: (points: SplinePoint[]) => void;
   color?: string;
-  lineWidth?: number; // Accepted but ignored
+  lineWidth?: number;
   enableEdit?: boolean;
   name?: string;
   yPosition?: number;
@@ -28,7 +28,6 @@ export function PoolSplineEditor({
   points,
   onPointsChange,
   color = '#00ff00',
-  lineWidth, // Accepted but not used
   enableEdit = true,
   name = 'Pool Edge',
   yPosition = 0,
@@ -38,30 +37,25 @@ export function PoolSplineEditor({
   const [hoverPoint, setHoverPoint] = useState<string | null>(null);
   const [hoverSegment, setHoverSegment] = useState<number | null>(null);
 
-  // Create smooth curve through points based on their types
+  // Generate curve points using Catmull-Rom splines
   const curvePoints = useMemo(() => {
     if (points.length < 2) return [];
     
-    const allPoints: THREE.Vector3[] = [];
+    const result: THREE.Vector3[] = [];
     
     for (let i = 0; i < points.length; i++) {
       const curr = points[i];
       const next = points[(i + 1) % points.length];
-      
       const p0 = new THREE.Vector3(curr.x, yPosition, curr.z);
       const p1 = new THREE.Vector3(next.x, yPosition, next.z);
       
-      // Add current point
-      allPoints.push(p0);
+      result.push(p0);
       
-      // Generate intermediate points based on point type
       if (curr.type === 'curve' || curr.type === 'smooth') {
-        const segments = 16; // Number of segments for smooth curves
+        const segments = 16;
         const prev = points[(i - 1 + points.length) % points.length];
         const nextNext = points[(i + 2) % points.length];
-        
-        // Catmull-Rom spline for smooth curves
-        const p_1 = new THREE.Vector3(prev.x, yPosition, prev.z);
+        const pMinus1 = new THREE.Vector3(prev.x, yPosition, prev.z);
         const p2 = new THREE.Vector3(nextNext.x, yPosition, nextNext.z);
         
         for (let t = 1; t <= segments; t++) {
@@ -69,54 +63,64 @@ export function PoolSplineEditor({
           const tt = alpha * alpha;
           const ttt = tt * alpha;
           
-          // Catmull-Rom formula
-          const q = new THREE.Vector3();
-          q.x = 0.5 * (
-            2 * p0.x +
-            (-p_1.x + p1.x) * alpha +
-            (2 * p_1.x - 5 * p0.x + 4 * p1.x - p2.x) * tt +
-            (-p_1.x + 3 * p0.x - 3 * p1.x + p2.x) * ttt
+          const q = new THREE.Vector3(
+            0.5 * (2 * p0.x + (-pMinus1.x + p1.x) * alpha + 
+              (2 * pMinus1.x - 5 * p0.x + 4 * p1.x - p2.x) * tt + 
+              (-pMinus1.x + 3 * p0.x - 3 * p1.x + p2.x) * ttt),
+            yPosition,
+            0.5 * (2 * p0.z + (-pMinus1.z + p1.z) * alpha + 
+              (2 * pMinus1.z - 5 * p0.z + 4 * p1.z - p2.z) * tt + 
+              (-pMinus1.z + 3 * p0.z - 3 * p1.z + p2.z) * ttt)
           );
-          q.z = 0.5 * (
-            2 * p0.z +
-            (-p_1.z + p1.z) * alpha +
-            (2 * p_1.z - 5 * p0.z + 4 * p1.z - p2.z) * tt +
-            (-p_1.z + 3 * p0.z - 3 * p1.z + p2.z) * ttt
-          );
-          q.y = yPosition;
-          
-          allPoints.push(q);
+          result.push(q);
         }
       } else {
-        // Linear or corner - just add a few points for straight line
         for (let t = 1; t <= 4; t++) {
-          const alpha = t / 4;
-          const intermediate = p0.clone().lerp(p1, alpha);
-          allPoints.push(intermediate);
+          result.push(p0.clone().lerp(p1, t / 4));
         }
       }
     }
     
-    return allPoints;
+    return result;
   }, [points, yPosition]);
 
-  // Create line geometry
-  const lineGeometry = useMemo(() => {
-    const geometry = new THREE.BufferGeometry();
-    const positions: number[] = [];
-    
-    curvePoints.forEach(p => {
-      positions.push(p.x, p.y, p.z);
+  // Main line geometry
+  const mainLineGeo = useMemo(() => {
+    const geo = new THREE.BufferGeometry();
+    const positions = new Float32Array(curvePoints.length * 3 + 3);
+    curvePoints.forEach((p, i) => {
+      positions[i * 3] = p.x;
+      positions[i * 3 + 1] = p.y;
+      positions[i * 3 + 2] = p.z;
     });
-    
-    // Close the loop
     if (curvePoints.length > 0) {
-      positions.push(curvePoints[0].x, curvePoints[0].y, curvePoints[0].z);
+      positions[curvePoints.length * 3] = curvePoints[0].x;
+      positions[curvePoints.length * 3 + 1] = curvePoints[0].y;
+      positions[curvePoints.length * 3 + 2] = curvePoints[0].z;
     }
-    
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    return geometry;
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    return geo;
   }, [curvePoints]);
+
+  // Segment geometries
+  const segmentGeos = useMemo(() => {
+    if (!enableEdit || points.length < 2) return [];
+    return points.map((point, i) => {
+      const next = points[(i + 1) % points.length];
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array([point.x, yPosition, point.z, next.x, yPosition, next.z]);
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      return geo;
+    });
+  }, [points, yPosition, enableEdit]);
+
+  // Shared vertical line geometry
+  const vertLineGeo = useMemo(() => {
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array([0, 0, 0, 0, -1.5, 0]);
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    return geo;
+  }, []);
 
   const handlePointerDown = (pointId: string) => (e: any) => {
     if (!enableEdit) return;
@@ -127,21 +131,14 @@ export function PoolSplineEditor({
   const handlePointerMove = (e: any) => {
     if (!draggedPoint || !enableEdit) return;
     e.stopPropagation();
-
     const intersection = e.intersections[0];
     if (!intersection) return;
-
-    const updatedPoints = points.map(p =>
-      p.id === draggedPoint
-        ? { ...p, x: intersection.point.x, z: intersection.point.z }
-        : p
-    );
-    onPointsChange(updatedPoints);
+    onPointsChange(points.map(p =>
+      p.id === draggedPoint ? { ...p, x: intersection.point.x, z: intersection.point.z } : p
+    ));
   };
 
-  const handlePointerUp = () => {
-    setDraggedPoint(null);
-  };
+  const handlePointerUp = () => setDraggedPoint(null);
 
   const handleDeletePoint = (pointId: string) => {
     if (points.length <= 3) {
@@ -154,7 +151,6 @@ export function PoolSplineEditor({
   const handleAddPoint = (index: number) => {
     const curr = points[index];
     const next = points[(index + 1) % points.length];
-    
     const newPoint: SplinePoint = {
       x: (curr.x + next.x) / 2,
       z: (curr.z + next.z) / 2,
@@ -162,22 +158,18 @@ export function PoolSplineEditor({
       id: `point-${Date.now()}`,
       type: 'linear'
     };
-    
     const newPoints = [...points];
     newPoints.splice(index + 1, 0, newPoint);
     onPointsChange(newPoints);
   };
 
   const handleChangePointType = (pointId: string, type: PointType) => {
-    onPointsChange(points.map(p => 
-      p.id === pointId ? { ...p, type } : p
-    ));
+    onPointsChange(points.map(p => p.id === pointId ? { ...p, type } : p));
   };
 
   const getPointColor = (point: SplinePoint, isHovered: boolean, isDragged: boolean) => {
     if (isDragged) return '#ff0000';
     if (isHovered) return '#ffff00';
-    
     switch (point.type) {
       case 'linear': return '#00ff00';
       case 'curve': return '#00ffff';
@@ -197,67 +189,34 @@ export function PoolSplineEditor({
     }
   };
 
-  // Create segment geometries for hover detection (memoized)
-  const segmentGeometries = useMemo(() => {
-    if (!enableEdit || points.length < 2) return [];
-    
-    return points.map((point, index) => {
-      const next = points[(index + 1) % points.length];
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.Float32BufferAttribute([
-        point.x, yPosition, point.z,
-        next.x, yPosition, next.z
-      ], 3));
-      return geometry;
-    });
-  }, [points, yPosition, enableEdit]);
-
-  // Create vertical indicator line geometry (shared across all points)
-  const verticalLineGeometry = useMemo(() => {
-    const geo = new THREE.BufferGeometry();
-    const positions = new Float32Array([0, 0, 0, 0, -1.5, 0]);
-    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    return geo;
-  }, []);
-
   return (
     <group>
-      {/* Main spline curve */}
       <line>
-        <primitive object={lineGeometry} attach="geometry" />
+        <primitive object={mainLineGeo} attach="geometry" />
         <lineBasicMaterial color={color} />
       </line>
 
-      {/* Thicker invisible line for easier segment hovering */}
-      {enableEdit && segmentGeometries.map((segmentGeometry, index) => {
-        return (
-          <line
-            key={`segment-${index}`}
-            onPointerOver={() => setHoverSegment(index)}
-            onPointerOut={() => setHoverSegment(null)}
-          >
-            <primitive object={segmentGeometry} attach="geometry" />
-            <lineBasicMaterial 
-              color={hoverSegment === index ? '#ffff00' : color} 
-              transparent
-              opacity={0.3}
-            />
-          </line>
-        );
-      })}
+      {enableEdit && segmentGeos.map((geo, i) => (
+        <line
+          key={`seg-${i}`}
+          onPointerOver={() => setHoverSegment(i)}
+          onPointerOut={() => setHoverSegment(null)}
+        >
+          <primitive object={geo} attach="geometry" />
+          <lineBasicMaterial color={hoverSegment === i ? '#ffff00' : color} transparent opacity={0.3} />
+        </line>
+      ))}
 
-      {/* Add point buttons on segments */}
-      {enableEdit && showControls && points.map((point, index) => {
-        const next = points[(index + 1) % points.length];
+      {enableEdit && showControls && points.map((point, i) => {
+        const next = points[(i + 1) % points.length];
         const midX = (point.x + next.x) / 2;
         const midZ = (point.z + next.z) / 2;
-        
         return (
-          <group key={`add-${index}`} position={[midX, yPosition + 2, midZ]}>
-            {hoverSegment === index && (
+          <group key={`add-${i}`} position={[midX, yPosition + 2, midZ]}>
+            {hoverSegment === i && (
               <Html distanceFactor={10}>
                 <button
-                  onClick={() => handleAddPoint(index)}
+                  onClick={() => handleAddPoint(i)}
                   className="bg-primary text-primary-foreground rounded-full p-2 shadow-xl hover:scale-110 transition-transform"
                   title="Add Point"
                 >
@@ -269,8 +228,7 @@ export function PoolSplineEditor({
         );
       })}
 
-      {/* Control points */}
-      {points.map((point, index) => {
+      {points.map((point, i) => {
         const isHovered = hoverPoint === point.id;
         const isDragged = draggedPoint === point.id;
         const pointColor = getPointColor(point, isHovered, isDragged);
@@ -279,7 +237,6 @@ export function PoolSplineEditor({
 
         return (
           <group key={point.id} position={[point.x, yPosition + 1.5, point.z]}>
-            {/* Control point geometry based on type */}
             <mesh
               onPointerDown={handlePointerDown(point.id)}
               onPointerMove={handlePointerMove}
@@ -300,16 +257,17 @@ export function PoolSplineEditor({
               />
             </mesh>
             
-            {/* Vertical indicator line */}
             <line>
-              <primitive object={verticalLineGeometry} attach="geometry" />
+              <primitive object={vertLineGeo} attach="geometry" />
               <lineBasicMaterial color={pointColor} opacity={0.7} transparent />
             </line>
             
-            {/* Surface marker */}
             <mesh position={[0, -1.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
-              {point.type === 'corner' && <boxGeometry args={[0.3, 0.3, 0.05]} />}
-              {point.type !== 'corner' && <cylinderGeometry args={[0.2, 0.2, 0.05, 16]} />}
+              {point.type === 'corner' ? (
+                <boxGeometry args={[0.3, 0.3, 0.05]} />
+              ) : (
+                <cylinderGeometry args={[0.2, 0.2, 0.05, 16]} />
+              )}
               <meshStandardMaterial 
                 color={pointColor}
                 emissive={pointColor}
@@ -317,12 +275,11 @@ export function PoolSplineEditor({
               />
             </mesh>
             
-            {/* Controls UI */}
             {enableEdit && showControls && (isHovered || isDragged) && (
               <Html distanceFactor={10}>
                 <div className="bg-background/95 backdrop-blur-sm text-foreground px-4 py-3 rounded-lg text-sm shadow-2xl border border-border min-w-[200px]">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="font-bold">{name} Point {index + 1}</div>
+                    <div className="font-bold">{name} Point {i + 1}</div>
                     {points.length > 3 && (
                       <button
                         onClick={() => handleDeletePoint(point.id)}
@@ -341,46 +298,19 @@ export function PoolSplineEditor({
                   <div className="space-y-1">
                     <div className="text-xs font-semibold mb-1">Point Type:</div>
                     <div className="grid grid-cols-2 gap-1">
-                      <button
-                        onClick={() => handleChangePointType(point.id, 'linear')}
-                        className={`px-2 py-1 rounded text-xs transition-colors ${
-                          point.type === 'linear' 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'bg-muted hover:bg-muted/80'
-                        }`}
-                      >
-                        Linear
-                      </button>
-                      <button
-                        onClick={() => handleChangePointType(point.id, 'curve')}
-                        className={`px-2 py-1 rounded text-xs transition-colors ${
-                          point.type === 'curve' 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'bg-muted hover:bg-muted/80'
-                        }`}
-                      >
-                        Curve
-                      </button>
-                      <button
-                        onClick={() => handleChangePointType(point.id, 'smooth')}
-                        className={`px-2 py-1 rounded text-xs transition-colors ${
-                          point.type === 'smooth' 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'bg-muted hover:bg-muted/80'
-                        }`}
-                      >
-                        Smooth
-                      </button>
-                      <button
-                        onClick={() => handleChangePointType(point.id, 'corner')}
-                        className={`px-2 py-1 rounded text-xs transition-colors ${
-                          point.type === 'corner' 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'bg-muted hover:bg-muted/80'
-                        }`}
-                      >
-                        Corner
-                      </button>
+                      {(['linear', 'curve', 'smooth', 'corner'] as PointType[]).map(type => (
+                        <button
+                          key={type}
+                          onClick={() => handleChangePointType(point.id, type)}
+                          className={`px-2 py-1 rounded text-xs transition-colors capitalize ${
+                            point.type === type 
+                              ? 'bg-primary text-primary-foreground' 
+                              : 'bg-muted hover:bg-muted/80'
+                          }`}
+                        >
+                          {type}
+                        </button>
+                      ))}
                     </div>
                   </div>
                   
