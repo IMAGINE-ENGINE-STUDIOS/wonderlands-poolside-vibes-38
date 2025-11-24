@@ -287,28 +287,77 @@ export function PoolBuilder({ initialDimensions, initialDepth, onPoolDataChange 
     pathway: 0
   };
 
-  // Initialize pool and hardscape centered with default decorations
+  // Initialize pool and hardscape centered with actual product dimensions if provided
   useEffect(() => {
     if (points.length === 0) {
-      const initialPoolPoints = getShapePoints('rectangle');
+      let poolWidth = 15; // Default width in feet
+      let poolLength = 35; // Default length in feet
+      let parsedDepthPoints = [
+        { position: 0, depth: 3.6, id: 'd1' },
+        { position: 0.33, depth: 4.6, id: 'd2' },
+        { position: 0.67, depth: 5.6, id: 'd3' },
+        { position: 1, depth: 6.6, id: 'd4' }
+      ];
+
+      // Parse actual product dimensions if provided (e.g., "16' × 40'")
+      if (initialDimensions) {
+        const dimensionMatch = initialDimensions.match(/(\d+)['']?\s*[×x]\s*(\d+)['']?/);
+        if (dimensionMatch) {
+          poolWidth = parseInt(dimensionMatch[1]);
+          poolLength = parseInt(dimensionMatch[2]);
+          console.log('📐 PoolBuilder: Using product dimensions', { width: poolWidth, length: poolLength });
+        }
+      }
+
+      // Parse actual product depth if provided (e.g., "3'9\" - 8'6\"")
+      if (initialDepth) {
+        const depthMatch = initialDepth.match(/(\d+)[''](\d+)?[""]?\s*[-–]\s*(\d+)[''](\d+)?[""]?/);
+        if (depthMatch) {
+          const shallowFeet = parseInt(depthMatch[1]);
+          const shallowInches = depthMatch[2] ? parseInt(depthMatch[2]) : 0;
+          const deepFeet = parseInt(depthMatch[3]);
+          const deepInches = depthMatch[4] ? parseInt(depthMatch[4]) : 0;
+          
+          const shallowDepth = shallowFeet + (shallowInches / 12);
+          const deepDepth = deepFeet + (deepInches / 12);
+          
+          parsedDepthPoints = [
+            { position: 0, depth: shallowDepth, id: 'd1' },
+            { position: 0.33, depth: shallowDepth + (deepDepth - shallowDepth) * 0.33, id: 'd2' },
+            { position: 0.67, depth: shallowDepth + (deepDepth - shallowDepth) * 0.67, id: 'd3' },
+            { position: 1, depth: deepDepth, id: 'd4' }
+          ];
+          console.log('📏 PoolBuilder: Using product depth', { shallow: shallowDepth, deep: deepDepth });
+        }
+      }
+
+      // Create pool points scaled to actual dimensions
+      const centerX = canvasSize.width / 2;
+      const centerY = canvasSize.height / 2;
+      const poolWidthPixels = poolWidth * scale;
+      const poolLengthPixels = poolLength * scale;
+      
+      const initialPoolPoints = [
+        { x: centerX - poolLengthPixels / 2, y: centerY - poolWidthPixels / 2, id: '1' },
+        { x: centerX + poolLengthPixels / 2, y: centerY - poolWidthPixels / 2, id: '2' },
+        { x: centerX + poolLengthPixels / 2, y: centerY + poolWidthPixels / 2, id: '3' },
+        { x: centerX - poolLengthPixels / 2, y: centerY + poolWidthPixels / 2, id: '4' },
+      ];
+      
       setPoints(initialPoolPoints);
+      setDepthPoints(parsedDepthPoints);
       
       // Generate hardscape deck that follows pool with default 3ft offset
       setHardscapePoints(generateHardscapeFromPool(initialPoolPoints, deckOffset));
       
-      // Add default decorations: trees and grass area (NO default fence - user adds first anchor)
-      const centerX = canvasSize.width / 2;
-      const centerY = canvasSize.height / 2;
-      
+      // Add default decorations: trees and grass area
       setFeatures([
-        // Grass area at bottom
         { type: 'grass', x: centerX, y: centerY + 350, id: 'grass1', radius: 150 },
-        // Trees in grass area
         { type: 'tree', x: centerX - 80, y: centerY + 350, id: 'tree1', treeType: 'palm' },
         { type: 'tree', x: centerX + 80, y: centerY + 350, id: 'tree2', treeType: 'oak' }
       ]);
     }
-  }, [canvasSize]);
+  }, [canvasSize, initialDimensions, initialDepth]);
 
   // Available finishes
   const finishes = [
