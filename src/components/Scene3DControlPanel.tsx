@@ -61,6 +61,8 @@ interface Scene3DControlPanelProps {
   // Depth editing props
   enableDepthEdit: boolean;
   onDepthEditToggle: () => void;
+  depthInsertMode: boolean;
+  onDepthInsertModeToggle: () => void;
 }
 
 export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
@@ -96,7 +98,9 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   onPoolSplineEditToggle,
   onDeckSplineEditToggle,
   enableDepthEdit,
-  onDepthEditToggle
+  onDepthEditToggle,
+  depthInsertMode,
+  onDepthInsertModeToggle
 }) => {
   const isMobile = useIsMobile();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -443,6 +447,22 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
               <p className="text-xs text-muted-foreground">
                 {enableDepthEdit ? 'Drag orange spheres to adjust depth points' : 'Enable to reshape pool floor depth'}
               </p>
+              
+              {enableDepthEdit && (
+                <div className="flex items-center justify-between mt-2 pl-4">
+                  <Label htmlFor="depth-insert" className="text-xs text-muted-foreground">Insert New Points</Label>
+                  <Checkbox
+                    id="depth-insert"
+                    checked={depthInsertMode}
+                    onCheckedChange={onDepthInsertModeToggle}
+                  />
+                </div>
+              )}
+              {depthInsertMode && enableDepthEdit && (
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 pl-4">
+                  Click on pool floor to insert depth points
+                </p>
+              )}
             </div>
           </div>
 
