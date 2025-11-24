@@ -74,8 +74,11 @@ interface FenceDoor {
 }
 
 interface PoolBuilderProps {
+  initialDimensions?: string; // e.g., "16' × 40'"
+  initialDepth?: string; // e.g., "3'9\" - 8'6\""
   onPoolDataChange?: (data: {
     points: Point[];
+    depthPoints: DepthPoint[];
     features: PoolFeature[];
     perimeter: number;
     area: number;
@@ -106,7 +109,7 @@ const shadeColor = (color: string, percent: number) => {
   ).toString(16).slice(1);
 };
 
-export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
+export function PoolBuilder({ initialDimensions, initialDepth, onPoolDataChange }: PoolBuilderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -1931,6 +1934,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       const cost = calculateTotalCost();
       onPoolDataChange({
         points,
+        depthPoints,
         features,
         perimeter: poolPerimeter,
         area: poolArea,
@@ -1940,7 +1944,7 @@ export function PoolBuilder({ onPoolDataChange }: PoolBuilderProps) {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [points, features, poolPerimeter, poolArea]);
+  }, [points, depthPoints, features, poolPerimeter, poolArea]);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;

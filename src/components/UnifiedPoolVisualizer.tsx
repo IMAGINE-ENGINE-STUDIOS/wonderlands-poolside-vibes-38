@@ -798,21 +798,12 @@ export function UnifiedPoolVisualizer({
             </group>
           </group>
 
-          {/* Water surface - S17 to W25 centered at world origin */}
+          {/* Water surface - follows actual pool shape */}
           <group position={[0, 0, 0]}>
             <WaterSurface 
-              poolPoints={[
-                { x: -10, y: -20, id: 'w1' },  // S17 (column S = -10, row 17 = -20)
-                { x: 10, y: -20, id: 'w2' },   // W17 (column W = 10, row 17 = -20)
-                { x: 10, y: 20, id: 'w3' },    // W25 (column W = 10, row 25 = 20)
-                { x: -10, y: 20, id: 'w4' }    // S25 (column S = -10, row 25 = 20)
-              ]}
+              poolPoints={scene.pool.points}
               depthPoints={scene.pool.depthPoints}
-              poolDimensions={{ 
-                length: 40,  // 8 rows × 5ft = 40ft (17-25)
-                width: 20,   // 4 columns × 5ft = 20ft (S-W)
-                depth: scene.pool.dimensions.depth 
-              }}
+              poolDimensions={scene.pool.dimensions}
             />
           </group>
 
