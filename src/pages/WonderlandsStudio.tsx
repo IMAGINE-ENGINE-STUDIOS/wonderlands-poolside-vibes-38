@@ -41,6 +41,8 @@ import { getProductFeatures, getDefaultExtras, calculateFeaturePrice, type Produ
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
+import { SceneProvider, useScene } from "@/contexts/SceneContext";
+import { AutoSaveIndicator } from "@/components/AutoSaveIndicator";
 
 
 interface Product {
@@ -290,6 +292,29 @@ const getExtraPrice = (extra: string) => {
       return 0;
   }
 };
+
+// Scene 3D Viewer Component with Cache Integration
+const Scene3DViewerWithCache = () => {
+  const { scene, setScene, lastSaved, isSaving } = useScene();
+  
+  return (
+    <div className="relative h-full">
+      <div className="absolute top-4 right-4 z-10">
+        <AutoSaveIndicator lastSaved={lastSaved} isSaving={isSaving} />
+      </div>
+      <UnifiedPoolVisualizer
+        scene={scene}
+        textureLibrary={{
+          finishes: [],
+          pavers: [],
+          coping: []
+        }}
+        onSceneChange={setScene}
+      />
+    </div>
+  );
+};
+
 const WonderlandsStudio = () => {
   const {
     addToCart
@@ -1064,15 +1089,16 @@ const WonderlandsStudio = () => {
                 }} />
               </div>
             ) : sceneFromBuilder && textureLibFromBuilder ? (
-              /* Pool Builder 3D Visualizer - Full Screen */
+              /* Pool Builder 3D Visualizer - Full Screen with Cache */
               <div className="fixed inset-0 z-50 bg-background">
-                <UnifiedPoolVisualizer
-                  scene={sceneFromBuilder}
-                  textureLibrary={textureLibFromBuilder}
-                  onSceneChange={(updatedScene) => {
-                    setSceneFromBuilder(updatedScene);
-                  }}
-                />
+                <SceneProvider
+                  initialScene={sceneFromBuilder}
+                  initialTextureLibrary={textureLibFromBuilder}
+                  productId="custom-pool-builder"
+                  autoSave={true}
+                >
+                  <Scene3DViewerWithCache />
+                </SceneProvider>
               </div>
             ) : selectedProduct ? <div className="space-y-4 sm:space-y-6">
                 {/* Large Product Media Gallery */}
@@ -1154,14 +1180,14 @@ const WonderlandsStudio = () => {
                         />
                       ) : viewMode === '3d-viewer' && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && paverTypes.length > 0 && finishOptions.length > 0 ? (
                         <div className="w-full h-[700px]" key={`3d-viewer-${selectedProduct.model || selectedProduct.name}`}>
-                          <UnifiedPoolVisualizer
-                            scene={productToScene(
+                          <SceneProvider
+                            initialScene={productToScene(
                               selectedProduct,
                               { ...selectedExtras, customPoolShape },
                               paverTypes,
                               finishOptions
                             )}
-                            textureLibrary={{
+                            initialTextureLibrary={{
                               finishes: [
                               // Pool Finishes (Crystite Crystal collection)
                               ...poolFinishesData.map(f => ({
@@ -1198,10 +1224,12 @@ const WonderlandsStudio = () => {
                               metalness: 0.0
                             }))
                           }}
-                          onSceneChange={(updatedScene) => {
-                            // Handle scene updates if needed
-                          }}
-                          />
+                            productId={selectedProduct.id}
+                            productModel={selectedProduct.model || selectedProduct.name}
+                            autoSave={true}
+                          >
+                            <Scene3DViewerWithCache />
+                          </SceneProvider>
                         </div>
                       ) : (selectedProduct.media || selectedProduct.image) ? (
                         <ProductMediaGallery 
