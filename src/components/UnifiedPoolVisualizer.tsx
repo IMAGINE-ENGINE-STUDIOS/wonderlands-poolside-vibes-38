@@ -11,6 +11,7 @@ import { DistanceMeasurements } from './DistanceMeasurements';
 import { GridLabels } from './GridLabels';
 import { AssetManager, Asset3DRenderer } from './AssetManager';
 import { SplineLegend } from './SplineLegend';
+import { DepthPointMarkers } from './DepthPointMarkers';
 import { ComponentControlPanel } from './ComponentControlPanel';
 import { Button } from './ui/button';
 import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3 } from 'lucide-react';
@@ -99,6 +100,7 @@ export function UnifiedPoolVisualizer({
   const [selectedStairId, setSelectedStairId] = useState<string | null>(null);
   const [enablePoolSplineEdit, setEnablePoolSplineEdit] = useState(false);
   const [enableDeckSplineEdit, setEnableDeckSplineEdit] = useState(false);
+  const [enableDepthEdit, setEnableDepthEdit] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [poolTransformMode, setPoolTransformMode] = useState(false);
   const [transformStepSize, setTransformStepSize] = useState(1); // Default 1 ft
@@ -363,6 +365,17 @@ export function UnifiedPoolVisualizer({
       deck: {
         ...scene.deck,
         points
+      }
+    });
+  };
+
+  const handleDepthPointsChange = (depthPoints: any[]) => {
+    console.log('Depth points updated:', depthPoints);
+    setScene({
+      ...scene,
+      pool: {
+        ...scene.pool,
+        depthPoints
       }
     });
   };
@@ -659,6 +672,8 @@ export function UnifiedPoolVisualizer({
                 enableDeckSplineEdit={enableDeckSplineEdit}
                 onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
                 onDeckSplineEditToggle={() => setEnableDeckSplineEdit(!enableDeckSplineEdit)}
+                enableDepthEdit={enableDepthEdit}
+                onDepthEditToggle={() => setEnableDepthEdit(!enableDepthEdit)}
                 onSelectCategory={setSelectedCategory}
               />
             </>
@@ -806,6 +821,15 @@ export function UnifiedPoolVisualizer({
               poolDimensions={scene.pool.dimensions}
             />
           </group>
+
+          {/* Depth point markers for interactive editing */}
+          <DepthPointMarkers
+            depthPoints={scene.pool.depthPoints}
+            poolDimensions={scene.pool.dimensions}
+            poolPoints={scene.pool.points}
+            onDepthPointsChange={handleDepthPointsChange}
+            enabled={enableDepthEdit}
+          />
 
           {/* Deck only - attached to coping, NO pool mesh */}
           {scene.deck.points && scene.deck.points.length > 0 && (

@@ -58,6 +58,9 @@ interface Scene3DControlPanelProps {
   enableDeckSplineEdit: boolean;
   onPoolSplineEditToggle: () => void;
   onDeckSplineEditToggle: () => void;
+  // Depth editing props
+  enableDepthEdit: boolean;
+  onDepthEditToggle: () => void;
 }
 
 export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
@@ -91,7 +94,9 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   enablePoolSplineEdit,
   enableDeckSplineEdit,
   onPoolSplineEditToggle,
-  onDeckSplineEditToggle
+  onDeckSplineEditToggle,
+  enableDepthEdit,
+  onDepthEditToggle
 }) => {
   const isMobile = useIsMobile();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -423,6 +428,20 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
               </div>
               <p className="text-xs text-muted-foreground">
                 {enableDeckSplineEdit ? 'Drag orange control points to reshape deck' : 'Enable to edit deck boundary'}
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="depth-edit" className="text-xs">Edit Pool Depth</Label>
+                <Checkbox
+                  id="depth-edit"
+                  checked={enableDepthEdit}
+                  onCheckedChange={onDepthEditToggle}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {enableDepthEdit ? 'Drag orange spheres to adjust depth points' : 'Enable to reshape pool floor depth'}
               </p>
             </div>
           </div>
