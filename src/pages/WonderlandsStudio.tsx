@@ -1131,13 +1131,15 @@ const WonderlandsStudio = () => {
                       </div>
                     )}
                     
-                    <div className="relative rounded-lg bg-muted min-h-[700px] flex flex-col">
+                    <div className="relative rounded-lg sm:rounded-xl bg-muted min-h-[400px] sm:min-h-[700px] flex flex-col">
                       {viewMode === 'product-image' && (selectedProduct.media || selectedProduct.image) ? (
-                        <ProductMediaGallery 
-                          media={selectedProduct.media || selectedProduct.image || ''} 
-                          productName={selectedProduct.model || selectedProduct.name || 'Product'}
-                          className="w-full h-full"
-                        />
+                        <div className="w-full h-full flex items-center justify-center p-2 sm:p-4">
+                          <ProductMediaGallery 
+                            media={selectedProduct.media || selectedProduct.image || ''} 
+                            productName={selectedProduct.model || selectedProduct.name || 'Product'}
+                            className="w-full h-full max-h-[400px] sm:max-h-[700px]"
+                          />
+                        </div>
                       ) : viewMode === '2d-designer' && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') ? (
                         <PoolBuilder
                           initialDimensions={selectedProduct.dimensions}
@@ -1157,7 +1159,7 @@ const WonderlandsStudio = () => {
                           }}
                         />
                       ) : viewMode === '3d-viewer' && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && paverTypes.length > 0 && finishOptions.length > 0 ? (
-                        <div className="w-full h-[700px]" key={`3d-viewer-${selectedProduct.model || selectedProduct.name}`}>
+                        <div className="w-full h-[400px] sm:h-[700px]" key={`3d-viewer-${selectedProduct.model || selectedProduct.name}`}>
                           <UnifiedPoolVisualizer
                             scene={productToScene(
                               selectedProduct,

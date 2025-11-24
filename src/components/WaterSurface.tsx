@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Point } from './scene3d/types';
+import { generateCurvedPoolPoints } from '@/utils/curveUtils';
 
 interface DepthPoint {
   position: number;
@@ -45,28 +46,49 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
     };
   }, [depthPoints]);
 
-  // Create water geometry from pool points with depth data
+  // Create water geometry from pool points with depth data - MUST match pool floor exactly
   const waterGeometry = useMemo(() => {
-    if (poolPoints.length < 3) return null;
+    if (poolPoints.length < 3) {
+      console.warn('⚠️ WaterSurface: Invalid pool points, creating fallback geometry');
+      return null;
+    }
 
-    // Calculate pool bounds for depth mapping
-    const minX = Math.min(...poolPoints.map(p => p.x));
-    const maxX = Math.max(...poolPoints.map(p => p.x));
-    const minY = Math.min(...poolPoints.map(p => p.y));
-    const maxY = Math.max(...poolPoints.map(p => p.y));
+    console.log('🌊 WaterSurface: Creating water from pool points (EXACT match with pool floor):', poolPoints.length);
     
+    // CRITICAL: Use generateCurvedPoolPoints with EXACT same parameters as Pool3DScene PoolMesh
+    // This ensures water surface matches pool boundary perfectly
+    const curvedPoints = generateCurvedPoolPoints(
+      poolPoints.map(p => ({ x: p.x, y: p.y })),
+      30,  // MUST match Pool3DScene line 206
+      0.3  // MUST match Pool3DScene line 207
+    );
+
+    // Calculate center using EXACT same method as Pool3DScene
+    const minX = Math.min(...curvedPoints.map(p => p.x));
+    const maxX = Math.max(...curvedPoints.map(p => p.x));
+    const minY = Math.min(...curvedPoints.map(p => p.y));
+    const maxY = Math.max(...curvedPoints.map(p => p.y));
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
+    // Calculate pool dimensions for depth mapping
     const poolWidth = maxX - minX;
     const poolLength = maxY - minY;
     const lengthDirection = poolLength > poolWidth ? 'y' : 'x';
 
-    // Use pool points directly - water fills to the inner wall boundary
-    // No offset needed since walls now extend OUTWARD from pool boundary
+    // Normalize points to match Pool3DScene coordinate system (lines 217-220)
+    const normalizedPoints = curvedPoints.map(p => ({
+      x: p.x - centerX,
+      z: p.y - centerY
+    }));
+
+    // Create shape from normalized points - water fills to inner wall boundary
     const shape = new THREE.Shape();
-    poolPoints.forEach((point, i) => {
+    normalizedPoints.forEach((point, i) => {
       if (i === 0) {
-        shape.moveTo(point.x, point.y);
+        shape.moveTo(point.x, point.z);
       } else {
-        shape.lineTo(point.x, point.y);
+        shape.lineTo(point.x, point.z);
       }
     });
     shape.closePath();
@@ -82,12 +104,12 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
       const x = positions.getX(i);
       const z = positions.getZ(i);
       
-      // Calculate position ratio along pool length
+      // Calculate position ratio along pool length (SAME as pool floor)
       let lengthRatio;
       if (lengthDirection === 'y') {
-        lengthRatio = (z - minY) / poolLength;
+        lengthRatio = (z - (minY - centerY)) / poolLength;
       } else {
-        lengthRatio = (x - minX) / poolWidth;
+        lengthRatio = (x - (minX - centerX)) / poolWidth;
       }
       
       lengthRatio = Math.max(0, Math.min(1, lengthRatio));
@@ -98,6 +120,7 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
     geometry.setAttribute('depth', new THREE.BufferAttribute(depthArray, 1));
     geometry.rotateX(-Math.PI / 2);
     
+    console.log('✅ WaterSurface: Water geometry synchronized with pool floor exactly');
     return geometry;
   }, [poolPoints, getDepthAtPosition]);
 
