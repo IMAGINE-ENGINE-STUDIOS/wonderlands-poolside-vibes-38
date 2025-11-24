@@ -5,44 +5,86 @@ interface Point2D {
   y: number;
 }
 
+interface SegmentInfo {
+  isCurved: boolean;
+  points: Point2D[];
+}
+
 /**
- * Generates smooth curve points between pool boundary points using Catmull-Rom splines
+ * Detects if a segment should be curved based on angle between edges
+ * @param p0 - Previous point
+ * @param p1 - Current point  
+ * @param p2 - Next point
+ * @param angleThreshold - Angle threshold in degrees (default 170 = nearly straight)
+ * @returns true if segment should be curved
+ */
+function shouldCurveSegment(p0: Point2D, p1: Point2D, p2: Point2D, angleThreshold: number = 170): boolean {
+  const v1x = p1.x - p0.x;
+  const v1y = p1.y - p0.y;
+  const v2x = p2.x - p1.x;
+  const v2y = p2.y - p1.y;
+  
+  const len1 = Math.sqrt(v1x * v1x + v1y * v1y);
+  const len2 = Math.sqrt(v2x * v2x + v2y * v2y);
+  
+  if (len1 === 0 || len2 === 0) return false;
+  
+  const dot = (v1x * v2x + v1y * v2y) / (len1 * len2);
+  const angle = Math.acos(Math.max(-1, Math.min(1, dot))) * (180 / Math.PI);
+  
+  // If angle is close to 180 degrees (straight), don't curve
+  return angle < angleThreshold;
+}
+
+/**
+ * Generates adaptive curve points - straight lines where appropriate, curves where needed
  * @param points - Array of pool boundary points
- * @param segmentsPerEdge - Number of subdivisions per edge for smoothness
+ * @param segmentsPerEdge - Number of subdivisions per curved edge
  * @param tension - Curve tension (0 = linear, 1 = very curved)
- * @returns Array of interpolated points forming smooth curves
+ * @param angleThreshold - Angle threshold for curve detection (default 170)
+ * @returns Array of interpolated points with mixed straight/curved segments
  */
 export function generateCurvedPoolPoints(
   points: Point2D[],
   segmentsPerEdge: number = 20,
-  tension: number = 0.5
+  tension: number = 0.5,
+  angleThreshold: number = 170
 ): Point2D[] {
   if (points.length < 3) return points;
 
-  const curvedPoints: Point2D[] = [];
+  const result: Point2D[] = [];
   
-  // Create a closed Catmull-Rom curve
-  const vectors = points.map(p => new THREE.Vector2(p.x, p.y));
-  
-  // Add first point at end to close the loop
-  vectors.push(vectors[0].clone());
-  
-  const curve = new THREE.CatmullRomCurve3(
-    vectors.map(v => new THREE.Vector3(v.x, 0, v.y)),
-    true, // closed curve
-    'catmullrom',
-    tension
-  );
-
-  // Sample points along the curve
-  const totalSegments = points.length * segmentsPerEdge;
-  for (let i = 0; i < totalSegments; i++) {
-    const t = i / totalSegments;
-    const point = curve.getPoint(t);
-    curvedPoints.push({ x: point.x, y: point.z });
+  for (let i = 0; i < points.length; i++) {
+    const p0 = points[(i - 1 + points.length) % points.length];
+    const p1 = points[i];
+    const p2 = points[(i + 1) % points.length];
+    const p3 = points[(i + 2) % points.length];
+    
+    // Check if this segment should be curved
+    const isCurved = shouldCurveSegment(p0, p1, p2, angleThreshold);
+    
+    if (isCurved) {
+      // Use Catmull-Rom spline for this segment
+      const curve = new THREE.CatmullRomCurve3(
+        [p0, p1, p2, p3].map(p => new THREE.Vector3(p.x, 0, p.y)),
+        false, // not closed
+        'catmullrom',
+        tension
+      );
+      
+      // Sample segment from 0.33 to 0.66 to get just the p1->p2 portion
+      for (let j = 0; j < segmentsPerEdge; j++) {
+        const t = 0.33 + (j / segmentsPerEdge) * 0.33;
+        const point = curve.getPoint(t);
+        result.push({ x: point.x, y: point.z });
+      }
+    } else {
+      // Straight line segment - just add the point
+      result.push({ x: p1.x, y: p1.y });
+    }
   }
-
-  return curvedPoints;
+  
+  return result;
 }
 
 /**

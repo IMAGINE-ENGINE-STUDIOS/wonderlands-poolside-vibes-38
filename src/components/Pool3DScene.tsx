@@ -244,79 +244,108 @@ const PoolMesh: React.FC<{
     const poolLength = maxY - minY;
     const lengthDirection = poolLength > poolWidth ? 'z' : 'x';
 
-    // === POOL FLOOR GEOMETRY ===
-    // Thick floor (9 inches = 0.75 ft) with top and bottom surfaces
+    // === POOL FLOOR GEOMETRY WITH SPLINE-BASED DEPTH ===
+    // Floor follows depth spline points exactly
     const floorThickness = 0.75; // 9 inches
     const floorVertices: number[] = [];
     const floorIndices: number[] = [];
     const floorUVs: number[] = [];
     
-    // Triangulate pool shape
-    const flatCoords = normalizedPoints.flatMap(p => [p.x, p.z]);
-    const triangles = earcut(flatCoords);
+    // Step 1: Create spline curve through depth points to get smooth floor contour
+    // Generate intermediate cross-sections along the pool length
+    const numFloorSections = Math.max(depthPoints.length * 10, 50); // High resolution
+    const floorSections: Array<{ points: Array<{x: number, z: number}>, depth: number }> = [];
     
-    // Create TOP surface floor vertices (visible inside pool)
-    for (let i = 0; i < normalizedPoints.length; i++) {
-      const point = normalizedPoints[i];
+    for (let sectionIdx = 0; sectionIdx <= numFloorSections; sectionIdx++) {
+      const t = sectionIdx / numFloorSections;
       
-      // Calculate depth based on position along pool length
-      let lengthRatio;
+      // Get depth at this position along pool length using spline interpolation
+      const depth = getDepthAtPosition(t);
+      
+      // Create cross-section at this position
+      const sectionPoints: Array<{x: number, z: number}> = [];
+      
       if (lengthDirection === 'z') {
-        lengthRatio = (point.z - (minY - centerY)) / poolLength;
+        // Progress along Z axis
+        const zPos = (minY - centerY) + t * poolLength;
+        
+        // Find all pool boundary points at this Z position (interpolate if needed)
+        for (let i = 0; i < normalizedPoints.length; i++) {
+          const p1 = normalizedPoints[i];
+          const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
+          
+          // Check if this edge crosses our Z position
+          if ((p1.z <= zPos && p2.z >= zPos) || (p1.z >= zPos && p2.z <= zPos)) {
+            const edgeT = Math.abs(p2.z - p1.z) < 0.001 ? 0 : (zPos - p1.z) / (p2.z - p1.z);
+            const xPos = p1.x + (p2.x - p1.x) * edgeT;
+            sectionPoints.push({ x: xPos, z: zPos });
+          }
+        }
       } else {
-        lengthRatio = (point.x - (minX - centerX)) / poolWidth;
+        // Progress along X axis
+        const xPos = (minX - centerX) + t * poolWidth;
+        
+        for (let i = 0; i < normalizedPoints.length; i++) {
+          const p1 = normalizedPoints[i];
+          const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
+          
+          if ((p1.x <= xPos && p2.x >= xPos) || (p1.x >= xPos && p2.x <= xPos)) {
+            const edgeT = Math.abs(p2.x - p1.x) < 0.001 ? 0 : (xPos - p1.x) / (p2.x - p1.x);
+            const zPos = p1.z + (p2.z - p1.z) * edgeT;
+            sectionPoints.push({ x: xPos, z: zPos });
+          }
+        }
       }
       
-      lengthRatio = Math.max(0, Math.min(1, lengthRatio));
-      const depth = getDepthAtPosition(lengthRatio);
-      
-      // Floor at negative Y (below water surface at y=0)
-      floorVertices.push(point.x, -depth, point.z);
-      
-      // Perfect UV mapping: world-space coordinates for 1ft x 1ft tiles
-      floorUVs.push(point.x, point.z);
-    }
-    
-    // Create BOTTOM surface floor vertices (9 inches below top)
-    const bottomVertexOffset = normalizedPoints.length;
-    for (let i = 0; i < normalizedPoints.length; i++) {
-      const point = normalizedPoints[i];
-      
-      let lengthRatio;
-      if (lengthDirection === 'z') {
-        lengthRatio = (point.z - (minY - centerY)) / poolLength;
-      } else {
-        lengthRatio = (point.x - (minX - centerX)) / poolWidth;
+      if (sectionPoints.length >= 2) {
+        floorSections.push({ points: sectionPoints, depth });
       }
-      
-      lengthRatio = Math.max(0, Math.min(1, lengthRatio));
-      const depth = getDepthAtPosition(lengthRatio);
-      
-      // Bottom surface 9 inches below top
-      floorVertices.push(point.x, -depth - floorThickness, point.z);
-      floorUVs.push(point.x, point.z);
     }
     
-    // Top surface triangulation indices
-    for (let i = 0; i < triangles.length; i++) {
-      floorIndices.push(triangles[i]);
+    // Step 2: Create floor mesh from sections using quad strips
+    const topVertexStart = floorVertices.length / 3;
+    
+    for (const section of floorSections) {
+      for (const point of section.points) {
+        floorVertices.push(point.x, -section.depth, point.z);
+        floorUVs.push(point.x, point.z);
+      }
     }
     
-    // Bottom surface triangulation indices (reversed winding)
-    for (let i = 0; i < triangles.length; i += 3) {
-      floorIndices.push(
-        bottomVertexOffset + triangles[i + 2],
-        bottomVertexOffset + triangles[i + 1],
-        bottomVertexOffset + triangles[i]
-      );
+    // Bottom surface vertices (9 inches below)
+    const bottomVertexStart = floorVertices.length / 3;
+    for (const section of floorSections) {
+      for (const point of section.points) {
+        floorVertices.push(point.x, -section.depth - floorThickness, point.z);
+        floorUVs.push(point.x, point.z);
+      }
     }
     
-    // Side edges connecting top and bottom surfaces
-    for (let i = 0; i < normalizedPoints.length; i++) {
-      const nextI = (i + 1) % normalizedPoints.length;
+    // Create indices for quad strips between sections
+    for (let i = 0; i < floorSections.length - 1; i++) {
+      const currSection = floorSections[i];
+      const nextSection = floorSections[i + 1];
+      const pointsPerSection = Math.min(currSection.points.length, nextSection.points.length);
       
-      floorIndices.push(i, nextI, bottomVertexOffset + nextI);
-      floorIndices.push(i, bottomVertexOffset + nextI, bottomVertexOffset + i);
+      for (let j = 0; j < pointsPerSection - 1; j++) {
+        const topIdx1 = topVertexStart + i * pointsPerSection + j;
+        const topIdx2 = topIdx1 + 1;
+        const topIdx3 = topVertexStart + (i + 1) * pointsPerSection + j;
+        const topIdx4 = topIdx3 + 1;
+        
+        // Top surface quads
+        floorIndices.push(topIdx1, topIdx3, topIdx2);
+        floorIndices.push(topIdx2, topIdx3, topIdx4);
+        
+        // Bottom surface quads (reversed winding)
+        const botIdx1 = bottomVertexStart + i * pointsPerSection + j;
+        const botIdx2 = botIdx1 + 1;
+        const botIdx3 = bottomVertexStart + (i + 1) * pointsPerSection + j;
+        const botIdx4 = botIdx3 + 1;
+        
+        floorIndices.push(botIdx1, botIdx2, botIdx3);
+        floorIndices.push(botIdx2, botIdx4, botIdx3);
+      }
     }
     
     const floorGeometry = new THREE.BufferGeometry();
