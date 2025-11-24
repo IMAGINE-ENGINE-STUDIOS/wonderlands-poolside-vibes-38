@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Point } from './scene3d/types';
+import { generateCurvedPoolPoints } from '@/utils/curveUtils';
 
 interface DepthPoint {
   position: number;
@@ -49,20 +50,29 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
   const waterGeometry = useMemo(() => {
     if (poolPoints.length < 3) return null;
 
+    // Generate smooth curved points using same parameters as pool walls/deck/coping
+    // This ensures perfect alignment with 2D designer shape
+    const smoothPoolPoints = generateCurvedPoolPoints(
+      poolPoints.map(p => ({ x: p.x, y: p.y })),
+      30, // same segments as pool walls
+      0.3  // same tension as pool walls
+    );
+
     // Calculate pool bounds for depth mapping
-    const minX = Math.min(...poolPoints.map(p => p.x));
-    const maxX = Math.max(...poolPoints.map(p => p.x));
-    const minY = Math.min(...poolPoints.map(p => p.y));
-    const maxY = Math.max(...poolPoints.map(p => p.y));
+    const minX = Math.min(...smoothPoolPoints.map(p => p.x));
+    const maxX = Math.max(...smoothPoolPoints.map(p => p.x));
+    const minY = Math.min(...smoothPoolPoints.map(p => p.y));
+    const maxY = Math.max(...smoothPoolPoints.map(p => p.y));
     
     const poolWidth = maxX - minX;
     const poolLength = maxY - minY;
     const lengthDirection = poolLength > poolWidth ? 'y' : 'x';
 
-    // Use pool points directly - water fills to the inner wall boundary
-    // No offset needed since walls now extend OUTWARD from pool boundary
+    // Create shape from smooth curved points
+    // Since generateCurvedPoolPoints already provides densely interpolated curved points,
+    // lineTo() between them creates smooth curves
     const shape = new THREE.Shape();
-    poolPoints.forEach((point, i) => {
+    smoothPoolPoints.forEach((point, i) => {
       if (i === 0) {
         shape.moveTo(point.x, point.y);
       } else {
