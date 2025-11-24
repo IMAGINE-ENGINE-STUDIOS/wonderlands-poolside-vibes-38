@@ -580,16 +580,20 @@ function createQuadStripGeometry(
   
   const numSegments = innerCurve.length;
   
+  // CRITICAL: Coping and deck must sit on top of pool walls
+  // Pool wall tops are at y = 1/36 ft (deck level), so coping/deck start there
+  const deckLevel = 1 / 36; // 1 inch above water surface - matches pool wall top
+  
   // Create vertices (4 rings: top inner, top outer, bottom inner, bottom outer)
   for (let i = 0; i < numSegments; i++) {
-    // Top inner
-    vertices.push(innerCurve[i].x, 0, innerCurve[i].z);
+    // Top inner - sits on pool wall edge
+    vertices.push(innerCurve[i].x, deckLevel, innerCurve[i].z);
     // Top outer
-    vertices.push(outerCurve[i].x, 0, outerCurve[i].z);
-    // Bottom inner
-    vertices.push(innerCurve[i].x, -height, innerCurve[i].z);
+    vertices.push(outerCurve[i].x, deckLevel, outerCurve[i].z);
+    // Bottom inner - extends down from deck level
+    vertices.push(innerCurve[i].x, deckLevel - height, innerCurve[i].z);
     // Bottom outer
-    vertices.push(outerCurve[i].x, -height, outerCurve[i].z);
+    vertices.push(outerCurve[i].x, deckLevel - height, outerCurve[i].z);
   }
   
   // Create faces

@@ -333,14 +333,14 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
 
   if (!waterGeometry) return null;
   
-  console.log('💧 WaterSurface rendering at position [0, 0.01, 0]');
+  console.log('💧 WaterSurface rendering at water level [0, 0, 0]');
 
   return (
     <mesh
       ref={meshRef}
       geometry={waterGeometry}
       material={waterMaterial}
-      position={[0, 0.01, 0]}
+      position={[0, 0, 0]}
       receiveShadow
     >
       <shaderMaterial ref={materialRef} attach="material" {...waterMaterial} />
