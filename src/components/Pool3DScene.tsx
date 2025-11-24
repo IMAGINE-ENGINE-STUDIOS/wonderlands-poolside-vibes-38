@@ -13,6 +13,7 @@ import earcut from 'earcut';
 import grassTexture from '@/assets/grass-texture.avif';
 import { Maximize2, Minimize2, Move } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
+import { generateCurvedPoolPoints } from '@/utils/curveUtils';
 
 interface Point {
   x: number;
@@ -198,14 +199,22 @@ const PoolMesh: React.FC<{
       };
     }
 
-    const minX = Math.min(...points.map(p => p.x));
-    const maxX = Math.max(...points.map(p => p.x));
-    const minY = Math.min(...points.map(p => p.y));
-    const maxY = Math.max(...points.map(p => p.y));
+    // Generate smooth curved points from the original points
+    // This creates smooth curves that match the 2D designer shapes exactly
+    const curvedPoints = generateCurvedPoolPoints(
+      points.map(p => ({ x: p.x, y: p.y })),
+      30, // segments per edge for very smooth curves
+      0.3  // tension for natural-looking curves
+    );
+
+    const minX = Math.min(...curvedPoints.map(p => p.x));
+    const maxX = Math.max(...curvedPoints.map(p => p.x));
+    const minY = Math.min(...curvedPoints.map(p => p.y));
+    const maxY = Math.max(...curvedPoints.map(p => p.y));
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
 
-    const normalizedPoints = points.map(p => ({
+    const normalizedPoints = curvedPoints.map(p => ({
       x: p.x - centerX,
       z: p.y - centerY
     }));

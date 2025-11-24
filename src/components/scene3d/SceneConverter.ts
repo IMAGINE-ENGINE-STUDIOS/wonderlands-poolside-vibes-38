@@ -1,6 +1,7 @@
 // Utilities to convert different data formats to Scene3D
 
 import { Scene3D, TextureConfig, Point, DepthPoint, HardscapePoint } from './types';
+import { generateCurvedPoolPoints } from '@/utils/curveUtils';
 
 // Parse dimensions from string like "14' x 28'" or "16 feet x 32 feet" or "16' × 40'"
 export const parseDimensions = (dimensionsStr?: string): { length: number; width: number } => {
@@ -233,11 +234,20 @@ export function productToScene(
   // Create deck points - use deck width from selectedExtras if available
   const deckWidth = selectedExtras.deckWidth || 5;
   
-  // Generate deck points that follow the pool shape
-  // For each pool point, calculate an offset point along the outward normal
-  const deckPoints: HardscapePoint[] = poolPoints.map((pt, i) => {
-    const prevPt = poolPoints[(i - 1 + poolPoints.length) % poolPoints.length];
-    const nextPt = poolPoints[(i + 1) % poolPoints.length];
+  // Generate smooth curved points for the pool shape first
+  const smoothPoolPoints = poolPoints.length > 3 
+    ? generateCurvedPoolPoints(
+        poolPoints.map(p => ({ x: p.x, y: p.y })),
+        30, // high resolution for smooth curves
+        0.3  // natural curve tension
+      )
+    : poolPoints.map(p => ({ x: p.x, y: p.y }));
+  
+  // Generate deck points that follow the smooth pool curves
+  // For each smooth pool point, calculate an offset point along the outward normal
+  const deckPoints: HardscapePoint[] = smoothPoolPoints.map((pt, i) => {
+    const prevPt = smoothPoolPoints[(i - 1 + smoothPoolPoints.length) % smoothPoolPoints.length];
+    const nextPt = smoothPoolPoints[(i + 1) % smoothPoolPoints.length];
     
     // Calculate edge vectors
     const v1x = pt.x - prevPt.x;
@@ -255,18 +265,18 @@ export function productToScene(
     const len1 = Math.sqrt(n1x * n1x + n1y * n1y);
     const len2 = Math.sqrt(n2x * n2x + n2y * n2y);
     
-    const norm1x = n1x / len1;
-    const norm1y = n1y / len1;
-    const norm2x = n2x / len2;
-    const norm2y = n2y / len2;
+    const norm1x = len1 > 0 ? n1x / len1 : 0;
+    const norm1y = len1 > 0 ? n1y / len1 : 0;
+    const norm2x = len2 > 0 ? n2x / len2 : 0;
+    const norm2y = len2 > 0 ? n2y / len2 : 0;
     
     // Average the two normals to get the offset direction
     const avgNx = (norm1x + norm2x) / 2;
     const avgNy = (norm1y + norm2y) / 2;
     const avgLen = Math.sqrt(avgNx * avgNx + avgNy * avgNy);
     
-    const finalNx = avgNx / avgLen;
-    const finalNy = avgNy / avgLen;
+    const finalNx = avgLen > 0 ? avgNx / avgLen : 0;
+    const finalNy = avgLen > 0 ? avgNy / avgLen : 0;
     
     // Offset the point by deckWidth in the outward normal direction
     return {
