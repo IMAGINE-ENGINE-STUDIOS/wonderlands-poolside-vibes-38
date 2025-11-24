@@ -11,7 +11,6 @@ import { DistanceMeasurements } from './DistanceMeasurements';
 import { GridLabels } from './GridLabels';
 import { AssetManager, Asset3DRenderer } from './AssetManager';
 import { SplineLegend } from './SplineLegend';
-import { DepthPointMarkers } from './DepthPointMarkers';
 import { ComponentControlPanel } from './ComponentControlPanel';
 import { Button } from './ui/button';
 import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3 } from 'lucide-react';
@@ -100,8 +99,6 @@ export function UnifiedPoolVisualizer({
   const [selectedStairId, setSelectedStairId] = useState<string | null>(null);
   const [enablePoolSplineEdit, setEnablePoolSplineEdit] = useState(false);
   const [enableDeckSplineEdit, setEnableDeckSplineEdit] = useState(false);
-  const [enableDepthEdit, setEnableDepthEdit] = useState(false);
-  const [depthInsertMode, setDepthInsertMode] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [poolTransformMode, setPoolTransformMode] = useState(false);
   const [transformStepSize, setTransformStepSize] = useState(1); // Default 1 ft
@@ -366,17 +363,6 @@ export function UnifiedPoolVisualizer({
       deck: {
         ...scene.deck,
         points
-      }
-    });
-  };
-
-  const handleDepthPointsChange = (depthPoints: any[]) => {
-    console.log('Depth points updated:', depthPoints);
-    setScene({
-      ...scene,
-      pool: {
-        ...scene.pool,
-        depthPoints
       }
     });
   };
@@ -673,10 +659,6 @@ export function UnifiedPoolVisualizer({
                 enableDeckSplineEdit={enableDeckSplineEdit}
                 onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
                 onDeckSplineEditToggle={() => setEnableDeckSplineEdit(!enableDeckSplineEdit)}
-                enableDepthEdit={enableDepthEdit}
-                onDepthEditToggle={() => setEnableDepthEdit(!enableDepthEdit)}
-                depthInsertMode={depthInsertMode}
-                onDepthInsertModeToggle={() => setDepthInsertMode(!depthInsertMode)}
                 onSelectCategory={setSelectedCategory}
               />
             </>
@@ -764,78 +746,135 @@ export function UnifiedPoolVisualizer({
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />
           
-          {/* UNIFIED Pool Scene - Pool walls/floor + Deck + Coping + Water + Features */}
+          {/* Pool walls, floor, coping, and waterline centered at world origin */}
           <group ref={poolGroupRef} position={[0, 0, 0]} key={`pool-${scene.pool.position.join('-')}`}>
-            <Pool3DScene
-              points={scene.pool.points}
-              depthPoints={scene.pool.depthPoints}
-              hardscapePoints={scene.deck.points}
-              linerTextureUrl={linerTextureUrl}
-              paverTextureUrl={paverTextureUrl}
-              copingTextureUrl={copingTextureUrl}
-              waterlineTextureUrl={waterlineTextureUrl}
-              fenceTextureUrl="/src/assets/fence-texture.png"
-              features={scene.features.map(f => ({
-                type: f.type as any,
-                x: f.position[0],
-                y: f.position[2],
-                id: f.id,
-                angle: f.rotation?.[1]
-              }))}
-              fencePoints={[]}
-              scale={1}
-              poolShape="rectangle"
-              poolDimensions={scene.pool.dimensions}
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-              onSelectComponent={setSelectedComponent}
-              fenceHeight={fenceHeight}
-              paverTextureScale={scene.deck.paver.scale || 1.8}
-              copingTextureScale={scene.deck.coping.scale || 1.8}
-              waterlineTextureScale={scene.deck.waterline?.scale || 1.8}
-              linerTextureScale={scene.pool.finish.scale || 1.8}
-              paverTextureOffset={scene.deck.paver.offset || [0, 0]}
-              copingTextureOffset={scene.deck.coping.offset || [0, 0]}
-              waterlineTextureOffset={scene.deck.waterline?.offset || [0, 0]}
-              linerTextureOffset={scene.pool.finish.offset || [0, 0]}
-              poolPosition={[0, 0, 0]}
-              copingHeight={scene.deck.copingHeight || 2 / 12}
-              deckHeight={scene.deck.deckHeight || 2 / 12}
-              copingWidth={scene.deck.copingWidth || 1.0}
-              deckWidth={deckWidth}
-              stairs={scene.stairs}
-              onStairsChange={handleStairsChange}
-              isStairsPlacementMode={isStairsPlacementMode}
-              onStairsPlacementComplete={handleStairsPlacementComplete}
-              selectedStairId={selectedStairId}
-              onSelectStair={setSelectedStairId}
-              enablePoolSplineEdit={enablePoolSplineEdit}
-              enableDeckSplineEdit={enableDeckSplineEdit}
-              onPoolPointsChange={handlePoolPointsChange}
-              onDeckPointsChange={handleDeckPointsChange}
-              showRulers={showRulers}
-              showWireframe={false}
-            />
+            <group onClick={(e) => {
+              e.stopPropagation();
+              setSelectedCategory('pool');
+              setSelectedComponent('pool');
+            }}>
+              <Pool3DScene
+                points={scene.pool.points}
+                depthPoints={scene.pool.depthPoints}
+                hardscapePoints={[]} // Empty - deck rendered separately
+                linerTextureUrl={linerTextureUrl}
+                paverTextureUrl={paverTextureUrl}
+                copingTextureUrl={copingTextureUrl}
+                waterlineTextureUrl={waterlineTextureUrl}
+                fenceTextureUrl="/src/assets/fence-texture.png"
+                features={[]}
+                fencePoints={[]}
+                scale={1}
+                poolShape="rectangle"
+                poolDimensions={scene.pool.dimensions}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+                onSelectComponent={setSelectedComponent}
+                fenceHeight={fenceHeight}
+                paverTextureScale={1.8}
+                copingTextureScale={scene.deck.coping.scale || 1.8}
+                waterlineTextureScale={scene.deck.waterline?.scale || 1.8}
+                linerTextureScale={scene.pool.finish.scale || 1.8}
+                paverTextureOffset={[0, 0]}
+                copingTextureOffset={scene.deck.coping.offset || [0, 0]}
+                waterlineTextureOffset={scene.deck.waterline?.offset || [0, 0]}
+                linerTextureOffset={scene.pool.finish.offset || [0, 0]}
+                poolPosition={[0, 0, 0]}
+                copingHeight={scene.deck.copingHeight || 2 / 12}
+                deckHeight={scene.deck.deckHeight || 2 / 12}
+                copingWidth={scene.deck.copingWidth || 1.0}
+                deckWidth={deckWidth}
+                stairs={scene.stairs}
+                onStairsChange={handleStairsChange}
+                isStairsPlacementMode={false}
+                onStairsPlacementComplete={handleStairsPlacementComplete}
+                selectedStairId={selectedStairId}
+                onSelectStair={setSelectedStairId}
+                enablePoolSplineEdit={enablePoolSplineEdit}
+                enableDeckSplineEdit={enableDeckSplineEdit}
+                onPoolPointsChange={handlePoolPointsChange}
+                onDeckPointsChange={handleDeckPointsChange}
+              />
+            </group>
           </group>
 
-          {/* Water surface - follows pool shape exactly, positioned at water level (y=0) */}
+          {/* Water surface - S17 to W25 centered at world origin */}
           <group position={[0, 0, 0]}>
             <WaterSurface 
-              poolPoints={scene.pool.points}
+              poolPoints={[
+                { x: -10, y: -20, id: 'w1' },  // S17 (column S = -10, row 17 = -20)
+                { x: 10, y: -20, id: 'w2' },   // W17 (column W = 10, row 17 = -20)
+                { x: 10, y: 20, id: 'w3' },    // W25 (column W = 10, row 25 = 20)
+                { x: -10, y: 20, id: 'w4' }    // S25 (column S = -10, row 25 = 20)
+              ]}
               depthPoints={scene.pool.depthPoints}
-              poolDimensions={scene.pool.dimensions}
+              poolDimensions={{ 
+                length: 40,  // 8 rows × 5ft = 40ft (17-25)
+                width: 20,   // 4 columns × 5ft = 20ft (S-W)
+                depth: scene.pool.dimensions.depth 
+              }}
             />
           </group>
 
-          {/* Depth point markers for interactive editing */}
-          <DepthPointMarkers
-            depthPoints={scene.pool.depthPoints}
-            poolDimensions={scene.pool.dimensions}
-            poolPoints={scene.pool.points}
-            onDepthPointsChange={handleDepthPointsChange}
-            enabled={enableDepthEdit}
-            insertMode={depthInsertMode}
-          />
+          {/* Deck only - attached to coping, NO pool mesh */}
+          {scene.deck.points && scene.deck.points.length > 0 && (
+            <group position={[0, 0, 0]} onClick={(e) => {
+              e.stopPropagation();
+              setSelectedCategory('deck');
+              setSelectedComponent('deck');
+            }}>
+              <Pool3DScene
+                points={[]} // Empty points = no pool mesh rendered
+                depthPoints={[]} // No pool walls/floor in this group
+                hardscapePoints={scene.deck.points}
+                linerTextureUrl={linerTextureUrl}
+                paverTextureUrl={paverTextureUrl}
+                copingTextureUrl={copingTextureUrl}
+                waterlineTextureUrl={waterlineTextureUrl}
+                fenceTextureUrl="/src/assets/fence-texture.png"
+                features={scene.features.map(f => ({
+                  type: f.type as any,
+                  x: f.position[0],
+                  y: f.position[2],
+                  id: f.id,
+                  angle: f.rotation?.[1]
+                }))}
+                fencePoints={[]}
+                scale={1}
+                poolShape="rectangle"
+                poolDimensions={scene.pool.dimensions}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+                onSelectComponent={setSelectedComponent}
+                fenceHeight={fenceHeight}
+                paverTextureScale={scene.deck.paver.scale || 1.8}
+                copingTextureScale={1.8}
+                waterlineTextureScale={1.8}
+                linerTextureScale={1.8}
+                paverTextureOffset={scene.deck.paver.offset || [0, 0]}
+                copingTextureOffset={[0, 0]}
+                waterlineTextureOffset={[0, 0]}
+                linerTextureOffset={[0, 0]}
+                poolPosition={[0, 0, 0]}
+                copingHeight={scene.deck.copingHeight || 2 / 12}
+                deckHeight={scene.deck.deckHeight || 2 / 12}
+                copingWidth={scene.deck.copingWidth || 1.0}
+                deckWidth={deckWidth}
+                stairs={[]}
+                onStairsChange={handleStairsChange}
+                isStairsPlacementMode={isStairsPlacementMode}
+                onStairsPlacementComplete={handleStairsPlacementComplete}
+                selectedStairId={selectedStairId}
+                onSelectStair={setSelectedStairId}
+                enablePoolSplineEdit={enablePoolSplineEdit}
+                enableDeckSplineEdit={enableDeckSplineEdit}
+                onPoolPointsChange={handlePoolPointsChange}
+                onDeckPointsChange={handleDeckPointsChange}
+              />
+              
+              {/* Deck editor disabled per user request */}
+            </group>
+          )}
 
           {/* 3D Assets */}
           {assets3D.map((asset) => (

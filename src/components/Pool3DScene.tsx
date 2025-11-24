@@ -481,8 +481,6 @@ const PoolMesh: React.FC<{
   }, [points, depthPoints, poolDimensions, copingHeight]);
 
   const isSelected = selectedCategory === 'pool';
-  
-  console.log('🎯 PoolMesh rendering with points:', points.length);
 
   return (
     <>
@@ -498,6 +496,8 @@ const PoolMesh: React.FC<{
         <meshPhongMaterial
           color={linerTexture ? "#ffffff" : "#4DD0E1"}
           map={linerTexture}
+          transparent
+          opacity={0.85}
           side={THREE.DoubleSide}
           shininess={100}
           specular="#ffffff"
@@ -580,20 +580,16 @@ function createQuadStripGeometry(
   
   const numSegments = innerCurve.length;
   
-  // CRITICAL: Coping and deck must sit on top of pool walls
-  // Pool wall tops are at y = 1/36 ft (deck level), so coping/deck start there
-  const deckLevel = 1 / 36; // 1 inch above water surface - matches pool wall top
-  
   // Create vertices (4 rings: top inner, top outer, bottom inner, bottom outer)
   for (let i = 0; i < numSegments; i++) {
-    // Top inner - sits on pool wall edge
-    vertices.push(innerCurve[i].x, deckLevel, innerCurve[i].z);
+    // Top inner
+    vertices.push(innerCurve[i].x, 0, innerCurve[i].z);
     // Top outer
-    vertices.push(outerCurve[i].x, deckLevel, outerCurve[i].z);
-    // Bottom inner - extends down from deck level
-    vertices.push(innerCurve[i].x, deckLevel - height, innerCurve[i].z);
+    vertices.push(outerCurve[i].x, 0, outerCurve[i].z);
+    // Bottom inner
+    vertices.push(innerCurve[i].x, -height, innerCurve[i].z);
     // Bottom outer
-    vertices.push(outerCurve[i].x, deckLevel - height, outerCurve[i].z);
+    vertices.push(outerCurve[i].x, -height, outerCurve[i].z);
   }
   
   // Create faces
@@ -1286,100 +1282,114 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     }
   };
   
-  console.log('🏊 Pool3DScene rendering with:', {
-    poolPoints: points.length,
-    depthPoints: depthPoints.length,
-    hardscapePoints: hardscapePoints?.length || 0,
-    timestamp: new Date().toISOString()
-  });
-  
   return (
     <>
-      {/* Grass Terrain Base - with pool cutout at world origin */}
+      <PerspectiveCamera makeDefault position={[30, 25, 30]} fov={50} />
+
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[20, 30, 10]} intensity={1.2} castShadow />
+      <directionalLight position={[-20, 20, -10]} intensity={0.6} />
+      <pointLight position={[0, 15, 0]} intensity={0.8} color="#ffffff" />
+      <hemisphereLight intensity={0.5} color="#87CEEB" groundColor="#8B7355" />
+
+      {/* Grass Terrain Base - 10000ft x 10000ft with pool cutout at world origin */}
       <GrassTerrain poolPoints={points} copingWidth={copingWidth} poolPosition={poolPosition} />
 
       <group position={poolPosition}>
-        {/* Pool Mesh - Floor and Walls ONLY */}
-        {points.length >= 3 && (
-          <group onClick={() => onSelectCategory?.('pool')}>
-            <PoolMesh
-              points={points}
-              depthPoints={depthPoints}
-              linerTextureUrl={normalizedLinerUrl}
-              poolDimensions={poolDimensions}
-              linerTextureScale={linerTextureScale}
-              linerTextureOffset={linerTextureOffset}
-              selectedCategory={selectedCategory}
-              copingHeight={copingHeight}
-              setSelectedComponent={setSelectedComponent}
-            />
-          </group>
-        )}
 
-        {/* Unified Deck + Coping - Spline-based geometry */}
-        {points.length >= 3 && (
-          <DeckCopingMesh
-            poolPoints={points}
-            hardscapePoints={hardscapePoints || []}
-            copingTextureUrl={normalizedCopingUrl}
-            paverTextureUrl={normalizedPaverUrl}
-            selectedCategory={selectedCategory}
-            copingTextureScale={copingTextureScale}
-            copingTextureOffset={copingTextureOffset}
-            paverTextureScale={paverTextureScale}
-            paverTextureOffset={paverTextureOffset}
-            copingHeight={copingHeight}
-            copingWidth={copingWidth}
-            deckHeight={deckHeight}
-            deckWidth={deckWidth}
-            onSelectCategory={onSelectCategory}
-            onSelectComponent={onSelectComponent}
-          />
-        )}
+      <Grid
+        args={[100, 100]}
+        cellSize={1}
+        cellThickness={0.5}
+        cellColor="#9ca3af"
+        sectionSize={5}
+        sectionThickness={1}
+        sectionColor="#6b7280"
+        fadeDistance={80}
+        fadeStrength={1}
+        followCamera={false}
+        infiniteGrid={true}
+      />
 
-        {/* Waterline Tile */}
-        {points.length >= 3 && (
-          <group onClick={(e) => {
-            e.stopPropagation();
-            onSelectCategory?.('waterline');
-            onSelectComponent?.('waterline');
-          }}>
-            <WaterlineMesh
-              poolPoints={points}
-              waterlineTextureUrl={normalizedWaterlineUrl}
-              selectedCategory={selectedCategory}
-              waterlineTextureScale={waterlineTextureScale}
-              waterlineTextureOffset={waterlineTextureOffset}
-              copingHeight={copingHeight}
-            />
-          </group>
-        )}
+      {/* Pool Mesh */}
+      <group onClick={() => onSelectCategory?.('pool')}>
+        <PoolMesh
+          points={points}
+          depthPoints={depthPoints}
+          linerTextureUrl={normalizedLinerUrl}
+          poolDimensions={poolDimensions}
+          linerTextureScale={linerTextureScale}
+          linerTextureOffset={linerTextureOffset}
+          selectedCategory={selectedCategory}
+          copingHeight={copingHeight}
+          setSelectedComponent={setSelectedComponent}
+        />
+      </group>
 
-        {/* Fence */}
-        {fencePoints && fencePoints.length > 0 && (
-          <FenceMesh
-            fencePoints={fencePoints}
-            fenceTextureUrl={normalizedFenceUrl}
-            fenceHeight={fenceHeight}
-          />
-        )}
+      {/* Unified Deck + Coping (no gaps between them, water stays within coping) */}
+      {hardscapePoints && hardscapePoints.length > 0 && (
+        <DeckCopingMesh
+          poolPoints={points}
+          hardscapePoints={hardscapePoints}
+          copingTextureUrl={normalizedCopingUrl}
+          paverTextureUrl={normalizedPaverUrl}
+          selectedCategory={selectedCategory}
+          copingTextureScale={copingTextureScale}
+          copingTextureOffset={copingTextureOffset}
+          paverTextureScale={paverTextureScale}
+          paverTextureOffset={paverTextureOffset}
+          copingHeight={copingHeight}
+          copingWidth={copingWidth}
+          deckHeight={deckHeight}
+          deckWidth={deckWidth}
+          onSelectCategory={onSelectCategory}
+          onSelectComponent={onSelectComponent}
+        />
+      )}
 
-        {/* Features (trees, lights, etc.) */}
-        {features && features.length > 0 && (
-          <PoolFeatures features={features} />
-        )}
+      {/* Waterline Tile */}
+      <group onClick={(e) => {
+        e.stopPropagation();
+        onSelectCategory?.('waterline');
+        onSelectComponent?.('waterline');
+      }}>
+        <WaterlineMesh
+          poolPoints={points}
+          waterlineTextureUrl={normalizedWaterlineUrl}
+          selectedCategory={selectedCategory}
+          waterlineTextureScale={waterlineTextureScale}
+          waterlineTextureOffset={waterlineTextureOffset}
+          copingHeight={copingHeight}
+        />
+      </group>
 
-        {/* Pool Stairs */}
-        {stairs && stairs.map((stair) => (
-          <PoolStairs
-            key={stair.id}
-            stair={stair}
-            poolDepth={poolDepth}
-            texture={linerTexture}
-            onSelect={onSelectStair}
-            isSelected={selectedStairId === stair.id}
-          />
-        ))}
+      {/* Water is now rendered independently in UnifiedPoolVisualizer */}
+
+      {fencePoints && fencePoints.length > 0 && (
+        <FenceMesh
+          fencePoints={fencePoints}
+          fenceTextureUrl={normalizedFenceUrl}
+          fenceHeight={fenceHeight}
+        />
+      )}
+
+
+      {features && features.length > 0 && (
+        <PoolFeatures features={features} />
+      )}
+
+      {/* Pool Stairs */}
+      {stairs && stairs.map((stair) => (
+        <PoolStairs
+          key={stair.id}
+          stair={stair}
+          poolDepth={poolDepth}
+          texture={linerTexture}
+          onSelect={onSelectStair}
+          isSelected={selectedStairId === stair.id}
+        />
+      ))}
+
       </group>
 
       {/* Stairs Placement Mode */}
@@ -1398,6 +1408,29 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         />
       )}
 
+      {/* SPLINE EDITORS TEMPORARILY DISABLED */}
+      {/* {enablePoolSplineEdit && (
+        <SplineEditor
+          points={poolSplinePoints}
+          onPointsChange={handlePoolSplineChange}
+          color="#00ff00"
+          enableDrag={true}
+          name="Pool Boundary"
+          yPosition={0}
+        />
+      )}
+
+      {enableDeckSplineEdit && hardscapePoints && hardscapePoints.length > 0 && (
+        <SplineEditor
+          points={deckSplinePoints}
+          onPointsChange={handleDeckSplineChange}
+          color="#ffaa00"
+          enableDrag={true}
+          name="Deck Boundary"
+          yPosition={deckHeight}
+        />
+      )} */}
+      
       {/* Component Rulers */}
       {showWireframe && showRulers && selectedComponent === 'pool' && (
         <ComponentRuler bounds={{ minX: -10, maxX: 10, minY: -20, maxY: 20 }} height={0.1} />
@@ -1408,6 +1441,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       {showWireframe && showRulers && selectedComponent === 'deck' && (
         <ComponentRuler bounds={{ minX: -10.9144, maxX: 10.9144, minY: -20.9144, maxY: 20.9144 }} height={0.15} />
       )}
+
+      <axesHelper args={[5]} />
     </>
   );
 };
