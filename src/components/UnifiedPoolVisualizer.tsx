@@ -101,6 +101,7 @@ export function UnifiedPoolVisualizer({
   const [enablePoolSplineEdit, setEnablePoolSplineEdit] = useState(false);
   const [enableDeckSplineEdit, setEnableDeckSplineEdit] = useState(false);
   const [enableDepthEdit, setEnableDepthEdit] = useState(false);
+  const [depthInsertMode, setDepthInsertMode] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [poolTransformMode, setPoolTransformMode] = useState(false);
   const [transformStepSize, setTransformStepSize] = useState(1); // Default 1 ft
@@ -674,6 +675,8 @@ export function UnifiedPoolVisualizer({
                 onDeckSplineEditToggle={() => setEnableDeckSplineEdit(!enableDeckSplineEdit)}
                 enableDepthEdit={enableDepthEdit}
                 onDepthEditToggle={() => setEnableDepthEdit(!enableDepthEdit)}
+                depthInsertMode={depthInsertMode}
+                onDepthInsertModeToggle={() => setDepthInsertMode(!depthInsertMode)}
                 onSelectCategory={setSelectedCategory}
               />
             </>
@@ -829,6 +832,7 @@ export function UnifiedPoolVisualizer({
             poolPoints={scene.pool.points}
             onDepthPointsChange={handleDepthPointsChange}
             enabled={enableDepthEdit}
+            insertMode={depthInsertMode}
           />
 
           {/* Deck only - attached to coping, NO pool mesh */}
