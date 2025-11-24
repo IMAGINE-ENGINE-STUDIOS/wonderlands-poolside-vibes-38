@@ -234,7 +234,7 @@ export function productToScene(
   // Create deck points - use deck width from selectedExtras if available
   const deckWidth = selectedExtras.deckWidth || 5;
   
-  // Generate smooth curved points for the pool shape first
+  // Step 1: Generate smooth curved pool boundary
   const smoothPoolPoints = poolPoints.length > 3 
     ? generateCurvedPoolPoints(
         poolPoints.map(p => ({ x: p.x, y: p.y })),
@@ -243,9 +243,8 @@ export function productToScene(
       )
     : poolPoints.map(p => ({ x: p.x, y: p.y }));
   
-  // Generate deck points that follow the smooth pool curves
-  // For each smooth pool point, calculate an offset point along the outward normal
-  const deckPoints: HardscapePoint[] = smoothPoolPoints.map((pt, i) => {
+  // Step 2: Create offset deck outline by calculating outward normals
+  const rawDeckPoints = smoothPoolPoints.map((pt, i) => {
     const prevPt = smoothPoolPoints[(i - 1 + smoothPoolPoints.length) % smoothPoolPoints.length];
     const nextPt = smoothPoolPoints[(i + 1) % smoothPoolPoints.length];
     
@@ -281,10 +280,25 @@ export function productToScene(
     // Offset the point by deckWidth in the outward normal direction
     return {
       x: pt.x + finalNx * deckWidth,
-      y: pt.y + finalNy * deckWidth,
-      id: `h${i + 1}`
+      y: pt.y + finalNy * deckWidth
     };
   });
+  
+  // Step 3: Apply smooth spline curve to the deck outline (just like pool walls)
+  const smoothDeckPoints = rawDeckPoints.length > 3
+    ? generateCurvedPoolPoints(
+        rawDeckPoints,
+        30, // same high resolution
+        0.3  // same natural curve tension
+      )
+    : rawDeckPoints;
+  
+  // Step 4: Convert to HardscapePoint format with IDs
+  const deckPoints: HardscapePoint[] = smoothDeckPoints.map((pt, i) => ({
+    x: pt.x,
+    y: pt.y,
+    id: `h${i + 1}`
+  }));
 
   const scene: Scene3D = {
     pool: {
