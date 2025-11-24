@@ -529,6 +529,125 @@ const PoolMesh: React.FC<{
   );
 };
 
+// Helper function to generate offset curve from a curved boundary
+function generateOffsetCurve(
+  curvedPoints: Array<{x: number, z: number}>,
+  offsetDistance: number
+): Array<{x: number, z: number}> {
+  const offsetPoints: Array<{x: number, z: number}> = [];
+  
+  for (let i = 0; i < curvedPoints.length; i++) {
+    const p1 = curvedPoints[(i - 1 + curvedPoints.length) % curvedPoints.length];
+    const p2 = curvedPoints[i];
+    const p3 = curvedPoints[(i + 1) % curvedPoints.length];
+    
+    // Calculate tangent vectors
+    const dx1 = p2.x - p1.x;
+    const dz1 = p2.z - p1.z;
+    const dx2 = p3.x - p2.x;
+    const dz2 = p3.z - p2.z;
+    
+    // Average tangent
+    const tangentX = dx1 + dx2;
+    const tangentZ = dz1 + dz2;
+    const tangentLen = Math.sqrt(tangentX * tangentX + tangentZ * tangentZ);
+    
+    // Outward normal (perpendicular to tangent, pointing out)
+    let normalX = -tangentZ / tangentLen;
+    let normalZ = tangentX / tangentLen;
+    
+    // Offset the point
+    offsetPoints.push({
+      x: p2.x + normalX * offsetDistance,
+      z: p2.z + normalZ * offsetDistance
+    });
+  }
+  
+  return offsetPoints;
+}
+
+// Helper function to create quad strip geometry between two curves
+function createQuadStripGeometry(
+  innerCurve: Array<{x: number, z: number}>,
+  outerCurve: Array<{x: number, z: number}>,
+  height: number,
+  tileSize: number = 1.0
+): THREE.BufferGeometry {
+  const vertices: number[] = [];
+  const indices: number[] = [];
+  const uvs: number[] = [];
+  const normals: number[] = [];
+  
+  const numSegments = innerCurve.length;
+  
+  // Create vertices (4 rings: top inner, top outer, bottom inner, bottom outer)
+  for (let i = 0; i < numSegments; i++) {
+    // Top inner
+    vertices.push(innerCurve[i].x, 0, innerCurve[i].z);
+    // Top outer
+    vertices.push(outerCurve[i].x, 0, outerCurve[i].z);
+    // Bottom inner
+    vertices.push(innerCurve[i].x, -height, innerCurve[i].z);
+    // Bottom outer
+    vertices.push(outerCurve[i].x, -height, outerCurve[i].z);
+  }
+  
+  // Create faces
+  for (let i = 0; i < numSegments; i++) {
+    const nextI = (i + 1) % numSegments;
+    
+    const topInner = i * 4;
+    const topOuter = i * 4 + 1;
+    const bottomInner = i * 4 + 2;
+    const bottomOuter = i * 4 + 3;
+    
+    const nextTopInner = nextI * 4;
+    const nextTopOuter = nextI * 4 + 1;
+    const nextBottomInner = nextI * 4 + 2;
+    const nextBottomOuter = nextI * 4 + 3;
+    
+    // Top surface (inner to outer)
+    indices.push(topInner, nextTopInner, nextTopOuter);
+    indices.push(topInner, nextTopOuter, topOuter);
+    
+    // Bottom surface (outer to inner, reversed winding)
+    indices.push(bottomOuter, nextBottomOuter, nextBottomInner);
+    indices.push(bottomOuter, nextBottomInner, bottomInner);
+    
+    // Inner side
+    indices.push(topInner, bottomInner, nextBottomInner);
+    indices.push(topInner, nextBottomInner, nextTopInner);
+    
+    // Outer side
+    indices.push(topOuter, nextTopOuter, nextBottomOuter);
+    indices.push(topOuter, nextBottomOuter, bottomOuter);
+  }
+  
+  // Create UVs
+  for (let i = 0; i < numSegments; i++) {
+    const inner = innerCurve[i];
+    const outer = outerCurve[i];
+    
+    // Top inner
+    uvs.push(inner.x / tileSize, inner.z / tileSize);
+    // Top outer
+    uvs.push(outer.x / tileSize, outer.z / tileSize);
+    // Bottom inner
+    uvs.push(inner.x / tileSize, inner.z / tileSize);
+    // Bottom outer
+    uvs.push(outer.x / tileSize, outer.z / tileSize);
+  }
+  
+  // Create geometry
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  
+  return geometry;
+}
+
 // UNIFIED DECK + COPING COMPONENT
 // Two separate meshes (coping and deck) that are always perfectly aligned
 const DeckCopingMesh: React.FC<{
@@ -651,132 +770,62 @@ const DeckCopingMesh: React.FC<{
     return { minX, maxX, minY, maxY, width, length };
   }, [poolPoints]);
 
-  // COPING GEOMETRY - Inner edge matches pool exactly (no gap with water)
+  // COPING GEOMETRY - Spline-based, follows pool wall curves exactly
   const copingGeometry = useMemo(() => {
-    const { width, length } = poolBounds;
+    if (poolPoints.length < 3) return new THREE.BufferGeometry();
     
-    const innerHalfWidth = width / 2;
-    const innerHalfLength = length / 2;
-    const outerHalfWidth = innerHalfWidth + copingWidth;
-    const outerHalfLength = innerHalfLength + copingWidth;
-
-    // Create shape for coping (outer rectangle with inner hole)
-    const copingShape = new THREE.Shape();
+    // Generate smooth curved pool boundary using same parameters as pool walls
+    const poolCurve2D = poolPoints.map(p => ({ x: p.x, y: p.y }));
+    const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
     
-    // Outer rectangle
-    copingShape.moveTo(-outerHalfWidth, -outerHalfLength);
-    copingShape.lineTo(outerHalfWidth, -outerHalfLength);
-    copingShape.lineTo(outerHalfWidth, outerHalfLength);
-    copingShape.lineTo(-outerHalfWidth, outerHalfLength);
-    copingShape.lineTo(-outerHalfWidth, -outerHalfLength);
-
-    // Inner hole EXACTLY matches pool dimensions - water fits perfectly inside
-    const hole = new THREE.Path();
-    hole.moveTo(-innerHalfWidth, -innerHalfLength);
-    hole.lineTo(-innerHalfWidth, innerHalfLength);
-    hole.lineTo(innerHalfWidth, innerHalfLength);
-    hole.lineTo(innerHalfWidth, -innerHalfLength);
-    hole.lineTo(-innerHalfWidth, -innerHalfLength);
-    copingShape.holes.push(hole);
-
-    // Extrude to create 3D geometry
-    const geometry = new THREE.ExtrudeGeometry(copingShape, {
-      depth: copingHeight,
-      bevelEnabled: false
-    });
+    // Convert to 3D coordinates (y becomes z in 3D space)
+    const poolCurve3D = smoothPoolCurve.map(p => ({ x: p.x, z: p.y }));
     
-    // Rotate to be horizontal (XZ plane)
-    geometry.rotateX(-Math.PI / 2);
+    // Generate coping outer edge by offsetting the pool curve
+    const copingOuterCurve = generateOffsetCurve(poolCurve3D, copingWidth);
     
-    // Position at deck level (y = 0)
-    geometry.translate(0, 0, 0);
-
-    // Apply 1x1 ft UV mapping
-    const uvAttribute = geometry.getAttribute('uv');
-    if (uvAttribute) {
-      const positions = geometry.getAttribute('position');
-      const uvs = uvAttribute.array;
-      
-      for (let i = 0; i < positions.count; i++) {
-        const x = positions.getX(i);
-        const z = positions.getZ(i);
-        
-        uvs[i * 2] = x;
-        uvs[i * 2 + 1] = z;
-      }
-      
-      uvAttribute.needsUpdate = true;
-    }
+    // Create quad strip geometry between pool edge and coping outer edge
+    const geometry = createQuadStripGeometry(
+      poolCurve3D,
+      copingOuterCurve,
+      copingHeight,
+      1.0 // 1x1 ft tiles
+    );
     
-    geometry.computeVertexNormals();
     return geometry;
-  }, [poolBounds, copingHeight, copingWidth]);
+  }, [poolPoints, copingHeight, copingWidth]);
 
-  // DECK GEOMETRY - Inner edge EXACTLY matches coping outer edge (no gap)
+  // DECK GEOMETRY - Spline-based, follows coping outer edge exactly
   const deckGeometry = useMemo(() => {
-    if (hardscapePoints.length < 3) return null;
+    if (poolPoints.length < 3) return null;
 
     try {
-      const { width, length } = poolBounds;
+      // Generate smooth curved pool boundary
+      const poolCurve2D = poolPoints.map(p => ({ x: p.x, y: p.y }));
+      const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
+      const poolCurve3D = smoothPoolCurve.map(p => ({ x: p.x, z: p.y }));
       
-      // Deck extends by deckWidth (default 3 feet) outward from coping
+      // Generate coping outer edge (this is deck's inner edge)
+      const copingOuterCurve = generateOffsetCurve(poolCurve3D, copingWidth);
+      
+      // Generate deck outer edge by offsetting further
       const deckExtension = deckWidth * 0.3048; // Convert feet to meters
+      const deckOuterCurve = generateOffsetCurve(copingOuterCurve, deckExtension);
       
-      // Coping outer edge (this is where deck starts)
-      const copingOuterHalfWidth = (width / 2) + copingWidth;
-      const copingOuterHalfLength = (length / 2) + copingWidth;
-      
-      // Deck outer bounds
-      const deckOuterHalfWidth = copingOuterHalfWidth + deckExtension;
-      const deckOuterHalfLength = copingOuterHalfLength + deckExtension;
-
-      // Create the outer boundary for the deck
-      const outerShape = new THREE.Shape();
-      outerShape.moveTo(-deckOuterHalfWidth, -deckOuterHalfLength);
-      outerShape.lineTo(deckOuterHalfWidth, -deckOuterHalfLength);
-      outerShape.lineTo(deckOuterHalfWidth, deckOuterHalfLength);
-      outerShape.lineTo(-deckOuterHalfWidth, deckOuterHalfLength);
-      outerShape.closePath();
-
-      // Create hole that EXACTLY matches coping outer edge - no gap between coping and deck
-      const copingHole = new THREE.Path();
-      copingHole.moveTo(-copingOuterHalfWidth, -copingOuterHalfLength);
-      copingHole.lineTo(copingOuterHalfWidth, -copingOuterHalfLength);
-      copingHole.lineTo(copingOuterHalfWidth, copingOuterHalfLength);
-      copingHole.lineTo(-copingOuterHalfWidth, copingOuterHalfLength);
-      copingHole.closePath();
-
-      outerShape.holes.push(copingHole);
-
-      const geometry = new THREE.ExtrudeGeometry(outerShape, {
-        depth: deckHeight,
-        bevelEnabled: false
-      });
-
-      geometry.rotateX(-Math.PI / 2);
-
-      // UV mapping for 1 sq ft tiles
-      const positions = geometry.attributes.position;
-      const uvs = new Float32Array(positions.count * 2);
-      const tileSize = 0.3048; // 1 square foot in meters
-      
-      for (let i = 0; i < positions.count; i++) {
-        const x = positions.getX(i);
-        const z = positions.getZ(i);
-        
-        uvs[i * 2] = x / tileSize;
-        uvs[i * 2 + 1] = z / tileSize;
-      }
-      
-      geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-      geometry.computeVertexNormals();
+      // Create quad strip geometry between coping outer edge and deck outer edge
+      const geometry = createQuadStripGeometry(
+        copingOuterCurve,
+        deckOuterCurve,
+        deckHeight,
+        0.3048 // 1 sq ft tiles
+      );
 
       return geometry;
     } catch (error) {
       console.error('Error creating deck geometry:', error);
       return null;
     }
-  }, [poolBounds, hardscapePoints, deckHeight, copingWidth]);
+  }, [poolPoints, deckHeight, copingWidth, deckWidth]);
 
   const isCopingSelected = selectedCategory === 'coping';
   const isDeckSelected = selectedCategory === 'deck';
