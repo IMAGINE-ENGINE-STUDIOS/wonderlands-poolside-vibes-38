@@ -481,6 +481,8 @@ const PoolMesh: React.FC<{
   }, [points, depthPoints, poolDimensions, copingHeight]);
 
   const isSelected = selectedCategory === 'pool';
+  
+  console.log('🎯 PoolMesh rendering with points:', points.length);
 
   return (
     <>
@@ -496,8 +498,6 @@ const PoolMesh: React.FC<{
         <meshPhongMaterial
           color={linerTexture ? "#ffffff" : "#4DD0E1"}
           map={linerTexture}
-          transparent
-          opacity={0.85}
           side={THREE.DoubleSide}
           shininess={100}
           specular="#ffffff"
@@ -1281,6 +1281,13 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       onDeckPointsChange(newPoints);
     }
   };
+  
+  console.log('🏊 Pool3DScene rendering with:', {
+    poolPoints: points.length,
+    depthPoints: depthPoints.length,
+    hardscapePoints: hardscapePoints?.length || 0,
+    timestamp: new Date().toISOString()
+  });
   
   return (
     <>

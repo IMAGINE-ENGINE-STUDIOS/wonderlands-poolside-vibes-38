@@ -332,6 +332,8 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
   });
 
   if (!waterGeometry) return null;
+  
+  console.log('💧 WaterSurface rendering at position [0, 0.01, 0]');
 
   return (
     <mesh
