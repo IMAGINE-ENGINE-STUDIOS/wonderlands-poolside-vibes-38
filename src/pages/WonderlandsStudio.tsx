@@ -1140,14 +1140,18 @@ const WonderlandsStudio = () => {
                         />
                       ) : viewMode === '2d-designer' && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') ? (
                         <PoolBuilder
+                          initialDimensions={selectedProduct.dimensions}
+                          initialDepth={selectedProduct.depth}
                           onPoolDataChange={(data) => {
                             console.log('Pool builder data changed:', data);
                             setPoolBuilderData(data);
                             setCustomPoolShape(data.points);
                             
-                            // Update selectedExtras with design data
+                            // Store both custom shape AND depth profile for 3D viewer
                             setSelectedExtras((prev: any) => ({
                               ...prev,
+                              customPoolShape: data.points,
+                              depthProfile: data.depthPoints,
                               poolBuilderData: data
                             }));
                           }}
