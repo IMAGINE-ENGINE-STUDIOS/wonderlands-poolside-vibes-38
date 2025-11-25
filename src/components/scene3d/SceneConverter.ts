@@ -231,8 +231,9 @@ export function productToScene(
     ];
   }
 
-  // Create deck points - use deck width from selectedExtras if available
-  const deckWidth = selectedExtras.deckWidth || 5;
+  // Create deck points - 3ft wide deck as requested
+  const deckWidth = 3;
+  const copingWidth = 1; // 1ft coping
   
   // Step 1: Generate smooth curved pool boundary
   const smoothPoolPoints = poolPoints.length > 3 
@@ -335,7 +336,7 @@ export function productToScene(
         scale: 1.8,
         offset: [-0.21, 0]
       },
-      copingWidth: selectedExtras.copingWidth || 1.1,
+      copingWidth: copingWidth,
       waterline: {
         url: linerTextureUrl,
         name: `${selectedExtras.finish || selectedExtras.linerOption || 'Default'} (Waterline)`,
