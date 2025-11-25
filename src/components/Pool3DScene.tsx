@@ -530,6 +530,7 @@ const PoolMesh: React.FC<{
 };
 
 // Helper function to generate offset curve from a curved boundary
+// Uses EXACT same method as SceneConverter.ts for perfect alignment
 function generateOffsetCurve(
   curvedPoints: Array<{x: number, z: number}>,
   offsetDistance: number
@@ -537,29 +538,43 @@ function generateOffsetCurve(
   const offsetPoints: Array<{x: number, z: number}> = [];
   
   for (let i = 0; i < curvedPoints.length; i++) {
-    const p1 = curvedPoints[(i - 1 + curvedPoints.length) % curvedPoints.length];
-    const p2 = curvedPoints[i];
-    const p3 = curvedPoints[(i + 1) % curvedPoints.length];
+    const prevPt = curvedPoints[(i - 1 + curvedPoints.length) % curvedPoints.length];
+    const currPt = curvedPoints[i];
+    const nextPt = curvedPoints[(i + 1) % curvedPoints.length];
     
-    // Calculate tangent vectors
-    const dx1 = p2.x - p1.x;
-    const dz1 = p2.z - p1.z;
-    const dx2 = p3.x - p2.x;
-    const dz2 = p3.z - p2.z;
+    // Calculate edge vectors (same as SceneConverter.ts)
+    const v1x = currPt.x - prevPt.x;
+    const v1z = currPt.z - prevPt.z;
+    const v2x = nextPt.x - currPt.x;
+    const v2z = nextPt.z - currPt.z;
     
-    // Average tangent
-    const tangentX = dx1 + dx2;
-    const tangentZ = dz1 + dz2;
-    const tangentLen = Math.sqrt(tangentX * tangentX + tangentZ * tangentZ);
+    // Calculate normals (perpendicular to edges, pointing outward)
+    const n1x = -v1z;
+    const n1z = v1x;
+    const n2x = -v2z;
+    const n2z = v2x;
     
-    // Outward normal (perpendicular to tangent, pointing out)
-    let normalX = -tangentZ / tangentLen;
-    let normalZ = tangentX / tangentLen;
+    // Normalize the normals
+    const len1 = Math.sqrt(n1x * n1x + n1z * n1z);
+    const len2 = Math.sqrt(n2x * n2x + n2z * n2z);
     
-    // Offset the point
+    const norm1x = len1 > 0 ? n1x / len1 : 0;
+    const norm1z = len1 > 0 ? n1z / len1 : 0;
+    const norm2x = len2 > 0 ? n2x / len2 : 0;
+    const norm2z = len2 > 0 ? n2z / len2 : 0;
+    
+    // Average the two normals to get the offset direction
+    const avgNx = (norm1x + norm2x) / 2;
+    const avgNz = (norm1z + norm2z) / 2;
+    const avgLen = Math.sqrt(avgNx * avgNx + avgNz * avgNz);
+    
+    const finalNx = avgLen > 0 ? avgNx / avgLen : 0;
+    const finalNz = avgLen > 0 ? avgNz / avgLen : 0;
+    
+    // Offset the point by offsetDistance in the outward normal direction
     offsetPoints.push({
-      x: p2.x + normalX * offsetDistance,
-      z: p2.z + normalZ * offsetDistance
+      x: currPt.x + finalNx * offsetDistance,
+      z: currPt.z + finalNz * offsetDistance
     });
   }
   
@@ -774,17 +789,34 @@ const DeckCopingMesh: React.FC<{
   const copingGeometry = useMemo(() => {
     if (poolPoints.length < 3) return new THREE.BufferGeometry();
     
-    // Generate smooth curved pool boundary using same parameters as pool walls
+    console.log('🔧 Creating COPING with spline-based offset from pool boundary');
+    
+    // Step 1: Generate smooth curved pool boundary (EXACT same as pool walls)
     const poolCurve2D = poolPoints.map(p => ({ x: p.x, y: p.y }));
     const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
     
-    // Convert to 3D coordinates (y becomes z in 3D space)
-    const poolCurve3D = smoothPoolCurve.map(p => ({ x: p.x, z: p.y }));
+    // Step 2: Normalize to world coordinates (same as pool walls)
+    const minX = Math.min(...smoothPoolCurve.map(p => p.x));
+    const maxX = Math.max(...smoothPoolCurve.map(p => p.x));
+    const minY = Math.min(...smoothPoolCurve.map(p => p.y));
+    const maxY = Math.max(...smoothPoolCurve.map(p => p.y));
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
     
-    // Generate coping outer edge by offsetting the pool curve
+    // Convert to 3D coordinates (y becomes z in 3D space)
+    const poolCurve3D = smoothPoolCurve.map(p => ({ 
+      x: p.x - centerX, 
+      z: p.y - centerY 
+    }));
+    
+    console.log('🔧 Pool boundary curve points:', poolCurve3D.length);
+    
+    // Step 3: Generate coping outer edge by offsetting the pool curve
     const copingOuterCurve = generateOffsetCurve(poolCurve3D, copingWidth);
     
-    // Create quad strip geometry between pool edge and coping outer edge
+    console.log('🔧 Coping outer curve points:', copingOuterCurve.length);
+    
+    // Step 4: Create quad strip geometry between pool edge and coping outer edge
     const geometry = createQuadStripGeometry(
       poolCurve3D,
       copingOuterCurve,
@@ -792,6 +824,7 @@ const DeckCopingMesh: React.FC<{
       1.0 // 1x1 ft tiles
     );
     
+    console.log('✅ Coping geometry created with', geometry.getAttribute('position').count, 'vertices');
     return geometry;
   }, [poolPoints, copingHeight, copingWidth]);
 
@@ -800,26 +833,44 @@ const DeckCopingMesh: React.FC<{
     if (poolPoints.length < 3) return null;
 
     try {
-      // Generate smooth curved pool boundary
+      console.log('🔧 Creating DECK with spline-based offset from coping');
+      
+      // Step 1: Generate smooth curved pool boundary (same as coping)
       const poolCurve2D = poolPoints.map(p => ({ x: p.x, y: p.y }));
       const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
-      const poolCurve3D = smoothPoolCurve.map(p => ({ x: p.x, z: p.y }));
       
-      // Generate coping outer edge (this is deck's inner edge)
+      // Step 2: Normalize to world coordinates
+      const minX = Math.min(...smoothPoolCurve.map(p => p.x));
+      const maxX = Math.max(...smoothPoolCurve.map(p => p.x));
+      const minY = Math.min(...smoothPoolCurve.map(p => p.y));
+      const maxY = Math.max(...smoothPoolCurve.map(p => p.y));
+      const centerX = (minX + maxX) / 2;
+      const centerY = (minY + maxY) / 2;
+      
+      const poolCurve3D = smoothPoolCurve.map(p => ({ 
+        x: p.x - centerX, 
+        z: p.y - centerY 
+      }));
+      
+      // Step 3: Generate coping outer edge (this is deck's inner edge)
       const copingOuterCurve = generateOffsetCurve(poolCurve3D, copingWidth);
       
-      // Generate deck outer edge by offsetting further
-      const deckExtension = deckWidth * 0.3048; // Convert feet to meters
-      const deckOuterCurve = generateOffsetCurve(copingOuterCurve, deckExtension);
+      console.log('🔧 Deck inner (coping outer) curve points:', copingOuterCurve.length);
       
-      // Create quad strip geometry between coping outer edge and deck outer edge
+      // Step 4: Generate deck outer edge by offsetting from coping outer edge
+      const deckOuterCurve = generateOffsetCurve(copingOuterCurve, deckWidth);
+      
+      console.log('🔧 Deck outer curve points:', deckOuterCurve.length);
+      
+      // Step 5: Create quad strip geometry between coping outer edge and deck outer edge
       const geometry = createQuadStripGeometry(
         copingOuterCurve,
         deckOuterCurve,
         deckHeight,
-        0.3048 // 1 sq ft tiles
+        1.0 // 1x1 ft tiles
       );
 
+      console.log('✅ Deck geometry created with', geometry.getAttribute('position').count, 'vertices');
       return geometry;
     } catch (error) {
       console.error('Error creating deck geometry:', error);
