@@ -55,15 +55,14 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
 
     console.log('🌊 WaterSurface: Creating water from pool points (EXACT match with pool floor):', poolPoints.length);
     
-    // CRITICAL: Use generateCurvedPoolPoints with EXACT same parameters as Pool3DScene PoolMesh
-    // This ensures water surface matches pool boundary perfectly
+    // CRITICAL: Use generateCurvedPoolPoints with EXACT same parameters as Pool3DScene PoolMesh (lines 204-208)
     const curvedPoints = generateCurvedPoolPoints(
       poolPoints.map(p => ({ x: p.x, y: p.y })),
       30,  // MUST match Pool3DScene line 206
       0.3  // MUST match Pool3DScene line 207
     );
 
-    // Calculate center using EXACT same method as Pool3DScene
+    // Calculate center using EXACT same method as Pool3DScene (lines 210-215)
     const minX = Math.min(...curvedPoints.map(p => p.x));
     const maxX = Math.max(...curvedPoints.map(p => p.x));
     const minY = Math.min(...curvedPoints.map(p => p.y));
@@ -77,12 +76,23 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
     const lengthDirection = poolLength > poolWidth ? 'y' : 'x';
 
     // Normalize points to match Pool3DScene coordinate system (lines 217-220)
+    // CRITICAL: This MUST produce identical coordinates as pool floor
     const normalizedPoints = curvedPoints.map(p => ({
       x: p.x - centerX,
       z: p.y - centerY
     }));
 
-    // Create shape from normalized points - water fills to inner wall boundary
+    console.log('🌊 Water normalized bounds:', {
+      centerX,
+      centerY,
+      poolWidth,
+      poolLength,
+      lengthDirection,
+      firstNormalizedPoint: normalizedPoints[0],
+      lastNormalizedPoint: normalizedPoints[normalizedPoints.length - 1]
+    });
+
+    // Create shape from normalized points - water fills pool boundary EXACTLY
     const shape = new THREE.Shape();
     normalizedPoints.forEach((point, i) => {
       if (i === 0) {
@@ -104,11 +114,13 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
       const x = positions.getX(i);
       const z = positions.getZ(i);
       
-      // Calculate position ratio along pool length (SAME as pool floor)
+      // Calculate position ratio along pool length (SAME logic as pool floor)
       let lengthRatio;
       if (lengthDirection === 'y') {
+        // lengthDirection 'y' means we're progressing along Z axis in 3D
         lengthRatio = (z - (minY - centerY)) / poolLength;
       } else {
+        // lengthDirection 'x' means we're progressing along X axis in 3D
         lengthRatio = (x - (minX - centerX)) / poolWidth;
       }
       
@@ -118,9 +130,9 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
     }
     
     geometry.setAttribute('depth', new THREE.BufferAttribute(depthArray, 1));
-    geometry.rotateX(-Math.PI / 2);
+    geometry.rotateX(-Math.PI / 2); // Rotate to horizontal
     
-    console.log('✅ WaterSurface: Water geometry synchronized with pool floor exactly');
+    console.log('✅ WaterSurface: Water geometry created with exact pool boundary match');
     return geometry;
   }, [poolPoints, getDepthAtPosition]);
 
