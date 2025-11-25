@@ -57,7 +57,7 @@ const ProductMediaGallery = ({ media, productName, className = "" }: ProductMedi
         <OptimizedImage
           src={currentMedia.url}
           alt={currentMedia.alt || productName}
-          className="w-full h-full object-cover object-[center_4%]"
+          className="w-full h-full object-contain"
           sizeConfig="hero"
         />
       )}
