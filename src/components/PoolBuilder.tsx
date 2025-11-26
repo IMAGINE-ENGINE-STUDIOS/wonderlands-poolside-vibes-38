@@ -119,38 +119,38 @@ export function PoolBuilder({ initialDimensions, initialDepth, onPoolDataChange 
   const getShapePoints = (shape: 'rectangle' | 'kidney' | 'freeform'): Point[] => {
     const centerX = canvasSize.width / 2;
     const centerY = canvasSize.height / 2;
-    // 15ft width = 150px, 35ft length = 350px at scale of 10
-    const poolWidth = 15 * scale; // 150px
-    const poolLength = 35 * scale; // 350px
+    // Standard notation: 15ft width (X) × 35ft length (Y)
+    const poolWidth = 15 * scale; // Width (X-axis, side to side)
+    const poolLength = 35 * scale; // Length (Y-axis, front to back)
     
     switch (shape) {
       case 'rectangle':
         return [
-          { x: centerX - poolLength / 2, y: centerY - poolWidth / 2, id: '1' },
-          { x: centerX + poolLength / 2, y: centerY - poolWidth / 2, id: '2' },
-          { x: centerX + poolLength / 2, y: centerY + poolWidth / 2, id: '3' },
-          { x: centerX - poolLength / 2, y: centerY + poolWidth / 2, id: '4' },
+          { x: centerX - poolWidth / 2, y: centerY - poolLength / 2, id: '1' },
+          { x: centerX + poolWidth / 2, y: centerY - poolLength / 2, id: '2' },
+          { x: centerX + poolWidth / 2, y: centerY + poolLength / 2, id: '3' },
+          { x: centerX - poolWidth / 2, y: centerY + poolLength / 2, id: '4' },
         ];
       case 'kidney':
         return [
-          { x: centerX - poolLength / 2, y: centerY - poolWidth / 3, id: '1' },
-          { x: centerX - poolLength / 4, y: centerY - poolWidth / 2, id: '2' },
-          { x: centerX + poolLength / 4, y: centerY - poolWidth / 2.5, id: '3' },
-          { x: centerX + poolLength / 2, y: centerY - poolWidth / 6, id: '4' },
-          { x: centerX + poolLength / 2.5, y: centerY + poolWidth / 4, id: '5' },
-          { x: centerX + poolLength / 6, y: centerY + poolWidth / 2, id: '6' },
-          { x: centerX - poolLength / 4, y: centerY + poolWidth / 2.5, id: '7' },
-          { x: centerX - poolLength / 2, y: centerY + poolWidth / 6, id: '8' },
+          { x: centerX - poolWidth / 2, y: centerY - poolLength / 3, id: '1' },
+          { x: centerX - poolWidth / 4, y: centerY - poolLength / 2, id: '2' },
+          { x: centerX + poolWidth / 4, y: centerY - poolLength / 2.5, id: '3' },
+          { x: centerX + poolWidth / 2, y: centerY - poolLength / 6, id: '4' },
+          { x: centerX + poolWidth / 2.5, y: centerY + poolLength / 4, id: '5' },
+          { x: centerX + poolWidth / 6, y: centerY + poolLength / 2, id: '6' },
+          { x: centerX - poolWidth / 4, y: centerY + poolLength / 2.5, id: '7' },
+          { x: centerX - poolWidth / 2, y: centerY + poolLength / 6, id: '8' },
         ];
       case 'freeform':
         return [
-          { x: centerX - poolLength / 2, y: centerY - poolWidth / 2.5, id: '1' },
-          { x: centerX - poolLength / 6, y: centerY - poolWidth / 2, id: '2' },
-          { x: centerX + poolLength / 3, y: centerY - poolWidth / 3, id: '3' },
-          { x: centerX + poolLength / 2, y: centerY + poolWidth / 6, id: '4' },
-          { x: centerX + poolLength / 4, y: centerY + poolWidth / 2, id: '5' },
-          { x: centerX - poolLength / 6, y: centerY + poolWidth / 2.2, id: '6' },
-          { x: centerX - poolLength / 2, y: centerY + poolWidth / 4, id: '7' },
+          { x: centerX - poolWidth / 2, y: centerY - poolLength / 2.5, id: '1' },
+          { x: centerX - poolWidth / 6, y: centerY - poolLength / 2, id: '2' },
+          { x: centerX + poolWidth / 3, y: centerY - poolLength / 3, id: '3' },
+          { x: centerX + poolWidth / 2, y: centerY + poolLength / 6, id: '4' },
+          { x: centerX + poolWidth / 4, y: centerY + poolLength / 2, id: '5' },
+          { x: centerX - poolWidth / 6, y: centerY + poolLength / 2.2, id: '6' },
+          { x: centerX - poolWidth / 2, y: centerY + poolLength / 4, id: '7' },
         ];
     }
   };
@@ -332,16 +332,17 @@ export function PoolBuilder({ initialDimensions, initialDepth, onPoolDataChange 
       }
 
       // Create pool points scaled to actual dimensions
+      // Standard notation: "16' × 40'" means 16' width (X-axis) × 40' length (Y-axis)
       const centerX = canvasSize.width / 2;
       const centerY = canvasSize.height / 2;
-      const poolWidthPixels = poolWidth * scale;
-      const poolLengthPixels = poolLength * scale;
+      const poolWidthPixels = poolWidth * scale;  // Width = X-axis (side to side)
+      const poolLengthPixels = poolLength * scale; // Length = Y-axis (front to back)
       
       const initialPoolPoints = [
-        { x: centerX - poolLengthPixels / 2, y: centerY - poolWidthPixels / 2, id: '1' },
-        { x: centerX + poolLengthPixels / 2, y: centerY - poolWidthPixels / 2, id: '2' },
-        { x: centerX + poolLengthPixels / 2, y: centerY + poolWidthPixels / 2, id: '3' },
-        { x: centerX - poolLengthPixels / 2, y: centerY + poolWidthPixels / 2, id: '4' },
+        { x: centerX - poolWidthPixels / 2, y: centerY - poolLengthPixels / 2, id: '1' },
+        { x: centerX + poolWidthPixels / 2, y: centerY - poolLengthPixels / 2, id: '2' },
+        { x: centerX + poolWidthPixels / 2, y: centerY + poolLengthPixels / 2, id: '3' },
+        { x: centerX - poolWidthPixels / 2, y: centerY + poolLengthPixels / 2, id: '4' },
       ];
       
       setPoints(initialPoolPoints);
