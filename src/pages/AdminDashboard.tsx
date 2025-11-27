@@ -25,6 +25,9 @@ import {
   Key,
   FileText,
   Activity,
+  ChevronRight,
+  Home,
+  Zap,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -138,37 +141,68 @@ const AdminDashboard = () => {
     return null;
   }
 
+  const [activeSection, setActiveSection] = useState(isMainAdmin ? "quotes" : "procurement");
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
-      {/* Header */}
-      <div className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
-            <div className="flex-1">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                {isMainAdmin ? 'Admin Dashboard' : `${profile?.role === 'supplier' ? 'Supplier' : 'Contractor'} Dashboard`}
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                {isMainAdmin ? 'Manage products, orders, and content' : 'Manage your business operations'}
-                {profile && (
-                  <span className="ml-2 text-primary font-medium">
-                    Welcome, {profile.first_name} {profile.last_name} ({profile.company_name})
-                  </span>
-                )}
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 -right-4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      </div>
+
+      {/* Futuristic Header */}
+      <div className="relative border-b border-border/50 bg-background/60 backdrop-blur-xl sticky top-0 z-50 shadow-lg">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5" />
+        <div className="container mx-auto px-4 sm:px-6 py-4 relative">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 flex-1">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
+                  <div className="relative h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg">
+                    <Zap className="h-6 w-6 text-primary-foreground" />
+                  </div>
+                </div>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
+                    {isMainAdmin ? 'Command Center' : `${profile?.role === 'supplier' ? 'Supplier' : 'Contractor'} Hub`}
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    {profile && (
+                      <span className="font-medium text-primary">
+                        {profile.first_name} {profile.last_name} • {profile.company_name}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-              <Button variant="outline" onClick={refreshData} disabled={isLoading} size="sm" className="flex-1 sm:flex-none">
-                <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                <span className="text-xs sm:text-sm">Refresh</span>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={refreshData} 
+                disabled={isLoading}
+                className="hover:bg-primary/10 transition-all duration-300 hover:scale-105"
+              >
+                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               </Button>
-              <Button variant="outline" onClick={handleLogout} size="sm" className="flex-1 sm:flex-none">
-                <LogOut className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                <span className="text-xs sm:text-sm">Logout</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleLogout}
+                className="hover:bg-destructive/10 transition-all duration-300 hover:scale-105"
+              >
+                <LogOut className="h-4 w-4" />
               </Button>
-              <Link to="/" className="flex-1 sm:flex-none">
-                <Button variant="outline" size="sm" className="w-full">
-                  <span className="text-xs sm:text-sm">Back to Site</span>
+              <Link to="/">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="hover:bg-accent/10 transition-all duration-300 hover:scale-105"
+                >
+                  <Home className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
@@ -176,136 +210,170 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-        {/* Key Metrics */}
-        <AdminDashboardMetrics />
+      <div className="flex min-h-[calc(100vh-80px)] relative">
+        {/* Futuristic Sidebar Navigation */}
+        <div className="w-64 border-r border-border/50 bg-background/40 backdrop-blur-xl p-4 space-y-2 overflow-y-auto sticky top-[80px] h-[calc(100vh-80px)] hidden lg:block">
+          <div className="space-y-1">
+            {/* For contractors and suppliers: limited navigation */}
+            {isContractorOrSupplier && (
+              <>
+                <NavItem 
+                  icon={Building2} 
+                  label="Procurement" 
+                  active={activeSection === "procurement"}
+                  onClick={() => setActiveSection("procurement")}
+                />
+                <NavItem 
+                  icon={ShoppingCart} 
+                  label="Orders" 
+                  active={activeSection === "orders"}
+                  onClick={() => setActiveSection("orders")}
+                />
+                <NavItem 
+                  icon={BarChart3} 
+                  label="Analytics" 
+                  active={activeSection === "analytics"}
+                  onClick={() => setActiveSection("analytics")}
+                />
+                <NavItem 
+                  icon={Key} 
+                  label="API Keys" 
+                  active={activeSection === "api-keys"}
+                  onClick={() => setActiveSection("api-keys")}
+                />
+              </>
+            )}
 
-        {/* Main Content Tabs */}
-        <Tabs defaultValue={isMainAdmin ? "quotes" : "procurement"} className="space-y-4 sm:space-y-6">
-          <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 sm:mb-6">
-            <TabsList className="grid w-full grid-cols-3 sm:flex sm:flex-wrap gap-1">
-              {/* For contractors and suppliers: limited tabs */}
-              {isContractorOrSupplier && (
-                <>
-                  <TabsTrigger value="procurement" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <Building2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Procurement</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="orders" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Orders</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="analytics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Analytics</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="api-keys" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <Key className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">API Keys</span>
-                  </TabsTrigger>
-                </>
-              )}
-
-              {/* For main admin: full tabs */}
-              {isMainAdmin && (
-                <>
-                  <TabsTrigger value="unified-products" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <Database className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Products</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="quotes" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <Star className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Quotes</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="quote-tool" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Quote Tool</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="invoices" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Invoices</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="invoice-tool" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Invoice Tool</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="orders" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Orders</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Users</span>
-                  </TabsTrigger>
-
-                  <TabsTrigger value="referrals" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <Gift className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Referrals</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="api-manager" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">API</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="pool-specs" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <Package className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Specs</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="delivery-logistics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Delivery</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="content-editor" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Content Editor</span>
-                    <span className="sm:hidden">Content</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="procurement" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <Building2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Procurement</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="analytics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Analytics</span>
-                    <span className="sm:hidden">Stats</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="setup" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <Database className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Setup</span>
-                  </TabsTrigger>
-                  
-                  <TabsTrigger value="calculator" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Pool Calculator</span>
-                  </TabsTrigger>
-
-                  <TabsTrigger value="performance" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Performance</span>
-                  </TabsTrigger>
-                </>
-              )}
-            </TabsList>
+            {/* For main admin: full navigation */}
+            {isMainAdmin && (
+              <>
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2">
+                  Core
+                </div>
+                <NavItem 
+                  icon={Database} 
+                  label="Products" 
+                  active={activeSection === "unified-products"}
+                  onClick={() => setActiveSection("unified-products")}
+                />
+                <NavItem 
+                  icon={Star} 
+                  label="Quotes" 
+                  active={activeSection === "quotes"}
+                  onClick={() => setActiveSection("quotes")}
+                />
+                <NavItem 
+                  icon={DollarSign} 
+                  label="Quote Tool" 
+                  active={activeSection === "quote-tool"}
+                  onClick={() => setActiveSection("quote-tool")}
+                />
+                <NavItem 
+                  icon={FileText} 
+                  label="Invoices" 
+                  active={activeSection === "invoices"}
+                  onClick={() => setActiveSection("invoices")}
+                />
+                <NavItem 
+                  icon={FileText} 
+                  label="Invoice Tool" 
+                  active={activeSection === "invoice-tool"}
+                  onClick={() => setActiveSection("invoice-tool")}
+                />
+                <NavItem 
+                  icon={ShoppingCart} 
+                  label="Orders" 
+                  active={activeSection === "orders"}
+                  onClick={() => setActiveSection("orders")}
+                />
+                
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2 mt-4">
+                  Management
+                </div>
+                <NavItem 
+                  icon={Users} 
+                  label="Users" 
+                  active={activeSection === "users"}
+                  onClick={() => setActiveSection("users")}
+                />
+                <NavItem 
+                  icon={Gift} 
+                  label="Referrals" 
+                  active={activeSection === "referrals"}
+                  onClick={() => setActiveSection("referrals")}
+                />
+                <NavItem 
+                  icon={Users} 
+                  label="API Manager" 
+                  active={activeSection === "api-manager"}
+                  onClick={() => setActiveSection("api-manager")}
+                />
+                <NavItem 
+                  icon={Package} 
+                  label="Pool Specs" 
+                  active={activeSection === "pool-specs"}
+                  onClick={() => setActiveSection("pool-specs")}
+                />
+                <NavItem 
+                  icon={TrendingUp} 
+                  label="Delivery" 
+                  active={activeSection === "delivery-logistics"}
+                  onClick={() => setActiveSection("delivery-logistics")}
+                />
+                
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2 mt-4">
+                  Tools
+                </div>
+                <NavItem 
+                  icon={Edit} 
+                  label="Content Editor" 
+                  active={activeSection === "content-editor"}
+                  onClick={() => setActiveSection("content-editor")}
+                />
+                <NavItem 
+                  icon={Building2} 
+                  label="Procurement" 
+                  active={activeSection === "procurement"}
+                  onClick={() => setActiveSection("procurement")}
+                />
+                <NavItem 
+                  icon={BarChart3} 
+                  label="Analytics" 
+                  active={activeSection === "analytics"}
+                  onClick={() => setActiveSection("analytics")}
+                />
+                <NavItem 
+                  icon={Database} 
+                  label="Setup" 
+                  active={activeSection === "setup"}
+                  onClick={() => setActiveSection("setup")}
+                />
+                <NavItem 
+                  icon={BarChart3} 
+                  label="Pool Calculator" 
+                  active={activeSection === "calculator"}
+                  onClick={() => setActiveSection("calculator")}
+                />
+                <NavItem 
+                  icon={Activity} 
+                  label="Performance" 
+                  active={activeSection === "performance"}
+                  onClick={() => setActiveSection("performance")}
+                />
+              </>
+            )}
           </div>
+        </div>
 
+        {/* Main Content Area */}
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto relative">
+          {/* Key Metrics */}
+          <div className="mb-8">
+            <AdminDashboardMetrics />
+          </div>
           {/* Products Tab - Only for main admins */}
-          {isMainAdmin && (
-            <TabsContent value="unified-products" className="space-y-6">
+          {isMainAdmin && activeSection === "unified-products" && (
+            <div className="space-y-6 animate-fade-in">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -320,11 +388,12 @@ const AdminDashboard = () => {
                   <StandardizedProductManager />
                 </CardContent>
               </Card>
-            </TabsContent>
+            </div>
           )}
 
           {/* Users Tab */}
-          <TabsContent value="users" className="space-y-6">
+          {activeSection === "users" && (
+            <div className="space-y-6 animate-fade-in">
             <Card>
               <CardHeader>
                 <CardTitle>Users</CardTitle>
@@ -344,20 +413,26 @@ const AdminDashboard = () => {
                 <SetupDemoUsers />
               </CardContent>
             </Card>
-          </TabsContent>
+            </div>
+          )}
 
           {/* Orders Tab */}
-          <TabsContent value="orders" className="space-y-6">
+          {activeSection === "orders" && (
+            <div className="space-y-6 animate-fade-in">
             <AdminOrdersManager />
-          </TabsContent>
+            </div>
+          )}
 
           {/* Quotes Tab */}
-          <TabsContent value="quotes" className="space-y-6">
+          {activeSection === "quotes" && (
+            <div className="space-y-6 animate-fade-in">
             <AdminQuotesManager />
-          </TabsContent>
+            </div>
+          )}
 
           {/* Quote Tool Tab */}
-          <TabsContent value="quote-tool" className="space-y-6">
+          {activeSection === "quote-tool" && (
+            <div className="space-y-6 animate-fade-in">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -372,15 +447,19 @@ const AdminDashboard = () => {
                 <AdminQuoteTool />
               </CardContent>
             </Card>
-          </TabsContent>
+            </div>
+          )}
 
           {/* Invoices Tab */}
-          <TabsContent value="invoices" className="space-y-6">
+          {activeSection === "invoices" && (
+            <div className="space-y-6 animate-fade-in">
             <AdminInvoicesManager />
-          </TabsContent>
+            </div>
+          )}
 
           {/* Invoice Tool Tab */}
-          <TabsContent value="invoice-tool" className="space-y-6">
+          {activeSection === "invoice-tool" && (
+            <div className="space-y-6 animate-fade-in">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -395,16 +474,19 @@ const AdminDashboard = () => {
                 <AdminInvoiceTool />
               </CardContent>
             </Card>
-          </TabsContent>
+            </div>
+          )}
 
           {/* Referrals Tab */}
-          <TabsContent value="referrals" className="space-y-6">
+          {activeSection === "referrals" && (
+            <div className="space-y-6 animate-fade-in">
             <AdminReferralsManager />
-          </TabsContent>
+            </div>
+          )}
 
           {/* Content Editor Tab - Only for main admins */}
-          {isMainAdmin && (
-            <TabsContent value="content-editor" className="space-y-6">
+          {isMainAdmin && activeSection === "content-editor" && (
+            <div className="space-y-6 animate-fade-in">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -463,25 +545,26 @@ const AdminDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
+            </div>
           )}
 
           {/* API Manager Tab - Main Admin Only */}
-          {isMainAdmin && (
-            <TabsContent value="api-manager" className="space-y-6">
+          {isMainAdmin && activeSection === "api-manager" && (
+            <div className="space-y-6 animate-fade-in">
               <RealApiManager />
-            </TabsContent>
+            </div>
           )}
 
           {/* API Keys Tab - Contractors and Suppliers */}
-          {isContractorOrSupplier && (
-            <TabsContent value="api-keys" className="space-y-6">
+          {isContractorOrSupplier && activeSection === "api-keys" && (
+            <div className="space-y-6 animate-fade-in">
               <ApiKeyManager />
-            </TabsContent>
+            </div>
           )}
 
           {/* Pool Specs Tab */}
-          <TabsContent value="pool-specs" className="space-y-6">
+          {activeSection === "pool-specs" && (
+            <div className="space-y-6 animate-fade-in">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -496,11 +579,12 @@ const AdminDashboard = () => {
                 <LathamPoolsData />
               </CardContent>
             </Card>
-          </TabsContent>
+            </div>
+          )}
 
           {/* Delivery & Logistics Tab - Hidden from installers */}
-          {!isInstaller && (
-            <TabsContent value="delivery-logistics" className="space-y-6">
+          {!isInstaller && activeSection === "delivery-logistics" && (
+            <div className="space-y-6 animate-fade-in">
               <div className="space-y-6">
                 {/* Delivery API Management Section */}
                 <Card>
@@ -582,11 +666,12 @@ const AdminDashboard = () => {
                   </Card>
                 </div>
               </div>
-            </TabsContent>
+            </div>
           )}
 
           {/* Procurement Tab */}
-          <TabsContent value="procurement" className="space-y-6">
+          {activeSection === "procurement" && (
+            <div className="space-y-6 animate-fade-in">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -645,10 +730,12 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+            </div>
+          )}
 
           {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-6">
+          {activeSection === "analytics" && (
+            <div className="space-y-6 animate-fade-in">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
@@ -692,31 +779,67 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
+            </div>
+          )}
+          
           {/* Setup Tab - Main Admin Only */}
-          {isMainAdmin && (
-            <TabsContent value="setup" className="space-y-6">
+          {isMainAdmin && activeSection === "setup" && (
+            <div className="space-y-6 animate-fade-in">
               <SampleDataSetup />
-            </TabsContent>
+            </div>
           )}
           
           {/* Pool Calculator Tab */}
-          {isMainAdmin && (
-            <TabsContent value="calculator" className="space-y-6">
+          {isMainAdmin && activeSection === "calculator" && (
+            <div className="space-y-6 animate-fade-in">
               <PoolCalculator />
-            </TabsContent>
+            </div>
           )}
 
           {/* Performance Monitoring Tab */}
-          {isMainAdmin && (
-            <TabsContent value="performance" className="space-y-6">
+          {isMainAdmin && activeSection === "performance" && (
+            <div className="space-y-6 animate-fade-in">
               <PerformanceMonitoring />
-            </TabsContent>
+            </div>
           )}
-        </Tabs>
+        </div>
       </div>
     </div>
   );
 };
+
+// Navigation Item Component
+const NavItem = ({ 
+  icon: Icon, 
+  label, 
+  active, 
+  onClick 
+}: { 
+  icon: React.ElementType; 
+  label: string; 
+  active: boolean; 
+  onClick: () => void;
+}) => (
+  <button
+    onClick={onClick}
+    className={`
+      w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+      transition-all duration-300 group relative overflow-hidden
+      ${active 
+        ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/25' 
+        : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+      }
+    `}
+  >
+    {active && (
+      <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent animate-pulse" />
+    )}
+    <Icon className={`h-5 w-5 relative z-10 transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`} />
+    <span className="font-medium text-sm relative z-10">{label}</span>
+    {active && (
+      <ChevronRight className="h-4 w-4 ml-auto relative z-10 animate-pulse" />
+    )}
+  </button>
+);
 
 export default AdminDashboard;
