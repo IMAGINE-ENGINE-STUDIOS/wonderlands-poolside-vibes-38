@@ -180,4 +180,30 @@
   .hexagon-clip {
     clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
   }
+  
+  /* Cesium Viewer Customization */
+  .cesium-viewer {
+    background: #000 !important;
+  }
+  
+  .cesium-viewer .cesium-viewer-bottom {
+    display: none !important;
+  }
+  
+  .cesium-infoBox {
+    background: rgba(0, 0, 0, 0.95) !important;
+    border: 1px solid #0f0 !important;
+    color: #0f0 !important;
+    font-family: monospace !important;
+  }
+  
+  .cesium-infoBox-title {
+    background: #000 !important;
+    color: #0f0 !important;
+    border-bottom: 1px solid #0f0 !important;
+  }
+  
+  .cesium-widget-credits {
+    display: none !important;
+  }
 }
