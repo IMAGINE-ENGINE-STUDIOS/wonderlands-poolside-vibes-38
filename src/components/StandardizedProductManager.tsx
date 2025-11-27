@@ -244,73 +244,75 @@ export const StandardizedProductManager = () => {
 
   return (
     <div className="space-y-6">
-      {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex flex-col sm:flex-row gap-2 flex-1">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map(category => (
-                <SelectItem key={category} value={category}>
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {/* Controls - Command Center Style */}
+      <div className="holographic-panel rounded-lg p-6">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-2 flex-1">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cyan-400" />
+              <Input
+                placeholder="SEARCH PRODUCTS..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-black/40 border-cyan-500/30 text-cyan-300 placeholder:text-cyan-400/40 font-mono text-sm"
+              />
+            </div>
+            
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-full sm:w-[200px] bg-black/40 border-cyan-500/30 text-cyan-300 font-mono text-sm">
+                <SelectValue placeholder="ALL CATEGORIES" />
+              </SelectTrigger>
+              <SelectContent className="bg-black border-cyan-500/30">
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map(category => (
+                  <SelectItem key={category} value={category}>
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full sm:w-[150px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Name</SelectItem>
-              <SelectItem value="price">Price</SelectItem>
-              <SelectItem value="category">Category</SelectItem>
-            </SelectContent>
-          </Select>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-full sm:w-[150px] bg-black/40 border-cyan-500/30 text-cyan-300 font-mono text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-black border-cyan-500/30">
+                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="price">Price</SelectItem>
+                <SelectItem value="category">Category</SelectItem>
+              </SelectContent>
+            </Select>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-            className="min-w-fit"
-          >
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+              className="min-w-fit bg-black/40 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10 font-mono"
+            >
             <ArrowUpDown className="h-4 w-4 mr-1" />
             {sortOrder.toUpperCase()}
           </Button>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="secondary" className="text-sm">
-            {filteredProducts.length} Total
+          <Badge variant="secondary" className="text-sm bg-cyan-500/20 text-cyan-300 border-cyan-500/50 font-mono">
+            {filteredProducts.length} TOTAL
           </Badge>
-          <Badge variant="outline" className="text-xs">
-            {products.filter(p => p.source === 'pools_table').length} Pools
+          <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/50 font-mono">
+            {products.filter(p => p.source === 'pools_table').length} POOLS
           </Badge>
-          <Badge variant="outline" className="text-xs">
-            {products.filter(p => p.source === 'products_table').length} Products
+          <Badge variant="outline" className="text-xs bg-purple-500/20 text-purple-300 border-purple-500/50 font-mono">
+            {products.filter(p => p.source === 'products_table').length} PRODUCTS
           </Badge>
-          <Button size="sm">
+          <Button size="sm" className="bg-cyan-500/20 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/30 font-mono">
             <Plus className="h-4 w-4 mr-1" />
-            Add Product
+            ADD
           </Button>
         </div>
       </div>
+    </div>
 
-      {/* Products Grid */}
+      {/* Products Grid - Command Center Style */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredProducts.map((product) => (
           <div key={product.id} className="relative group">

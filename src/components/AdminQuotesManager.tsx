@@ -84,11 +84,11 @@ const AdminQuotesManager = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-amber-100 text-amber-800 border-amber-200';
-      case 'contacted': return 'bg-blue-100 text-blue-800 border-blue-200';  
-      case 'converted': return 'bg-green-100 text-green-800 border-green-200';
-      case 'lost': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'pending': return 'bg-amber-500/20 text-amber-300 border-amber-500/50';
+      case 'contacted': return 'bg-blue-500/20 text-blue-300 border-blue-500/50';  
+      case 'converted': return 'bg-green-500/20 text-green-300 border-green-500/50';
+      case 'lost': return 'bg-red-500/20 text-red-300 border-red-500/50';
+      default: return 'bg-gray-500/20 text-gray-300 border-gray-500/50';
     }
   };
 
@@ -112,81 +112,89 @@ const AdminQuotesManager = () => {
 
   return (
     <div className="space-y-6">
-      {/* Quote Statistics */}
+      {/* Quote Statistics - Command Center Style */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Quotes</p>
-                <p className="text-2xl font-bold">{totalQuotes}</p>
-              </div>
-              <Calendar className="h-8 w-8 text-primary" />
+        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-500/10 rounded-full blur-2xl"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-mono text-cyan-400 uppercase tracking-wider">Total</span>
+              <Calendar className="h-5 w-5 text-cyan-400" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="text-3xl font-bold text-cyan-300 neon-glow-cyan">{totalQuotes}</div>
+            <div className="h-1 w-full bg-cyan-900/30 rounded-full mt-2 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 data-stream"></div>
+            </div>
+          </div>
+        </div>
         
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Pending</p>
-                <p className="text-2xl font-bold text-amber-600">{pendingQuotes}</p>
-              </div>
-              <Search className="h-8 w-8 text-amber-500" />
+        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full blur-2xl"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-mono text-amber-400 uppercase tracking-wider">Pending</span>
+              <Search className="h-5 w-5 text-amber-400" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="text-3xl font-bold text-amber-300" style={{textShadow: '0 0 20px rgba(251, 191, 36, 0.6)'}}>{pendingQuotes}</div>
+            <div className="h-1 w-full bg-amber-900/30 rounded-full mt-2 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-500 data-stream"></div>
+            </div>
+          </div>
+        </div>
         
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Converted</p>
-                <p className="text-2xl font-bold text-green-600">{convertedQuotes}</p>
-              </div>
-              <Eye className="h-8 w-8 text-green-500" />
+        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full blur-2xl"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-mono text-green-400 uppercase tracking-wider">Converted</span>
+              <Eye className="h-5 w-5 text-green-400" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="text-3xl font-bold text-green-300" style={{textShadow: '0 0 20px rgba(34, 197, 94, 0.6)'}}>{convertedQuotes}</div>
+            <div className="h-1 w-full bg-green-900/30 rounded-full mt-2 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 data-stream"></div>
+            </div>
+          </div>
+        </div>
         
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Value</p>
-                <p className="text-2xl font-bold text-primary">${totalQuoteValue.toLocaleString()}</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-primary" />
+        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full blur-2xl"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-mono text-blue-400 uppercase tracking-wider">Value</span>
+              <DollarSign className="h-5 w-5 text-blue-400" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="text-2xl font-bold text-blue-300 neon-glow-blue">${totalQuoteValue.toLocaleString()}</div>
+            <div className="h-1 w-full bg-blue-900/30 rounded-full mt-2 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 data-stream"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Pool Quotes Management</span>
-            <div className="text-sm text-muted-foreground">
-              Click "View Quote" to see the complete quote with all images
-            </div>
-          </CardTitle>
+      {/* Filters - Command Center Style */}
+      <div className="holographic-panel rounded-lg overflow-hidden">
+        <div className="p-6 border-b border-cyan-500/20">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold text-cyan-300 font-mono tracking-wide uppercase neon-glow-cyan">⬡ Quote Database ⬡</h3>
+            <p className="text-xs text-cyan-400/60 font-mono">
+              Click "View Quote" for complete details with images
+            </p>
+          </div>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cyan-400" />
               <Input
-                placeholder="Search by name, email, or pool model..."
+                placeholder="SEARCH: NAME / EMAIL / POOL MODEL..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-black/40 border-cyan-500/30 text-cyan-300 placeholder:text-cyan-400/40 font-mono text-sm"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Filter by status" />
+              <SelectTrigger className="w-full sm:w-48 bg-black/40 border-cyan-500/30 text-cyan-300 font-mono text-sm">
+                <SelectValue placeholder="FILTER STATUS" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-black border-cyan-500/30">
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="contacted">Contacted</SelectItem>
@@ -195,86 +203,89 @@ const AdminQuotesManager = () => {
               </SelectContent>
             </Select>
           </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead>Pool Model</TableHead>
-                <TableHead>Quote Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-center">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredQuotes.map((quote) => (
-                <TableRow key={quote.id}>
-                  <TableCell>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-medium">{quote.name}</p>
-                        {!quote.user_id ? (
-                          <Badge variant="outline" className="text-xs">Guest</Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-xs bg-primary/10">Registered</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground">{quote.email}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{quote.pool_model || 'N/A'}</p>
-                      <p className="text-sm text-muted-foreground">{quote.pool_category || ''}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-bold">
-                    ${quote.total_quote_amount?.toLocaleString() || '0'}
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(quote.status)}>
-                      {quote.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(quote.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2 justify-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleViewQuote(quote)}
-                        title="Quick Preview"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/admin/quotes/${quote.id}`)}
-                        title="View Complete Quote with Images"
-                        className="text-xs"
-                      >
-                        <ExternalLink className="h-4 w-4 mr-1" />
-                        Full Quote
-                      </Button>
-                    </div>
-                  </TableCell>
+        </div>
+        <div className="p-6">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-cyan-500/20 hover:bg-transparent">
+                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Customer</TableHead>
+                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Pool Model</TableHead>
+                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Quote Amount</TableHead>
+                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Status</TableHead>
+                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Date</TableHead>
+                  <TableHead className="text-center text-cyan-400 font-mono text-xs uppercase tracking-wider">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredQuotes.map((quote) => (
+                  <TableRow key={quote.id} className="border-b border-cyan-500/10 hover:bg-cyan-500/5 transition-colors">
+                    <TableCell>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-medium text-cyan-200">{quote.name}</p>
+                          {!quote.user_id ? (
+                            <Badge variant="outline" className="text-xs bg-gray-500/20 text-gray-300 border-gray-500/50 font-mono">GUEST</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/50 font-mono">REG</Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-cyan-400/60 font-mono">{quote.email}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-cyan-200">{quote.pool_model || 'N/A'}</p>
+                        <p className="text-sm text-cyan-400/60 font-mono">{quote.pool_category || ''}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-bold text-blue-300 font-mono">
+                      ${quote.total_quote_amount?.toLocaleString() || '0'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`${getStatusColor(quote.status)} font-mono text-xs uppercase`}>
+                        {quote.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-cyan-400/80 font-mono text-sm">
+                      {new Date(quote.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2 justify-center">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewQuote(quote)}
+                          title="Quick Preview"
+                          className="hover:bg-cyan-500/10 text-cyan-400"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/admin/quotes/${quote.id}`)}
+                          title="View Complete Quote with Images"
+                          className="text-xs bg-black/40 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10 font-mono"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-1" />
+                          FULL
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
           
           {filteredQuotes.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              {quotes.length === 0 ? 'No quotes found' : 'No quotes match your search criteria'}
+            <div className="text-center py-8 text-cyan-400/60 font-mono">
+              {quotes.length === 0 ? 'NO QUOTES FOUND' : 'NO QUOTES MATCH SEARCH CRITERIA'}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Quote Detail Modal */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>

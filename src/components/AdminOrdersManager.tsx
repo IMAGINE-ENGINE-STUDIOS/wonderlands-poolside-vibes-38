@@ -82,12 +82,12 @@ const AdminOrdersManager = () => {
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
-      case 'completed': return 'bg-green-100 text-green-800 border-green-200';
-      case 'pending': return 'bg-amber-100 text-amber-800 border-amber-200';
-      case 'processing': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'failed': return 'bg-red-100 text-red-800 border-red-200';
-      case 'cancelled': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'completed': return 'bg-green-500/20 text-green-300 border-green-500/50';
+      case 'pending': return 'bg-amber-500/20 text-amber-300 border-amber-500/50';
+      case 'processing': return 'bg-blue-500/20 text-blue-300 border-blue-500/50';
+      case 'failed': return 'bg-red-500/20 text-red-300 border-red-500/50';
+      case 'cancelled': return 'bg-gray-500/20 text-gray-300 border-gray-500/50';
+      default: return 'bg-gray-500/20 text-gray-300 border-gray-500/50';
     }
   };
 
@@ -114,77 +114,85 @@ const AdminOrdersManager = () => {
 
   return (
     <div className="space-y-6">
-      {/* Order Statistics */}
+      {/* Order Statistics - Command Center Style */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Orders</p>
-                <p className="text-2xl font-bold">{totalOrders}</p>
-              </div>
-              <ShoppingCart className="h-8 w-8 text-primary" />
+        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-500/10 rounded-full blur-2xl"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-mono text-cyan-400 uppercase tracking-wider">Total</span>
+              <ShoppingCart className="h-5 w-5 text-cyan-400" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="text-3xl font-bold text-cyan-300 neon-glow-cyan">{totalOrders}</div>
+            <div className="h-1 w-full bg-cyan-900/30 rounded-full mt-2 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 data-stream"></div>
+            </div>
+          </div>
+        </div>
         
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Completed</p>
-                <p className="text-2xl font-bold text-green-600">{completedOrders}</p>
-              </div>
-              <Package className="h-8 w-8 text-green-500" />
+        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full blur-2xl"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-mono text-green-400 uppercase tracking-wider">Completed</span>
+              <Package className="h-5 w-5 text-green-400" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="text-3xl font-bold text-green-300" style={{textShadow: '0 0 20px rgba(34, 197, 94, 0.6)'}}>{completedOrders}</div>
+            <div className="h-1 w-full bg-green-900/30 rounded-full mt-2 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 data-stream"></div>
+            </div>
+          </div>
+        </div>
         
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Pending</p>
-                <p className="text-2xl font-bold text-amber-600">{pendingOrders}</p>
-              </div>
-              <Calendar className="h-8 w-8 text-amber-500" />
+        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full blur-2xl"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-mono text-amber-400 uppercase tracking-wider">Pending</span>
+              <Calendar className="h-5 w-5 text-amber-400" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="text-3xl font-bold text-amber-300" style={{textShadow: '0 0 20px rgba(251, 191, 36, 0.6)'}}>{pendingOrders}</div>
+            <div className="h-1 w-full bg-amber-900/30 rounded-full mt-2 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-500 data-stream"></div>
+            </div>
+          </div>
+        </div>
         
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Revenue</p>
-                <p className="text-2xl font-bold text-primary">${totalRevenue.toLocaleString()}</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-primary" />
+        <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full blur-2xl"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-mono text-blue-400 uppercase tracking-wider">Revenue</span>
+              <DollarSign className="h-5 w-5 text-blue-400" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="text-2xl font-bold text-blue-300 neon-glow-blue">${totalRevenue.toLocaleString()}</div>
+            <div className="h-1 w-full bg-blue-900/30 rounded-full mt-2 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 data-stream"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Orders Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Orders Management</CardTitle>
+      {/* Orders Table - Command Center Style */}
+      <div className="holographic-panel rounded-lg overflow-hidden">
+        <div className="p-6 border-b border-cyan-500/20">
+          <h3 className="text-xl font-bold text-cyan-300 font-mono tracking-wide uppercase neon-glow-cyan mb-4">⬡ Orders Database ⬡</h3>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cyan-400" />
               <Input
-                placeholder="Search by order ID, product, or customer..."
+                placeholder="SEARCH: ORDER ID / PRODUCT / CUSTOMER..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-black/40 border-cyan-500/30 text-cyan-300 placeholder:text-cyan-400/40 font-mono text-sm"
               />
             </div>
             <div className="flex gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Filter by status" />
+                <SelectTrigger className="w-full sm:w-48 bg-black/40 border-cyan-500/30 text-cyan-300 font-mono text-sm">
+                  <SelectValue placeholder="FILTER STATUS" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-black border-cyan-500/30">
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="processing">Processing</SelectItem>
@@ -193,80 +201,83 @@ const AdminOrdersManager = () => {
                   <SelectItem value="failed">Failed</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="bg-black/40 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10 font-mono">
                 <Download className="h-4 w-4 mr-2" />
-                Export
+                EXPORT
               </Button>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredOrders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-mono text-xs">
-                    {order.id.substring(0, 8)}...
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium text-sm">{order.customer_name || 'N/A'}</p>
-                      <p className="text-xs text-muted-foreground">{order.customer_email}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium text-sm">{order.product_name}</p>
-                      <p className="text-xs text-muted-foreground">{order.product_category}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {order.quantity}
-                  </TableCell>
-                  <TableCell className="font-bold">
-                    ${order.total_amount.toLocaleString()}
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(order.payment_status || 'pending')}>
-                      {order.payment_status || 'pending'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {new Date(order.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleViewOrder(order)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+        </div>
+        <div className="p-6">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-cyan-500/20 hover:bg-transparent">
+                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Order ID</TableHead>
+                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Customer</TableHead>
+                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Product</TableHead>
+                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Qty</TableHead>
+                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Total</TableHead>
+                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Status</TableHead>
+                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Date</TableHead>
+                  <TableHead className="text-cyan-400 font-mono text-xs uppercase tracking-wider">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredOrders.map((order) => (
+                  <TableRow key={order.id} className="border-b border-cyan-500/10 hover:bg-cyan-500/5 transition-colors">
+                    <TableCell className="font-mono text-xs text-cyan-300">
+                      {order.id.substring(0, 8)}...
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-sm text-cyan-200">{order.customer_name || 'N/A'}</p>
+                        <p className="text-xs text-cyan-400/60 font-mono">{order.customer_email}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-sm text-cyan-200">{order.product_name}</p>
+                        <p className="text-xs text-cyan-400/60 font-mono">{order.product_category}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center text-cyan-300 font-mono">
+                      {order.quantity}
+                    </TableCell>
+                    <TableCell className="font-bold text-blue-300 font-mono">
+                      ${order.total_amount.toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`${getStatusColor(order.payment_status || 'pending')} font-mono text-xs uppercase`}>
+                        {order.payment_status || 'pending'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-cyan-400/80 font-mono">
+                      {new Date(order.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewOrder(order)}
+                        className="hover:bg-cyan-500/10 text-cyan-400"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
           
           {filteredOrders.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              {orders.length === 0 ? 'No orders found' : 'No orders match your search criteria'}
+            <div className="text-center py-8 text-cyan-400/60 font-mono">
+              {orders.length === 0 ? 'NO ORDERS FOUND' : 'NO ORDERS MATCH SEARCH CRITERIA'}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Order Detail Modal */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
