@@ -69,13 +69,15 @@ export const StandardizedProductManager = () => {
       const { data: poolsData, error: poolsError } = await supabase
         .from('pools')
         .select('*')
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .order('model', { ascending: true });
 
       // Load from products table
       const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .order('name', { ascending: true });
 
       if (poolsError) throw poolsError;
       if (productsError) throw productsError;
@@ -102,7 +104,7 @@ export const StandardizedProductManager = () => {
         finishes: pool.finishes || [],
         liners: pool.liners || [],
         covers: pool.covers || [],
-        stock_quantity: 100, // Default for pools
+        stock_quantity: 100,
         is_active: pool.is_active,
         source: 'pools_table'
       }));
@@ -112,7 +114,7 @@ export const StandardizedProductManager = () => {
         id: product.id,
         name: product.name,
         price: product.price,
-        category: product.category,
+        category: product.category || 'products',
         subcategory: product.subcategory,
         image_url: product.image_url,
         description: product.description,
@@ -121,13 +123,31 @@ export const StandardizedProductManager = () => {
           : [],
         brand: product.brand,
         sku: product.sku,
-        stock_quantity: product.stock_quantity,
+        stock_quantity: product.stock_quantity || 0,
         is_active: product.is_active,
         source: 'products_table'
       }));
 
+      // Combine and deduplicate by name (case-insensitive)
       const allProducts = [...transformedPools, ...transformedProducts];
-      setProducts(allProducts);
+      const uniqueProducts = allProducts.reduce((acc, current) => {
+        const normalizedName = current.name.toLowerCase().trim();
+        const existingIndex = acc.findIndex(item => 
+          item.name.toLowerCase().trim() === normalizedName
+        );
+        
+        if (existingIndex === -1) {
+          acc.push(current);
+        } else {
+          // Keep the one from pools table if duplicate found
+          if (current.source === 'pools_table' && acc[existingIndex].source !== 'pools_table') {
+            acc[existingIndex] = current;
+          }
+        }
+        return acc;
+      }, [] as Product[]);
+
+      setProducts(uniqueProducts);
       
     } catch (error) {
       console.error('Error loading products:', error);
@@ -273,9 +293,15 @@ export const StandardizedProductManager = () => {
           </Button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary">
-            {filteredProducts.length} Products
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge variant="secondary" className="text-sm">
+            {filteredProducts.length} Total
+          </Badge>
+          <Badge variant="outline" className="text-xs">
+            {products.filter(p => p.source === 'pools_table').length} Pools
+          </Badge>
+          <Badge variant="outline" className="text-xs">
+            {products.filter(p => p.source === 'products_table').length} Products
           </Badge>
           <Button size="sm">
             <Plus className="h-4 w-4 mr-1" />
@@ -288,6 +314,14 @@ export const StandardizedProductManager = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredProducts.map((product) => (
           <div key={product.id} className="relative group">
+            <div className="absolute top-2 left-2 z-10">
+              <Badge 
+                variant={product.source === 'pools_table' ? 'default' : 'secondary'}
+                className="text-xs"
+              >
+                {product.source === 'pools_table' ? 'Pool' : 'Product'}
+              </Badge>
+            </div>
             <PoolProductCard
               pool={{
                 model: product.name,
