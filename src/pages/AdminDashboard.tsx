@@ -30,6 +30,36 @@ import AdminInvoiceTool from '@/components/AdminInvoiceTool';
 import AdminInvoicesManager from '@/components/AdminInvoicesManager';
 import { PoolCalculator } from '@/components/PoolCalculator';
 import { PerformanceMonitoring } from '@/components/admin/PerformanceMonitoring';
+
+// Navigation Item Component
+const NavItem = ({
+  icon: Icon,
+  label,
+  active,
+  onClick
+}: {
+  icon: React.ElementType;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) => (
+  <button 
+    onClick={onClick} 
+    className={`
+      w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
+      transition-all duration-300 group relative overflow-hidden font-mono
+      ${active 
+        ? 'holographic-panel text-cyan-300 shadow-lg neon-border-cyan' 
+        : 'hover:bg-cyan-500/5 text-cyan-400/60 hover:text-cyan-300 border border-transparent hover:border-cyan-500/30'}
+    `}
+  >
+    {active && <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent animate-pulse" />}
+    <Icon className={`h-4 w-4 relative z-10 transition-transform duration-300 ${active ? 'scale-110 text-cyan-400' : 'group-hover:scale-110'}`} />
+    <span className="text-xs relative z-10 tracking-wide uppercase">{label}</span>
+    {active && <ChevronRight className="h-3 w-3 ml-auto relative z-10 animate-pulse text-cyan-400" />}
+  </button>
+);
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const {
@@ -120,60 +150,75 @@ const AdminDashboard = () => {
     return null;
   }
   const [activeSection, setActiveSection] = useState(isMainAdmin ? "quotes" : "procurement");
-  return <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background relative overflow-hidden">
-      {/* Animated Background Elements */}
+  return (
+    <div className="min-h-screen bg-black relative overflow-hidden">
+      {/* Spaceship Grid Background */}
+      <div className="absolute inset-0 grid-bg opacity-30"></div>
+      
+      {/* Animated Holo Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 -right-4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{
-        animationDelay: '1s'
-      }} />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}} />
+        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}} />
+      </div>
+      
+      {/* Scan Lines Effect */}
+      <div className="absolute inset-0 pointer-events-none opacity-10">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/20 to-transparent animate-scan" style={{height: '200px'}}></div>
       </div>
 
-      {/* Futuristic Header */}
-      <div className="relative border-b border-border/50 bg-background/60 backdrop-blur-xl sticky top-0 z-50 shadow-lg">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5" />
-        <div className="container mx-auto px-4 sm:px-6 py-4 relative">
+      {/* Command Center Header */}
+      <div className="relative border-b border-cyan-500/20 bg-black/80 backdrop-blur-xl sticky top-0 z-50 neon-border-cyan">
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-blue-500/5" />
+        <div className="container mx-auto px-4 sm:px-6 py-3 relative">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4 flex-1">
               <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
-                  <div className="relative h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg">
-                    <Zap className="h-6 w-6 text-primary-foreground" />
+                <div className="relative hexagon-clip">
+                  <div className="absolute inset-0 bg-cyan-500/20 blur-xl" />
+                  <div className="relative h-14 w-14 bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg pulse-glow">
+                    <Zap className="h-7 w-7 text-white animate-pulse" />
                   </div>
                 </div>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
-                    {isMainAdmin ? 'Command Center' : `${profile?.role === 'supplier' ? 'Supplier' : 'Contractor'} Hub`}
+                  <h1 className="text-2xl sm:text-3xl font-bold neon-glow-cyan text-cyan-300 tracking-wider font-mono">
+                    {isMainAdmin ? '⬡ COMMAND CENTER ⬡' : `⬡ ${profile?.role === 'supplier' ? 'SUPPLIER' : 'CONTRACTOR'} HUB ⬡`}
                   </h1>
-                  <p className="text-sm text-muted-foreground">
-                    {profile && <span className="font-medium text-primary">
-                        {profile.first_name} {profile.last_name} • {profile.company_name}
+                  <p className="text-xs text-cyan-400/60 font-mono tracking-wide">
+                    {profile && <span className="text-cyan-400">
+                        [{profile.first_name} {profile.last_name}] • {profile.company_name}
                       </span>}
                   </p>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={refreshData} disabled={isLoading} className="hover:bg-primary/10 transition-all duration-300 hover:scale-105">
-                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={handleLogout} className="hover:bg-destructive/10 transition-all duration-300 hover:scale-105">
-                <LogOut className="h-4 w-4" />
-              </Button>
+              <button 
+                onClick={refreshData} 
+                disabled={isLoading}
+                className="holographic-panel px-3 py-2 rounded hover:bg-cyan-500/10 transition-all duration-300 hover:scale-105 group"
+              >
+                <RefreshCw className={`h-4 w-4 text-cyan-400 group-hover:text-cyan-300 ${isLoading ? 'animate-spin' : ''}`} />
+              </button>
+              <button 
+                onClick={handleLogout}
+                className="holographic-panel px-3 py-2 rounded hover:bg-red-500/10 transition-all duration-300 hover:scale-105 group"
+              >
+                <LogOut className="h-4 w-4 text-red-400 group-hover:text-red-300" />
+              </button>
               <Link to="/">
-                <Button variant="ghost" size="sm" className="hover:bg-accent/10 transition-all duration-300 hover:scale-105">
-                  <Home className="h-4 w-4" />
-                </Button>
+                <button className="holographic-panel px-3 py-2 rounded hover:bg-blue-500/10 transition-all duration-300 hover:scale-105 group">
+                  <Home className="h-4 w-4 text-blue-400 group-hover:text-blue-300" />
+                </button>
               </Link>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex min-h-[calc(100vh-80px)] relative">
-        {/* Futuristic Sidebar Navigation */}
-        <div className="w-64 border-r border-border/50 bg-background/40 backdrop-blur-xl p-4 space-y-2 overflow-y-auto sticky top-[80px] h-[calc(100vh-80px)] hidden lg:block">
+      <div className="flex min-h-[calc(100vh-70px)] relative">
+        {/* Command Sidebar */}
+        <div className="w-64 border-r border-cyan-500/20 bg-black/60 backdrop-blur-xl p-4 space-y-2 overflow-y-auto sticky top-[70px] h-[calc(100vh-70px)] hidden lg:block neon-border-cyan">
           <div className="space-y-1">
             {/* For contractors and suppliers: limited navigation */}
             {isContractorOrSupplier && <>
@@ -185,8 +230,8 @@ const AdminDashboard = () => {
 
             {/* For main admin: full navigation */}
             {isMainAdmin && <>
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2">
-                  Core
+                <div className="text-xs font-bold text-cyan-400 uppercase tracking-widest px-3 py-2 font-mono border-l-2 border-cyan-500/50">
+                  ⬢ CORE SYSTEMS
                 </div>
                 <NavItem icon={Database} label="Products" active={activeSection === "unified-products"} onClick={() => setActiveSection("unified-products")} />
                 <NavItem icon={Star} label="Quotes" active={activeSection === "quotes"} onClick={() => setActiveSection("quotes")} />
@@ -195,8 +240,8 @@ const AdminDashboard = () => {
                 <NavItem icon={FileText} label="Invoice Tool" active={activeSection === "invoice-tool"} onClick={() => setActiveSection("invoice-tool")} />
                 <NavItem icon={ShoppingCart} label="Orders" active={activeSection === "orders"} onClick={() => setActiveSection("orders")} />
                 
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2 mt-4">
-                  Management
+                <div className="text-xs font-bold text-blue-400 uppercase tracking-widest px-3 py-2 mt-4 font-mono border-l-2 border-blue-500/50">
+                  ⬢ MANAGEMENT
                 </div>
                 <NavItem icon={Users} label="Users" active={activeSection === "users"} onClick={() => setActiveSection("users")} />
                 <NavItem icon={Gift} label="Referrals" active={activeSection === "referrals"} onClick={() => setActiveSection("referrals")} />
@@ -204,8 +249,8 @@ const AdminDashboard = () => {
                 
                 <NavItem icon={TrendingUp} label="Delivery" active={activeSection === "delivery-logistics"} onClick={() => setActiveSection("delivery-logistics")} />
                 
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2 mt-4">
-                  Tools
+                <div className="text-xs font-bold text-purple-400 uppercase tracking-widest px-3 py-2 mt-4 font-mono border-l-2 border-purple-500/50">
+                  ⬢ OPERATIONS
                 </div>
                 <NavItem icon={Edit} label="Content Editor" active={activeSection === "content-editor"} onClick={() => setActiveSection("content-editor")} />
                 <NavItem icon={Building2} label="Procurement" active={activeSection === "procurement"} onClick={() => setActiveSection("procurement")} />
@@ -219,8 +264,9 @@ const AdminDashboard = () => {
 
         {/* Main Content Area */}
         <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto relative">
-          {/* Key Metrics */}
-          <div className="mb-8">
+          {/* Mission Control Metrics */}
+          <div className="mb-8 relative">
+            <div className="absolute -top-2 left-0 text-xs font-mono text-cyan-400/40 tracking-widest">LIVE TELEMETRY</div>
             <AdminDashboardMetrics />
           </div>
           {/* Products Tab - Only for main admins */}
@@ -626,28 +672,8 @@ const AdminDashboard = () => {
             </div>}
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
 
-// Navigation Item Component
-const NavItem = ({
-  icon: Icon,
-  label,
-  active,
-  onClick
-}: {
-  icon: React.ElementType;
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) => <button onClick={onClick} className={`
-      w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
-      transition-all duration-300 group relative overflow-hidden
-      ${active ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/25' : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'}
-    `}>
-    {active && <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent animate-pulse" />}
-    <Icon className={`h-5 w-5 relative z-10 transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`} />
-    <span className="font-medium text-sm relative z-10">{label}</span>
-    {active && <ChevronRight className="h-4 w-4 ml-auto relative z-10 animate-pulse" />}
-  </button>;
 export default AdminDashboard;

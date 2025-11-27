@@ -82,3 +82,102 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
+
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  /* Spaceship Command Center Effects */
+  .holographic-panel {
+    position: relative;
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.03) 0%, rgba(0, 100, 255, 0.05) 100%);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    box-shadow: 
+      0 0 20px rgba(0, 255, 255, 0.1),
+      inset 0 0 20px rgba(0, 255, 255, 0.05);
+  }
+  
+  .holographic-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 255, 255, 0.03) 2px,
+      rgba(0, 255, 255, 0.03) 4px
+    );
+    pointer-events: none;
+    animation: scan 8s linear infinite;
+  }
+  
+  @keyframes scan {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(100%); }
+  }
+  
+  .neon-glow-cyan {
+    text-shadow: 
+      0 0 10px rgba(0, 255, 255, 0.8),
+      0 0 20px rgba(0, 255, 255, 0.6),
+      0 0 30px rgba(0, 255, 255, 0.4);
+  }
+  
+  .neon-glow-blue {
+    text-shadow: 
+      0 0 10px rgba(0, 100, 255, 0.8),
+      0 0 20px rgba(0, 100, 255, 0.6),
+      0 0 30px rgba(0, 100, 255, 0.4);
+  }
+  
+  .neon-border-cyan {
+    border-color: rgba(0, 255, 255, 0.5);
+    box-shadow: 
+      0 0 10px rgba(0, 255, 255, 0.3),
+      inset 0 0 10px rgba(0, 255, 255, 0.1);
+  }
+  
+  .grid-bg {
+    background-image: 
+      linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+  
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% { 
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    }
+    50% { 
+      box-shadow: 0 0 40px rgba(0, 255, 255, 0.6);
+    }
+  }
+  
+  .data-stream {
+    animation: data-stream 3s linear infinite;
+  }
+  
+  @keyframes data-stream {
+    0% { 
+      opacity: 0.3;
+      transform: translateX(-100%);
+    }
+    50% {
+      opacity: 1;
+    }
+    100% { 
+      opacity: 0.3;
+      transform: translateX(100%);
+    }
+  }
+  
+  .hexagon-clip {
+    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+  }
+}
