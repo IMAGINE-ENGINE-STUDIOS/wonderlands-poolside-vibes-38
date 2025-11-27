@@ -513,10 +513,13 @@ export type Database = {
           deadline: string | null
           description: string | null
           id: string
+          last_activity: string | null
           location: string | null
+          proposal_count: number | null
           status: string
           title: string
           updated_at: string
+          view_count: number | null
         }
         Insert: {
           budget_max?: number | null
@@ -527,10 +530,13 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           id?: string
+          last_activity?: string | null
           location?: string | null
+          proposal_count?: number | null
           status?: string
           title: string
           updated_at?: string
+          view_count?: number | null
         }
         Update: {
           budget_max?: number | null
@@ -541,10 +547,13 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           id?: string
+          last_activity?: string | null
           location?: string | null
+          proposal_count?: number | null
           status?: string
           title?: string
           updated_at?: string
+          view_count?: number | null
         }
         Relationships: [
           {
@@ -635,6 +644,82 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "job_requirements_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_postings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_views: {
+        Row: {
+          id: string
+          job_id: string
+          session_id: string | null
+          viewed_at: string | null
+          viewer_id: string | null
+          viewer_ip: unknown
+        }
+        Insert: {
+          id?: string
+          job_id: string
+          session_id?: string | null
+          viewed_at?: string | null
+          viewer_id?: string | null
+          viewer_ip?: unknown
+        }
+        Update: {
+          id?: string
+          job_id?: string
+          session_id?: string | null
+          viewed_at?: string | null
+          viewer_id?: string | null
+          viewer_ip?: unknown
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_views_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_postings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_threads: {
+        Row: {
+          created_at: string | null
+          id: string
+          job_id: string | null
+          last_message_at: string | null
+          participant_1: string
+          participant_2: string
+          unread_count_1: number | null
+          unread_count_2: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          last_message_at?: string | null
+          participant_1: string
+          participant_2: string
+          unread_count_1?: number | null
+          unread_count_2?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          last_message_at?: string | null
+          participant_1?: string
+          participant_2?: string
+          unread_count_1?: number | null
+          unread_count_2?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_threads_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "job_postings"
