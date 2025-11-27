@@ -4,17 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  PlusCircle, 
-  Building2, 
-  AlertTriangle,
-  Globe,
-  TrendingUp,
-  Users,
-  Briefcase,
-  DollarSign,
-  Clock
-} from 'lucide-react';
+import { PlusCircle, Building2, AlertTriangle, Globe, TrendingUp, Users, Briefcase, DollarSign, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -25,7 +15,6 @@ import QuickProposalModal from '@/components/procurement/QuickProposalModal';
 import MessagingSystem from '@/components/procurement/MessagingSystem';
 import UserProfileModal from '@/components/UserProfileModal';
 import JobSearchEnhanced from '@/components/procurement/JobSearchEnhanced';
-
 interface JobPosting {
   id: string;
   title: string;
@@ -43,12 +32,16 @@ interface JobPosting {
     last_name: string;
     company_name: string;
   };
-  job_proposals: { count: number }[];
+  job_proposals: {
+    count: number;
+  }[];
 }
-
 const ProcurementSystem = () => {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const {
+    user,
+    profile
+  } = useAuth();
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -61,21 +54,28 @@ const ProcurementSystem = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [searchFilters, setSearchFilters] = useState<any>({});
-
-  const categories = [
-    { value: 'all', label: 'All Categories' },
-    { value: 'pools', label: 'Pools' },
-    { value: 'outdoors', label: 'Outdoors' },
-    { value: 'patios', label: 'Patios' },
-    { value: 'improvements', label: 'Improvements' },
-    { value: 'construction', label: 'Construction' }
-  ];
-
+  const categories = [{
+    value: 'all',
+    label: 'All Categories'
+  }, {
+    value: 'pools',
+    label: 'Pools'
+  }, {
+    value: 'outdoors',
+    label: 'Outdoors'
+  }, {
+    value: 'patios',
+    label: 'Patios'
+  }, {
+    value: 'improvements',
+    label: 'Improvements'
+  }, {
+    value: 'construction',
+    label: 'Construction'
+  }];
   const fetchJobs = async () => {
     try {
-      let query = supabase
-        .from('job_postings')
-        .select(`
+      let query = supabase.from('job_postings').select(`
           *,
           profiles!job_postings_business_id_fkey (
             first_name,
@@ -83,16 +83,16 @@ const ProcurementSystem = () => {
             company_name
           ),
           job_proposals (count)
-        `)
-        .eq('status', 'open')
-        .order('created_at', { ascending: false });
-
+        `).eq('status', 'open').order('created_at', {
+        ascending: false
+      });
       if (selectedCategory !== 'all') {
         query = query.eq('category', selectedCategory);
       }
-
-      const { data, error } = await query;
-
+      const {
+        data,
+        error
+      } = await query;
       if (error) throw error;
       setJobs(data || []);
     } catch (error) {
@@ -102,38 +102,24 @@ const ProcurementSystem = () => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchJobs();
   }, [selectedCategory]);
-
   const filteredJobs = jobs.filter(job => {
     // Search term filtering
-    const matchesSearch = !searchFilters.searchTerm || 
-      job.title.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
-      job.description?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
-      job.location?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
-      job.profiles?.company_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
-      job.profiles?.first_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) ||
-      job.profiles?.last_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase());
-    
+    const matchesSearch = !searchFilters.searchTerm || job.title.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || job.description?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || job.location?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || job.profiles?.company_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || job.profiles?.first_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || job.profiles?.last_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase());
+
     // Category filtering
-    const matchesCategory = !searchFilters.category || 
-      searchFilters.category === 'all' || 
-      job.category === searchFilters.category;
-    
+    const matchesCategory = !searchFilters.category || searchFilters.category === 'all' || job.category === searchFilters.category;
+
     // Location filtering
-    const matchesLocation = !searchFilters.location || 
-      job.location?.toLowerCase().includes(searchFilters.location.toLowerCase());
-    
+    const matchesLocation = !searchFilters.location || job.location?.toLowerCase().includes(searchFilters.location.toLowerCase());
+
     // Budget filtering
-    const matchesBudget = (!searchFilters.budgetMin || job.budget_min >= searchFilters.budgetMin) &&
-      (!searchFilters.budgetMax || job.budget_max <= searchFilters.budgetMax);
-    
+    const matchesBudget = (!searchFilters.budgetMin || job.budget_min >= searchFilters.budgetMin) && (!searchFilters.budgetMax || job.budget_max <= searchFilters.budgetMax);
+
     // Deadline filtering
-    const matchesDeadline = !searchFilters.deadline || 
-      new Date(job.deadline) <= new Date(searchFilters.deadline);
-    
+    const matchesDeadline = !searchFilters.deadline || new Date(job.deadline) <= new Date(searchFilters.deadline);
     return matchesSearch && matchesCategory && matchesLocation && matchesBudget && matchesDeadline;
   }).sort((a, b) => {
     // Sorting logic
@@ -151,7 +137,6 @@ const ProcurementSystem = () => {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }
   });
-
   const requireAuth = (action: () => void, actionName: string) => {
     if (!user) {
       toast.error(`Please sign in to ${actionName}`);
@@ -160,18 +145,15 @@ const ProcurementSystem = () => {
     }
     action();
   };
-
   const handleJobCreated = () => {
     setShowJobForm(false);
     fetchJobs();
     toast.success('Job posted successfully!');
   };
-
   const isCompanyProfileComplete = () => {
     if (!profile) return false;
     return profile.company_name && (profile.first_name || profile.last_name);
   };
-
   const handlePostJobClick = () => {
     requireAuth(() => {
       if (!isCompanyProfileComplete()) {
@@ -181,7 +163,6 @@ const ProcurementSystem = () => {
       setShowJobForm(true);
     }, 'post jobs');
   };
-
   const handleQuickProposal = (jobId: string) => {
     requireAuth(() => {
       const job = filteredJobs.find(j => j.id === jobId);
@@ -191,22 +172,18 @@ const ProcurementSystem = () => {
       }
     }, 'submit proposals');
   };
-
   const handleProfileClick = (userId: string) => {
     requireAuth(() => {
       setSelectedProfileId(userId);
       setShowProfile(true);
     }, 'view profiles');
   };
-
   const handleMessaging = () => {
     requireAuth(() => {
       setShowMessaging(true);
     }, 'access messages');
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+  return <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Corporate Header */}
       <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -221,20 +198,16 @@ const ProcurementSystem = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {user ? (
-                <>
+              {user ? <>
                   <Button onClick={handleMessaging} variant="ghost" size="sm">
                     Messages
                   </Button>
                   <Button onClick={() => navigate('/dashboard')} variant="outline">
                     Dashboard
                   </Button>
-                </>
-              ) : (
-                <Button onClick={() => navigate('/auth')} className="bg-blue-600 hover:bg-blue-700">
+                </> : <Button onClick={() => navigate('/auth')} className="bg-blue-600 hover:bg-blue-700">
                   Sign In
-                </Button>
-              )}
+                </Button>}
             </div>
           </div>
         </div>
@@ -252,20 +225,13 @@ const ProcurementSystem = () => {
                 Access thousands of verified suppliers, post procurement needs, and manage your supply chain efficiently.
               </p>
               <div className="flex gap-4">
-                <Button
-                  onClick={handlePostJobClick}
-                  size="lg"
-                  className="bg-white text-blue-700 hover:bg-blue-50"
-                >
+                <Button onClick={handlePostJobClick} size="lg" className="bg-white text-blue-700 hover:bg-blue-50">
                   <PlusCircle className="mr-2 h-5 w-5" />
                   Post Requirement
                 </Button>
-                <Button
-                  onClick={() => document.getElementById('jobs-section')?.scrollIntoView({ behavior: 'smooth' })}
-                  size="lg"
-                  variant="outline"
-                  className="border-white text-white hover:bg-white/10"
-                >
+                <Button onClick={() => document.getElementById('jobs-section')?.scrollIntoView({
+                behavior: 'smooth'
+              })} size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
                   Browse Opportunities
                 </Button>
               </div>
@@ -279,7 +245,7 @@ const ProcurementSystem = () => {
                 </Card>
                 <Card className="p-6 bg-white/10 backdrop-blur border-white/20">
                   <TrendingUp className="h-8 w-8 text-blue-200 mb-2" />
-                  <div className="text-2xl font-bold">$2M+</div>
+                  <div className="text-2xl font-bold">$300k+</div>
                   <div className="text-sm text-blue-100">Monthly Volume</div>
                 </Card>
                 <Card className="p-6 bg-white/10 backdrop-blur border-white/20">
@@ -324,7 +290,7 @@ const ProcurementSystem = () => {
               <DollarSign className="h-8 w-8 text-yellow-600" />
               <span className="text-sm font-medium text-slate-500">Value</span>
             </div>
-            <div className="text-3xl font-bold text-slate-900 mb-1">$2M+</div>
+            <div className="text-3xl font-bold text-slate-900 mb-1">$300k+</div>
             <div className="text-sm text-slate-600">Monthly Volume</div>
           </Card>
 
@@ -347,19 +313,10 @@ const ProcurementSystem = () => {
         </div>
 
         <div className="mb-8">
-          <JobSearchEnhanced 
-            onFiltersChange={setSearchFilters}
-            totalJobs={filteredJobs.length}
-          />
+          <JobSearchEnhanced onFiltersChange={setSearchFilters} totalJobs={filteredJobs.length} />
         </div>
 
-        <JobFeed
-          jobs={filteredJobs}
-          loading={loading}
-          onJobClick={setSelectedJob}
-          onQuickProposal={handleQuickProposal}
-          onProfileClick={handleProfileClick}
-        />
+        <JobFeed jobs={filteredJobs} loading={loading} onJobClick={setSelectedJob} onQuickProposal={handleQuickProposal} onProfileClick={handleProfileClick} />
       </main>
 
       {/* Footer */}
@@ -404,59 +361,35 @@ const ProcurementSystem = () => {
       </footer>
 
       {/* Modals */}
-      {user && isCompanyProfileComplete() && (
-        <Dialog open={showJobForm} onOpenChange={setShowJobForm}>
+      {user && isCompanyProfileComplete() && <Dialog open={showJobForm} onOpenChange={setShowJobForm}>
           <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden">
             <EnhancedJobPostingForm onJobCreated={handleJobCreated} />
           </DialogContent>
-        </Dialog>
-      )}
+        </Dialog>}
 
       {/* Job Detail Modal */}
-      {selectedJob && (
-        <JobDetailModal
-          job={selectedJob}
-          isOpen={!!selectedJob}
-          onClose={() => setSelectedJob(null)}
-          onProposalSubmitted={() => {
-            setSelectedJob(null);
-            fetchJobs();
-          }}
-        />
-      )}
+      {selectedJob && <JobDetailModal job={selectedJob} isOpen={!!selectedJob} onClose={() => setSelectedJob(null)} onProposalSubmitted={() => {
+      setSelectedJob(null);
+      fetchJobs();
+    }} />}
 
       {/* Quick Proposal Modal */}
-      <QuickProposalModal
-        job={quickProposalJob}
-        isOpen={showQuickProposal}
-        onClose={() => {
-          setShowQuickProposal(false);
-          setQuickProposalJob(null);
-        }}
-        onSubmit={(proposalData) => {
-          console.log('Quick proposal submitted:', proposalData);
-          fetchJobs(); // Refresh jobs after proposal submission
-        }}
-      />
+      <QuickProposalModal job={quickProposalJob} isOpen={showQuickProposal} onClose={() => {
+      setShowQuickProposal(false);
+      setQuickProposalJob(null);
+    }} onSubmit={proposalData => {
+      console.log('Quick proposal submitted:', proposalData);
+      fetchJobs(); // Refresh jobs after proposal submission
+    }} />
 
       {/* Messaging System */}
-      <MessagingSystem
-        isOpen={showMessaging}
-        onClose={() => setShowMessaging(false)}
-      />
+      <MessagingSystem isOpen={showMessaging} onClose={() => setShowMessaging(false)} />
 
       {/* User Profile Modal */}
-      <UserProfileModal
-        isOpen={showProfile}
-        onClose={() => {
-          setShowProfile(false);
-          setSelectedProfileId(null);
-        }}
-        userId={selectedProfileId || undefined}
-        isOwnProfile={!selectedProfileId}
-      />
-    </div>
-  );
+      <UserProfileModal isOpen={showProfile} onClose={() => {
+      setShowProfile(false);
+      setSelectedProfileId(null);
+    }} userId={selectedProfileId || undefined} isOwnProfile={!selectedProfileId} />
+    </div>;
 };
-
 export default ProcurementSystem;
