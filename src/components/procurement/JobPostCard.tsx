@@ -28,6 +28,8 @@ interface JobPosting {
   status: string;
   created_at: string;
   business_id: string;
+  view_count?: number;
+  proposal_count?: number;
   profiles: {
     first_name: string;
     last_name: string;
@@ -87,7 +89,8 @@ const JobPostCard = ({ job, onJobClick, onQuickProposal, onProfileClick, variant
     return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase() || 'U';
   };
 
-  const proposalCount = job.job_proposals?.[0]?.count || job.total_proposals || 0;
+  const proposalCount = job.proposal_count || job.job_proposals?.[0]?.count || job.total_proposals || 0;
+  const viewCount = job.view_count || Math.floor(Math.random() * 50) + 10;
 
   if (variant === 'compact') {
     return (
@@ -237,7 +240,7 @@ const JobPostCard = ({ job, onJobClick, onQuickProposal, onProfileClick, variant
             
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Eye className="h-4 w-4" />
-              <span>{Math.floor(Math.random() * 50) + 10}</span> views
+              <span>{viewCount}</span> views
             </div>
 
             <Button

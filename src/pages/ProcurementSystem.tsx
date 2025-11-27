@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { PlusCircle, Building2, AlertTriangle, Globe, TrendingUp, Users, Briefcase, DollarSign, Clock } from 'lucide-react';
+import { PlusCircle, Building2, AlertTriangle, Globe, TrendingUp, Users, Briefcase, DollarSign, Clock, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -15,6 +15,7 @@ import QuickProposalModal from '@/components/procurement/QuickProposalModal';
 import MessagingSystem from '@/components/procurement/MessagingSystem';
 import UserProfileModal from '@/components/UserProfileModal';
 import JobSearchEnhanced from '@/components/procurement/JobSearchEnhanced';
+import { useProcurementData } from '@/hooks/useProcurementData';
 interface JobPosting {
   id: string;
   title: string;
@@ -27,25 +28,18 @@ interface JobPosting {
   status: string;
   created_at: string;
   business_id: string;
+  view_count?: number;
+  proposal_count?: number;
+  last_activity?: string;
   profiles: {
     first_name: string;
     last_name: string;
     company_name: string;
   };
-  job_proposals: {
-    count: number;
-  }[];
 }
 const ProcurementSystem = () => {
   const navigate = useNavigate();
-  const {
-    user,
-    profile
-  } = useAuth();
-  const [jobs, setJobs] = useState<JobPosting[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const { user, profile } = useAuth();
   const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);
   const [showJobForm, setShowJobForm] = useState(false);
   const [showQuickProposal, setShowQuickProposal] = useState(false);
@@ -54,72 +48,37 @@ const ProcurementSystem = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [searchFilters, setSearchFilters] = useState<any>({});
-  const categories = [{
-    value: 'all',
-    label: 'All Categories'
-  }, {
-    value: 'pools',
-    label: 'Pools'
-  }, {
-    value: 'outdoors',
-    label: 'Outdoors'
-  }, {
-    value: 'patios',
-    label: 'Patios'
-  }, {
-    value: 'improvements',
-    label: 'Improvements'
-  }, {
-    value: 'construction',
-    label: 'Construction'
-  }];
-  const fetchJobs = async () => {
-    try {
-      let query = supabase.from('job_postings').select(`
-          *,
-          profiles!job_postings_business_id_fkey (
-            first_name,
-            last_name,
-            company_name
-          ),
-          job_proposals (count)
-        `).eq('status', 'open').order('created_at', {
-        ascending: false
-      });
-      if (selectedCategory !== 'all') {
-        query = query.eq('category', selectedCategory);
-      }
-      const {
-        data,
-        error
-      } = await query;
-      if (error) throw error;
-      setJobs(data || []);
-    } catch (error) {
-      console.error('Error fetching jobs:', error);
-      toast.error('Failed to load jobs');
-    } finally {
-      setLoading(false);
-    }
-  };
-  useEffect(() => {
-    fetchJobs();
-  }, [selectedCategory]);
+  
+  // Use the custom hook for data fetching with caching and real-time updates
+  const { jobs, loading, error, refetch, trackJobView } = useProcurementData(searchFilters);
   const filteredJobs = jobs.filter(job => {
     // Search term filtering
-    const matchesSearch = !searchFilters.searchTerm || job.title.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || job.description?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || job.location?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || job.profiles?.company_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || job.profiles?.first_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || job.profiles?.last_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase());
+    const matchesSearch = !searchFilters.searchTerm || 
+      job.title.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || 
+      job.description?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || 
+      job.location?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || 
+      job.profiles?.company_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || 
+      job.profiles?.first_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase()) || 
+      job.profiles?.last_name?.toLowerCase().includes(searchFilters.searchTerm.toLowerCase());
 
     // Category filtering
-    const matchesCategory = !searchFilters.category || searchFilters.category === 'all' || job.category === searchFilters.category;
+    const matchesCategory = !searchFilters.category || 
+      searchFilters.category === 'all' || 
+      job.category === searchFilters.category;
 
     // Location filtering
-    const matchesLocation = !searchFilters.location || job.location?.toLowerCase().includes(searchFilters.location.toLowerCase());
+    const matchesLocation = !searchFilters.location || 
+      job.location?.toLowerCase().includes(searchFilters.location.toLowerCase());
 
     // Budget filtering
-    const matchesBudget = (!searchFilters.budgetMin || job.budget_min >= searchFilters.budgetMin) && (!searchFilters.budgetMax || job.budget_max <= searchFilters.budgetMax);
+    const matchesBudget = 
+      (!searchFilters.budgetMin || job.budget_min >= searchFilters.budgetMin) && 
+      (!searchFilters.budgetMax || job.budget_max <= searchFilters.budgetMax);
 
     // Deadline filtering
-    const matchesDeadline = !searchFilters.deadline || new Date(job.deadline) <= new Date(searchFilters.deadline);
+    const matchesDeadline = !searchFilters.deadline || 
+      new Date(job.deadline) <= new Date(searchFilters.deadline);
+    
     return matchesSearch && matchesCategory && matchesLocation && matchesBudget && matchesDeadline;
   }).sort((a, b) => {
     // Sorting logic
@@ -131,7 +90,12 @@ const ProcurementSystem = () => {
       case 'budget_low':
         return (a.budget_min || 0) - (b.budget_min || 0);
       case 'deadline':
-        return new Date(a.deadline || '9999-12-31').getTime() - new Date(b.deadline || '9999-12-31').getTime();
+        return new Date(a.deadline || '9999-12-31').getTime() - 
+               new Date(b.deadline || '9999-12-31').getTime();
+      case 'most_proposals':
+        return (b.proposal_count || 0) - (a.proposal_count || 0);
+      case 'most_viewed':
+        return (b.view_count || 0) - (a.view_count || 0);
       case 'newest':
       default:
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -147,7 +111,7 @@ const ProcurementSystem = () => {
   };
   const handleJobCreated = () => {
     setShowJobForm(false);
-    fetchJobs();
+    refetch();
     toast.success('Job posted successfully!');
   };
   const isCompanyProfileComplete = () => {
@@ -169,6 +133,7 @@ const ProcurementSystem = () => {
       if (job) {
         setQuickProposalJob(job);
         setShowQuickProposal(true);
+        trackJobView(jobId); // Track view when opening proposal
       }
     }, 'submit proposals');
   };
@@ -198,6 +163,15 @@ const ProcurementSystem = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <Button 
+                onClick={() => refetch()} 
+                variant="ghost" 
+                size="sm"
+                className="gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
               {user ? <>
                   <Button onClick={handleMessaging} variant="ghost" size="sm">
                     Messages
@@ -316,7 +290,16 @@ const ProcurementSystem = () => {
           <JobSearchEnhanced onFiltersChange={setSearchFilters} totalJobs={filteredJobs.length} />
         </div>
 
-        <JobFeed jobs={filteredJobs} loading={loading} onJobClick={setSelectedJob} onQuickProposal={handleQuickProposal} onProfileClick={handleProfileClick} />
+        <JobFeed 
+          jobs={filteredJobs} 
+          loading={loading} 
+          onJobClick={(job) => {
+            setSelectedJob(job);
+            trackJobView(job.id); // Track view when clicking job
+          }} 
+          onQuickProposal={handleQuickProposal} 
+          onProfileClick={handleProfileClick} 
+        />
       </main>
 
       {/* Footer */}
@@ -370,7 +353,7 @@ const ProcurementSystem = () => {
       {/* Job Detail Modal */}
       {selectedJob && <JobDetailModal job={selectedJob} isOpen={!!selectedJob} onClose={() => setSelectedJob(null)} onProposalSubmitted={() => {
       setSelectedJob(null);
-      fetchJobs();
+      refetch(); // Use refetch instead of fetchJobs
     }} />}
 
       {/* Quick Proposal Modal */}
@@ -379,7 +362,7 @@ const ProcurementSystem = () => {
       setQuickProposalJob(null);
     }} onSubmit={proposalData => {
       console.log('Quick proposal submitted:', proposalData);
-      fetchJobs(); // Refresh jobs after proposal submission
+      refetch(); // Refresh jobs after proposal submission using cached refetch
     }} />
 
       {/* Messaging System */}
