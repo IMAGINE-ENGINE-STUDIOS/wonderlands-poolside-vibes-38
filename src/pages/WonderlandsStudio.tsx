@@ -1221,7 +1221,7 @@ const WonderlandsStudio = () => {
                         </div>
                       )}
                     </div>
-                    <div className="mt-3 sm:mt-4">
+                    <div>
                       <div className="space-y-3 sm:space-y-4">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                           <div>
