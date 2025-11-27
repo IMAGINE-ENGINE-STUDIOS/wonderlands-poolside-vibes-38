@@ -1,34 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { 
-  BarChart3, 
-  Package, 
-  ShoppingCart, 
-  Users, 
-  TrendingUp, 
-  Star,
-  DollarSign,
-  Eye,
-  Edit,
-  Trash2,
-  Plus,
-  Download,
-  Filter,
-  Search,
-  RefreshCw,
-  Database,
-  Globe,
-  Smartphone,
-  LogOut,
-  Gift,
-  Building2,
-  Key,
-  FileText,
-  Activity,
-  ChevronRight,
-  Home,
-  Zap,
-} from 'lucide-react';
+import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Eye, Edit, Trash2, Plus, Download, Filter, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,12 +30,17 @@ import AdminInvoiceTool from '@/components/AdminInvoiceTool';
 import AdminInvoicesManager from '@/components/AdminInvoicesManager';
 import { PoolCalculator } from '@/components/PoolCalculator';
 import { PerformanceMonitoring } from '@/components/admin/PerformanceMonitoring';
-
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { user, profile, signOut } = useAuth();
+  const {
+    user,
+    profile,
+    signOut
+  } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -74,56 +50,59 @@ const AdminDashboard = () => {
   }, [user, navigate]);
 
   // Sample orders data
-  const [orders, setOrders] = useState([
-    {
-      id: 'ORD001',
-      customerId: 'john.consumer@example.com',
-      products: [{ name: 'Hayward Super Pump VS', quantity: 1 }],
-      total: 1299,
-      status: 'completed',
-      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'ORD002', 
-      customerId: 'john.consumer@example.com',
-      products: [{ name: 'Polaris 360 Pool Cleaner', quantity: 2 }],
-      total: 798,
-      status: 'processing',
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 'ORD003',
-      customerId: 'john.consumer@example.com', 
-      products: [{ name: 'Pentair FNS Plus Sand Filter', quantity: 1 }],
-      total: 850,
-      status: 'pending',
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-    }
-  ]);
+  const [orders, setOrders] = useState([{
+    id: 'ORD001',
+    customerId: 'john.consumer@example.com',
+    products: [{
+      name: 'Hayward Super Pump VS',
+      quantity: 1
+    }],
+    total: 1299,
+    status: 'completed',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+  }, {
+    id: 'ORD002',
+    customerId: 'john.consumer@example.com',
+    products: [{
+      name: 'Polaris 360 Pool Cleaner',
+      quantity: 2
+    }],
+    total: 798,
+    status: 'processing',
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+  }, {
+    id: 'ORD003',
+    customerId: 'john.consumer@example.com',
+    products: [{
+      name: 'Pentair FNS Plus Sand Filter',
+      quantity: 1
+    }],
+    total: 850,
+    status: 'pending',
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+  }]);
 
   // Role-based access control
   const isMainAdmin = profile?.role === 'main_admin' && profile?.email === 'rikicot@hotmail.com';
   const isSupplier = profile?.role === 'supplier';
   const isInstaller = profile?.role === 'installer';
   const isContractorOrSupplier = isSupplier || isInstaller;
-  
+
   // Calculate metrics from database
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
   const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
   const completedOrders = orders.filter(order => order.status === 'completed').length;
   const pendingOrders = orders.filter(order => order.status === 'pending').length;
-
   const refreshData = async () => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
       toast({
         title: "Success",
-        description: "Dashboard data refreshed",
+        description: "Dashboard data refreshed"
       });
     }, 1000);
   };
-
   const handleLogout = async () => {
     await signOut();
     navigate('/');
@@ -137,18 +116,17 @@ const AdminDashboard = () => {
   }, [profile, isMainAdmin, isContractorOrSupplier, navigate]);
 
   // Don't render anything if not authorized
-  if (!user || (!isMainAdmin && !isContractorOrSupplier)) {
+  if (!user || !isMainAdmin && !isContractorOrSupplier) {
     return null;
   }
-
   const [activeSection, setActiveSection] = useState(isMainAdmin ? "quotes" : "procurement");
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background relative overflow-hidden">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 -left-4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 -right-4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-0 -right-4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{
+        animationDelay: '1s'
+      }} />
       </div>
 
       {/* Futuristic Header */}
@@ -169,39 +147,22 @@ const AdminDashboard = () => {
                     {isMainAdmin ? 'Command Center' : `${profile?.role === 'supplier' ? 'Supplier' : 'Contractor'} Hub`}
                   </h1>
                   <p className="text-sm text-muted-foreground">
-                    {profile && (
-                      <span className="font-medium text-primary">
+                    {profile && <span className="font-medium text-primary">
                         {profile.first_name} {profile.last_name} • {profile.company_name}
-                      </span>
-                    )}
+                      </span>}
                   </p>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={refreshData} 
-                disabled={isLoading}
-                className="hover:bg-primary/10 transition-all duration-300 hover:scale-105"
-              >
+              <Button variant="ghost" size="sm" onClick={refreshData} disabled={isLoading} className="hover:bg-primary/10 transition-all duration-300 hover:scale-105">
                 <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleLogout}
-                className="hover:bg-destructive/10 transition-all duration-300 hover:scale-105"
-              >
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="hover:bg-destructive/10 transition-all duration-300 hover:scale-105">
                 <LogOut className="h-4 w-4" />
               </Button>
               <Link to="/">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="hover:bg-accent/10 transition-all duration-300 hover:scale-105"
-                >
+                <Button variant="ghost" size="sm" className="hover:bg-accent/10 transition-all duration-300 hover:scale-105">
                   <Home className="h-4 w-4" />
                 </Button>
               </Link>
@@ -215,153 +176,44 @@ const AdminDashboard = () => {
         <div className="w-64 border-r border-border/50 bg-background/40 backdrop-blur-xl p-4 space-y-2 overflow-y-auto sticky top-[80px] h-[calc(100vh-80px)] hidden lg:block">
           <div className="space-y-1">
             {/* For contractors and suppliers: limited navigation */}
-            {isContractorOrSupplier && (
-              <>
-                <NavItem 
-                  icon={Building2} 
-                  label="Procurement" 
-                  active={activeSection === "procurement"}
-                  onClick={() => setActiveSection("procurement")}
-                />
-                <NavItem 
-                  icon={ShoppingCart} 
-                  label="Orders" 
-                  active={activeSection === "orders"}
-                  onClick={() => setActiveSection("orders")}
-                />
-                <NavItem 
-                  icon={BarChart3} 
-                  label="Analytics" 
-                  active={activeSection === "analytics"}
-                  onClick={() => setActiveSection("analytics")}
-                />
-                <NavItem 
-                  icon={Key} 
-                  label="API Keys" 
-                  active={activeSection === "api-keys"}
-                  onClick={() => setActiveSection("api-keys")}
-                />
-              </>
-            )}
+            {isContractorOrSupplier && <>
+                <NavItem icon={Building2} label="Procurement" active={activeSection === "procurement"} onClick={() => setActiveSection("procurement")} />
+                <NavItem icon={ShoppingCart} label="Orders" active={activeSection === "orders"} onClick={() => setActiveSection("orders")} />
+                <NavItem icon={BarChart3} label="Analytics" active={activeSection === "analytics"} onClick={() => setActiveSection("analytics")} />
+                <NavItem icon={Key} label="API Keys" active={activeSection === "api-keys"} onClick={() => setActiveSection("api-keys")} />
+              </>}
 
             {/* For main admin: full navigation */}
-            {isMainAdmin && (
-              <>
+            {isMainAdmin && <>
                 <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2">
                   Core
                 </div>
-                <NavItem 
-                  icon={Database} 
-                  label="Products" 
-                  active={activeSection === "unified-products"}
-                  onClick={() => setActiveSection("unified-products")}
-                />
-                <NavItem 
-                  icon={Star} 
-                  label="Quotes" 
-                  active={activeSection === "quotes"}
-                  onClick={() => setActiveSection("quotes")}
-                />
-                <NavItem 
-                  icon={DollarSign} 
-                  label="Quote Tool" 
-                  active={activeSection === "quote-tool"}
-                  onClick={() => setActiveSection("quote-tool")}
-                />
-                <NavItem 
-                  icon={FileText} 
-                  label="Invoices" 
-                  active={activeSection === "invoices"}
-                  onClick={() => setActiveSection("invoices")}
-                />
-                <NavItem 
-                  icon={FileText} 
-                  label="Invoice Tool" 
-                  active={activeSection === "invoice-tool"}
-                  onClick={() => setActiveSection("invoice-tool")}
-                />
-                <NavItem 
-                  icon={ShoppingCart} 
-                  label="Orders" 
-                  active={activeSection === "orders"}
-                  onClick={() => setActiveSection("orders")}
-                />
+                <NavItem icon={Database} label="Products" active={activeSection === "unified-products"} onClick={() => setActiveSection("unified-products")} />
+                <NavItem icon={Star} label="Quotes" active={activeSection === "quotes"} onClick={() => setActiveSection("quotes")} />
+                <NavItem icon={DollarSign} label="Quote Tool" active={activeSection === "quote-tool"} onClick={() => setActiveSection("quote-tool")} />
+                <NavItem icon={FileText} label="Invoices" active={activeSection === "invoices"} onClick={() => setActiveSection("invoices")} />
+                <NavItem icon={FileText} label="Invoice Tool" active={activeSection === "invoice-tool"} onClick={() => setActiveSection("invoice-tool")} />
+                <NavItem icon={ShoppingCart} label="Orders" active={activeSection === "orders"} onClick={() => setActiveSection("orders")} />
                 
                 <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2 mt-4">
                   Management
                 </div>
-                <NavItem 
-                  icon={Users} 
-                  label="Users" 
-                  active={activeSection === "users"}
-                  onClick={() => setActiveSection("users")}
-                />
-                <NavItem 
-                  icon={Gift} 
-                  label="Referrals" 
-                  active={activeSection === "referrals"}
-                  onClick={() => setActiveSection("referrals")}
-                />
-                <NavItem 
-                  icon={Users} 
-                  label="API Manager" 
-                  active={activeSection === "api-manager"}
-                  onClick={() => setActiveSection("api-manager")}
-                />
-                <NavItem 
-                  icon={Package} 
-                  label="Pool Specs" 
-                  active={activeSection === "pool-specs"}
-                  onClick={() => setActiveSection("pool-specs")}
-                />
-                <NavItem 
-                  icon={TrendingUp} 
-                  label="Delivery" 
-                  active={activeSection === "delivery-logistics"}
-                  onClick={() => setActiveSection("delivery-logistics")}
-                />
+                <NavItem icon={Users} label="Users" active={activeSection === "users"} onClick={() => setActiveSection("users")} />
+                <NavItem icon={Gift} label="Referrals" active={activeSection === "referrals"} onClick={() => setActiveSection("referrals")} />
+                <NavItem icon={Users} label="API Manager" active={activeSection === "api-manager"} onClick={() => setActiveSection("api-manager")} />
+                
+                <NavItem icon={TrendingUp} label="Delivery" active={activeSection === "delivery-logistics"} onClick={() => setActiveSection("delivery-logistics")} />
                 
                 <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2 mt-4">
                   Tools
                 </div>
-                <NavItem 
-                  icon={Edit} 
-                  label="Content Editor" 
-                  active={activeSection === "content-editor"}
-                  onClick={() => setActiveSection("content-editor")}
-                />
-                <NavItem 
-                  icon={Building2} 
-                  label="Procurement" 
-                  active={activeSection === "procurement"}
-                  onClick={() => setActiveSection("procurement")}
-                />
-                <NavItem 
-                  icon={BarChart3} 
-                  label="Analytics" 
-                  active={activeSection === "analytics"}
-                  onClick={() => setActiveSection("analytics")}
-                />
-                <NavItem 
-                  icon={Database} 
-                  label="Setup" 
-                  active={activeSection === "setup"}
-                  onClick={() => setActiveSection("setup")}
-                />
-                <NavItem 
-                  icon={BarChart3} 
-                  label="Pool Calculator" 
-                  active={activeSection === "calculator"}
-                  onClick={() => setActiveSection("calculator")}
-                />
-                <NavItem 
-                  icon={Activity} 
-                  label="Performance" 
-                  active={activeSection === "performance"}
-                  onClick={() => setActiveSection("performance")}
-                />
-              </>
-            )}
+                <NavItem icon={Edit} label="Content Editor" active={activeSection === "content-editor"} onClick={() => setActiveSection("content-editor")} />
+                <NavItem icon={Building2} label="Procurement" active={activeSection === "procurement"} onClick={() => setActiveSection("procurement")} />
+                <NavItem icon={BarChart3} label="Analytics" active={activeSection === "analytics"} onClick={() => setActiveSection("analytics")} />
+                <NavItem icon={Database} label="Setup" active={activeSection === "setup"} onClick={() => setActiveSection("setup")} />
+                <NavItem icon={BarChart3} label="Pool Calculator" active={activeSection === "calculator"} onClick={() => setActiveSection("calculator")} />
+                <NavItem icon={Activity} label="Performance" active={activeSection === "performance"} onClick={() => setActiveSection("performance")} />
+              </>}
           </div>
         </div>
 
@@ -372,8 +224,7 @@ const AdminDashboard = () => {
             <AdminDashboardMetrics />
           </div>
           {/* Products Tab - Only for main admins */}
-          {isMainAdmin && activeSection === "unified-products" && (
-            <div className="space-y-6 animate-fade-in">
+          {isMainAdmin && activeSection === "unified-products" && <div className="space-y-6 animate-fade-in">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -388,12 +239,10 @@ const AdminDashboard = () => {
                   <StandardizedProductManager />
                 </CardContent>
               </Card>
-            </div>
-          )}
+            </div>}
 
           {/* Users Tab */}
-          {activeSection === "users" && (
-            <div className="space-y-6 animate-fade-in">
+          {activeSection === "users" && <div className="space-y-6 animate-fade-in">
             <Card>
               <CardHeader>
                 <CardTitle>Users</CardTitle>
@@ -413,26 +262,20 @@ const AdminDashboard = () => {
                 <SetupDemoUsers />
               </CardContent>
             </Card>
-            </div>
-          )}
+            </div>}
 
           {/* Orders Tab */}
-          {activeSection === "orders" && (
-            <div className="space-y-6 animate-fade-in">
+          {activeSection === "orders" && <div className="space-y-6 animate-fade-in">
             <AdminOrdersManager />
-            </div>
-          )}
+            </div>}
 
           {/* Quotes Tab */}
-          {activeSection === "quotes" && (
-            <div className="space-y-6 animate-fade-in">
+          {activeSection === "quotes" && <div className="space-y-6 animate-fade-in">
             <AdminQuotesManager />
-            </div>
-          )}
+            </div>}
 
           {/* Quote Tool Tab */}
-          {activeSection === "quote-tool" && (
-            <div className="space-y-6 animate-fade-in">
+          {activeSection === "quote-tool" && <div className="space-y-6 animate-fade-in">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -447,19 +290,15 @@ const AdminDashboard = () => {
                 <AdminQuoteTool />
               </CardContent>
             </Card>
-            </div>
-          )}
+            </div>}
 
           {/* Invoices Tab */}
-          {activeSection === "invoices" && (
-            <div className="space-y-6 animate-fade-in">
+          {activeSection === "invoices" && <div className="space-y-6 animate-fade-in">
             <AdminInvoicesManager />
-            </div>
-          )}
+            </div>}
 
           {/* Invoice Tool Tab */}
-          {activeSection === "invoice-tool" && (
-            <div className="space-y-6 animate-fade-in">
+          {activeSection === "invoice-tool" && <div className="space-y-6 animate-fade-in">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -474,19 +313,15 @@ const AdminDashboard = () => {
                 <AdminInvoiceTool />
               </CardContent>
             </Card>
-            </div>
-          )}
+            </div>}
 
           {/* Referrals Tab */}
-          {activeSection === "referrals" && (
-            <div className="space-y-6 animate-fade-in">
+          {activeSection === "referrals" && <div className="space-y-6 animate-fade-in">
             <AdminReferralsManager />
-            </div>
-          )}
+            </div>}
 
           {/* Content Editor Tab - Only for main admins */}
-          {isMainAdmin && activeSection === "content-editor" && (
-            <div className="space-y-6 animate-fade-in">
+          {isMainAdmin && activeSection === "content-editor" && <div className="space-y-6 animate-fade-in">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -504,10 +339,7 @@ const AdminDashboard = () => {
                     <p className="text-muted-foreground mb-4">
                       Edit website content with live preview and drag-and-drop functionality.
                     </p>
-                    <Button
-                      onClick={() => window.open('/content-editor', '_blank')}
-                      className="w-full max-w-md mb-4"
-                    >
+                    <Button onClick={() => window.open('/content-editor', '_blank')} className="w-full max-w-md mb-4">
                       <Edit className="mr-2 h-4 w-4" />
                       Open Content Editor (New Tab)
                     </Button>
@@ -545,26 +377,20 @@ const AdminDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          )}
+            </div>}
 
           {/* API Manager Tab - Main Admin Only */}
-          {isMainAdmin && activeSection === "api-manager" && (
-            <div className="space-y-6 animate-fade-in">
+          {isMainAdmin && activeSection === "api-manager" && <div className="space-y-6 animate-fade-in">
               <RealApiManager />
-            </div>
-          )}
+            </div>}
 
           {/* API Keys Tab - Contractors and Suppliers */}
-          {isContractorOrSupplier && activeSection === "api-keys" && (
-            <div className="space-y-6 animate-fade-in">
+          {isContractorOrSupplier && activeSection === "api-keys" && <div className="space-y-6 animate-fade-in">
               <ApiKeyManager />
-            </div>
-          )}
+            </div>}
 
           {/* Pool Specs Tab */}
-          {activeSection === "pool-specs" && (
-            <div className="space-y-6 animate-fade-in">
+          {activeSection === "pool-specs" && <div className="space-y-6 animate-fade-in">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -579,12 +405,10 @@ const AdminDashboard = () => {
                 <LathamPoolsData />
               </CardContent>
             </Card>
-            </div>
-          )}
+            </div>}
 
           {/* Delivery & Logistics Tab - Hidden from installers */}
-          {!isInstaller && activeSection === "delivery-logistics" && (
-            <div className="space-y-6 animate-fade-in">
+          {!isInstaller && activeSection === "delivery-logistics" && <div className="space-y-6 animate-fade-in">
               <div className="space-y-6">
                 {/* Delivery API Management Section */}
                 <Card>
@@ -615,17 +439,30 @@ const AdminDashboard = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {[
-                        { name: 'Uber Direct', status: 'Active', deliveries: 45, avgCost: 12.50 },
-                        { name: 'DoorDash Drive', status: 'Active', deliveries: 32, avgCost: 15.00 },
-                        { name: 'Home Depot Delivery', status: 'Connected', deliveries: 18, avgCost: 25.00 },
-                        { name: 'Lowes Delivery', status: 'Disconnected', deliveries: 0, avgCost: 0 }
-                      ].map((service) => (
-                        <div key={service.name} className="p-3 border rounded-lg">
+                      {[{
+                    name: 'Uber Direct',
+                    status: 'Active',
+                    deliveries: 45,
+                    avgCost: 12.50
+                  }, {
+                    name: 'DoorDash Drive',
+                    status: 'Active',
+                    deliveries: 32,
+                    avgCost: 15.00
+                  }, {
+                    name: 'Home Depot Delivery',
+                    status: 'Connected',
+                    deliveries: 18,
+                    avgCost: 25.00
+                  }, {
+                    name: 'Lowes Delivery',
+                    status: 'Disconnected',
+                    deliveries: 0,
+                    avgCost: 0
+                  }].map(service => <div key={service.name} className="p-3 border rounded-lg">
                           <div className="flex items-center justify-between mb-2">
                             <p className="font-medium">{service.name}</p>
-                            <Badge variant={service.status === 'Active' ? 'default' : 
-                                           service.status === 'Connected' ? 'secondary' : 'destructive'}>
+                            <Badge variant={service.status === 'Active' ? 'default' : service.status === 'Connected' ? 'secondary' : 'destructive'}>
                               {service.status}
                             </Badge>
                           </div>
@@ -633,8 +470,7 @@ const AdminDashboard = () => {
                             <span>{service.deliveries} deliveries</span>
                             <span>Avg. ${service.avgCost}</span>
                           </div>
-                        </div>
-                      ))}
+                        </div>)}
                     </CardContent>
                   </Card>
 
@@ -666,12 +502,10 @@ const AdminDashboard = () => {
                   </Card>
                 </div>
               </div>
-            </div>
-          )}
+            </div>}
 
           {/* Procurement Tab */}
-          {activeSection === "procurement" && (
-            <div className="space-y-6 animate-fade-in">
+          {activeSection === "procurement" && <div className="space-y-6 animate-fade-in">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -689,10 +523,7 @@ const AdminDashboard = () => {
                   <p className="text-muted-foreground mb-4">
                     Access the full procurement system with enhanced bid creation and application tools.
                   </p>
-                  <Button
-                    onClick={() => window.open('/procurement', '_blank')}
-                    className="w-full max-w-md mb-4"
-                  >
+                  <Button onClick={() => window.open('/procurement', '_blank')} className="w-full max-w-md mb-4">
                     <Building2 className="mr-2 h-4 w-4" />
                     Open Procurement System (New Tab)
                   </Button>
@@ -730,12 +561,10 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
-            </div>
-          )}
+            </div>}
 
           {/* Analytics Tab */}
-          {activeSection === "analytics" && (
-            <div className="space-y-6 animate-fade-in">
+          {activeSection === "analytics" && <div className="space-y-6 animate-fade-in">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
@@ -779,67 +608,46 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             </div>
-            </div>
-          )}
+            </div>}
           
           {/* Setup Tab - Main Admin Only */}
-          {isMainAdmin && activeSection === "setup" && (
-            <div className="space-y-6 animate-fade-in">
+          {isMainAdmin && activeSection === "setup" && <div className="space-y-6 animate-fade-in">
               <SampleDataSetup />
-            </div>
-          )}
+            </div>}
           
           {/* Pool Calculator Tab */}
-          {isMainAdmin && activeSection === "calculator" && (
-            <div className="space-y-6 animate-fade-in">
+          {isMainAdmin && activeSection === "calculator" && <div className="space-y-6 animate-fade-in">
               <PoolCalculator />
-            </div>
-          )}
+            </div>}
 
           {/* Performance Monitoring Tab */}
-          {isMainAdmin && activeSection === "performance" && (
-            <div className="space-y-6 animate-fade-in">
+          {isMainAdmin && activeSection === "performance" && <div className="space-y-6 animate-fade-in">
               <PerformanceMonitoring />
-            </div>
-          )}
+            </div>}
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
 
 // Navigation Item Component
-const NavItem = ({ 
-  icon: Icon, 
-  label, 
-  active, 
-  onClick 
-}: { 
-  icon: React.ElementType; 
-  label: string; 
-  active: boolean; 
+const NavItem = ({
+  icon: Icon,
+  label,
+  active,
+  onClick
+}: {
+  icon: React.ElementType;
+  label: string;
+  active: boolean;
   onClick: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    className={`
+}) => <button onClick={onClick} className={`
       w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
       transition-all duration-300 group relative overflow-hidden
-      ${active 
-        ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/25' 
-        : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
-      }
-    `}
-  >
-    {active && (
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent animate-pulse" />
-    )}
+      ${active ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/25' : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'}
+    `}>
+    {active && <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent animate-pulse" />}
     <Icon className={`h-5 w-5 relative z-10 transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`} />
     <span className="font-medium text-sm relative z-10">{label}</span>
-    {active && (
-      <ChevronRight className="h-4 w-4 ml-auto relative z-10 animate-pulse" />
-    )}
-  </button>
-);
-
+    {active && <ChevronRight className="h-4 w-4 ml-auto relative z-10 animate-pulse" />}
+  </button>;
 export default AdminDashboard;
