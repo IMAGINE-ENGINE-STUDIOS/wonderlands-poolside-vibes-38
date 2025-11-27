@@ -132,71 +132,116 @@ const AdminDashboardMetrics = () => {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6 mb-6 sm:mb-8">
-      <Card className="hover:shadow-lg transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-          <DollarSign className="h-4 w-4 text-primary" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-primary">${metrics.totalRevenue.toLocaleString()}</div>
-          <p className="text-xs text-muted-foreground">
-            Avg. order: ${metrics.averageOrderValue.toFixed(2)}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      {/* Revenue Panel */}
+      <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform duration-300">
+        <div className="absolute top-0 right-0 w-20 h-20 bg-cyan-500/10 rounded-full blur-2xl"></div>
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-mono text-cyan-400 tracking-wider uppercase">Revenue</span>
+            <DollarSign className="h-5 w-5 text-cyan-400" />
+          </div>
+          <div className="text-3xl font-bold neon-glow-cyan text-cyan-300 mb-1">
+            ${metrics.totalRevenue.toLocaleString()}
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-1 w-full bg-cyan-900/30 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 data-stream"></div>
+            </div>
+          </div>
+          <p className="text-xs text-cyan-400/60 mt-2 font-mono">
+            AVG ${metrics.averageOrderValue.toFixed(2)}
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card className="hover:shadow-lg transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Quotes</CardTitle>
-          <Star className="h-4 w-4 text-amber-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-amber-600">{metrics.totalQuotes}</div>
-          <p className="text-xs text-muted-foreground">
-            {metrics.pendingQuotes} pending quotes
+      {/* Quotes Panel */}
+      <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform duration-300">
+        <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full blur-2xl"></div>
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-mono text-amber-400 tracking-wider uppercase">Quotes</span>
+            <Star className="h-5 w-5 text-amber-400" />
+          </div>
+          <div className="text-3xl font-bold text-amber-300 mb-1" style={{textShadow: '0 0 20px rgba(251, 191, 36, 0.6)'}}>
+            {metrics.totalQuotes}
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-1 w-full bg-amber-900/30 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-amber-500 to-yellow-500 data-stream"></div>
+            </div>
+          </div>
+          <p className="text-xs text-amber-400/60 mt-2 font-mono">
+            {metrics.pendingQuotes} PENDING
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card className="hover:shadow-lg transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-          <ShoppingCart className="h-4 w-4 text-blue-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-blue-600">{metrics.totalOrders}</div>
-          <p className="text-xs text-muted-foreground">
-            {metrics.completedOrders} completed, {metrics.pendingOrders} pending
+      {/* Orders Panel */}
+      <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform duration-300">
+        <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full blur-2xl"></div>
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-mono text-blue-400 tracking-wider uppercase">Orders</span>
+            <ShoppingCart className="h-5 w-5 text-blue-400" />
+          </div>
+          <div className="text-3xl font-bold neon-glow-blue text-blue-300 mb-1">
+            {metrics.totalOrders}
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-1 w-full bg-blue-900/30 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 data-stream"></div>
+            </div>
+          </div>
+          <p className="text-xs text-blue-400/60 mt-2 font-mono">
+            {metrics.completedOrders} DONE / {metrics.pendingOrders} QUEUE
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card className="hover:shadow-lg transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Referrals</CardTitle>
-          <Gift className="h-4 w-4 text-coral" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-coral">{metrics.totalReferrals}</div>
-          <p className="text-xs text-muted-foreground">
-            {metrics.convertedReferrals} converted
+      {/* Referrals Panel */}
+      <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform duration-300">
+        <div className="absolute top-0 right-0 w-20 h-20 bg-pink-500/10 rounded-full blur-2xl"></div>
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-mono text-pink-400 tracking-wider uppercase">Referrals</span>
+            <Gift className="h-5 w-5 text-pink-400" />
+          </div>
+          <div className="text-3xl font-bold text-pink-300 mb-1" style={{textShadow: '0 0 20px rgba(236, 72, 153, 0.6)'}}>
+            {metrics.totalReferrals}
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-1 w-full bg-pink-900/30 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-pink-500 to-rose-500 data-stream"></div>
+            </div>
+          </div>
+          <p className="text-xs text-pink-400/60 mt-2 font-mono">
+            {metrics.convertedReferrals} CONVERTED
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card className="hover:shadow-lg transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Database Health</CardTitle>
-          <Database className="h-4 w-4 text-green-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-green-600">100%</div>
-          <p className="text-xs text-muted-foreground">
-            All systems operational
+      {/* System Health Panel */}
+      <div className="holographic-panel rounded-lg p-4 relative overflow-hidden group hover:scale-105 transition-transform duration-300 pulse-glow">
+        <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full blur-2xl"></div>
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-mono text-green-400 tracking-wider uppercase">System</span>
+            <Database className="h-5 w-5 text-green-400 animate-pulse" />
+          </div>
+          <div className="text-3xl font-bold text-green-300 mb-1" style={{textShadow: '0 0 20px rgba(34, 197, 94, 0.6)'}}>
+            100%
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-1 w-full bg-green-900/30 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 animate-pulse"></div>
+            </div>
+          </div>
+          <p className="text-xs text-green-400/60 mt-2 font-mono">
+            ALL SYSTEMS NOMINAL
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
