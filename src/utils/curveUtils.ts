@@ -254,11 +254,11 @@ export function generateOffsetCurve(
     const v2x = nextPt.x - currPt.x;
     const v2z = nextPt.z - currPt.z;
     
-    // Calculate normals (perpendicular to edges)
-    const n1x = -v1z;
-    const n1z = v1x;
-    const n2x = -v2z;
-    const n2z = v2x;
+    // Calculate normals (perpendicular to edges) - USE RIGHT PERPENDICULAR for outward direction
+    const n1x = v1z;  // Changed from -v1z
+    const n1z = -v1x; // Changed from v1x
+    const n2x = v2z;  // Changed from -v2z
+    const n2z = -v2x; // Changed from v2x
     
     // Normalize the normals
     const len1 = Math.sqrt(n1x * n1x + n1z * n1z);
