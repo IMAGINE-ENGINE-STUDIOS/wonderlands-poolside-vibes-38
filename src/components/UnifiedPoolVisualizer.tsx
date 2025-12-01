@@ -103,7 +103,7 @@ export function UnifiedPoolVisualizer({
   const [poolTransformMode, setPoolTransformMode] = useState(false);
   const [transformStepSize, setTransformStepSize] = useState(1); // Default 1 ft
   const [showMeasurements, setShowMeasurements] = useState(false);
-  const [controllerCollapsed, setControllerCollapsed] = useState(false);
+  const [controllerCollapsed, setControllerCollapsed] = useState(true); // Start collapsed
   const [assets3D, setAssets3D] = useState<any[]>([]);
   const [showGrid, setShowGrid] = useState(true);
   const [showRulers, setShowRulers] = useState(false);
@@ -208,6 +208,13 @@ export function UnifiedPoolVisualizer({
       controls.update();
     }
   }, [selectedCategory]);
+
+  // Auto-expand control panel when component is clicked
+  useEffect(() => {
+    if (selectedCategory || selectedComponent) {
+      setControllerCollapsed(false);
+    }
+  }, [selectedCategory, selectedComponent]);
 
   const handleTextureChange = (category: 'pool' | 'deck' | 'coping' | 'waterline', texture: TextureConfig) => {
     const updated = { ...scene };
@@ -606,19 +613,28 @@ export function UnifiedPoolVisualizer({
           </button>
         </div>
 
-        {/* Full Scene Control Panel - Inside 3D Viewer */}
-        <div className={`absolute top-4 right-16 bg-background/95 backdrop-blur-sm rounded-lg shadow-2xl z-20 transition-all duration-300 ${
-          controllerCollapsed ? 'w-auto' : 'w-80 max-h-[90vh] overflow-y-auto'
-        }`}>
+        {/* Full Scene Control Panel - Floating and Auto-Expanding */}
+        <div className={`absolute top-4 right-16 bg-background/95 backdrop-blur-sm rounded-lg shadow-2xl border-2 transition-all duration-300 ${
+          controllerCollapsed 
+            ? 'w-auto border-border/50' 
+            : 'w-80 max-h-[90vh] overflow-y-auto border-primary/50 shadow-primary/20'
+        } z-20`}>
           {/* Collapse/Expand Toggle */}
           {controllerCollapsed ? (
-            <button
-              onClick={() => setControllerCollapsed(false)}
-              className="p-3 bg-background rounded-lg shadow-lg hover:bg-muted transition-colors"
-              title="Expand Scene Controls"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setControllerCollapsed(false)}
+                className="p-3 bg-primary text-primary-foreground rounded-lg shadow-lg hover:bg-primary/90 transition-all animate-pulse"
+                title="Open 3D Controls - Click on pool components to edit"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              
+              {/* Floating instruction tooltip */}
+              <div className="absolute top-full mt-2 right-0 bg-primary/90 text-primary-foreground text-xs rounded px-3 py-2 shadow-lg whitespace-nowrap pointer-events-none animate-pulse">
+                👆 Click pool parts to edit
+              </div>
+            </div>
           ) : (
             <>
               <button
