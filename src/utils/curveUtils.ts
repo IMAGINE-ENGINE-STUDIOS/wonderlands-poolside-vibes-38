@@ -15,10 +15,10 @@ interface SegmentInfo {
  * @param p0 - Previous point
  * @param p1 - Current point  
  * @param p2 - Next point
- * @param angleThreshold - Angle threshold in degrees (default 170 = nearly straight)
+ * @param angleThreshold - Angle threshold in degrees (default 20 = only very gentle curves)
  * @returns true if segment should be curved
  */
-function shouldCurveSegment(p0: Point2D, p1: Point2D, p2: Point2D, angleThreshold: number = 170): boolean {
+function shouldCurveSegment(p0: Point2D, p1: Point2D, p2: Point2D, angleThreshold: number = 20): boolean {
   const v1x = p1.x - p0.x;
   const v1y = p1.y - p0.y;
   const v2x = p2.x - p1.x;
@@ -32,8 +32,9 @@ function shouldCurveSegment(p0: Point2D, p1: Point2D, p2: Point2D, angleThreshol
   const dot = (v1x * v2x + v1y * v2y) / (len1 * len2);
   const angle = Math.acos(Math.max(-1, Math.min(1, dot))) * (180 / Math.PI);
   
-  // If angle is close to 180 degrees (straight), don't curve
-  return angle < angleThreshold;
+  // Only curve if angle is very small (nearly straight line with gentle curve)
+  // 90-degree corners and sharp angles will NOT be curved
+  return angle > 0 && angle < angleThreshold;
 }
 
 /**
@@ -41,14 +42,14 @@ function shouldCurveSegment(p0: Point2D, p1: Point2D, p2: Point2D, angleThreshol
  * @param points - Array of pool boundary points
  * @param segmentsPerEdge - Number of subdivisions per curved edge
  * @param tension - Curve tension (0 = linear, 1 = very curved)
- * @param angleThreshold - Angle threshold for curve detection (default 170)
+ * @param angleThreshold - Angle threshold for curve detection (default 20 = only gentle curves)
  * @returns Array of interpolated points with mixed straight/curved segments
  */
 export function generateCurvedPoolPoints(
   points: Point2D[],
   segmentsPerEdge: number = 20,
   tension: number = 0.5,
-  angleThreshold: number = 170
+  angleThreshold: number = 20
 ): Point2D[] {
   if (points.length < 3) return points;
 

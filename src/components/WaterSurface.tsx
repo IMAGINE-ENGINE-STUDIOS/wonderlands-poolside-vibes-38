@@ -59,8 +59,7 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
     const curvedPoints = generateCurvedPoolPoints(
       poolPoints.map(p => ({ x: p.x, y: p.y })),
       30,  // MUST match Pool3DScene segments
-      0.3, // MUST match Pool3DScene tension
-      135  // MUST match Pool3DScene angle threshold (only curve corners < 135°)
+      0.3  // MUST match Pool3DScene tension
     );
 
     // Calculate center using EXACT same method as Pool3DScene (lines 210-215)
