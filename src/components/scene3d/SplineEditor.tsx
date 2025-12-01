@@ -78,6 +78,12 @@ export function SplineEditor({
     return geometry;
   }, [points, yPosition]);
 
+  // Create line object (memoized)
+  const lineObject = useMemo(() => {
+    const material = new THREE.LineBasicMaterial({ color });
+    return new THREE.Line(lineGeometry, material);
+  }, [lineGeometry, color]);
+
   // Create vertical line geometry for indicators (shared)
   const verticalLineGeometry = useMemo(() => {
     const geo = new THREE.BufferGeometry();
@@ -86,13 +92,20 @@ export function SplineEditor({
     return geo;
   }, []);
 
+  // Create vertical line objects for each point (memoized with color)
+  const createVerticalLine = (pointColor: string) => {
+    const material = new THREE.LineBasicMaterial({ 
+      color: pointColor, 
+      opacity: 0.6, 
+      transparent: true 
+    });
+    return new THREE.Line(verticalLineGeometry, material);
+  };
+
   return (
     <group>
       {/* Spline curve line */}
-      <line>
-        <primitive object={lineGeometry} attach="geometry" />
-        <lineBasicMaterial color={color} />
-      </line>
+      <primitive object={lineObject} />
 
       {/* Control points */}
       {points.map((point, index) => {
@@ -122,10 +135,7 @@ export function SplineEditor({
             </mesh>
             
             {/* Vertical indicator line to surface */}
-            <line>
-              <primitive object={verticalLineGeometry} attach="geometry" />
-              <lineBasicMaterial color={pointColor} opacity={0.6} transparent />
-            </line>
+            <primitive object={createVerticalLine(pointColor)} />
             
             {/* Surface marker */}
             <mesh position={[0, -1.5, 0]}>
