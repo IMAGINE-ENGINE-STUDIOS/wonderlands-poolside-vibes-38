@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { useMemo, useEffect, useState } from 'react';
+import { generateOffsetCurve } from '@/utils/curveUtils';
 
 interface CopingGeometryProps {
   poolPoints: Array<{ x: number; z: number }>;
@@ -47,85 +48,93 @@ export const CopingGeometry = ({
   const geometry = useMemo(() => {
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
     
+    console.log('🔧 CopingGeometry: Creating coping ring at pool edge');
+    
+    // Coping sits OUTSIDE the pool walls
+    // Inner edge: AT the pool wall boundary (water edge)
+    const copingInner = poolPoints;
+    
+    // Outer edge: copingWidth outward from pool walls
+    const copingOuter = generateOffsetCurve(poolPoints, copingWidth);
+    
     const vertices: number[] = [];
     const indices: number[] = [];
     const uvs: number[] = [];
     
-    // Coping is a ring directly at the pool edge, extending outward by copingWidth
-    for (let i = 0; i < poolPoints.length; i++) {
-      const p1 = poolPoints[i];
-      const p2 = poolPoints[(i + 1) % poolPoints.length];
+    const numPoints = copingInner.length;
+    
+    // Create top surface at copingHeight (above water level)
+    for (let i = 0; i < numPoints; i++) {
+      // Inner vertex (at pool wall / water edge)
+      vertices.push(copingInner[i].x, copingHeight, copingInner[i].z);
+      uvs.push(0, i / numPoints);
       
-      const dx = p2.x - p1.x;
-      const dz = p2.z - p1.z;
-      const length = Math.sqrt(dx * dx + dz * dz);
+      // Outer vertex (copingWidth outward)
+      vertices.push(copingOuter[i].x, copingHeight, copingOuter[i].z);
+      uvs.push(1, i / numPoints);
+    }
+    
+    // Create top face triangles
+    for (let i = 0; i < numPoints; i++) {
+      const curr = i * 2;
+      const next = ((i + 1) % numPoints) * 2;
       
-      // Outward normal
-      const nx = dz / length;
-      const nz = -dx / length;
+      indices.push(curr, next, curr + 1);
+      indices.push(curr + 1, next, next + 1);
+    }
+    
+    // Create bottom surface at ground level (y=0)
+    const bottomBaseIdx = vertices.length / 3;
+    for (let i = 0; i < numPoints; i++) {
+      vertices.push(copingInner[i].x, 0, copingInner[i].z);
+      uvs.push(0, i / numPoints);
       
-      const baseIdx = vertices.length / 3;
+      vertices.push(copingOuter[i].x, 0, copingOuter[i].z);
+      uvs.push(1, i / numPoints);
+    }
+    
+    // Bottom face (reversed winding)
+    for (let i = 0; i < numPoints; i++) {
+      const curr = bottomBaseIdx + i * 2;
+      const next = bottomBaseIdx + ((i + 1) % numPoints) * 2;
       
-      // Inner edge (at pool boundary)
-      const innerP1 = { x: p1.x, z: p1.z };
-      const innerP2 = { x: p2.x, z: p2.z };
+      indices.push(curr, curr + 1, next);
+      indices.push(curr + 1, next + 1, next);
+    }
+    
+    // Outer vertical wall
+    const outerWallBase = vertices.length / 3;
+    for (let i = 0; i < numPoints; i++) {
+      vertices.push(copingOuter[i].x, copingHeight, copingOuter[i].z);
+      vertices.push(copingOuter[i].x, 0, copingOuter[i].z);
+      uvs.push(i / numPoints, 1);
+      uvs.push(i / numPoints, 0);
+    }
+    
+    for (let i = 0; i < numPoints; i++) {
+      const curr = outerWallBase + i * 2;
+      const next = outerWallBase + ((i + 1) % numPoints) * 2;
       
-      // Outer edge (copingWidth outward)
-      const outerP1 = { x: p1.x + nx * copingWidth, z: p1.z + nz * copingWidth };
-      const outerP2 = { x: p2.x + nx * copingWidth, z: p2.z + nz * copingWidth };
+      indices.push(curr, next, curr + 1);
+      indices.push(curr + 1, next, next + 1);
+    }
+    
+    // Inner vertical wall (facing pool interior)
+    const innerWallBase = vertices.length / 3;
+    for (let i = 0; i < numPoints; i++) {
+      vertices.push(copingInner[i].x, copingHeight, copingInner[i].z);
+      vertices.push(copingInner[i].x, 0, copingInner[i].z);
+      uvs.push(i / numPoints, 1);
+      uvs.push(i / numPoints, 0);
+    }
+    
+    for (let i = 0; i < numPoints; i++) {
+      const curr = innerWallBase + i * 2;
+      const next = innerWallBase + ((i + 1) % numPoints) * 2;
       
-      // Top surface vertices
-      vertices.push(innerP1.x, copingHeight, innerP1.z); // 0
-      vertices.push(outerP1.x, copingHeight, outerP1.z); // 1
-      vertices.push(innerP2.x, copingHeight, innerP2.z); // 2
-      vertices.push(outerP2.x, copingHeight, outerP2.z); // 3
-      
-      // UVs for top surface
-      const u1 = i / poolPoints.length;
-      const u2 = (i + 1) / poolPoints.length;
-      uvs.push(u1, 0, u1, 1, u2, 0, u2, 1);
-      
-      // Top face triangles
-      indices.push(baseIdx, baseIdx + 2, baseIdx + 1);
-      indices.push(baseIdx + 1, baseIdx + 2, baseIdx + 3);
-      
-      // Bottom surface vertices
-      const bottomBaseIdx = vertices.length / 3;
-      vertices.push(innerP1.x, 0, innerP1.z);
-      vertices.push(outerP1.x, 0, outerP1.z);
-      vertices.push(innerP2.x, 0, innerP2.z);
-      vertices.push(outerP2.x, 0, outerP2.z);
-      
-      uvs.push(u1, 0, u1, 1, u2, 0, u2, 1);
-      
-      // Bottom face (reversed winding)
-      indices.push(bottomBaseIdx, bottomBaseIdx + 1, bottomBaseIdx + 2);
-      indices.push(bottomBaseIdx + 1, bottomBaseIdx + 3, bottomBaseIdx + 2);
-      
-      // Outer vertical face
-      const outerBaseIdx = vertices.length / 3;
-      vertices.push(outerP1.x, copingHeight, outerP1.z);
-      vertices.push(outerP1.x, 0, outerP1.z);
-      vertices.push(outerP2.x, copingHeight, outerP2.z);
-      vertices.push(outerP2.x, 0, outerP2.z);
-      
-      uvs.push(u1, 1, u1, 0, u2, 1, u2, 0);
-      
-      indices.push(outerBaseIdx, outerBaseIdx + 2, outerBaseIdx + 1);
-      indices.push(outerBaseIdx + 1, outerBaseIdx + 2, outerBaseIdx + 3);
-      
-      // Inner vertical face
-      const innerFaceIdx = vertices.length / 3;
-      vertices.push(innerP1.x, copingHeight, innerP1.z);
-      vertices.push(innerP1.x, 0, innerP1.z);
-      vertices.push(innerP2.x, copingHeight, innerP2.z);
-      vertices.push(innerP2.x, 0, innerP2.z);
-      
-      uvs.push(u1, 1, u1, 0, u2, 1, u2, 0);
-      
-      // Reversed winding for inner face
-      indices.push(innerFaceIdx, innerFaceIdx + 1, innerFaceIdx + 2);
-      indices.push(innerFaceIdx + 1, innerFaceIdx + 3, innerFaceIdx + 2);
+      // Reversed winding for inner wall
+      indices.push(curr, curr + 1, next);
+      indices.push(curr + 1, next + 1, next);
     }
     
     const geom = new THREE.BufferGeometry();
@@ -133,6 +142,8 @@ export const CopingGeometry = ({
     geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
     geom.setIndex(indices);
     geom.computeVertexNormals();
+    
+    console.log('✅ Coping ring created at water edge with', geom.getAttribute('position').count, 'vertices');
     
     return geom;
   }, [poolPoints, copingWidth, copingHeight]);
