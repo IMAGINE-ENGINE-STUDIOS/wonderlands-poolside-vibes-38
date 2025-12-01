@@ -15,7 +15,7 @@ import earcut from 'earcut';
 import grassTexture from '@/assets/grass-texture.avif';
 import { Maximize2, Minimize2, Move } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
-import { generateCurvedPoolPoints } from '@/utils/curveUtils';
+import { generateCurvedPoolPoints, normalize2DTo3D } from '@/utils/curveUtils';
 
 interface Point {
   x: number;
@@ -1046,15 +1046,28 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPo
         const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
         
         if (smoothPoolCurve.length >= 3) {
+          // CRITICAL: Normalize coordinates to match pool walls (centered at origin)
+          const minX = Math.min(...smoothPoolCurve.map(p => p.x));
+          const maxX = Math.max(...smoothPoolCurve.map(p => p.x));
+          const minY = Math.min(...smoothPoolCurve.map(p => p.y));
+          const maxY = Math.max(...smoothPoolCurve.map(p => p.y));
+          const centerX = (minX + maxX) / 2;
+          const centerY = (minY + maxY) / 2;
+          
+          const normalizedPoints = smoothPoolCurve.map(p => ({
+            x: p.x - centerX,
+            y: p.y - centerY
+          }));
+          
           const poolHole = new THREE.Path();
-          poolHole.moveTo(smoothPoolCurve[0].x, smoothPoolCurve[0].y);
-          for (let i = 1; i < smoothPoolCurve.length; i++) {
-            poolHole.lineTo(smoothPoolCurve[i].x, smoothPoolCurve[i].y);
+          poolHole.moveTo(normalizedPoints[0].x, normalizedPoints[0].y);
+          for (let i = 1; i < normalizedPoints.length; i++) {
+            poolHole.lineTo(normalizedPoints[i].x, normalizedPoints[i].y);
           }
           poolHole.closePath();
           terrainShape.holes.push(poolHole);
           
-          console.log('✅ GrassTerrain: Created pool hole with', smoothPoolCurve.length, 'smooth points');
+          console.log('✅ GrassTerrain: Created NORMALIZED pool hole with', normalizedPoints.length, 'smooth points');
         }
       } else {
         console.warn('⚠️ GrassTerrain: Not enough pool points for hole, using default');
@@ -1301,20 +1314,18 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     const poolCurve2D = points.map(p => ({ x: p.x, y: p.y }));
     const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
     
-    // Normalize to world coordinates
-    const minX = Math.min(...smoothPoolCurve.map(p => p.x));
-    const maxX = Math.max(...smoothPoolCurve.map(p => p.x));
-    const minY = Math.min(...smoothPoolCurve.map(p => p.y));
-    const maxY = Math.max(...smoothPoolCurve.map(p => p.y));
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
-    
-    // Convert to 3D coordinates (y becomes z in 3D space)
-    return smoothPoolCurve.map(p => ({ 
-      x: p.x - centerX, 
-      z: p.y - centerY 
-    }));
+    // Normalize to world coordinates using shared utility
+    return normalize2DTo3D(smoothPoolCurve);
   }, [points]);
+  
+  // Calculate normalized hardscape points for exact deck sync
+  const normalizedHardscapePoints = useMemo(() => {
+    if (!hardscapePoints || hardscapePoints.length < 4) return undefined;
+    
+    // Convert hardscape points to 2D format and normalize
+    const hardscape2D = hardscapePoints.map(p => ({ x: p.x, y: p.y }));
+    return normalize2DTo3D(hardscape2D);
+  }, [hardscapePoints]);
   // CRITICAL: Normalize empty strings to fallback URLs
   const normalizedLinerUrl = linerTextureUrl && linerTextureUrl.trim() !== '' && linerTextureUrl !== 'undefined' 
     ? linerTextureUrl 
@@ -1475,6 +1486,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           }}>
             <DeckGeometry
               poolPoints={poolCurve3D}
+              hardscapePoints={normalizedHardscapePoints}
               deckWidth={localDeckWidth}
               deckHeight={localDeckHeight}
               copingWidth={localCopingWidth}

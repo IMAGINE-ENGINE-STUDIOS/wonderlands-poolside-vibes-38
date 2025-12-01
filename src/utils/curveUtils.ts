@@ -201,3 +201,23 @@ export function createSmoothOutline(
   
   return smoothPoints;
 }
+
+/**
+ * Normalize 2D points to 3D world coordinates centered at origin
+ * Converts y coordinate to z coordinate for 3D space
+ */
+export function normalize2DTo3D(points: Point2D[]): Array<{x: number, z: number}> {
+  if (points.length === 0) return [];
+  
+  const minX = Math.min(...points.map(p => p.x));
+  const maxX = Math.max(...points.map(p => p.x));
+  const minY = Math.min(...points.map(p => p.y));
+  const maxY = Math.max(...points.map(p => p.y));
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+  
+  return points.map(p => ({
+    x: p.x - centerX,
+    z: p.y - centerY
+  }));
+}
