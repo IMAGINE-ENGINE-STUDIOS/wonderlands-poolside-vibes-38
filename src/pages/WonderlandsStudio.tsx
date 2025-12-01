@@ -182,14 +182,8 @@ const linerOptions = [{
   type: liner.type || 'Premium'
 }))];
 
-// Cover options
+// Cover options - NO COVER removed, checkbox handles opt-out
 const coverOptions = [{
-  name: 'NO COVER',
-  color: '#808080',
-  price: 0,
-  image: shaleGrayFinish,
-  category: 'none'
-}, {
   name: 'Eclipse',
   color: '#2F4F4F',
   price: 22000,
@@ -223,26 +217,21 @@ const meshColorOptions = [
   { name: 'Gray', color: '#6B7280', hex: '#6B7280' }
 ];
 
-// Tile options - using consolidated data
-const tileOptions = [{
-  name: 'Standard Waterline',
-  color: '#4682B4',
-  price: 0,
-  image: azureBlueFinish
-}, ...poolTilesData.map(tile => ({
+// Tile options - using consolidated data (price calculated per sqft based on pool dimensions)
+const tileOptions = poolTilesData.map(tile => ({
   name: tile.name,
   color: '#4682B4',
-  price: tile.price,
+  pricePerSqFt: 45, // $45 per sqft
   image: tile.image
-}))];
+}));
 
 // Paver options - using consolidated data + existing paverTypes
 const paverOptions = [{
-  name: 'No Pavers',
+  name: 'Concrete Deck',
   color: '#808080',
   price: 0,
   image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
-  collection: 'none'
+  collection: 'concrete'
 }, ...paverTypes.map(paver => ({
   name: paver.name,
   color: '#D3D3D3',
@@ -289,6 +278,26 @@ const getExtraPrice = (extra: string) => {
     default:
       return 0;
   }
+};
+
+// Helper function to calculate pool perimeter from dimensions
+const calculatePoolPerimeter = (dimensions: string | undefined): number => {
+  if (!dimensions) return 100; // Default perimeter
+  const match = dimensions.match(/(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)/i);
+  if (match) {
+    const length = parseFloat(match[1]);
+    const width = parseFloat(match[2]);
+    return 2 * (length + width);
+  }
+  return 100; // Default
+};
+
+// Helper function to calculate tile cost based on pool dimensions ($45/sqft)
+const calculateTileCost = (dimensions: string | undefined): number => {
+  const perimeter = calculatePoolPerimeter(dimensions);
+  // Tiles typically cover waterline area: perimeter × 1ft height
+  const tileArea = perimeter * 1; // 1ft waterline height
+  return Math.round(tileArea * 45); // $45 per sqft
 };
 const WonderlandsStudio = () => {
   const {
@@ -694,7 +703,7 @@ const WonderlandsStudio = () => {
     if (selectedExtras.jets && selectedExtras.jetQuantity > 0) count++;
     if (selectedExtras.tiles) count++;
     if (selectedExtras.liner && selectedExtras.linerOption && selectedExtras.linerOption !== 'None' && selectedExtras.linerOption !== '') count++;
-    if (selectedExtras.pavers && selectedExtras.paverOption && selectedExtras.paverOption !== 'No Pavers' && selectedExtras.paverOption !== 'None') count++;
+    if (selectedExtras.pavers && selectedExtras.paverOption && selectedExtras.paverOption !== 'Concrete Deck' && selectedExtras.paverOption !== 'None') count++;
     if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureArea > 0) count++;
     if (selectedExtras.concreteConstruction) count++;
     return count;
@@ -730,7 +739,7 @@ const WonderlandsStudio = () => {
         break;
       case 'pavers':
         newExtras.pavers = false;
-        newExtras.paverOption = 'No Pavers';
+        newExtras.paverOption = 'Concrete Deck';
         setPaverSurfaceArea('');
         break;
       case 'screen':
@@ -790,12 +799,13 @@ const WonderlandsStudio = () => {
       });
     }
 
-    // Add tiles if selected
+    // Add tiles if selected (price based on pool dimensions at $45/sqft)
     const tileOption = tileOptions.find(option => option.name === selectedExtras.tileOption);
     if (tileOption && selectedExtras.tiles) {
+      const tilePrice = calculateTileCost(selectedProduct.dimensions);
       extrasBreakdown.push({
-        name: tileOption.name,
-        price: tileOption.price,
+        name: `${tileOption.name} (${Math.round(calculatePoolPerimeter(selectedProduct.dimensions))} sqft)`,
+        price: tilePrice,
         image: tileOption.image
       });
     }
@@ -897,12 +907,13 @@ const WonderlandsStudio = () => {
       });
     }
 
-    // Add tiles if selected
+    // Add tiles if selected (price based on pool dimensions at $45/sqft)
     const tileOption = tileOptions.find(option => option.name === selectedExtras.tileOption);
     if (tileOption && selectedExtras.tiles && selectedExtras.tileOption && selectedExtras.tileOption !== 'None' && selectedExtras.tileOption !== '') {
+      const tilePrice = calculateTileCost(selectedProduct.dimensions);
       extrasArray.push({
-        name: tileOption.name,
-        price: tileOption.price
+        name: `${tileOption.name} (${Math.round(calculatePoolPerimeter(selectedProduct.dimensions))} sqft)`,
+        price: tilePrice
       });
     }
 
@@ -1645,7 +1656,7 @@ const WonderlandsStudio = () => {
                                       <img
                                         src={finish.image}
                                         alt={finish.name}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                                       />
                                     </div>
                                     <div className="flex flex-col gap-0.5">
@@ -1666,9 +1677,45 @@ const WonderlandsStudio = () => {
                           </Carousel>
                         </div>
 
-                        {/* Pool Liners */}
+                        {/* Pool Liners - Default is No Liner (shows selected finish) */}
                         <div className="space-y-3">
-                          <h4 className="font-semibold text-foreground">Pool Liner</h4>
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-foreground">Pool Liner</h4>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">
+                                {selectedExtras.liner ? 'Liner Selected' : 'No Liner (uses finish)'}
+                              </span>
+                              <Checkbox
+                                checked={selectedExtras.liner}
+                                onCheckedChange={() =>
+                                  setSelectedExtras((prev: any) => ({
+                                    ...prev,
+                                    liner: !prev.liner,
+                                    linerOption: !prev.liner ? '' : prev.linerOption,
+                                  }))
+                                }
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Default thumbnail showing selected finish when no liner */}
+                          {!selectedExtras.liner && (
+                            <div className="p-3 border rounded-lg border-primary bg-primary/10">
+                              <div className="w-full h-28 rounded-md mb-2 overflow-hidden">
+                                <img
+                                  src={finishOptions.find(f => f.name === selectedExtras.finish)?.image || aquamarineFinish}
+                                  alt="Selected Finish"
+                                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                                />
+                              </div>
+                              <p className="text-xs font-medium text-center truncate">
+                                {selectedExtras.finish || 'Aquamarine'} (No Liner)
+                              </p>
+                              <p className="text-[10px] text-primary text-center font-semibold">No additional cost</p>
+                            </div>
+                          )}
+                          
+                          {selectedExtras.liner && (
                           <Carousel 
                             className="w-full"
                             opts={{
@@ -1689,23 +1736,21 @@ const WonderlandsStudio = () => {
                                       }))
                                     }
                                   >
-                                    <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                    <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
                                       <img
                                         src={liner.image}
                                         alt={liner.name}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                                       />
                                     </div>
-                                    <div className="flex-1 flex flex-col justify-between min-h-0">
-                                      <p className="text-xs font-medium text-center line-clamp-2">{liner.name}</p>
-                                      <div className="mt-1 space-y-1">
-                                        {liner.type && liner.type !== "Standard" && (
-                                          <p className="text-xs text-primary text-center font-semibold">{liner.type}</p>
-                                        )}
-                                        {liner.name !== "Standard Blue" && (
-                                          <p className="text-xs text-foreground font-semibold text-center">+$4,500</p>
-                                        )}
-                                      </div>
+                                    <div className="flex flex-col gap-0.5">
+                                      <p className="text-xs font-medium text-center truncate">{liner.name}</p>
+                                      {liner.type && liner.type !== "Standard" && (
+                                        <p className="text-[10px] text-primary text-center font-semibold">{liner.type}</p>
+                                      )}
+                                      <p className="text-xs text-foreground font-semibold text-center">
+                                        +$4,500
+                                      </p>
                                     </div>
                                   </div>
                                 </CarouselItem>
@@ -1714,11 +1759,30 @@ const WonderlandsStudio = () => {
                             <CarouselPrevious className="left-0 animate-pulse" />
                             <CarouselNext className="right-0 animate-pulse" />
                           </Carousel>
+                          )}
                         </div>
 
                         {/* Pool Tiles */}
                         <div className="space-y-3">
-                          <h4 className="font-semibold text-foreground">Pool Tiles</h4>
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-foreground">Pool Tiles</h4>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">
+                                {selectedExtras.tiles ? 'Tiles Selected' : 'No Tiles'}
+                              </span>
+                              <Checkbox
+                                checked={selectedExtras.tiles}
+                                onCheckedChange={() =>
+                                  setSelectedExtras((prev: any) => ({
+                                    ...prev,
+                                    tiles: !prev.tiles,
+                                    tileOption: !prev.tiles ? '' : prev.tileOption,
+                                  }))
+                                }
+                              />
+                            </div>
+                          </div>
+                          {selectedExtras.tiles && (
                           <Carousel 
                             className="w-full"
                             opts={{
@@ -1740,20 +1804,19 @@ const WonderlandsStudio = () => {
                                       }))
                                     }
                                   >
-                                    <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                    <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
                                       <img
                                         src={tile.image}
                                         alt={tile.name}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                                       />
                                     </div>
-                                    <div className="flex-1 flex flex-col justify-between min-h-0">
-                                      <p className="text-xs font-medium text-center line-clamp-2">{tile.name}</p>
-                                      {tile.price > 0 && (
-                                        <p className="text-xs text-primary font-semibold text-center mt-1">
-                                          +${tile.price.toLocaleString()}
-                                        </p>
-                                      )}
+                                    <div className="flex flex-col gap-0.5">
+                                      <p className="text-xs font-medium text-center truncate">{tile.name}</p>
+                                      <p className="text-xs text-primary font-semibold text-center">
+                                        +${calculateTileCost(selectedProduct?.dimensions).toLocaleString()}
+                                      </p>
+                                      <p className="text-[10px] text-muted-foreground text-center">$45/sqft</p>
                                     </div>
                                   </div>
                                 </CarouselItem>
@@ -1762,6 +1825,7 @@ const WonderlandsStudio = () => {
                             <CarouselPrevious className="left-0 animate-pulse" />
                             <CarouselNext className="right-0 animate-pulse" />
                           </Carousel>
+                          )}
                         </div>
 
                         {/* Pool Heater */}
@@ -1814,16 +1878,16 @@ const WonderlandsStudio = () => {
                                         }))
                                       }
                                     >
-                                      <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                      <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
                                         <img
                                           src={heater.image}
                                           alt={heater.name}
-                                          className="w-full h-full object-cover"
+                                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                                         />
                                       </div>
-                                      <div className="flex-1 flex flex-col justify-between min-h-0">
-                                        <p className="text-xs font-medium text-center line-clamp-2">{heater.name}</p>
-                                        <p className="text-xs text-primary font-semibold text-center mt-1">
+                                      <div className="flex flex-col gap-0.5">
+                                        <p className="text-xs font-medium text-center truncate">{heater.name}</p>
+                                        <p className="text-xs text-primary font-semibold text-center">
                                           +${heater.price.toLocaleString()}
                                         </p>
                                       </div>
@@ -1872,20 +1936,18 @@ const WonderlandsStudio = () => {
                                         }))
                                       }
                                     >
-                                      <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                      <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
                                         <img
                                           src={cover.image}
                                           alt={cover.name}
-                                          className="w-full h-full object-cover"
+                                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                                         />
                                       </div>
-                                      <div className="flex-1 flex flex-col justify-between min-h-0">
-                                        <p className="text-xs font-medium text-center line-clamp-2">{cover.name}</p>
-                                        {cover.price > 0 && (
-                                          <p className="text-xs text-primary font-semibold text-center mt-1">
-                                            +${cover.price.toLocaleString()}
-                                          </p>
-                                        )}
+                                      <div className="flex flex-col gap-0.5">
+                                        <p className="text-xs font-medium text-center truncate">{cover.name}</p>
+                                        <p className="text-xs text-primary font-semibold text-center">
+                                          +${cover.price.toLocaleString()}
+                                        </p>
                                       </div>
                                     </div>
                                   </CarouselItem>
@@ -1948,16 +2010,16 @@ const WonderlandsStudio = () => {
                                         }))
                                       }
                                     >
-                                      <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                      <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
                                         <img
                                           src={spa.image}
                                           alt={spa.model}
-                                          className="w-full h-full object-cover"
+                                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                                         />
                                       </div>
-                                      <div className="flex-1 flex flex-col justify-between min-h-0">
-                                        <p className="text-xs font-medium text-center line-clamp-2">{spa.model}</p>
-                                        <p className="text-xs text-primary font-semibold text-center mt-1">
+                                      <div className="flex flex-col gap-0.5">
+                                        <p className="text-xs font-medium text-center truncate">{spa.model}</p>
+                                        <p className="text-xs text-primary font-semibold text-center">
                                           +${spa.price.toLocaleString()}
                                         </p>
                                       </div>
@@ -2006,16 +2068,16 @@ const WonderlandsStudio = () => {
                                         }))
                                       }
                                     >
-                                      <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                      <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
                                         <img
                                           src={ledge.image}
                                           alt={ledge.name}
-                                          className="w-full h-full object-cover"
+                                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                                         />
                                       </div>
-                                      <div className="flex-1 flex flex-col justify-between min-h-0">
-                                        <p className="text-xs font-medium text-center line-clamp-2">{ledge.name}</p>
-                                        <p className="text-xs text-primary font-semibold text-center mt-1">
+                                      <div className="flex flex-col gap-0.5">
+                                        <p className="text-xs font-medium text-center truncate">{ledge.name}</p>
+                                        <p className="text-xs text-primary font-semibold text-center">
                                           +${ledge.price.toLocaleString()}
                                         </p>
                                       </div>
@@ -2074,15 +2136,15 @@ const WonderlandsStudio = () => {
                                       }))
                                     }
                                   >
-                                    <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                    <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
                                       <img
                                         src={paver.image}
                                         alt={paver.name}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                                       />
                                     </div>
-                                    <div className="flex-1 flex flex-col justify-between min-h-0">
-                                      <p className="text-xs font-medium text-center line-clamp-2">{paver.name}</p>
+                                    <div className="flex flex-col gap-0.5">
+                                      <p className="text-xs font-medium text-center truncate">{paver.name}</p>
                                     </div>
                                   </div>
                                 </CarouselItem>
@@ -2255,7 +2317,7 @@ const WonderlandsStudio = () => {
                                   </Button>
                                 </div>
                               </div>}
-                            {selectedExtras.cover && selectedExtras.coverOption !== 'NO COVER' && <div className="flex items-center justify-between text-xs">
+                            {selectedExtras.cover && <div className="flex items-center justify-between text-xs">
                                 <span>Safety Cover</span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-muted-foreground">
@@ -2278,10 +2340,10 @@ const WonderlandsStudio = () => {
                                 </div>
                               </div>}
                             {selectedExtras.tiles && <div className="flex items-center justify-between text-xs">
-                                <span>Premium Tiles</span>
+                                <span>Premium Tiles ({Math.round(calculatePoolPerimeter(selectedProduct?.dimensions))} sqft)</span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-muted-foreground">
-                                    +${tileOptions.find(t => t.name === selectedExtras.tileOption)?.price || 0}
+                                    +${calculateTileCost(selectedProduct?.dimensions).toLocaleString()}
                                   </span>
                                   <Button variant="ghost" size="sm" onClick={() => removeExtra('tiles')} className="h-6 w-6 p-0">
                                     <X className="h-3 w-3" />
@@ -2299,7 +2361,7 @@ const WonderlandsStudio = () => {
                                   </Button>
                                 </div>
                               </div>}
-                            {selectedExtras.pavers && selectedExtras.paverOption !== 'No Pavers' && <div className="flex items-center justify-between text-xs">
+                            {selectedExtras.pavers && selectedExtras.paverOption !== 'Concrete Deck' && <div className="flex items-center justify-between text-xs">
                                 <span>Deck Pavers</span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-muted-foreground">
