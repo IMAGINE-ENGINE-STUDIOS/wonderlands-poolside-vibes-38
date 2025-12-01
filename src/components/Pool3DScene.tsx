@@ -1291,6 +1291,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   const [localCopingWidth, setLocalCopingWidth] = useState(copingWidth);
   const [localDeckHeight, setLocalDeckHeight] = useState(deckHeight);
   const [localCopingHeight, setLocalCopingHeight] = useState(copingHeight);
+  const [splineEditMode, setSplineEditMode] = useState<'none' | 'pool' | 'deck'>('none');
   
   // Calculate normalized pool curve for deck/coping geometry
   const poolCurve3D = useMemo(() => {
@@ -1407,6 +1408,46 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       {/* Deck & Coping Controls */}
       <div className="absolute top-4 right-4 z-10 bg-background/95 backdrop-blur-sm border rounded-lg p-4 space-y-3 shadow-lg min-w-[280px]">
         <h3 className="font-semibold text-sm text-foreground">Deck & Coping Controls</h3>
+        
+        {/* Spline Edit Mode Toggle */}
+        <div className="space-y-2 pb-3 border-b border-border">
+          <label className="text-sm font-medium text-foreground">Edit Mode</label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSplineEditMode('none')}
+              className={`flex-1 px-3 py-1.5 text-xs rounded transition-colors ${
+                splineEditMode === 'none' 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              View
+            </button>
+            <button
+              onClick={() => setSplineEditMode('pool')}
+              className={`flex-1 px-3 py-1.5 text-xs rounded transition-colors ${
+                splineEditMode === 'pool' 
+                  ? 'bg-green-600 text-white' 
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              Pool
+            </button>
+            <button
+              onClick={() => setSplineEditMode('deck')}
+              className={`flex-1 px-3 py-1.5 text-xs rounded transition-colors ${
+                splineEditMode === 'deck' 
+                  ? 'bg-orange-600 text-white' 
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              Deck
+            </button>
+          </div>
+          {splineEditMode !== 'none' && (
+            <p className="text-xs text-muted-foreground">Drag control points to reshape</p>
+          )}
+        </div>
         
         {/* Coping Toggle */}
         <div className="flex items-center justify-between">
@@ -1626,28 +1667,28 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         />
       )}
 
-      {/* SPLINE EDITORS TEMPORARILY DISABLED */}
-      {/* {enablePoolSplineEdit && (
+      {/* Spline Editors - Enable to edit pool and deck shapes in 3D */}
+      {splineEditMode === 'pool' && (
         <SplineEditor
           points={poolSplinePoints}
           onPointsChange={handlePoolSplineChange}
           color="#00ff00"
           enableDrag={true}
           name="Pool Boundary"
-          yPosition={0}
+          yPosition={0.5}
         />
       )}
 
-      {enableDeckSplineEdit && hardscapePoints && hardscapePoints.length > 0 && (
+      {splineEditMode === 'deck' && hardscapePoints && hardscapePoints.length > 0 && (
         <SplineEditor
           points={deckSplinePoints}
           onPointsChange={handleDeckSplineChange}
           color="#ffaa00"
           enableDrag={true}
           name="Deck Boundary"
-          yPosition={deckHeight}
+          yPosition={localDeckHeight + 0.1}
         />
-      )} */}
+      )}
       
       {/* Component Rulers */}
       {showWireframe && showRulers && selectedComponent === 'pool' && (

@@ -1,11 +1,10 @@
 import * as THREE from 'three';
-import { useMemo } from 'react';
-import { useTexture } from '@react-three/drei';
+import { useMemo, useEffect, useState } from 'react';
 
 interface CopingGeometryProps {
   poolPoints: Array<{ x: number; z: number }>;
-  copingWidth: number; // Width in feet (default 1ft)
-  copingHeight: number; // Height in feet (default 0.25ft = 3 inches)
+  copingWidth: number;
+  copingHeight: number;
   textureUrl?: string;
   textureScale?: number;
   textureOffset?: [number, number];
@@ -20,10 +19,33 @@ export const CopingGeometry = ({
   textureOffset = [0, 0]
 }: CopingGeometryProps) => {
   
-  const texture = textureUrl ? useTexture(textureUrl) : null;
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  
+  useEffect(() => {
+    if (!textureUrl) {
+      setTexture(null);
+      return;
+    }
+    
+    const loader = new THREE.TextureLoader();
+    loader.load(
+      textureUrl,
+      (loadedTexture) => {
+        loadedTexture.wrapS = loadedTexture.wrapT = THREE.RepeatWrapping;
+        loadedTexture.repeat.set(textureScale, textureScale);
+        loadedTexture.offset.set(textureOffset[0], textureOffset[1]);
+        setTexture(loadedTexture);
+      },
+      undefined,
+      (error) => {
+        console.error('Failed to load coping texture:', error);
+        setTexture(null);
+      }
+    );
+  }, [textureUrl, textureScale, textureOffset]);
   
   const geometry = useMemo(() => {
-    if (poolPoints.length < 3) return new THREE.BufferGeometry();
+    if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
     
     const vertices: number[] = [];
     const indices: number[] = [];
@@ -114,12 +136,6 @@ export const CopingGeometry = ({
     
     return geom;
   }, [poolPoints, copingWidth, copingHeight]);
-  
-  if (texture) {
-    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(textureScale, textureScale);
-    texture.offset.set(textureOffset[0], textureOffset[1]);
-  }
   
   return (
     <mesh geometry={geometry} castShadow receiveShadow>
