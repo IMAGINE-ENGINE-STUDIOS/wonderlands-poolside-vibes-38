@@ -107,40 +107,96 @@ export const DeckGeometry = ({
       });
     }
     
-    // Create spline-based deck geometry using Shape with hole
-    const deckShape = new THREE.Shape();
+    // Create manual BufferGeometry for proper ring-shaped deck
+    const vertices: number[] = [];
+    const indices: number[] = [];
+    const uvs: number[] = [];
     
-    // Outer boundary
-    deckShape.moveTo(deckOuterBoundary[0].x, deckOuterBoundary[0].z);
-    for (let i = 1; i < deckOuterBoundary.length; i++) {
-      deckShape.lineTo(deckOuterBoundary[i].x, deckOuterBoundary[i].z);
+    const numPoints = deckOuterBoundary.length;
+    
+    // Create top surface vertices (ring shape)
+    for (let i = 0; i < numPoints; i++) {
+      // Inner vertex (at coping outer edge or pool edge)
+      vertices.push(deckInnerBoundary[i].x, deckHeight, deckInnerBoundary[i].z);
+      uvs.push(0, i / numPoints);
+      
+      // Outer vertex (at deck outer edge)
+      vertices.push(deckOuterBoundary[i].x, deckHeight, deckOuterBoundary[i].z);
+      uvs.push(1, i / numPoints);
     }
-    deckShape.closePath();
     
-    // Inner hole (coping outer edge or pool edge)
-    const deckHole = new THREE.Path();
-    deckHole.moveTo(deckInnerBoundary[0].x, deckInnerBoundary[0].z);
-    for (let i = 1; i < deckInnerBoundary.length; i++) {
-      deckHole.lineTo(deckInnerBoundary[i].x, deckInnerBoundary[i].z);
+    // Create top face triangles (continuous ring)
+    for (let i = 0; i < numPoints; i++) {
+      const curr = i * 2;
+      const next = ((i + 1) % numPoints) * 2;
+      
+      // Triangle 1: inner-curr, inner-next, outer-curr
+      indices.push(curr, next, curr + 1);
+      // Triangle 2: outer-curr, inner-next, outer-next
+      indices.push(curr + 1, next, next + 1);
     }
-    deckHole.closePath();
-    deckShape.holes.push(deckHole);
     
-    // Extrude to create 3D deck
-    const extrudeSettings = {
-      depth: deckHeight,
-      bevelEnabled: false
-    };
+    // Create bottom surface vertices
+    const bottomBaseIdx = vertices.length / 3;
+    for (let i = 0; i < numPoints; i++) {
+      vertices.push(deckInnerBoundary[i].x, 0, deckInnerBoundary[i].z);
+      uvs.push(0, i / numPoints);
+      
+      vertices.push(deckOuterBoundary[i].x, 0, deckOuterBoundary[i].z);
+      uvs.push(1, i / numPoints);
+    }
     
-    const geom = new THREE.ExtrudeGeometry(deckShape, extrudeSettings);
+    // Create bottom face triangles (reversed winding)
+    for (let i = 0; i < numPoints; i++) {
+      const curr = bottomBaseIdx + i * 2;
+      const next = bottomBaseIdx + ((i + 1) % numPoints) * 2;
+      
+      indices.push(curr, curr + 1, next);
+      indices.push(curr + 1, next + 1, next);
+    }
     
-    // Rotate to horizontal orientation
-    geom.rotateX(-Math.PI / 2);
+    // Create outer vertical wall
+    const outerWallBase = vertices.length / 3;
+    for (let i = 0; i < numPoints; i++) {
+      vertices.push(deckOuterBoundary[i].x, deckHeight, deckOuterBoundary[i].z);
+      vertices.push(deckOuterBoundary[i].x, 0, deckOuterBoundary[i].z);
+      uvs.push(i / numPoints, 1);
+      uvs.push(i / numPoints, 0);
+    }
     
-    // Compute UVs and normals
+    for (let i = 0; i < numPoints; i++) {
+      const curr = outerWallBase + i * 2;
+      const next = outerWallBase + ((i + 1) % numPoints) * 2;
+      
+      indices.push(curr, next, curr + 1);
+      indices.push(curr + 1, next, next + 1);
+    }
+    
+    // Create inner vertical wall
+    const innerWallBase = vertices.length / 3;
+    for (let i = 0; i < numPoints; i++) {
+      vertices.push(deckInnerBoundary[i].x, deckHeight, deckInnerBoundary[i].z);
+      vertices.push(deckInnerBoundary[i].x, 0, deckInnerBoundary[i].z);
+      uvs.push(i / numPoints, 1);
+      uvs.push(i / numPoints, 0);
+    }
+    
+    for (let i = 0; i < numPoints; i++) {
+      const curr = innerWallBase + i * 2;
+      const next = innerWallBase + ((i + 1) % numPoints) * 2;
+      
+      // Reversed winding for inner wall
+      indices.push(curr, curr + 1, next);
+      indices.push(curr + 1, next + 1, next);
+    }
+    
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geom.setIndex(indices);
     geom.computeVertexNormals();
     
-    console.log('✅ Spline-based deck geometry created with', geom.getAttribute('position').count, 'vertices');
+    console.log('✅ Continuous ring deck geometry created with', geom.getAttribute('position').count, 'vertices');
     
     return geom;
   }, [poolPoints, hardscapePoints, deckWidth, deckHeight, copingWidth, copingEnabled]);
