@@ -209,29 +209,44 @@ const PoolMesh: React.FC<{
       return poolDimensions.depth || 5;
     }
     
-    // Find two nearest perimeter points and interpolate
-    let minDist1 = Infinity;
-    let minDist2 = Infinity;
-    let nearest1 = providedPerimeterDepthPoints[0];
-    let nearest2 = providedPerimeterDepthPoints[1] || nearest1;
+    // Find the closest perimeter segment and interpolate along it
+    let minDist = Infinity;
+    let closestDepth = providedPerimeterDepthPoints[0].depth;
     
-    providedPerimeterDepthPoints.forEach(p => {
-      const dist = Math.sqrt((p.x - x) ** 2 + (p.z - z) ** 2);
-      if (dist < minDist1) {
-        minDist2 = minDist1;
-        nearest2 = nearest1;
-        minDist1 = dist;
-        nearest1 = p;
-      } else if (dist < minDist2) {
-        minDist2 = dist;
-        nearest2 = p;
+    for (let i = 0; i < providedPerimeterDepthPoints.length; i++) {
+      const p1 = providedPerimeterDepthPoints[i];
+      const p2 = providedPerimeterDepthPoints[(i + 1) % providedPerimeterDepthPoints.length];
+      
+      // Calculate distance from point (x, z) to segment [p1, p2]
+      const segmentLengthSq = (p2.x - p1.x) ** 2 + (p2.z - p1.z) ** 2;
+      
+      if (segmentLengthSq === 0) {
+        // Segment is a point
+        const dist = Math.sqrt((p1.x - x) ** 2 + (p1.z - z) ** 2);
+        if (dist < minDist) {
+          minDist = dist;
+          closestDepth = p1.depth;
+        }
+        continue;
       }
-    });
+      
+      // Project point onto segment
+      const t = Math.max(0, Math.min(1, 
+        ((x - p1.x) * (p2.x - p1.x) + (z - p1.z) * (p2.z - p1.z)) / segmentLengthSq
+      ));
+      
+      const projX = p1.x + t * (p2.x - p1.x);
+      const projZ = p1.z + t * (p2.z - p1.z);
+      const dist = Math.sqrt((x - projX) ** 2 + (z - projZ) ** 2);
+      
+      if (dist < minDist) {
+        minDist = dist;
+        // Interpolate depth along the segment
+        closestDepth = p1.depth + t * (p2.depth - p1.depth);
+      }
+    }
     
-    // Interpolate depth
-    const totalDist = minDist1 + minDist2;
-    if (totalDist === 0) return nearest1.depth;
-    return (nearest1.depth * minDist2 + nearest2.depth * minDist1) / totalDist;
+    return closestDepth;
   };
 
   const { geometry, wallsGeometry } = useMemo(() => {

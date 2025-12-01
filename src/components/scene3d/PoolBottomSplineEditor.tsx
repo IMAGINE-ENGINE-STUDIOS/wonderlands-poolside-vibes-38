@@ -33,19 +33,21 @@ export function PoolBottomSplineEditor({
     const point = perimeterDepthPoints.find(p => p.id === draggedPointId);
     if (!point) return;
 
-    // Raycast against vertical drag plane at point's X/Z position
+    // Create a vertical plane at the point's X/Z position for raycasting
+    const verticalPlane = new THREE.Plane(new THREE.Vector3(1, 0, 0), -point.x);
     const intersectionPoint = new THREE.Vector3();
-    const ray = new THREE.Ray();
-    e.ray.intersectPlane(dragPlaneRef.current, intersectionPoint);
+    
+    // Intersect the ray with the vertical plane
+    if (e.ray.intersectPlane(verticalPlane, intersectionPoint)) {
+      // Only allow vertical movement (depth change), constrain to reasonable values
+      const newDepth = Math.max(1, Math.min(12, -intersectionPoint.y));
 
-    // Only allow vertical movement (depth change)
-    const newDepth = Math.max(1, Math.min(12, -intersectionPoint.y));
+      const updatedPoints = perimeterDepthPoints.map(p =>
+        p.id === draggedPointId ? { ...p, depth: newDepth } : p
+      );
 
-    const updatedPoints = perimeterDepthPoints.map(p =>
-      p.id === draggedPointId ? { ...p, depth: newDepth } : p
-    );
-
-    onPointsChange(updatedPoints);
+      onPointsChange(updatedPoints);
+    }
   };
 
   const handlePointerUp = () => {
@@ -74,7 +76,7 @@ export function PoolBottomSplineEditor({
       {perimeterDepthPoints.map((point) => {
         const isHovered = hoveredPointId === point.id;
         const isDragged = draggedPointId === point.id;
-        const scale = isDragged ? 0.8 : isHovered ? 0.7 : 0.5;
+        const scale = isDragged ? 1.2 : isHovered ? 1.0 : 0.8;
         const color = isDragged ? '#ffff00' : isHovered ? '#00ff00' : '#00ffff';
 
         return (
