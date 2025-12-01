@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import * as THREE from 'three';
-import { Html } from '@react-three/drei';
+import { Html, Line } from '@react-three/drei';
 import { X, Plus } from 'lucide-react';
 
 export type PointType = 'linear' | 'curve' | 'smooth' | 'corner';
@@ -102,45 +102,22 @@ export function PoolSplineEditor({
     return geo;
   }, [curvePoints]);
 
-  const mainLineObject = useMemo(() => {
-    const material = new THREE.LineBasicMaterial({ color });
-    return new THREE.Line(mainLineGeo, material);
-  }, [mainLineGeo, color]);
+  // Calculate line points for Drei's Line component
+  const mainLinePoints = useMemo(() => {
+    return curvePoints.map(p => [p.x, p.y, p.z] as [number, number, number]);
+  }, [curvePoints]);
 
-  // Segment line objects
-  const segmentLineObjects = useMemo(() => {
+  // Segment line points for editing mode
+  const segmentLines = useMemo(() => {
     if (!enableEdit || points.length < 2) return [];
     return points.map((point, i) => {
       const next = points[(i + 1) % points.length];
-      const geo = new THREE.BufferGeometry();
-      const pos = new Float32Array([point.x, yPosition, point.z, next.x, yPosition, next.z]);
-      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      const material = new THREE.LineBasicMaterial({ 
-        color: hoverSegment === i ? '#ffff00' : color, 
-        transparent: true, 
-        opacity: 0.3 
-      });
-      return new THREE.Line(geo, material);
+      return {
+        points: [[point.x, yPosition, point.z], [next.x, yPosition, next.z]] as [[number, number, number], [number, number, number]],
+        index: i
+      };
     });
-  }, [points, yPosition, enableEdit, hoverSegment, color]);
-
-  // Shared vertical line geometry
-  const vertLineGeo = useMemo(() => {
-    const geo = new THREE.BufferGeometry();
-    const pos = new Float32Array([0, 0, 0, 0, -1.5, 0]);
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    return geo;
-  }, []);
-  
-  // Create vertical line object helper
-  const createVerticalLineObject = (pointColor: string) => {
-    const material = new THREE.LineBasicMaterial({ 
-      color: pointColor, 
-      opacity: 0.7, 
-      transparent: true 
-    });
-    return new THREE.Line(vertLineGeo, material);
-  };
+  }, [points, yPosition, enableEdit]);
 
   const handlePointerDown = (pointId: string) => (e: any) => {
     if (!enableEdit) return;
@@ -211,12 +188,16 @@ export function PoolSplineEditor({
 
   return (
     <group>
-      <primitive object={mainLineObject} />
+      <Line points={mainLinePoints} color={color} lineWidth={2} />
 
-      {enableEdit && segmentLineObjects.map((lineObj, i) => (
-        <primitive 
+      {enableEdit && segmentLines.map(({ points: segPoints, index: i }) => (
+        <Line 
           key={`seg-${i}`}
-          object={lineObj}
+          points={segPoints}
+          color={hoverSegment === i ? '#ffff00' : color}
+          lineWidth={1}
+          transparent
+          opacity={0.3}
           onPointerOver={() => setHoverSegment(i)}
           onPointerOut={() => setHoverSegment(null)}
         />
@@ -272,7 +253,13 @@ export function PoolSplineEditor({
               />
             </mesh>
             
-            <primitive object={createVerticalLineObject(pointColor)} />
+            <Line 
+              points={[[0, 0, 0], [0, -1.5, 0]]} 
+              color={pointColor} 
+              lineWidth={1}
+              transparent
+              opacity={0.7}
+            />
             
             <mesh position={[0, -1.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
               {point.type === 'corner' ? (

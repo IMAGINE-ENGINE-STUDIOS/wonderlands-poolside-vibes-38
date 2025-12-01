@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Text } from '@react-three/drei';
+import { Text, Line } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface ComponentRulerProps {
@@ -16,43 +16,28 @@ export const ComponentRuler = ({ bounds, height = 0.1 }: ComponentRulerProps) =>
   const widthFt = (width * 3.28084).toFixed(1);
   const depthFt = (depth * 3.28084).toFixed(1);
   
-  const rulerLines = useMemo(() => {
-    const points: THREE.Vector3[] = [
+  const rulerLinePoints = useMemo(() => {
+    const points: [number, number, number][] = [
       // Top edge
-      new THREE.Vector3(minX, height, minY),
-      new THREE.Vector3(maxX, height, minY),
+      [minX, height, minY],
+      [maxX, height, minY],
       // Right edge
-      new THREE.Vector3(maxX, height, minY),
-      new THREE.Vector3(maxX, height, maxY),
+      [maxX, height, minY],
+      [maxX, height, maxY],
       // Bottom edge
-      new THREE.Vector3(maxX, height, maxY),
-      new THREE.Vector3(minX, height, maxY),
+      [maxX, height, maxY],
+      [minX, height, maxY],
       // Left edge
-      new THREE.Vector3(minX, height, maxY),
-      new THREE.Vector3(minX, height, minY),
+      [minX, height, maxY],
+      [minX, height, minY],
     ];
-    
     return points;
   }, [minX, maxX, minY, maxY, height]);
-  
-  // Create line geometry
-  const lineGeometry = useMemo(() => {
-    const geo = new THREE.BufferGeometry();
-    const positions = new Float32Array(rulerLines.flatMap(v => [v.x, v.y, v.z]));
-    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    return geo;
-  }, [rulerLines]);
-  
-  // Create line object
-  const lineObject = useMemo(() => {
-    const material = new THREE.LineBasicMaterial({ color: '#ffff00' });
-    return new THREE.Line(lineGeometry, material);
-  }, [lineGeometry]);
   
   return (
     <group>
       {/* Ruler lines */}
-      <primitive object={lineObject} />
+      <Line points={rulerLinePoints} color="#ffff00" lineWidth={2} segments />
       
       {/* Width measurement (top) */}
       <Text
