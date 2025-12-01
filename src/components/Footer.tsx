@@ -58,7 +58,7 @@ const Footer = () => {
 
           {/* Services */}
           <div className="space-y-4">
-            
+            <h4 className="font-semibold text-foreground">Quick Links</h4>
             <div className="space-y-2">
               {["Pool Installation", "Pool Renovation", "LED Lighting Systems", "Salt Water Systems", "Pool Equipment", "Maintenance & Repair"].map((service, idx) => <div key={idx} className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 bg-gradient-to-r from-primary to-teal rounded-full"></div>
@@ -71,6 +71,13 @@ const Footer = () => {
                 <div className="w-1.5 h-1.5 bg-gradient-to-r from-coral to-orange rounded-full"></div>
                 <span className="text-sm text-coral hover:text-orange transition-colors font-medium">
                   REFER TO EARN - 5% Commission
+                </span>
+              </Link>
+              {/* Sales Rep Registration */}
+              <Link to="/sales-rep-register" className="flex items-center gap-2 group">
+                <div className="w-1.5 h-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"></div>
+                <span className="text-sm text-cyan-600 hover:text-blue-600 transition-colors font-medium">
+                  Join Our Sales Team
                 </span>
               </Link>
             </div>

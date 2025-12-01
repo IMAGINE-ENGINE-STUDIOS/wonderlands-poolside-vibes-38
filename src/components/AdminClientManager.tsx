@@ -149,7 +149,8 @@ const AdminClientManager = () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, first_name, last_name, email')
-        .eq('role', 'main_admin');
+        .in('role', ['main_admin', 'sales_rep'])
+        .order('first_name');
 
       if (error) throw error;
       setSalesReps(data || []);
