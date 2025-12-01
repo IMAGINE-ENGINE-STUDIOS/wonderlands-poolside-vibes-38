@@ -19,7 +19,7 @@ interface AutomaticCover {
 }
 const covers: AutomaticCover[] = [{
   name: "Eclipse",
-  price: 22000,
+  price: 27000,
   type: 'safety',
   material: "High-grade PVC",
   motorType: "DC Motor",
@@ -30,7 +30,7 @@ const covers: AutomaticCover[] = [{
   image: "/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png"
 }, {
   name: "CS3000",
-  price: 24000,
+  price: 30000,
   type: 'hybrid',
   material: "Multi-layer vinyl",
   motorType: "AC Motor",
@@ -52,7 +52,7 @@ const covers: AutomaticCover[] = [{
   image: "/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png"
 }, {
   name: "Atom",
-  price: 22000,
+  price: 25000,
   type: 'thermal',
   material: "Insulated fabric",
   motorType: "DC Motor",

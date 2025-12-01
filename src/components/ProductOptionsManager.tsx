@@ -34,13 +34,13 @@ const ProductOptionsManager = ({ productType, productName, onOptionsChange }: Pr
 
   const handleScreenEnclosureOptions = () => {
     const area = parseFloat(surfaceArea) || 0;
-    let pricePerSqFt = 15; // base price
+    let pricePerSqFt = 20; // base price
 
     // Calculate price based on type and height
     if (enclosureType === 'premium') {
-      pricePerSqFt = enclosureHeight === '2-story' ? 28 : 20;
+      pricePerSqFt = enclosureHeight === '2-story' ? 33 : 27;
     } else {
-      pricePerSqFt = enclosureHeight === '2-story' ? 22 : 15;
+      pricePerSqFt = enclosureHeight === '2-story' ? 27 : 20;
     }
 
     const totalPrice = area * pricePerSqFt;
@@ -67,7 +67,7 @@ const ProductOptionsManager = ({ productType, productName, onOptionsChange }: Pr
     }
     if (productType === 'paver') {
       const area = parseFloat(surfaceArea) || 0;
-      const calculatedPrice = area * 15;
+      const calculatedPrice = area * 20;
 
       setSelectedOptions({
         surfaceArea: area,
@@ -204,12 +204,12 @@ const ProductOptionsManager = ({ productType, productName, onOptionsChange }: Pr
                     <div>
                       <h4 className="font-semibold">Price Calculation</h4>
                       <p className="text-sm text-muted-foreground">
-                        {surfaceArea} sq ft × $15/sq ft
+                        {surfaceArea} sq ft × $20/sq ft
                       </p>
                     </div>
                     <div className="text-right">
                       <span className="text-2xl font-bold text-primary">
-                        ${(parseFloat(surfaceArea) * 15).toLocaleString()}
+                        ${(parseFloat(surfaceArea) * 20).toLocaleString()}
                       </span>
                     </div>
                   </div>

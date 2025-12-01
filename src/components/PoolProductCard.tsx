@@ -227,7 +227,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
       name: "Eclipse Automatic Cover", 
       surname: "Eclipse", 
       color: "#2F4F4F", 
-      price: 16000, 
+      price: 27000, 
       image: "/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png", 
       category: "cover", 
       description: "High-grade PVC with dual track system",
@@ -246,7 +246,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
       name: "CS3000 Automatic Cover", 
       surname: "CS3000", 
       color: "#2F4F4F", 
-      price: 20000, 
+      price: 30000, 
       image: "/lovable-uploads/af4bf30f-30a2-42bc-aa71-2b3bdc25b0bc.png", 
       category: "cover", 
       description: "Commercial-grade with solar heating benefits",
@@ -260,7 +260,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
       name: "Infinity 4000 Automatic Cover", 
       surname: "Infinity 4000", 
       color: "#2F4F4F", 
-      price: 28000, 
+      price: 32000, 
       image: "/lovable-uploads/3adb0804-f3a6-4d17-a38e-feb05f6fbdf9.png", 
       category: "cover", 
       description: "Premium with advanced safety features",
@@ -273,7 +273,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
       name: "Atom Automatic Cover", 
       surname: "Atom", 
       color: "#2F4F4F", 
-      price: 14000, 
+      price: 25000, 
       image: "/lovable-uploads/ba0e311a-ab2a-4b2a-82ce-dfb8f97c33bd.png", 
       category: "cover", 
       description: "Compact and efficient design",
@@ -483,9 +483,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
 
     // Add screen enclosure price if selected
     if (extras.screenEnclosureArea > 0) {
-      let pricePerSqFt = 15; // standard
-      if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 22;
-      if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 28;
+      let pricePerSqFt = 20; // standard
+      if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
+      if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
       total += extras.screenEnclosureArea * pricePerSqFt;
     }
     return total;

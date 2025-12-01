@@ -118,10 +118,10 @@ const tileOptions: FeatureOption[] = [
 
 const coverOptions: FeatureOption[] = [
   { name: 'NO COVER', price: 0, image: noCoverBlack },
-  { name: 'Eclipse Automatic Cover', price: 16000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png' },
-  { name: 'CS3000 Safety Cover', price: 24000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png' },
+  { name: 'Eclipse Automatic Cover', price: 27000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png' },
+  { name: 'CS3000 Safety Cover', price: 30000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png' },
   { name: 'Infinity 4000 Smart Cover', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png' },
-  { name: 'Atom Loop-Loc Cover', price: 19000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png' }
+  { name: 'Atom Loop-Loc Cover', price: 25000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png' }
 ];
 
 const paverOptions: FeatureOption[] = [
@@ -224,7 +224,7 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       label: 'Deck Pavers',
       type: 'area',
       icon: 'Grid3x3',
-      pricePerUnit: 15,
+      pricePerUnit: 20,
       options: paverOptions
     },
     {
@@ -232,11 +232,11 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       label: 'Screen Enclosure',
       type: 'area',
       icon: 'Home',
-      pricePerUnit: 15, // Base rate, modified by quality
+      pricePerUnit: 20, // Base rate, modified by quality
       options: [
-        { name: 'standard', price: 15 },
-        { name: 'deluxe', price: 22 },
-        { name: 'premium', price: 28 }
+        { name: 'standard', price: 20 },
+        { name: 'deluxe', price: 27 },
+        { name: 'premium', price: 33 }
       ]
     },
     {
@@ -288,7 +288,7 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       label: 'Deck Pavers',
       type: 'area',
       icon: 'Grid3x3',
-      pricePerUnit: 15,
+      pricePerUnit: 20,
       options: paverOptions
     }
   ],
@@ -321,7 +321,7 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       label: 'Deck Pavers',
       type: 'area',
       icon: 'Grid3x3',
-      pricePerUnit: 15,
+      pricePerUnit: 20,
       options: paverOptions
     },
     {
@@ -329,11 +329,11 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       label: 'Screen Enclosure',
       type: 'area',
       icon: 'Home',
-      pricePerUnit: 15,
+      pricePerUnit: 20,
       options: [
-        { name: 'standard', price: 15 },
-        { name: 'deluxe', price: 22 },
-        { name: 'premium', price: 28 }
+        { name: 'standard', price: 20 },
+        { name: 'deluxe', price: 27 },
+        { name: 'premium', price: 33 }
       ]
     }
   ],
@@ -364,7 +364,7 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       label: 'Pavers',
       type: 'area',
       icon: 'Grid3x3',
-      pricePerUnit: 15,
+      pricePerUnit: 20,
       options: paverOptions
     }
   ],
@@ -395,7 +395,7 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       description: 'Total square footage to be paved',
       type: 'area',
       icon: 'Grid3x3',
-      pricePerUnit: 15
+      pricePerUnit: 20
     },
     {
       id: 'installation',
@@ -451,7 +451,7 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       description: 'Total square footage to be enclosed',
       type: 'area',
       icon: 'Home',
-      pricePerUnit: 15
+      pricePerUnit: 20
     },
     {
       id: 'quality',
@@ -459,9 +459,9 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       type: 'selection',
       icon: 'Star',
       options: [
-        { name: 'Standard ($15/sq ft)', price: 15 },
-        { name: 'Deluxe ($22/sq ft)', price: 22 },
-        { name: 'Premium ($28/sq ft)', price: 28 }
+        { name: 'Standard ($20/sq ft)', price: 20 },
+        { name: 'Deluxe ($27/sq ft)', price: 27 },
+        { name: 'Premium ($33/sq ft)', price: 33 }
       ]
     },
     {

@@ -118,7 +118,7 @@ const PaversSection = () => {
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5 text-teal" />
                   <span className="text-lg font-semibold text-foreground">
-                    $15/sq ft
+                    $20/sq ft
                   </span>
                   <span className="text-sm text-muted-foreground">
                     (All styles same price)
@@ -136,7 +136,7 @@ const PaversSection = () => {
                           <img src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
                         </div>
                         <p className="text-xs font-medium">{paver.name.replace('Appian ', '')}</p>
-                        <p className="text-xs text-muted-foreground">$15/sq ft</p>
+                        <p className="text-xs text-muted-foreground">$20/sq ft</p>
                       </div>)}
                   </div>
                   {appianPavers.length > 4 && <p className="text-sm text-primary text-center font-medium">
@@ -170,10 +170,10 @@ const PaversSection = () => {
                     <Input type="number" placeholder="Enter surface area (sq ft)" value={surfaceArea} onChange={e => setSurfaceArea(e.target.value)} />
                     {surfaceArea && !isNaN(parseFloat(surfaceArea)) && <div className="text-sm">
                         <div className="text-green-600 font-medium">
-                          Total Cost: ${(parseFloat(surfaceArea) * 15).toLocaleString()}
+                          Total Cost: ${(parseFloat(surfaceArea) * 20).toLocaleString()}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Based on {surfaceArea} sq ft × $15/sq ft
+                          Based on {surfaceArea} sq ft × $20/sq ft
                         </div>
                       </div>}
                   </div>
@@ -235,7 +235,7 @@ const PaversSection = () => {
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5 text-coral" />
                   <span className="text-lg font-semibold text-foreground">
-                    $15/sq ft
+                    $20/sq ft
                   </span>
                   <span className="text-sm text-muted-foreground">
                     (All styles same price)
@@ -253,7 +253,7 @@ const PaversSection = () => {
                           <img src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
                         </div>
                         <p className="text-xs font-medium">{paver.name.replace('Catalina Grana ', '')}</p>
-                        <p className="text-xs text-muted-foreground">$15/sq ft</p>
+                        <p className="text-xs text-muted-foreground">$20/sq ft</p>
                       </div>)}
                   </div>
                   {catalinaGranaPavers.length > 4 && <p className="text-sm text-teal text-center font-medium">
@@ -287,10 +287,10 @@ const PaversSection = () => {
                     <Input type="number" placeholder="Enter surface area (sq ft)" value={surfaceArea} onChange={e => setSurfaceArea(e.target.value)} />
                     {surfaceArea && !isNaN(parseFloat(surfaceArea)) && <div className="text-sm">
                         <div className="text-green-600 font-medium">
-                          Total Cost: ${(parseFloat(surfaceArea) * 15).toLocaleString()}
+                          Total Cost: ${(parseFloat(surfaceArea) * 20).toLocaleString()}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Based on {surfaceArea} sq ft × $15/sq ft
+                          Based on {surfaceArea} sq ft × $20/sq ft
                         </div>
                       </div>}
                   </div>
@@ -352,7 +352,7 @@ const PaversSection = () => {
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5 text-accent" />
                   <span className="text-lg font-semibold text-foreground">
-                    $15/sq ft
+                    $20/sq ft
                   </span>
                   <span className="text-sm text-muted-foreground">
                     (All styles same price)

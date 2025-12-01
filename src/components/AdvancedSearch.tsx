@@ -168,19 +168,19 @@ const AdvancedSearch = () => {
 
     // Pool Covers
     const coverData = [
-      { id: 'eclipse', name: 'Eclipse Automatic Cover', category: 'Cover', price: 22000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png', keywords: ['cover', 'covers', 'automatic', 'pool cover', 'automatic cover', 'eclipse'] },
-      { id: 'cs3000', name: 'CS3000 Automatic Cover', category: 'Cover', price: 24000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png', keywords: ['cover', 'covers', 'automatic', 'pool cover', 'automatic cover', 'cs3000'] },
+      { id: 'eclipse', name: 'Eclipse Automatic Cover', category: 'Cover', price: 27000, image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png', keywords: ['cover', 'covers', 'automatic', 'pool cover', 'automatic cover', 'eclipse'] },
+      { id: 'cs3000', name: 'CS3000 Automatic Cover', category: 'Cover', price: 30000, image: '/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png', keywords: ['cover', 'covers', 'automatic', 'pool cover', 'automatic cover', 'cs3000'] },
       { id: 'infinity-4000', name: 'Infinity 4000 Cover', category: 'Cover', price: 32000, image: '/lovable-uploads/695627f9-9391-4b1c-babd-a352309fd232.png', keywords: ['cover', 'covers', 'automatic', 'pool cover', 'automatic cover', 'infinity'] },
-      { id: 'atom', name: 'Atom Automatic Cover', category: 'Cover', price: 22000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png', keywords: ['cover', 'covers', 'automatic', 'pool cover', 'automatic cover', 'atom'] },
+      { id: 'atom', name: 'Atom Automatic Cover', category: 'Cover', price: 25000, image: '/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png', keywords: ['cover', 'covers', 'automatic', 'pool cover', 'automatic cover', 'atom'] },
       { id: 'safety-cover', name: 'Safety Pool Cover', category: 'Cover', price: 1800, image: '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png', keywords: ['cover', 'covers', 'safety', 'pool cover', 'safety cover'] },
       { id: 'solar-cover', name: 'Solar Pool Cover', category: 'Cover', price: 800, image: '/lovable-uploads/c5cd2f96-d31a-446b-943b-6dd1620f6521.png', keywords: ['cover', 'covers', 'solar', 'pool cover', 'solar cover'] }
     ];
 
     // Screen Enclosures
     const screenData = [
-      { id: 'standard-screen', name: 'Standard Screen Enclosure', category: 'Screen Enclosure', price: 15, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'standard'] },
-      { id: 'deluxe-screen', name: 'Deluxe Screen Enclosure', category: 'Screen Enclosure', price: 22, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'deluxe'] },
-      { id: 'premium-screen', name: 'Premium Screen Enclosure', category: 'Screen Enclosure', price: 28, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'premium'] }
+      { id: 'standard-screen', name: 'Standard Screen Enclosure', category: 'Screen Enclosure', price: 20, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'standard'] },
+      { id: 'deluxe-screen', name: 'Deluxe Screen Enclosure', category: 'Screen Enclosure', price: 27, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'deluxe'] },
+      { id: 'premium-screen', name: 'Premium Screen Enclosure', category: 'Screen Enclosure', price: 33, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'premium'] }
     ];
 
     // Saunas from saunaData

@@ -323,7 +323,7 @@ const SpaProductCard = ({
 
     // Add calculated paver surface area cost
     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-      total += parseFloat(paverSurfaceArea) * 15;
+      total += parseFloat(paverSurfaceArea) * 20;
     }
     return total;
   };
@@ -370,7 +370,7 @@ const SpaProductCard = ({
     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
       cartExtras.push({
         name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
-        price: parseFloat(paverSurfaceArea) * 15
+        price: parseFloat(paverSurfaceArea) * 20
       });
     }
     addToCart({

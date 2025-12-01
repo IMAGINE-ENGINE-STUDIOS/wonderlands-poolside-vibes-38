@@ -134,7 +134,7 @@ const linerOptions = [{
 const coverOptions = [{
   name: 'Eclipse Automatic Cover',
   color: '#2F4F4F',
-  price: 16000,
+  price: 27000,
   image: nightSkyFinish,
   category: 'cover',
   description: 'Premium automatic pool cover with solar heating',
@@ -175,7 +175,7 @@ const coverOptions = [{
 }, {
   name: 'CS3000 Safety Cover',
   color: '#2F4F4F',
-  price: 24000,
+  price: 30000,
   image: shaleGrayFinish,
   category: 'cover',
   description: 'Heavy-duty safety cover with anchoring system',
@@ -257,7 +257,7 @@ const coverOptions = [{
 }, {
   name: 'Atom Loop-Loc Cover',
   color: '#2F4F4F',
-  price: 19000,
+  price: 25000,
   image: aquamarineFinish,
   category: 'cover',
   description: 'Mesh safety cover for all seasons',

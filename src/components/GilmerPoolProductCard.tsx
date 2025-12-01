@@ -129,10 +129,10 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
 
   // Pool cover options
   const coverOptions = [
-    { name: 'ProMesh 2000', price: 16000 },
-    { name: 'CS3000 Safety Cover', price: 24000 },
+    { name: 'Eclipse', price: 27000 },
+    { name: 'CS3000 Safety Cover', price: 30000 },
     { name: 'Infinity 4000 Smart Cover', price: 32000 },
-    { name: 'Atom Loop-Loc Cover', price: 19000 }
+    { name: 'Atom Loop-Loc Cover', price: 25000 }
   ];
 
   // Gilmer Glass Spa options (different from Latham)
