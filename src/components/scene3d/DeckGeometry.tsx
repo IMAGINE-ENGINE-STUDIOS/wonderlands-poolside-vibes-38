@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { useMemo, useEffect, useState } from 'react';
+import { generateOffsetCurve } from '@/utils/curveUtils';
 
 interface DeckGeometryProps {
   poolPoints: Array<{ x: number; z: number }>;
@@ -53,58 +54,22 @@ export const DeckGeometry = ({
   const geometry = useMemo(() => {
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
     
-    console.log('🔧 DeckGeometry: Creating spline-based deck');
+    console.log('🔧 DeckGeometry: Creating continuous ring deck with proper offset curves');
     
-    // Use hardscapePoints from 2D designer if available (minimum 4 corners required)
+    // Calculate deck inner boundary using proper offset curve generation
+    const innerOffset = copingEnabled ? copingWidth : 0;
+    const deckInnerBoundary = generateOffsetCurve(poolPoints, innerOffset);
+    
+    // Calculate deck outer boundary
+    const totalOffset = innerOffset + deckWidth;
     let deckOuterBoundary: Array<{ x: number; z: number }>;
     
     if (hardscapePoints && hardscapePoints.length >= 4) {
       console.log('✅ Using hardscapePoints from 2D designer:', hardscapePoints.length, 'points');
       deckOuterBoundary = hardscapePoints;
     } else {
-      console.log('⚠️ Generating deck boundary from pool offset (no hardscapePoints)');
-      // Fallback: Generate deck outer boundary by offsetting pool
-      const innerOffset = copingEnabled ? copingWidth : 0;
-      const totalOffset = innerOffset + deckWidth;
-      
-      deckOuterBoundary = [];
-      for (let i = 0; i < poolPoints.length; i++) {
-        const p1 = poolPoints[i];
-        const p2 = poolPoints[(i + 1) % poolPoints.length];
-        
-        const dx = p2.x - p1.x;
-        const dz = p2.z - p1.z;
-        const length = Math.sqrt(dx * dx + dz * dz);
-        
-        const nx = dz / length;
-        const nz = -dx / length;
-        
-        deckOuterBoundary.push({
-          x: p1.x + nx * totalOffset,
-          z: p1.z + nz * totalOffset
-        });
-      }
-    }
-    
-    // Create deck inner boundary (coping outer edge or pool edge)
-    const innerOffset = copingEnabled ? copingWidth : 0;
-    const deckInnerBoundary: Array<{ x: number; z: number }> = [];
-    
-    for (let i = 0; i < poolPoints.length; i++) {
-      const p1 = poolPoints[i];
-      const p2 = poolPoints[(i + 1) % poolPoints.length];
-      
-      const dx = p2.x - p1.x;
-      const dz = p2.z - p1.z;
-      const length = Math.sqrt(dx * dx + dz * dz);
-      
-      const nx = dz / length;
-      const nz = -dx / length;
-      
-      deckInnerBoundary.push({
-        x: p1.x + nx * innerOffset,
-        z: p1.z + nz * innerOffset
-      });
+      console.log('⚠️ Generating deck outer boundary with proper offset');
+      deckOuterBoundary = generateOffsetCurve(poolPoints, totalOffset);
     }
     
     // Create manual BufferGeometry for proper ring-shaped deck
@@ -114,14 +79,14 @@ export const DeckGeometry = ({
     
     const numPoints = deckOuterBoundary.length;
     
-    // Create top surface vertices (ring shape)
+    // Create top surface vertices (ring shape at ground level y=0)
     for (let i = 0; i < numPoints; i++) {
       // Inner vertex (at coping outer edge or pool edge)
-      vertices.push(deckInnerBoundary[i].x, deckHeight, deckInnerBoundary[i].z);
+      vertices.push(deckInnerBoundary[i].x, 0, deckInnerBoundary[i].z);
       uvs.push(0, i / numPoints);
       
       // Outer vertex (at deck outer edge)
-      vertices.push(deckOuterBoundary[i].x, deckHeight, deckOuterBoundary[i].z);
+      vertices.push(deckOuterBoundary[i].x, 0, deckOuterBoundary[i].z);
       uvs.push(1, i / numPoints);
     }
     
@@ -136,13 +101,13 @@ export const DeckGeometry = ({
       indices.push(curr + 1, next, next + 1);
     }
     
-    // Create bottom surface vertices
+    // Create bottom surface vertices (at -deckHeight)
     const bottomBaseIdx = vertices.length / 3;
     for (let i = 0; i < numPoints; i++) {
-      vertices.push(deckInnerBoundary[i].x, 0, deckInnerBoundary[i].z);
+      vertices.push(deckInnerBoundary[i].x, -deckHeight, deckInnerBoundary[i].z);
       uvs.push(0, i / numPoints);
       
-      vertices.push(deckOuterBoundary[i].x, 0, deckOuterBoundary[i].z);
+      vertices.push(deckOuterBoundary[i].x, -deckHeight, deckOuterBoundary[i].z);
       uvs.push(1, i / numPoints);
     }
     
@@ -158,8 +123,8 @@ export const DeckGeometry = ({
     // Create outer vertical wall
     const outerWallBase = vertices.length / 3;
     for (let i = 0; i < numPoints; i++) {
-      vertices.push(deckOuterBoundary[i].x, deckHeight, deckOuterBoundary[i].z);
       vertices.push(deckOuterBoundary[i].x, 0, deckOuterBoundary[i].z);
+      vertices.push(deckOuterBoundary[i].x, -deckHeight, deckOuterBoundary[i].z);
       uvs.push(i / numPoints, 1);
       uvs.push(i / numPoints, 0);
     }
@@ -175,8 +140,8 @@ export const DeckGeometry = ({
     // Create inner vertical wall
     const innerWallBase = vertices.length / 3;
     for (let i = 0; i < numPoints; i++) {
-      vertices.push(deckInnerBoundary[i].x, deckHeight, deckInnerBoundary[i].z);
       vertices.push(deckInnerBoundary[i].x, 0, deckInnerBoundary[i].z);
+      vertices.push(deckInnerBoundary[i].x, -deckHeight, deckInnerBoundary[i].z);
       uvs.push(i / numPoints, 1);
       uvs.push(i / numPoints, 0);
     }
@@ -196,7 +161,7 @@ export const DeckGeometry = ({
     geom.setIndex(indices);
     geom.computeVertexNormals();
     
-    console.log('✅ Continuous ring deck geometry created with', geom.getAttribute('position').count, 'vertices');
+    console.log('✅ Perfect ring deck geometry with no gaps, vertices:', geom.getAttribute('position').count);
     
     return geom;
   }, [poolPoints, hardscapePoints, deckWidth, deckHeight, copingWidth, copingEnabled]);

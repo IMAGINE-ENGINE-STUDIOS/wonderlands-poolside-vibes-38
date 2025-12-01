@@ -221,3 +221,57 @@ export function normalize2DTo3D(points: Point2D[]): Array<{x: number, z: number}
     z: p.y - centerY
   }));
 }
+
+/**
+ * Generate offset curve from a curved boundary
+ * Uses averaged normals at corners for smooth, gap-free offsetting
+ */
+export function generateOffsetCurve(
+  curvedPoints: Array<{x: number, z: number}>,
+  offsetDistance: number
+): Array<{x: number, z: number}> {
+  const offsetPoints: Array<{x: number, z: number}> = [];
+  
+  for (let i = 0; i < curvedPoints.length; i++) {
+    const prevPt = curvedPoints[(i - 1 + curvedPoints.length) % curvedPoints.length];
+    const currPt = curvedPoints[i];
+    const nextPt = curvedPoints[(i + 1) % curvedPoints.length];
+    
+    // Calculate edge vectors
+    const v1x = currPt.x - prevPt.x;
+    const v1z = currPt.z - prevPt.z;
+    const v2x = nextPt.x - currPt.x;
+    const v2z = nextPt.z - currPt.z;
+    
+    // Calculate normals (perpendicular to edges, pointing outward)
+    const n1x = -v1z;
+    const n1z = v1x;
+    const n2x = -v2z;
+    const n2z = v2x;
+    
+    // Normalize the normals
+    const len1 = Math.sqrt(n1x * n1x + n1z * n1z);
+    const len2 = Math.sqrt(n2x * n2x + n2z * n2z);
+    
+    const norm1x = len1 > 0 ? n1x / len1 : 0;
+    const norm1z = len1 > 0 ? n1z / len1 : 0;
+    const norm2x = len2 > 0 ? n2x / len2 : 0;
+    const norm2z = len2 > 0 ? n2z / len2 : 0;
+    
+    // Average the two normals to get the offset direction (prevents gaps at corners)
+    const avgNx = (norm1x + norm2x) / 2;
+    const avgNz = (norm1z + norm2z) / 2;
+    const avgLen = Math.sqrt(avgNx * avgNx + avgNz * avgNz);
+    
+    const finalNx = avgLen > 0 ? avgNx / avgLen : 0;
+    const finalNz = avgLen > 0 ? avgNz / avgLen : 0;
+    
+    // Offset the point by offsetDistance in the outward normal direction
+    offsetPoints.push({
+      x: currPt.x + finalNx * offsetDistance,
+      z: currPt.z + finalNz * offsetDistance
+    });
+  }
+  
+  return offsetPoints;
+}
