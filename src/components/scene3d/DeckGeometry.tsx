@@ -66,8 +66,14 @@ export const DeckGeometry = ({
     let deckOuterBoundary: Array<{ x: number; z: number }>;
     
     if (hardscapePoints && hardscapePoints.length >= 4) {
-      console.log('✅ Using hardscapePoints from 2D designer:', hardscapePoints.length, 'points');
-      deckOuterBoundary = hardscapePoints;
+      // Only use hardscapePoints if it has the same number of points as deckInnerBoundary
+      if (hardscapePoints.length === deckInnerBoundary.length) {
+        console.log('✅ Using hardscapePoints from 2D designer:', hardscapePoints.length, 'points');
+        deckOuterBoundary = hardscapePoints;
+      } else {
+        console.warn('⚠️ hardscapePoints length mismatch (', hardscapePoints.length, 'vs', deckInnerBoundary.length, '), generating deck outer boundary instead');
+        deckOuterBoundary = generateOffsetCurve(poolPoints, deckOuterOffset);
+      }
     } else {
       console.log('⚠️ Generating deck outer boundary with proper offset');
       deckOuterBoundary = generateOffsetCurve(poolPoints, deckOuterOffset);
