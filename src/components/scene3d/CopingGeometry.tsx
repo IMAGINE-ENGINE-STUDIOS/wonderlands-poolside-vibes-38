@@ -48,13 +48,24 @@ export const CopingGeometry = ({
   const geometry = useMemo(() => {
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
     
-    console.log('🔧 CopingGeometry: Creating continuous ring coping with generateOffsetCurve');
+    console.log('🔧 CopingGeometry: Input poolPoints:', poolPoints);
     
     // Coping inner boundary = pool edge
     const copingInnerBoundary = poolPoints;
     
-    // Coping outer boundary = offset OUTWARD by copingWidth using generateOffsetCurve
+    // Coping outer boundary = offset OUTWARD by copingWidth (NOW FIXED to truly go outward)
     const copingOuterBoundary = generateOffsetCurve(poolPoints, copingWidth);
+    
+    console.log('🔍 CopingGeometry: Boundaries comparison:', {
+      poolFirst: poolPoints[0],
+      innerFirst: copingInnerBoundary[0],
+      outerFirst: copingOuterBoundary[0],
+      copingWidth,
+      outerToInner: Math.sqrt(
+        Math.pow(copingOuterBoundary[0].x - copingInnerBoundary[0].x, 2) +
+        Math.pow(copingOuterBoundary[0].z - copingInnerBoundary[0].z, 2)
+      )
+    });
     
     if (copingInnerBoundary.length !== copingOuterBoundary.length) {
       console.error('⚠️ CopingGeometry: Inner and outer boundaries have different point counts!');

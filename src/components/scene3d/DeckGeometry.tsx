@@ -55,6 +55,7 @@ export const DeckGeometry = ({
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
     
     console.log('🔧 DeckGeometry: Creating continuous ring deck with proper offset curves');
+    console.log('🔍 DeckGeometry: Input poolPoints:', poolPoints);
     
     // Deck inner boundary is the outer edge of coping (or pool edge if no coping)
     // Coping is 1ft wide starting at pool edge, so deck starts 1ft out from pool
@@ -64,6 +65,19 @@ export const DeckGeometry = ({
     // Calculate deck outer boundary (deck width beyond the coping)
     const deckOuterOffset = copingOffset + deckWidth;
     let deckOuterBoundary: Array<{ x: number; z: number }>;
+    
+    console.log('🔍 DeckGeometry: Offset calculations:', {
+      copingEnabled,
+      copingOffset,
+      deckWidth,
+      deckOuterOffset,
+      poolFirst: poolPoints[0],
+      innerFirst: deckInnerBoundary[0],
+      innerDistanceFromPool: Math.sqrt(
+        Math.pow(deckInnerBoundary[0].x - poolPoints[0].x, 2) +
+        Math.pow(deckInnerBoundary[0].z - poolPoints[0].z, 2)
+      )
+    });
     
     if (hardscapePoints && hardscapePoints.length >= 4) {
       // Only use hardscapePoints if it has the same number of points as deckInnerBoundary
