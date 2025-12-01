@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import SpaProductCard from "./SpaProductCard";
 import SpaDetailModal from "./SpaDetailModal";
 import SurveyQuoteTool from "./SurveyQuoteTool";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 interface Spa {
   model: string;
   price: number;
@@ -159,17 +158,11 @@ const SpaCatalog = () => {
             </p>
           </div>
 
-          <Carousel opts={{ align: "start", loop: true }} className="w-full max-w-5xl mx-auto">
-            <CarouselContent className="-ml-4">
-              {spas.map(spa => (
-                <CarouselItem key={spa.model} className="pl-4 md:basis-1/4">
-                  <SpaProductCard spa={spa} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="-left-12 bg-primary text-primary-foreground hover:bg-primary/90" />
-            <CarouselNext className="-right-12 bg-primary text-primary-foreground hover:bg-primary/90" />
-          </Carousel>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {spas.map(spa => (
+              <SpaProductCard key={spa.model} spa={spa} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />
+            ))}
+          </div>
         </div>
       </section>
 

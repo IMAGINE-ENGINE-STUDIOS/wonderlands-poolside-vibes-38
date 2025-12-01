@@ -320,7 +320,7 @@ const TanningLedgeProductCard = ({
               <h4 className="font-semibold text-foreground">Finish Options</h4>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
-                  {finishOptions.map(finish => <CarouselItem key={finish.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                  {finishOptions.map(finish => <CarouselItem key={finish.name} className="pl-1 basis-1/2">
                       <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? 'border-coral bg-coral/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   finish: finish.name

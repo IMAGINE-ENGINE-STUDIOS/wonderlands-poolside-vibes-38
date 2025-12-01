@@ -83,14 +83,6 @@ const Index = () => {
       <LazySection>
         <TanningLedgeSection />
       </LazySection>
-      <div id="finishes" />
-      <LazySection>
-        <PoolFinishesSection />
-      </LazySection>
-      <div id="liners" />
-      <LazySection>
-        <LinersSection />
-      </LazySection>
       <div id="screen-enclosures" />
       <LazySection>
         <ScreenEnclosureSection />
@@ -110,6 +102,14 @@ const Index = () => {
       <div id="driveway-gates" />
       <LazySection>
         <DrivewayGateSection />
+      </LazySection>
+      <div id="finishes" />
+      <LazySection>
+        <PoolFinishesSection />
+      </LazySection>
+      <div id="liners" />
+      <LazySection>
+        <LinersSection />
       </LazySection>
       <Footer />
     </div>;
