@@ -3,20 +3,16 @@ import { gilmerSpas } from "@/data/gilmerSpas";
 import GilmerSpaCard from "./GilmerSpaCard";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import type { GilmerSpa } from "@/data/gilmerSpas";
-
 const GilmerSpasSection = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [selectedSpa, setSelectedSpa] = useState<GilmerSpa | null>(null);
   const [selectedColor, setSelectedColor] = useState("");
-
   const handleRequestQuote = (spa: GilmerSpa, color: string) => {
     setSelectedSpa(spa);
     setSelectedColor(color);
     setShowQuoteModal(true);
   };
-
-  return (
-    <>
+  return <>
       <section className="py-12 px-4 bg-gradient-to-br from-background via-muted/20 to-background">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -26,7 +22,7 @@ const GilmerSpasSection = () => {
               </span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
-              Gilmer Glass Spas
+              Gilmmerglass Spas
             </h2>
             <p className="text-xl text-foreground/80 max-w-3xl mx-auto">
               Experience ultimate relaxation with our fiberglass spas and spillover features. 
@@ -35,13 +31,7 @@ const GilmerSpasSection = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {gilmerSpas.map((spa) => (
-              <GilmerSpaCard 
-                key={spa.model} 
-                spa={spa} 
-                onRequestQuote={handleRequestQuote}
-              />
-            ))}
+            {gilmerSpas.map(spa => <GilmerSpaCard key={spa.model} spa={spa} onRequestQuote={handleRequestQuote} />)}
           </div>
 
           {/* Features Section */}
@@ -86,18 +76,11 @@ const GilmerSpasSection = () => {
       </section>
 
       {/* Quote Tool */}
-      <SurveyQuoteTool
-        pool={null}
-        isOpen={showQuoteModal}
-        onClose={() => setShowQuoteModal(false)}
-        customProduct={selectedSpa ? {
-          name: `${selectedSpa.model}${selectedColor ? ` - ${selectedColor}` : ''}`,
-          price: selectedSpa.price,
-          type: 'spa'
-        } : undefined}
-      />
-    </>
-  );
+      <SurveyQuoteTool pool={null} isOpen={showQuoteModal} onClose={() => setShowQuoteModal(false)} customProduct={selectedSpa ? {
+      name: `${selectedSpa.model}${selectedColor ? ` - ${selectedColor}` : ''}`,
+      price: selectedSpa.price,
+      type: 'spa'
+    } : undefined} />
+    </>;
 };
-
 export default GilmerSpasSection;
