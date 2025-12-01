@@ -160,41 +160,41 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
     description: finish.description,
   }));
 
-  // Pool heater options
+  // Pool heater options - prices +20% to match WonderlandsStudio
   const poolHeaters = [
     {
       name: "Pentair MasterTemp 125 (125K BTU)",
-      price: 2300,
+      price: 2760, // was 2300, +20%
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
       description: "Compact high-efficiency gas heater for pools up to 15,000 gallons",
     },
     {
       name: "Pentair MasterTemp 250 (250K BTU)",
-      price: 3680,
+      price: 4416, // was 3680, +20%
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
       description: "Mid-size high-performance gas heater for medium pools",
     },
     {
       name: "Pentair MasterTemp 400 (400K BTU)",
-      price: 4830,
+      price: 5796, // was 4830, +20%
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
       description: "High-capacity gas heater for large pools and quick heating",
     },
     {
       name: "Pentair UltraTemp 90 Heat Pump",
-      price: 5175,
+      price: 6210, // was 5175, +20%
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
       description: "Energy-efficient heat pump for pools up to 20,000 gallons",
     },
     {
       name: "Pentair UltraTemp 110 Heat Pump",
-      price: 6325,
+      price: 7590, // was 6325, +20%
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
       description: "High-efficiency heat pump for medium to large pools",
     },
     {
       name: "Pentair UltraTemp 140 Heat Pump",
-      price: 7475,
+      price: 8970, // was 7475, +20%
       image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
       description: "Premium heat pump for large pools with maximum efficiency",
     },
@@ -582,9 +582,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
 
     // Add screen enclosure to cart if area provided
     if (extras.screenEnclosureArea > 0) {
-      let pricePerSqFt = 15;
-      if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 22;
-      if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 28;
+      let pricePerSqFt = 20;
+      if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
+      if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
       const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
       cartExtras.push({
         name: `Screen Enclosure - ${extras.screenEnclosureQuality} (${extras.screenEnclosureArea} sq ft)`,
@@ -966,16 +966,16 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                   <div className="text-xs text-green-600 font-medium">
                     Calculated Cost: $
                     {(() => {
-                      let pricePerSqFt = 15;
-                      if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 22;
-                      if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 28;
+                      let pricePerSqFt = 20;
+                      if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
+                      if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
                       return (extras.screenEnclosureArea * pricePerSqFt).toLocaleString();
                     })()}{" "}
                     (${extras.screenEnclosureArea} sq ft × $
                     {(() => {
-                      if (extras.screenEnclosureQuality === "deluxe") return "$22";
-                      if (extras.screenEnclosureQuality === "premium") return "$28";
-                      return "$15";
+                      if (extras.screenEnclosureQuality === "deluxe") return "$27";
+                      if (extras.screenEnclosureQuality === "premium") return "$33";
+                      return "$20";
                     })()}
                     /sq ft)
                   </div>
@@ -1015,7 +1015,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                     )}
                     <p className="text-sm font-medium">{quality.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      ${quality.key === "standard" ? "15" : quality.key === "deluxe" ? "22" : "28"}/sq ft
+                      ${quality.key === "standard" ? "20" : quality.key === "deluxe" ? "27" : "33"}/sq ft
                     </p>
                   </div>
                 ))}
@@ -1160,11 +1160,18 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                               coverOption: cover.name,
                             }))
                           }
-                          className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.coverOption === cover.name ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"}`}
+                          className={`p-2 text-xs rounded-md border transition-all flex items-center gap-3 ${extras.coverOption === cover.name ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"}`}
                         >
-                          <img src={cover.image} alt={cover.name} className="w-8 h-8 rounded object-cover" />
+                          <img 
+                            src={cover.image} 
+                            alt={cover.name} 
+                            className="w-12 h-12 rounded object-contain bg-muted/50 p-1" 
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
                           <div className="flex-1 text-left">
-                            <div>{cover.surname}</div>
+                            <div className="font-medium">{cover.surname}</div>
                             <div className="text-xs text-muted-foreground">
                               {cover.price > 0 ? `$${cover.price.toLocaleString()}` : "No Cost"}
                             </div>
@@ -1631,9 +1638,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                         if (selectedLedge) originalTotal += selectedLedge.price;
                       }
                       if (extras.screenEnclosureArea > 0) {
-                        let pricePerSqFt = 15;
-                        if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 22;
-                        if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 28;
+                        let pricePerSqFt = 20;
+                        if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
+                        if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
                         originalTotal += extras.screenEnclosureArea * pricePerSqFt;
                       }
                       return Math.round(originalTotal).toLocaleString();

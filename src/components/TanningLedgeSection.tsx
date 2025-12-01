@@ -3,6 +3,7 @@ import TanningLedgeProductCard from "./TanningLedgeProductCard";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { tanningLedges } from "@/data/poolData";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 interface TanningLedge {
   name: string;
@@ -78,16 +79,21 @@ const handleRequestQuote = (ledge: TanningLedge, extras?: any) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {tanningLedgesWithCategory.map((ledge) => (
-              <TanningLedgeProductCard
-                key={ledge.name}
-                ledge={ledge}
-                onViewDetails={handleViewDetails}
-                onRequestQuote={handleRequestQuote}
-              />
-            ))}
-          </div>
+          <Carousel opts={{ align: "start", loop: true }} className="w-full max-w-5xl mx-auto">
+            <CarouselContent className="-ml-4">
+              {tanningLedgesWithCategory.map((ledge) => (
+                <CarouselItem key={ledge.name} className="pl-4 md:basis-1/2">
+                  <TanningLedgeProductCard
+                    ledge={ledge}
+                    onViewDetails={handleViewDetails}
+                    onRequestQuote={handleRequestQuote}
+                  />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="-left-12 bg-coral text-white hover:bg-coral/90" />
+            <CarouselNext className="-right-12 bg-coral text-white hover:bg-coral/90" />
+          </Carousel>
         </div>
       </section>
       
