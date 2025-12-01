@@ -291,7 +291,7 @@ const paverOptions = [{
   name: paver.name,
   color: '#D3D3D3',
   price: 0,
-  // Base price is 0, actual cost calculated by surface area × $15/sq ft
+  // Base price is 0, actual cost calculated by surface area × $20/sq ft
   image: paver.image,
   description: paver.description,
   collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina') ? 'catalina' : 'standard'
@@ -555,7 +555,7 @@ const PoolDetails = () => {
 
     // Add paver surface area cost (using paverSurfaceArea string state)
     if (paverSurfaceArea && paverSurfaceArea.trim() !== '' && !isNaN(parseFloat(paverSurfaceArea))) {
-      total += parseFloat(paverSurfaceArea) * 15; // $15 per sq ft
+      total += parseFloat(paverSurfaceArea) * 20; // $20 per sq ft
     }
 
     // Add spa price if selected
@@ -572,9 +572,9 @@ const PoolDetails = () => {
 
     // Add screen enclosure price if area is provided and valid
     if (extras.screenEnclosureArea && extras.screenEnclosureArea > 0) {
-      let pricePerSqFt = 15; // standard
-      if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
-      if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+      let pricePerSqFt = 20; // standard
+      if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 27;
+      if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 33;
       total += extras.screenEnclosureArea * pricePerSqFt;
     }
 
@@ -706,9 +706,9 @@ const PoolDetails = () => {
 
     // Screen Enclosure
     if (extras.screenEnclosureArea && extras.screenEnclosureArea > 0) {
-      let pricePerSqFt = 15; // standard
-      if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
-      if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+      let pricePerSqFt = 20; // standard Wonder Cage
+      if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 27;
+      if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 33;
       const qualityName = extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : '2 Stories';
       items.push({
         name: `Screen Enclosure - ${qualityName} (${extras.screenEnclosureArea} sq ft)`,
@@ -1454,8 +1454,8 @@ const PoolDetails = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">{option.name}</p>
-                      <p className="text-xs font-semibold">$15/sq ft (incl. installation)</p>
-                      <p className="text-xs text-primary">Total: ${(15 * (() => {
+                      <p className="text-xs font-semibold">$20/sq ft (incl. installation)</p>
+                      <p className="text-xs text-primary">Total: ${(20 * (() => {
                       const poolDimensions = pool.dimensions?.split('x').map(d => parseInt(d.trim().replace(/['"]/g, ''))) || [16, 32];
                       const poolWidth = poolDimensions[0];
                       const poolLength = poolDimensions[1];

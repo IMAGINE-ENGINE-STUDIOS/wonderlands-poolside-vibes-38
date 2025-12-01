@@ -74,7 +74,7 @@ const poolOptions: PoolOption[] = [
   ...paverTypes.map(paver => ({
     id: `paver-${paver.name.toLowerCase().replace(/\s+/g, '-')}`,
     name: paver.name,
-    description: paver.description || 'Premium paver option at $15/sq ft',
+    description: paver.description || 'Premium paver option at $20/sq ft',
     price: 0, // Base price, actual calculated by surface area
     category: 'decorative' as const
   })),
@@ -174,7 +174,7 @@ const poolOptions: PoolOption[] = [
   { 
     id: 'screen-standard-1-story', 
     name: 'Standard Screen Enclosure - 1 Story', 
-    description: 'Premium aluminum frame with standard screen mesh - $15/sq ft',
+    description: 'Premium aluminum frame with standard screen mesh - $20/sq ft',
     price: 0, // Base price, calculated by area
     category: 'screen-enclosure',
     image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
@@ -182,7 +182,7 @@ const poolOptions: PoolOption[] = [
   { 
     id: 'screen-standard-2-story', 
     name: 'Standard Screen Enclosure - 2 Story', 
-    description: 'Reinforced aluminum frame for two-story applications - $22/sq ft',
+    description: 'Reinforced aluminum frame for two-story applications - $27/sq ft',
     price: 0, // Base price, calculated by area
     category: 'screen-enclosure',
     image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
@@ -381,11 +381,10 @@ const PoolCustomizationOptions = ({ onSelectionChange }: PoolCustomizationOption
                   <span className="text-xl font-bold text-primary">
                     {option.price === 0 
                       ? (option.category === 'screen-enclosure' 
-                          ? option.description.includes('$15') ? '$15/sq ft'
-                            : option.description.includes('$20') ? '$20/sq ft'
-                            : option.description.includes('$22') ? '$22/sq ft'
-                            : '$28/sq ft'
-                          : '$15/sq ft')
+                          ? option.description.includes('$20') ? '$20/sq ft'
+                            : option.description.includes('$27') ? '$27/sq ft'
+                            : '$33/sq ft'
+                          : '$20/sq ft')
                       : `+$${option.price.toLocaleString()}`
                     }
                   </span>

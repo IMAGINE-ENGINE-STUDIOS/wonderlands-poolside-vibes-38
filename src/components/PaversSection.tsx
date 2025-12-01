@@ -33,7 +33,7 @@ const PaversSection = () => {
     if (!selectedPaverType || !surfaceArea) return 0;
     const area = parseFloat(surfaceArea);
     if (isNaN(area)) return 0;
-    return 15 * area; // All pavers are $15/sq ft
+    return 20 * area; // All pavers are $20/sq ft
   };
   const handleAddToCart = () => {
     if (!selectedPaverType || !surfaceArea) {
