@@ -9,6 +9,8 @@ import { PoolStairs } from './PoolStairs';
 import { StairsPlacementMode } from './StairsPlacementMode';
 import { SplineEditor, SplinePoint } from './scene3d/SplineEditor';
 import { ComponentRuler } from './scene3d/ComponentRuler';
+import { DeckGeometry } from './scene3d/DeckGeometry';
+import { CopingGeometry } from './scene3d/CopingGeometry';
 import earcut from 'earcut';
 import grassTexture from '@/assets/grass-texture.avif';
 import { Maximize2, Minimize2, Move } from 'lucide-react';
@@ -1284,6 +1286,34 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   showRulers = false
 }) => {
   const [selectedComponent, setSelectedComponent] = useState<'pool' | 'water' | 'deck' | null>(null);
+  const [copingEnabled, setCopingEnabled] = useState(true);
+  const [localDeckWidth, setLocalDeckWidth] = useState(deckWidth);
+  const [localCopingWidth, setLocalCopingWidth] = useState(copingWidth);
+  const [localDeckHeight, setLocalDeckHeight] = useState(deckHeight);
+  const [localCopingHeight, setLocalCopingHeight] = useState(copingHeight);
+  
+  // Calculate normalized pool curve for deck/coping geometry
+  const poolCurve3D = useMemo(() => {
+    if (points.length < 3) return [];
+    
+    // Generate smooth curved pool boundary
+    const poolCurve2D = points.map(p => ({ x: p.x, y: p.y }));
+    const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
+    
+    // Normalize to world coordinates
+    const minX = Math.min(...smoothPoolCurve.map(p => p.x));
+    const maxX = Math.max(...smoothPoolCurve.map(p => p.x));
+    const minY = Math.min(...smoothPoolCurve.map(p => p.y));
+    const maxY = Math.max(...smoothPoolCurve.map(p => p.y));
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    
+    // Convert to 3D coordinates (y becomes z in 3D space)
+    return smoothPoolCurve.map(p => ({ 
+      x: p.x - centerX, 
+      z: p.y - centerY 
+    }));
+  }, [points]);
   // CRITICAL: Normalize empty strings to fallback URLs
   const normalizedLinerUrl = linerTextureUrl && linerTextureUrl.trim() !== '' && linerTextureUrl !== 'undefined' 
     ? linerTextureUrl 
@@ -1374,6 +1404,86 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   
   return (
     <>
+      {/* Deck & Coping Controls */}
+      <div className="absolute top-4 right-4 z-10 bg-background/95 backdrop-blur-sm border rounded-lg p-4 space-y-3 shadow-lg min-w-[280px]">
+        <h3 className="font-semibold text-sm text-foreground">Deck & Coping Controls</h3>
+        
+        {/* Coping Toggle */}
+        <div className="flex items-center justify-between">
+          <label className="text-sm text-muted-foreground">Enable Coping</label>
+          <button
+            onClick={() => setCopingEnabled(!copingEnabled)}
+            className={`w-12 h-6 rounded-full transition-colors ${
+              copingEnabled ? 'bg-primary' : 'bg-muted'
+            } relative`}
+          >
+            <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+              copingEnabled ? 'translate-x-6' : ''
+            }`} />
+          </button>
+        </div>
+
+        {/* Coping Width */}
+        {copingEnabled && (
+          <div className="space-y-1">
+            <label className="text-sm text-muted-foreground">Coping Width: {localCopingWidth.toFixed(1)}ft</label>
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={localCopingWidth}
+              onChange={(e) => setLocalCopingWidth(parseFloat(e.target.value))}
+              className="w-full"
+            />
+          </div>
+        )}
+
+        {/* Coping Height */}
+        {copingEnabled && (
+          <div className="space-y-1">
+            <label className="text-sm text-muted-foreground">Coping Height: {(localCopingHeight * 12).toFixed(0)}"</label>
+            <input
+              type="range"
+              min="0.125"
+              max="0.5"
+              step="0.0417"
+              value={localCopingHeight}
+              onChange={(e) => setLocalCopingHeight(parseFloat(e.target.value))}
+              className="w-full"
+            />
+          </div>
+        )}
+
+        {/* Deck Width */}
+        <div className="space-y-1">
+          <label className="text-sm text-muted-foreground">Deck Width: {localDeckWidth.toFixed(1)}ft</label>
+          <input
+            type="range"
+            min="2"
+            max="10"
+            step="0.5"
+            value={localDeckWidth}
+            onChange={(e) => setLocalDeckWidth(parseFloat(e.target.value))}
+            className="w-full"
+          />
+        </div>
+
+        {/* Deck Height */}
+        <div className="space-y-1">
+          <label className="text-sm text-muted-foreground">Deck Height: {(localDeckHeight * 12).toFixed(0)}"</label>
+          <input
+            type="range"
+            min="0.125"
+            max="0.5"
+            step="0.0417"
+            value={localDeckHeight}
+            onChange={(e) => setLocalDeckHeight(parseFloat(e.target.value))}
+            className="w-full"
+          />
+        </div>
+      </div>
+
       <PerspectiveCamera makeDefault position={[30, 25, 30]} fov={50} />
 
       <ambientLight intensity={0.6} />
@@ -1416,25 +1526,43 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         />
       </group>
 
-      {/* Unified Deck + Coping (no gaps between them, water stays within coping) */}
-      {hardscapePoints && hardscapePoints.length > 0 && (
-        <DeckCopingMesh
-          poolPoints={points}
-          hardscapePoints={hardscapePoints}
-          copingTextureUrl={normalizedCopingUrl}
-          paverTextureUrl={normalizedPaverUrl}
-          selectedCategory={selectedCategory}
-          copingTextureScale={copingTextureScale}
-          copingTextureOffset={copingTextureOffset}
-          paverTextureScale={paverTextureScale}
-          paverTextureOffset={paverTextureOffset}
-          copingHeight={copingHeight}
-          copingWidth={copingWidth}
-          deckHeight={deckHeight}
-          deckWidth={deckWidth}
-          onSelectCategory={onSelectCategory}
-          onSelectComponent={onSelectComponent}
-        />
+      {/* NEW SPLINE-BASED DECK AND COPING SYSTEM */}
+      {points.length >= 3 && (
+        <>
+          {/* Coping - 1ft band at pool edge (toggleable) */}
+          {copingEnabled && (
+            <group onClick={(e) => {
+              e.stopPropagation();
+              onSelectCategory?.('coping');
+            }}>
+              <CopingGeometry
+                poolPoints={poolCurve3D}
+                copingWidth={localCopingWidth}
+                copingHeight={localCopingHeight}
+                textureUrl={normalizedCopingUrl}
+                textureScale={copingTextureScale}
+                textureOffset={copingTextureOffset}
+              />
+            </group>
+          )}
+
+          {/* Deck - extends outward from coping (or from pool if coping disabled) */}
+          <group onClick={(e) => {
+            e.stopPropagation();
+            onSelectCategory?.('deck');
+          }}>
+            <DeckGeometry
+              poolPoints={poolCurve3D}
+              deckWidth={localDeckWidth}
+              deckHeight={localDeckHeight}
+              copingWidth={localCopingWidth}
+              copingEnabled={copingEnabled}
+              textureUrl={normalizedPaverUrl}
+              textureScale={paverTextureScale}
+              textureOffset={paverTextureOffset}
+            />
+          </group>
+        </>
       )}
 
       {/* Waterline Tile */}
