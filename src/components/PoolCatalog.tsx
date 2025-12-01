@@ -78,7 +78,7 @@ const getPoolPrice = (pool: Pool) => {
   return Math.round(pool.price * 0.90); // 10% discount for all other pools
 };
 const pools: Pool[] = [
-// Premium Infinity Concrete Pool
+// Premium Infinity Concrete Pool - FLORIDA (NO SURCHARGE)
 {
   model: "Madre Perla",
   price: 192500,
@@ -93,7 +93,7 @@ const pools: Pool[] = [
   saltSystem: true,
   carbonFiber: false
 },
-// Maxima Premium Fiberglass Pool
+// Maxima Premium Fiberglass Pool - FLORIDA (NO SURCHARGE)
 {
   model: "Maxima",
   price: 165000,
@@ -108,7 +108,7 @@ const pools: Pool[] = [
   saltSystem: false,
   carbonFiber: false
 },
-// Pacific Ridge Concrete Pool
+// Pacific Ridge Concrete Pool - FLORIDA (NO SURCHARGE)
 {
   model: "Pacific Ridge",
   price: 89000,
@@ -123,7 +123,7 @@ const pools: Pool[] = [
   saltSystem: false,
   carbonFiber: false
 },
-// Winderview Concrete Pool by Wonderlands - CONCRETE POOL
+// Winderview Concrete Pool by Wonderlands - FLORIDA (NO SURCHARGE)
 {
   model: "Winderview",
   price: 90000,
@@ -137,12 +137,12 @@ const pools: Pool[] = [
   heater: false,
   saltSystem: false,
   carbonFiber: false,
-  type: "Concrete Pool" // Mark as concrete pool
+  type: "Concrete Pool"
 },
-// Cancún Deluxe - Latham Pool with Integrated Spa
+// Cancún Deluxe - Latham Pool with Integrated Spa (+$10K Out-of-State)
 {
   model: "Cancún Deluxe",
-  price: 93000,
+  price: 103000,
   category: 'deluxe',
   image: cancunDeluxeImage,
   dimensions: "16' x 35'",
@@ -154,10 +154,10 @@ const pools: Pool[] = [
   saltSystem: false,
   carbonFiber: false
 },
-// Most Popular - Standard Series (Special Offers & Best Value)
+// Most Popular - Standard Series (Special Offers & Best Value) - Latham (+$10K Out-of-State)
 {
   model: "Astoria",
-  price: 98999,
+  price: 108999,
   category: 'standard',
   image: astoriaImage,
   dimensions: "14' x 35'",
@@ -170,7 +170,7 @@ const pools: Pool[] = [
   carbonFiber: false
 }, {
   model: "Milan",
-  price: 49830,
+  price: 59830,
   category: 'standard',
   image: "/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png",
   dimensions: "10′ × 16′",
@@ -183,7 +183,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Jamaica",
-  price: 50710,
+  price: 60710,
   category: 'standard',
   image: "/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png",
   dimensions: "10′ × 20′",
@@ -196,7 +196,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Aruba",
-  price: 56430,
+  price: 66430,
   category: 'standard',
   image: "/lovable-uploads/ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5.png",
   dimensions: "11′ × 22′",
@@ -209,7 +209,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Pleasant Cove",
-  price: 56430,
+  price: 66430,
   category: 'standard',
   image: "/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.png",
   dimensions: "11′ × 22′",
@@ -221,10 +221,10 @@ const pools: Pool[] = [
   saltSystem: true,
   carbonFiber: true
 },
-// Popular Compact Series - Enchantment
+// Popular Compact Series - Enchantment - Latham (+$10K Out-of-State)
 {
   model: "Enchantment 9.17",
-  price: 52690,
+  price: 62690,
   category: 'compact',
   image: enchantment917Image,
   dimensions: "9′ 1″ × 17′ 5″",
@@ -237,7 +237,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Enchantment 9.21",
-  price: 59840,
+  price: 69840,
   category: 'compact',
   image: enchantment921Image,
   dimensions: "9′ 1″ × 20′ 7″",
@@ -250,7 +250,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Enchantment 9.24",
-  price: 66880,
+  price: 76880,
   category: 'compact',
   image: enchantment924Image,
   dimensions: "9′ 1″ × 23′ 10″",
@@ -262,10 +262,10 @@ const pools: Pool[] = [
   saltSystem: true,
   carbonFiber: true
 },
-// Tuscan Series
+// Tuscan Series - Latham (+$10K Out-of-State)
 {
   model: "Tuscan 11.20",
-  price: 65373,
+  price: 75373,
   category: 'deluxe',
   image: tuscan1120Image,
   dimensions: "11′ 1″ × 20′ 3″",
@@ -278,7 +278,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Tuscan 13.24",
-  price: 80157,
+  price: 90157,
   category: 'deluxe',
   image: tuscan1324Image,
   dimensions: "12′ 10″ × 23′ 7″",
@@ -291,7 +291,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Tuscan 14.27",
-  price: 92400,
+  price: 102400,
   category: 'deluxe',
   image: tuscan1427Image,
   dimensions: "13′ 9″ × 26′ 10″",
@@ -304,7 +304,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Tuscan 14.30",
-  price: 101871,
+  price: 111871,
   category: 'deluxe',
   image: tuscan1430Image,
   dimensions: "13′ 9″ × 30′ 1″",
@@ -317,7 +317,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Tuscan 14.40",
-  price: 128205,
+  price: 138205,
   category: 'deluxe',
   image: tuscan1440Image,
   dimensions: "13′ 9″ × 39′ 11″",
@@ -329,10 +329,10 @@ const pools: Pool[] = [
   saltSystem: true,
   carbonFiber: true
 },
-// Premium Series
+// Premium Series - Latham (+$10K Out-of-State)
 {
   model: "St. Lucia",
-  price: 65604,
+  price: 75604,
   category: 'deluxe',
   image: "/lovable-uploads/03b6750e-bed3-41df-abcb-6657d36cfa62.png",
   dimensions: "12′ × 24′",
@@ -345,7 +345,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Delray",
-  price: 68492,
+  price: 78492,
   category: 'deluxe',
   image: "/lovable-uploads/f549e4e8-647d-4b21-8d48-441f83955c73.png",
   dimensions: "12′ × 25′",
@@ -358,7 +358,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Java",
-  price: 69300,
+  price: 79300,
   category: 'deluxe',
   image: "/lovable-uploads/bca99a48-ba6b-42d0-96d0-bf5ecfc2e4fd.png",
   dimensions: "12′ × 27′",
@@ -371,7 +371,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Bermuda",
-  price: 71033,
+  price: 81033,
   category: 'deluxe',
   image: "/lovable-uploads/311a7002-2a40-4c59-a143-9f0236ece5d4.png",
   dimensions: "12′ × 26′",
@@ -384,7 +384,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Key West",
-  price: 74267,
+  price: 84267,
   category: 'deluxe',
   image: "/lovable-uploads/4e43c832-af03-4cf4-9104-0117e5f3321c.png",
   dimensions: "12′ × 25′ 7″",
@@ -397,7 +397,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Valencia",
-  price: 75653,
+  price: 85653,
   category: 'deluxe',
   image: "/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.png",
   dimensions: "14′ 6″ × 28′",
@@ -410,7 +410,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Vista Isle",
-  price: 77000,
+  price: 87000,
   category: 'premium',
   image: "/lovable-uploads/6a41df5e-d6f6-4e49-aa1a-b457ac1902a0.png",
   dimensions: "12′ × 28′ 6″",
@@ -422,10 +422,10 @@ const pools: Pool[] = [
   saltSystem: true,
   carbonFiber: true
 },
-// Corinthian Series
+// Corinthian Series - Latham (+$10K Out-of-State)
 {
   model: "Corinthian 12",
-  price: 82940,
+  price: 92940,
   category: 'premium',
   image: "/lovable-uploads/221a9844-ee7c-4fe3-b421-a9fe99bccabf.png",
   dimensions: "12′ × 25′",
@@ -438,7 +438,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Corinthian 12 BME",
-  price: 87340,
+  price: 97340,
   category: 'premium',
   image: "/lovable-uploads/86678699-3f2c-4863-8a81-d8c63721e03c.png",
   dimensions: "12′ × 25′",
@@ -451,7 +451,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Corinthian 14",
-  price: 103950,
+  price: 113950,
   category: 'premium',
   image: "/lovable-uploads/3ae37221-0f97-48df-addd-632c423868e2.png",
   dimensions: "14′ × 30′",
@@ -464,7 +464,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Corinthian 14 BME",
-  price: 108350,
+  price: 118350,
   category: 'premium',
   image: "/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.png",
   dimensions: "14′ × 30′",
@@ -476,10 +476,10 @@ const pools: Pool[] = [
   saltSystem: true,
   carbonFiber: true
 },
-// Olympia Series
+// Olympia Series - Latham (+$10K Out-of-State)
 {
   model: "Olympia 12",
-  price: 83930,
+  price: 93930,
   category: 'premium',
   image: "/lovable-uploads/0aa90de6-b1eb-43a4-91ec-10c05388c900.png",
   dimensions: "12′ × 26′",
@@ -492,7 +492,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Olympia 14",
-  price: 106040,
+  price: 116040,
   category: 'premium',
   image: "/lovable-uploads/d707c6e1-8471-404f-9312-bd6773152617.png",
   dimensions: "14′ × 30′",
@@ -504,10 +504,10 @@ const pools: Pool[] = [
   saltSystem: true,
   carbonFiber: true
 },
-// Large Premium Series
+// Large Premium Series - Latham (+$10K Out-of-State)
 {
   model: "Bay Isle",
-  price: 88440,
+  price: 98440,
   category: 'premium',
   image: "/lovable-uploads/a91d91f2-51f8-470c-9894-4a1cf8b1f2c0.png",
   dimensions: "14′ 6″ × 30′",
@@ -520,7 +520,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Laguna",
-  price: 90860,
+  price: 100860,
   category: 'premium',
   image: "/lovable-uploads/ee464b25-683d-4367-a208-2159c2bd13f3.png",
   dimensions: "14′ × 30′",
@@ -533,7 +533,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Claremont",
-  price: 91740,
+  price: 101740,
   category: 'premium',
   image: "/lovable-uploads/6b7b34a3-03f7-4179-b34a-3458dc881efd.png",
   dimensions: "14′ × 33′",
@@ -546,7 +546,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Axiom 14",
-  price: 96250,
+  price: 106250,
   category: 'premium',
   image: "/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png",
   dimensions: "14′ × 30′",
@@ -559,7 +559,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Laguna Deluxe",
-  price: 104830,
+  price: 114830,
   category: 'premium',
   image: "/lovable-uploads/46d142d3-b106-406d-9867-9bf7b63fd469.png",
   dimensions: "14′ × 30′",
@@ -572,7 +572,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Providence 14",
-  price: 105160,
+  price: 115160,
   category: 'premium',
   image: "/lovable-uploads/3929943c-2e46-426f-b155-3d79c96d7eb4.png",
   dimensions: "14′ × 30′",
@@ -585,7 +585,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Genesis",
-  price: 123860,
+  price: 133860,
   category: 'premium',
   image: "/lovable-uploads/2a611c90-6445-41af-aa15-7d223e357e64.png",
   dimensions: "16′ × 40′ 2″",
