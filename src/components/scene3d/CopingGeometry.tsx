@@ -173,8 +173,6 @@ export const CopingGeometry = ({
     geom.setIndex(indices);
     geom.computeVertexNormals();
     
-    console.log('✅ CopingGeometry: Continuous ring created with', numPoints, 'points');
-    
     return geom;
   }, [poolPoints, copingWidth, copingHeight]);
   

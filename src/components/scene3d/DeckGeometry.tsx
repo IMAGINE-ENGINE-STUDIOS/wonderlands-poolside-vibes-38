@@ -54,14 +54,6 @@ export const DeckGeometry = ({
   const geometry = useMemo(() => {
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
     
-    console.log('🔧 DeckGeometry: Creating continuous ring deck');
-    console.log('📍 DeckGeometry: Exact coordinates:', {
-      poolPoints: poolPoints.map((p, i) => ({ i, x: p.x.toFixed(2), z: p.z.toFixed(2) })),
-      hardscapePoints: hardscapePoints ? hardscapePoints.map((p, i) => ({ i, x: p.x.toFixed(2), z: p.z.toFixed(2) })) : 'NOT PROVIDED',
-      copingEnabled,
-      copingWidth,
-      deckWidth
-    });
     
     // CRITICAL FIX: When hardscapePoints provided from 2D designer, use them as-is for outer boundary
     // The 2D designer already accounts for pool + coping + deck spacing
@@ -75,17 +67,8 @@ export const DeckGeometry = ({
       deckInnerBoundary = generateOffsetCurve(poolPoints, copingOffset);
       deckOuterBoundary = hardscapePoints;
       
-      console.log('✅ Using 2D designer hardscapePoints for outer boundary');
-      console.log('📐 Deck boundaries:', {
-        innerCount: deckInnerBoundary.length,
-        outerCount: deckOuterBoundary.length,
-        innerFirst: { x: deckInnerBoundary[0].x.toFixed(2), z: deckInnerBoundary[0].z.toFixed(2) },
-        outerFirst: { x: deckOuterBoundary[0].x.toFixed(2), z: deckOuterBoundary[0].z.toFixed(2) }
-      });
       
-      // CRITICAL: Both boundaries must have same point count
       if (deckInnerBoundary.length !== deckOuterBoundary.length) {
-        console.error('❌ Point count mismatch! Using calculated outer boundary instead');
         const deckOuterOffset = copingOffset + deckWidth;
         deckOuterBoundary = generateOffsetCurve(poolPoints, deckOuterOffset);
       }
@@ -95,8 +78,6 @@ export const DeckGeometry = ({
       deckInnerBoundary = generateOffsetCurve(poolPoints, copingOffset);
       const deckOuterOffset = copingOffset + deckWidth;
       deckOuterBoundary = generateOffsetCurve(poolPoints, deckOuterOffset);
-      
-      console.log('⚠️ No hardscapePoints, generating both boundaries');
     }
     
     // Create manual BufferGeometry for proper ring-shaped deck
@@ -187,8 +168,6 @@ export const DeckGeometry = ({
     geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
     geom.setIndex(indices);
     geom.computeVertexNormals();
-    
-    console.log('✅ Perfect ring deck geometry with no gaps, vertices:', geom.getAttribute('position').count);
     
     return geom;
   }, [poolPoints, hardscapePoints, deckWidth, deckHeight, copingWidth, copingEnabled]);
