@@ -144,10 +144,10 @@ const EditablePoolProductCard = ({
   ];
 
   const coverOptions = [
-    { name: 'Eclipse', color: '#2F4F4F', price: 22000 },
-    { name: 'CS3000', color: '#2F4F4F', price: 24000 },
+    { name: 'Eclipse', color: '#2F4F4F', price: 27000 },
+    { name: 'CS3000', color: '#2F4F4F', price: 30000 },
     { name: 'Infinity 4000', color: '#2F4F4F', price: 32000 },
-    { name: 'Atom', color: '#2F4F4F', price: 19000 }
+    { name: 'Atom', color: '#2F4F4F', price: 25000 }
   ];
 
   // Convert pool tiles to tile options format
@@ -277,9 +277,9 @@ const EditablePoolProductCard = ({
   };
 
   const getScreenEnclosureRate = (quality: 'standard' | 'deluxe' | 'premium') => {
-    if (quality === 'premium') return 28;
-    if (quality === 'deluxe') return 22;
-    return 15;
+    if (quality === 'premium') return 33;
+    if (quality === 'deluxe') return 27;
+    return 20;
   };
 
   const calculateScreenEnclosurePrice = () => {

@@ -97,7 +97,7 @@ const SmartProductCard = ({
     let calculated = basePrice;
 
     if (primary?.surfaceArea && (category === 'paver' || category === 'coping')) {
-      calculated += parseFloat(primary.surfaceArea) * 15;
+      calculated += parseFloat(primary.surfaceArea) * 20;
     }
 
     // Add screen enclosure as an add-on for non-screen products
