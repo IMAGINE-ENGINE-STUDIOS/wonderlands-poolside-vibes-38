@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import * as THREE from 'three';
-import { Html } from '@react-three/drei';
+import { Html, Line } from '@react-three/drei';
 
 export interface SplinePoint {
   x: number;
@@ -60,52 +60,23 @@ export function SplineEditor({
     setDraggedPoint(null);
   };
 
-  // Create line geometry from points (memoized)
-  const lineGeometry = useMemo(() => {
-    const geometry = new THREE.BufferGeometry();
-    const positions: number[] = [];
-    
+  // Calculate line points for Drei's Line component
+  const linePoints = useMemo(() => {
+    const pts: [number, number, number][] = [];
     points.forEach(p => {
-      positions.push(p.x, yPosition, p.z);
+      pts.push([p.x, yPosition, p.z]);
     });
-    
     // Close the loop
     if (points.length > 0) {
-      positions.push(points[0].x, yPosition, points[0].z);
+      pts.push([points[0].x, yPosition, points[0].z]);
     }
-    
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    return geometry;
+    return pts;
   }, [points, yPosition]);
-
-  // Create line object (memoized)
-  const lineObject = useMemo(() => {
-    const material = new THREE.LineBasicMaterial({ color });
-    return new THREE.Line(lineGeometry, material);
-  }, [lineGeometry, color]);
-
-  // Create vertical line geometry for indicators (shared)
-  const verticalLineGeometry = useMemo(() => {
-    const geo = new THREE.BufferGeometry();
-    const positions = new Float32Array([0, 0, 0, 0, -1.5, 0]);
-    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    return geo;
-  }, []);
-  
-  // Create vertical line object (to be reused with different colors)
-  const createVerticalLineObject = (pointColor: string) => {
-    const material = new THREE.LineBasicMaterial({ 
-      color: pointColor, 
-      opacity: 0.6, 
-      transparent: true 
-    });
-    return new THREE.Line(verticalLineGeometry, material);
-  };
 
   return (
     <group>
       {/* Spline curve line */}
-      <primitive object={lineObject} />
+      <Line points={linePoints} color={color} lineWidth={lineWidth} />
 
       {/* Control points */}
       {points.map((point, index) => {
@@ -135,7 +106,13 @@ export function SplineEditor({
             </mesh>
             
             {/* Vertical indicator line to surface */}
-            <primitive object={createVerticalLineObject(pointColor)} />
+            <Line 
+              points={[[0, 0, 0], [0, -1.5, 0]]} 
+              color={pointColor} 
+              lineWidth={1}
+              transparent
+              opacity={0.6}
+            />
             
             {/* Surface marker */}
             <mesh position={[0, -1.5, 0]}>
