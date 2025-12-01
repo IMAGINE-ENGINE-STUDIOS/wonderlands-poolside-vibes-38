@@ -123,13 +123,8 @@ interface ProductExtras {
  * The centralized config ensures type safety and prevents mismatched features.
  */
 
-// Helper function to get pool price with 10% discount applied (matching main page)
+// Helper function to get product price (no discount applied)
 const getProductPrice = (product: Product) => {
-  // Apply 10% discount to all pools to match main page pricing
-  // SAUNAS, SPAS, AND TANNING LEDGES DO NOT GET POOL DISCOUNT
-  if (product.type === 'pool') {
-    return Math.round(product.price * 0.90); // 10% discount for all pools
-  }
   return product.price;
 };
 
@@ -2498,10 +2493,6 @@ const WonderlandsStudio = () => {
                           <span>Base Price</span>
                           <span>${selectedProduct.price.toLocaleString()}</span>
                         </div>
-        {selectedProduct.type === 'pool' && <div className="flex justify-between text-xs sm:text-sm text-green-600">
-            <span>Pool Discount (10% off)</span>
-            <span>-${(selectedProduct.price - getProductPrice(selectedProduct)).toLocaleString()}</span>
-          </div>}
                         <Separator />
                       </div>
                       

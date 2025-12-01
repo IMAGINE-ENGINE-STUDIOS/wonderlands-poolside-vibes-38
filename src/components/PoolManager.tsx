@@ -14,9 +14,9 @@ import { Plus, Edit, Trash2, Save, X, Upload, Waves } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-// Helper function to get discounted price - 10% discount for all pools
+// Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: Pool) => {
-  return Math.round(pool.price * 0.90); // 10% discount for all pools
+  return pool.price;
 };
 
 interface Pool {
