@@ -83,6 +83,22 @@ const AdminClientManager = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [parsedClients, setParsedClients] = useState<Array<{
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone?: string | null;
+    address_street?: string | null;
+    address_city?: string | null;
+    address_state?: string;
+    address_zip?: string | null;
+    interests: any;
+    status: string;
+    source: string;
+    survey_uploaded: boolean;
+  }>>([]);
   const [newActivity, setNewActivity] = useState({ type: 'note', description: '' });
   const { toast } = useToast();
 
@@ -316,6 +332,127 @@ const AdminClientManager = () => {
     }
   };
 
+  const parseCSV = (text: string): Array<{
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone?: string | null;
+    address_street?: string | null;
+    address_city?: string | null;
+    address_state?: string;
+    address_zip?: string | null;
+    interests: any;
+    status: string;
+    source: string;
+    survey_uploaded: boolean;
+  }> => {
+    const lines = text.split('\n').filter(line => line.trim());
+    const parsed: Array<{
+      first_name: string;
+      last_name: string;
+      email: string;
+      phone?: string | null;
+      address_street?: string | null;
+      address_city?: string | null;
+      address_state?: string;
+      address_zip?: string | null;
+      interests: any;
+      status: string;
+      source: string;
+      survey_uploaded: boolean;
+    }> = [];
+
+    // Skip header row
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+      // Split by comma but handle quoted values
+      const values = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)?.map(v => v.replace(/^"|"$/g, '').trim()) || [];
+      
+      if (values.length < 3) continue; // Skip invalid rows
+
+      const [name, phone, email, street, city, state, zip, interest] = values;
+
+      // Skip malformed rows
+      if (!name || !email || email.includes('http') || name.includes('http')) continue;
+
+      // Split name into first and last
+      const nameParts = name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      // Parse interests into array
+      const interests = interest 
+        ? interest.split(',').map(i => i.trim()).filter(Boolean)
+        : ['Fiberglass pools'];
+
+      parsed.push({
+        first_name: firstName,
+        last_name: lastName,
+        email: email.trim(),
+        phone: phone?.trim() || null,
+        address_street: street?.trim() || null,
+        address_city: city?.trim() || null,
+        address_state: state?.trim() || 'FL',
+        address_zip: zip?.trim() || null,
+        interests: interests,
+        status: 'new',
+        source: 'csv_import',
+        survey_uploaded: false
+      });
+    }
+
+    return parsed;
+  };
+
+  const handleCSVUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setCsvFile(file);
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const parsed = parseCSV(text);
+      setParsedClients(parsed);
+      
+      toast({
+        title: "CSV Parsed",
+        description: `${parsed.length} clients ready to import`,
+      });
+    };
+    reader.readAsText(file);
+  };
+
+  const importClients = async () => {
+    if (parsedClients.length === 0) return;
+
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .insert(parsedClients);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `${parsedClients.length} clients imported successfully`,
+      });
+
+      setIsImportDialogOpen(false);
+      setCsvFile(null);
+      setParsedClients([]);
+      fetchClients();
+    } catch (error) {
+      console.error('Error importing clients:', error);
+      toast({
+        title: "Error",
+        description: "Failed to import clients",
+        variant: "destructive",
+      });
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       first_name: '',
@@ -512,6 +649,80 @@ const AdminClientManager = () => {
               <RefreshCw className="h-4 w-4 mr-2" />
               REFRESH
             </Button>
+            
+            <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="holographic-panel neon-border-blue text-blue-300 hover:bg-blue-500/20 font-mono">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Import CSV
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="holographic-panel neon-border-cyan max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle className="text-cyan-300 font-mono neon-glow-cyan">⬡ IMPORT CLIENTS FROM CSV ⬡</DialogTitle>
+                  <DialogDescription className="text-cyan-400/60 font-mono">
+                    Upload a CSV file with client data
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-cyan-300 font-mono">CSV File</Label>
+                    <Input
+                      type="file"
+                      accept=".csv"
+                      onChange={handleCSVUpload}
+                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    />
+                  </div>
+                  
+                  {parsedClients.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded">
+                        <p className="text-cyan-300 font-mono">
+                          <FileText className="inline h-4 w-4 mr-2" />
+                          {parsedClients.length} clients ready to import
+                        </p>
+                      </div>
+                      
+                      <div className="max-h-60 overflow-y-auto space-y-1">
+                        {parsedClients.slice(0, 10).map((client, idx) => (
+                          <div key={idx} className="p-2 bg-cyan-500/5 border border-cyan-500/20 rounded text-xs font-mono text-cyan-400">
+                            {client.first_name} {client.last_name} - {client.email}
+                          </div>
+                        ))}
+                        {parsedClients.length > 10 && (
+                          <p className="text-cyan-400/60 text-xs font-mono">
+                            ...and {parsedClients.length - 10} more
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsImportDialogOpen(false);
+                        setCsvFile(null);
+                        setParsedClients([]);
+                      }}
+                      className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={importClients}
+                      disabled={parsedClients.length === 0}
+                      className="holographic-panel neon-border-cyan text-cyan-300 hover:bg-cyan-500/20 font-mono"
+                    >
+                      Import {parsedClients.length} Clients
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+            
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-cyan-600 hover:bg-cyan-700 text-white neon-border-cyan font-mono">
