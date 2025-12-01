@@ -56,12 +56,13 @@ export const DeckGeometry = ({
     
     console.log('🔧 DeckGeometry: Creating continuous ring deck with proper offset curves');
     
-    // Calculate deck inner boundary using proper offset curve generation
-    const innerOffset = copingEnabled ? copingWidth : 0;
-    const deckInnerBoundary = generateOffsetCurve(poolPoints, innerOffset);
+    // Deck inner boundary is the outer edge of coping (or pool edge if no coping)
+    // Coping is 1ft wide starting at pool edge, so deck starts 1ft out from pool
+    const copingOffset = copingEnabled ? copingWidth : 0;
+    const deckInnerBoundary = generateOffsetCurve(poolPoints, copingOffset);
     
-    // Calculate deck outer boundary
-    const totalOffset = innerOffset + deckWidth;
+    // Calculate deck outer boundary (deck width beyond the coping)
+    const deckOuterOffset = copingOffset + deckWidth;
     let deckOuterBoundary: Array<{ x: number; z: number }>;
     
     if (hardscapePoints && hardscapePoints.length >= 4) {
@@ -69,7 +70,7 @@ export const DeckGeometry = ({
       deckOuterBoundary = hardscapePoints;
     } else {
       console.log('⚠️ Generating deck outer boundary with proper offset');
-      deckOuterBoundary = generateOffsetCurve(poolPoints, totalOffset);
+      deckOuterBoundary = generateOffsetCurve(poolPoints, deckOuterOffset);
     }
     
     // Create manual BufferGeometry for proper ring-shaped deck

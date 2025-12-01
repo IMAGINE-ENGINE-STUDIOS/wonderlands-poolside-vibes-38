@@ -230,6 +230,17 @@ export function generateOffsetCurve(
   curvedPoints: Array<{x: number, z: number}>,
   offsetDistance: number
 ): Array<{x: number, z: number}> {
+  if (!curvedPoints || curvedPoints.length < 3) return curvedPoints;
+  
+  // Calculate centroid to determine outward direction
+  const centroid = { x: 0, z: 0 };
+  for (const p of curvedPoints) {
+    centroid.x += p.x;
+    centroid.z += p.z;
+  }
+  centroid.x /= curvedPoints.length;
+  centroid.z /= curvedPoints.length;
+  
   const offsetPoints: Array<{x: number, z: number}> = [];
   
   for (let i = 0; i < curvedPoints.length; i++) {
@@ -243,7 +254,7 @@ export function generateOffsetCurve(
     const v2x = nextPt.x - currPt.x;
     const v2z = nextPt.z - currPt.z;
     
-    // Calculate normals (perpendicular to edges, pointing outward)
+    // Calculate normals (perpendicular to edges)
     const n1x = -v1z;
     const n1z = v1x;
     const n2x = -v2z;
@@ -258,18 +269,29 @@ export function generateOffsetCurve(
     const norm2x = len2 > 0 ? n2x / len2 : 0;
     const norm2z = len2 > 0 ? n2z / len2 : 0;
     
-    // Average the two normals to get the offset direction (prevents gaps at corners)
-    const avgNx = (norm1x + norm2x) / 2;
-    const avgNz = (norm1z + norm2z) / 2;
+    // Average the two normals
+    let avgNx = (norm1x + norm2x) / 2;
+    let avgNz = (norm1z + norm2z) / 2;
     const avgLen = Math.sqrt(avgNx * avgNx + avgNz * avgNz);
     
-    const finalNx = avgLen > 0 ? avgNx / avgLen : 0;
-    const finalNz = avgLen > 0 ? avgNz / avgLen : 0;
+    if (avgLen > 0) {
+      avgNx /= avgLen;
+      avgNz /= avgLen;
+    }
     
-    // Offset the point by offsetDistance in the outward normal direction
+    // Ensure normal points outward from centroid
+    const toCentroid = { x: centroid.x - currPt.x, z: centroid.z - currPt.z };
+    const dot = avgNx * toCentroid.x + avgNz * toCentroid.z;
+    if (dot > 0) {
+      // Normal points inward, flip it
+      avgNx = -avgNx;
+      avgNz = -avgNz;
+    }
+    
+    // Offset the point by offsetDistance in the outward direction
     offsetPoints.push({
-      x: currPt.x + finalNx * offsetDistance,
-      z: currPt.z + finalNz * offsetDistance
+      x: currPt.x + avgNx * offsetDistance,
+      z: currPt.z + avgNz * offsetDistance
     });
   }
   
