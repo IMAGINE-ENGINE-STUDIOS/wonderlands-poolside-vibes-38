@@ -185,6 +185,131 @@ export type Database = {
         }
         Relationships: []
       }
+      client_activities: {
+        Row: {
+          activity_type: string
+          client_id: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+        }
+        Insert: {
+          activity_type: string
+          client_id: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+        }
+        Update: {
+          activity_type?: string
+          client_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_activities_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          address_city: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zip: string | null
+          assigned_sales_rep_id: string | null
+          created_at: string | null
+          email: string
+          first_name: string
+          id: string
+          interests: Json | null
+          last_contacted_at: string | null
+          last_name: string
+          location_region: string | null
+          notes: string | null
+          phone: string | null
+          price_range_max: number | null
+          price_range_min: number | null
+          source: string | null
+          status: string | null
+          survey_file_url: string | null
+          survey_uploaded: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          address_city?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          assigned_sales_rep_id?: string | null
+          created_at?: string | null
+          email: string
+          first_name: string
+          id?: string
+          interests?: Json | null
+          last_contacted_at?: string | null
+          last_name: string
+          location_region?: string | null
+          notes?: string | null
+          phone?: string | null
+          price_range_max?: number | null
+          price_range_min?: number | null
+          source?: string | null
+          status?: string | null
+          survey_file_url?: string | null
+          survey_uploaded?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          address_city?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          assigned_sales_rep_id?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          interests?: Json | null
+          last_contacted_at?: string | null
+          last_name?: string
+          location_region?: string | null
+          notes?: string | null
+          phone?: string | null
+          price_range_max?: number | null
+          price_range_min?: number | null
+          source?: string | null
+          status?: string | null
+          survey_file_url?: string | null
+          survey_uploaded?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_assigned_sales_rep_id_fkey"
+            columns: ["assigned_sales_rep_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consumer_preferences: {
         Row: {
           business_address: Json | null
