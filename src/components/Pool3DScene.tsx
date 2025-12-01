@@ -8,6 +8,7 @@ import WaterSurface from './WaterSurface';
 import { PoolStairs } from './PoolStairs';
 import { StairsPlacementMode } from './StairsPlacementMode';
 import { SplineEditor, SplinePoint } from './scene3d/SplineEditor';
+import { PoolBottomSplineEditor } from './scene3d/PoolBottomSplineEditor';
 import { ComponentRuler } from './scene3d/ComponentRuler';
 import { DeckGeometry } from './scene3d/DeckGeometry';
 import { CopingGeometry } from './scene3d/CopingGeometry';
@@ -59,6 +60,7 @@ interface PoolFeature {
 export interface Pool3DSceneProps {
   points: Point[];
   depthPoints: DepthPoint[];
+  perimeterDepthPoints?: Array<{ x: number; z: number; depth: number; id: string; type?: 'linear' | 'smooth' }>;
   scale: number;
   poolShape: 'rectangle' | 'kidney' | 'freeform';
   hardscapePoints?: HardscapePoint[];
@@ -104,8 +106,10 @@ export interface Pool3DSceneProps {
   onSelectStair?: (id: string | null) => void;
   enablePoolSplineEdit?: boolean;
   enableDeckSplineEdit?: boolean;
+  enableFloorDepthSplineEdit?: boolean;
   onPoolPointsChange?: (points: Point[]) => void;
   onDeckPointsChange?: (points: HardscapePoint[]) => void;
+  onPerimeterDepthPointsChange?: (points: Array<{ x: number; z: number; depth: number; id: string; type?: 'linear' | 'smooth' }>) => void;
   showWireframe?: boolean;
   showRulers?: boolean;
   showDebugBoundaries?: boolean;
@@ -902,8 +906,11 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   onSelectStair,
   enablePoolSplineEdit = false,
   enableDeckSplineEdit = false,
+  enableFloorDepthSplineEdit = false,
+  perimeterDepthPoints: providedPerimeterDepthPoints,
   onPoolPointsChange,
   onDeckPointsChange,
+  onPerimeterDepthPointsChange,
   showWireframe = false,
   showRulers = false,
   showDebugBoundaries: externalShowDebugBoundaries = false,
@@ -950,6 +957,58 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
     const hardscape2D = hardscapePoints.map(p => ({ x: p.x, y: p.y }));
     return normalize2DTo3D(hardscape2D);
   }, [hardscapePoints]);
+  
+  // Initialize perimeter depth points from 1D depth profile if not provided
+  const perimeterDepthPoints = useMemo(() => {
+    if (providedPerimeterDepthPoints && providedPerimeterDepthPoints.length > 0) {
+      return providedPerimeterDepthPoints;
+    }
+    
+    // Generate initial perimeter depths from pool boundary points and 1D depth profile
+    if (poolCurve3D.length === 0 || depthPoints.length === 0) return [];
+    
+    const maxDepth = Math.max(...depthPoints.map(d => d.depth));
+    const minDepth = Math.min(...depthPoints.map(d => d.depth));
+    
+    return poolCurve3D.map((p, i) => ({
+      x: p.x,
+      z: p.z,
+      depth: minDepth + (maxDepth - minDepth) * (i / (poolCurve3D.length - 1)),
+      id: `perimeter-depth-${i}`,
+      type: 'smooth' as const
+    }));
+  }, [providedPerimeterDepthPoints, poolCurve3D, depthPoints]);
+  
+  // Helper function to get depth at any perimeter position
+  const getPerimeterDepth = (x: number, z: number, perimeterPoints: typeof perimeterDepthPoints): number => {
+    if (perimeterPoints.length === 0) {
+      return depthPoints[0]?.depth || 5;
+    }
+    
+    // Find two nearest perimeter points and interpolate
+    let minDist1 = Infinity;
+    let minDist2 = Infinity;
+    let nearest1 = perimeterPoints[0];
+    let nearest2 = perimeterPoints[1];
+    
+    perimeterPoints.forEach(p => {
+      const dist = Math.sqrt((p.x - x) ** 2 + (p.z - z) ** 2);
+      if (dist < minDist1) {
+        minDist2 = minDist1;
+        nearest2 = nearest1;
+        minDist1 = dist;
+        nearest1 = p;
+      } else if (dist < minDist2) {
+        minDist2 = dist;
+        nearest2 = p;
+      }
+    });
+    
+    // Interpolate depth
+    const totalDist = minDist1 + minDist2;
+    if (totalDist === 0) return nearest1.depth;
+    return (nearest1.depth * minDist2 + nearest2.depth * minDist1) / totalDist;
+  };
   // CRITICAL: Normalize empty strings to fallback URLs
   const normalizedLinerUrl = linerTextureUrl && linerTextureUrl.trim() !== '' && linerTextureUrl !== 'undefined' 
     ? linerTextureUrl 
@@ -1222,6 +1281,19 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           enableDrag={true}
           name="Deck Boundary"
           yPosition={localDeckHeight + 0.1}
+        />
+      )}
+      
+      {/* Pool Bottom Depth Spline Editor */}
+      {enableFloorDepthSplineEdit && perimeterDepthPoints.length > 0 && (
+        <PoolBottomSplineEditor
+          perimeterDepthPoints={perimeterDepthPoints}
+          onPointsChange={(newPoints) => {
+            if (onPerimeterDepthPointsChange) {
+              onPerimeterDepthPointsChange(newPoints);
+            }
+          }}
+          enabled={enableFloorDepthSplineEdit}
         />
       )}
       

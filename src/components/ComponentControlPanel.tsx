@@ -23,6 +23,8 @@ interface ComponentControlPanelProps {
   onDeckWidthChange: (width: number) => void;
   enablePoolSplineEdit?: boolean;
   onPoolSplineEditToggle?: () => void;
+  enableFloorDepthSplineEdit?: boolean;
+  onFloorDepthSplineEditToggle?: () => void;
 }
 
 export function ComponentControlPanel({
@@ -36,7 +38,9 @@ export function ComponentControlPanel({
   deckWidth,
   onDeckWidthChange,
   enablePoolSplineEdit = false,
-  onPoolSplineEditToggle
+  onPoolSplineEditToggle,
+  enableFloorDepthSplineEdit = false,
+  onFloorDepthSplineEditToggle
 }: ComponentControlPanelProps) {
   if (!selectedComponent) return null;
 
@@ -372,6 +376,39 @@ export function ComponentControlPanel({
                       <li>• Click + to add new points</li>
                       <li>• Click X to remove points</li>
                       <li>• Change point types for curves</li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Pool Floor Depth Editor */}
+            {onFloorDepthSplineEditToggle && (
+              <div className="space-y-3 mt-3">
+                <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
+                  <div className="flex-1">
+                    <Label htmlFor="floor-depth-edit" className="text-xs font-medium">Edit Floor Depth</Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {enableFloorDepthSplineEdit ? 'Adjust depth points around pool perimeter' : 'Enable to control depth at each point'}
+                    </p>
+                  </div>
+                  <Checkbox
+                    id="floor-depth-edit"
+                    checked={enableFloorDepthSplineEdit}
+                    onCheckedChange={onFloorDepthSplineEditToggle}
+                  />
+                </div>
+                
+                {enableFloorDepthSplineEdit && (
+                  <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-lg p-3">
+                    <p className="text-xs text-foreground">
+                      <strong>Floor Depth Editor Active:</strong>
+                    </p>
+                    <ul className="text-xs text-muted-foreground mt-1 space-y-1">
+                      <li>• Cyan spheres show depth control points</li>
+                      <li>• Drag vertically to adjust depth</li>
+                      <li>• Create variable depth profiles</li>
+                      <li>• Beach entries, deep ends, etc.</li>
                     </ul>
                   </div>
                 )}

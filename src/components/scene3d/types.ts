@@ -15,6 +15,14 @@ export interface DepthPoint {
   id: string;
 }
 
+export interface PerimeterDepthPoint {
+  x: number;
+  z: number;
+  depth: number;
+  id: string;
+  type?: 'linear' | 'smooth';
+}
+
 export interface HardscapePoint {
   x: number;
   y: number;
@@ -85,6 +93,7 @@ export interface Scene3D {
   pool: {
     points: Point[];
     depthPoints: DepthPoint[];
+    perimeterDepthPoints?: PerimeterDepthPoint[];
     shape: 'rectangle' | 'kidney' | 'freeform' | 'custom';
     finish: TextureConfig;
     position: [number, number, number];
