@@ -1680,7 +1680,7 @@ const WonderlandsStudio = () => {
                                 .map((finish, idx) => (
                                 <CarouselItem
                                   key={`pool-${finish.name}-${idx}`}
-                                  className="pl-1 basis-1/2"
+                                  className="pl-1 basis-1/2 md:basis-1/4"
                                 >
                                   <div
                                     className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.finish === finish.name ? "border-primary bg-primary/10" : "border-border"}`}
@@ -1765,7 +1765,7 @@ const WonderlandsStudio = () => {
                           >
                             <CarouselContent className="-ml-1">
                               {linerOptions.map((liner) => (
-                                <CarouselItem key={liner.name} className="pl-1 basis-1/2">
+                                <CarouselItem key={liner.name} className="pl-1 basis-1/2 md:basis-1/4">
                                   <div
                                     className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.linerOption === liner.name ? "border-primary bg-primary/10" : "border-border"}`}
                                     onClick={() =>
@@ -1893,7 +1893,7 @@ const WonderlandsStudio = () => {
                             >
                               <CarouselContent className="-ml-1">
                                 {coverOptions.map((cover) => (
-                                  <CarouselItem key={cover.name} className="pl-1 basis-1/2">
+                                  <CarouselItem key={cover.name} className="pl-1 basis-1/2 md:basis-1/4">
                                     <div
                                       className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.coverOption === cover.name ? "border-primary bg-primary/10" : "border-border"}`}
                                       onClick={() =>
@@ -1967,7 +1967,7 @@ const WonderlandsStudio = () => {
                             >
                               <CarouselContent className="-ml-1">
                                 {spas.map((spa: any) => (
-                                  <CarouselItem key={spa.model} className="pl-1 basis-1/2">
+                                  <CarouselItem key={spa.model} className="pl-1 basis-1/2 md:basis-1/4">
                                     <div
                                       className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.spaModel === spa.model ? "border-primary bg-primary/10" : "border-border"}`}
                                       onClick={() =>
@@ -2025,7 +2025,7 @@ const WonderlandsStudio = () => {
                             >
                               <CarouselContent className="-ml-1">
                                 {tanningLedges.map((ledge: any) => (
-                                  <CarouselItem key={ledge.name} className="pl-1 basis-1/2">
+                                  <CarouselItem key={ledge.name} className="pl-1 basis-1/2 md:basis-1/4">
                                     <div
                                       className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.tanningLedgeModel === ledge.name ? "border-primary bg-primary/10" : "border-border"}`}
                                       onClick={() =>
@@ -2093,7 +2093,7 @@ const WonderlandsStudio = () => {
                           >
                             <CarouselContent className="-ml-1">
                               {paverOptions.map((paver) => (
-                                <CarouselItem key={paver.name} className="pl-1 basis-1/2">
+                                <CarouselItem key={paver.name} className="pl-1 basis-1/2 md:basis-1/4">
                                   <div
                                     className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.paverOption === paver.name ? "border-primary bg-primary/10" : "border-border"}`}
                                     onClick={() =>
@@ -2249,7 +2249,7 @@ const WonderlandsStudio = () => {
                               >
                                 <CarouselContent className="-ml-1">
                                   {poolHeaters.map((heater) => (
-                                    <CarouselItem key={heater.name} className="pl-1 basis-1/2">
+                                    <CarouselItem key={heater.name} className="pl-1 basis-1/2 md:basis-1/4">
                                       <div
                                         className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.heaterModel === heater.name ? "border-primary bg-primary/10" : "border-border"}`}
                                         onClick={() =>
