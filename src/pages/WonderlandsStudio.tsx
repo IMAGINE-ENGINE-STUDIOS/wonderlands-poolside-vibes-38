@@ -851,10 +851,11 @@ const WonderlandsStudio = () => {
 
     // Add paver surface area cost ($20/sqft)
     if (selectedExtras.pavers && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
+      const selectedPaver = paverTypes.find(p => p.name === selectedExtras.paverOption);
       extrasBreakdown.push({
         name: `${selectedExtras.paverOption} (${paverSurfaceArea} sq ft)`,
         price: parseFloat(paverSurfaceArea) * 20,
-        image: paverOptions.find(p => p.name === selectedExtras.paverOption)?.image || '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
+        image: selectedPaver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png'
       });
     }
 
