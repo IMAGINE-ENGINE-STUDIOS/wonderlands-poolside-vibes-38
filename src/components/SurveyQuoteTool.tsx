@@ -387,13 +387,13 @@ const SurveyQuoteTool = ({
         // Calculate screen enclosure price based on enclosure footprint area
         const enclosureArea = getEnclosureArea();
         if (option.id.includes('standard-1-story')) {
-          return total + enclosureArea * 15;
-        } else if (option.id.includes('standard-2-story')) {
-          return total + enclosureArea * 22;
-        } else if (option.id.includes('premium-1-story')) {
           return total + enclosureArea * 20;
+        } else if (option.id.includes('standard-2-story')) {
+          return total + enclosureArea * 27;
+        } else if (option.id.includes('premium-1-story')) {
+          return total + enclosureArea * 27;
         } else if (option.id.includes('premium-2-story')) {
-          return total + enclosureArea * 28;
+          return total + enclosureArea * 33;
         }
       }
       return total + option.price;
@@ -1480,13 +1480,13 @@ const SurveyQuoteTool = ({
                   if (option.category === 'screen-enclosure') {
                     const enclosureArea = getEnclosureArea();
                     if (option.id.includes('standard-1-story')) {
-                      displayPrice = enclosureArea * 15;
-                    } else if (option.id.includes('standard-2-story')) {
-                      displayPrice = enclosureArea * 22;
-                    } else if (option.id.includes('premium-1-story')) {
                       displayPrice = enclosureArea * 20;
+                    } else if (option.id.includes('standard-2-story')) {
+                      displayPrice = enclosureArea * 27;
+                    } else if (option.id.includes('premium-1-story')) {
+                      displayPrice = enclosureArea * 27;
                     } else if (option.id.includes('premium-2-story')) {
-                      displayPrice = enclosureArea * 28;
+                      displayPrice = enclosureArea * 33;
                     }
                   }
                   return <div key={index} className="border border-orange-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">

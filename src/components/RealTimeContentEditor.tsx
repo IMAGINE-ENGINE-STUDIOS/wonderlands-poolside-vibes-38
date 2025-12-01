@@ -378,7 +378,7 @@ const RealTimeContentEditor = ({ isOpen = true, onClose }: RealTimeContentEditor
     
     // Calculate actual surface area (patio minus pool area)
     const actualSurfaceArea = Math.max(0, totalPatioArea - poolAreaValue);
-    const cost = actualSurfaceArea * 15; // $15 per sq ft including installation
+    const cost = actualSurfaceArea * 20; // $20 per sq ft including installation
     
     setCalculatedCost(cost);
     setSurfaceArea(actualSurfaceArea.toString());
@@ -634,8 +634,8 @@ const RealTimeContentEditor = ({ isOpen = true, onClose }: RealTimeContentEditor
                 <div className="space-y-2">
                   {[
                     { id: 'spas', name: 'Spas & Hot Tubs', description: 'Relaxation solutions', products: ['Luxury Spa', 'Corner Spa', 'Family Spa'] },
-                    { id: 'pavers', name: 'Pavers', description: '$15/sq ft (incl. installation)', products: ['Travertine Pavers', 'Concrete Pavers', 'Natural Stone'] },
-                    { id: 'copings', name: 'Copings', description: '$15/sq ft (incl. installation)', products: ['Pool Coping Edge', 'Decorative Coping', 'Safety Coping'] },
+                    { id: 'pavers', name: 'Pavers', description: '$20/sq ft (incl. installation)', products: ['Travertine Pavers', 'Concrete Pavers', 'Natural Stone'] },
+                    { id: 'copings', name: 'Copings', description: '$20/sq ft (incl. installation)', products: ['Pool Coping Edge', 'Decorative Coping', 'Safety Coping'] },
                     { id: 'tiles', name: 'Pool Tiles', description: 'Decorative finishes', products: ['Ceramic Tiles', 'Glass Tiles', 'Natural Stone Tiles'] },
                     { id: 'covers', name: 'Pool Covers', description: 'Safety & maintenance', products: ['NO COVER', 'Automatic Cover', 'Safety Cover', 'Solar Cover'] },
                     { id: 'lighting', name: 'LED Lighting', description: 'Ambiance & safety', products: ['Underwater LED', 'Landscape Lighting', 'Color Changing Lights'] },
@@ -709,7 +709,7 @@ const RealTimeContentEditor = ({ isOpen = true, onClose }: RealTimeContentEditor
                     <div className="mt-2 text-lg font-bold text-green-600">
                       Total Cost: ${calculatedCost.toLocaleString()}
                       <div className="text-xs text-green-600 font-normal">
-                        Surface area: {surfaceArea} sq ft × $15/sq ft
+                        Surface area: {surfaceArea} sq ft × $20/sq ft
                       </div>
                     </div>
                   </div>
@@ -848,7 +848,7 @@ const RealTimeContentEditor = ({ isOpen = true, onClose }: RealTimeContentEditor
 
                 <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
                   <div className="font-medium mb-1">Calculation:</div>
-                  <div>Cost: $15 per sq ft (includes installation)</div>
+                  <div>Cost: $20 per sq ft (includes installation)</div>
                   <div>Surface Area = Total Patio - Pool Area</div>
                   {patioArea && poolArea && !isNaN(parseFloat(patioArea)) && !isNaN(parseFloat(poolArea)) && (
                     <div className="mt-2">
@@ -856,7 +856,7 @@ const RealTimeContentEditor = ({ isOpen = true, onClose }: RealTimeContentEditor
                         {parseFloat(patioArea)} - {parseFloat(poolArea)} = {Math.max(0, parseFloat(patioArea) - parseFloat(poolArea))} sq ft
                       </div>
                       <div className="text-lg font-bold text-green-600">
-                        Estimated Total: ${(Math.max(0, parseFloat(patioArea) - parseFloat(poolArea)) * 15).toLocaleString()}
+                        Estimated Total: ${(Math.max(0, parseFloat(patioArea) - parseFloat(poolArea)) * 20).toLocaleString()}
                       </div>
                     </div>
                   )}

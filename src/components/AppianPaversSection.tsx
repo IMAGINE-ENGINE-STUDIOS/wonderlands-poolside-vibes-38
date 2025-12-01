@@ -35,13 +35,8 @@ const AppianPaversSection = () => {
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Premium paver collection featuring authentic textures and rich colors. 
-            Priced at $15 per square foot for custom installations.
+            Priced at $20 per square foot for custom installations.
           </p>
-          <div className="mt-4 p-4 bg-primary/10 rounded-lg inline-block">
-            <p className="text-sm text-primary font-semibold">
-              All pools include 3 perimeter pavers around the pool area
-            </p>
-          </div>
         </div>
 
         {/* Pavers Grid */}
@@ -150,7 +145,7 @@ const AppianPaversSection = () => {
                   <div>
                     <h4 className="font-semibold mb-2">Pricing</h4>
                     <p className="text-sm text-muted-foreground mb-1">Base Price: ${selectedPaver.basePrice}/sq ft</p>
-                    <p className="text-sm text-muted-foreground">Custom pricing: $15/sq ft installed</p>
+                    <p className="text-sm text-muted-foreground">Custom pricing: $20/sq ft installed</p>
                   </div>
                   
                   <div>
@@ -207,7 +202,7 @@ const AppianPaversSection = () => {
             onClose={() => setShowQuoteModal(false)}
             pool={{
               model: selectedPaver.name,
-              price: selectedPaver.basePrice * 15, // Using $15/sq ft pricing
+              price: selectedPaver.basePrice * 20, // Using $20/sq ft pricing
               category: 'premium' as const
             }}
           />

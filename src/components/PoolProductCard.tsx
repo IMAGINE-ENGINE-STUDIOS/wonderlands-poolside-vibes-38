@@ -344,7 +344,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
     description: undefined,
   });
 
-  // No need to fetch from database - using static paver data with $15/sq ft pricing
+  // No need to fetch from database - using static paver data with $20/sq ft pricing
 
   const handleImageClick = () => {
     // Navigate to Wonderlands Studio with the selected product
@@ -424,7 +424,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
     });
   };
   const calculateTotalPrice = () => {
-    let total = getPoolPrice(pool); // Already includes 10% discount
+    let total = getPoolPrice(pool);
 
     // Add 20% markup for concrete construction
     if (extras.concreteConstruction) {
@@ -466,7 +466,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
 
     // Add calculated paver surface area cost
     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-      total += parseFloat(paverSurfaceArea) * 15;
+      total += parseFloat(paverSurfaceArea) * 20;
     }
 
     // Add spa price if selected
@@ -667,14 +667,10 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
           <div className="flex items-center gap-2">
             <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
             <div className="flex flex-col">
-              <span className="text-sm text-muted-foreground line-through">${pool.price.toLocaleString()}</span>
               <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
                 ${getPoolPrice(pool).toLocaleString()}
               </span>
             </div>
-            <Badge variant="secondary" className="ml-2 text-[10px] px-2 py-0.5">
-              10% OFF
-            </Badge>
           </div>
           {pool.category === "deluxe" && <div className="flex items-center gap-2"></div>}
           {hasExtras && pool.category !== "deluxe"}
@@ -885,8 +881,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                 />
                 {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
                   <div className="text-xs text-green-600 font-medium">
-                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()} (${paverSurfaceArea} sq ft
-                    × $15/sq ft)
+                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * 20).toLocaleString()} (${paverSurfaceArea} sq ft
+                    × $20/sq ft)
                   </div>
                 )}
               </div>
@@ -1503,7 +1499,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
                       extrasBreakdown.push({
                         name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
-                        price: parseFloat(paverSurfaceArea) * 15,
+                        price: parseFloat(paverSurfaceArea) * 20,
                         image: "/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png",
                       });
                     }
@@ -1534,9 +1530,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
 
                     // Add screen enclosure if area provided
                     if (extras.screenEnclosureArea > 0) {
-                      let pricePerSqFt = 15;
-                      if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 22;
-                      if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 28;
+                      let pricePerSqFt = 20;
+                      if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
+                      if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
                       const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
                       extrasBreakdown.push({
                         name: `Screen Enclosure - ${extras.screenEnclosureQuality === "standard" ? "Wonder Cage" : extras.screenEnclosureQuality === "deluxe" ? "Deluxe" : "Premium"} (${extras.screenEnclosureArea} sq ft)`,
@@ -1622,7 +1618,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                       const paverOption = paverOptions.find((option) => option.name === extras.paverOption);
                       if (paverOption) originalTotal += paverOption.price;
                       if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-                        originalTotal += parseFloat(paverSurfaceArea) * 15;
+                        originalTotal += parseFloat(paverSurfaceArea) * 20;
                       }
                       if (extras.spa) {
                         const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
@@ -1778,7 +1774,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                 if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
                   extrasBreakdown.push({
                     name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
-                    price: parseFloat(paverSurfaceArea) * 15,
+                    price: parseFloat(paverSurfaceArea) * 20,
                     image: "/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png",
                   });
                 }
@@ -1809,9 +1805,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
 
                 // Add screen enclosure if area provided
                 if (extras.screenEnclosureArea > 0) {
-                  let pricePerSqFt = 15;
-                  if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 22;
-                  if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 28;
+                  let pricePerSqFt = 20;
+                  if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
+                  if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
                   const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
                   extrasBreakdown.push({
                     name: `Screen Enclosure - ${extras.screenEnclosureQuality === "standard" ? "Wonder Cage" : extras.screenEnclosureQuality === "deluxe" ? "Deluxe" : "Premium"} (${extras.screenEnclosureArea} sq ft)`,

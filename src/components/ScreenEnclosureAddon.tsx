@@ -54,9 +54,9 @@ const ScreenEnclosureAddon = ({
               value={quality}
               onChange={(e) => onQualityChange(e.target.value as 'standard' | 'deluxe' | 'premium')}
             >
-              <option value="standard">Standard ($15/sq ft)</option>
-              <option value="deluxe">Deluxe ($22/sq ft)</option>
-              <option value="premium">Premium ($28/sq ft)</option>
+              <option value="standard">Standard ($20/sq ft)</option>
+              <option value="deluxe">Deluxe ($27/sq ft)</option>
+              <option value="premium">Premium ($33/sq ft)</option>
             </select>
           </div>
           <div className="flex items-end">
