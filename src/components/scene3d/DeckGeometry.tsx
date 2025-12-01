@@ -54,66 +54,49 @@ export const DeckGeometry = ({
   const geometry = useMemo(() => {
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
     
-    console.log('🔧 DeckGeometry: Creating continuous ring deck with proper offset curves');
-    console.log('🔍 DeckGeometry: Input poolPoints:', poolPoints);
+    console.log('🔧 DeckGeometry: Creating continuous ring deck');
+    console.log('📍 DeckGeometry: Exact coordinates:', {
+      poolPoints: poolPoints.map((p, i) => ({ i, x: p.x.toFixed(2), z: p.z.toFixed(2) })),
+      hardscapePoints: hardscapePoints ? hardscapePoints.map((p, i) => ({ i, x: p.x.toFixed(2), z: p.z.toFixed(2) })) : 'NOT PROVIDED',
+      copingEnabled,
+      copingWidth,
+      deckWidth
+    });
     
-    // CRITICAL: Deck inner boundary MUST be at coping outer edge (pool edge + copingWidth)
-    // Deck outer boundary MUST be at deck inner + deckWidth
-    const copingOffset = copingEnabled ? copingWidth : 0;
-    const deckInnerBoundary = generateOffsetCurve(poolPoints, copingOffset);
-    
-    // Calculate deck outer boundary (deck width beyond the coping)
-    const deckOuterOffset = copingOffset + deckWidth;
+    // CRITICAL FIX: When hardscapePoints provided from 2D designer, use them as-is for outer boundary
+    // The 2D designer already accounts for pool + coping + deck spacing
+    let deckInnerBoundary: Array<{ x: number; z: number }>;
     let deckOuterBoundary: Array<{ x: number; z: number }>;
     
-    console.log('🔍 DeckGeometry: Offset calculations:', {
-      copingEnabled,
-      copingOffset,
-      deckWidth,
-      deckOuterOffset,
-      poolFirst: poolPoints[0],
-      innerFirst: deckInnerBoundary[0],
-      innerDistanceFromPool: Math.sqrt(
-        Math.pow(deckInnerBoundary[0].x - poolPoints[0].x, 2) +
-        Math.pow(deckInnerBoundary[0].z - poolPoints[0].z, 2)
-      )
-    });
-    
-    // Calculate centroid to verify offset direction
-    const poolCentroid = { x: 0, z: 0 };
-    poolPoints.forEach(p => { poolCentroid.x += p.x; poolCentroid.z += p.z; });
-    poolCentroid.x /= poolPoints.length;
-    poolCentroid.z /= poolPoints.length;
-    
-    const distPoolToCenter = Math.sqrt(
-      Math.pow(poolPoints[0].x - poolCentroid.x, 2) +
-      Math.pow(poolPoints[0].z - poolCentroid.z, 2)
-    );
-    const distInnerToCenter = Math.sqrt(
-      Math.pow(deckInnerBoundary[0].x - poolCentroid.x, 2) +
-      Math.pow(deckInnerBoundary[0].z - poolCentroid.z, 2)
-    );
-    
-    console.log('🔍 DeckGeometry: Direction verification:', {
-      poolCentroid,
-      distPoolToCenter,
-      distInnerToCenter,
-      isMovingOutward: distInnerToCenter > distPoolToCenter,
-      shouldBeOutward: true
-    });
-    
     if (hardscapePoints && hardscapePoints.length >= 4) {
-      // Only use hardscapePoints if it has the same number of points as deckInnerBoundary
-      if (hardscapePoints.length === deckInnerBoundary.length) {
-        console.log('✅ Using hardscapePoints from 2D designer:', hardscapePoints.length, 'points');
-        deckOuterBoundary = hardscapePoints;
-      } else {
-        console.warn('⚠️ hardscapePoints length mismatch (', hardscapePoints.length, 'vs', deckInnerBoundary.length, '), generating deck outer boundary instead');
+      // 2D designer mode: Use exact points from designer
+      // Inner boundary = pool edge + coping width
+      const copingOffset = copingEnabled ? copingWidth : 0;
+      deckInnerBoundary = generateOffsetCurve(poolPoints, copingOffset);
+      deckOuterBoundary = hardscapePoints;
+      
+      console.log('✅ Using 2D designer hardscapePoints for outer boundary');
+      console.log('📐 Deck boundaries:', {
+        innerCount: deckInnerBoundary.length,
+        outerCount: deckOuterBoundary.length,
+        innerFirst: { x: deckInnerBoundary[0].x.toFixed(2), z: deckInnerBoundary[0].z.toFixed(2) },
+        outerFirst: { x: deckOuterBoundary[0].x.toFixed(2), z: deckOuterBoundary[0].z.toFixed(2) }
+      });
+      
+      // CRITICAL: Both boundaries must have same point count
+      if (deckInnerBoundary.length !== deckOuterBoundary.length) {
+        console.error('❌ Point count mismatch! Using calculated outer boundary instead');
+        const deckOuterOffset = copingOffset + deckWidth;
         deckOuterBoundary = generateOffsetCurve(poolPoints, deckOuterOffset);
       }
     } else {
-      console.log('⚠️ Generating deck outer boundary with proper offset');
+      // 3D-only mode: Calculate both boundaries
+      const copingOffset = copingEnabled ? copingWidth : 0;
+      deckInnerBoundary = generateOffsetCurve(poolPoints, copingOffset);
+      const deckOuterOffset = copingOffset + deckWidth;
       deckOuterBoundary = generateOffsetCurve(poolPoints, deckOuterOffset);
+      
+      console.log('⚠️ No hardscapePoints, generating both boundaries');
     }
     
     // Create manual BufferGeometry for proper ring-shaped deck
@@ -121,7 +104,7 @@ export const DeckGeometry = ({
     const indices: number[] = [];
     const uvs: number[] = [];
     
-    const numPoints = deckOuterBoundary.length;
+    const numPoints = deckInnerBoundary.length;
     
     // Create top surface vertices (ring shape at ground level y=0)
     for (let i = 0; i < numPoints; i++) {
