@@ -1104,6 +1104,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
                 textureUrl={normalizedCopingUrl}
                 textureScale={copingTextureScale}
                 textureOffset={copingTextureOffset}
+                paverTextureUrl={normalizedPaverUrl}
               />
             </group>
           )}
@@ -1164,6 +1165,24 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           showCoping={copingEnabled}
         />
       )}
+
+      {/* Dimension Labels - Always visible */}
+      {poolCurve3D.length > 0 && (() => {
+        const xs = poolCurve3D.map(p => p.x);
+        const zs = poolCurve3D.map(p => p.z);
+        const bounds = {
+          minX: Math.min(...xs),
+          maxX: Math.max(...xs),
+          minY: Math.min(...zs),
+          maxY: Math.max(...zs)
+        };
+        return (
+          <ComponentRuler
+            bounds={bounds}
+            height={copingHeight + 0.5}
+          />
+        );
+      })()}
 
       </group>
 
