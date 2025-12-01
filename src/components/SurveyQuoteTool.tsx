@@ -374,11 +374,6 @@ const SurveyQuoteTool = ({
     }
     
     let basePrice = pool?.price || customProduct?.price || 0;
-    
-    // Apply 10% discount to all pools (NOT lanai)
-    if (pool) {
-      basePrice = Math.round(basePrice * 0.90); // 10% discount for all pools
-    }
 
     // Apply No Pavers discount if applicable (matching product cards) - NOT for lanai
     const hasNoPaversDiscount = extras && (extras as any).paverOption === 'No Pavers';

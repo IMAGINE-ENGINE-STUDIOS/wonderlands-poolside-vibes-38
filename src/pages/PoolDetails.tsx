@@ -28,9 +28,9 @@ import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
 
-// Helper function to get discounted price - 10% discount for all pools
+// Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: Pool) => {
-  return Math.round(pool.price * 0.90); // 10% discount for all pools
+  return pool.price;
 };
 interface Pool {
   model: string;

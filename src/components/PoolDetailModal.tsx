@@ -4,9 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { DollarSign, Ruler, Waves, Calendar, MapPin, FileText } from "lucide-react";
 
-// Helper function to get discounted price - 10% discount for all pools
+// Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: Pool) => {
-  return Math.round(pool.price * 0.90); // 10% discount for all pools
+  return pool.price;
 };
 
 interface Pool {

@@ -70,12 +70,9 @@ interface Spa {
 // Pool finish options (removed non-texture options: Mountain, Carnegie, Panama)
 export const poolFinishes = ["Nantuke", "Esagoni", "Whitehaven", "Island Wave", "Durango Gray", "Vintage Blue", "Royal Blue", "Gulf Coast", "Hamper", "Indigo", "Cayman", "Corolla", "Summerwave", "Legends", "Z terrazzo", "Tullism", "Courtstone Gray", "Courtstone Blue"];
 
-// Helper function to get pool price with 10% discount applied (except Cancún Deluxe)
+// Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: Pool) => {
-  if (pool.model === "Cancún Deluxe") {
-    return pool.price; // No discount for Cancún Deluxe
-  }
-  return Math.round(pool.price * 0.90); // 10% discount for all other pools
+  return pool.price;
 };
 const pools: Pool[] = [
 // Premium Infinity Concrete Pool - FLORIDA (NO SURCHARGE)
@@ -111,7 +108,7 @@ const pools: Pool[] = [
 // Pacific Ridge Concrete Pool - FLORIDA (NO SURCHARGE)
 {
   model: "Pacific Ridge",
-  price: 89000,
+  price: 110000,
   category: 'premium',
   image: pacificRidgeImage,
   dimensions: "14' x 32'",
@@ -126,7 +123,7 @@ const pools: Pool[] = [
 // Winderview Concrete Pool by Wonderlands - FLORIDA (NO SURCHARGE)
 {
   model: "Winderview",
-  price: 90000,
+  price: 105000,
   category: 'premium',
   image: "/lovable-uploads/winderview-pool.jpg",
   dimensions: "15.5' × 31'",
@@ -142,7 +139,7 @@ const pools: Pool[] = [
 // Cancún Deluxe - Latham Pool with Integrated Spa (+$10K Out-of-State)
 {
   model: "Cancún Deluxe",
-  price: 103000,
+  price: 129000,
   category: 'deluxe',
   image: cancunDeluxeImage,
   dimensions: "16' x 35'",
@@ -592,7 +589,7 @@ const pools: Pool[] = [
   depth: "3′ 9″ – 8′ 6″",
   installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
-  features: ["Salt system included in final price", "Freeform Design", "Large Swimming Area", "10% Discount Applied"],
+  features: ["Salt system included in final price", "Freeform Design", "Large Swimming Area"],
   heater: false,
   saltSystem: true,
   carbonFiber: true
@@ -697,10 +694,14 @@ const PoolCatalog = () => {
   };
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Smooth scroll to top of catalog section
-    document.getElementById('pool-catalog')?.scrollIntoView({
-      behavior: 'smooth'
-    });
+    // Smooth scroll to top of Latham section (not page top)
+    const lathamSection = document.querySelector('[class*="text-center mb-8 sm:mb-12 lg:mb-16 mt-20"]');
+    if (lathamSection) {
+      lathamSection.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
   };
   return <>
       {/* Pool Collection Section */}

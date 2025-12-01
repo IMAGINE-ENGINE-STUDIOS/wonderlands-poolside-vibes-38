@@ -26,9 +26,9 @@ import SurveyQuoteTool from "./SurveyQuoteTool";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { useToast } from "@/hooks/use-toast";
 
-// Helper function to get pool price with 10% discount applied
+// Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: { price: number }) => {
-  return Math.round(pool.price * 0.90); // 10% discount for all pools
+  return pool.price;
 };
 
 interface GilmerPoolCardProps {
