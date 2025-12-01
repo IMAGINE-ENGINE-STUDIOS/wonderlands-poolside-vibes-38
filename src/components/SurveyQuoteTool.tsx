@@ -1273,7 +1273,9 @@ const SurveyQuoteTool = ({
                               
                               {/* Paver Deck Section */}
                               {extras?.extrasBreakdown && (() => {
+                                console.log('🔍 ALL EXTRAS BREAKDOWN:', extras.extrasBreakdown);
                                 const paverItem = extras.extrasBreakdown.find((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
+                                console.log('🟢 PAVER ITEM:', paverItem);
                                 if (paverItem) {
                                   const selectedPaverName = paverItem.name.split(' (')[0];
                                   const areaMatch = paverItem.name.match(/\((\d+)\s*sq\s*ft\)/i);
@@ -1336,6 +1338,7 @@ const SurveyQuoteTool = ({
                               {/* Screen Enclosure Section */}
                               {extras?.extrasBreakdown && (() => {
                                 const enclosureItem = extras.extrasBreakdown.find((item: any) => item.name.includes('Screen Enclosure'));
+                                console.log('🔵 SCREEN ENCLOSURE ITEM:', enclosureItem);
                                 if (enclosureItem) {
                                   const areaMatch = enclosureItem.name.match(/\((\d+)\s*sq\s*ft\)/i);
                                   const enclosureArea = areaMatch ? parseInt(areaMatch[1]) : 0;
