@@ -1036,23 +1036,60 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPo
     terrainShape.lineTo(-5000, 5000);
     terrainShape.closePath();
     
-    // Create hole following exact pool wall boundaries
-    const poolHole = new THREE.Path();
-    if (poolPoints.length > 0) {
-      poolHole.moveTo(poolPoints[0].x, poolPoints[0].y);
-      for (let i = 1; i < poolPoints.length; i++) {
-        poolHole.lineTo(poolPoints[i].x, poolPoints[i].y);
+    // Create hole following exact pool wall boundaries with validation
+    try {
+      if (poolPoints.length >= 3) {
+        // Use curved pool points for the hole (same as pool walls/water surface)
+        const poolCurve2D = poolPoints.map(p => ({ x: p.x, y: p.y }));
+        const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
+        
+        if (smoothPoolCurve.length >= 3) {
+          const poolHole = new THREE.Path();
+          poolHole.moveTo(smoothPoolCurve[0].x, smoothPoolCurve[0].y);
+          for (let i = 1; i < smoothPoolCurve.length; i++) {
+            poolHole.lineTo(smoothPoolCurve[i].x, smoothPoolCurve[i].y);
+          }
+          poolHole.closePath();
+          terrainShape.holes.push(poolHole);
+          
+          console.log('✅ GrassTerrain: Created pool hole with', smoothPoolCurve.length, 'smooth points');
+        }
+      } else {
+        console.warn('⚠️ GrassTerrain: Not enough pool points for hole, using default');
+        // Fallback to simple rectangular hole
+        const poolHole = new THREE.Path();
+        poolHole.moveTo(-10, -20);
+        poolHole.lineTo(10, -20);
+        poolHole.lineTo(10, 20);
+        poolHole.lineTo(-10, 20);
+        poolHole.closePath();
+        terrainShape.holes.push(poolHole);
       }
+    } catch (error) {
+      console.error('❌ GrassTerrain: Error creating pool hole, using fallback:', error);
+      // Clear any partial holes
+      terrainShape.holes = [];
+      // Use safe rectangular hole as fallback
+      const poolHole = new THREE.Path();
+      poolHole.moveTo(-10, -20);
+      poolHole.lineTo(10, -20);
+      poolHole.lineTo(10, 20);
+      poolHole.lineTo(-10, 20);
       poolHole.closePath();
+      terrainShape.holes.push(poolHole);
     }
     
-    terrainShape.holes.push(poolHole);
-    
-    // Create geometry from shape
-    const geometry = new THREE.ShapeGeometry(terrainShape);
-    geometry.rotateX(-Math.PI / 2);
-    
-    return geometry;
+    // Create geometry from shape with error handling
+    try {
+      const geometry = new THREE.ShapeGeometry(terrainShape);
+      geometry.rotateX(-Math.PI / 2);
+      return geometry;
+    } catch (error) {
+      console.error('❌ GrassTerrain: ShapeGeometry creation failed, using simple plane:', error);
+      // Fallback to a simple plane without hole
+      const geometry = new THREE.PlaneGeometry(10000, 10000);
+      return geometry;
+    }
   }, [texture, poolPoints]);
   
   return (
