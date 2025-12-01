@@ -55,11 +55,12 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
 
     console.log('🌊 WaterSurface: Creating water from pool points (EXACT match with pool floor):', poolPoints.length);
     
-    // CRITICAL: Use generateCurvedPoolPoints with EXACT same parameters as Pool3DScene PoolMesh (lines 204-208)
+    // CRITICAL: Use generateCurvedPoolPoints with EXACT same parameters as Pool3DScene PoolMesh
     const curvedPoints = generateCurvedPoolPoints(
       poolPoints.map(p => ({ x: p.x, y: p.y })),
-      30,  // MUST match Pool3DScene line 206
-      0.3  // MUST match Pool3DScene line 207
+      30,  // MUST match Pool3DScene segments
+      0.3, // MUST match Pool3DScene tension
+      135  // MUST match Pool3DScene angle threshold (only curve corners < 135°)
     );
 
     // Calculate center using EXACT same method as Pool3DScene (lines 210-215)

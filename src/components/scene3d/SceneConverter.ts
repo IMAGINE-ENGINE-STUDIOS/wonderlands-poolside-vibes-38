@@ -236,11 +236,13 @@ export function productToScene(
   const copingWidth = 1; // 1ft coping
   
   // Step 1: Generate smooth curved pool boundary
+  // ONLY curves corners with angles < 135° (keeps rectangular pools sharp)
   const smoothPoolPoints = poolPoints.length > 3 
     ? generateCurvedPoolPoints(
         poolPoints.map(p => ({ x: p.x, y: p.y })),
-        30, // high resolution for smooth curves
-        0.3  // natural curve tension
+        30,  // high resolution for smooth curves
+        0.3, // natural curve tension
+        135  // angle threshold: only curve corners < 135° (excludes 90° rectangular corners)
       )
     : poolPoints.map(p => ({ x: p.x, y: p.y }));
   
@@ -289,8 +291,9 @@ export function productToScene(
   const smoothDeckPoints = rawDeckPoints.length > 3
     ? generateCurvedPoolPoints(
         rawDeckPoints,
-        30, // same high resolution
-        0.3  // same natural curve tension
+        30,  // same high resolution
+        0.3, // same natural curve tension
+        135  // same angle threshold (only curve corners < 135°)
       )
     : rawDeckPoints;
   

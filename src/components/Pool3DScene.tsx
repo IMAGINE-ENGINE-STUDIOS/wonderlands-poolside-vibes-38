@@ -201,10 +201,12 @@ const PoolMesh: React.FC<{
 
     // Generate smooth curved points from the original points
     // This creates smooth curves that match the 2D designer shapes exactly
+    // ONLY curves corners with angles < 135° (excludes 90° rectangular corners)
     const curvedPoints = generateCurvedPoolPoints(
       points.map(p => ({ x: p.x, y: p.y })),
       30, // segments per edge for very smooth curves
-      0.3  // tension for natural-looking curves
+      0.3, // tension for natural-looking curves
+      135  // angle threshold: only curve corners < 135° (keeps rectangular pools sharp)
     );
 
     const minX = Math.min(...curvedPoints.map(p => p.x));
@@ -793,7 +795,7 @@ const DeckCopingMesh: React.FC<{
     
     // Step 1: Generate smooth curved pool boundary (EXACT same as pool walls)
     const poolCurve2D = poolPoints.map(p => ({ x: p.x, y: p.y }));
-    const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
+    const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3, 135);
     
     // Step 2: Normalize to world coordinates (same as pool walls)
     const minX = Math.min(...smoothPoolCurve.map(p => p.x));
@@ -837,7 +839,7 @@ const DeckCopingMesh: React.FC<{
       
       // Step 1: Generate smooth curved pool boundary (same as coping)
       const poolCurve2D = poolPoints.map(p => ({ x: p.x, y: p.y }));
-      const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
+      const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3, 135);
       
       // Step 2: Normalize to world coordinates
       const minX = Math.min(...smoothPoolCurve.map(p => p.x));
