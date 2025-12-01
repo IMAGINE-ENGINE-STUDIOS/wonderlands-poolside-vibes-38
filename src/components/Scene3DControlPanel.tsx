@@ -58,6 +58,9 @@ interface Scene3DControlPanelProps {
   enableDeckSplineEdit: boolean;
   onPoolSplineEditToggle: () => void;
   onDeckSplineEditToggle: () => void;
+  // Debug props
+  showDebugBoundaries?: boolean;
+  onDebugBoundariesToggle?: () => void;
 }
 
 export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
@@ -91,7 +94,9 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   enablePoolSplineEdit,
   enableDeckSplineEdit,
   onPoolSplineEditToggle,
-  onDeckSplineEditToggle
+  onDeckSplineEditToggle,
+  showDebugBoundaries = false,
+  onDebugBoundariesToggle
 }) => {
   const isMobile = useIsMobile();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -425,6 +430,22 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                 {enableDeckSplineEdit ? 'Drag orange control points to reshape deck' : 'Enable to edit deck boundary'}
               </p>
             </div>
+            
+            {onDebugBoundariesToggle && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="debug-boundaries" className="text-xs">Debug Boundaries</Label>
+                  <Checkbox
+                    id="debug-boundaries"
+                    checked={showDebugBoundaries}
+                    onCheckedChange={onDebugBoundariesToggle}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {showDebugBoundaries ? 'Blue=pool, Yellow=coping, Green=deck' : 'Show colored wireframe boundaries'}
+                </p>
+              </div>
+            )}
           </div>
 
           <Separator />

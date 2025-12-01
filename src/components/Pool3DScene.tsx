@@ -16,6 +16,7 @@ import grassTexture from '@/assets/grass-texture.avif';
 import { Maximize2, Minimize2, Move } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
 import { generateCurvedPoolPoints, normalize2DTo3D } from '@/utils/curveUtils';
+import { BoundaryDebugOverlay } from './scene3d/BoundaryDebugOverlay';
 
 interface Point {
   x: number;
@@ -107,6 +108,8 @@ export interface Pool3DSceneProps {
   onDeckPointsChange?: (points: HardscapePoint[]) => void;
   showWireframe?: boolean;
   showRulers?: boolean;
+  showDebugBoundaries?: boolean;
+  onDebugBoundariesChange?: (show: boolean) => void;
 }
 
 const PoolMesh: React.FC<{
@@ -902,7 +905,9 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   onPoolPointsChange,
   onDeckPointsChange,
   showWireframe = false,
-  showRulers = false
+  showRulers = false,
+  showDebugBoundaries: externalShowDebugBoundaries = false,
+  onDebugBoundariesChange
 }) => {
   const [selectedComponent, setSelectedComponent] = useState<'pool' | 'water' | 'deck' | null>(null);
   const [copingEnabled, setCopingEnabled] = useState(true);
@@ -911,6 +916,19 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   const [localDeckHeight, setLocalDeckHeight] = useState(deckHeight);
   const [localCopingHeight, setLocalCopingHeight] = useState(copingHeight);
   const [splineEditMode, setSplineEditMode] = useState<'none' | 'pool' | 'deck'>('none');
+  const [showDebugBoundaries, setShowDebugBoundaries] = useState(externalShowDebugBoundaries);
+
+  // Sync external debug boundaries control
+  useEffect(() => {
+    setShowDebugBoundaries(externalShowDebugBoundaries);
+  }, [externalShowDebugBoundaries]);
+
+  // Notify parent when debug mode changes
+  useEffect(() => {
+    if (onDebugBoundariesChange) {
+      onDebugBoundariesChange(showDebugBoundaries);
+    }
+  }, [showDebugBoundaries, onDebugBoundariesChange]);
   
   // Calculate normalized pool curve for deck/coping geometry
   const poolCurve3D = useMemo(() => {
@@ -1147,6 +1165,16 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           isSelected={selectedStairId === stair.id}
         />
       ))}
+
+      {/* Boundary Debug Overlay */}
+      {showDebugBoundaries && poolCurve3D.length > 0 && (
+        <BoundaryDebugOverlay
+          poolPoints={poolCurve3D.map(p => new THREE.Vector2(p.x, p.z))}
+          copingWidth={localCopingWidth}
+          deckWidth={localDeckWidth}
+          showCoping={copingEnabled}
+        />
+      )}
 
       </group>
 

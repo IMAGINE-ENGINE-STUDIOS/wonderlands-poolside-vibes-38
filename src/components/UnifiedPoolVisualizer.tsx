@@ -107,6 +107,7 @@ export function UnifiedPoolVisualizer({
   const [assets3D, setAssets3D] = useState<any[]>([]);
   const [showGrid, setShowGrid] = useState(true);
   const [showRulers, setShowRulers] = useState(false);
+  const [showDebugBoundaries, setShowDebugBoundaries] = useState(false);
   const [deckWidth, setDeckWidth] = useState(3); // Default 3 feet
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
@@ -660,6 +661,8 @@ export function UnifiedPoolVisualizer({
                 onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
                 onDeckSplineEditToggle={() => setEnableDeckSplineEdit(!enableDeckSplineEdit)}
                 onSelectCategory={setSelectedCategory}
+                showDebugBoundaries={showDebugBoundaries}
+                onDebugBoundariesToggle={() => setShowDebugBoundaries(!showDebugBoundaries)}
               />
             </>
           )}
@@ -806,6 +809,8 @@ export function UnifiedPoolVisualizer({
               enableDeckSplineEdit={enableDeckSplineEdit}
               onPoolPointsChange={handlePoolPointsChange}
               onDeckPointsChange={handleDeckPointsChange}
+              showDebugBoundaries={showDebugBoundaries}
+              onDebugBoundariesChange={setShowDebugBoundaries}
             />
           </group>
 
