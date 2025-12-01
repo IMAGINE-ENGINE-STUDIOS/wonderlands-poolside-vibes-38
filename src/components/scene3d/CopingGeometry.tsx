@@ -42,8 +42,8 @@ export const CopingGeometry = ({
       (loadedTexture) => {
         console.log('✅ CopingGeometry: Texture loaded successfully');
         loadedTexture.wrapS = loadedTexture.wrapT = THREE.RepeatWrapping;
-        // Texture will repeat at 1ft intervals based on UV coordinates
-        loadedTexture.repeat.set(textureScale, textureScale);
+        // Texture repeats based on UV coordinates (already scaled in UVs)
+        loadedTexture.repeat.set(1, 1);
         loadedTexture.offset.set(textureOffset[0], textureOffset[1]);
         loadedTexture.needsUpdate = true;
         setTexture(loadedTexture);
@@ -96,7 +96,7 @@ export const CopingGeometry = ({
       distances.push(totalDistance);
     }
     
-    // Create continuous ring geometry with 1ft square UV sections
+    // Create continuous ring geometry with proper UV sections
     // Top surface
     for (let i = 0; i < numPoints; i++) {
       const inner = copingInnerBoundary[i];
@@ -106,13 +106,13 @@ export const CopingGeometry = ({
       vertices.push(inner.x, copingHeight, inner.z);
       vertices.push(outer.x, copingHeight, outer.z);
       
-      // UV mapping: Map texture to create 1ft squares
-      // U = distance along perimeter (in feet)
-      // V = width from inner to outer edge (in feet)
-      const distanceAlongPerimeter = distances[i];
+      // UV mapping: Map texture to create proper repeating pattern
+      // U = distance along perimeter / textureScale (for repeating)
+      // V = width from inner to outer edge / textureScale
+      const distanceAlongPerimeter = distances[i] / textureScale;
       const uInner = distanceAlongPerimeter;
       const vInner = 0;
-      const vOuter = copingWidth;
+      const vOuter = copingWidth / textureScale;
       
       uvs.push(uInner, vInner);
       uvs.push(uInner, vOuter);
@@ -140,10 +140,10 @@ export const CopingGeometry = ({
       vertices.push(outer.x, 0, outer.z);
       
       // Same UV mapping for bottom
-      const distanceAlongPerimeter = distances[i];
+      const distanceAlongPerimeter = distances[i] / textureScale;
       const uInner = distanceAlongPerimeter;
       const vInner = 0;
-      const vOuter = copingWidth;
+      const vOuter = copingWidth / textureScale;
       
       uvs.push(uInner, vInner);
       uvs.push(uInner, vOuter);
@@ -170,9 +170,9 @@ export const CopingGeometry = ({
       vertices.push(outer.x, 0, outer.z);
       
       // UV mapping for vertical wall
-      const distanceAlongPerimeter = distances[i];
+      const distanceAlongPerimeter = distances[i] / textureScale;
       const u = distanceAlongPerimeter;
-      const vTop = copingHeight;
+      const vTop = copingHeight / textureScale;
       const vBottom = 0;
       
       uvs.push(u, vTop);
@@ -200,9 +200,9 @@ export const CopingGeometry = ({
       vertices.push(inner.x, 0, inner.z);
       
       // UV mapping for vertical wall
-      const distanceAlongPerimeter = distances[i];
+      const distanceAlongPerimeter = distances[i] / textureScale;
       const u = distanceAlongPerimeter;
-      const vTop = copingHeight;
+      const vTop = copingHeight / textureScale;
       const vBottom = 0;
       
       uvs.push(u, vTop);
