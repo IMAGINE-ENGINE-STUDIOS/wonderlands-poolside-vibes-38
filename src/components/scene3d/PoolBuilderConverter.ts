@@ -84,8 +84,9 @@ export function poolBuilderToScene(data: PoolBuilderData): Scene3D {
   } = data;
 
   // Calculate pool dimensions from points
-  const xCoords = points.map(p => p.x * scale);
-  const yCoords = points.map(p => p.y * scale);
+  // CRITICAL: 2D designer points are in pixels, need to convert to feet by dividing by scale
+  const xCoords = points.map(p => p.x / scale);
+  const yCoords = points.map(p => p.y / scale);
   const minX = Math.min(...xCoords);
   const maxX = Math.max(...xCoords);
   const minY = Math.min(...yCoords);
@@ -127,9 +128,9 @@ export function poolBuilderToScene(data: PoolBuilderData): Scene3D {
         id: feature.id,
         type: featureType,
         position: [
-          feature.x * scale,
+          feature.x / scale,  // Convert pixels to feet by dividing by scale
           0,
-          feature.y * scale
+          feature.y / scale   // Convert pixels to feet by dividing by scale
         ] as [number, number, number],
         rotation: feature.angle ? [0, feature.angle, 0] as [number, number, number] : undefined,
         scale: [1, 1, 1] as [number, number, number],
