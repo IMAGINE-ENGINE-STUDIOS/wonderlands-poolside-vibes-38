@@ -1256,9 +1256,9 @@ const SurveyQuoteTool = ({
                             </div>
                           )}
                           
-                          {/* Pavers Calculation with Image - Only for pool products, NOT lanai */}
+                          {/* Pavers and Screen Enclosure Details */}
                           {!hiddenSections.has('paver-deck') && isPoolProduct && !isLanaiProduct && (
-                            <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg relative">
+                            <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg relative space-y-4">
                               {isEditMode && (
                                 <button
                                   onClick={() => handleToggleSection('paver-deck')}
@@ -1270,105 +1270,46 @@ const SurveyQuoteTool = ({
                                   </svg>
                                 </button>
                               )}
-                              <h4 className="font-semibold mb-2">
-                                {isEditMode ? (
-                                  <input
-                                    type="text"
-                                    value={editableTexts['paver-deck-title'] || 'Paver Deck'}
-                                    onChange={(e) => setEditableTexts({...editableTexts, 'paver-deck-title': e.target.value})}
-                                    className="bg-white text-gray-900 border rounded px-2 py-1 w-full"
-                                  />
-                                ) : (editableTexts['paver-deck-title'] || 'Paver Deck')}
-                              </h4>
-                              <p className="text-sm text-muted-foreground mb-2">
-                                {isEditMode ? (
-                                  <input
-                                    type="text"
-                                    value={editableTexts['paver-deck-description'] || "Custom paver selection with full area pricing"}
-                                    onChange={(e) => setEditableTexts({...editableTexts, 'paver-deck-description': e.target.value})}
-                                    className="bg-white text-gray-900 border rounded px-2 py-1 w-full text-sm"
-                                  />
-                                ) : (editableTexts['paver-deck-description'] || "Custom paver selection with full area pricing")}
-                              </p>
-                              {pool?.dimensions && (() => {
-                            // Parse pool dimensions - handle formats like "15.5' × 31'" with decimals
-                            const dimensionString = pool.dimensions.toString();
-                            console.log('Pool dimensions string:', dimensionString);
-                            
-                            const dims = dimensionString
-                              .split(/[xX×]/)
-                              .map(d => {
-                                const cleaned = d.trim().replace(/['"ftFT\s]/g, '');
-                                const num = parseFloat(cleaned);
-                                console.log('Parsed dimension:', d, '->', num);
-                                return num;
-                              });
-                            
-                            const poolLength = dims[1] || 0;
-                            const poolWidth = dims[0] || 0;
-                            const poolArea = poolLength * poolWidth;
-                            
-                            // Use actual deck area from product customization
-                            const paverItem = extras?.extrasBreakdown?.find((item: any) => 
-                              item.name.includes('sq ft') && !item.name.includes('Screen Enclosure')
-                            );
-                            
-                            let totalDeckArea = 0;
-                            let totalAreaWithDeck = poolArea;
-                            
-                            if (paverItem) {
-                              // Extract deck area from paver item (e.g., "Appian Adobe (1100 sq ft)")
-                              const match = paverItem.name.match(/\((\d+)\s*sq\s*ft\)/i);
-                              if (match) {
-                                totalDeckArea = parseInt(match[1]);
-                                totalAreaWithDeck = poolArea + totalDeckArea;
-                              }
-                            }
-                            
-                            // Only show if we have deck area from customization
-                            if (totalDeckArea > 0) {
-                              return <div className="text-xs space-y-1 bg-teal-50 dark:bg-gray-700 p-2 rounded border mb-2">
-                                      <p className="font-medium">Area Calculation:</p>
-                                      <p>• Pool area: {poolArea.toFixed(0)} sq ft</p>
-                                      <p>• Deck area: {totalDeckArea.toFixed(0)} sq ft</p>
-                                      <p className="font-semibold text-teal-600">• Total area: {totalAreaWithDeck.toFixed(0)} sq ft</p>
-                                    </div>;
-                            }
-                            return null;
-                          })()}
                               
+                              {/* Paver Deck Section */}
                               {extras?.extrasBreakdown && (() => {
-                            const paverItem = extras.extrasBreakdown.find((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
-                            if (paverItem) {
-                              const selectedPaverName = paverItem.name.split(' (')[0];
-                              const paverImages = {
-                                'Appian Adobe': '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
-                                'Appian Amaretto': '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png',
-                                'Appian Harvest Blend': '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png',
-                                'Appian Knightsbridge': '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png',
-                                'Appian Napoli': '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.png',
-                                'Appian Rio': '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.png',
-                                'Appian Slate': '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.png',
-                                'Appian Titanium': '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
-                                'Appian Charco': '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.png',
-                                'Catalina Grana Amaretto': '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png',
-                                'Catalina Grana Napoli': '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.png',
-                                'Catalina Grana Rio': '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.png',
-                                'Catalina Grana Scandina Gray': '/lovable-uploads/638972ac-6a43-41e7-ae3c-bce58ab9417b.png',
-                                'Catalina Grana Slate': '/lovable-uploads/d85c2bf0-0a66-4aa0-9f64-5e76b511b428.png',
-                                'Catalina Grana Titanium': '/lovable-uploads/6aefa246-2c01-43a1-8a58-e195ec3355dc.png',
-                                'Catalina Napoli': '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.png',
-                                'Catalina Slate': '/lovable-uploads/3f98fbbb-b09a-4dbc-82f5-5d811564b9f4.png',
-                                'Catalina Titanium': '/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.png',
-                                'Premier Pavers': '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
-                                'Belgard Pavers': '/lovable-uploads/46d142d3-b106-406d-9867-9bf7b63fd469.png',
-                                'Tremron Pavers': '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png',
-                                'Cambridge Pavers': '/lovable-uploads/8033278d-a737-4b1d-84bf-fd0ac9126406.png'
-                              };
-                              const paverImage = paverImages[selectedPaverName] || paverImages['Premier Pavers'];
-                              return <div className="mb-3 p-2 border border-teal-200 rounded-md">
-                                      <div className="flex items-center gap-3">
-                                        <div className="w-16 h-16 rounded-md overflow-hidden border">
+                                const paverItem = extras.extrasBreakdown.find((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
+                                if (paverItem) {
+                                  const selectedPaverName = paverItem.name.split(' (')[0];
+                                  const areaMatch = paverItem.name.match(/\((\d+)\s*sq\s*ft\)/i);
+                                  const paverArea = areaMatch ? parseInt(areaMatch[1]) : 0;
+                                  
+                                  const paverImages = {
+                                    'Appian Adobe': '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
+                                    'Appian Amaretto': '/lovable-uploads/5e630c2e-3a3f-49bf-b5d5-425a69959416.png',
+                                    'Appian Harvest Blend': '/lovable-uploads/a5fa0931-4c93-4c42-81b9-e8ad3f61e659.png',
+                                    'Appian Knightsbridge': '/lovable-uploads/c20921ab-8964-417b-9ca5-069eea4976b7.png',
+                                    'Appian Napoli': '/lovable-uploads/1a896779-5d8f-4f85-b26b-ab797c2afac4.png',
+                                    'Appian Rio': '/lovable-uploads/b7d9216e-3489-4a50-827d-974a5b6481be.png',
+                                    'Appian Slate': '/lovable-uploads/fcc4d668-4682-47d8-89c4-5cba819f80ed.png',
+                                    'Appian Titanium': '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png',
+                                    'Appian Charco': '/lovable-uploads/6d98de42-0baa-42af-a04c-3b16e3dcb6a6.png',
+                                    'Catalina Grana Amaretto': '/lovable-uploads/58a4af60-11d8-4589-b955-f689476fc1b3.png',
+                                    'Catalina Grana Napoli': '/lovable-uploads/c16269fd-9db6-4791-8cef-9aaf0f5e972a.png',
+                                    'Catalina Grana Rio': '/lovable-uploads/d8bded3c-41a9-4591-b0bc-3e20a9977602.png',
+                                    'Catalina Grana Scandina Gray': '/lovable-uploads/638972ac-6a43-41e7-ae3c-bce58ab9417b.png',
+                                    'Catalina Grana Slate': '/lovable-uploads/d85c2bf0-0a66-4aa0-9f64-5e76b511b428.png',
+                                    'Catalina Grana Titanium': '/lovable-uploads/6aefa246-2c01-43a1-4a58-e195ec3355dc.png',
+                                    'Catalina Napoli': '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.png',
+                                    'Catalina Slate': '/lovable-uploads/3f98fbbb-b09a-4dbc-82f5-5d811564b9f4.png',
+                                    'Catalina Titanium': '/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.png',
+                                    'Premier Pavers': '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
+                                    'Belgard Pavers': '/lovable-uploads/46d142d3-b106-406d-9867-9bf7b63fd469.png',
+                                    'Tremron Pavers': '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png',
+                                    'Cambridge Pavers': '/lovable-uploads/8033278d-a737-4b1d-84bf-fd0ac9126406.png'
+                                  };
+                                  const paverImage = paverImages[selectedPaverName] || paverImages['Premier Pavers'];
+                                  
+                                  return (
+                                    <div className="border-b border-teal-300 dark:border-gray-600 pb-4">
+                                      <h4 className="font-semibold mb-3 text-lg">Paver Deck</h4>
+                                      <div className="flex items-start gap-3 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-teal-200 dark:border-gray-700">
+                                        <div className="w-24 h-24 rounded-md overflow-hidden border-2 border-teal-300 flex-shrink-0">
                                           <OptimizedImage 
                                             src={paverImage} 
                                             alt={selectedPaverName} 
@@ -1376,20 +1317,60 @@ const SurveyQuoteTool = ({
                                             sizeConfig="thumbnail"
                                           />
                                         </div>
-                                        <div className="flex-1">
-                                          <p className="text-sm font-medium">{selectedPaverName}</p>
-                                          <p className="text-xs text-muted-foreground">
-                                            {paverItem.name.match(/\((.*?)\)/)?.[1] || 'Custom area'}
+                                        <div className="flex-1 space-y-1">
+                                          <p className="font-semibold text-sm text-foreground">{selectedPaverName}</p>
+                                          <p className="text-sm text-muted-foreground">
+                                            <span className="font-medium">Area:</span> {paverArea.toLocaleString()} sq ft
                                           </p>
-                                          <p className="text-xs text-teal-600 font-semibold">
-                                            ${paverItem.price.toLocaleString()}
+                                          <p className="text-base font-bold text-teal-700 dark:text-teal-400">
+                                            Total Cost: ${paverItem.price.toLocaleString()}
                                           </p>
                                         </div>
                                       </div>
-                                    </div>;
-                            }
-                            return null;
-                          })()}
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
+                              
+                              {/* Screen Enclosure Section */}
+                              {extras?.extrasBreakdown && (() => {
+                                const enclosureItem = extras.extrasBreakdown.find((item: any) => item.name.includes('Screen Enclosure'));
+                                if (enclosureItem) {
+                                  const areaMatch = enclosureItem.name.match(/\((\d+)\s*sq\s*ft\)/i);
+                                  const enclosureArea = areaMatch ? parseInt(areaMatch[1]) : 0;
+                                  const enclosureType = enclosureItem.name.includes('Wonder Cage') ? 'Wonder Cage (Standard)' 
+                                    : enclosureItem.name.includes('Deluxe') ? 'Deluxe' 
+                                    : 'Premium';
+                                  const enclosureImage = enclosureItem.image || '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png';
+                                  
+                                  return (
+                                    <div>
+                                      <h4 className="font-semibold mb-3 text-lg">Screen Enclosure</h4>
+                                      <div className="flex items-start gap-3 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-orange-200 dark:border-gray-700">
+                                        <div className="w-24 h-24 rounded-md overflow-hidden border-2 border-orange-300 flex-shrink-0">
+                                          <OptimizedImage 
+                                            src={enclosureImage} 
+                                            alt={enclosureType} 
+                                            className="w-full h-full object-cover"
+                                            sizeConfig="thumbnail"
+                                          />
+                                        </div>
+                                        <div className="flex-1 space-y-1">
+                                          <p className="font-semibold text-sm text-foreground">{enclosureType}</p>
+                                          <p className="text-sm text-muted-foreground">
+                                            <span className="font-medium">Area:</span> {enclosureArea.toLocaleString()} sq ft
+                                          </p>
+                                          <p className="text-base font-bold text-orange-700 dark:text-orange-400">
+                                            Total Cost: ${enclosureItem.price.toLocaleString()}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
                             </div>
                           )}
                         </div>
