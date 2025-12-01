@@ -57,8 +57,8 @@ export const DeckGeometry = ({
     console.log('🔧 DeckGeometry: Creating continuous ring deck with proper offset curves');
     console.log('🔍 DeckGeometry: Input poolPoints:', poolPoints);
     
-    // Deck inner boundary is the outer edge of coping (or pool edge if no coping)
-    // Coping is 1ft wide starting at pool edge, so deck starts 1ft out from pool
+    // CRITICAL: Deck inner boundary MUST be at coping outer edge (pool edge + copingWidth)
+    // Deck outer boundary MUST be at deck inner + deckWidth
     const copingOffset = copingEnabled ? copingWidth : 0;
     const deckInnerBoundary = generateOffsetCurve(poolPoints, copingOffset);
     
@@ -77,6 +77,29 @@ export const DeckGeometry = ({
         Math.pow(deckInnerBoundary[0].x - poolPoints[0].x, 2) +
         Math.pow(deckInnerBoundary[0].z - poolPoints[0].z, 2)
       )
+    });
+    
+    // Calculate centroid to verify offset direction
+    const poolCentroid = { x: 0, z: 0 };
+    poolPoints.forEach(p => { poolCentroid.x += p.x; poolCentroid.z += p.z; });
+    poolCentroid.x /= poolPoints.length;
+    poolCentroid.z /= poolPoints.length;
+    
+    const distPoolToCenter = Math.sqrt(
+      Math.pow(poolPoints[0].x - poolCentroid.x, 2) +
+      Math.pow(poolPoints[0].z - poolCentroid.z, 2)
+    );
+    const distInnerToCenter = Math.sqrt(
+      Math.pow(deckInnerBoundary[0].x - poolCentroid.x, 2) +
+      Math.pow(deckInnerBoundary[0].z - poolCentroid.z, 2)
+    );
+    
+    console.log('🔍 DeckGeometry: Direction verification:', {
+      poolCentroid,
+      distPoolToCenter,
+      distInnerToCenter,
+      isMovingOutward: distInnerToCenter > distPoolToCenter,
+      shouldBeOutward: true
     });
     
     if (hardscapePoints && hardscapePoints.length >= 4) {
