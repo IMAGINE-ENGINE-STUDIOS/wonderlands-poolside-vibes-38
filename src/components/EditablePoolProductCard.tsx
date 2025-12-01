@@ -597,7 +597,6 @@ const EditablePoolProductCard = ({
             <div className="text-sm text-muted-foreground space-y-1">
               {editedPool.dimensions && <p>Dimensions: {editedPool.dimensions}</p>}
               {editedPool.depth && <p>Depth: {editedPool.depth}</p>}
-              <p>Includes: 3 ft perimeter pavers around pool area</p>
               {editedPool.installationTimeWeeks && (
                 <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />

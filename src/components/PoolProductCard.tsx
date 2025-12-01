@@ -699,7 +699,6 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
           <div className="mt-2 p-2 bg-primary/5 rounded-lg border border-primary/20">
             <p className="text-xs font-semibold text-primary mb-1">✓ Included with Pool:</p>
             <ul className="text-xs space-y-0.5">
-              <li>• 3 ft of pavers</li>
               <li>• Salt system</li>
               <li>• Pentair pool equipment</li>
               <li>• LED light</li>
@@ -1328,6 +1327,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                   </div>
                 )}
 
+                {/* Pool Tiles - HIDDEN FOR NOW
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox checked={extras.tiles} onCheckedChange={() => toggleExtra("tiles")} />
                   <div className="flex items-center space-x-1">
@@ -1405,6 +1405,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
                     </Carousel>
                   </div>
                 )}
+                END POOL TILES HIDDEN */}
               </div>
             </div>
 
