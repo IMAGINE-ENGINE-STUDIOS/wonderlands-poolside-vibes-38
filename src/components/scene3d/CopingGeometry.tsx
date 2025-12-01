@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { useMemo, useEffect, useState } from 'react';
+import { generateOffsetCurve } from '@/utils/curveUtils';
 
 interface CopingGeometryProps {
   poolPoints: Array<{ x: number; z: number }>;
@@ -47,85 +48,125 @@ export const CopingGeometry = ({
   const geometry = useMemo(() => {
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
     
+    console.log('🔧 CopingGeometry: Creating continuous ring coping with generateOffsetCurve');
+    
+    // Coping inner boundary = pool edge
+    const copingInnerBoundary = poolPoints;
+    
+    // Coping outer boundary = offset OUTWARD by copingWidth using generateOffsetCurve
+    const copingOuterBoundary = generateOffsetCurve(poolPoints, copingWidth);
+    
+    if (copingInnerBoundary.length !== copingOuterBoundary.length) {
+      console.error('⚠️ CopingGeometry: Inner and outer boundaries have different point counts!');
+      return new THREE.BufferGeometry();
+    }
+    
     const vertices: number[] = [];
     const indices: number[] = [];
     const uvs: number[] = [];
+    const numPoints = copingInnerBoundary.length;
     
-    // Coping is a ring directly at the pool edge, extending outward by copingWidth
-    for (let i = 0; i < poolPoints.length; i++) {
-      const p1 = poolPoints[i];
-      const p2 = poolPoints[(i + 1) % poolPoints.length];
+    // Create continuous ring geometry
+    // Top surface
+    for (let i = 0; i < numPoints; i++) {
+      const inner = copingInnerBoundary[i];
+      const outer = copingOuterBoundary[i];
       
-      const dx = p2.x - p1.x;
-      const dz = p2.z - p1.z;
-      const length = Math.sqrt(dx * dx + dz * dz);
+      // Top surface vertices (at copingHeight)
+      vertices.push(inner.x, copingHeight, inner.z);
+      vertices.push(outer.x, copingHeight, outer.z);
       
-      // Outward normal
-      const nx = dz / length;
-      const nz = -dx / length;
+      const u = i / numPoints;
+      uvs.push(u, 0);
+      uvs.push(u, 1);
+    }
+    
+    // Top surface triangles
+    for (let i = 0; i < numPoints; i++) {
+      const next = (i + 1) % numPoints;
+      const innerIdx = i * 2;
+      const outerIdx = i * 2 + 1;
+      const nextInnerIdx = next * 2;
+      const nextOuterIdx = next * 2 + 1;
       
-      const baseIdx = vertices.length / 3;
+      indices.push(innerIdx, nextInnerIdx, outerIdx);
+      indices.push(outerIdx, nextInnerIdx, nextOuterIdx);
+    }
+    
+    // Bottom surface
+    const bottomBaseIdx = vertices.length / 3;
+    for (let i = 0; i < numPoints; i++) {
+      const inner = copingInnerBoundary[i];
+      const outer = copingOuterBoundary[i];
       
-      // Inner edge (at pool boundary)
-      const innerP1 = { x: p1.x, z: p1.z };
-      const innerP2 = { x: p2.x, z: p2.z };
+      vertices.push(inner.x, 0, inner.z);
+      vertices.push(outer.x, 0, outer.z);
       
-      // Outer edge (copingWidth outward)
-      const outerP1 = { x: p1.x + nx * copingWidth, z: p1.z + nz * copingWidth };
-      const outerP2 = { x: p2.x + nx * copingWidth, z: p2.z + nz * copingWidth };
+      const u = i / numPoints;
+      uvs.push(u, 0);
+      uvs.push(u, 1);
+    }
+    
+    // Bottom surface triangles (reversed winding)
+    for (let i = 0; i < numPoints; i++) {
+      const next = (i + 1) % numPoints;
+      const innerIdx = bottomBaseIdx + i * 2;
+      const outerIdx = bottomBaseIdx + i * 2 + 1;
+      const nextInnerIdx = bottomBaseIdx + next * 2;
+      const nextOuterIdx = bottomBaseIdx + next * 2 + 1;
       
-      // Top surface vertices
-      vertices.push(innerP1.x, copingHeight, innerP1.z); // 0
-      vertices.push(outerP1.x, copingHeight, outerP1.z); // 1
-      vertices.push(innerP2.x, copingHeight, innerP2.z); // 2
-      vertices.push(outerP2.x, copingHeight, outerP2.z); // 3
+      indices.push(innerIdx, outerIdx, nextInnerIdx);
+      indices.push(outerIdx, nextOuterIdx, nextInnerIdx);
+    }
+    
+    // Outer vertical wall
+    const outerWallBaseIdx = vertices.length / 3;
+    for (let i = 0; i < numPoints; i++) {
+      const outer = copingOuterBoundary[i];
       
-      // UVs for top surface
-      const u1 = i / poolPoints.length;
-      const u2 = (i + 1) / poolPoints.length;
-      uvs.push(u1, 0, u1, 1, u2, 0, u2, 1);
+      vertices.push(outer.x, copingHeight, outer.z);
+      vertices.push(outer.x, 0, outer.z);
       
-      // Top face triangles
-      indices.push(baseIdx, baseIdx + 2, baseIdx + 1);
-      indices.push(baseIdx + 1, baseIdx + 2, baseIdx + 3);
+      const u = i / numPoints;
+      uvs.push(u, 1);
+      uvs.push(u, 0);
+    }
+    
+    // Outer wall triangles
+    for (let i = 0; i < numPoints; i++) {
+      const next = (i + 1) % numPoints;
+      const topIdx = outerWallBaseIdx + i * 2;
+      const bottomIdx = outerWallBaseIdx + i * 2 + 1;
+      const nextTopIdx = outerWallBaseIdx + next * 2;
+      const nextBottomIdx = outerWallBaseIdx + next * 2 + 1;
       
-      // Bottom surface vertices
-      const bottomBaseIdx = vertices.length / 3;
-      vertices.push(innerP1.x, 0, innerP1.z);
-      vertices.push(outerP1.x, 0, outerP1.z);
-      vertices.push(innerP2.x, 0, innerP2.z);
-      vertices.push(outerP2.x, 0, outerP2.z);
+      indices.push(topIdx, nextTopIdx, bottomIdx);
+      indices.push(bottomIdx, nextTopIdx, nextBottomIdx);
+    }
+    
+    // Inner vertical wall
+    const innerWallBaseIdx = vertices.length / 3;
+    for (let i = 0; i < numPoints; i++) {
+      const inner = copingInnerBoundary[i];
       
-      uvs.push(u1, 0, u1, 1, u2, 0, u2, 1);
+      vertices.push(inner.x, copingHeight, inner.z);
+      vertices.push(inner.x, 0, inner.z);
       
-      // Bottom face (reversed winding)
-      indices.push(bottomBaseIdx, bottomBaseIdx + 1, bottomBaseIdx + 2);
-      indices.push(bottomBaseIdx + 1, bottomBaseIdx + 3, bottomBaseIdx + 2);
+      const u = i / numPoints;
+      uvs.push(u, 1);
+      uvs.push(u, 0);
+    }
+    
+    // Inner wall triangles (reversed winding)
+    for (let i = 0; i < numPoints; i++) {
+      const next = (i + 1) % numPoints;
+      const topIdx = innerWallBaseIdx + i * 2;
+      const bottomIdx = innerWallBaseIdx + i * 2 + 1;
+      const nextTopIdx = innerWallBaseIdx + next * 2;
+      const nextBottomIdx = innerWallBaseIdx + next * 2 + 1;
       
-      // Outer vertical face
-      const outerBaseIdx = vertices.length / 3;
-      vertices.push(outerP1.x, copingHeight, outerP1.z);
-      vertices.push(outerP1.x, 0, outerP1.z);
-      vertices.push(outerP2.x, copingHeight, outerP2.z);
-      vertices.push(outerP2.x, 0, outerP2.z);
-      
-      uvs.push(u1, 1, u1, 0, u2, 1, u2, 0);
-      
-      indices.push(outerBaseIdx, outerBaseIdx + 2, outerBaseIdx + 1);
-      indices.push(outerBaseIdx + 1, outerBaseIdx + 2, outerBaseIdx + 3);
-      
-      // Inner vertical face
-      const innerFaceIdx = vertices.length / 3;
-      vertices.push(innerP1.x, copingHeight, innerP1.z);
-      vertices.push(innerP1.x, 0, innerP1.z);
-      vertices.push(innerP2.x, copingHeight, innerP2.z);
-      vertices.push(innerP2.x, 0, innerP2.z);
-      
-      uvs.push(u1, 1, u1, 0, u2, 1, u2, 0);
-      
-      // Reversed winding for inner face
-      indices.push(innerFaceIdx, innerFaceIdx + 1, innerFaceIdx + 2);
-      indices.push(innerFaceIdx + 1, innerFaceIdx + 3, innerFaceIdx + 2);
+      indices.push(topIdx, bottomIdx, nextTopIdx);
+      indices.push(bottomIdx, nextBottomIdx, nextTopIdx);
     }
     
     const geom = new THREE.BufferGeometry();
@@ -133,6 +174,8 @@ export const CopingGeometry = ({
     geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
     geom.setIndex(indices);
     geom.computeVertexNormals();
+    
+    console.log('✅ CopingGeometry: Continuous ring created with', numPoints, 'points');
     
     return geom;
   }, [poolPoints, copingWidth, copingHeight]);
