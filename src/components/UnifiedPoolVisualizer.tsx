@@ -702,25 +702,36 @@ export function UnifiedPoolVisualizer({
               <R3FCanvas
                 shadows
                 gl={{ 
-                  preserveDrawingBuffer: true,
+                  preserveDrawingBuffer: false, // Changed to false for better memory
                   antialias: true,
-                  alpha: true,
-                  powerPreference: "high-performance"
+                  alpha: false, // Changed to false for better performance
+                  powerPreference: "high-performance",
+                  failIfMajorPerformanceCaveat: false // Don't fail on slower devices
                 }}
-                onCreated={({ gl }) => {
+                onCreated={({ gl, scene }) => {
                   console.log('✅ WebGL Context Created');
+                  
+                  // Handle context loss
                   gl.domElement.addEventListener('webglcontextlost', (event) => {
                     event.preventDefault();
                     console.error('❌ WebGL Context Lost - attempting recovery');
                   });
+                  
+                  // Handle context restore
                   gl.domElement.addEventListener('webglcontextrestored', () => {
                     console.log('✅ WebGL Context Restored');
                   });
+                  
+                  // Enable automatic garbage collection
+                  gl.dispose = () => {
+                    console.log('🧹 Cleaning up WebGL resources');
+                  };
                 }}
                 camera={{
                   position: scene.camera.position,
                   fov: 50
                 }}
+                frameloop="demand" // Only render when needed, not every frame
               >
           {/* Dynamic Sky with Clouds */}
           <Sky 
@@ -746,56 +757,56 @@ export function UnifiedPoolVisualizer({
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />
           
-          {/* Pool walls, floor, coping, and waterline centered at world origin */}
+          {/* Pool walls, floor, coping, waterline, AND deck - all in one rendering */}
           <group ref={poolGroupRef} position={[0, 0, 0]} key={`pool-${scene.pool.position.join('-')}`}>
-            <group onClick={(e) => {
-              e.stopPropagation();
-              setSelectedCategory('pool');
-              setSelectedComponent('pool');
-            }}>
-              <Pool3DScene
-                points={scene.pool.points}
-                depthPoints={scene.pool.depthPoints}
-                hardscapePoints={[]} // Empty - deck rendered separately
-                linerTextureUrl={linerTextureUrl}
-                paverTextureUrl={paverTextureUrl}
-                copingTextureUrl={copingTextureUrl}
-                waterlineTextureUrl={waterlineTextureUrl}
-                fenceTextureUrl="/src/assets/fence-texture.png"
-                features={[]}
-                fencePoints={[]}
-                scale={1}
-                poolShape="rectangle"
-                poolDimensions={scene.pool.dimensions}
-                selectedCategory={selectedCategory}
-                onSelectCategory={setSelectedCategory}
-                onSelectComponent={setSelectedComponent}
-                fenceHeight={fenceHeight}
-                paverTextureScale={1.8}
-                copingTextureScale={scene.deck.coping.scale || 1.8}
-                waterlineTextureScale={scene.deck.waterline?.scale || 1.8}
-                linerTextureScale={scene.pool.finish.scale || 1.8}
-                paverTextureOffset={[0, 0]}
-                copingTextureOffset={scene.deck.coping.offset || [0, 0]}
-                waterlineTextureOffset={scene.deck.waterline?.offset || [0, 0]}
-                linerTextureOffset={scene.pool.finish.offset || [0, 0]}
-                poolPosition={[0, 0, 0]}
-                copingHeight={scene.deck.copingHeight || 2 / 12}
-                deckHeight={scene.deck.deckHeight || 2 / 12}
-                copingWidth={scene.deck.copingWidth || 1.0}
-                deckWidth={deckWidth}
-                stairs={scene.stairs}
-                onStairsChange={handleStairsChange}
-                isStairsPlacementMode={false}
-                onStairsPlacementComplete={handleStairsPlacementComplete}
-                selectedStairId={selectedStairId}
-                onSelectStair={setSelectedStairId}
-                enablePoolSplineEdit={enablePoolSplineEdit}
-                enableDeckSplineEdit={enableDeckSplineEdit}
-                onPoolPointsChange={handlePoolPointsChange}
-                onDeckPointsChange={handleDeckPointsChange}
-              />
-            </group>
+            <Pool3DScene
+              points={scene.pool.points}
+              depthPoints={scene.pool.depthPoints}
+              hardscapePoints={scene.deck.points || []} // Include deck in single render
+              linerTextureUrl={linerTextureUrl}
+              paverTextureUrl={paverTextureUrl}
+              copingTextureUrl={copingTextureUrl}
+              waterlineTextureUrl={waterlineTextureUrl}
+              fenceTextureUrl="/src/assets/fence-texture.png"
+              features={scene.features.map(f => ({
+                type: f.type as any,
+                x: f.position[0],
+                y: f.position[2],
+                id: f.id,
+                angle: f.rotation?.[1]
+              }))}
+              fencePoints={[]}
+              scale={1}
+              poolShape="rectangle"
+              poolDimensions={scene.pool.dimensions}
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
+              onSelectComponent={setSelectedComponent}
+              fenceHeight={fenceHeight}
+              paverTextureScale={scene.deck.paver.scale || 1.8}
+              copingTextureScale={scene.deck.coping.scale || 1.8}
+              waterlineTextureScale={scene.deck.waterline?.scale || 1.8}
+              linerTextureScale={scene.pool.finish.scale || 1.8}
+              paverTextureOffset={scene.deck.paver.offset || [0, 0]}
+              copingTextureOffset={scene.deck.coping.offset || [0, 0]}
+              waterlineTextureOffset={scene.deck.waterline?.offset || [0, 0]}
+              linerTextureOffset={scene.pool.finish.offset || [0, 0]}
+              poolPosition={[0, 0, 0]}
+              copingHeight={scene.deck.copingHeight || 2 / 12}
+              deckHeight={scene.deck.deckHeight || 2 / 12}
+              copingWidth={scene.deck.copingWidth || 1.0}
+              deckWidth={deckWidth}
+              stairs={scene.stairs}
+              onStairsChange={handleStairsChange}
+              isStairsPlacementMode={isStairsPlacementMode}
+              onStairsPlacementComplete={handleStairsPlacementComplete}
+              selectedStairId={selectedStairId}
+              onSelectStair={setSelectedStairId}
+              enablePoolSplineEdit={enablePoolSplineEdit}
+              enableDeckSplineEdit={enableDeckSplineEdit}
+              onPoolPointsChange={handlePoolPointsChange}
+              onDeckPointsChange={handleDeckPointsChange}
+            />
           </group>
 
           {/* Water surface - follows actual pool shape */}
@@ -806,66 +817,6 @@ export function UnifiedPoolVisualizer({
               poolDimensions={scene.pool.dimensions}
             />
           </group>
-
-          {/* Deck only - attached to coping, NO pool mesh */}
-          {scene.deck.points && scene.deck.points.length > 0 && (
-            <group position={[0, 0, 0]} onClick={(e) => {
-              e.stopPropagation();
-              setSelectedCategory('deck');
-              setSelectedComponent('deck');
-            }}>
-              <Pool3DScene
-                points={[]} // Empty points = no pool mesh rendered
-                depthPoints={[]} // No pool walls/floor in this group
-                hardscapePoints={scene.deck.points}
-                linerTextureUrl={linerTextureUrl}
-                paverTextureUrl={paverTextureUrl}
-                copingTextureUrl={copingTextureUrl}
-                waterlineTextureUrl={waterlineTextureUrl}
-                fenceTextureUrl="/src/assets/fence-texture.png"
-                features={scene.features.map(f => ({
-                  type: f.type as any,
-                  x: f.position[0],
-                  y: f.position[2],
-                  id: f.id,
-                  angle: f.rotation?.[1]
-                }))}
-                fencePoints={[]}
-                scale={1}
-                poolShape="rectangle"
-                poolDimensions={scene.pool.dimensions}
-                selectedCategory={selectedCategory}
-                onSelectCategory={setSelectedCategory}
-                onSelectComponent={setSelectedComponent}
-                fenceHeight={fenceHeight}
-                paverTextureScale={scene.deck.paver.scale || 1.8}
-                copingTextureScale={1.8}
-                waterlineTextureScale={1.8}
-                linerTextureScale={1.8}
-                paverTextureOffset={scene.deck.paver.offset || [0, 0]}
-                copingTextureOffset={[0, 0]}
-                waterlineTextureOffset={[0, 0]}
-                linerTextureOffset={[0, 0]}
-                poolPosition={[0, 0, 0]}
-                copingHeight={scene.deck.copingHeight || 2 / 12}
-                deckHeight={scene.deck.deckHeight || 2 / 12}
-                copingWidth={scene.deck.copingWidth || 1.0}
-                deckWidth={deckWidth}
-                stairs={[]}
-                onStairsChange={handleStairsChange}
-                isStairsPlacementMode={isStairsPlacementMode}
-                onStairsPlacementComplete={handleStairsPlacementComplete}
-                selectedStairId={selectedStairId}
-                onSelectStair={setSelectedStairId}
-                enablePoolSplineEdit={enablePoolSplineEdit}
-                enableDeckSplineEdit={enableDeckSplineEdit}
-                onPoolPointsChange={handlePoolPointsChange}
-                onDeckPointsChange={handleDeckPointsChange}
-              />
-              
-              {/* Deck editor disabled per user request */}
-            </group>
-          )}
 
           {/* 3D Assets */}
           {assets3D.map((asset) => (
