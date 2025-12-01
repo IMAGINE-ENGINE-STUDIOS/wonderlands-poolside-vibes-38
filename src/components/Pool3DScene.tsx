@@ -201,12 +201,11 @@ const PoolMesh: React.FC<{
 
     // Generate smooth curved points from the original points
     // This creates smooth curves that match the 2D designer shapes exactly
-    // ONLY curves corners with angles < 135° (excludes 90° rectangular corners)
+    // ONLY curves very gentle bends (< 20°), keeps 90° corners and all sharp angles linear
     const curvedPoints = generateCurvedPoolPoints(
       points.map(p => ({ x: p.x, y: p.y })),
       30, // segments per edge for very smooth curves
-      0.3, // tension for natural-looking curves
-      135  // angle threshold: only curve corners < 135° (keeps rectangular pools sharp)
+      0.3  // tension for natural-looking curves
     );
 
     const minX = Math.min(...curvedPoints.map(p => p.x));
@@ -795,7 +794,7 @@ const DeckCopingMesh: React.FC<{
     
     // Step 1: Generate smooth curved pool boundary (EXACT same as pool walls)
     const poolCurve2D = poolPoints.map(p => ({ x: p.x, y: p.y }));
-    const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3, 135);
+    const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
     
     // Step 2: Normalize to world coordinates (same as pool walls)
     const minX = Math.min(...smoothPoolCurve.map(p => p.x));
@@ -839,7 +838,7 @@ const DeckCopingMesh: React.FC<{
       
       // Step 1: Generate smooth curved pool boundary (same as coping)
       const poolCurve2D = poolPoints.map(p => ({ x: p.x, y: p.y }));
-      const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3, 135);
+      const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
       
       // Step 2: Normalize to world coordinates
       const minX = Math.min(...smoothPoolCurve.map(p => p.x));
@@ -1021,7 +1020,7 @@ const FenceMesh: React.FC<{
   );
 };
 
-// Grass Terrain Component with Simple Rectangular Pool Cutout
+// Grass Terrain Component with Pool Cutout Following Exact Pool Walls
 const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPosition?: [number, number, number] }> = ({ poolPoints, copingWidth = 1.0, poolPosition = [0, 0, 0] }) => {
   const texture = useTexture(grassTexture);
   
@@ -1037,14 +1036,15 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPo
     terrainShape.lineTo(-5000, 5000);
     terrainShape.closePath();
     
-    // Create rectangular hole matching EXACT water mesh coordinates
-    // Water is at S17-W25: x from -10 to 10 (20ft), y from -20 to 20 (40ft)
+    // Create hole following exact pool wall boundaries
     const poolHole = new THREE.Path();
-    poolHole.moveTo(-10, -20);  // S17
-    poolHole.lineTo(10, -20);   // W17
-    poolHole.lineTo(10, 20);    // W25
-    poolHole.lineTo(-10, 20);   // S25
-    poolHole.closePath();
+    if (poolPoints.length > 0) {
+      poolHole.moveTo(poolPoints[0].x, poolPoints[0].y);
+      for (let i = 1; i < poolPoints.length; i++) {
+        poolHole.lineTo(poolPoints[i].x, poolPoints[i].y);
+      }
+      poolHole.closePath();
+    }
     
     terrainShape.holes.push(poolHole);
     
@@ -1053,7 +1053,7 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPo
     geometry.rotateX(-Math.PI / 2);
     
     return geometry;
-  }, [texture]);
+  }, [texture, poolPoints]);
   
   return (
     <mesh geometry={terrainGeometry} position={[0, -0.02, 0]} receiveShadow>
