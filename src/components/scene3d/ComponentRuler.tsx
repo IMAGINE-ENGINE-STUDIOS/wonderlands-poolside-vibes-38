@@ -35,20 +35,24 @@ export const ComponentRuler = ({ bounds, height = 0.1 }: ComponentRulerProps) =>
     return points;
   }, [minX, maxX, minY, maxY, height]);
   
+  // Create line geometry
+  const lineGeometry = useMemo(() => {
+    const geo = new THREE.BufferGeometry();
+    const positions = new Float32Array(rulerLines.flatMap(v => [v.x, v.y, v.z]));
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    return geo;
+  }, [rulerLines]);
+  
+  // Create line object
+  const lineObject = useMemo(() => {
+    const material = new THREE.LineBasicMaterial({ color: '#ffff00' });
+    return new THREE.Line(lineGeometry, material);
+  }, [lineGeometry]);
+  
   return (
     <group>
       {/* Ruler lines */}
-      <line>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            count={rulerLines.length}
-            array={new Float32Array(rulerLines.flatMap(v => [v.x, v.y, v.z]))}
-            itemSize={3}
-          />
-        </bufferGeometry>
-        <lineBasicMaterial color="#ffff00" linewidth={2} />
-      </line>
+      <primitive object={lineObject} />
       
       {/* Width measurement (top) */}
       <Text
