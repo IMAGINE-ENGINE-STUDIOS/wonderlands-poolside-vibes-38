@@ -53,6 +53,11 @@ const Index = () => {
         <GilmerPoolsSection />
       </LazySection>
       
+      <div id="saunas" />
+      <LazySection>
+        <SaunaSection />
+      </LazySection>
+      
       <div id="spas" />
       <LazySection eager={true}>
         <SpaCatalog />
@@ -92,10 +97,6 @@ const Index = () => {
       <div id="driveway-gates" />
       <LazySection>
         <DrivewayGateSection />
-      </LazySection>
-      <div id="saunas" />
-      <LazySection>
-        <SaunaSection />
       </LazySection>
       <Footer />
     </div>;

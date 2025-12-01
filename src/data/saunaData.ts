@@ -3,7 +3,7 @@ export const saunas = [
     id: 'barrel-sauna-4',
     name: 'Barrel Sauna 4-Person',
     model: 'Barrel Sauna 4P',
-    price: 15000,
+    price: 18000, // was 15000, +20%
     category: 'premium',
     image: '/lovable-uploads/barrel-sauna.webp',
     // New: Multiple images gallery
@@ -33,7 +33,7 @@ export const saunas = [
     id: 'barrel-sauna-6',
     name: 'Barrel Sauna 6-Person',
     model: 'Barrel Sauna 6P',
-    price: 18000,
+    price: 21600, // was 18000, +20%
     category: 'premium',
     image: '/lovable-uploads/barrel-sauna.webp',
     capacity: '6 persons',
@@ -58,7 +58,7 @@ export const saunas = [
     id: 'traditional-sauna-4',
     name: 'Traditional Indoor Sauna 4-Person',
     model: 'Traditional 4P',
-    price: 19000,
+    price: 22800, // was 19000, +20%
     category: 'deluxe',
     image: '/lovable-uploads/barrel-sauna.webp',
     capacity: '4 persons',
@@ -82,7 +82,7 @@ export const saunas = [
     id: 'infrared-sauna-2',
     name: 'Infrared Sauna 2-Person',
     model: 'Infrared 2P',
-    price: 25000,
+    price: 30000, // was 25000, +20%
     category: 'compact',
     image: '/lovable-uploads/barrel-sauna.webp',
     capacity: '2 persons',
