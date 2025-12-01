@@ -82,7 +82,7 @@ const handleRequestQuote = (ledge: TanningLedge, extras?: any) => {
           <Carousel opts={{ align: "start", loop: true }} className="w-full max-w-5xl mx-auto">
             <CarouselContent className="-ml-4">
               {tanningLedgesWithCategory.map((ledge) => (
-                <CarouselItem key={ledge.name} className="pl-4 md:basis-1/2">
+                <CarouselItem key={ledge.name} className="pl-4 md:basis-1/4">
                   <TanningLedgeProductCard
                     ledge={ledge}
                     onViewDetails={handleViewDetails}
