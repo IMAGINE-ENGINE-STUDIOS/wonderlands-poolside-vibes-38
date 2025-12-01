@@ -162,7 +162,7 @@ const SpaCatalog = () => {
           <Carousel opts={{ align: "start", loop: true }} className="w-full max-w-5xl mx-auto">
             <CarouselContent className="-ml-4">
               {spas.map(spa => (
-                <CarouselItem key={spa.model} className="pl-4 md:basis-1/2">
+                <CarouselItem key={spa.model} className="pl-4 md:basis-1/4">
                   <SpaProductCard spa={spa} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />
                 </CarouselItem>
               ))}
