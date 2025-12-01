@@ -82,6 +82,7 @@ interface PoolBuilderProps {
     area: number;
     deckArea: number;
     totalCost: number;
+    scale: number; // pixels per foot for 3D conversion
     breakdown: {
       poolCost: number;
       deckCost: number;
@@ -2086,6 +2087,7 @@ export function PoolBuilder({
       onPoolDataChange({
         points,
         depthPoints,
+        scale, // CRITICAL: Export scale so 3D viewer can convert correctly
         features,
         perimeter: poolPerimeter,
         area: poolArea,

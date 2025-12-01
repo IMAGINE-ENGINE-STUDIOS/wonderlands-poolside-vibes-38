@@ -103,7 +103,7 @@ export function UnifiedPoolVisualizer({
   const [poolTransformMode, setPoolTransformMode] = useState(false);
   const [transformStepSize, setTransformStepSize] = useState(1); // Default 1 ft
   const [showMeasurements, setShowMeasurements] = useState(false);
-  const [controllerCollapsed, setControllerCollapsed] = useState(true); // Start collapsed
+  
   const [assets3D, setAssets3D] = useState<any[]>([]);
   const [showGrid, setShowGrid] = useState(true);
   const [showRulers, setShowRulers] = useState(false);
@@ -209,12 +209,6 @@ export function UnifiedPoolVisualizer({
     }
   }, [selectedCategory]);
 
-  // Auto-expand control panel when component is clicked
-  useEffect(() => {
-    if (selectedCategory || selectedComponent) {
-      setControllerCollapsed(false);
-    }
-  }, [selectedCategory, selectedComponent]);
 
   const handleTextureChange = (category: 'pool' | 'deck' | 'coping' | 'waterline', texture: TextureConfig) => {
     const updated = { ...scene };
@@ -613,79 +607,6 @@ export function UnifiedPoolVisualizer({
           </button>
         </div>
 
-        {/* Full Scene Control Panel - Floating and Auto-Expanding */}
-        <div className={`absolute top-4 right-16 bg-background/95 backdrop-blur-sm rounded-lg shadow-2xl border-2 transition-all duration-300 ${
-          controllerCollapsed 
-            ? 'w-auto border-border/50' 
-            : 'w-80 max-h-[90vh] overflow-y-auto border-primary/50 shadow-primary/20'
-        } z-20`}>
-          {/* Collapse/Expand Toggle */}
-          {controllerCollapsed ? (
-            <div className="relative">
-              <button
-                onClick={() => setControllerCollapsed(false)}
-                className="p-3 bg-primary text-primary-foreground rounded-lg shadow-lg hover:bg-primary/90 transition-all animate-pulse"
-                title="Open 3D Controls - Click on pool components to edit"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              
-              {/* Floating instruction tooltip */}
-              <div className="absolute top-full mt-2 right-0 bg-primary/90 text-primary-foreground text-xs rounded px-3 py-2 shadow-lg whitespace-nowrap pointer-events-none animate-pulse">
-                👆 Click pool parts to edit
-              </div>
-            </div>
-          ) : (
-            <>
-              <button
-                onClick={() => setControllerCollapsed(true)}
-                className="absolute -left-10 top-4 bg-primary text-primary-foreground rounded-full p-2 shadow-xl hover:bg-primary/90 transition-all z-30 border-2 border-background"
-                title="Collapse Controls"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-              
-              {/* Scene3DControlPanel integrated inside */}
-              <Scene3DControlPanel
-                scene={scene}
-                selectedObject={selectedObject}
-                selectedCategory={selectedCategory}
-                textureLibrary={textureLibrary}
-                transformMode={transformMode}
-                autoRotate={autoRotate}
-                onTextureChange={handleTextureChange}
-                onTransformChange={handleTransformChange}
-                onTransformModeChange={setTransformMode}
-                onCenterCamera={handleCenterCamera}
-                onAddAnnotation={handleAddAnnotation}
-                onAutoRotateToggle={() => setAutoRotate(!autoRotate)}
-                onSceneChange={setScene}
-                sunPosition={sunPosition}
-                onSunPositionChange={setSunPosition}
-                fenceHeight={fenceHeight}
-                onFenceHeightChange={setFenceHeight}
-                deckWidth={deckWidth}
-                onDeckWidthChange={setDeckWidth}
-                poolCategory={new URLSearchParams(window.location.search).get('category') || 'deluxe'}
-                stairs={scene.stairs}
-                poolDepth={poolDepth}
-                onStairsChange={handleStairsChange}
-                onPlacementModeToggle={setIsStairsPlacementMode}
-                isStairsPlacementMode={isStairsPlacementMode}
-                selectedStairId={selectedStairId}
-                enablePoolSplineEdit={enablePoolSplineEdit}
-                enableDeckSplineEdit={enableDeckSplineEdit}
-                onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
-                onDeckSplineEditToggle={() => setEnableDeckSplineEdit(!enableDeckSplineEdit)}
-                onSelectCategory={setSelectedCategory}
-                showWireframe={showWireframe}
-                onWireframeToggle={() => setShowWireframe(!showWireframe)}
-                showDebugBoundaries={showDebugBoundaries}
-                onDebugBoundariesToggle={() => setShowDebugBoundaries(!showDebugBoundaries)}
-              />
-            </>
-          )}
-        </div>
 
          {/* Quick Controls Bar - Bottom Left */}
          <div className="absolute bottom-4 left-4 flex flex-col gap-2 z-10">

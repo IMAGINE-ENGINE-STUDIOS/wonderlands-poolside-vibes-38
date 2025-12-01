@@ -177,19 +177,26 @@ export function productToScene(
   
   if (selectedExtras.customPoolShape && Array.isArray(selectedExtras.customPoolShape) && selectedExtras.customPoolShape.length >= 3) {
     // Convert 2D editor points to 3D pool points
-    // Scale from pixels to feet (assuming 800px canvas = ~40 feet width)
-    const canvasToFeet = 40 / 800;
+    // CRITICAL FIX: Use the actual scale from PoolBuilder (10 pixels per foot)
+    // Or extract from poolBuilderData if available
+    const scale = selectedExtras.poolBuilderData?.scale || 10; // PoolBuilder uses 10 pixels per foot
+    const pixelsToFeet = 1 / scale; // Convert pixels to feet
     
     poolPoints = selectedExtras.customPoolShape.map((pt: any, idx: number) => ({
-      x: pt.x * canvasToFeet,
-      y: pt.y * canvasToFeet,
+      x: pt.x * pixelsToFeet,
+      y: pt.y * pixelsToFeet,
       id: `p${idx + 1}`
     }));
     
     console.log('🎨 Using custom pool shape from 2D editor:', {
       originalPoints: selectedExtras.customPoolShape.length,
       convertedPoints: poolPoints.length,
-      scale: canvasToFeet
+      scale: scale,
+      pixelsToFeet: pixelsToFeet,
+      sampleConversion: {
+        firstPoint: selectedExtras.customPoolShape[0],
+        convertedPoint: poolPoints[0]
+      }
     });
   } else {
     // Create basic pool shape points (rectangle)
