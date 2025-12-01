@@ -99,6 +99,7 @@ export function UnifiedPoolVisualizer({
   const [selectedStairId, setSelectedStairId] = useState<string | null>(null);
   const [enablePoolSplineEdit, setEnablePoolSplineEdit] = useState(false);
   const [enableDeckSplineEdit, setEnableDeckSplineEdit] = useState(false);
+  const [enableFloorDepthSplineEdit, setEnableFloorDepthSplineEdit] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [poolTransformMode, setPoolTransformMode] = useState(false);
   const [transformStepSize, setTransformStepSize] = useState(1); // Default 1 ft
@@ -370,6 +371,17 @@ export function UnifiedPoolVisualizer({
     });
   };
 
+  const handlePerimeterDepthPointsChange = (points: Array<{ x: number; z: number; depth: number; id: string; type?: 'linear' | 'smooth' }>) => {
+    console.log('Perimeter depth points updated:', points);
+    setScene({
+      ...scene,
+      pool: {
+        ...scene.pool,
+        perimeterDepthPoints: points
+      }
+    });
+  };
+
   const toggleFullscreen = async () => {
     // For mobile, toggle fullscreen and rotate screen to landscape
     if (isMobile) {
@@ -628,9 +640,11 @@ export function UnifiedPoolVisualizer({
            poolModel={new URLSearchParams(window.location.search).get('model') || ''}
            deckWidth={deckWidth}
            onDeckWidthChange={setDeckWidth}
-           enablePoolSplineEdit={enablePoolSplineEdit}
-           onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
-         />
+            enablePoolSplineEdit={enablePoolSplineEdit}
+            onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
+            enableFloorDepthSplineEdit={enableFloorDepthSplineEdit}
+            onFloorDepthSplineEditToggle={() => setEnableFloorDepthSplineEdit(!enableFloorDepthSplineEdit)}
+          />
 
         <Scene3DErrorBoundary scene={scene} onRecover={handleSceneRecover}>
           <Suspense fallback={
@@ -747,8 +761,11 @@ export function UnifiedPoolVisualizer({
               onSelectStair={setSelectedStairId}
               enablePoolSplineEdit={enablePoolSplineEdit}
               enableDeckSplineEdit={enableDeckSplineEdit}
+              enableFloorDepthSplineEdit={enableFloorDepthSplineEdit}
+              perimeterDepthPoints={scene.pool.perimeterDepthPoints}
               onPoolPointsChange={handlePoolPointsChange}
               onDeckPointsChange={handleDeckPointsChange}
+              onPerimeterDepthPointsChange={handlePerimeterDepthPointsChange}
               showWireframe={showWireframe}
               showDebugBoundaries={showDebugBoundaries}
               onDebugBoundariesChange={setShowDebugBoundaries}
