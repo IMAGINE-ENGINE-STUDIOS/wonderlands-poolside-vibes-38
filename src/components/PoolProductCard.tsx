@@ -76,6 +76,7 @@ interface PoolProductCardProps {
   onViewDetails: (pool: Pool) => void;
   onRequestQuote: (pool: Pool, extras?: PoolExtras) => void;
   isAdmin?: boolean;
+  priority?: boolean; // For above-the-fold images
 }
 interface PoolExtras {
   liner: boolean;
@@ -145,7 +146,7 @@ const getExtraPrice = (extra: string) => {
 import { getProductsByCompatiblePool } from "@/data/consolidatedProducts";
 import { poolLiners, poolTiles } from "@/data/poolData";
 
-const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false }: PoolProductCardProps) => {
+const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false, priority = false }: PoolProductCardProps) => {
   // Filter finishes based on pool model compatibility
   const compatibleFinishes = getProductsByCompatiblePool("finish", pool.model);
   
@@ -613,6 +614,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false 
             alt={pool.model}
             className="w-full h-full object-cover transition-transform duration-300 group-hover/image:scale-105"
             sizeConfig="poolCard"
+            priority={priority}
+            fetchpriority={priority ? 'high' : 'auto'}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-teal/20">

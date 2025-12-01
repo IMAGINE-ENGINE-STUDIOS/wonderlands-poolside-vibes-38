@@ -18,6 +18,7 @@ interface OptimizedImageProps {
   height?: number;
   sizes?: string;
   priority?: boolean;
+  fetchpriority?: 'high' | 'low' | 'auto';
   sizeConfig?: 'poolCard' | 'logoLarge' | 'logoSmall' | 'thumbnail' | 'quoteImage' | 'hero';
 }
 
@@ -31,6 +32,7 @@ export const OptimizedImage = ({
   height,
   sizes,
   priority = false,
+  fetchpriority = 'auto',
   sizeConfig
 }: OptimizedImageProps) => {
   const [supportsWebP, setSupportsWebP] = useState<boolean | null>(null);
@@ -107,8 +109,10 @@ export const OptimizedImage = ({
         alt={alt} 
         className={className} 
         loading={actualLoading}
+        fetchPriority={priority ? 'high' : fetchpriority}
         width={actualWidth}
         height={actualHeight}
+        decoding={priority ? 'sync' : 'async'}
       />
     );
   }
@@ -127,11 +131,13 @@ export const OptimizedImage = ({
         alt={alt} 
         className={className}
         loading={actualLoading}
+        fetchPriority={priority ? 'high' : fetchpriority}
         onError={handleError}
         width={actualWidth}
         height={actualHeight}
         sizes={actualSizes}
         srcSet={generateSrcSetForImage(getOptimizedSrc())}
+        decoding={priority ? 'sync' : 'async'}
       />
     </picture>
   );

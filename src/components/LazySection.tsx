@@ -10,9 +10,9 @@ interface LazySectionProps {
 
 const LazySection = ({ 
   children, 
-  rootMargin = '200px',
-  threshold = 0.1,
-  fallback = <div className="min-h-[200px] flex items-center justify-center"><div className="animate-pulse text-muted-foreground">Loading...</div></div>,
+  rootMargin = '400px', // Increased from 200px for earlier loading
+  threshold = 0.01, // Lower threshold for earlier trigger
+  fallback = <div className="min-h-[200px]" />, // Minimal fallback for faster perceived load
   eager = false
 }: LazySectionProps) => {
   const [isVisible, setIsVisible] = useState(eager);
@@ -44,7 +44,7 @@ const LazySection = ({
     const handleResize = () => {
       if (currentRef && !hasLoaded) {
         const rect = currentRef.getBoundingClientRect();
-        if (rect.top < window.innerHeight + 200) {
+        if (rect.top < window.innerHeight + 400) { // Increased threshold
           setIsVisible(true);
           setHasLoaded(true);
         }
