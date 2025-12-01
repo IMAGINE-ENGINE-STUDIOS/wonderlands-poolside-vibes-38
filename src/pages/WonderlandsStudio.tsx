@@ -778,6 +778,12 @@ const WonderlandsStudio = () => {
 
     // Create detailed extras breakdown for quote tool
     const extrasBreakdown = [];
+    
+    console.log('🏗️ BUILDING EXTRAS BREAKDOWN', {
+      selectedExtras,
+      selectedProduct,
+      paverSurfaceArea
+    });
 
     // Add finish if selected
     const selectedFinish = finishOptions.find(finish => finish.name === selectedExtras.finish);
@@ -875,6 +881,9 @@ const WonderlandsStudio = () => {
       });
     }
     const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
+
+    console.log('✅ EXTRAS BREAKDOWN COMPLETE:', extrasBreakdown);
+    console.log('💰 TOTAL EXTRAS:', extrasTotal);
 
     // Store the breakdown for the quote modal
     setSelectedExtras(prev => ({

@@ -73,6 +73,12 @@ const SurveyQuoteTool = ({
     user
   } = useAuth();
   
+  // Debug: Log extras data when component mounts or extras changes
+  useEffect(() => {
+    console.log('🔍 SurveyQuoteTool RECEIVED EXTRAS:', extras);
+    console.log('🔍 EXTRAS BREAKDOWN:', extras?.extrasBreakdown);
+  }, [extras]);
+  
   // Load cached form data on mount
   const loadCachedData = (): Partial<SurveyData> => {
     try {
