@@ -53,6 +53,7 @@ interface Pool {
   liners?: string[];
   covers?: string[];
   type?: string; // Pool type: "Fiber Pool" or "Concrete Pool"
+  description?: string; // Pool description
 }
 interface Spa {
   model: string;
@@ -88,7 +89,8 @@ const pools: Pool[] = [
   features: ["Infinity Edge Design", "Jacuzzi Combo Included", "Premium Finish", "Custom Design"],
   heater: true,
   saltSystem: true,
-  carbonFiber: false
+  carbonFiber: false,
+  description: "Premium concrete infinity pool with integrated spa. Features stunning infinity edge design and luxurious concrete construction with customizable finishes."
 },
 // Maxima Premium Fiberglass Pool - FLORIDA (NO SURCHARGE)
 {
@@ -118,7 +120,8 @@ const pools: Pool[] = [
   features: ["Rectangular Design", "Variable Depth", "Premium Finish"],
   heater: false,
   saltSystem: false,
-  carbonFiber: false
+  carbonFiber: false,
+  description: "Elegant concrete pool featuring classic rectangular design. Durable concrete construction with variable depth and customizable premium finishes."
 },
 // Winderview Concrete Pool by Wonderlands - FLORIDA (NO SURCHARGE)
 {
@@ -133,6 +136,7 @@ const pools: Pool[] = [
   features: ["Tanning Ledge", "Rectangular Design", "Concrete Construction", "Custom Finish Options"],
   heater: false,
   saltSystem: false,
+  description: "Wonderlands concrete pool with integrated tanning ledge. Premium concrete construction allows for custom finishes and durable, long-lasting quality.",
   carbonFiber: false,
   type: "Concrete Pool"
 },
