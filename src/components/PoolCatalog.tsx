@@ -105,7 +105,8 @@ const pools: Pool[] = [
   features: ["Premium Fiberglass Construction", "Wonderlands World Collection", "Luxury Design", "Low Maintenance"],
   heater: false,
   saltSystem: false,
-  carbonFiber: false
+  carbonFiber: false,
+  description: "Premium fiberglass pool from the Wonderlands World Collection. Features durable fiberglass construction with elegant design and minimal maintenance requirements."
 },
 // Pacific Ridge Concrete Pool - FLORIDA (NO SURCHARGE)
 {

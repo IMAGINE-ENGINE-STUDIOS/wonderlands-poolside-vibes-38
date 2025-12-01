@@ -1275,8 +1275,8 @@ const WonderlandsStudio = () => {
                       )}
                     </div>
                     
-                    {/* Product Details - No gap above */}
-                    <div className="space-y-3 sm:space-y-4">
+                    {/* Product Details - Directly below image with no gap */}
+                    <div className="space-y-3 sm:space-y-4 -mt-2">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                           <div>
                             <h1 className="text-xl sm:text-2xl font-bold">
