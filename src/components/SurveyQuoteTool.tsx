@@ -1536,7 +1536,7 @@ const SurveyQuoteTool = ({
                       ) : (editableTexts['added-features-title'] || 'Added Features from Product Card')}
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {extras.extrasBreakdown.filter((item: any) => !(item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'))).map((item: any, index: number) => {
+                      {extras.extrasBreakdown.map((item: any, index: number) => {
                         // Update item name to specify 2 Story for Premium Screen Enclosure
                         let displayName = item.name;
                         if (displayName.toLowerCase().includes('premium screen enclosure') && !displayName.includes('2 Story')) {
