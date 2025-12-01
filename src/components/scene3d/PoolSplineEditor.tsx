@@ -107,17 +107,22 @@ export function PoolSplineEditor({
     return new THREE.Line(mainLineGeo, material);
   }, [mainLineGeo, color]);
 
-  // Segment geometries (no objects, just geometry)
-  const segmentGeos = useMemo(() => {
+  // Segment line objects
+  const segmentLineObjects = useMemo(() => {
     if (!enableEdit || points.length < 2) return [];
     return points.map((point, i) => {
       const next = points[(i + 1) % points.length];
       const geo = new THREE.BufferGeometry();
       const pos = new Float32Array([point.x, yPosition, point.z, next.x, yPosition, next.z]);
       geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      return geo;
+      const material = new THREE.LineBasicMaterial({ 
+        color: hoverSegment === i ? '#ffff00' : color, 
+        transparent: true, 
+        opacity: 0.3 
+      });
+      return new THREE.Line(geo, material);
     });
-  }, [points, yPosition, enableEdit]);
+  }, [points, yPosition, enableEdit, hoverSegment, color]);
 
   // Shared vertical line geometry
   const vertLineGeo = useMemo(() => {
@@ -126,6 +131,16 @@ export function PoolSplineEditor({
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     return geo;
   }, []);
+  
+  // Create vertical line object helper
+  const createVerticalLineObject = (pointColor: string) => {
+    const material = new THREE.LineBasicMaterial({ 
+      color: pointColor, 
+      opacity: 0.7, 
+      transparent: true 
+    });
+    return new THREE.Line(vertLineGeo, material);
+  };
 
   const handlePointerDown = (pointId: string) => (e: any) => {
     if (!enableEdit) return;
@@ -198,19 +213,13 @@ export function PoolSplineEditor({
     <group>
       <primitive object={mainLineObject} />
 
-      {enableEdit && segmentGeos.map((geo, i) => (
-        <lineSegments 
+      {enableEdit && segmentLineObjects.map((lineObj, i) => (
+        <primitive 
           key={`seg-${i}`}
-          geometry={geo}
+          object={lineObj}
           onPointerOver={() => setHoverSegment(i)}
           onPointerOut={() => setHoverSegment(null)}
-        >
-          <lineBasicMaterial 
-            color={hoverSegment === i ? '#ffff00' : color} 
-            transparent 
-            opacity={0.3} 
-          />
-        </lineSegments>
+        />
       ))}
 
       {enableEdit && showControls && points.map((point, i) => {
@@ -263,9 +272,7 @@ export function PoolSplineEditor({
               />
             </mesh>
             
-            <lineSegments geometry={vertLineGeo}>
-              <lineBasicMaterial color={pointColor} opacity={0.7} transparent />
-            </lineSegments>
+            <primitive object={createVerticalLineObject(pointColor)} />
             
             <mesh position={[0, -1.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
               {point.type === 'corner' ? (
