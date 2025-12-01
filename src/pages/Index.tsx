@@ -1,5 +1,6 @@
 import * as React from "react";
 const { useEffect } = React;
+import { Helmet } from "react-helmet";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import PoolCatalog from "@/components/PoolCatalog";
@@ -18,6 +19,7 @@ import SaunaSection from "@/components/SaunaSection";
 import Footer from "@/components/Footer";
 import LazySection from "@/components/LazySection";
 import lathamGilmerBanner from "@/assets/latham-gilmer-banner.jpeg";
+
 const Index = () => {
   useEffect(() => {
     // Handle navigation to sections from URL hash
@@ -32,11 +34,20 @@ const Index = () => {
     }
   }, []);
   return <div className="min-h-screen">
+      <Helmet>
+        {/* Preload critical above-the-fold images */}
+        <link rel="preload" as="image" href="/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png" />
+        <link rel="preload" as="image" href="/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png" />
+        <link rel="preload" as="image" href="/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png" />
+        <link rel="preload" as="image" href="/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png" />
+      </Helmet>
+      
       <Header />
       <Hero />
       
       {/* Anchors for RightNavigation */}
       <div id="pools" />
+      {/* Load PoolCatalog eagerly - it's above the fold */}
       <PoolCatalog />
       
       {/* Banner between Latham and Gilmer Pools */}
@@ -45,6 +56,8 @@ const Index = () => {
           src={lathamGilmerBanner} 
           alt="Luxury Pool Design" 
           className="w-full h-auto object-cover"
+          loading="lazy"
+          decoding="async"
         />
       </div>
       
