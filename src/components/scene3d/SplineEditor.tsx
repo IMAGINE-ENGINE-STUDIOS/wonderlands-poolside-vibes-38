@@ -34,6 +34,7 @@ export function SplineEditor({
   const handlePointerDown = (pointId: string) => (e: any) => {
     if (!enableDrag) return;
     e.stopPropagation();
+    (e.target as any).setPointerCapture?.(e.pointerId); // Capture pointer for touch
     setDraggedPoint(pointId);
   };
 
@@ -52,7 +53,10 @@ export function SplineEditor({
     onPointsChange(updatedPoints);
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e: any) => {
+    if (draggedPoint) {
+      (e.target as any).releasePointerCapture?.(e.pointerId); // Release pointer capture
+    }
     setDraggedPoint(null);
   };
 

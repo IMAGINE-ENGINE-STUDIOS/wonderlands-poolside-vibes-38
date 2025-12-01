@@ -1,12 +1,11 @@
 import * as THREE from 'three';
-import { useMemo } from 'react';
-import { useTexture } from '@react-three/drei';
+import { useMemo, useEffect, useState } from 'react';
 
 interface DeckGeometryProps {
   poolPoints: Array<{ x: number; z: number }>;
-  deckWidth: number; // Width in feet (default 5ft)
-  deckHeight: number; // Height in feet (default 0.25ft = 3 inches)
-  copingWidth: number; // If coping enabled, deck starts after coping width
+  deckWidth: number;
+  deckHeight: number;
+  copingWidth: number;
   copingEnabled: boolean;
   textureUrl?: string;
   textureScale?: number;
@@ -24,10 +23,33 @@ export const DeckGeometry = ({
   textureOffset = [0, 0]
 }: DeckGeometryProps) => {
   
-  const texture = textureUrl ? useTexture(textureUrl) : null;
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  
+  useEffect(() => {
+    if (!textureUrl) {
+      setTexture(null);
+      return;
+    }
+    
+    const loader = new THREE.TextureLoader();
+    loader.load(
+      textureUrl,
+      (loadedTexture) => {
+        loadedTexture.wrapS = loadedTexture.wrapT = THREE.RepeatWrapping;
+        loadedTexture.repeat.set(textureScale, textureScale);
+        loadedTexture.offset.set(textureOffset[0], textureOffset[1]);
+        setTexture(loadedTexture);
+      },
+      undefined,
+      (error) => {
+        console.error('Failed to load deck texture:', error);
+        setTexture(null);
+      }
+    );
+  }, [textureUrl, textureScale, textureOffset]);
   
   const geometry = useMemo(() => {
-    if (poolPoints.length < 3) return new THREE.BufferGeometry();
+    if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
     
     // Deck starts either at pool edge (if no coping) or after coping width
     const innerOffset = copingEnabled ? copingWidth : 0;
@@ -126,12 +148,6 @@ export const DeckGeometry = ({
     
     return geom;
   }, [poolPoints, deckWidth, deckHeight, copingWidth, copingEnabled]);
-  
-  if (texture) {
-    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(textureScale, textureScale);
-    texture.offset.set(textureOffset[0], textureOffset[1]);
-  }
   
   return (
     <mesh geometry={geometry} castShadow receiveShadow>

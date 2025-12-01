@@ -2157,6 +2157,53 @@ export function PoolBuilder({ initialDimensions, initialDepth, onPoolDataChange 
     }
   };
 
+  // Touch event handlers for mobile/iPad support
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length !== 1) return; // Only handle single touch
+    e.preventDefault();
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    
+    // Create a synthetic mouse event
+    const mouseEvent = {
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+      preventDefault: () => {},
+      stopPropagation: () => {}
+    } as React.MouseEvent<HTMLCanvasElement>;
+    
+    handleCanvasMouseDown(mouseEvent);
+  };
+  
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length !== 1) return;
+    e.preventDefault();
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const touch = e.touches[0];
+    
+    // Create a synthetic mouse event
+    const mouseEvent = {
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+      preventDefault: () => {},
+      stopPropagation: () => {}
+    } as React.MouseEvent<HTMLCanvasElement>;
+    
+    handleCanvasMouseMove(mouseEvent);
+  };
+  
+  const handleTouchEnd = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    handleCanvasMouseUp();
+  };
+
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (pendingFeature) return;
     
@@ -3322,8 +3369,12 @@ export function PoolBuilder({ initialDimensions, initialDepth, onPoolDataChange 
               onMouseMove={handleCanvasMouseMove}
               onMouseUp={handleCanvasMouseUp}
               onMouseLeave={handleCanvasMouseUp}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onTouchCancel={handleTouchEnd}
               className="border-2 border-border rounded-lg shadow-2xl bg-gradient-to-br from-background to-muted/10"
-              style={{ 
+              style={{
                 cursor: fenceAddMode ? 'crosshair'
                   : pendingFeature === 'jet' ? 'crosshair' 
                   : activeTool === 'add' ? 'crosshair'
