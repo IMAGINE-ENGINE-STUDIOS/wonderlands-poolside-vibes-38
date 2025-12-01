@@ -42,8 +42,8 @@ export const CopingGeometry = ({
       (loadedTexture) => {
         console.log('✅ CopingGeometry: Texture loaded successfully');
         loadedTexture.wrapS = loadedTexture.wrapT = THREE.RepeatWrapping;
-        // Set to 1ft x 1ft squares (repeat of 1.0 = texture repeats every 1 foot)
-        loadedTexture.repeat.set(1.0, 1.0);
+        // Texture will repeat at 1ft intervals based on UV coordinates
+        loadedTexture.repeat.set(textureScale, textureScale);
         loadedTexture.offset.set(textureOffset[0], textureOffset[1]);
         loadedTexture.needsUpdate = true;
         setTexture(loadedTexture);
@@ -106,18 +106,16 @@ export const CopingGeometry = ({
       vertices.push(inner.x, copingHeight, inner.z);
       vertices.push(outer.x, copingHeight, outer.z);
       
-      // UV mapping: section into 1ft squares along perimeter
-      // U = distance along perimeter modulo 1ft (creates 1ft repeating sections)
-      // V = 0 (inner edge) to 1 (outer edge) - normalized by copingWidth
+      // UV mapping: Map texture to create 1ft squares
+      // U = distance along perimeter (in feet)
+      // V = width from inner to outer edge (in feet)
       const distanceAlongPerimeter = distances[i];
-      const u = distanceAlongPerimeter % 1.0; // Wrap every 1 foot
-      
-      // V coordinate: 0 at inner edge, 1 at outer edge (normalized to copingWidth for square aspect)
+      const uInner = distanceAlongPerimeter;
       const vInner = 0;
-      const vOuter = copingWidth / 1.0; // Normalize to create square tiles
+      const vOuter = copingWidth;
       
-      uvs.push(u, vInner);
-      uvs.push(u, vOuter);
+      uvs.push(uInner, vInner);
+      uvs.push(uInner, vOuter);
     }
     
     // Top surface triangles
@@ -141,14 +139,14 @@ export const CopingGeometry = ({
       vertices.push(inner.x, 0, inner.z);
       vertices.push(outer.x, 0, outer.z);
       
-      // Same 1ft square UV mapping for bottom
+      // Same UV mapping for bottom
       const distanceAlongPerimeter = distances[i];
-      const u = distanceAlongPerimeter % 1.0;
+      const uInner = distanceAlongPerimeter;
       const vInner = 0;
-      const vOuter = copingWidth / 1.0;
+      const vOuter = copingWidth;
       
-      uvs.push(u, vInner);
-      uvs.push(u, vOuter);
+      uvs.push(uInner, vInner);
+      uvs.push(uInner, vOuter);
     }
     
     // Bottom surface triangles (reversed winding)
@@ -171,10 +169,10 @@ export const CopingGeometry = ({
       vertices.push(outer.x, copingHeight, outer.z);
       vertices.push(outer.x, 0, outer.z);
       
-      // 1ft square UV mapping for vertical wall
+      // UV mapping for vertical wall
       const distanceAlongPerimeter = distances[i];
-      const u = distanceAlongPerimeter % 1.0;
-      const vTop = copingHeight / 1.0; // Normalize height
+      const u = distanceAlongPerimeter;
+      const vTop = copingHeight;
       const vBottom = 0;
       
       uvs.push(u, vTop);
@@ -201,10 +199,10 @@ export const CopingGeometry = ({
       vertices.push(inner.x, copingHeight, inner.z);
       vertices.push(inner.x, 0, inner.z);
       
-      // 1ft square UV mapping for vertical wall
+      // UV mapping for vertical wall
       const distanceAlongPerimeter = distances[i];
-      const u = distanceAlongPerimeter % 1.0;
-      const vTop = copingHeight / 1.0;
+      const u = distanceAlongPerimeter;
+      const vTop = copingHeight;
       const vBottom = 0;
       
       uvs.push(u, vTop);

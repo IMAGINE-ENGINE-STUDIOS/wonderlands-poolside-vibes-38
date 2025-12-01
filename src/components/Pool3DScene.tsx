@@ -119,6 +119,7 @@ export interface Pool3DSceneProps {
 const PoolMesh: React.FC<{
   points: Point[];
   depthPoints: DepthPoint[];
+  perimeterDepthPoints?: Array<{ x: number; z: number; depth: number; id: string; type?: 'linear' | 'smooth' }>;
   linerTextureUrl: string;
   poolDimensions?: { length: number; width: number; depth: number };
   selectedCategory?: string | null;
@@ -135,7 +136,8 @@ const PoolMesh: React.FC<{
   linerTextureScale = 1.8, 
   linerTextureOffset = [0, 0],
   copingHeight = 2 / 12,
-  onSelectComponent
+  onSelectComponent,
+  perimeterDepthPoints: providedPerimeterDepthPoints
 }) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
   const [previousLinerTexture, setPreviousLinerTexture] = useState<THREE.Texture | null>(null);
@@ -199,6 +201,38 @@ const PoolMesh: React.FC<{
     
     return () => clearInterval(interval);
   }, [selectedCategory]);
+
+  // Helper to get depth from perimeter depth points
+  const getPerimeterDepth = (x: number, z: number): number => {
+    if (!providedPerimeterDepthPoints || providedPerimeterDepthPoints.length === 0) {
+      // Fallback to old 1D system
+      return poolDimensions.depth || 5;
+    }
+    
+    // Find two nearest perimeter points and interpolate
+    let minDist1 = Infinity;
+    let minDist2 = Infinity;
+    let nearest1 = providedPerimeterDepthPoints[0];
+    let nearest2 = providedPerimeterDepthPoints[1] || nearest1;
+    
+    providedPerimeterDepthPoints.forEach(p => {
+      const dist = Math.sqrt((p.x - x) ** 2 + (p.z - z) ** 2);
+      if (dist < minDist1) {
+        minDist2 = minDist1;
+        nearest2 = nearest1;
+        minDist1 = dist;
+        nearest1 = p;
+      } else if (dist < minDist2) {
+        minDist2 = dist;
+        nearest2 = p;
+      }
+    });
+    
+    // Interpolate depth
+    const totalDist = minDist1 + minDist2;
+    if (totalDist === 0) return nearest1.depth;
+    return (nearest1.depth * minDist2 + nearest2.depth * minDist1) / totalDist;
+  };
 
   const { geometry, wallsGeometry } = useMemo(() => {
     if (points.length < 3) {
@@ -378,16 +412,9 @@ const PoolMesh: React.FC<{
       const p1 = normalizedPoints[i];
       const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
       
-      // Calculate depth at each wall vertex position
-      const p1LengthRatio = lengthDirection === 'z' 
-        ? (p1.z - (minY - centerY)) / poolLength
-        : (p1.x - (minX - centerX)) / poolWidth;
-      const p2LengthRatio = lengthDirection === 'z'
-        ? (p2.z - (minY - centerY)) / poolLength
-        : (p2.x - (minX - centerX)) / poolWidth;
-        
-      const depth1 = getDepthAtPosition(Math.max(0, Math.min(1, p1LengthRatio)));
-      const depth2 = getDepthAtPosition(Math.max(0, Math.min(1, p2LengthRatio)));
+      // Use perimeter-based depth calculation
+      const depth1 = getPerimeterDepth(p1.x, p1.z);
+      const depth2 = getPerimeterDepth(p2.x, p2.z);
       
       const wallLength = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2));
       
@@ -488,7 +515,7 @@ const PoolMesh: React.FC<{
       geometry: floorGeometry,
       wallsGeometry: poolWallsGeometry
     };
-  }, [points, depthPoints, poolDimensions, copingHeight]);
+  }, [points, depthPoints, providedPerimeterDepthPoints, poolDimensions, copingHeight]);
 
   const isSelected = selectedCategory === 'pool';
 
@@ -1136,6 +1163,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         <PoolMesh
           points={points}
           depthPoints={depthPoints}
+          perimeterDepthPoints={perimeterDepthPoints}
           linerTextureUrl={normalizedLinerUrl}
           poolDimensions={poolDimensions}
           linerTextureScale={linerTextureScale}
