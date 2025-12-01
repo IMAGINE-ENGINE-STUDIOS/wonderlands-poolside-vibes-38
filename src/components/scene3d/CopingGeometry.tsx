@@ -9,6 +9,7 @@ interface CopingGeometryProps {
   textureUrl?: string;
   textureScale?: number;
   textureOffset?: [number, number];
+  paverTextureUrl?: string; // Use paver texture for coping surface
 }
 
 export const CopingGeometry = ({ 
@@ -17,33 +18,49 @@ export const CopingGeometry = ({
   copingHeight = 0.25,
   textureUrl,
   textureScale = 1,
-  textureOffset = [0, 0]
+  textureOffset = [0, 0],
+  paverTextureUrl
 }: CopingGeometryProps) => {
   
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
   
+  // Use paver texture for coping surface if provided, otherwise use coping texture
+  const surfaceTextureUrl = paverTextureUrl || textureUrl;
+  
   useEffect(() => {
-    if (!textureUrl) {
+    if (!surfaceTextureUrl) {
+      console.warn('⚠️ CopingGeometry: No texture URL provided');
       setTexture(null);
       return;
     }
     
+    console.log('🔄 CopingGeometry: Loading texture:', surfaceTextureUrl);
+    
     const loader = new THREE.TextureLoader();
     loader.load(
-      textureUrl,
+      surfaceTextureUrl,
       (loadedTexture) => {
+        console.log('✅ CopingGeometry: Texture loaded successfully');
         loadedTexture.wrapS = loadedTexture.wrapT = THREE.RepeatWrapping;
-        loadedTexture.repeat.set(textureScale, textureScale);
+        // Set to 1ft x 1ft squares (repeat of 1.0 = texture repeats every 1 foot)
+        loadedTexture.repeat.set(1.0, 1.0);
         loadedTexture.offset.set(textureOffset[0], textureOffset[1]);
+        loadedTexture.needsUpdate = true;
         setTexture(loadedTexture);
       },
       undefined,
       (error) => {
-        console.error('Failed to load coping texture:', error);
+        console.error('❌ CopingGeometry: Failed to load texture:', surfaceTextureUrl, error);
         setTexture(null);
       }
     );
-  }, [textureUrl, textureScale, textureOffset]);
+    
+    return () => {
+      if (texture) {
+        texture.dispose();
+      }
+    };
+  }, [surfaceTextureUrl, textureOffset]);
   
   const geometry = useMemo(() => {
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
@@ -215,13 +232,22 @@ export const CopingGeometry = ({
     return geom;
   }, [poolPoints, copingWidth, copingHeight]);
   
+  // Debug: Log render state
+  console.log('🎨 CopingGeometry render:', { 
+    hasTexture: !!texture, 
+    textureUrl: surfaceTextureUrl,
+    copingWidth,
+    pointCount: poolPoints.length
+  });
+  
   return (
     <mesh geometry={geometry} castShadow receiveShadow>
       <meshStandardMaterial
         map={texture || undefined}
-        color={texture ? '#ffffff' : '#a8a29e'}
-        roughness={0.7}
+        color={texture ? '#ffffff' : '#ff00ff'}
+        roughness={0.8}
         metalness={0.2}
+        side={THREE.DoubleSide}
       />
     </mesh>
   );
