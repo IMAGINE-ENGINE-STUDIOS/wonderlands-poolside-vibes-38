@@ -22,6 +22,7 @@ const InvoiceDetailPage = lazy(() => import("./pages/InvoiceDetailPage"));
 const QuotationTool = lazy(() => import("./pages/QuotationTool"));
 const PoolCalculatorPage = lazy(() => import("./pages/PoolCalculatorPage"));
 const SalesRepRegister = lazy(() => import("./pages/SalesRepRegister"));
+const SalesRepDashboard = lazy(() => import("./pages/SalesRepDashboard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -94,6 +95,14 @@ const App = () => {
             <Route path="/pool-calculator" element={<PoolCalculatorPage />} />
             <Route path="/wonderlands-studio" element={<WonderlandsStudio />} />
             <Route path="/sales-rep-register" element={<SalesRepRegister />} />
+            <Route 
+              path="/sales-rep" 
+              element={
+                <ProtectedRoute requiredRoles={['sales_rep' as any]}>
+                  <SalesRepDashboard />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

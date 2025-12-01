@@ -78,11 +78,11 @@ const SalesRepRegister = () => {
 
       toast({
         title: "Registration Successful!",
-        description: "Please check your email to verify your account.",
+        description: "Please check your email to verify your account, then access your sales dashboard.",
       });
 
-      // Redirect to home after successful registration
-      setTimeout(() => navigate('/'), 2000);
+      // Redirect to sales rep dashboard after successful registration
+      setTimeout(() => navigate('/sales-rep'), 2000);
     } catch (error) {
       console.error('Registration error:', error);
       toast({
@@ -221,7 +221,7 @@ const SalesRepRegister = () => {
                   Already have an account?{' '}
                   <button
                     type="button"
-                    onClick={() => navigate('/admin')}
+                    onClick={() => navigate('/auth')}
                     className="text-cyan-300 hover:text-cyan-200 underline"
                   >
                     Sign in
