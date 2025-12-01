@@ -1641,23 +1641,21 @@ const WonderlandsStudio = () => {
                                       }))
                                     }
                                   >
-                                    <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                    <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
                                       <img
                                         src={finish.image}
                                         alt={finish.name}
                                         className="w-full h-full object-cover"
                                       />
                                     </div>
-                                    <div className="flex-1 flex flex-col justify-between min-h-0">
-                                      <p className="text-xs font-medium text-center line-clamp-2">{finish.name}</p>
-                                      <div className="mt-1 space-y-1">
-                                        <p className="text-xs text-primary text-center font-semibold">{finish.collection}</p>
-                                        {finish.price && (
-                                          <p className="text-xs text-foreground font-semibold text-center">
-                                            +${finish.price.toLocaleString()}
-                                          </p>
-                                        )}
-                                      </div>
+                                    <div className="flex flex-col gap-0.5">
+                                      <p className="text-xs font-medium text-center truncate">{finish.name}</p>
+                                      <p className="text-[10px] text-primary text-center font-semibold truncate">{finish.collection}</p>
+                                      {finish.price && (
+                                        <p className="text-xs text-foreground font-semibold text-center">
+                                          +${finish.price.toLocaleString()}
+                                        </p>
+                                      )}
                                     </div>
                                   </div>
                                 </CarouselItem>
