@@ -270,15 +270,33 @@ const getExtraPrice = (extra: string) => {
   }
 };
 
+// Helper function to parse a single dimension value like "11'" or "8'6\""
+const parseSingleDimension = (dimStr: string): number => {
+  // Match formats: "11'" or "11'6\"" or "11'6"" or "8'6\""
+  const feetInchMatch = dimStr.match(/(\d+)[''](?:(\d+)[""]?)?/);
+  if (feetInchMatch) {
+    const feet = parseInt(feetInchMatch[1]) || 0;
+    const inches = feetInchMatch[2] ? parseInt(feetInchMatch[2]) : 0;
+    return feet + (inches / 12);
+  }
+  // Fallback: just parse as number
+  const num = parseFloat(dimStr);
+  return isNaN(num) ? 0 : num;
+};
+
 // Helper function to parse pool dimensions to get length and width
+// Handles formats like "11' x 20'", "8'6\" x 14'", "15'6\" x 38'"
 const parsePoolDimensions = (dimensions: string | undefined): { length: number; width: number } => {
   if (!dimensions) return { length: 30, width: 15 }; // Default dimensions
-  const match = dimensions.match(/(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)/i);
-  if (match) {
-    return {
-      length: parseFloat(match[1]),
-      width: parseFloat(match[2])
-    };
+  
+  // Split by x or × to get width and length parts
+  const parts = dimensions.split(/\s*[×x]\s*/i);
+  if (parts.length === 2) {
+    const width = parseSingleDimension(parts[0].trim());
+    const length = parseSingleDimension(parts[1].trim());
+    if (width > 0 && length > 0) {
+      return { width, length };
+    }
   }
   return { length: 30, width: 15 }; // Default
 };
@@ -1163,13 +1181,34 @@ const WonderlandsStudio = () => {
                             setPoolBuilderData(data);
                             setCustomPoolShape(data.points);
                             
-                            // Store both custom shape AND depth profile for 3D viewer
+                            // Sync pool builder features with extras menu
+                            const jetCount = data.features?.filter((f: any) => f.type === 'jet').length || 0;
+                            const hasStairs = data.features?.some((f: any) => f.type === 'stairs') || false;
+                            const lightCount = data.features?.filter((f: any) => f.type === 'light').length || 0;
+                            
+                            // Store both custom shape AND depth profile for 3D viewer, and sync features
                             setSelectedExtras((prev: any) => ({
                               ...prev,
                               customPoolShape: data.points,
                               depthProfile: data.depthPoints,
-                              poolBuilderData: data
+                              poolBuilderData: data,
+                              // Sync jet count from 2D designer
+                              jets: jetCount > 0,
+                              jetQuantity: jetCount,
+                              // Track other features from 2D designer
+                              poolBuilderFeatures: {
+                                jets: jetCount,
+                                stairs: hasStairs,
+                                lights: lightCount,
+                                totalFeaturesCost: data.breakdown?.featuresCost || 0,
+                                deckArea: data.deckArea || 0
+                              }
                             }));
+                            
+                            // Auto-update paver surface area from deck area if pavers selected
+                            if (data.deckArea && data.deckArea > 0) {
+                              setPaverSurfaceArea(Math.round(data.deckArea).toString());
+                            }
                           }}
                         />
                       ) : viewMode === '3d-viewer' && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && paverTypes.length > 0 && finishOptions.length > 0 ? (

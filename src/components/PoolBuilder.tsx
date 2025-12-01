@@ -287,6 +287,20 @@ export function PoolBuilder({ initialDimensions, initialDepth, onPoolDataChange 
     pathway: 0
   };
 
+  // Helper function to parse dimension string like "11' x 20'" or "8'6\" x 14'" or "15'6\" x 38'"
+  const parseDimensionValue = (dimStr: string): number => {
+    // Match formats: "11'" or "11'6\"" or "11'6"" or "8'6\""
+    const feetInchMatch = dimStr.match(/(\d+)[''](?:(\d+)[""]?)?/);
+    if (feetInchMatch) {
+      const feet = parseInt(feetInchMatch[1]) || 0;
+      const inches = feetInchMatch[2] ? parseInt(feetInchMatch[2]) : 0;
+      return feet + (inches / 12);
+    }
+    // Fallback: just parse as number
+    const num = parseFloat(dimStr);
+    return isNaN(num) ? 0 : num;
+  };
+
   // Initialize pool and hardscape centered with actual product dimensions if provided
   useEffect(() => {
     if (points.length === 0) {
@@ -299,13 +313,18 @@ export function PoolBuilder({ initialDimensions, initialDepth, onPoolDataChange 
         { position: 1, depth: 6.6, id: 'd4' }
       ];
 
-      // Parse actual product dimensions if provided (e.g., "16' × 40'")
+      // Parse actual product dimensions if provided (e.g., "16' × 40'" or "11' x 20'" or "8'6\" x 14'")
       if (initialDimensions) {
-        const dimensionMatch = initialDimensions.match(/(\d+)['']?\s*[×x]\s*(\d+)['']?/);
-        if (dimensionMatch) {
-          poolWidth = parseInt(dimensionMatch[1]);
-          poolLength = parseInt(dimensionMatch[2]);
-          console.log('📐 PoolBuilder: Using product dimensions', { width: poolWidth, length: poolLength });
+        // Split by x or × to get width and length parts
+        const parts = initialDimensions.split(/\s*[×x]\s*/i);
+        if (parts.length === 2) {
+          const parsedWidth = parseDimensionValue(parts[0].trim());
+          const parsedLength = parseDimensionValue(parts[1].trim());
+          if (parsedWidth > 0 && parsedLength > 0) {
+            poolWidth = parsedWidth;
+            poolLength = parsedLength;
+            console.log('📐 PoolBuilder: Using exact product dimensions', { width: poolWidth, length: poolLength, raw: initialDimensions });
+          }
         }
       }
 
