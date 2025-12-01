@@ -64,7 +64,22 @@ export const CopingGeometry = ({
     const uvs: number[] = [];
     const numPoints = copingInnerBoundary.length;
     
-    // Create continuous ring geometry
+    // Calculate cumulative distance along perimeter for 1ft sectioned UV mapping
+    const distances: number[] = [0];
+    let totalDistance = 0;
+    
+    for (let i = 0; i < numPoints; i++) {
+      const next = (i + 1) % numPoints;
+      const p1 = copingInnerBoundary[i];
+      const p2 = copingInnerBoundary[next];
+      const segmentLength = Math.sqrt(
+        Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2)
+      );
+      totalDistance += segmentLength;
+      distances.push(totalDistance);
+    }
+    
+    // Create continuous ring geometry with 1ft square UV sections
     // Top surface
     for (let i = 0; i < numPoints; i++) {
       const inner = copingInnerBoundary[i];
@@ -74,9 +89,18 @@ export const CopingGeometry = ({
       vertices.push(inner.x, copingHeight, inner.z);
       vertices.push(outer.x, copingHeight, outer.z);
       
-      const u = i / numPoints;
-      uvs.push(u, 0);
-      uvs.push(u, 1);
+      // UV mapping: section into 1ft squares along perimeter
+      // U = distance along perimeter modulo 1ft (creates 1ft repeating sections)
+      // V = 0 (inner edge) to 1 (outer edge) - normalized by copingWidth
+      const distanceAlongPerimeter = distances[i];
+      const u = distanceAlongPerimeter % 1.0; // Wrap every 1 foot
+      
+      // V coordinate: 0 at inner edge, 1 at outer edge (normalized to copingWidth for square aspect)
+      const vInner = 0;
+      const vOuter = copingWidth / 1.0; // Normalize to create square tiles
+      
+      uvs.push(u, vInner);
+      uvs.push(u, vOuter);
     }
     
     // Top surface triangles
@@ -100,9 +124,14 @@ export const CopingGeometry = ({
       vertices.push(inner.x, 0, inner.z);
       vertices.push(outer.x, 0, outer.z);
       
-      const u = i / numPoints;
-      uvs.push(u, 0);
-      uvs.push(u, 1);
+      // Same 1ft square UV mapping for bottom
+      const distanceAlongPerimeter = distances[i];
+      const u = distanceAlongPerimeter % 1.0;
+      const vInner = 0;
+      const vOuter = copingWidth / 1.0;
+      
+      uvs.push(u, vInner);
+      uvs.push(u, vOuter);
     }
     
     // Bottom surface triangles (reversed winding)
@@ -125,9 +154,14 @@ export const CopingGeometry = ({
       vertices.push(outer.x, copingHeight, outer.z);
       vertices.push(outer.x, 0, outer.z);
       
-      const u = i / numPoints;
-      uvs.push(u, 1);
-      uvs.push(u, 0);
+      // 1ft square UV mapping for vertical wall
+      const distanceAlongPerimeter = distances[i];
+      const u = distanceAlongPerimeter % 1.0;
+      const vTop = copingHeight / 1.0; // Normalize height
+      const vBottom = 0;
+      
+      uvs.push(u, vTop);
+      uvs.push(u, vBottom);
     }
     
     // Outer wall triangles
@@ -150,9 +184,14 @@ export const CopingGeometry = ({
       vertices.push(inner.x, copingHeight, inner.z);
       vertices.push(inner.x, 0, inner.z);
       
-      const u = i / numPoints;
-      uvs.push(u, 1);
-      uvs.push(u, 0);
+      // 1ft square UV mapping for vertical wall
+      const distanceAlongPerimeter = distances[i];
+      const u = distanceAlongPerimeter % 1.0;
+      const vTop = copingHeight / 1.0;
+      const vBottom = 0;
+      
+      uvs.push(u, vTop);
+      uvs.push(u, vBottom);
     }
     
     // Inner wall triangles (reversed winding)
