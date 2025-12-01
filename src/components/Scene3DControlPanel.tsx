@@ -59,6 +59,8 @@ interface Scene3DControlPanelProps {
   onPoolSplineEditToggle: () => void;
   onDeckSplineEditToggle: () => void;
   // Debug props
+  showWireframe?: boolean;
+  onWireframeToggle?: () => void;
   showDebugBoundaries?: boolean;
   onDebugBoundariesToggle?: () => void;
 }
@@ -95,6 +97,8 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
   enableDeckSplineEdit,
   onPoolSplineEditToggle,
   onDeckSplineEditToggle,
+  showWireframe = false,
+  onWireframeToggle,
   showDebugBoundaries = false,
   onDebugBoundariesToggle
 }) => {
@@ -430,6 +434,22 @@ export const Scene3DControlPanel: React.FC<Scene3DControlPanelProps> = ({
                 {enableDeckSplineEdit ? 'Drag orange control points to reshape deck' : 'Enable to edit deck boundary'}
               </p>
             </div>
+            
+            {onWireframeToggle && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="wireframe" className="text-xs">Show Wireframe</Label>
+                  <Checkbox
+                    id="wireframe"
+                    checked={showWireframe}
+                    onCheckedChange={onWireframeToggle}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {showWireframe ? 'Wireframe view enabled' : 'Toggle pool wireframe overlay'}
+                </p>
+              </div>
+            )}
             
             {onDebugBoundariesToggle && (
               <div className="space-y-2">

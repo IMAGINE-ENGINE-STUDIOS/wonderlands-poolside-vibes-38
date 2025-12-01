@@ -1103,23 +1103,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
             </group>
           )}
 
-          {/* Deck - extends outward from coping (or from pool if coping disabled) */}
-          <group onClick={(e) => {
-            e.stopPropagation();
-            onSelectCategory?.('deck');
-          }}>
-            <DeckGeometry
-              poolPoints={poolCurve3D}
-              hardscapePoints={normalizedHardscapePoints}
-              deckWidth={localDeckWidth}
-              deckHeight={localDeckHeight}
-              copingWidth={localCopingWidth}
-              copingEnabled={copingEnabled}
-              textureUrl={normalizedPaverUrl}
-              textureScale={paverTextureScale}
-              textureOffset={paverTextureOffset}
-            />
-          </group>
+          {/* Deck removed as per user request */}
         </>
       )}
 
