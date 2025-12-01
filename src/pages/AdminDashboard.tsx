@@ -21,6 +21,7 @@ import AdminQuotesManager from '@/components/AdminQuotesManager';
 import AdminOrdersManager from '@/components/AdminOrdersManager';
 import AdminDashboardMetrics from '@/components/AdminDashboardMetrics';
 import AdminReferralsManager from '@/components/AdminReferralsManager';
+import AdminClientManager from '@/components/AdminClientManager';
 import { DragDropEditor } from '@/components/DragDropEditor';
 import ApiKeyManager from '@/components/ApiKeyManager';
 import SampleDataSetup from '@/components/SampleDataSetup';
@@ -244,6 +245,7 @@ const AdminDashboard = () => {
                   ⬢ MANAGEMENT
                 </div>
                 <NavItem icon={Users} label="Users" active={activeSection === "users"} onClick={() => setActiveSection("users")} />
+                <NavItem icon={Users} label="Clients" active={activeSection === "clients"} onClick={() => setActiveSection("clients")} />
                 <NavItem icon={Gift} label="Referrals" active={activeSection === "referrals"} onClick={() => setActiveSection("referrals")} />
                 <NavItem icon={Users} label="API Manager" active={activeSection === "api-manager"} onClick={() => setActiveSection("api-manager")} />
                 
@@ -360,6 +362,11 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
             </div>}
+
+          {/* Clients Tab */}
+          {activeSection === "clients" && <div className="space-y-6 animate-fade-in">
+            <AdminClientManager />
+          </div>}
 
           {/* Referrals Tab */}
           {activeSection === "referrals" && <div className="space-y-6 animate-fade-in">
