@@ -121,7 +121,7 @@ const PoolMesh: React.FC<{
   linerTextureScale?: number;
   linerTextureOffset?: [number, number];
   copingHeight?: number;
-  setSelectedComponent?: (comp: 'pool' | 'water' | 'deck' | null) => void;
+  onSelectComponent?: (comp: 'pool' | 'deck' | 'coping' | 'waterline' | null) => void;
 }> = ({
   points, 
   depthPoints, 
@@ -131,7 +131,7 @@ const PoolMesh: React.FC<{
   linerTextureScale = 1.8, 
   linerTextureOffset = [0, 0],
   copingHeight = 2 / 12,
-  setSelectedComponent
+  onSelectComponent
 }) => {
   const [linerTexture, setLinerTexture] = useState<THREE.Texture | null>(null);
   const [previousLinerTexture, setPreviousLinerTexture] = useState<THREE.Texture | null>(null);
@@ -496,7 +496,7 @@ const PoolMesh: React.FC<{
         position={[0, 0, 0]}
         onClick={(e) => {
           e.stopPropagation();
-          setSelectedComponent('pool');
+          onSelectComponent?.('pool');
         }}
       >
         <meshPhongMaterial
@@ -519,7 +519,7 @@ const PoolMesh: React.FC<{
         position={[0, 0, 0]}
         onClick={(e) => {
           e.stopPropagation();
-          setSelectedComponent('pool');
+          onSelectComponent?.('pool');
         }}
       >
         <meshPhongMaterial
@@ -909,7 +909,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   showDebugBoundaries: externalShowDebugBoundaries = false,
   onDebugBoundariesChange
 }) => {
-  const [selectedComponent, setSelectedComponent] = useState<'pool' | 'water' | 'deck' | null>(null);
+  // Remove local state - use parent's onSelectComponent callback instead
   const [copingEnabled, setCopingEnabled] = useState(true);
   const [localDeckWidth, setLocalDeckWidth] = useState(deckWidth);
   const [localCopingWidth, setLocalCopingWidth] = useState(copingWidth);
@@ -1069,7 +1069,11 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       />
 
       {/* Pool Mesh */}
-      <group onClick={() => onSelectCategory?.('pool')}>
+      <group onClick={(e) => {
+        e.stopPropagation();
+        onSelectCategory?.('pool');
+        onSelectComponent?.('pool');
+      }}>
         <PoolMesh
           points={points}
           depthPoints={depthPoints}
@@ -1079,7 +1083,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
           linerTextureOffset={linerTextureOffset}
           selectedCategory={selectedCategory}
           copingHeight={copingHeight}
-          setSelectedComponent={setSelectedComponent}
+          onSelectComponent={onSelectComponent}
         />
       </group>
 
@@ -1091,6 +1095,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
             <group onClick={(e) => {
               e.stopPropagation();
               onSelectCategory?.('coping');
+              onSelectComponent?.('coping');
             }}>
               <CopingGeometry
                 poolPoints={poolCurve3D}
@@ -1201,16 +1206,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         />
       )}
       
-      {/* Component Rulers */}
-      {showWireframe && showRulers && selectedComponent === 'pool' && (
-        <ComponentRuler bounds={{ minX: -10, maxX: 10, minY: -20, maxY: 20 }} height={0.1} />
-      )}
-      {showWireframe && showRulers && selectedComponent === 'water' && (
-        <ComponentRuler bounds={{ minX: -10, maxX: 10, minY: -20, maxY: 20 }} height={0.05} />
-      )}
-      {showWireframe && showRulers && selectedComponent === 'deck' && (
-        <ComponentRuler bounds={{ minX: -10.9144, maxX: 10.9144, minY: -20.9144, maxY: 20.9144 }} height={0.15} />
-      )}
+      {/* Component Rulers - removed as they depended on local state */}
 
       <axesHelper args={[5]} />
     </>
