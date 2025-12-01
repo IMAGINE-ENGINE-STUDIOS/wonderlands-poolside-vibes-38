@@ -1279,9 +1279,6 @@ const WonderlandsStudio = () => {
                           </h3>
                           <div className="grid grid-cols-1 gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-green-700 dark:text-green-400">
                             <div className="flex items-center gap-2">
-                              <span>• 3 ft pavers deck around pool</span>
-                            </div>
-                            <div className="flex items-center gap-2">
                               <span>• Salt water system</span>
                             </div>
                             <div className="flex items-center gap-2">
@@ -1765,7 +1762,7 @@ const WonderlandsStudio = () => {
                           )}
                         </div>
 
-                        {/* Pool Tiles */}
+                        {/* Pool Tiles - HIDDEN FOR NOW
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <h4 className="font-semibold text-foreground">Pool Tiles</h4>
@@ -1830,6 +1827,7 @@ const WonderlandsStudio = () => {
                           </Carousel>
                           )}
                         </div>
+                        END POOL TILES HIDDEN */}
 
                         {/* Automatic Cover */}
                         <div className="space-y-3">
