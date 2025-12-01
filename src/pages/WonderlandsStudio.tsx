@@ -142,57 +142,52 @@ const finishOptions = poolFinishesData.map(finish => ({
   description: finish.description
 }));
 
-// Pool heaters with models - Pentair only
+// Pool heaters with models - Pentair only (prices increased 20%)
 const poolHeaters = [{
   name: 'Pentair MasterTemp 125 (125K BTU)',
-  price: 2300,
+  price: 2760, // was 2300, +20%
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
   name: 'Pentair MasterTemp 250 (250K BTU)',
-  price: 3680,
+  price: 4416, // was 3680, +20%
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
   name: 'Pentair MasterTemp 400 (400K BTU)',
-  price: 4830,
+  price: 5796, // was 4830, +20%
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
   name: 'Pentair UltraTemp 90 Heat Pump',
-  price: 5175,
+  price: 6210, // was 5175, +20%
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
   name: 'Pentair UltraTemp 110 Heat Pump',
-  price: 6325,
+  price: 7590, // was 6325, +20%
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }, {
   name: 'Pentair UltraTemp 140 Heat Pump',
-  price: 7475,
+  price: 8970, // was 7475, +20%
   image: '/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png'
 }];
 
-// Liner options - using consolidated data
-const linerOptions = [{
-  name: 'Standard Blue',
-  price: 0,
-  image: azureBlueFinish,
-  type: 'Standard'
-}, ...poolLinersData.map(liner => ({
+// Liner options - using consolidated data (no Standard Blue - default is selected finish)
+const linerOptions = poolLinersData.map(liner => ({
   name: liner.name,
   price: liner.price,
   image: liner.image,
   type: liner.type || 'Premium'
-}))];
+}));
 
 // Cover options - NO COVER removed, checkbox handles opt-out
 const coverOptions = [{
   name: 'Eclipse',
   color: '#2F4F4F',
-  price: 22000,
+  price: 27000, // Updated price
   image: "/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png",
   category: 'cover'
 }, {
   name: 'CS3000',
   color: '#2F4F4F',
-  price: 24000,
+  price: 30000, // Updated price
   image: "/lovable-uploads/5d870105-61a5-4d79-a200-33c70c5ac38f.png",
   category: 'cover'
 }, {
@@ -204,7 +199,7 @@ const coverOptions = [{
 }, {
   name: 'Atom',
   color: '#2F4F4F',
-  price: 22000,
+  price: 25000, // Updated price
   image: "/lovable-uploads/91acd1a8-9997-4d59-8c6d-a8635810989b.png",
   category: 'cover'
 }];
@@ -280,22 +275,35 @@ const getExtraPrice = (extra: string) => {
   }
 };
 
-// Helper function to calculate pool perimeter from dimensions
-const calculatePoolPerimeter = (dimensions: string | undefined): number => {
-  if (!dimensions) return 100; // Default perimeter
+// Helper function to parse pool dimensions to get length and width
+const parsePoolDimensions = (dimensions: string | undefined): { length: number; width: number } => {
+  if (!dimensions) return { length: 30, width: 15 }; // Default dimensions
   const match = dimensions.match(/(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)/i);
   if (match) {
-    const length = parseFloat(match[1]);
-    const width = parseFloat(match[2]);
-    return 2 * (length + width);
+    return {
+      length: parseFloat(match[1]),
+      width: parseFloat(match[2])
+    };
   }
-  return 100; // Default
+  return { length: 30, width: 15 }; // Default
 };
 
-// Helper function to calculate tile cost based on pool dimensions ($45/sqft)
+// Helper function to calculate pool perimeter from dimensions
+const calculatePoolPerimeter = (dimensions: string | undefined): number => {
+  const { length, width } = parsePoolDimensions(dimensions);
+  return 2 * (length + width);
+};
+
+// Helper function to calculate pool area from dimensions
+const calculatePoolArea = (dimensions: string | undefined): number => {
+  const { length, width } = parsePoolDimensions(dimensions);
+  return length * width;
+};
+
+// Helper function to calculate tile cost based on pool perimeter ($45/sqft for waterline tiles)
 const calculateTileCost = (dimensions: string | undefined): number => {
   const perimeter = calculatePoolPerimeter(dimensions);
-  // Tiles typically cover waterline area: perimeter × 1ft height
+  // Tiles cover waterline area: perimeter × 1ft height
   const tileArea = perimeter * 1; // 1ft waterline height
   return Math.round(tileArea * 45); // $45 per sqft
 };
@@ -822,20 +830,20 @@ const WonderlandsStudio = () => {
       }
     }
 
-    // Add paver surface area cost
+    // Add paver surface area cost ($20/sqft)
     if (selectedExtras.pavers && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
       extrasBreakdown.push({
         name: `${selectedExtras.paverOption} (${paverSurfaceArea} sq ft)`,
-        price: parseFloat(paverSurfaceArea) * 15,
+        price: parseFloat(paverSurfaceArea) * 20,
         image: paverOptions.find(p => p.name === selectedExtras.paverOption)?.image || '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
       });
     }
 
-    // Add screen enclosure if area provided
+    // Add screen enclosure if area provided (Wonder Cage starts at $20/sqft)
     if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureArea > 0) {
-      let pricePerSqFt = 15;
-      if (selectedExtras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
-      if (selectedExtras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+      let pricePerSqFt = 20; // Wonder Cage starts at $20/sqft
+      if (selectedExtras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 27;
+      if (selectedExtras.screenEnclosureQuality === 'premium') pricePerSqFt = 33;
       const enclosurePrice = selectedExtras.screenEnclosureArea * pricePerSqFt;
       extrasBreakdown.push({
         name: `Screen Enclosure - ${selectedExtras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : selectedExtras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : 'Premium'} (${selectedExtras.screenEnclosureArea} sq ft)`,
@@ -928,19 +936,19 @@ const WonderlandsStudio = () => {
       }
     }
 
-    // Add paver surface area cost
+    // Add paver surface area cost ($20/sqft)
     if (selectedExtras.pavers && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && selectedExtras.paverOption && selectedExtras.paverOption !== 'None' && selectedExtras.paverOption !== '') {
       extrasArray.push({
         name: `${selectedExtras.paverOption} (${paverSurfaceArea} sq ft)`,
-        price: parseFloat(paverSurfaceArea) * 15
+        price: parseFloat(paverSurfaceArea) * 20
       });
     }
 
-    // Add screen enclosure if area provided
+    // Add screen enclosure if area provided (Wonder Cage starts at $20/sqft)
     if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureArea > 0 && selectedExtras.screenEnclosureQuality && selectedExtras.screenEnclosureQuality !== 'None' && selectedExtras.screenEnclosureQuality !== '') {
-      let pricePerSqFt = 15;
-      if (selectedExtras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
-      if (selectedExtras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+      let pricePerSqFt = 20; // Wonder Cage starts at $20/sqft
+      if (selectedExtras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 27;
+      if (selectedExtras.screenEnclosureQuality === 'premium') pricePerSqFt = 33;
       const enclosurePrice = selectedExtras.screenEnclosureArea * pricePerSqFt;
       extrasArray.push({
         name: `Screen Enclosure - ${selectedExtras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : selectedExtras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : 'Premium'} (${selectedExtras.screenEnclosureArea} sq ft)`,
@@ -1828,79 +1836,6 @@ const WonderlandsStudio = () => {
                           )}
                         </div>
 
-                        {/* Pool Heater */}
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-foreground">Pool Heater</h4>
-                            <Checkbox
-                              checked={selectedExtras.heater}
-                              onCheckedChange={() =>
-                                setSelectedExtras((prev: any) => ({
-                                  ...prev,
-                                  heater: !prev.heater,
-                                }))
-                              }
-                            />
-                          </div>
-                          
-                          {/* Heater Size Calculator */}
-                          {selectedExtras.heater && selectedProduct && (
-                            <HeaterSizeCalculator 
-                              onSelectHeater={(heaterName) => {
-                                setSelectedExtras((prev: any) => ({
-                                  ...prev,
-                                  heater: true,
-                                  heaterModel: heaterName,
-                                }));
-                              }}
-                              currentSelection={selectedExtras.heaterModel}
-                            />
-                          )}
-                          
-                          {selectedExtras.heater && (
-                            <Carousel 
-                              className="w-full"
-                              opts={{
-                                align: "start",
-                                loop: false,
-                                duration: 25,
-                              }}
-                            >
-                              <CarouselContent className="-ml-1">
-                                {poolHeaters.map((heater) => (
-                                  <CarouselItem key={heater.name} className="pl-1 basis-1/2">
-                                    <div
-                                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.heaterModel === heater.name ? "border-primary bg-primary/10" : "border-border"}`}
-                                      onClick={() =>
-                                        setSelectedExtras((prev: any) => ({
-                                          ...prev,
-                                          heaterModel: heater.name,
-                                        }))
-                                      }
-                                    >
-                                      <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                        <img
-                                          src={heater.image}
-                                          alt={heater.name}
-                                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                                        />
-                                      </div>
-                                      <div className="flex flex-col gap-0.5">
-                                        <p className="text-xs font-medium text-center truncate">{heater.name}</p>
-                                        <p className="text-xs text-primary font-semibold text-center">
-                                          +${heater.price.toLocaleString()}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </CarouselItem>
-                                ))}
-                              </CarouselContent>
-                              <CarouselPrevious className="left-0 animate-pulse" />
-                              <CarouselNext className="right-0 animate-pulse" />
-                            </Carousel>
-                          )}
-                        </div>
-
                         {/* Automatic Cover */}
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
@@ -2112,7 +2047,7 @@ const WonderlandsStudio = () => {
                             />
                             {selectedExtras.paverSurfaceArea && !isNaN(parseFloat(selectedExtras.paverSurfaceArea)) && (
                               <div className="text-xs text-green-600 font-medium">
-                                Calculated Cost: ${(parseFloat(selectedExtras.paverSurfaceArea) * 15).toLocaleString()} (${selectedExtras.paverSurfaceArea} sq ft × $15/sq ft)
+                                Calculated Cost: ${(parseFloat(selectedExtras.paverSurfaceArea) * 20).toLocaleString()} (${selectedExtras.paverSurfaceArea} sq ft × $20/sq ft)
                               </div>
                             )}
                           </div>
@@ -2177,14 +2112,14 @@ const WonderlandsStudio = () => {
                             {selectedExtras.screenEnclosureArea > 0 && (
                               <div className="text-xs text-green-600 font-medium">
                                 Calculated Cost: ${(() => {
-                                  let pricePerSqFt = 15;
-                                  if (selectedExtras.screenEnclosureQuality === "deluxe") pricePerSqFt = 22;
-                                  if (selectedExtras.screenEnclosureQuality === "premium") pricePerSqFt = 28;
+                                  let pricePerSqFt = 20; // Wonder Cage starts at $20
+                                  if (selectedExtras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
+                                  if (selectedExtras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
                                   return (selectedExtras.screenEnclosureArea * pricePerSqFt).toLocaleString();
                                 })()} ({selectedExtras.screenEnclosureArea} sq ft × ${(() => {
-                                  if (selectedExtras.screenEnclosureQuality === "deluxe") return "22";
-                                  if (selectedExtras.screenEnclosureQuality === "premium") return "28";
-                                  return "15";
+                                  if (selectedExtras.screenEnclosureQuality === "deluxe") return "27";
+                                  if (selectedExtras.screenEnclosureQuality === "premium") return "33";
+                                  return "20";
                                 })()}/sq ft)
                               </div>
                             )}
@@ -2207,7 +2142,7 @@ const WonderlandsStudio = () => {
                               >
                                 <p className="text-sm font-medium">{quality.name}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  ${quality.key === "standard" ? "15" : quality.key === "deluxe" ? "22" : "28"}/sq ft
+                                  ${quality.key === "standard" ? "20" : quality.key === "deluxe" ? "27" : "33"}/sq ft
                                 </p>
                               </div>
                             ))}
@@ -2231,6 +2166,90 @@ const WonderlandsStudio = () => {
                             </div>
                           </div>
                         )}
+
+                        {/* Pool Heater - At bottom with auto-filled dimensions */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-foreground">Pool Heater</h4>
+                            <Checkbox
+                              checked={selectedExtras.heater}
+                              onCheckedChange={() =>
+                                setSelectedExtras((prev: any) => ({
+                                  ...prev,
+                                  heater: !prev.heater,
+                                }))
+                              }
+                            />
+                          </div>
+                          
+                          {selectedExtras.heater && selectedProduct && (
+                            <>
+                              {/* Auto-filled pool info */}
+                              <div className="bg-muted/50 p-3 rounded-lg text-xs space-y-1">
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Pool Dimensions:</span>
+                                  <span className="font-medium">{selectedProduct.dimensions || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Depth:</span>
+                                  <span className="font-medium">{selectedProduct.depth || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Est. Volume:</span>
+                                  <span className="font-medium">
+                                    {(() => {
+                                      const { length, width } = parsePoolDimensions(selectedProduct.dimensions);
+                                      const avgDepth = 5; // Average depth estimate
+                                      return Math.round(length * width * avgDepth * 7.48).toLocaleString();
+                                    })()} gallons
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              {/* Heater Carousel */}
+                              <Carousel 
+                                className="w-full"
+                                opts={{
+                                  align: "start",
+                                  loop: false,
+                                  duration: 25,
+                                }}
+                              >
+                                <CarouselContent className="-ml-1">
+                                  {poolHeaters.map((heater) => (
+                                    <CarouselItem key={heater.name} className="pl-1 basis-1/2">
+                                      <div
+                                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.heaterModel === heater.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                        onClick={() =>
+                                          setSelectedExtras((prev: any) => ({
+                                            ...prev,
+                                            heaterModel: heater.name,
+                                          }))
+                                        }
+                                      >
+                                        <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                          <img
+                                            src={heater.image}
+                                            alt={heater.name}
+                                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                                          />
+                                        </div>
+                                        <div className="flex flex-col gap-0.5">
+                                          <p className="text-xs font-medium text-center truncate">{heater.name}</p>
+                                          <p className="text-xs text-primary font-semibold text-center">
+                                            +${heater.price.toLocaleString()}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </CarouselItem>
+                                  ))}
+                                </CarouselContent>
+                                <CarouselPrevious className="left-0 animate-pulse" />
+                                <CarouselNext className="right-0 animate-pulse" />
+                              </Carousel>
+                            </>
+                          )}
+                        </div>
                       </>
                     )}
 
