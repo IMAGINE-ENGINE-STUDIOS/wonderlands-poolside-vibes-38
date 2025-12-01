@@ -232,15 +232,6 @@ export function generateOffsetCurve(
 ): Array<{x: number, z: number}> {
   if (!curvedPoints || curvedPoints.length < 3) return curvedPoints;
   
-  // Calculate centroid to determine outward direction
-  const centroid = { x: 0, z: 0 };
-  for (const p of curvedPoints) {
-    centroid.x += p.x;
-    centroid.z += p.z;
-  }
-  centroid.x /= curvedPoints.length;
-  centroid.z /= curvedPoints.length;
-  
   const offsetPoints: Array<{x: number, z: number}> = [];
   
   for (let i = 0; i < curvedPoints.length; i++) {
@@ -254,11 +245,11 @@ export function generateOffsetCurve(
     const v2x = nextPt.x - currPt.x;
     const v2z = nextPt.z - currPt.z;
     
-    // Calculate normals (perpendicular to edges) - USE RIGHT PERPENDICULAR for outward direction
-    const n1x = v1z;  // Changed from -v1z
-    const n1z = -v1x; // Changed from v1x
-    const n2x = v2z;  // Changed from -v2z
-    const n2z = -v2x; // Changed from v2x
+    // Calculate normals (perpendicular to edges) - RIGHT PERPENDICULAR for outward direction
+    const n1x = v1z;
+    const n1z = -v1x;
+    const n2x = v2z;
+    const n2z = -v2x;
     
     // Normalize the normals
     const len1 = Math.sqrt(n1x * n1x + n1z * n1z);
@@ -279,16 +270,8 @@ export function generateOffsetCurve(
       avgNz /= avgLen;
     }
     
-    // Ensure normal points outward from centroid
-    const toCentroid = { x: centroid.x - currPt.x, z: centroid.z - currPt.z };
-    const dot = avgNx * toCentroid.x + avgNz * toCentroid.z;
-    if (dot > 0) {
-      // Normal points inward, flip it
-      avgNx = -avgNx;
-      avgNz = -avgNz;
-    }
-    
-    // Offset the point by offsetDistance in the outward direction
+    // Offset the point by offsetDistance in the calculated direction
+    // Positive offset = outward, negative offset = inward
     offsetPoints.push({
       x: currPt.x + avgNx * offsetDistance,
       z: currPt.z + avgNz * offsetDistance
