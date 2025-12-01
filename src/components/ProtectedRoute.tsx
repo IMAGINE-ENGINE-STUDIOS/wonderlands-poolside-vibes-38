@@ -59,7 +59,12 @@ const ProtectedRoute = ({
   }
 
   // Check role-based access
-  if (requiredRoles.length > 0 && (!profile || !requiredRoles.includes(profile.role))) {
+  if (requiredRoles.length > 0 && (!profile || !requiredRoles.includes(profile.role as any))) {
+    // Redirect sales reps to their dashboard if they try to access admin pages
+    if (profile?.role === 'sales_rep' as any && requiredRoles.includes('main_admin')) {
+      return <Navigate to="/sales-rep" replace />;
+    }
+    
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center">
