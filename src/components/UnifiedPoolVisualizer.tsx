@@ -21,8 +21,9 @@ import { PoolStairConfig, PoolChairConfig } from './scene3d/poolAssetTypes';
 import { WalkthroughController } from './scene3d/WalkthroughController';
 import { PoolDesignerHeader } from './scene3d/PoolDesignerHeader';
 import { SplineEditPanel } from './scene3d/SplineEditPanel';
+import { DepthProfileEditor } from './scene3d/DepthProfileEditor';
 import { Button } from './ui/button';
-import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Sun, Moon, PersonStanding, Edit3 } from 'lucide-react';
+import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Sun, Moon, PersonStanding, Edit3, ArrowUpDown } from 'lucide-react';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { Checkbox } from './ui/checkbox';
 import * as THREE from 'three';
@@ -153,6 +154,30 @@ export function UnifiedPoolVisualizer({
   const [isSplineEditMode, setIsSplineEditMode] = useState(false);
   const [selectedSplinePointId, setSelectedSplinePointId] = useState<string | null>(null);
   const [selectedSplineComponent, setSelectedSplineComponent] = useState<'pool-floor' | 'seating' | 'stairs' | 'waterline' | 'deck' | null>(null);
+  const [showDepthProfileEditor, setShowDepthProfileEditor] = useState(false);
+  
+  // Parse pool depth from URL or scene
+  const parseDepthValue = (depthStr: string): { shallow: number; deep: number } => {
+    const match = depthStr.match(/(\d+)[''](\d+)?[""]?\s*[-–]\s*(\d+)[''](\d+)?[""]?/);
+    if (match) {
+      const shallowFeet = parseInt(match[1]);
+      const shallowInches = match[2] ? parseInt(match[2]) : 0;
+      const deepFeet = parseInt(match[3]);
+      const deepInches = match[4] ? parseInt(match[4]) : 0;
+      return {
+        shallow: shallowFeet + shallowInches / 12,
+        deep: deepFeet + deepInches / 12
+      };
+    }
+    return { shallow: 3.75, deep: 8.5 };
+  };
+  
+  // Get product depths from URL or defaults
+  const urlParams = new URLSearchParams(window.location.search);
+  const productDepthStr = urlParams.get('depth') || "3'9\" - 8'6\"";
+  const productDepths = parseDepthValue(productDepthStr);
+  const poolShallowDepth = productDepths.shallow;
+  const poolDeepDepth = productDepths.deep;
   
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
@@ -709,19 +734,27 @@ export function UnifiedPoolVisualizer({
             <PersonStanding className="w-5 h-5" />
           </button>
           <button
+            onClick={() => setShowDepthProfileEditor(!showDepthProfileEditor)}
+            className={`p-2 rounded-lg shadow-lg transition-colors ${showDepthProfileEditor ? 'bg-cyan-600 text-white' : 'bg-background/80 hover:bg-background'}`}
+            title="Depth Profile Editor"
+          >
+            <ArrowUpDown className="w-5 h-5" />
+          </button>
+          <button
             onClick={() => {
               const newMode = !isSplineEditMode;
               setIsSplineEditMode(newMode);
               if (newMode) {
                 setEnableFloorDepthSplineEdit(true);
                 setSelectedSplineComponent('pool-floor');
+                setShowDepthProfileEditor(false); // Close 2D editor when 3D edit mode opens
               } else {
                 setEnableFloorDepthSplineEdit(false);
                 setSelectedSplineComponent(null);
               }
             }}
             className={`p-2 rounded-lg shadow-lg transition-colors ${isSplineEditMode ? 'bg-orange-600 text-white' : 'bg-background/80 hover:bg-background'}`}
-            title="Pool Depth Editor (3D)"
+            title="3D Spline Editor (Advanced)"
           >
             <Edit3 className="w-5 h-5" />
           </button>
@@ -856,7 +889,20 @@ export function UnifiedPoolVisualizer({
                setEnableFloorDepthSplineEdit(true);
              }
            }}
-           poolModelDepth={poolDepth}
+           poolModelDepth={poolDeepDepth}
+           poolModelShallowDepth={poolShallowDepth}
+         />
+
+         {/* Depth Profile Editor - similar to 2D designer depth tab */}
+         <DepthProfileEditor
+           isOpen={showDepthProfileEditor && !isSplineEditMode}
+           onClose={() => setShowDepthProfileEditor(false)}
+           perimeterDepthPoints={scene.pool.perimeterDepthPoints || []}
+           onPerimeterDepthPointsChange={handlePerimeterDepthPointsChange}
+           selectedPointId={selectedSplinePointId}
+           onSelectPoint={setSelectedSplinePointId}
+           poolShallowDepth={poolShallowDepth}
+           poolDeepDepth={poolDeepDepth}
          />
 
           {/* Climate Controller Panel */}
