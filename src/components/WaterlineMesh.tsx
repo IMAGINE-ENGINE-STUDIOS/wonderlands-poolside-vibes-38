@@ -38,8 +38,8 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       return;
     }
     
-    // 1ft x 1ft tile - using RepeatWrapping with scale 1,1
-    textureCache.loadTexture(waterlineTextureUrl, { x: 1, y: 1 })
+    // 0.5ft x 0.5ft tile - squared texture frames
+    textureCache.loadTexture(waterlineTextureUrl, { x: 2, y: 2 }) // 2x repeat = 0.5ft squares
       .then(texture => {
         texture.offset.set(waterlineTextureOffset[0], waterlineTextureOffset[1]);
         texture.wrapS = THREE.RepeatWrapping;
@@ -133,9 +133,9 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       const innerP1 = { x: p1.x + nx * waterlineWidth, z: p1.z + nz * waterlineWidth };
       const innerP2 = { x: p2.x + nx * waterlineWidth, z: p2.z + nz * waterlineWidth };
 
-      // UV coordinates using cumulative distance (1ft = 1 UV unit)
-      const u1 = distances[i];
-      const u2 = distances[i + 1];
+      // UV coordinates using cumulative distance (0.5ft = 1 UV unit for squared frames)
+      const u1 = distances[i] * 2; // Multiply by 2 for 0.5ft squares
+      const u2 = distances[i + 1] * 2;
 
       // FRONT FACE (outer wall - visible from pool) - cumulative distance UV
       vertices.push(outerP1.x, waterlineTop, outerP1.z);
@@ -143,8 +143,8 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
       vertices.push(outerP1.x, waterlineBottom, outerP1.z);
       vertices.push(outerP2.x, waterlineBottom, outerP2.z);
       
-      uvs.push(u1, waterlineHeight);
-      uvs.push(u2, waterlineHeight);
+      uvs.push(u1, waterlineHeight * 2); // Scale V for 0.5ft height squares
+      uvs.push(u2, waterlineHeight * 2);
       uvs.push(u1, 0);
       uvs.push(u2, 0);
       
@@ -153,15 +153,15 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
         baseIdx, baseIdx + 2, baseIdx + 3
       );
 
-      // BACK FACE (inner wall) - same UV
+      // BACK FACE (inner wall) - same UV with 0.5ft scaling
       const backBase = vertices.length / 3;
       vertices.push(innerP1.x, waterlineTop, innerP1.z);
       vertices.push(innerP2.x, waterlineTop, innerP2.z);
       vertices.push(innerP1.x, waterlineBottom, innerP1.z);
       vertices.push(innerP2.x, waterlineBottom, innerP2.z);
       
-      uvs.push(u1, waterlineHeight);
-      uvs.push(u2, waterlineHeight);
+      uvs.push(u1, waterlineHeight * 2); // Scale V for 0.5ft height squares
+      uvs.push(u2, waterlineHeight * 2);
       uvs.push(u1, 0);
       uvs.push(u2, 0);
       

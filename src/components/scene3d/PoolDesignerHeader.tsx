@@ -107,43 +107,43 @@ export function PoolDesignerHeader({
   }, [measurements, poolPrice, paverPricePerSqft, copingPricePerSqft, additionalFeatures]);
 
   return (
-    <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30">
+    <div className="relative">
       <div className="bg-background/95 backdrop-blur-sm border border-border rounded-xl shadow-lg overflow-hidden">
-        {/* Compact Header */}
+        {/* Compact Header - inline */}
         <button 
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full flex items-center justify-between gap-6 px-4 py-2 hover:bg-muted/50 transition-colors"
+          className="w-full flex items-center justify-between gap-4 px-3 py-1.5 hover:bg-muted/50 transition-colors"
         >
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             {/* Pool Dimensions */}
-            <div className="flex items-center gap-2">
-              <Ruler className="w-4 h-4 text-cyan-500" />
-              <span className="text-sm font-medium">
+            <div className="flex items-center gap-1.5">
+              <Ruler className="w-3.5 h-3.5 text-cyan-500" />
+              <span className="text-xs font-medium">
                 {measurements.width.toFixed(1)}' × {measurements.length.toFixed(1)}' × {poolDepth}'
               </span>
             </div>
 
             {/* Pool Area */}
-            <div className="flex items-center gap-2">
-              <Layers className="w-4 h-4 text-blue-500" />
-              <span className="text-sm">
-                {measurements.poolArea.toFixed(0)} sq ft
+            <div className="flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-blue-500" />
+              <span className="text-xs">
+                {measurements.poolArea.toFixed(0)} sqft
               </span>
             </div>
 
             {/* Total Cost */}
-            <div className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-green-500" />
-              <span className="text-sm font-semibold text-green-600">
+            <div className="flex items-center gap-1.5">
+              <DollarSign className="w-3.5 h-3.5 text-green-500" />
+              <span className="text-xs font-semibold text-green-600">
                 ${costs.total.toLocaleString()}
               </span>
             </div>
           </div>
 
           {isExpanded ? (
-            <ChevronUp className="w-4 h-4 text-muted-foreground" />
+            <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
           )}
         </button>
 

@@ -92,13 +92,22 @@ export function DepthProfileEditor({
         profilePosition = 1 - ((index - halfPoints) / halfPoints); // 1 to 0
       }
 
-      // Interpolate depth from anchors
+      // Clamp profile position to ensure we always capture max depth
+      profilePosition = Math.min(1, Math.max(0, profilePosition));
+
+      // Interpolate depth from anchors - handle edge cases properly
       let depth = sortedAnchors[0].depth;
-      for (let i = 0; i < sortedAnchors.length - 1; i++) {
-        if (profilePosition >= sortedAnchors[i].position && profilePosition <= sortedAnchors[i + 1].position) {
-          const t = (profilePosition - sortedAnchors[i].position) / (sortedAnchors[i + 1].position - sortedAnchors[i].position);
-          depth = sortedAnchors[i].depth + t * (sortedAnchors[i + 1].depth - sortedAnchors[i].depth);
-          break;
+      
+      // If at or past max position, use last anchor depth
+      if (profilePosition >= sortedAnchors[sortedAnchors.length - 1].position) {
+        depth = sortedAnchors[sortedAnchors.length - 1].depth;
+      } else {
+        for (let i = 0; i < sortedAnchors.length - 1; i++) {
+          if (profilePosition >= sortedAnchors[i].position && profilePosition <= sortedAnchors[i + 1].position) {
+            const t = (profilePosition - sortedAnchors[i].position) / (sortedAnchors[i + 1].position - sortedAnchors[i].position);
+            depth = sortedAnchors[i].depth + t * (sortedAnchors[i + 1].depth - sortedAnchors[i].depth);
+            break;
+          }
         }
       }
 

@@ -142,18 +142,18 @@ export function PoolAssetManager({
     }
   }, [selectedAssetId, stairs, contourSeating, onRequestFuseStairSeating]);
 
-  // Add new stair
+  // Add new stair - 5ft width, split style
   const handleAddStair = useCallback((shape: 'linear' | 'curved') => {
     const newStair: PoolStairConfig = {
       id: `stair-${Date.now()}`,
       wallPosition: 0.1 + Math.random() * 0.2,
       shape,
-      width: 2, // Default 2 feet width
+      width: 5, // Default 5 feet width
       numSteps: 4,
       stepHeight: 0.625, // 7.5 inches
       stepDepth: 0.917, // 11 inches
       textureUrl: poolFinishTexture,
-      cornerRadius: shape === 'curved' ? 1.0 : 0 // Default 1 foot radius for curved
+      cornerRadius: shape === 'curved' ? 1.0 : 0.5 // Split stair style with rounded corners
     };
     onStairsChange([...stairs, newStair]);
     onSelectAsset(newStair.id);
@@ -262,42 +262,42 @@ export function PoolAssetManager({
         variant="outline"
         size="sm"
         onClick={onToggle}
-        className="absolute top-4 right-4 z-10 bg-background/80 backdrop-blur-sm"
+        className="fixed bottom-4 right-4 z-50 bg-background/95 backdrop-blur-sm shadow-lg border-primary/20 hover:border-primary/50"
       >
-        <Footprints className="h-4 w-4 mr-2" />
-        Pool Assets
+        <Footprints className="h-4 w-4 mr-2 text-primary" />
+        <span className="font-medium">Pool Assets</span>
         <ChevronDown className="h-4 w-4 ml-2" />
       </Button>
     );
   }
 
   return (
-    <div className="absolute top-4 right-4 z-10 w-80 bg-background/95 backdrop-blur-sm border rounded-lg shadow-lg">
-      <div className="flex items-center justify-between p-3 border-b">
+    <div className="fixed bottom-4 right-4 z-50 w-80 bg-background/98 backdrop-blur-md border border-border/50 rounded-xl shadow-2xl">
+      <div className="flex items-center justify-between p-3 border-b border-border/30 bg-gradient-to-r from-primary/5 to-transparent">
         <h3 className="font-semibold text-sm flex items-center gap-2">
-          <Footprints className="h-4 w-4" />
+          <Footprints className="h-4 w-4 text-primary" />
           Pool Assets
         </h3>
-        <Button variant="ghost" size="sm" onClick={onToggle}>
+        <Button variant="ghost" size="sm" onClick={onToggle} className="h-7 w-7 p-0 hover:bg-primary/10">
           <ChevronUp className="h-4 w-4" />
         </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="p-2">
-        <TabsList className="grid grid-cols-4 w-full">
-          <TabsTrigger value="stairs" className="text-xs">
+        <TabsList className="grid grid-cols-4 w-full h-9 bg-muted/30">
+          <TabsTrigger value="stairs" className="text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Footprints className="h-3 w-3 mr-1" />
             Stairs
           </TabsTrigger>
-          <TabsTrigger value="chairs" className="text-xs">
+          <TabsTrigger value="chairs" className="text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Armchair className="h-3 w-3 mr-1" />
             Seating
           </TabsTrigger>
-          <TabsTrigger value="lights" className="text-xs">
+          <TabsTrigger value="lights" className="text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Lightbulb className="h-3 w-3 mr-1" />
             Lights
           </TabsTrigger>
-          <TabsTrigger value="jets" className="text-xs">
+          <TabsTrigger value="jets" className="text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             <Droplets className="h-3 w-3 mr-1" />
             Jets
           </TabsTrigger>

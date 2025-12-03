@@ -760,14 +760,26 @@ export function UnifiedPoolVisualizer({
           </button>
         </div>
 
-        {/* Pool Designer Header with Measurements & Cost */}
-        <PoolDesignerHeader
-          poolPoints={scene.pool.points}
-          poolDepth={poolDepth}
-          deckWidth={deckWidth}
-          copingWidth={scene.deck.copingWidth || 1}
-          poolPrice={parseFloat(new URLSearchParams(window.location.search).get('price') || '50000')}
-        />
+        {/* Pool Designer Header with Measurements & Cost - positioned in top bar */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
+          {/* Home button */}
+          <a
+            href="/"
+            className="bg-background/80 hover:bg-background p-2 rounded-lg shadow-lg transition-colors flex items-center gap-2 text-sm font-medium"
+            title="Back to Home"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Home
+          </a>
+          {/* Inline estimates */}
+          <PoolDesignerHeader
+            poolPoints={scene.pool.points}
+            poolDepth={poolDepth}
+            deckWidth={deckWidth}
+            copingWidth={scene.deck.copingWidth || 1}
+            poolPrice={parseFloat(new URLSearchParams(window.location.search).get('price') || '50000')}
+          />
+        </div>
 
         {/* Walkthrough Mode UI Overlay */}
         {isWalkthroughMode && (
@@ -1208,27 +1220,23 @@ export function UnifiedPoolVisualizer({
             jumpForce={15}
           />
           
-          {/* OrbitControls - disabled during walkthrough or spline edit mode */}
-          {!isWalkthroughMode && !isSplineEditMode && (
+          {/* OrbitControls - Free camera with right-click + scroll, locks on asset drag */}
+          {!isWalkthroughMode && (
             <OrbitControls
               ref={controlsRef}
               makeDefault
-              autoRotate={autoRotate}
+              autoRotate={autoRotate && !selectedPoolAssetId}
               autoRotateSpeed={0.5}
               enableDamping
               dampingFactor={0.05}
-            />
-          )}
-          
-          {/* Show message when in spline edit mode */}
-          {isSplineEditMode && !isWalkthroughMode && (
-            <OrbitControls
-              ref={controlsRef}
-              makeDefault
-              enableRotate={false}
+              enableRotate={!selectedPoolAssetId && !isSplineEditMode}
               enablePan={true}
               enableZoom={true}
-              enableDamping={false}
+              mouseButtons={{
+                LEFT: selectedPoolAssetId ? undefined : 0, // Disable left click rotate when dragging asset
+                MIDDLE: 2, // Middle for pan
+                RIGHT: 2 // Right click for rotate
+              }}
             />
           )}
                </R3FCanvas>
