@@ -88,200 +88,177 @@ export function ContourSeating({
     }
   }, [texture]);
 
-  // Generate wall meshes using pool-wall-style UV mapping (cumulative perimeter distance)
-  const { wallMeshes, topMesh, endCaps } = useMemo(() => {
+  // Generate unified geometry following CopingGeometry pattern exactly
+  const geometry = useMemo(() => {
     const perimeterPoints = getPerimeterSection(
       seating.startPosition,
       seating.endPosition,
       poolPerimeter,
-      30 // Higher resolution for smooth contour
+      30
     );
 
     if (perimeterPoints.length < 2) {
-      return { wallMeshes: [], topMesh: null, endCaps: [] };
+      return new THREE.BufferGeometry();
     }
 
     const topBelowWater = seating.height;
-    const wallMeshes: Array<{
-      vertices: number[];
-      uvs: number[];
-      indices: number[];
-      position: [number, number, number];
-    }> = [];
+    const topY = -topBelowWater;
+    
+    // Calculate inner boundary (offset by seating width)
+    const innerPoints = perimeterPoints.map(pt => ({
+      x: pt.x + Math.cos(pt.angle) * seating.width,
+      z: pt.z + Math.sin(pt.angle) * seating.width,
+      angle: pt.angle
+    }));
 
-    // Track cumulative perimeter distance for UV mapping (like pool walls)
-    let cumulativeDistance = 0;
-
-    // Create wall segments with pool-wall-style cumulative UV mapping
-    for (let i = 0; i < perimeterPoints.length - 1; i++) {
-      const pt1 = perimeterPoints[i];
-      const pt2 = perimeterPoints[i + 1];
-
-      const segmentLength = Math.sqrt((pt2.x - pt1.x) ** 2 + (pt2.z - pt1.z) ** 2);
-      if (segmentLength < 0.01) continue;
-      
-      const depth1 = getFloorDepthAt(pt1.x, pt1.z);
-      const depth2 = getFloorDepthAt(pt2.x, pt2.z);
-      
-      const topY = -topBelowWater;
-      const bottomY1 = -depth1;
-      const bottomY2 = -depth2;
-      const wallHeight = Math.max(Math.abs(topY - bottomY1), Math.abs(topY - bottomY2));
-      if (wallHeight < 0.01) continue;
-
-      // OUTER WALL - custom geometry with pool-wall UV pattern
-      const outerVerts: number[] = [];
-      const outerUVs: number[] = [];
-      const outerIndices: number[] = [];
-      
-      // 4 vertices for the quad: top-left, top-right, bottom-left, bottom-right
-      outerVerts.push(pt1.x, topY, pt1.z);        // 0: top-left
-      outerVerts.push(pt2.x, topY, pt2.z);        // 1: top-right  
-      outerVerts.push(pt1.x, bottomY1, pt1.z);    // 2: bottom-left
-      outerVerts.push(pt2.x, bottomY2, pt2.z);    // 3: bottom-right
-      
-      // UV mapping like pool walls: U = cumulative distance, V = depth
-      const avgDepth = (depth1 + depth2) / 2;
-      outerUVs.push(cumulativeDistance, avgDepth);                    // 0
-      outerUVs.push(cumulativeDistance + segmentLength, avgDepth);    // 1
-      outerUVs.push(cumulativeDistance, 0);                           // 2
-      outerUVs.push(cumulativeDistance + segmentLength, 0);           // 3
-      
-      outerIndices.push(0, 3, 1, 0, 2, 3);
-      
-      wallMeshes.push({
-        vertices: outerVerts,
-        uvs: outerUVs,
-        indices: outerIndices,
-        position: [0, 0, 0]
-      });
-
-      // INNER WALL - offset by seating width
-      const inX1 = pt1.x + Math.cos(pt1.angle) * seating.width;
-      const inZ1 = pt1.z + Math.sin(pt1.angle) * seating.width;
-      const inX2 = pt2.x + Math.cos(pt2.angle) * seating.width;
-      const inZ2 = pt2.z + Math.sin(pt2.angle) * seating.width;
-
-      const innerVerts: number[] = [];
-      const innerUVs: number[] = [];
-      const innerIndices: number[] = [];
-      
-      innerVerts.push(inX2, topY, inZ2);          // 0: top-left (reversed for inward normal)
-      innerVerts.push(inX1, topY, inZ1);          // 1: top-right
-      innerVerts.push(inX2, bottomY2, inZ2);      // 2: bottom-left
-      innerVerts.push(inX1, bottomY1, inZ1);      // 3: bottom-right
-      
-      innerUVs.push(cumulativeDistance + segmentLength, avgDepth);
-      innerUVs.push(cumulativeDistance, avgDepth);
-      innerUVs.push(cumulativeDistance + segmentLength, 0);
-      innerUVs.push(cumulativeDistance, 0);
-      
-      innerIndices.push(0, 3, 1, 0, 2, 3);
-      
-      wallMeshes.push({
-        vertices: innerVerts,
-        uvs: innerUVs,
-        indices: innerIndices,
-        position: [0, 0, 0]
-      });
-
-      cumulativeDistance += segmentLength;
+    const vertices: number[] = [];
+    const uvs: number[] = [];
+    const indices: number[] = [];
+    
+    const numPoints = perimeterPoints.length;
+    
+    // Calculate cumulative distances for UV mapping (like CopingGeometry)
+    const distances: number[] = [0];
+    let totalDistance = 0;
+    for (let i = 0; i < numPoints - 1; i++) {
+      const p1 = perimeterPoints[i];
+      const p2 = perimeterPoints[i + 1];
+      const segmentLength = Math.sqrt(
+        Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2)
+      );
+      totalDistance += segmentLength;
+      distances.push(totalDistance);
     }
 
-    // Create TOP surface using Shape
-    const outerPath: Array<{ x: number; z: number }> = [];
-    const innerPath: Array<{ x: number; z: number }> = [];
-
-    for (const pt of perimeterPoints) {
-      outerPath.push({ x: pt.x, z: pt.z });
-      innerPath.push({
-        x: pt.x + Math.cos(pt.angle) * seating.width,
-        z: pt.z + Math.sin(pt.angle) * seating.width
-      });
-    }
-
-    let topMesh: { geometry: THREE.BufferGeometry; position: [number, number, number] } | null = null;
-
-    if (outerPath.length > 1) {
-      const shape = new THREE.Shape();
-      shape.moveTo(outerPath[0].x, outerPath[0].z);
-      for (let i = 1; i < outerPath.length; i++) {
-        shape.lineTo(outerPath[i].x, outerPath[i].z);
-      }
-      for (let i = innerPath.length - 1; i >= 0; i--) {
-        shape.lineTo(innerPath[i].x, innerPath[i].z);
-      }
-      shape.closePath();
-
-      const topGeo = new THREE.ShapeGeometry(shape);
-      const topUV = topGeo.getAttribute('uv');
-      const topPos = topGeo.getAttribute('position');
-      for (let i = 0; i < topUV.count; i++) {
-        const x = topPos.getX(i);
-        const z = topPos.getY(i);
-        topUV.setXY(i, x, z); // 1ft = 1 UV unit
-      }
-
-      topMesh = {
-        geometry: topGeo,
-        position: [0, -topBelowWater, 0]
-      };
-    }
-
-    // Create end caps with proper UV
-    const endCaps: Array<{
-      vertices: number[];
-      uvs: number[];
-      indices: number[];
-    }> = [];
-
-    if (perimeterPoints.length >= 2) {
-      // Start cap
-      const startPt = perimeterPoints[0];
-      const startDepth = getFloorDepthAt(startPt.x, startPt.z);
-      const startHeight = Math.abs(-topBelowWater - (-startDepth));
+    // TOP SURFACE - world-space UV (x, z) for perfect 1ft grid
+    for (let i = 0; i < numPoints; i++) {
+      const outer = perimeterPoints[i];
+      const inner = innerPoints[i];
       
-      if (startHeight > 0.01) {
-        const inX = startPt.x + Math.cos(startPt.angle) * seating.width;
-        const inZ = startPt.z + Math.sin(startPt.angle) * seating.width;
-        
-        const startVerts: number[] = [];
-        const startUVs: number[] = [];
-        
-        startVerts.push(startPt.x, -topBelowWater, startPt.z);
-        startVerts.push(inX, -topBelowWater, inZ);
-        startVerts.push(startPt.x, -startDepth, startPt.z);
-        startVerts.push(inX, -startDepth, inZ);
-        
-        startUVs.push(0, startHeight, seating.width, startHeight, 0, 0, seating.width, 0);
-        
-        endCaps.push({ vertices: startVerts, uvs: startUVs, indices: [0, 3, 1, 0, 2, 3] });
-      }
-
-      // End cap
-      const endPt = perimeterPoints[perimeterPoints.length - 1];
-      const endDepth = getFloorDepthAt(endPt.x, endPt.z);
-      const endHeight = Math.abs(-topBelowWater - (-endDepth));
+      vertices.push(outer.x, topY, outer.z);
+      vertices.push(inner.x, topY, inner.z);
       
-      if (endHeight > 0.01) {
-        const inX = endPt.x + Math.cos(endPt.angle) * seating.width;
-        const inZ = endPt.z + Math.sin(endPt.angle) * seating.width;
-        
-        const endVerts: number[] = [];
-        const endUVs: number[] = [];
-        
-        endVerts.push(inX, -topBelowWater, inZ);
-        endVerts.push(endPt.x, -topBelowWater, endPt.z);
-        endVerts.push(inX, -endDepth, inZ);
-        endVerts.push(endPt.x, -endDepth, endPt.z);
-        
-        endUVs.push(0, endHeight, seating.width, endHeight, 0, 0, seating.width, 0);
-        
-        endCaps.push({ vertices: endVerts, uvs: endUVs, indices: [0, 3, 1, 0, 2, 3] });
-      }
+      uvs.push(outer.x, outer.z);
+      uvs.push(inner.x, inner.z);
+    }
+    
+    // Top surface triangles
+    for (let i = 0; i < numPoints - 1; i++) {
+      const outerIdx = i * 2;
+      const innerIdx = i * 2 + 1;
+      const nextOuterIdx = (i + 1) * 2;
+      const nextInnerIdx = (i + 1) * 2 + 1;
+      
+      indices.push(outerIdx, nextOuterIdx, innerIdx);
+      indices.push(innerIdx, nextOuterIdx, nextInnerIdx);
     }
 
-    return { wallMeshes, topMesh, endCaps };
+    // OUTER WALL - cumulative distance UV (facing outward from pool)
+    const outerWallBase = vertices.length / 3;
+    for (let i = 0; i < numPoints; i++) {
+      const pt = perimeterPoints[i];
+      const bottomY = -getFloorDepthAt(pt.x, pt.z);
+      const height = Math.abs(topY - bottomY);
+      
+      vertices.push(pt.x, topY, pt.z);
+      vertices.push(pt.x, bottomY, pt.z);
+      
+      uvs.push(distances[i], height);
+      uvs.push(distances[i], 0);
+    }
+    
+    // Outer wall triangles (facing outward - reversed winding)
+    for (let i = 0; i < numPoints - 1; i++) {
+      const topIdx = outerWallBase + i * 2;
+      const bottomIdx = outerWallBase + i * 2 + 1;
+      const nextTopIdx = outerWallBase + (i + 1) * 2;
+      const nextBottomIdx = outerWallBase + (i + 1) * 2 + 1;
+      
+      // Outward facing
+      indices.push(topIdx, bottomIdx, nextTopIdx);
+      indices.push(bottomIdx, nextBottomIdx, nextTopIdx);
+    }
+
+    // INNER WALL - cumulative distance UV (facing into pool)
+    const innerWallBase = vertices.length / 3;
+    for (let i = 0; i < numPoints; i++) {
+      const pt = innerPoints[i];
+      const outerPt = perimeterPoints[i];
+      const bottomY = -getFloorDepthAt(outerPt.x, outerPt.z);
+      const height = Math.abs(topY - bottomY);
+      
+      vertices.push(pt.x, topY, pt.z);
+      vertices.push(pt.x, bottomY, pt.z);
+      
+      uvs.push(distances[i], height);
+      uvs.push(distances[i], 0);
+    }
+    
+    // Inner wall triangles (facing inward - standard winding)
+    for (let i = 0; i < numPoints - 1; i++) {
+      const topIdx = innerWallBase + i * 2;
+      const bottomIdx = innerWallBase + i * 2 + 1;
+      const nextTopIdx = innerWallBase + (i + 1) * 2;
+      const nextBottomIdx = innerWallBase + (i + 1) * 2 + 1;
+      
+      // Inward facing
+      indices.push(topIdx, nextTopIdx, bottomIdx);
+      indices.push(bottomIdx, nextTopIdx, nextBottomIdx);
+    }
+
+    // START END CAP
+    const startOuter = perimeterPoints[0];
+    const startInner = innerPoints[0];
+    const startBottomY = -getFloorDepthAt(startOuter.x, startOuter.z);
+    const startHeight = Math.abs(topY - startBottomY);
+    
+    if (startHeight > 0.01) {
+      const startCapBase = vertices.length / 3;
+      
+      vertices.push(startOuter.x, topY, startOuter.z);
+      vertices.push(startInner.x, topY, startInner.z);
+      vertices.push(startOuter.x, startBottomY, startOuter.z);
+      vertices.push(startInner.x, startBottomY, startInner.z);
+      
+      uvs.push(0, startHeight);
+      uvs.push(seating.width, startHeight);
+      uvs.push(0, 0);
+      uvs.push(seating.width, 0);
+      
+      indices.push(startCapBase, startCapBase + 1, startCapBase + 3);
+      indices.push(startCapBase, startCapBase + 3, startCapBase + 2);
+    }
+
+    // END END CAP
+    const endOuter = perimeterPoints[numPoints - 1];
+    const endInner = innerPoints[numPoints - 1];
+    const endBottomY = -getFloorDepthAt(endOuter.x, endOuter.z);
+    const endHeight = Math.abs(topY - endBottomY);
+    
+    if (endHeight > 0.01) {
+      const endCapBase = vertices.length / 3;
+      
+      vertices.push(endInner.x, topY, endInner.z);
+      vertices.push(endOuter.x, topY, endOuter.z);
+      vertices.push(endInner.x, endBottomY, endInner.z);
+      vertices.push(endOuter.x, endBottomY, endOuter.z);
+      
+      uvs.push(0, endHeight);
+      uvs.push(seating.width, endHeight);
+      uvs.push(0, 0);
+      uvs.push(seating.width, 0);
+      
+      indices.push(endCapBase, endCapBase + 1, endCapBase + 3);
+      indices.push(endCapBase, endCapBase + 3, endCapBase + 2);
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+    
+    return geo;
   }, [seating, poolPerimeter, getFloorDepthAt]);
 
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
@@ -303,72 +280,21 @@ export function ContourSeating({
     }
   }, [isDragging, handlePointerUp]);
 
-  const materialProps = {
-    map: texture,
-    roughness: 0.6,
-    metalness: 0.1,
-    side: THREE.DoubleSide
-  };
-
-  // Create geometries from vertex data
-  const wallGeometries = useMemo(() => {
-    return wallMeshes.map(wall => {
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(wall.vertices, 3));
-      geo.setAttribute('uv', new THREE.Float32BufferAttribute(wall.uvs, 2));
-      geo.setIndex(wall.indices);
-      geo.computeVertexNormals();
-      return geo;
-    });
-  }, [wallMeshes]);
-
-  const endCapGeometries = useMemo(() => {
-    return endCaps.map(cap => {
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(cap.vertices, 3));
-      geo.setAttribute('uv', new THREE.Float32BufferAttribute(cap.uvs, 2));
-      geo.setIndex(cap.indices);
-      geo.computeVertexNormals();
-      return geo;
-    });
-  }, [endCaps]);
-
   return (
     <group ref={groupRef}>
-      {/* Wall segments with pool-wall-style UV */}
-      {wallGeometries.map((geo, idx) => (
-        <mesh
-          key={`wall-${idx}`}
-          geometry={geo}
-          onPointerDown={handlePointerDown}
-          onPointerOver={() => gl.domElement.style.cursor = isDragging ? 'grabbing' : 'grab'}
-          onPointerOut={() => !isDragging && (gl.domElement.style.cursor = 'auto')}
-        >
-          <meshStandardMaterial {...materialProps} />
-        </mesh>
-      ))}
-
-      {/* Top surface */}
-      {topMesh && (
-        <mesh
-          geometry={topMesh.geometry}
-          position={topMesh.position}
-          rotation={[-Math.PI / 2, 0, 0]}
-          onPointerDown={handlePointerDown}
-        >
-          <meshStandardMaterial {...materialProps} />
-        </mesh>
-      )}
-
-      {/* End caps */}
-      {endCapGeometries.map((geo, idx) => (
-        <mesh
-          key={`cap-${idx}`}
-          geometry={geo}
-        >
-          <meshStandardMaterial {...materialProps} />
-        </mesh>
-      ))}
+      <mesh
+        geometry={geometry}
+        onPointerDown={handlePointerDown}
+        onPointerOver={() => gl.domElement.style.cursor = isDragging ? 'grabbing' : 'grab'}
+        onPointerOut={() => !isDragging && (gl.domElement.style.cursor = 'auto')}
+      >
+        <meshStandardMaterial
+          map={texture}
+          roughness={0.6}
+          metalness={0.1}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
       
       {/* Selection highlight */}
       {isSelected && (
