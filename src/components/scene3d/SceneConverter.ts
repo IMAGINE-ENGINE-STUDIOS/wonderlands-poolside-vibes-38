@@ -390,11 +390,20 @@ export function productToScene(
     sampleDepths: perimeterDepthPoints.slice(0, 4).map(p => p.depth.toFixed(2))
   });
 
+  // Create linear depth anchors for simple shallow-to-deep profile
+  const linearDepthAnchors = [
+    { id: 'anchor-0', position: 0, depth: shallowDepth },
+    { id: 'anchor-33', position: 0.33, depth: shallowDepth + (deepDepth - shallowDepth) * 0.33 },
+    { id: 'anchor-67', position: 0.67, depth: shallowDepth + (deepDepth - shallowDepth) * 0.67 },
+    { id: 'anchor-100', position: 1, depth: deepDepth },
+  ];
+
   const scene: Scene3D = {
     pool: {
       points: poolPoints,
       depthPoints: depthPoints,
-      perimeterDepthPoints: perimeterDepthPoints,  // Initialize with correct depth
+      perimeterDepthPoints: perimeterDepthPoints,  // Keep for backwards compatibility
+      linearDepthAnchors: linearDepthAnchors,      // New linear depth profile
       shape: 'rectangle',
       finish: {
         url: linerTextureUrl,

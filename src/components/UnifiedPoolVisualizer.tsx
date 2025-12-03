@@ -465,6 +465,17 @@ export function UnifiedPoolVisualizer({
     });
   };
 
+  const handleLinearDepthAnchorsChange = (anchors: Array<{ id: string; position: number; depth: number }>) => {
+    console.log('Linear depth anchors updated:', anchors);
+    setScene({
+      ...scene,
+      pool: {
+        ...scene.pool,
+        linearDepthAnchors: anchors
+      }
+    });
+  };
+
   const toggleFullscreen = async () => {
     // For mobile, toggle fullscreen and rotate screen to landscape
     if (isMobile) {
@@ -907,16 +918,21 @@ export function UnifiedPoolVisualizer({
          />
 
          {/* Depth Profile Editor - similar to 2D designer depth tab */}
-         <DepthProfileEditor
-           isOpen={showDepthProfileEditor && !isSplineEditMode}
-           onClose={() => setShowDepthProfileEditor(false)}
-           perimeterDepthPoints={scene.pool.perimeterDepthPoints || []}
-           onPerimeterDepthPointsChange={handlePerimeterDepthPointsChange}
-           selectedPointId={selectedSplinePointId}
-           onSelectPoint={setSelectedSplinePointId}
-           poolShallowDepth={poolShallowDepth}
-           poolDeepDepth={poolDeepDepth}
-         />
+          <DepthProfileEditor
+            isOpen={showDepthProfileEditor && !isSplineEditMode}
+            onClose={() => setShowDepthProfileEditor(false)}
+            linearDepthAnchors={scene.pool.linearDepthAnchors || [
+              { id: 'd1', position: 0, depth: poolShallowDepth },
+              { id: 'd2', position: 0.33, depth: poolShallowDepth + (poolDeepDepth - poolShallowDepth) * 0.33 },
+              { id: 'd3', position: 0.67, depth: poolShallowDepth + (poolDeepDepth - poolShallowDepth) * 0.67 },
+              { id: 'd4', position: 1, depth: poolDeepDepth },
+            ]}
+            onLinearDepthAnchorsChange={handleLinearDepthAnchorsChange}
+            selectedAnchorId={selectedSplinePointId}
+            onSelectAnchor={setSelectedSplinePointId}
+            poolShallowDepth={poolShallowDepth}
+            poolDeepDepth={poolDeepDepth}
+          />
 
           {/* Climate Controller Panel */}
           <ClimateController

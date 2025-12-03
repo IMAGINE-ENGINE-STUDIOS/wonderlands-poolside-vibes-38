@@ -1,129 +1,83 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { X, ArrowUpDown, RefreshCw, Plus, Trash2 } from 'lucide-react';
-import { PerimeterDepthPoint } from './types';
+import { LinearDepthAnchor } from './types';
 
 interface DepthProfileEditorProps {
   isOpen: boolean;
   onClose: () => void;
-  perimeterDepthPoints: PerimeterDepthPoint[];
-  onPerimeterDepthPointsChange: (points: PerimeterDepthPoint[]) => void;
-  selectedPointId: string | null;
-  onSelectPoint: (id: string | null) => void;
+  linearDepthAnchors: LinearDepthAnchor[];
+  onLinearDepthAnchorsChange: (anchors: LinearDepthAnchor[]) => void;
+  selectedAnchorId: string | null;
+  onSelectAnchor: (id: string | null) => void;
   // Pool depth from selected product
   poolShallowDepth?: number;
   poolDeepDepth?: number;
 }
 
-interface LinearDepthAnchor {
-  id: string;
-  position: number; // 0-1 along pool length
-  depth: number;
-}
-
 export function DepthProfileEditor({
   isOpen,
   onClose,
-  perimeterDepthPoints,
-  onPerimeterDepthPointsChange,
-  selectedPointId,
-  onSelectPoint,
+  linearDepthAnchors,
+  onLinearDepthAnchorsChange,
+  selectedAnchorId,
+  onSelectAnchor,
   poolShallowDepth = 3.75,
   poolDeepDepth = 8.5,
 }: DepthProfileEditorProps) {
-  // Linear depth anchors for the simplified depth profile view
-  const [depthAnchors, setDepthAnchors] = useState<LinearDepthAnchor[]>([
-    { id: 'd1', position: 0, depth: poolShallowDepth },
-    { id: 'd2', position: 0.33, depth: poolShallowDepth + (poolDeepDepth - poolShallowDepth) * 0.33 },
-    { id: 'd3', position: 0.67, depth: poolShallowDepth + (poolDeepDepth - poolShallowDepth) * 0.67 },
-    { id: 'd4', position: 1, depth: poolDeepDepth },
-  ]);
-
-  // Initialize depth anchors from perimeter depth points
-  useEffect(() => {
-    if (perimeterDepthPoints.length >= 4) {
-      // Extract unique depths from perimeter points (assuming they're organized shallow to deep)
-      const depths = perimeterDepthPoints.map(p => p.depth);
-      const minDepth = Math.min(...depths);
-      const maxDepth = Math.max(...depths);
-      
-      setDepthAnchors([
-        { id: 'd1', position: 0, depth: minDepth },
-        { id: 'd2', position: 0.33, depth: minDepth + (maxDepth - minDepth) * 0.33 },
-        { id: 'd3', position: 0.67, depth: minDepth + (maxDepth - minDepth) * 0.67 },
-        { id: 'd4', position: 1, depth: maxDepth },
-      ]);
+  // Initialize anchors from props or defaults
+  const [anchors, setAnchors] = useState<LinearDepthAnchor[]>(() => {
+    if (linearDepthAnchors.length >= 2) {
+      return [...linearDepthAnchors].sort((a, b) => a.position - b.position);
     }
-  }, []);
+    return [
+      { id: 'd1', position: 0, depth: poolShallowDepth },
+      { id: 'd2', position: 0.33, depth: poolShallowDepth + (poolDeepDepth - poolShallowDepth) * 0.33 },
+      { id: 'd3', position: 0.67, depth: poolShallowDepth + (poolDeepDepth - poolShallowDepth) * 0.67 },
+      { id: 'd4', position: 1, depth: poolDeepDepth },
+    ];
+  });
 
-  // Sync from product depths on mount
+  // Sync from props when they change externally
   useEffect(() => {
-    if (poolShallowDepth && poolDeepDepth) {
-      setDepthAnchors([
-        { id: 'd1', position: 0, depth: poolShallowDepth },
-        { id: 'd2', position: 0.33, depth: poolShallowDepth + (poolDeepDepth - poolShallowDepth) * 0.33 },
-        { id: 'd3', position: 0.67, depth: poolShallowDepth + (poolDeepDepth - poolShallowDepth) * 0.67 },
-        { id: 'd4', position: 1, depth: poolDeepDepth },
-      ]);
+    if (linearDepthAnchors.length >= 2) {
+      setAnchors([...linearDepthAnchors].sort((a, b) => a.position - b.position));
     }
-  }, [poolShallowDepth, poolDeepDepth]);
+  }, [linearDepthAnchors]);
 
-  // When depth anchors change, update perimeterDepthPoints
-  const syncToPerimeterPoints = (anchors: LinearDepthAnchor[]) => {
-    if (perimeterDepthPoints.length === 0) return;
-
-    // Sort anchors by position
-    const sortedAnchors = [...anchors].sort((a, b) => a.position - b.position);
-    
-    // Map perimeter points to new depths based on their position in the loop
-    const totalPoints = perimeterDepthPoints.length;
-    const newPoints = perimeterDepthPoints.map((point, index) => {
-      // Calculate position along the depth profile (0-1)
-      // Points 0 to half are shallow to deep, half to end are deep to shallow
-      let profilePosition: number;
-      const halfPoints = totalPoints / 2;
-      
-      if (index < halfPoints) {
-        profilePosition = index / halfPoints; // 0 to 1
-      } else {
-        profilePosition = 1 - ((index - halfPoints) / halfPoints); // 1 to 0
-      }
-
-      // Clamp profile position to ensure we always capture max depth
-      profilePosition = Math.min(1, Math.max(0, profilePosition));
-
-      // Interpolate depth from anchors - handle edge cases properly
-      let depth = sortedAnchors[0].depth;
-      
-      // If at or past max position, use last anchor depth
-      if (profilePosition >= sortedAnchors[sortedAnchors.length - 1].position) {
-        depth = sortedAnchors[sortedAnchors.length - 1].depth;
-      } else {
-        for (let i = 0; i < sortedAnchors.length - 1; i++) {
-          if (profilePosition >= sortedAnchors[i].position && profilePosition <= sortedAnchors[i + 1].position) {
-            const t = (profilePosition - sortedAnchors[i].position) / (sortedAnchors[i + 1].position - sortedAnchors[i].position);
-            depth = sortedAnchors[i].depth + t * (sortedAnchors[i + 1].depth - sortedAnchors[i].depth);
-            break;
-          }
-        }
-      }
-
-      return { ...point, depth };
-    });
-
-    onPerimeterDepthPointsChange(newPoints);
+  // Update parent when anchors change
+  const updateAnchors = (newAnchors: LinearDepthAnchor[]) => {
+    const sorted = [...newAnchors].sort((a, b) => a.position - b.position);
+    setAnchors(sorted);
+    onLinearDepthAnchorsChange(sorted);
   };
 
   const handleAnchorDepthChange = (id: string, newDepth: number) => {
     const clampedDepth = Math.max(1, Math.min(12, newDepth));
-    const newAnchors = depthAnchors.map(a => 
+    const newAnchors = anchors.map(a => 
       a.id === id ? { ...a, depth: clampedDepth } : a
     );
-    setDepthAnchors(newAnchors);
-    syncToPerimeterPoints(newAnchors);
+    updateAnchors(newAnchors);
+  };
+
+  const handleAnchorPositionChange = (id: string, newPosition: number) => {
+    const anchor = anchors.find(a => a.id === id);
+    if (!anchor) return;
+    
+    // Don't allow moving first (0%) or last (100%) anchors
+    const sorted = [...anchors].sort((a, b) => a.position - b.position);
+    if (anchor.id === sorted[0].id || anchor.id === sorted[sorted.length - 1].id) {
+      return;
+    }
+    
+    const clampedPos = Math.max(0.01, Math.min(0.99, newPosition));
+    const newAnchors = anchors.map(a => 
+      a.id === id ? { ...a, position: clampedPos } : a
+    );
+    updateAnchors(newAnchors);
   };
 
   const handleResetToProductDepths = () => {
@@ -133,15 +87,14 @@ export function DepthProfileEditor({
       { id: 'd3', position: 0.67, depth: poolShallowDepth + (poolDeepDepth - poolShallowDepth) * 0.67 },
       { id: 'd4', position: 1, depth: poolDeepDepth },
     ];
-    setDepthAnchors(newAnchors);
-    syncToPerimeterPoints(newAnchors);
+    updateAnchors(newAnchors);
   };
 
   const handleAddAnchor = () => {
-    if (depthAnchors.length >= 6) return; // Max 6 anchors
+    if (anchors.length >= 6) return; // Max 6 anchors
     
     // Add at midpoint of largest gap
-    const sorted = [...depthAnchors].sort((a, b) => a.position - b.position);
+    const sorted = [...anchors].sort((a, b) => a.position - b.position);
     let maxGap = 0;
     let insertPos = 0.5;
     let insertDepth = (poolShallowDepth + poolDeepDepth) / 2;
@@ -156,24 +109,30 @@ export function DepthProfileEditor({
     }
 
     const newAnchors = [
-      ...depthAnchors,
+      ...anchors,
       { id: `d${Date.now()}`, position: insertPos, depth: insertDepth }
     ];
-    setDepthAnchors(newAnchors);
-    syncToPerimeterPoints(newAnchors);
+    updateAnchors(newAnchors);
   };
 
   const handleRemoveAnchor = (id: string) => {
-    if (depthAnchors.length <= 2) return; // Min 2 anchors (shallow and deep)
+    if (anchors.length <= 2) return; // Min 2 anchors (shallow and deep)
     
-    const newAnchors = depthAnchors.filter(a => a.id !== id);
-    setDepthAnchors(newAnchors);
-    syncToPerimeterPoints(newAnchors);
+    // Don't remove first or last anchor
+    const sorted = [...anchors].sort((a, b) => a.position - b.position);
+    if (id === sorted[0].id || id === sorted[sorted.length - 1].id) {
+      return;
+    }
+    
+    const newAnchors = anchors.filter(a => a.id !== id);
+    updateAnchors(newAnchors);
   };
 
   if (!isOpen) return null;
 
-  const sortedAnchors = [...depthAnchors].sort((a, b) => a.position - b.position);
+  const sortedAnchors = [...anchors].sort((a, b) => a.position - b.position);
+  const shallowAnchor = sortedAnchors[0];
+  const deepAnchor = sortedAnchors[sortedAnchors.length - 1];
 
   return (
     <div className="absolute top-4 left-4 w-80 bg-background/95 backdrop-blur-sm rounded-xl border shadow-xl z-30 overflow-hidden">
@@ -191,7 +150,7 @@ export function DepthProfileEditor({
       <div className="p-3 space-y-4 max-h-[70vh] overflow-y-auto">
         {/* Info Text */}
         <p className="text-xs text-muted-foreground">
-          Adjust depth at each anchor point along the pool length
+          Linear depth profile from shallow end (0%) to deep end (100%)
         </p>
 
         {/* Product Depths Reference */}
@@ -212,108 +171,115 @@ export function DepthProfileEditor({
         {/* Depth Anchor Controls */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label className="text-xs font-medium">Depth Anchors (Shallow to Deep)</Label>
+            <Label className="text-xs font-medium">Depth Anchors</Label>
             <Button
               variant="outline"
               size="sm"
               className="h-6 px-2 text-xs"
               onClick={handleAddAnchor}
-              disabled={depthAnchors.length >= 6}
+              disabled={anchors.length >= 6}
             >
               <Plus className="w-3 h-3 mr-1" />
               Add
             </Button>
           </div>
           
-          <div className="grid grid-cols-2 gap-2">
-            {sortedAnchors.map((anchor, index) => (
-              <div key={anchor.id} className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <Label className="text-[10px] text-muted-foreground">
-                    {(anchor.position * 100).toFixed(0)}%
-                  </Label>
-                  {sortedAnchors.length > 2 && index !== 0 && index !== sortedAnchors.length - 1 && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-4 w-4"
-                      onClick={() => handleRemoveAnchor(anchor.id)}
-                    >
-                      <Trash2 className="h-3 w-3 text-destructive" />
-                    </Button>
-                  )}
+          <div className="space-y-2">
+            {sortedAnchors.map((anchor, index) => {
+              const isEndpoint = index === 0 || index === sortedAnchors.length - 1;
+              const label = index === 0 ? 'Shallow End' : index === sortedAnchors.length - 1 ? 'Deep End' : `Point ${index}`;
+              
+              return (
+                <div 
+                  key={anchor.id} 
+                  className={`p-2 rounded-lg border ${selectedAnchorId === anchor.id ? 'border-primary bg-primary/5' : 'border-border/50'}`}
+                  onClick={() => onSelectAnchor(anchor.id)}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium">{label}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] text-muted-foreground">
+                        {(anchor.position * 100).toFixed(0)}%
+                      </span>
+                      {!isEndpoint && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveAnchor(anchor.id);
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      value={anchor.depth.toFixed(1)}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        if (!isNaN(val)) {
+                          handleAnchorDepthChange(anchor.id, val);
+                        }
+                      }}
+                      className="h-7 text-xs w-16"
+                      min="1"
+                      max="12"
+                      step="0.1"
+                    />
+                    <span className="text-xs text-muted-foreground">ft</span>
+                    {!isEndpoint && (
+                      <>
+                        <div className="flex-1" />
+                        <Input
+                          type="number"
+                          value={(anchor.position * 100).toFixed(0)}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) / 100;
+                            if (!isNaN(val)) {
+                              handleAnchorPositionChange(anchor.id, val);
+                            }
+                          }}
+                          className="h-7 text-xs w-14"
+                          min="1"
+                          max="99"
+                          step="1"
+                        />
+                        <span className="text-xs text-muted-foreground">%</span>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Input
-                    type="number"
-                    value={anchor.depth.toFixed(1)}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      if (!isNaN(val)) {
-                        handleAnchorDepthChange(anchor.id, val);
-                      }
-                    }}
-                    className="h-7 text-[10px] px-1.5"
-                    min="1"
-                    max="12"
-                    step="0.1"
-                  />
-                  <span className="text-[10px] text-muted-foreground">ft</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
         {/* Section Cut Visualization */}
         <div className="space-y-2">
-          <Label className="text-xs font-medium">Section Cut - Depth Profile</Label>
+          <Label className="text-xs font-medium">Section Cut - Shallow to Deep</Label>
           <div className="bg-muted/30 rounded-lg p-4 border">
             <svg width="100%" height="120" viewBox="0 0 260 120" className="overflow-visible">
               {/* Water line at 0' */}
               <line x1="10" y1="10" x2="250" y2="10" stroke="hsl(var(--primary))" strokeWidth="2" />
               <text x="5" y="12" fontSize="8" fill="hsl(var(--muted-foreground))" textAnchor="end">0'</text>
               
-              {/* Depth anchor points and labels */}
-              {sortedAnchors.map((anchor) => {
-                const x = 10 + anchor.position * 240;
-                const y = 10 + anchor.depth / 12 * 100;
-                return (
-                  <g key={anchor.id}>
-                    <circle cx={x} cy={y} r="4" fill="hsl(var(--primary))" />
-                    <line 
-                      x1={x} y1={y} x2={x} y2="115" 
-                      stroke="hsl(var(--muted-foreground))" 
-                      strokeWidth="1" 
-                      strokeDasharray="2,2" 
-                      opacity="0.5" 
-                    />
-                    <text 
-                      x={x} y={y - 8} 
-                      fontSize="9" 
-                      fill="hsl(var(--foreground))" 
-                      textAnchor="middle" 
-                      fontWeight="600"
-                    >
-                      {anchor.depth.toFixed(1)}'
-                    </text>
-                    <text 
-                      x={x} y="125" 
-                      fontSize="8" 
-                      fill="hsl(var(--muted-foreground))" 
-                      textAnchor="middle"
-                    >
-                      {(anchor.position * 100).toFixed(0)}%
-                    </text>
-                  </g>
-                );
-              })}
+              {/* Labels */}
+              <text x="10" y="8" fontSize="8" fill="hsl(var(--muted-foreground))" textAnchor="start">Shallow</text>
+              <text x="250" y="8" fontSize="8" fill="hsl(var(--muted-foreground))" textAnchor="end">Deep</text>
               
               {/* Pool floor profile path */}
               <path
                 d={(() => {
-                  // Start at 0% at water level
-                  let pathData = `M ${10 + sortedAnchors[0].position * 240},10`;
+                  // Start at shallow end at water level
+                  let pathData = `M 10,10`;
+                  
+                  // Draw down to first anchor
+                  pathData += ` L 10,${10 + sortedAnchors[0].depth / 12 * 100}`;
                   
                   // Draw line to each depth point
                   sortedAnchors.forEach((anchor) => {
@@ -322,8 +288,8 @@ export function DepthProfileEditor({
                     pathData += ` L ${x},${y}`;
                   });
                   
-                  // Connect last point back to water level at 100%
-                  pathData += ` L ${10 + sortedAnchors[sortedAnchors.length - 1].position * 240},10`;
+                  // Connect last point back up to water level
+                  pathData += ` L 250,10`;
                   
                   // Close path
                   pathData += ' Z';
@@ -333,6 +299,36 @@ export function DepthProfileEditor({
                 stroke="hsl(var(--primary))"
                 strokeWidth="2"
               />
+              
+              {/* Depth anchor points and labels */}
+              {sortedAnchors.map((anchor) => {
+                const x = 10 + anchor.position * 240;
+                const y = 10 + anchor.depth / 12 * 100;
+                const isSelected = selectedAnchorId === anchor.id;
+                return (
+                  <g key={anchor.id}>
+                    <circle 
+                      cx={x} 
+                      cy={y} 
+                      r={isSelected ? "6" : "4"} 
+                      fill={isSelected ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.7)"} 
+                      stroke={isSelected ? "white" : "none"}
+                      strokeWidth="2"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => onSelectAnchor(anchor.id)}
+                    />
+                    <text 
+                      x={x} y={y - 10} 
+                      fontSize="9" 
+                      fill="hsl(var(--foreground))" 
+                      textAnchor="middle" 
+                      fontWeight="600"
+                    >
+                      {anchor.depth.toFixed(1)}'
+                    </text>
+                  </g>
+                );
+              })}
             </svg>
           </div>
         </div>
@@ -344,26 +340,26 @@ export function DepthProfileEditor({
             <div className="flex items-center gap-2">
               <span className="text-xs w-16">Shallow:</span>
               <Slider
-                value={[sortedAnchors[0]?.depth || poolShallowDepth]}
+                value={[shallowAnchor?.depth || poolShallowDepth]}
                 min={1}
                 max={6}
                 step={0.25}
-                onValueChange={([val]) => handleAnchorDepthChange(sortedAnchors[0]?.id, val)}
+                onValueChange={([val]) => shallowAnchor && handleAnchorDepthChange(shallowAnchor.id, val)}
                 className="flex-1"
               />
-              <span className="text-xs w-10">{(sortedAnchors[0]?.depth || poolShallowDepth).toFixed(1)}'</span>
+              <span className="text-xs w-10">{(shallowAnchor?.depth || poolShallowDepth).toFixed(1)}'</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs w-16">Deep:</span>
               <Slider
-                value={[sortedAnchors[sortedAnchors.length - 1]?.depth || poolDeepDepth]}
+                value={[deepAnchor?.depth || poolDeepDepth]}
                 min={4}
                 max={12}
                 step={0.25}
-                onValueChange={([val]) => handleAnchorDepthChange(sortedAnchors[sortedAnchors.length - 1]?.id, val)}
+                onValueChange={([val]) => deepAnchor && handleAnchorDepthChange(deepAnchor.id, val)}
                 className="flex-1"
               />
-              <span className="text-xs w-10">{(sortedAnchors[sortedAnchors.length - 1]?.depth || poolDeepDepth).toFixed(1)}'</span>
+              <span className="text-xs w-10">{(deepAnchor?.depth || poolDeepDepth).toFixed(1)}'</span>
             </div>
           </div>
         </div>
@@ -372,9 +368,9 @@ export function DepthProfileEditor({
         <div className="p-2 bg-primary/5 rounded-lg text-xs text-muted-foreground">
           <p className="font-medium mb-1">Tips:</p>
           <ul className="space-y-0.5">
-            <li>• Drag 3D control points to fine-tune</li>
-            <li>• Use sliders for quick adjustments</li>
-            <li>• Reset to match product specifications</li>
+            <li>• Depth runs linearly from shallow to deep end</li>
+            <li>• Add anchors for custom slope transitions</li>
+            <li>• Click anchors in visualization to select</li>
           </ul>
         </div>
       </div>

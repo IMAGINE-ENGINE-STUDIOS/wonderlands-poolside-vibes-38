@@ -15,6 +15,13 @@ export interface DepthPoint {
   id: string;
 }
 
+// Linear depth anchor for pool floor depth profile (shallow to deep)
+export interface LinearDepthAnchor {
+  id: string;
+  position: number; // 0-1 along pool length (0 = shallow end, 1 = deep end)
+  depth: number;    // Depth in feet at this position
+}
+
 export interface PerimeterDepthPoint {
   x: number;
   z: number;
@@ -108,6 +115,7 @@ export interface Scene3D {
     points: Point[];
     depthPoints: DepthPoint[];
     perimeterDepthPoints?: PerimeterDepthPoint[];
+    linearDepthAnchors?: LinearDepthAnchor[]; // Linear depth profile from shallow to deep
     shape: 'rectangle' | 'kidney' | 'freeform' | 'custom';
     finish: TextureConfig;
     position: [number, number, number];
