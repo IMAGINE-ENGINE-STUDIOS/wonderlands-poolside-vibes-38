@@ -20,6 +20,7 @@ import { PoolAssetsRenderer } from './scene3d/PoolAssetsRenderer';
 import { PoolStairConfig, PoolChairConfig } from './scene3d/poolAssetTypes';
 import { WalkthroughController } from './scene3d/WalkthroughController';
 import { PoolDesignerHeader } from './scene3d/PoolDesignerHeader';
+import { SplineEditPanel } from './scene3d/SplineEditPanel';
 import { Button } from './ui/button';
 import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Box, Sun, Moon, Footprints, PersonStanding, Edit3 } from 'lucide-react';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
@@ -149,6 +150,8 @@ export function UnifiedPoolVisualizer({
   
   // Spline edit mode - locks camera when editing splines
   const [isSplineEditMode, setIsSplineEditMode] = useState(false);
+  const [selectedSplinePointId, setSelectedSplinePointId] = useState<string | null>(null);
+  const [selectedSplineComponent, setSelectedSplineComponent] = useState<'pool-floor' | 'seating' | 'stairs' | null>(null);
   
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
@@ -810,29 +813,54 @@ export function UnifiedPoolVisualizer({
            {(enablePoolSplineEdit || enableDeckSplineEdit) && <SplineLegend />}
          </div>
 
-         {/* Component-Specific Control Panel */}
-         <ComponentControlPanel
-           selectedComponent={selectedComponent}
-           scene={scene}
+         {/* Component-Specific Control Panel - Hidden in spline edit mode */}
+         {!isSplineEditMode && (
+           <ComponentControlPanel
+             selectedComponent={selectedComponent}
+             scene={scene}
+             onClose={() => {
+               setSelectedComponent(null);
+               setSelectedCategory(null);
+             }}
+             onSceneChange={setScene}
+             textureLibrary={textureLibrary}
+             poolCategory={new URLSearchParams(window.location.search).get('category') || 'deluxe'}
+             poolModel={new URLSearchParams(window.location.search).get('model') || ''}
+             deckWidth={deckWidth}
+             onDeckWidthChange={setDeckWidth}
+             enablePoolSplineEdit={enablePoolSplineEdit}
+             onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
+             enableFloorDepthSplineEdit={enableFloorDepthSplineEdit}
+             onFloorDepthSplineEditToggle={() => setEnableFloorDepthSplineEdit(!enableFloorDepthSplineEdit)}
+             poolLights={poolLights}
+             onPoolLightsChange={handlePoolLightsChange}
+             selectedLightId={selectedLightId}
+             onSelectLight={setSelectedLightId}
+             isNightMode={isNightMode}
+           />
+         )}
+
+         {/* Spline Edit Panel - shown only in spline edit mode */}
+         <SplineEditPanel
+           isOpen={isSplineEditMode}
            onClose={() => {
-             setSelectedComponent(null);
-             setSelectedCategory(null);
+             setIsSplineEditMode(false);
+             setEnablePoolSplineEdit(false);
+             setEnableFloorDepthSplineEdit(false);
+             setSelectedSplineComponent(null);
+             setSelectedSplinePointId(null);
            }}
-           onSceneChange={setScene}
-           textureLibrary={textureLibrary}
-           poolCategory={new URLSearchParams(window.location.search).get('category') || 'deluxe'}
-           poolModel={new URLSearchParams(window.location.search).get('model') || ''}
-           deckWidth={deckWidth}
-           onDeckWidthChange={setDeckWidth}
-           enablePoolSplineEdit={enablePoolSplineEdit}
-           onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
-           enableFloorDepthSplineEdit={enableFloorDepthSplineEdit}
-           onFloorDepthSplineEditToggle={() => setEnableFloorDepthSplineEdit(!enableFloorDepthSplineEdit)}
-           poolLights={poolLights}
-           onPoolLightsChange={handlePoolLightsChange}
-           selectedLightId={selectedLightId}
-           onSelectLight={setSelectedLightId}
-           isNightMode={isNightMode}
+           perimeterDepthPoints={scene.pool.perimeterDepthPoints || []}
+           onPerimeterDepthPointsChange={handlePerimeterDepthPointsChange}
+           selectedPointId={selectedSplinePointId}
+           onSelectPoint={setSelectedSplinePointId}
+           selectedComponent={selectedSplineComponent}
+           onSelectComponent={(comp) => {
+             setSelectedSplineComponent(comp);
+             if (comp === 'pool-floor') {
+               setEnableFloorDepthSplineEdit(true);
+             }
+           }}
          />
 
           {/* Climate Controller Panel */}
@@ -1042,11 +1070,13 @@ export function UnifiedPoolVisualizer({
               onSelectStair={setSelectedStairId}
               enablePoolSplineEdit={enablePoolSplineEdit}
               enableDeckSplineEdit={enableDeckSplineEdit}
-              enableFloorDepthSplineEdit={enableFloorDepthSplineEdit}
+              enableFloorDepthSplineEdit={enableFloorDepthSplineEdit || (isSplineEditMode && selectedSplineComponent === 'pool-floor')}
               perimeterDepthPoints={scene.pool.perimeterDepthPoints}
               onPoolPointsChange={handlePoolPointsChange}
               onDeckPointsChange={handleDeckPointsChange}
               onPerimeterDepthPointsChange={handlePerimeterDepthPointsChange}
+              selectedSplinePointId={selectedSplinePointId}
+              onSelectSplinePoint={setSelectedSplinePointId}
               showWireframe={showWireframe}
               showRulers={showWireframe} 
               showDebugBoundaries={showDebugBoundaries}

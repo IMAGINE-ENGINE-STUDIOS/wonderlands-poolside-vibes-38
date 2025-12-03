@@ -112,6 +112,8 @@ export interface Pool3DSceneProps {
   onPoolPointsChange?: (points: Point[]) => void;
   onDeckPointsChange?: (points: HardscapePoint[]) => void;
   onPerimeterDepthPointsChange?: (points: Array<{ x: number; z: number; depth: number; id: string; type?: 'linear' | 'smooth' }>) => void;
+  selectedSplinePointId?: string | null;
+  onSelectSplinePoint?: (id: string | null) => void;
   showWireframe?: boolean;
   showRulers?: boolean;
   showDebugBoundaries?: boolean;
@@ -927,6 +929,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   onPoolPointsChange,
   onDeckPointsChange,
   onPerimeterDepthPointsChange,
+  selectedSplinePointId,
+  onSelectSplinePoint,
   showWireframe = false,
   showRulers = false,
   showDebugBoundaries: externalShowDebugBoundaries = false,
@@ -993,20 +997,22 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
       return providedPerimeterDepthPoints;
     }
     
-    // Generate initial perimeter depths from pool boundary points and 1D depth profile
-    if (poolCurve3D.length === 0 || depthPoints.length === 0) return [];
+    // Generate initial perimeter depths - ALL corners should be at same depth initially
+    if (poolCurve3D.length === 0) return [];
     
-    const maxDepth = Math.max(...depthPoints.map(d => d.depth));
-    const minDepth = Math.min(...depthPoints.map(d => d.depth));
+    // Use uniform depth for all corners to ensure level pool bottom
+    const uniformDepth = depthPoints.length > 0 
+      ? depthPoints[0].depth 
+      : (poolDimensions?.depth || 5);
     
     return poolCurve3D.map((p, i) => ({
       x: p.x,
       z: p.z,
-      depth: minDepth + (maxDepth - minDepth) * (i / (poolCurve3D.length - 1)),
+      depth: uniformDepth, // All corners at same depth
       id: `perimeter-depth-${i}`,
       type: 'smooth' as const
     }));
-  }, [providedPerimeterDepthPoints, poolCurve3D, depthPoints]);
+  }, [providedPerimeterDepthPoints, poolCurve3D, depthPoints, poolDimensions]);
   
   // Helper function to get depth at any perimeter position
   const getPerimeterDepth = (x: number, z: number, perimeterPoints: typeof perimeterDepthPoints): number => {
@@ -1341,6 +1347,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
             }
           }}
           enabled={enableFloorDepthSplineEdit}
+          selectedPointId={selectedSplinePointId}
+          onSelectPoint={onSelectSplinePoint}
         />
       )}
       

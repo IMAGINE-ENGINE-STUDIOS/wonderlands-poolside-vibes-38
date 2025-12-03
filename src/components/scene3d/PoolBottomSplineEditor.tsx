@@ -8,22 +8,31 @@ interface PoolBottomSplineEditorProps {
   perimeterDepthPoints: PerimeterDepthPoint[];
   onPointsChange: (points: PerimeterDepthPoint[]) => void;
   enabled: boolean;
+  selectedPointId?: string | null;
+  onSelectPoint?: (id: string | null) => void;
 }
 
 export function PoolBottomSplineEditor({
   perimeterDepthPoints,
   onPointsChange,
-  enabled
+  enabled,
+  selectedPointId: externalSelectedPointId,
+  onSelectPoint
 }: PoolBottomSplineEditorProps) {
   const [draggedPointId, setDraggedPointId] = useState<string | null>(null);
   const [hoveredPointId, setHoveredPointId] = useState<string | null>(null);
+  const [internalSelectedPointId, setInternalSelectedPointId] = useState<string | null>(null);
   const dragPlaneRef = useRef<THREE.Plane>(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
+
+  const selectedPointId = externalSelectedPointId ?? internalSelectedPointId;
+  const setSelectedPointId = onSelectPoint ?? setInternalSelectedPointId;
 
   if (!enabled || perimeterDepthPoints.length === 0) return null;
 
   const handlePointerDown = (pointId: string) => (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setDraggedPointId(pointId);
+    setSelectedPointId(pointId);
   };
 
   const handlePointerMove = (e: ThreeEvent<PointerEvent>) => {
@@ -54,6 +63,13 @@ export function PoolBottomSplineEditor({
     setDraggedPointId(null);
   };
 
+  // Click on empty space to deselect
+  const handleGroupClick = (e: ThreeEvent<MouseEvent>) => {
+    if (e.eventObject.type === 'Group') {
+      setSelectedPointId(null);
+    }
+  };
+
   // Create connecting lines along pool bottom perimeter
   const linePoints = perimeterDepthPoints.map(p => 
     new THREE.Vector3(p.x, -p.depth, p.z)
@@ -63,7 +79,11 @@ export function PoolBottomSplineEditor({
   const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints);
 
   return (
-    <group onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
+    <group 
+      onPointerMove={handlePointerMove} 
+      onPointerUp={handlePointerUp}
+      onClick={handleGroupClick}
+    >
       {/* Connecting line along pool floor edge */}
       <primitive object={new THREE.Line(lineGeometry, new THREE.LineBasicMaterial({ 
         color: '#00ffff', 
@@ -76,8 +96,9 @@ export function PoolBottomSplineEditor({
       {perimeterDepthPoints.map((point) => {
         const isHovered = hoveredPointId === point.id;
         const isDragged = draggedPointId === point.id;
-        const scale = isDragged ? 1.2 : isHovered ? 1.0 : 0.8;
-        const color = isDragged ? '#ffff00' : isHovered ? '#00ff00' : '#00ffff';
+        const isSelected = selectedPointId === point.id;
+        const scale = isDragged ? 1.2 : isHovered || isSelected ? 1.0 : 0.6;
+        const color = isDragged ? '#ffff00' : isSelected ? '#ff6600' : isHovered ? '#00ff00' : '#00ffff';
 
         return (
           <group key={point.id}>
@@ -92,7 +113,7 @@ export function PoolBottomSplineEditor({
               <meshStandardMaterial
                 color={color}
                 emissive={color}
-                emissiveIntensity={0.5}
+                emissiveIntensity={isSelected ? 0.8 : 0.5}
                 transparent
                 opacity={0.9}
               />
@@ -108,9 +129,9 @@ export function PoolBottomSplineEditor({
                 ]);
                 lineGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
                 const lineMat = new THREE.LineDashedMaterial({
-                  color: '#00ffff',
+                  color: isSelected ? '#ff6600' : '#00ffff',
                   transparent: true,
-                  opacity: 0.3,
+                  opacity: isSelected ? 0.6 : 0.3,
                   dashSize: 0.2,
                   gapSize: 0.1
                 });
@@ -121,9 +142,13 @@ export function PoolBottomSplineEditor({
             />
 
             {/* Depth label */}
-            {(isHovered || isDragged) && (
+            {(isHovered || isDragged || isSelected) && (
               <Html position={[point.x, -point.depth + 1, point.z]} center>
-                <div className="bg-black/80 text-cyan-400 px-2 py-1 rounded text-xs font-mono border border-cyan-400/50">
+                <div className={`px-2 py-1 rounded text-xs font-mono border ${
+                  isSelected 
+                    ? 'bg-orange-900/80 text-orange-400 border-orange-400/50' 
+                    : 'bg-black/80 text-cyan-400 border-cyan-400/50'
+                }`}>
                   {point.depth.toFixed(1)}' deep
                 </div>
               </Html>
