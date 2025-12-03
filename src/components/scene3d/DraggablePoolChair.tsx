@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useThree, ThreeEvent } from '@react-three/fiber';
-import { useTexture, RoundedBox } from '@react-three/drei';
+import { useTexture } from '@react-three/drei';
 import { PoolChairConfig } from './poolAssetTypes';
 
 interface DraggablePoolChairProps {
@@ -150,13 +150,44 @@ export function DraggablePoolChair({
   const posZ = chair.snapToWall ? wallPos.z : (chair.floorPosition?.z || 0);
   const angle = chair.snapToWall ? wallPos.angle : 0;
   
-  // Get floor depth at position
-  const floorDepth = chair.followFloor ? getFloorDepthAt(posX, posZ) : 0;
-  // Position so TOP surface is at desired depth below water (chair.height represents depth below water for top surface)
-  // E.g., if height=1, top surface is 1ft below water, bottom rests on floor
-  const topBelowWater = chair.height; // This is how deep the TOP surface is below water
-  const chairThickness = Math.min(1, floorDepth - topBelowWater); // Actual thickness limited by floor
+  // Get floor depth at position - seating ALWAYS touches the bottom
+  const floorDepth = getFloorDepthAt(posX, posZ);
+  // Top surface is at desired depth below water (chair.height represents depth below water for top surface)
+  const topBelowWater = chair.height;
+  // Thickness extends from top surface to the pool floor - always touches bottom
+  const chairThickness = Math.max(0.5, floorDepth - topBelowWater);
   const posY = -topBelowWater - chairThickness / 2; // Center of the chair mesh
+
+  // Create proper UV-mapped box geometry to match pool wall texture
+  const geometry = useMemo(() => {
+    const geo = new THREE.BoxGeometry(chair.width, chairThickness, chair.depth);
+    const uvAttribute = geo.attributes.uv;
+    const positionAttribute = geo.attributes.position;
+    
+    // Remap UVs to create 1ft x 1ft squares like pool walls
+    for (let i = 0; i < uvAttribute.count; i++) {
+      const x = positionAttribute.getX(i);
+      const y = positionAttribute.getY(i);
+      const z = positionAttribute.getZ(i);
+      
+      // Determine which face this vertex belongs to based on normal direction
+      const faceIndex = Math.floor(i / 4);
+      
+      if (faceIndex < 2) {
+        // Top/Bottom faces - use X and Z for UV
+        uvAttribute.setXY(i, (x + chair.width / 2), (z + chair.depth / 2));
+      } else if (faceIndex < 4) {
+        // Front/Back faces - use X and Y for UV
+        uvAttribute.setXY(i, (x + chair.width / 2), (y + chairThickness / 2));
+      } else {
+        // Left/Right faces - use Z and Y for UV
+        uvAttribute.setXY(i, (z + chair.depth / 2), (y + chairThickness / 2));
+      }
+    }
+    
+    uvAttribute.needsUpdate = true;
+    return geo;
+  }, [chair.width, chair.depth, chairThickness]);
 
   // Handle pointer events
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
@@ -212,18 +243,14 @@ export function DraggablePoolChair({
       onPointerOver={() => gl.domElement.style.cursor = isDragging ? 'grabbing' : 'grab'}
       onPointerOut={() => !isDragging && (gl.domElement.style.cursor = 'auto')}
     >
-      {/* Main chair body with rounded edges - thickness from floor to top surface */}
-      <RoundedBox
-        args={[chair.width, chairThickness, chair.depth]}
-        radius={chair.cornerRadius}
-        smoothness={4}
-      >
+      {/* Main chair body with proper UV mapping - matches pool wall texture */}
+      <mesh geometry={geometry}>
         <meshStandardMaterial
           map={texture}
           roughness={0.6}
           metalness={0.1}
         />
-      </RoundedBox>
+      </mesh>
       
       {/* Selection highlight */}
       {isSelected && (

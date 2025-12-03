@@ -113,9 +113,9 @@ export function UnifiedPoolVisualizer({
   const [showMeasurements, setShowMeasurements] = useState(false);
   
   const [assets3D, setAssets3D] = useState<any[]>([]);
-  const [showGrid, setShowGrid] = useState(true);
+  const [showGrid, setShowGrid] = useState(false); // Hidden by default
   const [showRulers, setShowRulers] = useState(false);
-  const [showWireframe, setShowWireframe] = useState(false);
+  const [showWireframe, setShowWireframe] = useState(false); // Hidden by default
   const [showDebugBoundaries, setShowDebugBoundaries] = useState(false);
   const [showWater, setShowWater] = useState(true);
   const [deckWidth, setDeckWidth] = useState(3); // Default 3 feet
@@ -129,9 +129,17 @@ export function UnifiedPoolVisualizer({
   );
   const [selectedLightId, setSelectedLightId] = useState<string | null>(null);
   
-  // Pool assets state (stairs, chairs)
+  // Pool assets state (stairs, chairs, contour seating)
   const [poolStairs, setPoolStairs] = useState<PoolStairConfig[]>([]);
   const [poolChairs, setPoolChairs] = useState<PoolChairConfig[]>([]);
+  const [contourSeating, setContourSeating] = useState<Array<{
+    id: string;
+    startPosition: number;
+    endPosition: number;
+    width: number;
+    height: number;
+    textureUrl: string;
+  }>>([]);
   const [selectedPoolAssetId, setSelectedPoolAssetId] = useState<string | null>(null);
   const [showPoolAssetManager, setShowPoolAssetManager] = useState(false);
   
@@ -788,6 +796,8 @@ export function UnifiedPoolVisualizer({
             onStairsChange={setPoolStairs}
             chairs={poolChairs}
             onChairsChange={setPoolChairs}
+            contourSeating={contourSeating}
+            onContourSeatingChange={setContourSeating}
             lights={poolLights}
             onLightsChange={handlePoolLightsChange}
             selectedAssetId={selectedPoolAssetId}
@@ -910,13 +920,15 @@ export function UnifiedPoolVisualizer({
             causticIntensity={0.5}
           />
           
-          {/* Pool Assets (Stairs, Chairs) */}
+          {/* Pool Assets (Stairs, Chairs, Contour Seating) */}
           <PoolAssetsRenderer
             poolPoints={scene.pool.points}
             stairs={poolStairs}
             onStairsChange={setPoolStairs}
             chairs={poolChairs}
             onChairsChange={setPoolChairs}
+            contourSeating={contourSeating}
+            onContourSeatingChange={setContourSeating}
             selectedAssetId={selectedPoolAssetId}
             onSelectAsset={setSelectedPoolAssetId}
             poolDepth={poolDepth}
