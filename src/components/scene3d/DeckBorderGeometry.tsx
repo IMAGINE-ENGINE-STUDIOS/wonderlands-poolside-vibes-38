@@ -33,12 +33,16 @@ export const DeckBorderGeometry = ({
       return;
     }
     
-    // Use textureCache for proper texture management
-    textureCache.loadTexture(textureUrl, { x: 1, y: 1 })
+    // Match pool wall texture loading exactly
+    const repeatX = 1.0 / textureScale;
+    const repeatY = 1.0 / textureScale;
+    
+    textureCache.loadTexture(textureUrl, { x: repeatX, y: repeatY })
       .then((loadedTexture) => {
-        loadedTexture.wrapS = loadedTexture.wrapT = THREE.RepeatWrapping;
-        loadedTexture.repeat.set(1, 1);
+        loadedTexture.userData.url = textureUrl;
         loadedTexture.offset.set(textureOffset[0], textureOffset[1]);
+        loadedTexture.wrapS = THREE.RepeatWrapping;
+        loadedTexture.wrapT = THREE.RepeatWrapping;
         loadedTexture.needsUpdate = true;
         setTexture(loadedTexture);
       })
@@ -197,12 +201,11 @@ export const DeckBorderGeometry = ({
   }, [poolPoints, deckWidth, copingWidth, borderHeight, borderWidth]);
   
   return (
-    <mesh geometry={geometry} castShadow receiveShadow>
-      <meshStandardMaterial
-        map={texture || undefined}
-        color={texture ? '#ffffff' : '#a3a3a3'}
-        roughness={0.8}
-        metalness={0.1}
+    <mesh key={texture?.uuid || 'no-deck-texture'} geometry={geometry} castShadow receiveShadow>
+      <meshPhongMaterial
+        map={texture}
+        color="#ffffff"
+        shininess={40}
         side={THREE.DoubleSide}
       />
     </mesh>
