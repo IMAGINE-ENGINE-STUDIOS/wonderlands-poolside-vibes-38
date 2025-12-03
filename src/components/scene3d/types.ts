@@ -141,6 +141,7 @@ export interface TextureLibrary {
   finishes: TextureConfig[];
   pavers: TextureConfig[];
   coping: TextureConfig[];
+  waterlines?: TextureConfig[]; // Dedicated waterline tile textures
 }
 
 export type TransformMode = 'translate' | 'rotate' | 'scale';

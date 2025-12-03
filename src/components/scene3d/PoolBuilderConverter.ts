@@ -331,9 +331,28 @@ export function buildTextureLibrary(
     }))
   ];
 
+  // Waterline tiles (from poolLiners - glass and porcelain tiles)
+  const waterlines: TextureConfig[] = [
+    // Glass Tiles
+    { url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png', name: 'Ballad', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.png', name: 'Paradise', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/7f1b802e-1c58-4807-b6d6-41aab2eed1ca.png', name: 'Water Lilies', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/c4b386e8-679d-4ea3-be08-9b8fb9e8d50e.png', name: 'Sail Boat', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/ee0c59a8-87bb-4b74-b6e9-9eeba3633e9f.png', name: 'Stormy', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/723a9c27-b7d5-4139-bda7-4eed2d0b23e8.png', name: 'Galant', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/c8e3cc34-9fbe-4ece-af71-05b7e4f94332.png', name: 'Melody', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/7dc956df-af5c-4c6b-b2af-6bc9d6fbf179.png', name: 'Soul', roughness: 0.1, metalness: 0.3 },
+    { url: '/lovable-uploads/96f46291-85e7-4b48-9465-623400a8e835.png', name: 'Glacier', roughness: 0.1, metalness: 0.3 },
+    // Porcelain Tiles
+    { url: '/lovable-uploads/d5e74c29-95f6-4a9a-9395-a98fe4efdadd.png', name: 'Tikal', roughness: 0.2, metalness: 0.1 },
+    { url: '/lovable-uploads/56fd62de-130b-4b90-98a0-596007f5dadb.png', name: 'Port Royal', roughness: 0.2, metalness: 0.1 },
+    { url: '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png', name: 'Alexandria', roughness: 0.2, metalness: 0.1 },
+  ];
+
   return {
     finishes,
     pavers,
-    coping
+    coping,
+    waterlines
   };
 }

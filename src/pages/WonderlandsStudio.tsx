@@ -1265,7 +1265,25 @@ const WonderlandsStudio = () => {
                               name: p.name,
                               roughness: 0.6,
                               metalness: 0.0
-                            }))
+                            })),
+                            waterlines: [
+                              // Ballad as first option (default)
+                              { url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png', name: 'Ballad', roughness: 0.1, metalness: 0.3 },
+                              // Glass Tiles
+                              ...poolLinersData.filter(l => l.type === 'Glass').map(l => ({
+                                url: l.image,
+                                name: l.name,
+                                roughness: 0.1,
+                                metalness: 0.3
+                              })),
+                              // Porcelain Tiles
+                              ...poolLinersData.filter(l => l.type === 'Porcelain').map(l => ({
+                                url: l.image,
+                                name: l.name,
+                                roughness: 0.2,
+                                metalness: 0.1
+                              }))
+                            ]
                           }}
                           onSceneChange={(updatedScene) => {
                             // Handle scene updates if needed
