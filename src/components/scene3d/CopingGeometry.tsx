@@ -9,7 +9,7 @@ interface CopingGeometryProps {
   textureUrl?: string;
   textureScale?: number;
   textureOffset?: [number, number];
-  paverTextureUrl?: string; // Use paver texture for coping surface
+  paverTextureUrl?: string;
 }
 
 export const CopingGeometry = ({ 
@@ -24,8 +24,8 @@ export const CopingGeometry = ({
   
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
   
-  // Use paver texture for coping surface if provided, otherwise use coping texture
-  const surfaceTextureUrl = paverTextureUrl || textureUrl;
+  // Use the provided coping texture URL (not paver)
+  const surfaceTextureUrl = textureUrl;
   
   useEffect(() => {
     if (!surfaceTextureUrl) {
@@ -42,7 +42,7 @@ export const CopingGeometry = ({
       (loadedTexture) => {
         console.log('✅ CopingGeometry: Texture loaded successfully');
         loadedTexture.wrapS = loadedTexture.wrapT = THREE.RepeatWrapping;
-        // Texture repeats based on UV coordinates (already scaled in UVs)
+        // Set repeat to 1 - UV coordinates handle the 1ft x 1ft mapping
         loadedTexture.repeat.set(1, 1);
         loadedTexture.offset.set(textureOffset[0], textureOffset[1]);
         loadedTexture.needsUpdate = true;
@@ -81,7 +81,7 @@ export const CopingGeometry = ({
     const uvs: number[] = [];
     const numPoints = copingInnerBoundary.length;
     
-    // Calculate cumulative distance along perimeter for 1ft sectioned UV mapping
+    // Calculate cumulative distance along perimeter for 1ft x 1ft UV mapping
     const distances: number[] = [0];
     let totalDistance = 0;
     
@@ -96,7 +96,7 @@ export const CopingGeometry = ({
       distances.push(totalDistance);
     }
     
-    // Create continuous ring geometry with proper UV sections
+    // Create continuous ring geometry with 1ft x 1ft UV squares
     // Top surface
     for (let i = 0; i < numPoints; i++) {
       const inner = copingInnerBoundary[i];
@@ -106,16 +106,13 @@ export const CopingGeometry = ({
       vertices.push(inner.x, copingHeight, inner.z);
       vertices.push(outer.x, copingHeight, outer.z);
       
-      // UV mapping: Map texture to create proper repeating pattern
-      // U = distance along perimeter / textureScale (for repeating)
-      // V = width from inner to outer edge / textureScale
-      const distanceAlongPerimeter = distances[i] / textureScale;
-      const uInner = distanceAlongPerimeter;
-      const vInner = 0;
-      const vOuter = copingWidth / textureScale;
+      // UV mapping: 1 foot = 1 UV unit for 1ft x 1ft squares
+      // U = distance along perimeter (in feet)
+      // V = 0 for inner edge, copingWidth for outer edge
+      const uCoord = distances[i]; // Distance in feet = UV units
       
-      uvs.push(uInner, vInner);
-      uvs.push(uInner, vOuter);
+      uvs.push(uCoord, 0);
+      uvs.push(uCoord, copingWidth);
     }
     
     // Top surface triangles
@@ -139,14 +136,9 @@ export const CopingGeometry = ({
       vertices.push(inner.x, 0, inner.z);
       vertices.push(outer.x, 0, outer.z);
       
-      // Same UV mapping for bottom
-      const distanceAlongPerimeter = distances[i] / textureScale;
-      const uInner = distanceAlongPerimeter;
-      const vInner = 0;
-      const vOuter = copingWidth / textureScale;
-      
-      uvs.push(uInner, vInner);
-      uvs.push(uInner, vOuter);
+      const uCoord = distances[i];
+      uvs.push(uCoord, 0);
+      uvs.push(uCoord, copingWidth);
     }
     
     // Bottom surface triangles (reversed winding)
@@ -169,14 +161,9 @@ export const CopingGeometry = ({
       vertices.push(outer.x, copingHeight, outer.z);
       vertices.push(outer.x, 0, outer.z);
       
-      // UV mapping for vertical wall
-      const distanceAlongPerimeter = distances[i] / textureScale;
-      const u = distanceAlongPerimeter;
-      const vTop = copingHeight / textureScale;
-      const vBottom = 0;
-      
-      uvs.push(u, vTop);
-      uvs.push(u, vBottom);
+      const uCoord = distances[i];
+      uvs.push(uCoord, copingHeight);
+      uvs.push(uCoord, 0);
     }
     
     // Outer wall triangles
@@ -199,14 +186,9 @@ export const CopingGeometry = ({
       vertices.push(inner.x, copingHeight, inner.z);
       vertices.push(inner.x, 0, inner.z);
       
-      // UV mapping for vertical wall
-      const distanceAlongPerimeter = distances[i] / textureScale;
-      const u = distanceAlongPerimeter;
-      const vTop = copingHeight / textureScale;
-      const vBottom = 0;
-      
-      uvs.push(u, vTop);
-      uvs.push(u, vBottom);
+      const uCoord = distances[i];
+      uvs.push(uCoord, copingHeight);
+      uvs.push(uCoord, 0);
     }
     
     // Inner wall triangles (reversed winding)
@@ -230,21 +212,13 @@ export const CopingGeometry = ({
     return geom;
   }, [poolPoints, copingWidth, copingHeight]);
   
-  // Debug: Log render state
-  console.log('🎨 CopingGeometry render:', { 
-    hasTexture: !!texture, 
-    textureUrl: surfaceTextureUrl,
-    copingWidth,
-    pointCount: poolPoints.length
-  });
-  
   return (
     <mesh geometry={geometry} castShadow receiveShadow>
       <meshStandardMaterial
         map={texture || undefined}
-        color={texture ? '#ffffff' : '#ff00ff'}
+        color={texture ? '#ffffff' : '#d4a574'}
         roughness={0.8}
-        metalness={0.2}
+        metalness={0.1}
         side={THREE.DoubleSide}
       />
     </mesh>

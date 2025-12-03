@@ -30,11 +30,12 @@ export function SplineEditor({
 }: SplineEditorProps) {
   const [draggedPoint, setDraggedPoint] = useState<string | null>(null);
   const [hoverPoint, setHoverPoint] = useState<string | null>(null);
+  const [hoverMidpoint, setHoverMidpoint] = useState<number | null>(null);
 
   const handlePointerDown = (pointId: string) => (e: any) => {
     if (!enableDrag) return;
     e.stopPropagation();
-    (e.target as any).setPointerCapture?.(e.pointerId); // Capture pointer for touch
+    (e.target as any).setPointerCapture?.(e.pointerId);
     setDraggedPoint(pointId);
   };
 
@@ -55,10 +56,47 @@ export function SplineEditor({
 
   const handlePointerUp = (e: any) => {
     if (draggedPoint) {
-      (e.target as any).releasePointerCapture?.(e.pointerId); // Release pointer capture
+      (e.target as any).releasePointerCapture?.(e.pointerId);
     }
     setDraggedPoint(null);
   };
+
+  // Add point at midpoint between two existing points
+  const handleAddPoint = (segmentIndex: number) => {
+    const p1 = points[segmentIndex];
+    const p2 = points[(segmentIndex + 1) % points.length];
+    
+    const newPoint: SplinePoint = {
+      x: (p1.x + p2.x) / 2,
+      y: yPosition,
+      z: (p1.z + p2.z) / 2,
+      id: `point-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    };
+    
+    // Insert new point after segmentIndex
+    const newPoints = [...points];
+    newPoints.splice(segmentIndex + 1, 0, newPoint);
+    onPointsChange(newPoints);
+  };
+
+  // Remove a point (minimum 3 points required)
+  const handleRemovePoint = (pointId: string) => {
+    if (points.length <= 3) return; // Minimum 3 points for a valid shape
+    const newPoints = points.filter(p => p.id !== pointId);
+    onPointsChange(newPoints);
+  };
+
+  // Calculate midpoints for add buttons
+  const midpoints = useMemo(() => {
+    return points.map((p, i) => {
+      const next = points[(i + 1) % points.length];
+      return {
+        x: (p.x + next.x) / 2,
+        z: (p.z + next.z) / 2,
+        segmentIndex: i
+      };
+    });
+  }, [points]);
 
   // Calculate line points for Drei's Line component
   const linePoints = useMemo(() => {
@@ -134,6 +172,64 @@ export function SplineEditor({
                   <div className="text-xs opacity-60 mt-1">
                     Drag to reposition
                   </div>
+                  {points.length > 3 && (
+                    <button 
+                      className="mt-2 bg-red-500/80 hover:bg-red-500 px-2 py-1 rounded text-xs w-full"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemovePoint(point.id);
+                      }}
+                    >
+                      Remove Point
+                    </button>
+                  )}
+                </div>
+              </Html>
+            )}
+          </group>
+        );
+      })}
+
+      {/* Midpoint add buttons */}
+      {midpoints.map((mp, index) => {
+        const isHovered = hoverMidpoint === index;
+        
+        return (
+          <group key={`midpoint-${index}`} position={[mp.x, yPosition + 1, mp.z]}>
+            <mesh
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddPoint(mp.segmentIndex);
+              }}
+              onPointerOver={() => setHoverMidpoint(index)}
+              onPointerOut={() => setHoverMidpoint(null)}
+            >
+              <sphereGeometry args={[isHovered ? 0.35 : 0.25, 16, 16]} />
+              <meshStandardMaterial 
+                color={isHovered ? '#00ff00' : '#ffffff'}
+                emissive={isHovered ? '#00ff00' : '#ffffff'}
+                emissiveIntensity={isHovered ? 0.6 : 0.3}
+                transparent
+                opacity={isHovered ? 1 : 0.7}
+              />
+            </mesh>
+            
+            {/* Plus icon indicator */}
+            <group rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+              <mesh>
+                <boxGeometry args={[0.15, 0.03, 0.03]} />
+                <meshBasicMaterial color="#000000" />
+              </mesh>
+              <mesh>
+                <boxGeometry args={[0.03, 0.15, 0.03]} />
+                <meshBasicMaterial color="#000000" />
+              </mesh>
+            </group>
+            
+            {isHovered && (
+              <Html distanceFactor={10}>
+                <div className="bg-green-600/90 text-white px-2 py-1 rounded text-xs whitespace-nowrap shadow-xl">
+                  Click to add point
                 </div>
               </Html>
             )}
