@@ -25,6 +25,7 @@ const SalesRepRegister = lazy(() => import("./pages/SalesRepRegister"));
 const SalesRepDashboard = lazy(() => import("./pages/SalesRepDashboard"));
 const ContractorRegistration = lazy(() => import("./pages/ContractorRegistration"));
 const ContractorProfile = lazy(() => import("./pages/ContractorProfile"));
+const ContractorLogin = lazy(() => import("./pages/ContractorLogin"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -107,6 +108,7 @@ const App = () => {
             />
             <Route path="/contractor-registration" element={<ContractorRegistration />} />
             <Route path="/contractor-profile/:id" element={<ContractorProfile />} />
+            <Route path="/contractor-login" element={<ContractorLogin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
