@@ -19,8 +19,9 @@ import { PoolAssetManager } from './scene3d/PoolAssetManager';
 import { PoolAssetsRenderer } from './scene3d/PoolAssetsRenderer';
 import { PoolStairConfig, PoolChairConfig } from './scene3d/poolAssetTypes';
 import { WalkthroughController } from './scene3d/WalkthroughController';
+import { PoolDesignerHeader } from './scene3d/PoolDesignerHeader';
 import { Button } from './ui/button';
-import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Box, Sun, Moon, Footprints, PersonStanding } from 'lucide-react';
+import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Box, Sun, Moon, Footprints, PersonStanding, Edit3 } from 'lucide-react';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { Checkbox } from './ui/checkbox';
 import * as THREE from 'three';
@@ -145,6 +146,9 @@ export function UnifiedPoolVisualizer({
   
   // Walkthrough mode state
   const [isWalkthroughMode, setIsWalkthroughMode] = useState(false);
+  
+  // Spline edit mode - locks camera when editing splines
+  const [isSplineEditMode, setIsSplineEditMode] = useState(false);
   
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
@@ -709,7 +713,30 @@ export function UnifiedPoolVisualizer({
           >
             <PersonStanding className="w-5 h-5" />
           </button>
+          <button
+            onClick={() => {
+              const newMode = !isSplineEditMode;
+              setIsSplineEditMode(newMode);
+              // When entering spline edit mode, enable appropriate editing
+              if (newMode) {
+                setEnablePoolSplineEdit(true);
+              }
+            }}
+            className={`p-2 rounded-lg shadow-lg transition-colors ${isSplineEditMode ? 'bg-orange-600 text-white' : 'bg-background/80 hover:bg-background'}`}
+            title="Spline Edit Mode (locks camera for precise editing)"
+          >
+            <Edit3 className="w-5 h-5" />
+          </button>
         </div>
+
+        {/* Pool Designer Header with Measurements & Cost */}
+        <PoolDesignerHeader
+          poolPoints={scene.pool.points}
+          poolDepth={poolDepth}
+          deckWidth={deckWidth}
+          copingWidth={scene.deck.copingWidth || 1}
+          poolPrice={parseFloat(new URLSearchParams(window.location.search).get('price') || '50000')}
+        />
 
         {/* Walkthrough Mode UI Overlay */}
         {isWalkthroughMode && (
@@ -741,6 +768,37 @@ export function UnifiedPoolVisualizer({
             {/* Crosshair */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-1 h-1 bg-white rounded-full opacity-50"></div>
+            </div>
+          </div>
+        )}
+
+        {/* Spline Edit Mode UI Overlay */}
+        {isSplineEditMode && !isWalkthroughMode && (
+          <div className="absolute inset-0 pointer-events-none z-20">
+            {/* Exit button */}
+            <button
+              onClick={() => {
+                setIsSplineEditMode(false);
+                setEnablePoolSplineEdit(false);
+                setEnableFloorDepthSplineEdit(false);
+              }}
+              className="absolute top-4 right-16 pointer-events-auto bg-orange-500/80 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+            >
+              Exit Edit Mode
+            </button>
+            
+            {/* Instructions */}
+            <div className="absolute bottom-4 right-4 pointer-events-none bg-orange-900/80 text-white p-3 rounded-lg text-sm max-w-xs">
+              <p className="font-medium mb-1 flex items-center gap-2">
+                <Edit3 className="w-4 h-4" />
+                Spline Edit Mode Active
+              </p>
+              <p className="text-xs opacity-80">Camera rotation locked for precise editing</p>
+              <ul className="text-xs mt-2 space-y-1 opacity-90">
+                <li>• Drag control points to reshape</li>
+                <li>• Scroll to zoom, drag to pan</li>
+                <li>• Click outside to deselect</li>
+              </ul>
             </div>
           </div>
         )}
@@ -1078,8 +1136,8 @@ export function UnifiedPoolVisualizer({
             jumpForce={15}
           />
           
-          {/* OrbitControls - disabled during walkthrough */}
-          {!isWalkthroughMode && (
+          {/* OrbitControls - disabled during walkthrough or spline edit mode */}
+          {!isWalkthroughMode && !isSplineEditMode && (
             <OrbitControls
               ref={controlsRef}
               makeDefault
@@ -1087,6 +1145,18 @@ export function UnifiedPoolVisualizer({
               autoRotateSpeed={0.5}
               enableDamping
               dampingFactor={0.05}
+            />
+          )}
+          
+          {/* Show message when in spline edit mode */}
+          {isSplineEditMode && !isWalkthroughMode && (
+            <OrbitControls
+              ref={controlsRef}
+              makeDefault
+              enableRotate={false}
+              enablePan={true}
+              enableZoom={true}
+              enableDamping={false}
             />
           )}
                </R3FCanvas>
