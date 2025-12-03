@@ -247,6 +247,7 @@ const AdminDashboard = () => {
                 </div>
                 <NavItem icon={Users} label="Users" active={activeSection === "users"} onClick={() => setActiveSection("users")} />
                 <NavItem icon={Users} label="Clients" active={activeSection === "clients"} onClick={() => setActiveSection("clients")} />
+                <NavItem icon={Building2} label="Contractors" active={activeSection === "contractors"} onClick={() => setActiveSection("contractors")} />
                 <NavItem icon={Gift} label="Referrals" active={activeSection === "referrals"} onClick={() => setActiveSection("referrals")} />
                 <NavItem icon={Users} label="API Manager" active={activeSection === "api-manager"} onClick={() => setActiveSection("api-manager")} />
                 
@@ -367,6 +368,11 @@ const AdminDashboard = () => {
           {/* Clients Tab */}
           {activeSection === "clients" && <div className="space-y-6 animate-fade-in">
             <AdminClientManager />
+          </div>}
+
+          {/* Contractors Tab */}
+          {activeSection === "contractors" && <div className="space-y-6 animate-fade-in">
+            <AdminContractorManagement />
           </div>}
 
           {/* Referrals Tab */}
