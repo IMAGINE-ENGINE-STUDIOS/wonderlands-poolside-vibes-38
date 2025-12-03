@@ -192,9 +192,13 @@ export function DraggablePoolLight({
   }, [isDragging, camera, gl.domElement, poolPerimeter, light.id, onPositionChange]);
 
   // Calculate inward direction for light projection (into pool)
+  // Apply user angle offset for direction control
+  const angleOffset = ((light.angle || 0) * Math.PI) / 180; // Convert degrees to radians
+  const adjustedAngle = position.angle + angleOffset;
+  
   const inwardDir = {
-    x: Math.cos(position.angle),
-    z: Math.sin(position.angle)
+    x: Math.cos(adjustedAngle),
+    z: Math.sin(adjustedAngle)
   };
 
   return (
@@ -205,8 +209,8 @@ export function DraggablePoolLight({
       onPointerOver={() => gl.domElement.style.cursor = isDragging ? 'grabbing' : 'grab'}
       onPointerOut={() => !isDragging && (gl.domElement.style.cursor = 'auto')}
     >
-      {/* Light housing - rotated to face INTO the pool (lens perpendicular to wall) */}
-      <group rotation={[0, position.angle, 0]}>
+      {/* Light housing - rotated to face INTO the pool with angle adjustment */}
+      <group rotation={[0, adjustedAngle, 0]}>
         {/* Outer ring - 2 inch diameter (0.167 ft), 0.5 inch thick - rotated 90° on X to face inward */}
         <mesh rotation={[0, Math.PI / 2, 0]}>
           <torusGeometry args={[0.083, 0.021, 8, 24]} />
@@ -238,7 +242,7 @@ export function DraggablePoolLight({
         )}
       </group>
       
-      {/* Simple point light projecting INTO the pool - no conical scattering */}
+      {/* Point light with angle-adjusted direction */}
       {light.isOn && (
         <pointLight
           color={currentColor}

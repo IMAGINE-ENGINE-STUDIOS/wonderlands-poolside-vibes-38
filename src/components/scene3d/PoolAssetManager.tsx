@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -14,10 +14,23 @@ import {
   Plus,
   Trash2,
   Lightbulb,
-  Spline
+  Spline,
+  Palette,
+  Link,
+  Unlink
 } from 'lucide-react';
 import { PoolStairConfig, PoolChairConfig, ContourSeatingConfig } from './poolAssetTypes';
-import { PoolLightConfig } from './types';
+import { PoolLightConfig, TextureConfig } from './types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface PoolAssetManagerProps {
   isOpen: boolean;
@@ -34,6 +47,8 @@ interface PoolAssetManagerProps {
   onSelectAsset: (id: string | null) => void;
   poolFinishTexture: string;
   isNightMode: boolean;
+  availableFinishes?: TextureConfig[];
+  onRequestFuseStairSeating?: (stairId: string, seatingId: string) => void;
 }
 
 export function PoolAssetManager({
@@ -50,9 +65,82 @@ export function PoolAssetManager({
   selectedAssetId,
   onSelectAsset,
   poolFinishTexture,
-  isNightMode
+  isNightMode,
+  availableFinishes = [],
+  onRequestFuseStairSeating
 }: PoolAssetManagerProps) {
   const [activeTab, setActiveTab] = useState('stairs');
+  const [showTextureSync, setShowTextureSync] = useState(false);
+  const [pendingTextureSync, setPendingTextureSync] = useState<string | null>(null);
+  const [showTextureMenu, setShowTextureMenu] = useState<string | null>(null);
+  const [showFusionSuggestion, setShowFusionSuggestion] = useState(false);
+  const [fusionPair, setFusionPair] = useState<{ stairId: string; seatingId: string } | null>(null);
+
+  // Watch for pool finish texture changes - prompt to sync assets
+  const [lastPoolFinish, setLastPoolFinish] = useState(poolFinishTexture);
+  
+  useEffect(() => {
+    if (poolFinishTexture !== lastPoolFinish && lastPoolFinish) {
+      // Check if any assets use the old texture
+      const assetsUsingOldTexture = [
+        ...stairs.filter(s => s.textureUrl === lastPoolFinish),
+        ...contourSeating.filter(s => s.textureUrl === lastPoolFinish)
+      ];
+      
+      if (assetsUsingOldTexture.length > 0) {
+        setPendingTextureSync(poolFinishTexture);
+        setShowTextureSync(true);
+      }
+    }
+    setLastPoolFinish(poolFinishTexture);
+  }, [poolFinishTexture, lastPoolFinish, stairs, contourSeating]);
+
+  // Handle texture sync confirmation
+  const handleConfirmTextureSync = useCallback(() => {
+    if (!pendingTextureSync) return;
+    
+    // Update all stairs using old texture
+    onStairsChange(stairs.map(s => 
+      s.textureUrl === lastPoolFinish ? { ...s, textureUrl: pendingTextureSync } : s
+    ));
+    
+    // Update all contour seating using old texture
+    onContourSeatingChange(contourSeating.map(s => 
+      s.textureUrl === lastPoolFinish ? { ...s, textureUrl: pendingTextureSync } : s
+    ));
+    
+    setShowTextureSync(false);
+    setPendingTextureSync(null);
+  }, [pendingTextureSync, lastPoolFinish, stairs, contourSeating, onStairsChange, onContourSeatingChange]);
+
+  // Check for fusion opportunity when selecting assets
+  useEffect(() => {
+    if (!selectedAssetId) return;
+    
+    // Check if stair and seating are adjacent (within 5% position)
+    const selectedStair = stairs.find(s => s.id === selectedAssetId);
+    const selectedSeating = contourSeating.find(s => s.id === selectedAssetId);
+    
+    if (selectedStair) {
+      const adjacentSeating = contourSeating.find(s => 
+        Math.abs(s.startPosition - selectedStair.wallPosition) < 0.05 ||
+        Math.abs(s.endPosition - selectedStair.wallPosition) < 0.05
+      );
+      if (adjacentSeating && onRequestFuseStairSeating) {
+        setFusionPair({ stairId: selectedStair.id, seatingId: adjacentSeating.id });
+        setShowFusionSuggestion(true);
+      }
+    } else if (selectedSeating) {
+      const adjacentStair = stairs.find(s =>
+        Math.abs(selectedSeating.startPosition - s.wallPosition) < 0.05 ||
+        Math.abs(selectedSeating.endPosition - s.wallPosition) < 0.05
+      );
+      if (adjacentStair && onRequestFuseStairSeating) {
+        setFusionPair({ stairId: adjacentStair.id, seatingId: selectedSeating.id });
+        setShowFusionSuggestion(true);
+      }
+    }
+  }, [selectedAssetId, stairs, contourSeating, onRequestFuseStairSeating]);
 
   // Add new stair
   const handleAddStair = useCallback((shape: 'linear' | 'curved') => {
@@ -96,16 +184,17 @@ export function PoolAssetManager({
     onSelectAsset(newChair.id);
   }, [chairs, onChairsChange, onSelectAsset, poolFinishTexture]);
 
-  // Add new light
+  // Add new light - default to gradient color mode
   const handleAddLight = useCallback(() => {
     const newLight: PoolLightConfig = {
       id: `light-${Date.now()}`,
       wallPosition: Math.random() * 0.8 + 0.1,
-      depthFromSurface: 2.0, // 2 feet below water
+      depthFromSurface: 2.0,
       color: '#ffffff',
-      colorMode: 'white',
+      colorMode: 'gradient', // Default to gradient
       intensity: 2,
-      isOn: isNightMode
+      isOn: isNightMode,
+      angle: 0
     };
     onLightsChange([...lights, newLight]);
     onSelectAsset(newLight.id);
@@ -327,6 +416,31 @@ export function PoolAssetManager({
                     </div>
                   )}
 
+                  {/* Texture Controls */}
+                  <div className="space-y-2">
+                    <Label className="text-xs">Texture</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-xs h-8"
+                        onClick={() => setShowTextureMenu(selectedStair.id)}
+                      >
+                        <Palette className="h-3 w-3 mr-1" />
+                        Change Finish
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-8"
+                        onClick={() => updateStair(selectedStair.id, { textureUrl: poolFinishTexture })}
+                        title="Match pool finish"
+                      >
+                        <Link className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+
                   <p className="text-xs text-muted-foreground">
                     Stairs start 1ft below water. Drag in 3D view to reposition.
                   </p>
@@ -464,6 +578,31 @@ export function PoolAssetManager({
                       max={3}
                       step={0.25}
                     />
+                  </div>
+
+                  {/* Texture Controls */}
+                  <div className="space-y-2">
+                    <Label className="text-xs">Texture</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-xs h-8"
+                        onClick={() => setShowTextureMenu(selectedContour.id)}
+                      >
+                        <Palette className="h-3 w-3 mr-1" />
+                        Change Finish
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-8"
+                        onClick={() => updateContour(selectedContour.id, { textureUrl: poolFinishTexture })}
+                        title="Match pool finish"
+                      >
+                        <Link className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
 
                   <p className="text-xs text-muted-foreground">
@@ -648,6 +787,18 @@ export function PoolAssetManager({
                     />
                   </div>
 
+                  <div className="space-y-2">
+                    <Label className="text-xs">Light Angle: {(selectedLight.angle || 0).toFixed(0)}°</Label>
+                    <Slider
+                      value={[selectedLight.angle || 0]}
+                      onValueChange={([v]) => updateLight(selectedLight.id, { angle: v })}
+                      min={-45}
+                      max={45}
+                      step={5}
+                    />
+                    <p className="text-xs text-muted-foreground">Adjust light beam direction</p>
+                  </div>
+
                   <div className="flex items-center justify-between">
                     <Label className="text-xs">Color Mode</Label>
                     <div className="flex gap-2">
@@ -693,6 +844,98 @@ export function PoolAssetManager({
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Texture Sync Dialog */}
+      <AlertDialog open={showTextureSync} onOpenChange={setShowTextureSync}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sync Asset Textures?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The pool finish has changed. Would you like to update stairs and seating to match the new pool finish?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowTextureSync(false)}>
+              No, Keep Current
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmTextureSync}>
+              Yes, Sync Textures
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Fusion Suggestion Dialog */}
+      <AlertDialog open={showFusionSuggestion} onOpenChange={setShowFusionSuggestion}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Link className="h-4 w-4" />
+              Fuse Stair & Seating?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This stair and seating are adjacent. Would you like to fuse them into a single unified geometry for a seamless look?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowFusionSuggestion(false);
+              setFusionPair(null);
+            }}>
+              Keep Separate
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              if (fusionPair && onRequestFuseStairSeating) {
+                onRequestFuseStairSeating(fusionPair.stairId, fusionPair.seatingId);
+              }
+              setShowFusionSuggestion(false);
+              setFusionPair(null);
+            }}>
+              Fuse Together
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Texture Selection Menu */}
+      {showTextureMenu && availableFinishes.length > 0 && (
+        <div className="absolute top-16 left-4 z-20 w-48 bg-background/95 backdrop-blur-sm border rounded-lg shadow-lg p-2">
+          <div className="flex items-center justify-between mb-2">
+            <Label className="text-xs font-medium">Select Texture</Label>
+            <Button variant="ghost" size="sm" onClick={() => setShowTextureMenu(null)} className="h-6 w-6 p-0">×</Button>
+          </div>
+          <ScrollArea className="h-[200px]">
+            <div className="space-y-1">
+              {availableFinishes.map(finish => (
+                <Button
+                  key={finish.url}
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-xs h-8"
+                  onClick={() => {
+                    if (showTextureMenu.startsWith('stair-')) {
+                      onStairsChange(stairs.map(s => 
+                        s.id === showTextureMenu ? { ...s, textureUrl: finish.url } : s
+                      ));
+                    } else if (showTextureMenu.startsWith('contour-')) {
+                      onContourSeatingChange(contourSeating.map(s => 
+                        s.id === showTextureMenu ? { ...s, textureUrl: finish.url } : s
+                      ));
+                    }
+                    setShowTextureMenu(null);
+                  }}
+                >
+                  <div className="w-4 h-4 rounded mr-2 border" style={{
+                    backgroundImage: `url(${finish.url})`,
+                    backgroundSize: 'cover'
+                  }} />
+                  {finish.name}
+                </Button>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+      )}
     </div>
   );
 }
