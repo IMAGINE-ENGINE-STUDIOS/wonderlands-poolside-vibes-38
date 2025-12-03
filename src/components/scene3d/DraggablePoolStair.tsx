@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
-import { useFrame, useThree, ThreeEvent } from '@react-three/fiber';
+import { useThree, ThreeEvent } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import { PoolStairConfig } from './poolAssetTypes';
 
@@ -137,62 +137,95 @@ export function DraggablePoolStair({
   useEffect(() => {
     if (texture) {
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(1, 1);
+      texture.repeat.set(0.5, 0.5);
     }
   }, [texture]);
 
   // Calculate current position on wall
   const position = getPositionOnPerimeter(stair.wallPosition, poolPerimeter);
 
-  // Generate stair geometry
-  const stairGeometry = useMemo(() => {
-    const group = new THREE.Group();
+  // Calculate inward direction (into pool)
+  const inwardDir = useMemo(() => ({
+    x: Math.cos(position.angle),
+    z: Math.sin(position.angle)
+  }), [position.angle]);
+
+  // Generate solid stair geometry that reaches the floor
+  const stairMeshes = useMemo(() => {
+    const meshes: JSX.Element[] = [];
     const stepWidth = stair.width;
     const stepDepth = stair.stepDepth;
     const stepHeight = stair.stepHeight;
     const numSteps = stair.numSteps;
+    const cornerRadius = stair.cornerRadius || 0;
+    
+    // Calculate total height needed to reach floor
+    const totalStairHeight = poolDepth;
     
     for (let i = 0; i < numSteps; i++) {
-      let stepGeom: THREE.BufferGeometry;
+      // Each step is a solid block from its top surface down to the pool floor
+      const stepTop = -i * stepHeight; // Y position of step top
+      const stepBottom = -poolDepth; // Always extends to pool floor
+      const blockHeight = stepTop - stepBottom;
       
-      if (stair.shape === 'curved' && stair.cornerRadius) {
-        // Curved step with rounded corners
+      // Z offset - steps go inward into the pool
+      const zOffset = i * stepDepth;
+      
+      if (stair.shape === 'curved' && cornerRadius > 0) {
+        // Create curved step with rounded front corners
         const shape = new THREE.Shape();
-        const radius = stair.cornerRadius;
+        const r = Math.min(cornerRadius, stepWidth / 4, stepDepth / 2);
         const w = stepWidth / 2;
         const d = stepDepth;
         
-        shape.moveTo(-w + radius, 0);
-        shape.lineTo(w - radius, 0);
-        shape.quadraticCurveTo(w, 0, w, radius);
-        shape.lineTo(w, d);
-        shape.lineTo(-w, d);
-        shape.lineTo(-w, radius);
-        shape.quadraticCurveTo(-w, 0, -w + radius, 0);
+        // Start from back-left, go clockwise
+        shape.moveTo(-w, 0);
+        shape.lineTo(-w, d - r);
+        shape.quadraticCurveTo(-w, d, -w + r, d);
+        shape.lineTo(w - r, d);
+        shape.quadraticCurveTo(w, d, w, d - r);
+        shape.lineTo(w, 0);
+        shape.lineTo(-w, 0);
         
-        const extrudeSettings = { depth: stepHeight, bevelEnabled: false };
-        stepGeom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-        stepGeom.rotateX(-Math.PI / 2);
+        const extrudeSettings = { 
+          depth: blockHeight, 
+          bevelEnabled: false 
+        };
+        
+        meshes.push(
+          <mesh 
+            key={`step-${i}`}
+            position={[0, stepTop, zOffset]}
+            rotation={[Math.PI / 2, 0, 0]}
+          >
+            <extrudeGeometry args={[shape, extrudeSettings]} />
+            <meshStandardMaterial 
+              map={texture} 
+              roughness={0.6}
+              metalness={0.1}
+            />
+          </mesh>
+        );
       } else {
-        // Linear step
-        stepGeom = new THREE.BoxGeometry(stepWidth, stepHeight, stepDepth);
+        // Linear step - simple box
+        meshes.push(
+          <mesh 
+            key={`step-${i}`}
+            position={[0, stepTop - blockHeight / 2, zOffset + stepDepth / 2]}
+          >
+            <boxGeometry args={[stepWidth, blockHeight, stepDepth]} />
+            <meshStandardMaterial 
+              map={texture} 
+              roughness={0.6}
+              metalness={0.1}
+            />
+          </mesh>
+        );
       }
-      
-      const stepMesh = new THREE.Mesh(
-        stepGeom,
-        new THREE.MeshStandardMaterial({ map: texture, roughness: 0.7 })
-      );
-      
-      // Position each step
-      const yPos = -i * stepHeight - stepHeight / 2;
-      const zOffset = i * stepDepth;
-      stepMesh.position.set(0, yPos, zOffset);
-      
-      group.add(stepMesh);
     }
     
-    return group;
-  }, [stair, texture]);
+    return meshes;
+  }, [stair, texture, poolDepth]);
 
   // Handle pointer events
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
@@ -235,23 +268,30 @@ export function DraggablePoolStair({
     };
   }, [isDragging, camera, gl.domElement, poolPerimeter, stair.id, onPositionChange]);
 
+  // Offset stairs slightly inward from wall so they're fully inside pool
+  const inwardOffset = 0.1; // Small offset to ensure stairs are inside
+
   return (
     <group
       ref={groupRef}
-      position={[position.x, 0, position.z]}
+      position={[
+        position.x + inwardDir.x * inwardOffset,
+        0,
+        position.z + inwardDir.z * inwardOffset
+      ]}
       rotation={[0, position.angle, 0]}
       onPointerDown={handlePointerDown}
       onPointerOver={() => gl.domElement.style.cursor = isDragging ? 'grabbing' : 'grab'}
       onPointerOut={() => !isDragging && (gl.domElement.style.cursor = 'auto')}
     >
-      {/* Render stair steps */}
-      <primitive object={stairGeometry} />
+      {/* Render solid stair steps */}
+      {stairMeshes}
       
       {/* Selection highlight */}
       {isSelected && (
-        <mesh position={[0, 0.1, stair.stepDepth * stair.numSteps / 2]}>
-          <boxGeometry args={[stair.width + 0.2, 0.1, stair.stepDepth * stair.numSteps + 0.2]} />
-          <meshBasicMaterial color="#00ffff" transparent opacity={0.3} />
+        <mesh position={[0, 0.05, stair.stepDepth * stair.numSteps / 2]}>
+          <boxGeometry args={[stair.width + 0.2, 0.05, stair.stepDepth * stair.numSteps + 0.2]} />
+          <meshBasicMaterial color="#00ffff" transparent opacity={0.4} />
         </mesh>
       )}
     </group>

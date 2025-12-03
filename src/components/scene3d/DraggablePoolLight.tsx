@@ -209,10 +209,10 @@ export function DraggablePoolLight({
       onPointerOver={() => gl.domElement.style.cursor = isDragging ? 'grabbing' : 'grab'}
       onPointerOut={() => !isDragging && (gl.domElement.style.cursor = 'auto')}
     >
-      {/* Light housing - facing inward into pool (rotated 90° from wall) */}
-      <group rotation={[0, position.angle + Math.PI / 2, 0]}>
-        {/* Outer ring - 2 inch diameter (0.167 ft), 0.5 inch thick */}
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
+      {/* Light housing - rotated to face INTO the pool (lens perpendicular to wall) */}
+      <group rotation={[0, position.angle, 0]}>
+        {/* Outer ring - 2 inch diameter (0.167 ft), 0.5 inch thick - rotated 90° on X to face inward */}
+        <mesh rotation={[0, Math.PI / 2, 0]}>
           <torusGeometry args={[0.083, 0.021, 8, 24]} />
           <meshStandardMaterial
             color={isSelected ? '#ffff00' : '#888888'}
@@ -221,8 +221,8 @@ export function DraggablePoolLight({
           />
         </mesh>
         
-        {/* Inner light lens - 1 inch diameter, facing into pool */}
-        <mesh rotation={[Math.PI / 2, 0, 0]} position={[0.02, 0, 0]}>
+        {/* Inner light lens - 1 inch diameter, facing into pool center */}
+        <mesh rotation={[0, Math.PI / 2, 0]} position={[0.02, 0, 0]}>
           <circleGeometry args={[0.042, 24]} />
           <meshStandardMaterial
             color={light.isOn ? currentColor : '#333333'}
@@ -235,45 +235,54 @@ export function DraggablePoolLight({
         
         {/* Selection indicator ring */}
         {isSelected && (
-          <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <mesh rotation={[0, Math.PI / 2, 0]}>
             <ringGeometry args={[0.12, 0.14, 32]} />
             <meshBasicMaterial color="#00ffff" transparent opacity={0.8} />
           </mesh>
         )}
       </group>
       
-      {/* Main spotlight - projecting INTO the pool with scattered cone */}
+      {/* Light source projecting INTO the pool center with scattered effect */}
       {light.isOn && (
         <>
-          {/* Primary spotlight pointing into pool */}
+          {/* Primary spotlight pointing into pool center */}
           <spotLight
             color={currentColor}
-            intensity={light.intensity * 3}
-            distance={25}
-            angle={Math.PI / 4}
-            penumbra={0.8}
-            decay={1.5}
-            position={[inwardDir.x * 0.1, 0, inwardDir.z * 0.1]}
-            target-position={[inwardDir.x * 5, -2, inwardDir.z * 5]}
+            intensity={light.intensity * 4}
+            distance={30}
+            angle={Math.PI / 3}
+            penumbra={0.9}
+            decay={1.2}
+            position={[inwardDir.x * 0.15, 0, inwardDir.z * 0.15]}
+            target-position={[inwardDir.x * 10, -1, inwardDir.z * 10]}
             castShadow={false}
           />
           
-          {/* Secondary scattered light for softer glow */}
+          {/* Wide scatter light for soft underwater glow */}
           <pointLight
             color={currentColor}
-            intensity={light.intensity * 0.8}
-            distance={12}
-            decay={2}
-            position={[inwardDir.x * 0.3, 0, inwardDir.z * 0.3]}
+            intensity={light.intensity * 1.2}
+            distance={15}
+            decay={1.8}
+            position={[inwardDir.x * 0.5, 0, inwardDir.z * 0.5]}
           />
           
-          {/* Ambient scatter for realistic underwater light spread */}
+          {/* Secondary scatter for depth */}
           <pointLight
             color={currentColor}
-            intensity={light.intensity * 0.4}
+            intensity={light.intensity * 0.6}
+            distance={10}
+            decay={2}
+            position={[inwardDir.x * 1, -0.5, inwardDir.z * 1]}
+          />
+          
+          {/* Floor bounce scatter */}
+          <pointLight
+            color={currentColor}
+            intensity={light.intensity * 0.3}
             distance={8}
             decay={2.5}
-            position={[inwardDir.x * 0.5, -0.5, inwardDir.z * 0.5]}
+            position={[inwardDir.x * 1.5, -1.5, inwardDir.z * 1.5]}
           />
         </>
       )}
