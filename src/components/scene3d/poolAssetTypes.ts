@@ -1,5 +1,11 @@
 // Pool Asset Types for stairs, chairs, and other interactive pool elements
 
+export interface StairSplinePoint {
+  position: number;  // 0-1 along stair length
+  widthOffset: number;  // Offset from base width
+  depthOffset: number;  // Offset from base step depth
+}
+
 export interface PoolStairConfig {
   id: string;
   wallPosition: number;      // 0-1 position along pool perimeter
@@ -10,6 +16,7 @@ export interface PoolStairConfig {
   stepDepth: number;         // Depth per step (default 11 inches = 0.917 ft)
   textureUrl: string;
   cornerRadius?: number;     // For curved stairs
+  splinePoints?: StairSplinePoint[];  // Control points for custom shaping
 }
 
 export interface PoolChairConfig {
@@ -35,6 +42,12 @@ export interface PoolJetConfig {
   isOn: boolean;
 }
 
+export interface SeatingSplinePoint {
+  position: number;  // 0-1 along seating perimeter section
+  width: number;     // Width at this point
+  depth: number;     // Depth below water at this point
+}
+
 export interface ContourSeatingConfig {
   id: string;
   startPosition: number;    // 0-1 position along pool perimeter (start)
@@ -42,6 +55,7 @@ export interface ContourSeatingConfig {
   width: number;            // Width extending into pool (default 1.5 ft)
   height: number;           // Depth below water for top surface (default 1 ft)
   textureUrl: string;
+  splinePoints?: SeatingSplinePoint[];  // Control points for variable width/depth
 }
 
 export type PoolAsset = PoolStairConfig | PoolChairConfig | PoolJetConfig | ContourSeatingConfig;

@@ -2,15 +2,7 @@ import * as THREE from 'three';
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useThree, ThreeEvent } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
-
-export interface ContourSeatingConfig {
-  id: string;
-  startPosition: number;    // 0-1 position along pool perimeter (start)
-  endPosition: number;      // 0-1 position along pool perimeter (end)
-  width: number;            // Width extending into pool (default 1.5 ft)
-  height: number;           // Depth below water for top surface (default 1 ft)
-  textureUrl: string;
-}
+import { ContourSeatingConfig } from './poolAssetTypes';
 
 interface ContourSeatingProps {
   seating: ContourSeatingConfig;
@@ -89,17 +81,17 @@ export function ContourSeating({
   const [isDragging, setIsDragging] = useState(false);
   const { camera, gl } = useThree();
 
-  // Load texture
+  // Load texture with pool-wall-like settings
   const texture = useTexture(seating.textureUrl);
   
   useEffect(() => {
     if (texture) {
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(1, 1);
+      texture.repeat.set(1, 1); // 1ft = 1 texture unit
     }
   }, [texture]);
 
-  // Generate contour seating geometry
+  // Generate contour seating geometry with proper pool-wall-like UV mapping
   const geometry = useMemo(() => {
     const perimeterPoints = getPerimeterSection(
       seating.startPosition,
@@ -114,15 +106,25 @@ export function ContourSeating({
     const uvs: number[] = [];
     const indices: number[] = [];
 
+    // Calculate cumulative distance along the perimeter for proper UV mapping
+    const cumulativeDistances: number[] = [0];
+    for (let i = 1; i < perimeterPoints.length; i++) {
+      const prev = perimeterPoints[i - 1];
+      const curr = perimeterPoints[i];
+      const dist = Math.sqrt((curr.x - prev.x) ** 2 + (curr.z - prev.z) ** 2);
+      cumulativeDistances.push(cumulativeDistances[i - 1] + dist);
+    }
+    const totalLength = cumulativeDistances[cumulativeDistances.length - 1];
+
     // For each point along the perimeter, create inner and outer vertices
     const topBelowWater = seating.height;
 
     for (let i = 0; i < perimeterPoints.length; i++) {
       const pt = perimeterPoints[i];
       const floorDepth = getFloorDepthAt(pt.x, pt.z);
-      const thickness = Math.max(0.5, floorDepth - topBelowWater);
       const topY = -topBelowWater;
-      const bottomY = -floorDepth;
+      const bottomY = -floorDepth; // Always touch the floor
+      const wallHeight = Math.abs(topY - bottomY);
 
       // Inward direction
       const inX = Math.cos(pt.angle);
@@ -136,29 +138,33 @@ export function ContourSeating({
       const ix = pt.x + inX * seating.width;
       const iz = pt.z + inZ * seating.width;
 
+      // UV mapping: U based on distance along perimeter (1ft = 1 UV unit)
+      // V based on height (1ft = 1 UV unit) - like pool walls
+      const uCoord = cumulativeDistances[i]; // Distance in feet = UV coordinate
+
       // Add 4 vertices per point: outer-top, outer-bottom, inner-top, inner-bottom
       // Outer top
       vertices.push(ox, topY, oz);
-      uvs.push(i / (perimeterPoints.length - 1), 0);
+      uvs.push(uCoord, 0);
       
       // Outer bottom  
       vertices.push(ox, bottomY, oz);
-      uvs.push(i / (perimeterPoints.length - 1), thickness);
+      uvs.push(uCoord, wallHeight);
       
-      // Inner top
+      // Inner top - offset UV for inner face
       vertices.push(ix, topY, iz);
-      uvs.push(i / (perimeterPoints.length - 1) + 0.5, 0);
+      uvs.push(uCoord, 0);
       
       // Inner bottom
       vertices.push(ix, bottomY, iz);
-      uvs.push(i / (perimeterPoints.length - 1) + 0.5, thickness);
+      uvs.push(uCoord, wallHeight);
 
       // Create faces connecting to previous point
       if (i > 0) {
         const base = (i - 1) * 4;
         const curr = i * 4;
 
-        // Top face (outer-prev-top, inner-prev-top, inner-curr-top, outer-curr-top)
+        // Top face - UV based on actual dimensions (1ft squares)
         indices.push(base + 0, base + 2, curr + 2);
         indices.push(base + 0, curr + 2, curr + 0);
 
@@ -166,17 +172,17 @@ export function ContourSeating({
         indices.push(base + 3, base + 1, curr + 1);
         indices.push(base + 3, curr + 1, curr + 3);
 
-        // Outer wall
+        // Outer wall (visible from outside pool)
         indices.push(base + 0, curr + 0, curr + 1);
         indices.push(base + 0, curr + 1, base + 1);
 
-        // Inner wall
+        // Inner wall (visible from inside pool)
         indices.push(base + 2, base + 3, curr + 3);
         indices.push(base + 2, curr + 3, curr + 2);
       }
     }
 
-    // End caps
+    // End caps with proper UV
     if (perimeterPoints.length >= 2) {
       // Start cap
       indices.push(0, 1, 3);
