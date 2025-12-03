@@ -13,9 +13,10 @@ import {
   ChevronUp,
   Plus,
   Trash2,
-  Lightbulb
+  Lightbulb,
+  Spline
 } from 'lucide-react';
-import { PoolStairConfig, PoolChairConfig } from './poolAssetTypes';
+import { PoolStairConfig, PoolChairConfig, ContourSeatingConfig } from './poolAssetTypes';
 import { PoolLightConfig } from './types';
 
 interface PoolAssetManagerProps {
@@ -25,6 +26,8 @@ interface PoolAssetManagerProps {
   onStairsChange: (stairs: PoolStairConfig[]) => void;
   chairs: PoolChairConfig[];
   onChairsChange: (chairs: PoolChairConfig[]) => void;
+  contourSeating: ContourSeatingConfig[];
+  onContourSeatingChange: (seating: ContourSeatingConfig[]) => void;
   lights: PoolLightConfig[];
   onLightsChange: (lights: PoolLightConfig[]) => void;
   selectedAssetId: string | null;
@@ -40,6 +43,8 @@ export function PoolAssetManager({
   onStairsChange,
   chairs,
   onChairsChange,
+  contourSeating,
+  onContourSeatingChange,
   lights,
   onLightsChange,
   selectedAssetId,
@@ -106,6 +111,20 @@ export function PoolAssetManager({
     onSelectAsset(newLight.id);
   }, [lights, onLightsChange, onSelectAsset, isNightMode]);
 
+  // Add contour seating
+  const handleAddContourSeating = useCallback(() => {
+    const newSeating: ContourSeatingConfig = {
+      id: `contour-${Date.now()}`,
+      startPosition: 0.1 + Math.random() * 0.1,
+      endPosition: 0.3 + Math.random() * 0.1,
+      width: 1.5, // 1.5 feet into pool
+      height: 1.0, // 1 foot below water
+      textureUrl: poolFinishTexture
+    };
+    onContourSeatingChange([...contourSeating, newSeating]);
+    onSelectAsset(newSeating.id);
+  }, [contourSeating, onContourSeatingChange, onSelectAsset, poolFinishTexture]);
+
   // Delete selected asset
   const handleDeleteSelected = useCallback(() => {
     if (!selectedAssetId) return;
@@ -116,14 +135,17 @@ export function PoolAssetManager({
       onChairsChange(chairs.filter(c => c.id !== selectedAssetId));
     } else if (selectedAssetId.startsWith('light-')) {
       onLightsChange(lights.filter(l => l.id !== selectedAssetId));
+    } else if (selectedAssetId.startsWith('contour-')) {
+      onContourSeatingChange(contourSeating.filter(s => s.id !== selectedAssetId));
     }
     onSelectAsset(null);
-  }, [selectedAssetId, stairs, chairs, lights, onStairsChange, onChairsChange, onLightsChange, onSelectAsset]);
+  }, [selectedAssetId, stairs, chairs, lights, contourSeating, onStairsChange, onChairsChange, onLightsChange, onContourSeatingChange, onSelectAsset]);
 
   // Get selected items for editing
   const selectedStair = stairs.find(s => s.id === selectedAssetId);
   const selectedChair = chairs.find(c => c.id === selectedAssetId);
   const selectedLight = lights.find(l => l.id === selectedAssetId);
+  const selectedContour = contourSeating.find(s => s.id === selectedAssetId);
 
   // Update stair property
   const updateStair = useCallback((id: string, updates: Partial<PoolStairConfig>) => {
@@ -139,6 +161,11 @@ export function PoolAssetManager({
   const updateLight = useCallback((id: string, updates: Partial<PoolLightConfig>) => {
     onLightsChange(lights.map(l => l.id === id ? { ...l, ...updates } : l));
   }, [lights, onLightsChange]);
+
+  // Update contour seating property
+  const updateContour = useCallback((id: string, updates: Partial<ContourSeatingConfig>) => {
+    onContourSeatingChange(contourSeating.map(s => s.id === id ? { ...s, ...updates } : s));
+  }, [contourSeating, onContourSeatingChange]);
 
   if (!isOpen) {
     return (
@@ -298,7 +325,7 @@ export function PoolAssetManager({
           <ScrollArea className="h-[300px]">
             <div className="space-y-3 pr-2">
               {/* Add Chair Buttons */}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -326,25 +353,125 @@ export function PoolAssetManager({
                   <Armchair className="h-4 w-4 mb-1" />
                   Corner
                 </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleAddContourSeating}
+                  className="text-xs flex-col h-auto py-2 border-dashed"
+                >
+                  <Spline className="h-4 w-4 mb-1" />
+                  Contour
+                </Button>
               </div>
 
-              {/* Chairs List */}
-              {chairs.map((chair, idx) => (
-                <div
-                  key={chair.id}
-                  className={`p-2 border rounded cursor-pointer transition-colors ${
-                    selectedAssetId === chair.id ? 'border-primary bg-primary/10' : 'hover:bg-muted/50'
-                  }`}
-                  onClick={() => onSelectAsset(chair.id)}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium">{chair.name || `Seating #${idx + 1}`}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {chair.width}x{chair.depth} ft
-                    </span>
-                  </div>
+              {/* Contour Seating List */}
+              {contourSeating.length > 0 && (
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Contour Seating</Label>
+                  {contourSeating.map((seating, idx) => (
+                    <div
+                      key={seating.id}
+                      className={`p-2 border rounded cursor-pointer transition-colors ${
+                        selectedAssetId === seating.id ? 'border-primary bg-primary/10' : 'hover:bg-muted/50'
+                      }`}
+                      onClick={() => onSelectAsset(seating.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium flex items-center gap-1">
+                          <Spline className="h-3 w-3" />
+                          Contour #{idx + 1}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {seating.width}ft wide
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
+
+              {/* Selected Contour Controls */}
+              {selectedContour && (
+                <div className="space-y-3 p-3 bg-muted/30 rounded-lg mt-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium">Edit Contour Seating</Label>
+                    <Button variant="destructive" size="sm" onClick={handleDeleteSelected}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs">Start Position: {(selectedContour.startPosition * 100).toFixed(0)}%</Label>
+                    <Slider
+                      value={[selectedContour.startPosition]}
+                      onValueChange={([v]) => updateContour(selectedContour.id, { startPosition: v })}
+                      min={0}
+                      max={0.95}
+                      step={0.01}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs">End Position: {(selectedContour.endPosition * 100).toFixed(0)}%</Label>
+                    <Slider
+                      value={[selectedContour.endPosition]}
+                      onValueChange={([v]) => updateContour(selectedContour.id, { endPosition: v })}
+                      min={0.05}
+                      max={1}
+                      step={0.01}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs">Width: {selectedContour.width.toFixed(1)} ft into pool</Label>
+                    <Slider
+                      value={[selectedContour.width]}
+                      onValueChange={([v]) => updateContour(selectedContour.id, { width: v })}
+                      min={1}
+                      max={4}
+                      step={0.25}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs">Depth: {selectedContour.height.toFixed(1)} ft below water</Label>
+                    <Slider
+                      value={[selectedContour.height]}
+                      onValueChange={([v]) => updateContour(selectedContour.id, { height: v })}
+                      min={0.5}
+                      max={3}
+                      step={0.25}
+                    />
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    Follows pool wall contour. Adjust start/end to control length.
+                  </p>
+                </div>
+              )}
+
+              {/* Chairs List */}
+              {chairs.length > 0 && (
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Individual Seating</Label>
+                  {chairs.map((chair, idx) => (
+                    <div
+                      key={chair.id}
+                      className={`p-2 border rounded cursor-pointer transition-colors ${
+                        selectedAssetId === chair.id ? 'border-primary bg-primary/10' : 'hover:bg-muted/50'
+                      }`}
+                      onClick={() => onSelectAsset(chair.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium">{chair.name || `Seating #${idx + 1}`}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {chair.width}x{chair.depth} ft
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Selected Chair Controls */}
               {selectedChair && (
@@ -414,7 +541,7 @@ export function PoolAssetManager({
                 </div>
               )}
 
-              {chairs.length === 0 && (
+              {chairs.length === 0 && contourSeating.length === 0 && (
                 <p className="text-xs text-muted-foreground text-center py-4">
                   No seating added. Click above to add.
                 </p>

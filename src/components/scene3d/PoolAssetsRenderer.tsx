@@ -1,8 +1,9 @@
 import { useMemo, useCallback } from 'react';
 import { Point } from './types';
-import { PoolStairConfig, PoolChairConfig } from './poolAssetTypes';
+import { PoolStairConfig, PoolChairConfig, ContourSeatingConfig } from './poolAssetTypes';
 import { DraggablePoolStair } from './DraggablePoolStair';
 import { DraggablePoolChair } from './DraggablePoolChair';
+import { ContourSeating } from './ContourSeating';
 import { generateCurvedPoolPoints, normalize2DTo3D } from '@/utils/curveUtils';
 
 interface PoolAssetsRendererProps {
@@ -11,6 +12,8 @@ interface PoolAssetsRendererProps {
   onStairsChange: (stairs: PoolStairConfig[]) => void;
   chairs: PoolChairConfig[];
   onChairsChange: (chairs: PoolChairConfig[]) => void;
+  contourSeating: ContourSeatingConfig[];
+  onContourSeatingChange: (seating: ContourSeatingConfig[]) => void;
   selectedAssetId: string | null;
   onSelectAsset: (id: string | null) => void;
   poolDepth: number;
@@ -23,6 +26,8 @@ export function PoolAssetsRenderer({
   onStairsChange,
   chairs,
   onChairsChange,
+  contourSeating,
+  onContourSeatingChange,
   selectedAssetId,
   onSelectAsset,
   poolDepth,
@@ -59,6 +64,17 @@ export function PoolAssetsRenderer({
     ));
   }, [chairs, onChairsChange]);
 
+  // Handle contour seating position change
+  const handleContourPositionChange = useCallback((
+    id: string,
+    startPosition: number,
+    endPosition: number
+  ) => {
+    onContourSeatingChange(contourSeating.map(s =>
+      s.id === id ? { ...s, startPosition, endPosition } : s
+    ));
+  }, [contourSeating, onContourSeatingChange]);
+
   if (poolPerimeter.length === 0) return null;
 
   return (
@@ -84,6 +100,19 @@ export function PoolAssetsRenderer({
           poolPerimeter={poolPerimeter}
           onPositionChange={handleChairPositionChange}
           isSelected={chair.id === selectedAssetId}
+          onSelect={onSelectAsset}
+          getFloorDepthAt={getFloorDepthAt}
+        />
+      ))}
+
+      {/* Render Contour Seating */}
+      {contourSeating.map(seating => (
+        <ContourSeating
+          key={seating.id}
+          seating={seating}
+          poolPerimeter={poolPerimeter}
+          onPositionChange={handleContourPositionChange}
+          isSelected={seating.id === selectedAssetId}
           onSelect={onSelectAsset}
           getFloorDepthAt={getFloorDepthAt}
         />

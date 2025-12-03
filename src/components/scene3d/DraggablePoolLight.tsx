@@ -238,49 +238,15 @@ export function DraggablePoolLight({
         )}
       </group>
       
-      {/* Light source projecting INTO the pool center with scattered effect */}
+      {/* Simple point light projecting INTO the pool - no conical scattering */}
       {light.isOn && (
-        <>
-          {/* Primary spotlight pointing into pool center */}
-          <spotLight
-            color={currentColor}
-            intensity={light.intensity * 4}
-            distance={30}
-            angle={Math.PI / 3}
-            penumbra={0.9}
-            decay={1.2}
-            position={[inwardDir.x * 0.15, 0, inwardDir.z * 0.15]}
-            target-position={[inwardDir.x * 10, -1, inwardDir.z * 10]}
-            castShadow={false}
-          />
-          
-          {/* Wide scatter light for soft underwater glow */}
-          <pointLight
-            color={currentColor}
-            intensity={light.intensity * 1.2}
-            distance={15}
-            decay={1.8}
-            position={[inwardDir.x * 0.5, 0, inwardDir.z * 0.5]}
-          />
-          
-          {/* Secondary scatter for depth */}
-          <pointLight
-            color={currentColor}
-            intensity={light.intensity * 0.6}
-            distance={10}
-            decay={2}
-            position={[inwardDir.x * 1, -0.5, inwardDir.z * 1]}
-          />
-          
-          {/* Floor bounce scatter */}
-          <pointLight
-            color={currentColor}
-            intensity={light.intensity * 0.3}
-            distance={8}
-            decay={2.5}
-            position={[inwardDir.x * 1.5, -1.5, inwardDir.z * 1.5]}
-          />
-        </>
+        <pointLight
+          color={currentColor}
+          intensity={light.intensity * 3}
+          distance={20}
+          decay={2}
+          position={[inwardDir.x * 0.1, 0, inwardDir.z * 0.1]}
+        />
       )}
     </group>
   );

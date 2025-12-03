@@ -274,11 +274,16 @@ export function DraggablePoolStair({
   // Calculate total stair depth for positioning
   const totalStairDepth = actualNumSteps * stair.stepDepth;
 
+  // Calculate inward offset to place stairs fully inside pool
+  const inwardOffset = stair.stepDepth * 0.5; // Half step depth inward
+  const offsetX = position.x + Math.cos(position.angle) * inwardOffset;
+  const offsetZ = position.z + Math.sin(position.angle) * inwardOffset;
+
   return (
     <group
       ref={groupRef}
-      position={[position.x, 0, position.z]}
-      rotation={[0, position.angle + Math.PI, 0]} // Rotate 180° so back faces wall
+      position={[offsetX, 0, offsetZ]}
+      rotation={[0, position.angle + Math.PI / 2, 0]} // Rotate 90° so back faces wall, steps go into pool
       onPointerDown={handlePointerDown}
       onPointerOver={() => gl.domElement.style.cursor = isDragging ? 'grabbing' : 'grab'}
       onPointerOut={() => !isDragging && (gl.domElement.style.cursor = 'auto')}

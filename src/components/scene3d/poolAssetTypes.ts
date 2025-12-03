@@ -35,4 +35,13 @@ export interface PoolJetConfig {
   isOn: boolean;
 }
 
-export type PoolAsset = PoolStairConfig | PoolChairConfig | PoolJetConfig;
+export interface ContourSeatingConfig {
+  id: string;
+  startPosition: number;    // 0-1 position along pool perimeter (start)
+  endPosition: number;      // 0-1 position along pool perimeter (end)
+  width: number;            // Width extending into pool (default 1.5 ft)
+  height: number;           // Depth below water for top surface (default 1 ft)
+  textureUrl: string;
+}
+
+export type PoolAsset = PoolStairConfig | PoolChairConfig | PoolJetConfig | ContourSeatingConfig;
