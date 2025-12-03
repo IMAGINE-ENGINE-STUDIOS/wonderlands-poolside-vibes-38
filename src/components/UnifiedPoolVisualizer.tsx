@@ -37,6 +37,7 @@ interface UnifiedPoolVisualizerProps {
     finishes: TextureConfig[];
     pavers: TextureConfig[];
     coping: TextureConfig[];
+    waterlines?: TextureConfig[];
   };
   onSceneChange?: (scene: Scene3D) => void;
 }

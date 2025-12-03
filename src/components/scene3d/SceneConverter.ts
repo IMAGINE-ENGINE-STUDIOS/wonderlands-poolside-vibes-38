@@ -20,22 +20,33 @@ export const parseDimensions = (dimensionsStr?: string): { length: number; width
 };
 
 // Parse depth from string like "4' - 6'" or "3'9\" - 8'6\"" or "4-6 feet"
-export const parseDepth = (depthStr?: string): number => {
-  if (!depthStr) return 6;
+// Returns { min: shallow depth, max: deep depth }
+export const parseDepthRange = (depthStr?: string): { min: number; max: number } => {
+  if (!depthStr) return { min: 3.75, max: 6 };
   
   // Handle formats like "3'9\" - 8'6\"" or "4' - 6'"
   const rangeMatches = depthStr.match(/(\d+)[''](\d+)?[""]?\s*[-–]\s*(\d+)[''](\d+)?[""]?/);
   if (rangeMatches) {
+    // Extract shallow end: feet and inches
+    const shallowFeet = parseInt(rangeMatches[1]);
+    const shallowInches = rangeMatches[2] ? parseInt(rangeMatches[2]) : 0;
+    const shallowDepth = shallowFeet + (shallowInches / 12);
+    
     // Extract deep end: feet and inches
     const deepFeet = parseInt(rangeMatches[3]);
     const deepInches = rangeMatches[4] ? parseInt(rangeMatches[4]) : 0;
-    return deepFeet + (deepInches / 12); // Convert to decimal feet
+    const deepDepth = deepFeet + (deepInches / 12);
+    
+    return { min: shallowDepth, max: deepDepth };
   }
   
   // Handle simple range like "4-6"
   const simpleRange = depthStr.match(/(\d+)\s*[-–]\s*(\d+)/);
   if (simpleRange) {
-    return parseInt(simpleRange[2]); // Use deeper end
+    return { 
+      min: parseInt(simpleRange[1]), 
+      max: parseInt(simpleRange[2]) 
+    };
   }
   
   // Handle single value
@@ -43,10 +54,16 @@ export const parseDepth = (depthStr?: string): number => {
   if (singleMatch) {
     const feet = parseInt(singleMatch[1]);
     const inches = singleMatch[2] ? parseInt(singleMatch[2]) : 0;
-    return feet + (inches / 12);
+    const depth = feet + (inches / 12);
+    return { min: depth, max: depth };
   }
   
-  return 6;
+  return { min: 3.75, max: 6 };
+};
+
+// Parse depth from string - returns max depth for backward compatibility
+export const parseDepth = (depthStr?: string): number => {
+  return parseDepthRange(depthStr).max;
 };
 
 // Map finish names to texture URLs
@@ -118,8 +135,8 @@ export function productToScene(
   // Parse dimensions from product data (e.g., "16' × 40'")
   const { length, width } = parseDimensions(product.dimensions);
   
-  // Parse depth from product data (e.g., "3'9\" - 8'6\"")
-  const deepEndDepth = parseDepth(product.depth);
+  // Parse depth range from product data (e.g., "3'9\" - 8'6\"") - get both min and max
+  const { min: shallowEndDepth, max: deepEndDepth } = parseDepthRange(product.depth);
 
   // Get texture URLs
   const linerTextureUrl = selectedExtras.finish 
@@ -216,18 +233,11 @@ export function productToScene(
     depthPoints = selectedExtras.depthProfile;
     console.log('🎨 Using custom depth profile from 2D designer:', depthPoints);
   } else {
-    // Extract shallow end from depth range like "3'9\" - 8'6\""
-    let shallowDepth = 3.75; // Default 3'9"
-    if (product.depth) {
-      const shallowMatches = product.depth.match(/(\d+)[''](\d+)?[""]?\s*[-–]/);
-      if (shallowMatches) {
-        const shallowFeet = parseInt(shallowMatches[1]);
-        const shallowInches = shallowMatches[2] ? parseInt(shallowMatches[2]) : 0;
-        shallowDepth = shallowFeet + (shallowInches / 12);
-      }
-    }
+    // Use parsed shallow and deep depths from product specification
+    const shallowDepth = shallowEndDepth;
+    const deepDepth = deepEndDepth;
     
-    const deepDepth = deepEndDepth || 6.6;  // Use parsed product depth or fallback
+    console.log('🎨 Using product depth range:', { shallowDepth, deepDepth, productDepth: product.depth });
     
     depthPoints = [
       { position: 0, depth: shallowDepth, id: 'd1' },                    // Shallow end
@@ -365,10 +375,10 @@ export function productToScene(
       },
       copingWidth: copingWidth,
       waterline: {
-        url: linerTextureUrl,
-        name: `${selectedExtras.finish || selectedExtras.linerOption || 'Default'} (Waterline)`,
-        roughness: 0.3,
-        metalness: 0.2,
+        url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png', // Ballad glass tile as default
+        name: 'Ballad',
+        roughness: 0.1,
+        metalness: 0.3,
         scale: 1.8,
         offset: [0, 0]
       }

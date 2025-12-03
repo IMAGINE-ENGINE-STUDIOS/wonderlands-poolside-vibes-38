@@ -17,6 +17,7 @@ interface ComponentControlPanelProps {
     finishes: TextureConfig[];
     pavers: TextureConfig[];
     coping: TextureConfig[];
+    waterlines?: TextureConfig[];
   };
   poolCategory?: string;
   poolModel?: string;
@@ -109,7 +110,7 @@ export function ComponentControlPanel({
       case 'pool': return getFilteredFinishes();
       case 'deck': return textureLibrary.pavers;
       case 'coping': return textureLibrary.coping;
-      case 'waterline': return textureLibrary.finishes; // Waterline uses pool finishes textures
+      case 'waterline': return textureLibrary.waterlines || []; // Waterline uses dedicated waterline tiles
       default: return [];
     }
   };
