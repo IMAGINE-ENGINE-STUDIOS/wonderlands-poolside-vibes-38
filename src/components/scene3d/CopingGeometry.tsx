@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { useMemo, useEffect, useState } from 'react';
 import { generateOffsetCurve } from '@/utils/curveUtils';
+import { textureCache } from '@/utils/textureCache';
 
 interface CopingGeometryProps {
   poolPoints: Array<{ x: number; z: number }>;
@@ -24,43 +25,29 @@ export const CopingGeometry = ({
   
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
   
-  // Use the provided coping texture URL (not paver)
+  // Use the provided coping texture URL
   const surfaceTextureUrl = textureUrl;
   
   useEffect(() => {
-    if (!surfaceTextureUrl) {
-      console.warn('⚠️ CopingGeometry: No texture URL provided');
+    if (!surfaceTextureUrl || surfaceTextureUrl === '' || surfaceTextureUrl === 'undefined') {
       setTexture(null);
       return;
     }
     
-    console.log('🔄 CopingGeometry: Loading texture:', surfaceTextureUrl);
-    
-    const loader = new THREE.TextureLoader();
-    loader.load(
-      surfaceTextureUrl,
-      (loadedTexture) => {
-        console.log('✅ CopingGeometry: Texture loaded successfully');
+    // Use textureCache for proper texture management
+    textureCache.loadTexture(surfaceTextureUrl, { x: 1, y: 1 })
+      .then((loadedTexture) => {
         loadedTexture.wrapS = loadedTexture.wrapT = THREE.RepeatWrapping;
-        // Set repeat to 1 - UV coordinates handle the 1ft x 1ft mapping
         loadedTexture.repeat.set(1, 1);
         loadedTexture.offset.set(textureOffset[0], textureOffset[1]);
         loadedTexture.needsUpdate = true;
         setTexture(loadedTexture);
-      },
-      undefined,
-      (error) => {
-        console.error('❌ CopingGeometry: Failed to load texture:', surfaceTextureUrl, error);
+      })
+      .catch((error) => {
+        console.error('CopingGeometry: Failed to load texture:', error);
         setTexture(null);
-      }
-    );
-    
-    return () => {
-      if (texture) {
-        texture.dispose();
-      }
-    };
-  }, [surfaceTextureUrl, textureOffset]);
+      });
+  }, [surfaceTextureUrl, textureOffset, textureScale]);
   
   const geometry = useMemo(() => {
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();

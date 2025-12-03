@@ -22,8 +22,8 @@ interface WaterlineMeshProps {
 export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({ 
   poolPoints, 
   waterlineTextureUrl,
-  waterlineHeight = 0.5 / 12, // 0.5 inches tall (0.5/12 feet = 0.042ft)
-  waterlineWidth = 0.042,      // 0.5 inch depth into wall (makes it 3D)
+  waterlineHeight = 1.0, // 1ft tall waterline band
+  waterlineWidth = 0.5,  // 6 inch depth into wall (makes it 3D)
   selectedCategory,
   waterlineTextureScale = 1.8,
   waterlineTextureOffset = [0, 0],
