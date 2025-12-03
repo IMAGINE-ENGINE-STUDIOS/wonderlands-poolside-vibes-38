@@ -303,108 +303,79 @@ const PoolMesh: React.FC<{
     const poolLength = maxY - minY;
     const lengthDirection = poolLength > poolWidth ? 'z' : 'x';
 
-    // === POOL FLOOR GEOMETRY WITH SPLINE-BASED DEPTH ===
-    // Floor follows depth spline points exactly
+    // === POOL FLOOR GEOMETRY - SNAPPED TO WALL BOTTOMS ===
+    // Floor uses exact normalizedPoints to match wall bottoms perfectly
     const floorThickness = 0.75; // 9 inches
     const floorVertices: number[] = [];
     const floorIndices: number[] = [];
     const floorUVs: number[] = [];
     
-    // Step 1: Create spline curve through depth points to get smooth floor contour
-    // Generate intermediate cross-sections along the pool length
-    const numFloorSections = Math.max(depthPoints.length * 10, 50); // High resolution
-    const floorSections: Array<{ points: Array<{x: number, z: number}>, depth: number }> = [];
+    // Step 1: Create perimeter ring using exact normalizedPoints (same as walls)
+    // This ensures floor edges perfectly match wall bottom vertices
+    const perimeterRing: Array<{x: number, z: number, depth: number}> = [];
     
-    for (let sectionIdx = 0; sectionIdx <= numFloorSections; sectionIdx++) {
-      const t = sectionIdx / numFloorSections;
-      
-      // Get depth at this position along pool length using spline interpolation
-      const depth = getDepthAtPosition(t);
-      
-      // Create cross-section at this position
-      const sectionPoints: Array<{x: number, z: number}> = [];
-      
-      if (lengthDirection === 'z') {
-        // Progress along Z axis
-        const zPos = (minY - centerY) + t * poolLength;
-        
-        // Find all pool boundary points at this Z position (interpolate if needed)
-        for (let i = 0; i < normalizedPoints.length; i++) {
-          const p1 = normalizedPoints[i];
-          const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
-          
-          // Check if this edge crosses our Z position
-          if ((p1.z <= zPos && p2.z >= zPos) || (p1.z >= zPos && p2.z <= zPos)) {
-            const edgeT = Math.abs(p2.z - p1.z) < 0.001 ? 0 : (zPos - p1.z) / (p2.z - p1.z);
-            const xPos = p1.x + (p2.x - p1.x) * edgeT;
-            sectionPoints.push({ x: xPos, z: zPos });
-          }
-        }
-      } else {
-        // Progress along X axis
-        const xPos = (minX - centerX) + t * poolWidth;
-        
-        for (let i = 0; i < normalizedPoints.length; i++) {
-          const p1 = normalizedPoints[i];
-          const p2 = normalizedPoints[(i + 1) % normalizedPoints.length];
-          
-          if ((p1.x <= xPos && p2.x >= xPos) || (p1.x >= xPos && p2.x <= xPos)) {
-            const edgeT = Math.abs(p2.x - p1.x) < 0.001 ? 0 : (xPos - p1.x) / (p2.x - p1.x);
-            const zPos = p1.z + (p2.z - p1.z) * edgeT;
-            sectionPoints.push({ x: xPos, z: zPos });
-          }
-        }
-      }
-      
-      if (sectionPoints.length >= 2) {
-        floorSections.push({ points: sectionPoints, depth });
-      }
+    for (let i = 0; i < normalizedPoints.length; i++) {
+      const p = normalizedPoints[i];
+      const depth = getPerimeterDepth(p.x, p.z);
+      perimeterRing.push({ x: p.x, z: p.z, depth });
     }
     
-    // Step 2: Create floor mesh from sections using quad strips
-    const topVertexStart = floorVertices.length / 3;
+    // Step 2: Create floor top surface using triangulation from center
+    // Calculate center point and average depth
+    const centerFloorX = perimeterRing.reduce((sum, p) => sum + p.x, 0) / perimeterRing.length;
+    const centerFloorZ = perimeterRing.reduce((sum, p) => sum + p.z, 0) / perimeterRing.length;
+    const centerFloorDepth = perimeterRing.reduce((sum, p) => sum + p.depth, 0) / perimeterRing.length;
     
-    for (const section of floorSections) {
-      for (const point of section.points) {
-        floorVertices.push(point.x, -section.depth, point.z);
-        floorUVs.push(point.x, point.z);
-      }
+    // Add center vertex (top surface)
+    const centerTopIdx = 0;
+    floorVertices.push(centerFloorX, -centerFloorDepth, centerFloorZ);
+    floorUVs.push(centerFloorX, centerFloorZ);
+    
+    // Add perimeter vertices (top surface) - these match wall bottoms exactly
+    const perimeterTopStart = floorVertices.length / 3;
+    for (const p of perimeterRing) {
+      floorVertices.push(p.x, -p.depth, p.z);
+      floorUVs.push(p.x, p.z);
     }
     
-    // Bottom surface vertices (9 inches below)
-    const bottomVertexStart = floorVertices.length / 3;
-    for (const section of floorSections) {
-      for (const point of section.points) {
-        floorVertices.push(point.x, -section.depth - floorThickness, point.z);
-        floorUVs.push(point.x, point.z);
-      }
+    // Add center vertex (bottom surface - 9 inches below)
+    const centerBottomIdx = floorVertices.length / 3;
+    floorVertices.push(centerFloorX, -centerFloorDepth - floorThickness, centerFloorZ);
+    floorUVs.push(centerFloorX, centerFloorZ);
+    
+    // Add perimeter vertices (bottom surface)
+    const perimeterBottomStart = floorVertices.length / 3;
+    for (const p of perimeterRing) {
+      floorVertices.push(p.x, -p.depth - floorThickness, p.z);
+      floorUVs.push(p.x, p.z);
     }
     
-    // Create indices for quad strips between sections
-    for (let i = 0; i < floorSections.length - 1; i++) {
-      const currSection = floorSections[i];
-      const nextSection = floorSections[i + 1];
-      const pointsPerSection = Math.min(currSection.points.length, nextSection.points.length);
+    // Step 3: Create triangles for top surface (fan from center)
+    for (let i = 0; i < perimeterRing.length; i++) {
+      const currIdx = perimeterTopStart + i;
+      const nextIdx = perimeterTopStart + ((i + 1) % perimeterRing.length);
+      // Top surface triangles (counterclockwise when viewed from above)
+      floorIndices.push(centerTopIdx, nextIdx, currIdx);
+    }
+    
+    // Create triangles for bottom surface (reversed winding)
+    for (let i = 0; i < perimeterRing.length; i++) {
+      const currIdx = perimeterBottomStart + i;
+      const nextIdx = perimeterBottomStart + ((i + 1) % perimeterRing.length);
+      // Bottom surface triangles (clockwise when viewed from below)
+      floorIndices.push(centerBottomIdx, currIdx, nextIdx);
+    }
+    
+    // Step 4: Create side walls connecting top and bottom perimeters
+    for (let i = 0; i < perimeterRing.length; i++) {
+      const topCurr = perimeterTopStart + i;
+      const topNext = perimeterTopStart + ((i + 1) % perimeterRing.length);
+      const botCurr = perimeterBottomStart + i;
+      const botNext = perimeterBottomStart + ((i + 1) % perimeterRing.length);
       
-      for (let j = 0; j < pointsPerSection - 1; j++) {
-        const topIdx1 = topVertexStart + i * pointsPerSection + j;
-        const topIdx2 = topIdx1 + 1;
-        const topIdx3 = topVertexStart + (i + 1) * pointsPerSection + j;
-        const topIdx4 = topIdx3 + 1;
-        
-        // Top surface quads
-        floorIndices.push(topIdx1, topIdx3, topIdx2);
-        floorIndices.push(topIdx2, topIdx3, topIdx4);
-        
-        // Bottom surface quads (reversed winding)
-        const botIdx1 = bottomVertexStart + i * pointsPerSection + j;
-        const botIdx2 = botIdx1 + 1;
-        const botIdx3 = bottomVertexStart + (i + 1) * pointsPerSection + j;
-        const botIdx4 = botIdx3 + 1;
-        
-        floorIndices.push(botIdx1, botIdx2, botIdx3);
-        floorIndices.push(botIdx2, botIdx4, botIdx3);
-      }
+      // Side wall quad (two triangles)
+      floorIndices.push(topCurr, botCurr, topNext);
+      floorIndices.push(topNext, botCurr, botNext);
     }
     
     const floorGeometry = new THREE.BufferGeometry();
