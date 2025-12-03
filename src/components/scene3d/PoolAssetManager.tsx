@@ -262,7 +262,7 @@ export function PoolAssetManager({
         variant="outline"
         size="sm"
         onClick={onToggle}
-        className="fixed bottom-4 right-4 z-50 bg-background/95 backdrop-blur-sm shadow-lg border-primary/20 hover:border-primary/50"
+        className="absolute top-4 right-4 z-50 bg-background/95 backdrop-blur-sm shadow-lg border-primary/20 hover:border-primary/50"
       >
         <Footprints className="h-4 w-4 mr-2 text-primary" />
         <span className="font-medium">Pool Assets</span>
@@ -272,7 +272,7 @@ export function PoolAssetManager({
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-80 bg-background/98 backdrop-blur-md border border-border/50 rounded-xl shadow-2xl">
+    <div className="absolute top-4 right-4 z-50 w-80 bg-background/98 backdrop-blur-md border border-border/50 rounded-xl shadow-2xl max-h-[calc(100vh-120px)] overflow-hidden flex flex-col">
       <div className="flex items-center justify-between p-3 border-b border-border/30 bg-gradient-to-r from-primary/5 to-transparent">
         <h3 className="font-semibold text-sm flex items-center gap-2">
           <Footprints className="h-4 w-4 text-primary" />

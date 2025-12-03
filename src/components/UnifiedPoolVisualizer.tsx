@@ -740,7 +740,7 @@ export function UnifiedPoolVisualizer({
           <button
             onClick={() => setIsWalkthroughMode(!isWalkthroughMode)}
             className={`hidden md:block p-1.5 md:p-2 rounded-lg shadow-lg transition-colors ${isWalkthroughMode ? 'bg-green-600 text-white' : 'bg-background/80 hover:bg-background'}`}
-            title="Walkthrough Mode (WASD + Space to jump)"
+            title="Walkthrough Mode (WASD)"
           >
             <PersonStanding className="w-4 h-4 md:w-5 md:h-5" />
           </button>
@@ -809,7 +809,6 @@ export function UnifiedPoolVisualizer({
               <p className="font-medium mb-1">Walkthrough Controls:</p>
               <p>WASD / Arrow Keys - Move</p>
               <p>Mouse - Look around</p>
-              <p>Space - Jump</p>
               <p>ESC - Exit</p>
               {isMobile && (
                 <>
@@ -1234,7 +1233,6 @@ export function UnifiedPoolVisualizer({
             groundLevel={0}
             playerHeight={5.5}
             moveSpeed={10}
-            jumpForce={15}
           />
           
           {/* OrbitControls - Free camera with right-click + scroll, locks on asset drag */}
