@@ -80,6 +80,20 @@ const Footer = () => {
                   Join Our Sales Team
                 </span>
               </Link>
+              {/* Contractor Registration */}
+              <Link to="/contractor-registration" className="flex items-center gap-2 group">
+                <div className="w-1.5 h-1.5 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full"></div>
+                <span className="text-sm text-emerald-600 hover:text-green-600 transition-colors font-medium">
+                  Register as Contractor
+                </span>
+              </Link>
+              {/* Contractor Login */}
+              <Link to="/contractor-login" className="flex items-center gap-2 group">
+                <div className="w-1.5 h-1.5 bg-gradient-to-r from-emerald-400 to-teal rounded-full"></div>
+                <span className="text-sm text-emerald-500 hover:text-teal transition-colors font-medium">
+                  Contractor Login
+                </span>
+              </Link>
             </div>
           </div>
 
