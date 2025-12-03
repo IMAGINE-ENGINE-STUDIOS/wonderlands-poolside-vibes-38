@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { useMemo, useEffect, useState } from 'react';
 import { generateOffsetCurve } from '@/utils/curveUtils';
+import { textureCache } from '@/utils/textureCache';
 
 interface DeckBorderGeometryProps {
   poolPoints: Array<{ x: number; z: number }>;
@@ -27,52 +28,35 @@ export const DeckBorderGeometry = ({
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
   
   useEffect(() => {
-    if (!textureUrl) {
-      console.warn('⚠️ DeckBorderGeometry: No texture URL provided');
+    if (!textureUrl || textureUrl === '' || textureUrl === 'undefined') {
       setTexture(null);
       return;
     }
     
-    console.log('🔄 DeckBorderGeometry: Loading texture:', textureUrl);
-    
-    const loader = new THREE.TextureLoader();
-    loader.load(
-      textureUrl,
-      (loadedTexture) => {
-        console.log('✅ DeckBorderGeometry: Texture loaded successfully');
+    // Use textureCache for proper texture management
+    textureCache.loadTexture(textureUrl, { x: 1, y: 1 })
+      .then((loadedTexture) => {
         loadedTexture.wrapS = loadedTexture.wrapT = THREE.RepeatWrapping;
-        // 1ft x 1ft UV mapping like pool walls
         loadedTexture.repeat.set(1, 1);
         loadedTexture.offset.set(textureOffset[0], textureOffset[1]);
         loadedTexture.needsUpdate = true;
         setTexture(loadedTexture);
-      },
-      undefined,
-      (error) => {
-        console.error('❌ DeckBorderGeometry: Failed to load texture:', textureUrl, error);
+      })
+      .catch((error) => {
+        console.error('DeckBorderGeometry: Failed to load texture:', error);
         setTexture(null);
-      }
-    );
-    
-    return () => {
-      if (texture) {
-        texture.dispose();
-      }
-    };
-  }, [textureUrl, textureOffset]);
+      });
+  }, [textureUrl, textureOffset, textureScale]);
   
   const geometry = useMemo(() => {
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
     
-    // Calculate total offset from pool edge
-    // Border starts at deck outer edge (pool + coping + deck)
-    const deckOuterOffset = copingWidth + deckWidth;
+    // Deck starts RIGHT at coping outer edge (snapped to coping, no gap)
+    // Inner boundary = coping outer edge (pool + copingWidth)
+    const borderInnerBoundary = generateOffsetCurve(poolPoints, copingWidth);
     
-    // Inner boundary = deck outer edge
-    const borderInnerBoundary = generateOffsetCurve(poolPoints, deckOuterOffset);
-    
-    // Outer boundary = deck outer edge + border width (can grow to 5000sqft)
-    const borderOuterBoundary = generateOffsetCurve(poolPoints, deckOuterOffset + borderWidth);
+    // Outer boundary = coping outer edge + borderWidth (grows OUTWARD from coping)
+    const borderOuterBoundary = generateOffsetCurve(poolPoints, copingWidth + borderWidth);
     
     if (borderInnerBoundary.length !== borderOuterBoundary.length) {
       console.error('⚠️ DeckBorderGeometry: Inner and outer boundaries have different point counts!');
