@@ -9,6 +9,7 @@ interface DeckBorderGeometryProps {
   copingWidth: number;
   borderHeight?: number; // Default 3 inches (0.25ft)
   borderWidth?: number; // Default 3ft minimum
+  deckElevation?: number; // Height above/below ground (positive = above, negative = below, 0 = flush)
   textureUrl?: string;
   textureScale?: number;
   textureOffset?: [number, number];
@@ -20,6 +21,7 @@ export const DeckBorderGeometry = ({
   copingWidth = 1,
   borderHeight = 0.25, // 3 inches
   borderWidth = 3, // 3ft minimum
+  deckElevation = 0, // Default flush with ground
   textureUrl,
   textureScale = 1,
   textureOffset = [0, 0]
@@ -87,19 +89,29 @@ export const DeckBorderGeometry = ({
       distances.push(totalDistance);
     }
     
-    // TOP SURFACE - at ground level (y = 0)
+    // TOP SURFACE - at deckElevation level
+    // Deck surface is at deckElevation (positive = above ground, 0 = flush, negative = below)
+    const deckTopY = deckElevation;
+    const deckBottomY = deckElevation - borderHeight;
+    
+    // When elevated, we need walls down to ground level (y=0)
+    // When below ground, walls go up to ground level
+    const wallBottomY = Math.min(deckBottomY, 0);
+    const wallTopY = Math.max(deckTopY, 0);
+    const wallHeight = Math.abs(deckTopY) + borderHeight;
+    
     for (let i = 0; i < numPoints; i++) {
       const inner = borderInnerBoundary[i];
       const outer = borderOuterBoundary[i];
       
-      // Top surface vertices at y = 0
-      vertices.push(inner.x, 0, inner.z);
-      vertices.push(outer.x, 0, outer.z);
+      // Top surface vertices at deckElevation
+      vertices.push(inner.x, deckTopY, inner.z);
+      vertices.push(outer.x, deckTopY, outer.z);
       
-      // UV mapping: 1 foot = 1 UV unit for 1ft x 1ft squares
-      const uCoord = distances[i];
-      uvs.push(uCoord, 0);
-      uvs.push(uCoord, borderWidth);
+      // World-space UV mapping: x = U, z = V for perfect 1ft x 1ft grid
+      // This prevents distortion on curves
+      uvs.push(inner.x, inner.z);
+      uvs.push(outer.x, outer.z);
     }
     
     // Top surface triangles
@@ -114,18 +126,18 @@ export const DeckBorderGeometry = ({
       indices.push(outerIdx, nextInnerIdx, nextOuterIdx);
     }
     
-    // BOTTOM SURFACE - at -borderHeight
+    // BOTTOM SURFACE - at deckBottomY
     const bottomBaseIdx = vertices.length / 3;
     for (let i = 0; i < numPoints; i++) {
       const inner = borderInnerBoundary[i];
       const outer = borderOuterBoundary[i];
       
-      vertices.push(inner.x, -borderHeight, inner.z);
-      vertices.push(outer.x, -borderHeight, outer.z);
+      vertices.push(inner.x, deckBottomY, inner.z);
+      vertices.push(outer.x, deckBottomY, outer.z);
       
-      const uCoord = distances[i];
-      uvs.push(uCoord, 0);
-      uvs.push(uCoord, borderWidth);
+      // World-space UV for bottom surface too
+      uvs.push(inner.x, inner.z);
+      uvs.push(outer.x, outer.z);
     }
     
     // Bottom surface triangles (reversed winding)
@@ -140,17 +152,18 @@ export const DeckBorderGeometry = ({
       indices.push(outerIdx, nextOuterIdx, nextInnerIdx);
     }
     
-    // OUTER VERTICAL WALL (looking from pool outward) - this is the main visible face
+    // OUTER VERTICAL WALL (looking from pool outward) - from deck surface to ground level
     const outerWallBaseIdx = vertices.length / 3;
     for (let i = 0; i < numPoints; i++) {
       const outer = borderOuterBoundary[i];
       
-      vertices.push(outer.x, 0, outer.z);
-      vertices.push(outer.x, -borderHeight, outer.z);
+      // Wall from deck top to ground (or deck bottom if below ground)
+      vertices.push(outer.x, deckTopY, outer.z);
+      vertices.push(outer.x, wallBottomY, outer.z);
       
       // UV: distance along perimeter for U, height for V
       const uCoord = distances[i];
-      uvs.push(uCoord, borderHeight);
+      uvs.push(uCoord, wallHeight);
       uvs.push(uCoord, 0);
     }
     
@@ -166,16 +179,16 @@ export const DeckBorderGeometry = ({
       indices.push(bottomIdx, nextTopIdx, nextBottomIdx);
     }
     
-    // INNER VERTICAL WALL
+    // INNER VERTICAL WALL - from deck surface to ground level
     const innerWallBaseIdx = vertices.length / 3;
     for (let i = 0; i < numPoints; i++) {
       const inner = borderInnerBoundary[i];
       
-      vertices.push(inner.x, 0, inner.z);
-      vertices.push(inner.x, -borderHeight, inner.z);
+      vertices.push(inner.x, deckTopY, inner.z);
+      vertices.push(inner.x, wallBottomY, inner.z);
       
       const uCoord = distances[i];
-      uvs.push(uCoord, borderHeight);
+      uvs.push(uCoord, wallHeight);
       uvs.push(uCoord, 0);
     }
     
@@ -198,7 +211,7 @@ export const DeckBorderGeometry = ({
     geom.computeVertexNormals();
     
     return geom;
-  }, [poolPoints, deckWidth, copingWidth, borderHeight, borderWidth]);
+  }, [poolPoints, deckWidth, copingWidth, borderHeight, borderWidth, deckElevation]);
   
   return (
     <mesh key={texture?.uuid || 'no-deck-texture'} geometry={geometry} castShadow receiveShadow>

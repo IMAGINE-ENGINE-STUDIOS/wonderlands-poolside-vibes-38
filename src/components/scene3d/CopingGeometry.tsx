@@ -88,7 +88,7 @@ export const CopingGeometry = ({
     }
     
     // Create continuous ring geometry with 1ft x 1ft UV squares
-    // Top surface
+    // Top surface - use world-space UV (x, z) for perfect 1ft grid alignment
     for (let i = 0; i < numPoints; i++) {
       const inner = copingInnerBoundary[i];
       const outer = copingOuterBoundary[i];
@@ -97,13 +97,10 @@ export const CopingGeometry = ({
       vertices.push(inner.x, copingHeight, inner.z);
       vertices.push(outer.x, copingHeight, outer.z);
       
-      // UV mapping: 1 foot = 1 UV unit for 1ft x 1ft squares
-      // U = distance along perimeter (in feet)
-      // V = 0 for inner edge, copingWidth for outer edge
-      const uCoord = distances[i]; // Distance in feet = UV units
-      
-      uvs.push(uCoord, 0);
-      uvs.push(uCoord, copingWidth);
+      // World-space UV mapping: x = U, z = V for perfect 1ft x 1ft grid
+      // This prevents distortion on curves
+      uvs.push(inner.x, inner.z);
+      uvs.push(outer.x, outer.z);
     }
     
     // Top surface triangles
@@ -119,6 +116,7 @@ export const CopingGeometry = ({
     }
     
     // Bottom surface
+    // Bottom surface
     const bottomBaseIdx = vertices.length / 3;
     for (let i = 0; i < numPoints; i++) {
       const inner = copingInnerBoundary[i];
@@ -127,9 +125,9 @@ export const CopingGeometry = ({
       vertices.push(inner.x, 0, inner.z);
       vertices.push(outer.x, 0, outer.z);
       
-      const uCoord = distances[i];
-      uvs.push(uCoord, 0);
-      uvs.push(uCoord, copingWidth);
+      // World-space UV for bottom surface too
+      uvs.push(inner.x, inner.z);
+      uvs.push(outer.x, outer.z);
     }
     
     // Bottom surface triangles (reversed winding)
