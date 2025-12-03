@@ -152,7 +152,7 @@ export function UnifiedPoolVisualizer({
   // Spline edit mode - locks camera when editing splines
   const [isSplineEditMode, setIsSplineEditMode] = useState(false);
   const [selectedSplinePointId, setSelectedSplinePointId] = useState<string | null>(null);
-  const [selectedSplineComponent, setSelectedSplineComponent] = useState<'pool-floor' | 'seating' | 'stairs' | null>(null);
+  const [selectedSplineComponent, setSelectedSplineComponent] = useState<'pool-floor' | 'seating' | 'stairs' | 'waterline' | 'deck' | null>(null);
   
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
