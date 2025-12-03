@@ -13,8 +13,9 @@ export const ComponentRuler = ({ bounds, height = 0.1 }: ComponentRulerProps) =>
   const width = maxX - minX;
   const depth = maxY - minY;
   
-  const widthFt = (width * 3.28084).toFixed(1);
-  const depthFt = (depth * 3.28084).toFixed(1);
+  // Dimensions are already in feet - no conversion needed
+  const widthFt = width.toFixed(1);
+  const depthFt = depth.toFixed(1);
   
   const rulerLinePoints = useMemo(() => {
     const points: [number, number, number][] = [
