@@ -15,8 +15,11 @@ import { ComponentControlPanel } from './ComponentControlPanel';
 import { ClimateController } from './scene3d/ClimateController';
 import { EnhancedPoolLights, createDefaultPoolLights } from './scene3d/EnhancedPoolLights';
 import { WaterCaustics } from './scene3d/WaterCaustics';
+import { PoolAssetManager } from './scene3d/PoolAssetManager';
+import { PoolAssetsRenderer } from './scene3d/PoolAssetsRenderer';
+import { PoolStairConfig, PoolChairConfig } from './scene3d/poolAssetTypes';
 import { Button } from './ui/button';
-import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Box, Sun, Moon } from 'lucide-react';
+import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Box, Sun, Moon, Footprints } from 'lucide-react';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { Checkbox } from './ui/checkbox';
 import * as THREE from 'three';
@@ -124,6 +127,13 @@ export function UnifiedPoolVisualizer({
     scene.poolLights || createDefaultPoolLights(false)
   );
   const [selectedLightId, setSelectedLightId] = useState<string | null>(null);
+  
+  // Pool assets state (stairs, chairs)
+  const [poolStairs, setPoolStairs] = useState<PoolStairConfig[]>([]);
+  const [poolChairs, setPoolChairs] = useState<PoolChairConfig[]>([]);
+  const [selectedPoolAssetId, setSelectedPoolAssetId] = useState<string | null>(null);
+  const [showPoolAssetManager, setShowPoolAssetManager] = useState(false);
+  
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
   const poolGroupRef = useRef<THREE.Group>(null);
@@ -673,6 +683,13 @@ export function UnifiedPoolVisualizer({
           >
             {isNightMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
           </button>
+          <button
+            onClick={() => setShowPoolAssetManager(!showPoolAssetManager)}
+            className={`p-2 rounded-lg shadow-lg transition-colors ${showPoolAssetManager ? 'bg-primary text-primary-foreground' : 'bg-background/80 hover:bg-background'}`}
+            title="Pool Assets (Stairs, Seating)"
+          >
+            <Footprints className="w-5 h-5" />
+          </button>
         </div>
 
 
@@ -716,6 +733,19 @@ export function UnifiedPoolVisualizer({
             sunAngle={sunAngle}
             onSunAngleChange={setSunAngle}
             onSunPositionChange={setSunPosition}
+          />
+
+          {/* Pool Asset Manager (Stairs, Seating, Jets) */}
+          <PoolAssetManager
+            isOpen={showPoolAssetManager}
+            onToggle={() => setShowPoolAssetManager(!showPoolAssetManager)}
+            stairs={poolStairs}
+            onStairsChange={setPoolStairs}
+            chairs={poolChairs}
+            onChairsChange={setPoolChairs}
+            selectedAssetId={selectedPoolAssetId}
+            onSelectAsset={setSelectedPoolAssetId}
+            poolFinishTexture={linerTextureUrl}
           />
 
         <Scene3DErrorBoundary scene={scene} onRecover={handleSceneRecover}>
@@ -830,6 +860,18 @@ export function UnifiedPoolVisualizer({
             isNightMode={isNightMode}
             sunAngle={sunAngle}
             causticIntensity={0.5}
+          />
+          
+          {/* Pool Assets (Stairs, Chairs) */}
+          <PoolAssetsRenderer
+            poolPoints={scene.pool.points}
+            stairs={poolStairs}
+            onStairsChange={setPoolStairs}
+            chairs={poolChairs}
+            onChairsChange={setPoolChairs}
+            selectedAssetId={selectedPoolAssetId}
+            onSelectAsset={setSelectedPoolAssetId}
+            poolDepth={poolDepth}
           />
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />
