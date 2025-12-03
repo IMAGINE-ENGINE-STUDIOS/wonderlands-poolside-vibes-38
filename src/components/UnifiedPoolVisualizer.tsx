@@ -801,6 +801,7 @@ export function UnifiedPoolVisualizer({
                 poolPoints={scene.pool.points}
                 depthPoints={scene.pool.depthPoints}
                 poolDimensions={scene.pool.dimensions}
+                showWireframe={showWireframe}
               />
             </group>
           )}

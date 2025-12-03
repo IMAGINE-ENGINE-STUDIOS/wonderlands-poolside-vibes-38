@@ -18,10 +18,11 @@ interface WaterSurfaceProps {
     width: number;
     depth: number;
   };
+  showWireframe?: boolean;
 }
 
 // Enhanced Water Surface with dynamic simulation, depth-based colors, god rays, and water color filter
-const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, poolDimensions }) => {
+const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, poolDimensions, showWireframe = false }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
@@ -346,8 +347,9 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
       transparent: true,
       side: THREE.DoubleSide,
       depthWrite: false,
+      wireframe: showWireframe,
     });
-  }, [depthPoints]);
+  }, [depthPoints, showWireframe]);
 
   // Animate water
   useFrame((state) => {
