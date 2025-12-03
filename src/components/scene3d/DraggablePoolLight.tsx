@@ -54,12 +54,8 @@ function getPositionOnPerimeter(
       const dz = p2.z - p1.z;
       const angle = Math.atan2(dz, dx) + Math.PI / 2;
       
-      // Move slightly inward from wall (0.2 ft)
-      const inwardOffset = 0.2;
-      const offsetX = x + Math.cos(angle) * inwardOffset;
-      const offsetZ = z + Math.sin(angle) * inwardOffset;
-      
-      return { x: offsetX, y: -depthFromSurface, z: offsetZ, angle };
+      // No offset - light sits directly on wall surface
+      return { x, y: -depthFromSurface, z, angle };
     }
     
     accumulated += segmentLength;

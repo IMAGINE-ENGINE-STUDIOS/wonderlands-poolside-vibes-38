@@ -780,7 +780,7 @@ export function UnifiedPoolVisualizer({
             onSunPositionChange={setSunPosition}
           />
 
-          {/* Pool Asset Manager (Stairs, Seating, Jets) */}
+          {/* Pool Asset Manager (Stairs, Seating, Lights, Jets) */}
           <PoolAssetManager
             isOpen={showPoolAssetManager}
             onToggle={() => setShowPoolAssetManager(!showPoolAssetManager)}
@@ -788,9 +788,12 @@ export function UnifiedPoolVisualizer({
             onStairsChange={setPoolStairs}
             chairs={poolChairs}
             onChairsChange={setPoolChairs}
+            lights={poolLights}
+            onLightsChange={handlePoolLightsChange}
             selectedAssetId={selectedPoolAssetId}
             onSelectAsset={setSelectedPoolAssetId}
             poolFinishTexture={linerTextureUrl}
+            isNightMode={isNightMode}
           />
 
         <Scene3DErrorBoundary scene={scene} onRecover={handleSceneRecover}>
