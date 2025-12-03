@@ -941,6 +941,19 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   const [splineEditMode, setSplineEditMode] = useState<'none' | 'pool' | 'deck'>('none');
   const [showDebugBoundaries, setShowDebugBoundaries] = useState(externalShowDebugBoundaries);
 
+  // Sync local state with props
+  useEffect(() => {
+    setLocalDeckWidth(deckWidth);
+  }, [deckWidth]);
+  
+  useEffect(() => {
+    setLocalCopingWidth(copingWidth);
+  }, [copingWidth]);
+  
+  useEffect(() => {
+    setLocalCopingHeight(copingHeight);
+  }, [copingHeight]);
+
   // Sync external debug boundaries control
   useEffect(() => {
     setShowDebugBoundaries(externalShowDebugBoundaries);
@@ -1259,8 +1272,8 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
         />
       )}
 
-      {/* Dimension Labels - Always visible */}
-      {poolCurve3D.length > 0 && (() => {
+      {/* Dimension Labels - Only visible when showRulers or showWireframe is true */}
+      {showRulers && poolCurve3D.length > 0 && (() => {
         const xs = poolCurve3D.map(p => p.x);
         const zs = poolCurve3D.map(p => p.z);
         const bounds = {

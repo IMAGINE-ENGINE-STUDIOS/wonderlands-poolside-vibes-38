@@ -12,8 +12,10 @@ import { GridLabels } from './GridLabels';
 import { AssetManager, Asset3DRenderer } from './AssetManager';
 import { SplineLegend } from './SplineLegend';
 import { ComponentControlPanel } from './ComponentControlPanel';
+import { ClimateController } from './scene3d/ClimateController';
+import { PoolLights } from './scene3d/PoolLights';
 import { Button } from './ui/button';
-import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Box } from 'lucide-react';
+import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Box, Sun, Moon } from 'lucide-react';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { Checkbox } from './ui/checkbox';
 import * as THREE from 'three';
@@ -112,6 +114,9 @@ export function UnifiedPoolVisualizer({
   const [showDebugBoundaries, setShowDebugBoundaries] = useState(false);
   const [showWater, setShowWater] = useState(true);
   const [deckWidth, setDeckWidth] = useState(3); // Default 3 feet
+  const [showClimateController, setShowClimateController] = useState(false);
+  const [isNightMode, setIsNightMode] = useState(false);
+  const [sunAngle, setSunAngle] = useState(90); // Noon by default
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
   const poolGroupRef = useRef<THREE.Group>(null);
@@ -639,6 +644,13 @@ export function UnifiedPoolVisualizer({
           >
             <Box className="w-5 h-5" />
           </button>
+          <button
+            onClick={() => setShowClimateController(!showClimateController)}
+            className={`p-2 rounded-lg shadow-lg transition-colors ${isNightMode ? 'bg-blue-600 text-white' : 'bg-background/80 hover:bg-background'}`}
+            title="Climate Controls"
+          >
+            {isNightMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          </button>
         </div>
 
 
@@ -664,8 +676,19 @@ export function UnifiedPoolVisualizer({
            onDeckWidthChange={setDeckWidth}
             enablePoolSplineEdit={enablePoolSplineEdit}
             onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
-            enableFloorDepthSplineEdit={enableFloorDepthSplineEdit}
-            onFloorDepthSplineEditToggle={() => setEnableFloorDepthSplineEdit(!enableFloorDepthSplineEdit)}
+             enableFloorDepthSplineEdit={enableFloorDepthSplineEdit}
+             onFloorDepthSplineEditToggle={() => setEnableFloorDepthSplineEdit(!enableFloorDepthSplineEdit)}
+           />
+
+          {/* Climate Controller Panel */}
+          <ClimateController
+            isOpen={showClimateController}
+            onClose={() => setShowClimateController(false)}
+            isNightMode={isNightMode}
+            onNightModeChange={setIsNightMode}
+            sunAngle={sunAngle}
+            onSunAngleChange={setSunAngle}
+            onSunPositionChange={setSunPosition}
           />
 
         <Scene3DErrorBoundary scene={scene} onRecover={handleSceneRecover}>
@@ -712,26 +735,66 @@ export function UnifiedPoolVisualizer({
                 }}
                 frameloop="demand" // Only render when needed, not every frame
               >
-          {/* Dynamic Sky with Clouds */}
-          <Sky 
-            distance={450000}
-            sunPosition={sunPosition}
-            inclination={0.6}
-            azimuth={0.25}
-          />
+          {/* Dynamic Sky with Clouds - Day/Night modes */}
+          {!isNightMode ? (
+            <Sky 
+              distance={450000}
+              sunPosition={sunPosition}
+              inclination={0.6}
+              azimuth={0.25}
+            />
+          ) : (
+            // Night sky - dark background
+            <color attach="background" args={['#0a1628']} />
+          )}
           
-          <ambientLight intensity={0.4} />
-          <directionalLight
-            position={sunPosition}
-            intensity={1.2}
-            castShadow
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
-            shadow-camera-far={100}
-            shadow-camera-left={-50}
-            shadow-camera-right={50}
-            shadow-camera-top={50}
-            shadow-camera-bottom={-50}
+          {/* Day lighting */}
+          {!isNightMode && (
+            <>
+              <ambientLight intensity={0.4} />
+              <directionalLight
+                position={sunPosition}
+                intensity={1.2}
+                castShadow
+                shadow-mapSize-width={2048}
+                shadow-mapSize-height={2048}
+                shadow-camera-far={100}
+                shadow-camera-left={-50}
+                shadow-camera-right={50}
+                shadow-camera-top={50}
+                shadow-camera-bottom={-50}
+              />
+            </>
+          )}
+          
+          {/* Night lighting - Moon and ambient */}
+          {isNightMode && (
+            <>
+              <ambientLight intensity={0.15} color="#4a5568" />
+              {/* Moon light */}
+              <directionalLight
+                position={[50, 80, 30]}
+                intensity={0.4}
+                color="#c4d4e8"
+                castShadow
+              />
+              {/* Subtle fill light */}
+              <hemisphereLight
+                intensity={0.2}
+                color="#1a365d"
+                groundColor="#1a202c"
+              />
+            </>
+          )}
+          
+          {/* Pool Lights - Only visible at night or always for visualization */}
+          <PoolLights
+            poolPoints={scene.pool.points}
+            lightCount={4}
+            isOn={isNightMode}
+            lightColor="#00e5ff"
+            lightIntensity={isNightMode ? 3 : 0}
+            depthFromSurface={1.5}
           />
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />
@@ -790,6 +853,7 @@ export function UnifiedPoolVisualizer({
               onDeckPointsChange={handleDeckPointsChange}
               onPerimeterDepthPointsChange={handlePerimeterDepthPointsChange}
               showWireframe={showWireframe}
+              showRulers={showWireframe} 
               showDebugBoundaries={showDebugBoundaries}
               onDebugBoundariesChange={setShowDebugBoundaries}
             />

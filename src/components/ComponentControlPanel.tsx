@@ -237,9 +237,9 @@ export function ComponentControlPanel({
                 <Slider
                   value={[deckWidth]}
                   onValueChange={(value) => onDeckWidthChange(value[0])}
-                  min={0}
-                  max={10000}
-                  step={1}
+                  min={3}
+                  max={50}
+                  step={0.5}
                   className="w-full"
                 />
                 <p className="text-xs text-muted-foreground">
