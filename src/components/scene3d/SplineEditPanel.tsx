@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { X, Plus, Trash2, Layers, ArrowUpDown, Sofa } from 'lucide-react';
+import { X, Plus, Trash2, Layers, ArrowUpDown, Sofa, Footprints, Waves } from 'lucide-react';
 import { PerimeterDepthPoint } from './types';
+import { PoolStairConfig, ContourSeatingConfig } from './poolAssetTypes';
 
 interface SplineEditPanelProps {
   isOpen: boolean;
@@ -14,10 +15,17 @@ interface SplineEditPanelProps {
   selectedPointId: string | null;
   onSelectPoint: (id: string | null) => void;
   // Component selection
-  selectedComponent: 'pool-floor' | 'seating' | 'stairs' | null;
-  onSelectComponent: (component: 'pool-floor' | 'seating' | 'stairs' | null) => void;
+  selectedComponent: 'pool-floor' | 'seating' | 'stairs' | 'waterline' | 'deck' | null;
+  onSelectComponent: (component: 'pool-floor' | 'seating' | 'stairs' | 'waterline' | 'deck' | null) => void;
   // Pool depth from selected model
   poolModelDepth?: number;
+  poolModelShallowDepth?: number;
+  // Stairs and seating for editing
+  stairs?: PoolStairConfig[];
+  onStairsChange?: (stairs: PoolStairConfig[]) => void;
+  contourSeating?: ContourSeatingConfig[];
+  onContourSeatingChange?: (seating: ContourSeatingConfig[]) => void;
+  selectedAssetId?: string | null;
 }
 
 export function SplineEditPanel({
@@ -29,7 +37,13 @@ export function SplineEditPanel({
   onSelectPoint,
   selectedComponent,
   onSelectComponent,
-  poolModelDepth = 6
+  poolModelDepth = 6,
+  poolModelShallowDepth = 3.75,
+  stairs = [],
+  onStairsChange,
+  contourSeating = [],
+  onContourSeatingChange,
+  selectedAssetId
 }: SplineEditPanelProps) {
   const [uniformDepth, setUniformDepth] = useState(poolModelDepth);
 
@@ -43,6 +57,8 @@ export function SplineEditPanel({
   if (!isOpen) return null;
 
   const selectedPoint = perimeterDepthPoints.find(p => p.id === selectedPointId);
+  const selectedStair = stairs.find(s => s.id === selectedAssetId);
+  const selectedSeating = contourSeating.find(s => s.id === selectedAssetId);
 
   const handleAddPointBetween = (index: number) => {
     if (perimeterDepthPoints.length < 2) return;
@@ -83,10 +99,17 @@ export function SplineEditPanel({
   };
 
   const handleSyncToPoolModel = () => {
-    const newPoints = perimeterDepthPoints.map(p => ({
-      ...p,
-      depth: poolModelDepth
-    }));
+    // Create gradient from shallow to deep
+    const newPoints = perimeterDepthPoints.map((p, i, arr) => {
+      const normalizedPos = i / arr.length;
+      let depth: number;
+      if (normalizedPos <= 0.5) {
+        depth = poolModelShallowDepth + (poolModelDepth - poolModelShallowDepth) * (normalizedPos * 2);
+      } else {
+        depth = poolModelDepth - (poolModelDepth - poolModelShallowDepth) * ((normalizedPos - 0.5) * 2);
+      }
+      return { ...p, depth };
+    });
     onPerimeterDepthPointsChange(newPoints);
   };
 
@@ -99,13 +122,47 @@ export function SplineEditPanel({
     onPerimeterDepthPointsChange(newPoints);
   };
 
+  // Stair spline editing
+  const handleStairCornerRadiusChange = (radius: number) => {
+    if (!selectedStair || !onStairsChange) return;
+    const updated = stairs.map(s => 
+      s.id === selectedStair.id ? { ...s, cornerRadius: radius, shape: 'curved' as const } : s
+    );
+    onStairsChange(updated);
+  };
+
+  const handleStairWidthChange = (width: number) => {
+    if (!selectedStair || !onStairsChange) return;
+    const updated = stairs.map(s => 
+      s.id === selectedStair.id ? { ...s, width } : s
+    );
+    onStairsChange(updated);
+  };
+
+  // Seating spline editing
+  const handleSeatingWidthChange = (width: number) => {
+    if (!selectedSeating || !onContourSeatingChange) return;
+    const updated = contourSeating.map(s => 
+      s.id === selectedSeating.id ? { ...s, width } : s
+    );
+    onContourSeatingChange(updated);
+  };
+
+  const handleSeatingHeightChange = (height: number) => {
+    if (!selectedSeating || !onContourSeatingChange) return;
+    const updated = contourSeating.map(s => 
+      s.id === selectedSeating.id ? { ...s, height } : s
+    );
+    onContourSeatingChange(updated);
+  };
+
   return (
     <div className="fixed right-4 top-1/2 -translate-y-1/2 w-80 bg-background/98 backdrop-blur-md border border-orange-500/50 rounded-xl shadow-2xl z-40 animate-in slide-in-from-right duration-300">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-orange-500/30 bg-orange-500/10">
         <div className="flex items-center gap-2">
           <ArrowUpDown className="w-4 h-4 text-orange-500" />
-          <h3 className="font-semibold text-base">Pool Depth Editor</h3>
+          <h3 className="font-semibold text-base">Spline Editor</h3>
         </div>
         <Button
           variant="ghost"
@@ -122,7 +179,7 @@ export function SplineEditPanel({
         {/* Component Selection */}
         <div className="space-y-2">
           <Label className="text-xs font-semibold text-muted-foreground">Edit Component</Label>
-          <div className="grid grid-cols-1 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => onSelectComponent('pool-floor')}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
@@ -132,7 +189,18 @@ export function SplineEditPanel({
               }`}
             >
               <Layers className="w-4 h-4" />
-              Pool Floor Depth
+              Pool Floor
+            </button>
+            <button
+              onClick={() => onSelectComponent('stairs')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                selectedComponent === 'stairs' 
+                  ? 'bg-purple-500/20 border border-purple-500 text-purple-400' 
+                  : 'bg-muted hover:bg-muted/80 border border-transparent'
+              }`}
+            >
+              <Footprints className="w-4 h-4" />
+              Stairs
             </button>
             <button
               onClick={() => onSelectComponent('seating')}
@@ -143,7 +211,18 @@ export function SplineEditPanel({
               }`}
             >
               <Sofa className="w-4 h-4" />
-              Contour Seating
+              Seating
+            </button>
+            <button
+              onClick={() => onSelectComponent('waterline')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                selectedComponent === 'waterline' 
+                  ? 'bg-blue-500/20 border border-blue-500 text-blue-400' 
+                  : 'bg-muted hover:bg-muted/80 border border-transparent'
+              }`}
+            >
+              <Waves className="w-4 h-4" />
+              Waterline
             </button>
           </div>
         </div>
@@ -155,7 +234,9 @@ export function SplineEditPanel({
             <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
                 <Label className="text-xs font-semibold">Pool Model Depth</Label>
-                <span className="text-sm font-bold text-cyan-400">{poolModelDepth.toFixed(1)} ft</span>
+                <span className="text-sm font-bold text-cyan-400">
+                  {poolModelShallowDepth.toFixed(1)}' - {poolModelDepth.toFixed(1)}'
+                </span>
               </div>
               <Button
                 variant="outline"
@@ -163,7 +244,7 @@ export function SplineEditPanel({
                 onClick={handleSyncToPoolModel}
                 className="w-full border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/20"
               >
-                Sync All Points to Model Depth
+                Sync to Model Depth Profile
               </Button>
             </div>
 
@@ -261,16 +342,134 @@ export function SplineEditPanel({
           </>
         )}
 
+        {/* Stairs Controls */}
+        {selectedComponent === 'stairs' && (
+          <div className="space-y-3">
+            {selectedStair ? (
+              <>
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">
+                  <Label className="text-xs font-semibold text-purple-400 mb-2 block">
+                    Editing: {selectedStair.shape === 'curved' ? 'Curved' : 'Linear'} Stair
+                  </Label>
+                  
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Width</Label>
+                        <span className="text-sm font-mono text-purple-400">{selectedStair.width.toFixed(1)} ft</span>
+                      </div>
+                      <Slider
+                        value={[selectedStair.width]}
+                        onValueChange={(value) => handleStairWidthChange(value[0])}
+                        min={2}
+                        max={12}
+                        step={0.5}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Corner Radius</Label>
+                        <span className="text-sm font-mono text-purple-400">{(selectedStair.cornerRadius || 0).toFixed(1)} ft</span>
+                      </div>
+                      <Slider
+                        value={[selectedStair.cornerRadius || 0]}
+                        onValueChange={(value) => handleStairCornerRadiusChange(value[0])}
+                        min={0}
+                        max={2}
+                        step={0.1}
+                        className="w-full"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Set greater than 0 for rounded corners
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">
+                <p className="text-xs text-purple-400">
+                  Select a stair in the 3D view or Pool Asset Manager to edit its spline properties.
+                </p>
+              </div>
+            )}
+            
+            <div className="text-xs text-muted-foreground">
+              {stairs.length} stairs in scene. Drag stairs in 3D view to reposition.
+            </div>
+          </div>
+        )}
+
         {/* Seating Controls */}
         {selectedComponent === 'seating' && (
           <div className="space-y-3">
-            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-              <p className="text-xs text-green-400">
-                Seating contours follow the pool wall. Use the Pool Asset Manager to adjust seating start/end positions and width.
+            {selectedSeating ? (
+              <>
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                  <Label className="text-xs font-semibold text-green-400 mb-2 block">
+                    Editing: Contour Seating
+                  </Label>
+                  
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Width (into pool)</Label>
+                        <span className="text-sm font-mono text-green-400">{selectedSeating.width.toFixed(1)} ft</span>
+                      </div>
+                      <Slider
+                        value={[selectedSeating.width]}
+                        onValueChange={(value) => handleSeatingWidthChange(value[0])}
+                        min={0.5}
+                        max={4}
+                        step={0.25}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Depth Below Water</Label>
+                        <span className="text-sm font-mono text-green-400">{selectedSeating.height.toFixed(1)} ft</span>
+                      </div>
+                      <Slider
+                        value={[selectedSeating.height]}
+                        onValueChange={(value) => handleSeatingHeightChange(value[0])}
+                        min={0.5}
+                        max={2}
+                        step={0.1}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                <p className="text-xs text-green-400">
+                  Select contour seating in the 3D view or Pool Asset Manager to edit its spline properties.
+                </p>
+              </div>
+            )}
+            
+            <div className="text-xs text-muted-foreground">
+              {contourSeating.length} seating sections in scene. Seating follows pool wall contours.
+            </div>
+          </div>
+        )}
+
+        {/* Waterline Controls */}
+        {selectedComponent === 'waterline' && (
+          <div className="space-y-3">
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+              <p className="text-xs text-blue-400">
+                Waterline follows the pool perimeter automatically. 
+                Use the Texture panel to change waterline tile texture.
               </p>
             </div>
             <div className="text-xs text-muted-foreground">
-              Seating automatically extends from water surface to pool floor following the wall contour.
+              Waterline is 0.5ft tall, positioned at water surface level around the entire pool perimeter.
             </div>
           </div>
         )}
@@ -284,7 +483,7 @@ export function SplineEditPanel({
             <ul className="text-xs text-muted-foreground space-y-1">
               <li>• Click cyan spheres to select depth points</li>
               <li>• Drag vertically to change individual depth</li>
-              <li>• Use "Sync to Model" for accurate pool depth</li>
+              <li>• Select stairs/seating in 3D view to edit</li>
               <li>• Camera rotation is locked for editing</li>
             </ul>
           </div>

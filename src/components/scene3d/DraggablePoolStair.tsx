@@ -3,7 +3,7 @@ import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { useThree, ThreeEvent } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import { PoolStairConfig } from './poolAssetTypes';
-import { getPositionOnPerimeter, getWallPositionFromPoint, mergeGeometries } from '@/utils/poolWallMeshUtils';
+import { getPositionOnPerimeter, getWallPositionFromPoint } from '@/utils/poolWallMeshUtils';
 
 interface DraggablePoolStairProps {
   stair: PoolStairConfig;
@@ -31,7 +31,6 @@ export function DraggablePoolStair({
   const raycaster = useRef(new THREE.Raycaster());
   const mouse = useRef(new THREE.Vector2());
 
-  // Load texture
   const texture = useTexture(stair.textureUrl);
   
   useEffect(() => {
@@ -41,7 +40,6 @@ export function DraggablePoolStair({
     }
   }, [texture]);
 
-  // Calculate current position on wall
   const position = getPositionOnPerimeter(stair.wallPosition, poolPerimeter);
 
   // Determine if this is a "length" wall (needs 180 rotation)
@@ -53,8 +51,7 @@ export function DraggablePoolStair({
             normalizedAngle > (2 * Math.PI - tolerance));
   }, [position.angle]);
 
-  // Top of stairs is 1ft below water surface
-  const stairTopY = -1;
+  const stairTopY = -1; // 1ft below water surface
 
   // Auto-calculate number of steps needed to reach the bottom
   const actualNumSteps = useMemo(() => {
@@ -63,25 +60,45 @@ export function DraggablePoolStair({
     return Math.max(stair.numSteps, stepsNeeded);
   }, [poolDepth, stair.stepHeight, stair.numSteps]);
 
-  // Generate unified stair geometry using CopingGeometry pattern
+  // Generate rounded corner path points
+  const generateCornerArc = (
+    cornerX: number, 
+    cornerZ: number, 
+    radius: number, 
+    startAngle: number, 
+    endAngle: number, 
+    segments: number
+  ): Array<{x: number, z: number}> => {
+    const points: Array<{x: number, z: number}> = [];
+    for (let i = 0; i <= segments; i++) {
+      const angle = startAngle + (endAngle - startAngle) * (i / segments);
+      points.push({
+        x: cornerX + Math.cos(angle) * radius,
+        z: cornerZ + Math.sin(angle) * radius
+      });
+    }
+    return points;
+  };
+
+  // Generate stair geometry with optional rounded corners
   const stairGeometry = useMemo(() => {
     const stepWidth = stair.width;
     const stepDepth = stair.stepDepth;
     const stepHeight = stair.stepHeight;
+    const cornerRadius = stair.shape === 'curved' ? (stair.cornerRadius || 0.5) : 0;
     
     const allVertices: number[] = [];
     const allUVs: number[] = [];
     const allIndices: number[] = [];
     let vertexOffset = 0;
     
-    // Track cumulative distance for UV mapping
     let cumulativeZ = 0;
     
     for (let i = 0; i < actualNumSteps; i++) {
       const stepTopY = stairTopY - i * stepHeight;
       const stepZOffset = i * stepDepth;
       
-      // Get floor depth at this step position (in local coordinates)
+      // Get floor depth at this step position
       const worldAngle = position.angle;
       const worldX = position.x + Math.sin(worldAngle) * (stepZOffset + stepDepth / 2);
       const worldZ = position.z + Math.cos(worldAngle) * (stepZOffset + stepDepth / 2);
@@ -91,97 +108,199 @@ export function DraggablePoolStair({
       const blockHeight = Math.max(0.1, stepTopY - stepBottomY);
       
       const hw = stepWidth / 2;
-      const hh = blockHeight / 2;
       const zStart = stepZOffset;
       const zEnd = stepZOffset + stepDepth;
-      const yCenter = stepTopY - hh;
       
-      // TOP face - world-space UV
-      let baseIdx = vertexOffset;
-      allVertices.push(
-        -hw, stepTopY, zStart,
-        hw, stepTopY, zStart,
-        hw, stepTopY, zEnd,
-        -hw, stepTopY, zEnd
-      );
-      allUVs.push(
-        0, cumulativeZ,
-        stepWidth, cumulativeZ,
-        stepWidth, cumulativeZ + stepDepth,
-        0, cumulativeZ + stepDepth
-      );
-      allIndices.push(baseIdx, baseIdx + 2, baseIdx + 1, baseIdx, baseIdx + 3, baseIdx + 2);
-      vertexOffset += 4;
+      // Effective corner radius (can't be more than half the width or depth)
+      const effectiveRadius = Math.min(cornerRadius, hw, stepDepth / 2);
       
-      // FRONT face (Z+ direction) - visible when looking at stairs
-      baseIdx = vertexOffset;
-      allVertices.push(
-        -hw, stepTopY, zEnd,
-        hw, stepTopY, zEnd,
-        hw, stepBottomY, zEnd,
-        -hw, stepBottomY, zEnd
-      );
-      allUVs.push(
-        0, blockHeight,
-        stepWidth, blockHeight,
-        stepWidth, 0,
-        0, 0
-      );
-      allIndices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
-      vertexOffset += 4;
-      
-      // BACK face (Z- direction) - only for first step
-      if (i === 0) {
-        baseIdx = vertexOffset;
+      if (stair.shape === 'curved' && effectiveRadius > 0.1) {
+        // Generate rounded step with proper corner arcs
+        const cornerSegments = 6;
+        
+        // Build profile path for rounded rectangle
+        const profilePoints: Array<{x: number, z: number}> = [];
+        
+        // Bottom-left corner arc
+        const blCorner = generateCornerArc(
+          -hw + effectiveRadius, zStart + effectiveRadius,
+          effectiveRadius,
+          Math.PI, Math.PI * 1.5,
+          cornerSegments
+        );
+        profilePoints.push(...blCorner);
+        
+        // Bottom-right corner arc
+        const brCorner = generateCornerArc(
+          hw - effectiveRadius, zStart + effectiveRadius,
+          effectiveRadius,
+          Math.PI * 1.5, Math.PI * 2,
+          cornerSegments
+        );
+        profilePoints.push(...brCorner);
+        
+        // Top-right corner arc
+        const trCorner = generateCornerArc(
+          hw - effectiveRadius, zEnd - effectiveRadius,
+          effectiveRadius,
+          0, Math.PI * 0.5,
+          cornerSegments
+        );
+        profilePoints.push(...trCorner);
+        
+        // Top-left corner arc
+        const tlCorner = generateCornerArc(
+          -hw + effectiveRadius, zEnd - effectiveRadius,
+          effectiveRadius,
+          Math.PI * 0.5, Math.PI,
+          cornerSegments
+        );
+        profilePoints.push(...tlCorner);
+        
+        // Close the loop
+        profilePoints.push(profilePoints[0]);
+        
+        // TOP SURFACE - Use triangulation for rounded shape
+        const topBase = vertexOffset;
+        const centerX = 0;
+        const centerZ = zStart + stepDepth / 2;
+        
+        // Center vertex
+        allVertices.push(centerX, stepTopY, centerZ);
+        allUVs.push(centerX, centerZ);
+        vertexOffset++;
+        
+        // Perimeter vertices
+        for (let j = 0; j < profilePoints.length - 1; j++) {
+          const pt = profilePoints[j];
+          allVertices.push(pt.x, stepTopY, pt.z);
+          allUVs.push(pt.x, pt.z);
+          vertexOffset++;
+        }
+        
+        // Fan triangles from center
+        for (let j = 0; j < profilePoints.length - 2; j++) {
+          allIndices.push(topBase, topBase + j + 1, topBase + j + 2);
+        }
+        allIndices.push(topBase, topBase + profilePoints.length - 2, topBase + 1);
+        
+        // SIDE WALLS - cumulative distance UV
+        let wallCumulativeDist = 0;
+        const wallBase = vertexOffset;
+        
+        for (let j = 0; j < profilePoints.length - 1; j++) {
+          const p1 = profilePoints[j];
+          const p2 = profilePoints[j + 1];
+          const segLen = Math.sqrt((p2.x - p1.x) ** 2 + (p2.z - p1.z) ** 2);
+          
+          const idx = vertexOffset;
+          allVertices.push(p1.x, stepTopY, p1.z);
+          allVertices.push(p2.x, stepTopY, p2.z);
+          allVertices.push(p1.x, stepBottomY, p1.z);
+          allVertices.push(p2.x, stepBottomY, p2.z);
+          
+          allUVs.push(wallCumulativeDist, blockHeight);
+          allUVs.push(wallCumulativeDist + segLen, blockHeight);
+          allUVs.push(wallCumulativeDist, 0);
+          allUVs.push(wallCumulativeDist + segLen, 0);
+          
+          allIndices.push(idx, idx + 1, idx + 2);
+          allIndices.push(idx + 1, idx + 3, idx + 2);
+          
+          vertexOffset += 4;
+          wallCumulativeDist += segLen;
+        }
+        
+      } else {
+        // Linear (rectangular) step geometry
+        
+        // TOP face - world-space UV
+        let baseIdx = vertexOffset;
         allVertices.push(
-          hw, stepTopY, zStart,
           -hw, stepTopY, zStart,
-          -hw, stepBottomY, zStart,
-          hw, stepBottomY, zStart
+          hw, stepTopY, zStart,
+          hw, stepTopY, zEnd,
+          -hw, stepTopY, zEnd
         );
         allUVs.push(
-          0, blockHeight,
-          stepWidth, blockHeight,
-          stepWidth, 0,
-          0, 0
+          -hw, zStart,
+          hw, zStart,
+          hw, zEnd,
+          -hw, zEnd
+        );
+        allIndices.push(baseIdx, baseIdx + 2, baseIdx + 1, baseIdx, baseIdx + 3, baseIdx + 2);
+        vertexOffset += 4;
+        
+        // FRONT face (Z+ direction)
+        baseIdx = vertexOffset;
+        allVertices.push(
+          -hw, stepTopY, zEnd,
+          hw, stepTopY, zEnd,
+          hw, stepBottomY, zEnd,
+          -hw, stepBottomY, zEnd
+        );
+        allUVs.push(
+          cumulativeZ, blockHeight,
+          cumulativeZ + stepWidth, blockHeight,
+          cumulativeZ + stepWidth, 0,
+          cumulativeZ, 0
+        );
+        allIndices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
+        vertexOffset += 4;
+        
+        // BACK face (Z- direction) - only for first step
+        if (i === 0) {
+          baseIdx = vertexOffset;
+          allVertices.push(
+            hw, stepTopY, zStart,
+            -hw, stepTopY, zStart,
+            -hw, stepBottomY, zStart,
+            hw, stepBottomY, zStart
+          );
+          allUVs.push(
+            0, blockHeight,
+            stepWidth, blockHeight,
+            stepWidth, 0,
+            0, 0
+          );
+          allIndices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
+          vertexOffset += 4;
+        }
+        
+        // LEFT face (X-)
+        baseIdx = vertexOffset;
+        allVertices.push(
+          -hw, stepTopY, zStart,
+          -hw, stepTopY, zEnd,
+          -hw, stepBottomY, zEnd,
+          -hw, stepBottomY, zStart
+        );
+        allUVs.push(
+          cumulativeZ, blockHeight,
+          cumulativeZ + stepDepth, blockHeight,
+          cumulativeZ + stepDepth, 0,
+          cumulativeZ, 0
+        );
+        allIndices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
+        vertexOffset += 4;
+        
+        // RIGHT face (X+)
+        baseIdx = vertexOffset;
+        allVertices.push(
+          hw, stepTopY, zEnd,
+          hw, stepTopY, zStart,
+          hw, stepBottomY, zStart,
+          hw, stepBottomY, zEnd
+        );
+        allUVs.push(
+          cumulativeZ + stepDepth, blockHeight,
+          cumulativeZ, blockHeight,
+          cumulativeZ, 0,
+          cumulativeZ + stepDepth, 0
         );
         allIndices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
         vertexOffset += 4;
       }
-      
-      // LEFT face (X-)
-      baseIdx = vertexOffset;
-      allVertices.push(
-        -hw, stepTopY, zStart,
-        -hw, stepTopY, zEnd,
-        -hw, stepBottomY, zEnd,
-        -hw, stepBottomY, zStart
-      );
-      allUVs.push(
-        cumulativeZ, blockHeight,
-        cumulativeZ + stepDepth, blockHeight,
-        cumulativeZ + stepDepth, 0,
-        cumulativeZ, 0
-      );
-      allIndices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
-      vertexOffset += 4;
-      
-      // RIGHT face (X+)
-      baseIdx = vertexOffset;
-      allVertices.push(
-        hw, stepTopY, zEnd,
-        hw, stepTopY, zStart,
-        hw, stepBottomY, zStart,
-        hw, stepBottomY, zEnd
-      );
-      allUVs.push(
-        cumulativeZ + stepDepth, blockHeight,
-        cumulativeZ, blockHeight,
-        cumulativeZ, 0,
-        cumulativeZ + stepDepth, 0
-      );
-      allIndices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
-      vertexOffset += 4;
       
       cumulativeZ += stepDepth;
     }
@@ -195,7 +314,6 @@ export function DraggablePoolStair({
     return geometry;
   }, [stair, poolDepth, actualNumSteps, position, getFloorDepthAt, stairTopY]);
 
-  // Handle pointer events
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     onSelect(stair.id);
@@ -204,7 +322,6 @@ export function DraggablePoolStair({
     dragPlaneRef.current.constant = 0;
   }, [stair.id, onSelect, gl.domElement]);
 
-  // Handle drag
   useEffect(() => {
     if (!isDragging) return;
 
@@ -236,10 +353,7 @@ export function DraggablePoolStair({
     };
   }, [isDragging, camera, gl.domElement, poolPerimeter, stair.id, onPositionChange]);
 
-  // Calculate total stair depth for positioning
   const totalStairDepth = actualNumSteps * stair.stepDepth;
-
-  // Position stairs at wall edge - rotate to face into pool
   const baseRotation = position.angle + Math.PI / 2 + Math.PI;
   const finalRotation = isLengthWall ? baseRotation + Math.PI : baseRotation;
 
@@ -261,7 +375,6 @@ export function DraggablePoolStair({
         />
       </mesh>
       
-      {/* Selection highlight */}
       {isSelected && (
         <mesh position={[0, stairTopY + 0.05, totalStairDepth / 2]}>
           <boxGeometry args={[stair.width + 0.2, 0.05, totalStairDepth + 0.2]} />

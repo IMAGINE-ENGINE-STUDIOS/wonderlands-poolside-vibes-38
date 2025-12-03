@@ -88,7 +88,7 @@ export function ContourSeating({
     }
   }, [texture]);
 
-  // Generate unified geometry following CopingGeometry pattern exactly
+  // Generate geometry with proper 1ft x 1ft UV mapping like pool walls
   const geometry = useMemo(() => {
     const perimeterPoints = getPerimeterSection(
       seating.startPosition,
@@ -117,20 +117,27 @@ export function ContourSeating({
     
     const numPoints = perimeterPoints.length;
     
-    // Calculate cumulative distances for UV mapping (like CopingGeometry)
-    const distances: number[] = [0];
-    let totalDistance = 0;
+    // Calculate cumulative distances for UV mapping (1ft = 1 UV unit)
+    const outerDistances: number[] = [0];
+    const innerDistances: number[] = [0];
+    let outerTotalDist = 0;
+    let innerTotalDist = 0;
+    
     for (let i = 0; i < numPoints - 1; i++) {
-      const p1 = perimeterPoints[i];
-      const p2 = perimeterPoints[i + 1];
-      const segmentLength = Math.sqrt(
-        Math.pow(p2.x - p1.x, 2) + Math.pow(p2.z - p1.z, 2)
-      );
-      totalDistance += segmentLength;
-      distances.push(totalDistance);
+      const op1 = perimeterPoints[i];
+      const op2 = perimeterPoints[i + 1];
+      const outerSegLen = Math.sqrt((op2.x - op1.x) ** 2 + (op2.z - op1.z) ** 2);
+      outerTotalDist += outerSegLen;
+      outerDistances.push(outerTotalDist);
+      
+      const ip1 = innerPoints[i];
+      const ip2 = innerPoints[i + 1];
+      const innerSegLen = Math.sqrt((ip2.x - ip1.x) ** 2 + (ip2.z - ip1.z) ** 2);
+      innerTotalDist += innerSegLen;
+      innerDistances.push(innerTotalDist);
     }
 
-    // TOP SURFACE - world-space UV (x, z) for perfect 1ft grid
+    // TOP SURFACE - world-space UV for perfect 1ft grid
     for (let i = 0; i < numPoints; i++) {
       const outer = perimeterPoints[i];
       const inner = innerPoints[i];
@@ -138,6 +145,7 @@ export function ContourSeating({
       vertices.push(outer.x, topY, outer.z);
       vertices.push(inner.x, topY, inner.z);
       
+      // World-space UV for 1ft x 1ft pattern
       uvs.push(outer.x, outer.z);
       uvs.push(inner.x, inner.z);
     }
@@ -153,7 +161,7 @@ export function ContourSeating({
       indices.push(innerIdx, nextOuterIdx, nextInnerIdx);
     }
 
-    // OUTER WALL - cumulative distance UV (facing outward from pool)
+    // OUTER WALL - cumulative distance UV (1ft = 1 UV unit)
     const outerWallBase = vertices.length / 3;
     for (let i = 0; i < numPoints; i++) {
       const pt = perimeterPoints[i];
@@ -163,23 +171,23 @@ export function ContourSeating({
       vertices.push(pt.x, topY, pt.z);
       vertices.push(pt.x, bottomY, pt.z);
       
-      uvs.push(distances[i], height);
-      uvs.push(distances[i], 0);
+      // UV: cumulative distance along perimeter, height
+      uvs.push(outerDistances[i], height);
+      uvs.push(outerDistances[i], 0);
     }
     
-    // Outer wall triangles (facing outward - reversed winding)
+    // Outer wall triangles (facing outward)
     for (let i = 0; i < numPoints - 1; i++) {
       const topIdx = outerWallBase + i * 2;
       const bottomIdx = outerWallBase + i * 2 + 1;
       const nextTopIdx = outerWallBase + (i + 1) * 2;
       const nextBottomIdx = outerWallBase + (i + 1) * 2 + 1;
       
-      // Outward facing
       indices.push(topIdx, bottomIdx, nextTopIdx);
       indices.push(bottomIdx, nextBottomIdx, nextTopIdx);
     }
 
-    // INNER WALL - cumulative distance UV (facing into pool)
+    // INNER WALL - cumulative distance UV
     const innerWallBase = vertices.length / 3;
     for (let i = 0; i < numPoints; i++) {
       const pt = innerPoints[i];
@@ -190,18 +198,17 @@ export function ContourSeating({
       vertices.push(pt.x, topY, pt.z);
       vertices.push(pt.x, bottomY, pt.z);
       
-      uvs.push(distances[i], height);
-      uvs.push(distances[i], 0);
+      uvs.push(innerDistances[i], height);
+      uvs.push(innerDistances[i], 0);
     }
     
-    // Inner wall triangles (facing inward - standard winding)
+    // Inner wall triangles (facing inward)
     for (let i = 0; i < numPoints - 1; i++) {
       const topIdx = innerWallBase + i * 2;
       const bottomIdx = innerWallBase + i * 2 + 1;
       const nextTopIdx = innerWallBase + (i + 1) * 2;
       const nextBottomIdx = innerWallBase + (i + 1) * 2 + 1;
       
-      // Inward facing
       indices.push(topIdx, nextTopIdx, bottomIdx);
       indices.push(bottomIdx, nextTopIdx, nextBottomIdx);
     }
@@ -220,6 +227,7 @@ export function ContourSeating({
       vertices.push(startOuter.x, startBottomY, startOuter.z);
       vertices.push(startInner.x, startBottomY, startInner.z);
       
+      // UV for end cap - width x height
       uvs.push(0, startHeight);
       uvs.push(seating.width, startHeight);
       uvs.push(0, 0);
@@ -296,7 +304,6 @@ export function ContourSeating({
         />
       </mesh>
       
-      {/* Selection highlight */}
       {isSelected && (
         <mesh position={[0, -seating.height + 0.05, 0]}>
           <boxGeometry args={[0.5, 0.05, 0.5]} />

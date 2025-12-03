@@ -319,22 +319,42 @@ export function productToScene(
     id: `h${i + 1}`
   }));
 
-  // Calculate pool depth from product (use deepEndDepth which was parsed earlier)
-  const poolDepth = deepEndDepth || 6.6;
+  // Calculate pool depths from product (shallow and deep end)
+  const shallowDepth = shallowEndDepth || 3.75;
+  const deepDepth = deepEndDepth || 6.6;
   
-  // Create perimeter depth points to initialize pool bottom with correct depth
-  const perimeterDepthPoints = poolPoints.map((pt, i) => ({
-    x: pt.x - width / 2,  // Center the coordinates
-    z: pt.y - length / 2,
-    depth: poolDepth,  // Use the parsed pool depth
-    id: `perimeter-depth-${i}`,
-    type: 'smooth' as const
-  }));
+  // Create perimeter depth points with gradient from shallow to deep end
+  // Shallow end is at the start (position 0), deep end is at position 0.5 (opposite side)
+  const perimeterDepthPoints = poolPoints.map((pt, i, arr) => {
+    // Calculate normalized position around perimeter (0 to 1)
+    const normalizedPos = i / arr.length;
+    
+    // Create a gradient: shallow at 0, deep at 0.5, shallow again at 1
+    // This creates a realistic pool depth profile
+    let depth: number;
+    if (normalizedPos <= 0.5) {
+      // First half: shallow to deep
+      depth = shallowDepth + (deepDepth - shallowDepth) * (normalizedPos * 2);
+    } else {
+      // Second half: deep to shallow
+      depth = deepDepth - (deepDepth - shallowDepth) * ((normalizedPos - 0.5) * 2);
+    }
+    
+    return {
+      x: pt.x - width / 2,  // Center the coordinates
+      z: pt.y - length / 2,
+      depth: depth,
+      id: `perimeter-depth-${i}`,
+      type: 'smooth' as const
+    };
+  });
   
-  console.log('🔵 SceneConverter: Creating perimeterDepthPoints with depth:', poolDepth, {
+  console.log('🔵 SceneConverter: Creating perimeterDepthPoints with depth range:', {
+    shallowDepth,
+    deepDepth,
     pointCount: perimeterDepthPoints.length,
     productDepthString: product.depth,
-    parsedDepth: deepEndDepth
+    sampleDepths: perimeterDepthPoints.slice(0, 4).map(p => p.depth.toFixed(2))
   });
 
   const scene: Scene3D = {
@@ -353,7 +373,7 @@ export function productToScene(
       },
       position: [-10, 0, 20], // Pool hole at S25 grid position
       rotation: [0, 0, 0],
-      dimensions: { length, width, depth: poolDepth }
+      dimensions: { length, width, depth: deepDepth }
     },
     deck: {
       points: deckPoints,
