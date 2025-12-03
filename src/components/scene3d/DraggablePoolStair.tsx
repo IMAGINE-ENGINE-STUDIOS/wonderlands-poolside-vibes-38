@@ -317,8 +317,9 @@ export function DraggablePoolStair({
   const totalStairDepth = actualNumSteps * stair.stepDepth;
 
   // Position stairs at wall edge - back of stairs touches wall
-  // Extra rotation for length walls (180 degrees)
-  const baseRotation = position.angle + Math.PI / 2;
+  // Rotate 180 degrees so stairs face INTO the pool (not outward)
+  // Extra rotation for length walls (additional 180 degrees)
+  const baseRotation = position.angle + Math.PI / 2 + Math.PI; // Added Math.PI to face inward
   const finalRotation = isLengthWall ? baseRotation + Math.PI : baseRotation;
 
   return (
