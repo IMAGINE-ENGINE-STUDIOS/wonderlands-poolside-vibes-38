@@ -12,6 +12,7 @@ import { PoolBottomSplineEditor } from './scene3d/PoolBottomSplineEditor';
 import { ComponentRuler } from './scene3d/ComponentRuler';
 import { DeckGeometry } from './scene3d/DeckGeometry';
 import { CopingGeometry } from './scene3d/CopingGeometry';
+import { DeckBorderGeometry } from './scene3d/DeckBorderGeometry';
 import earcut from 'earcut';
 import grassTexture from '@/assets/grass-texture.avif';
 import { Maximize2, Minimize2, Move } from 'lucide-react';
@@ -1182,7 +1183,23 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
             </group>
           )}
 
-          {/* Deck removed as per user request */}
+          {/* Deck Border - outer face around coping, 3" tall, min 3ft wide */}
+          <group onClick={(e) => {
+            e.stopPropagation();
+            onSelectCategory?.('deck');
+            onSelectComponent?.('deck');
+          }}>
+            <DeckBorderGeometry
+              poolPoints={poolCurve3D}
+              deckWidth={localDeckWidth}
+              copingWidth={localCopingWidth}
+              borderHeight={0.25} // 3 inches
+              borderWidth={Math.max(3, localDeckWidth)} // minimum 3ft, can grow
+              textureUrl={normalizedPaverUrl}
+              textureScale={paverTextureScale}
+              textureOffset={paverTextureOffset}
+            />
+          </group>
         </>
       )}
 

@@ -44,50 +44,10 @@ export function ComponentControlPanel({
 }: ComponentControlPanelProps) {
   if (!selectedComponent) return null;
 
-  // Filter finishes based on pool type and brand
+  // Get ALL finishes regardless of pool type - show complete selection
   const getFilteredFinishes = () => {
-    // Wonderlands World concrete pools (Maxima, Madre Perla, Pacific Ridge, Winderview)
-    const wonderlandsWorldPools = ['Maxima', 'Madre Perla', 'Pacific Ridge', 'Winderview'];
-    
-    // Latham fiberglass pools
-    const lathamPools = ['Astoria', 'Milan', 'Jamaica', 'Aruba', 'St. Croix', 'Rio', 'Apollo 12', 'Apollo 14', 
-                         'Enchantment 9\'17"', 'Enchantment 9\'21"', 'Enchantment 9\'24"', 'Cancún Deluxe'];
-    
-    const isWonderlandsWorld = wonderlandsWorldPools.some(p => poolModel.includes(p));
-    const isLatham = lathamPools.some(p => poolModel.includes(p));
-    
-    return textureLibrary.finishes.filter(finish => {
-      if (isWonderlandsWorld) {
-        // Wonderlands World concrete pools: ALL Mini Pebbles finishes (Tahoe Blue, Tropics, Pacific Blue, Caribbean Sands, Moonlight, Onyx)
-        // Plus any non-Crystite finishes
-        return (finish.name.includes('Mini Pebbles') || 
-                finish.name.includes('Tahoe') || 
-                finish.name.includes('Tropics') ||
-                finish.name.includes('Pacific') ||
-                finish.name.includes('Caribbean') ||
-                finish.name.includes('Moonlight') ||
-                finish.name.includes('Onyx')) &&
-               !finish.name.includes('Crystal') &&
-               !finish.name.includes('Crystite');
-      } else if (isLatham) {
-        // Latham fiberglass pools: ALL Crystite Crystal collection finishes
-        return finish.name.includes('Crystal') || 
-               finish.name.includes('Crystite') ||
-               finish.name.includes('Sapphire') ||
-               finish.name.includes('Ocean') ||
-               finish.name.includes('Night Sky') ||
-               finish.name.includes('Shale Gray') ||
-               finish.name.includes('Coastal Bronze') ||
-               finish.name.includes('Pearl White');
-      } else {
-        // Other pools: Show all non-exclusive finishes (no Crystite, no Mini Pebbles)
-        return !finish.name.includes('Crystal') && 
-               !finish.name.includes('Crystite') &&
-               !finish.name.includes('Mini Pebbles') &&
-               !finish.name.includes('Tahoe Blue') &&
-               !finish.name.includes('Tropics');
-      }
-    });
+    // Return ALL finishes from the texture library - user can select any finish
+    return textureLibrary.finishes;
   };
 
   const handleTextureChange = (texture: TextureConfig) => {
