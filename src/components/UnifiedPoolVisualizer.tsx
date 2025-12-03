@@ -1,7 +1,7 @@
 import { Canvas as R3FCanvas, useThree } from '@react-three/fiber';
 import { OrbitControls, TransformControls, Sky, Grid } from '@react-three/drei';
 import { useState, useEffect, useRef, Suspense, useCallback } from 'react';
-import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation, Point } from './scene3d/types';
+import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation, Point, PoolLightConfig } from './scene3d/types';
 import { Pool3DScene } from './Pool3DScene';
 import WaterSurface from './WaterSurface';
 import { Scene3DControlPanel } from './Scene3DControlPanel';
@@ -13,7 +13,8 @@ import { AssetManager, Asset3DRenderer } from './AssetManager';
 import { SplineLegend } from './SplineLegend';
 import { ComponentControlPanel } from './ComponentControlPanel';
 import { ClimateController } from './scene3d/ClimateController';
-import { PoolLights } from './scene3d/PoolLights';
+import { EnhancedPoolLights, createDefaultPoolLights } from './scene3d/EnhancedPoolLights';
+import { WaterCaustics } from './scene3d/WaterCaustics';
 import { Button } from './ui/button';
 import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Box, Sun, Moon } from 'lucide-react';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
@@ -117,6 +118,12 @@ export function UnifiedPoolVisualizer({
   const [showClimateController, setShowClimateController] = useState(false);
   const [isNightMode, setIsNightMode] = useState(false);
   const [sunAngle, setSunAngle] = useState(90); // Noon by default
+  
+  // Pool lights state
+  const [poolLights, setPoolLights] = useState<PoolLightConfig[]>(() => 
+    scene.poolLights || createDefaultPoolLights(false)
+  );
+  const [selectedLightId, setSelectedLightId] = useState<string | null>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
   const poolGroupRef = useRef<THREE.Group>(null);
@@ -135,6 +142,21 @@ export function UnifiedPoolVisualizer({
   useEffect(() => {
     reset(initialScene);
   }, [initialScene, reset]);
+  
+  // Sync pool lights with night mode
+  useEffect(() => {
+    setPoolLights(prev => prev.map(l => ({ ...l, isOn: isNightMode })));
+  }, [isNightMode]);
+  
+  // Handle pool lights change
+  const handlePoolLightsChange = useCallback((newLights: PoolLightConfig[]) => {
+    setPoolLights(newLights);
+    // Update scene for persistence
+    setScene({
+      ...scene,
+      poolLights: newLights
+    });
+  }, [scene, setScene]);
   
   // Helper to safely extract texture URLs with fallbacks
   const safeGetTextureUrl = useCallback((textureConfig: TextureConfig | undefined, fallback: string): string => {
@@ -674,11 +696,16 @@ export function UnifiedPoolVisualizer({
            poolModel={new URLSearchParams(window.location.search).get('model') || ''}
            deckWidth={deckWidth}
            onDeckWidthChange={setDeckWidth}
-            enablePoolSplineEdit={enablePoolSplineEdit}
-            onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
-             enableFloorDepthSplineEdit={enableFloorDepthSplineEdit}
-             onFloorDepthSplineEditToggle={() => setEnableFloorDepthSplineEdit(!enableFloorDepthSplineEdit)}
-           />
+           enablePoolSplineEdit={enablePoolSplineEdit}
+           onPoolSplineEditToggle={() => setEnablePoolSplineEdit(!enablePoolSplineEdit)}
+           enableFloorDepthSplineEdit={enableFloorDepthSplineEdit}
+           onFloorDepthSplineEditToggle={() => setEnableFloorDepthSplineEdit(!enableFloorDepthSplineEdit)}
+           poolLights={poolLights}
+           onPoolLightsChange={handlePoolLightsChange}
+           selectedLightId={selectedLightId}
+           onSelectLight={setSelectedLightId}
+           isNightMode={isNightMode}
+         />
 
           {/* Climate Controller Panel */}
           <ClimateController
@@ -787,14 +814,22 @@ export function UnifiedPoolVisualizer({
             </>
           )}
           
-          {/* Pool Lights - Only visible at night or always for visualization */}
-          <PoolLights
+          {/* Pool Lights - Draggable, wall-snapped lights */}
+          <EnhancedPoolLights
             poolPoints={scene.pool.points}
-            lightCount={4}
-            isOn={isNightMode}
-            lightColor="#00e5ff"
-            lightIntensity={isNightMode ? 3 : 0}
-            depthFromSurface={1.5}
+            lights={poolLights}
+            onLightsChange={handlePoolLightsChange}
+            selectedLightId={selectedLightId}
+            onSelectLight={setSelectedLightId}
+          />
+          
+          {/* Water Caustics - Light patterns on pool floor */}
+          <WaterCaustics
+            poolPoints={scene.pool.points}
+            lights={poolLights}
+            isNightMode={isNightMode}
+            sunAngle={sunAngle}
+            causticIntensity={0.5}
           />
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />
