@@ -68,25 +68,28 @@ export function EnhancedPoolLights({
 }
 
 // Create default lights (2 lights at 25% and 75% of perimeter, 2ft below water by default)
+// Default to gradient color mode for dynamic lighting
 export function createDefaultPoolLights(isNightMode: boolean = false): PoolLightConfig[] {
   return [
     {
       id: 'light-default-1',
       wallPosition: 0.25,
-      depthFromSurface: 2.0, // 2 feet below water surface
+      depthFromSurface: 2.0,
       color: '#ffffff',
-      colorMode: 'white',
+      colorMode: 'gradient',
       intensity: 2,
-      isOn: isNightMode
+      isOn: isNightMode,
+      angle: 0
     },
     {
       id: 'light-default-2',
       wallPosition: 0.75,
-      depthFromSurface: 2.0, // 2 feet below water surface
+      depthFromSurface: 2.0,
       color: '#ffffff',
-      colorMode: 'white',
+      colorMode: 'gradient',
       intensity: 2,
-      isOn: isNightMode
+      isOn: isNightMode,
+      angle: 0
     }
   ];
 }

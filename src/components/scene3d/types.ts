@@ -100,6 +100,7 @@ export interface PoolLightConfig {
   colorMode: PoolLightColorMode;
   intensity: number;         // Light intensity (0-5)
   isOn: boolean;
+  angle?: number;            // Light direction angle in degrees (-45 to 45, 0 = straight)
 }
 
 export interface Scene3D {

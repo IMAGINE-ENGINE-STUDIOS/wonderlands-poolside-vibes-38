@@ -1,4 +1,5 @@
 import { useMemo, useCallback } from 'react';
+import { ThreeEvent } from '@react-three/fiber';
 import { Point } from './types';
 import { PoolStairConfig, PoolChairConfig, ContourSeatingConfig } from './poolAssetTypes';
 import { DraggablePoolStair } from './DraggablePoolStair';
@@ -75,10 +76,24 @@ export function PoolAssetsRenderer({
     ));
   }, [contourSeating, onContourSeatingChange]);
 
+  // Handle double-click to deselect
+  const handleDoubleClick = useCallback((e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation();
+    onSelectAsset(null);
+  }, [onSelectAsset]);
+
+  // Handle click on background to deselect
+  const handleBackgroundClick = useCallback((e: ThreeEvent<PointerEvent>) => {
+    // Only deselect if clicking directly on the background group, not on an asset
+    if (e.eventObject === e.object) {
+      onSelectAsset(null);
+    }
+  }, [onSelectAsset]);
+
   if (poolPerimeter.length === 0) return null;
 
   return (
-    <group>
+    <group onDoubleClick={handleDoubleClick} onPointerMissed={() => onSelectAsset(null)}>
       {/* Render Stairs */}
       {stairs.map(stair => (
         <DraggablePoolStair
