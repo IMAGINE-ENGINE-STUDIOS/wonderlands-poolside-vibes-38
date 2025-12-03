@@ -248,76 +248,109 @@ export function productToScene(
     ];
   }
 
-  // Create deck points - 3ft wide deck as requested
+  // Create deck points - use from 2D designer if available, otherwise calculate
   const deckWidth = 3;
   const copingWidth = 1; // 1ft coping
   
-  // Step 1: Generate smooth curved pool boundary
-  // ONLY curves very gentle bends (< 20°), keeps 90° corners and all sharp angles linear
-  const smoothPoolPoints = poolPoints.length > 3 
-    ? generateCurvedPoolPoints(
-        poolPoints.map(p => ({ x: p.x, y: p.y })),
-        30,  // high resolution for smooth curves
-        0.3  // natural curve tension
-      )
-    : poolPoints.map(p => ({ x: p.x, y: p.y }));
+  let deckPoints: HardscapePoint[];
   
-  // Step 2: Create offset deck outline by calculating outward normals
-  const rawDeckPoints = smoothPoolPoints.map((pt, i) => {
-    const prevPt = smoothPoolPoints[(i - 1 + smoothPoolPoints.length) % smoothPoolPoints.length];
-    const nextPt = smoothPoolPoints[(i + 1) % smoothPoolPoints.length];
+  // CRITICAL: Use hardscape points from 2D designer if available
+  if (selectedExtras.poolBuilderData?.hardscapePoints && 
+      Array.isArray(selectedExtras.poolBuilderData.hardscapePoints) && 
+      selectedExtras.poolBuilderData.hardscapePoints.length >= 3) {
     
-    // Calculate edge vectors
-    const v1x = pt.x - prevPt.x;
-    const v1y = pt.y - prevPt.y;
-    const v2x = nextPt.x - pt.x;
-    const v2y = nextPt.y - pt.y;
+    // Convert 2D editor hardscape points to 3D deck points
+    const scale = selectedExtras.poolBuilderData?.scale || 10;
+    const pixelsToFeet = 1 / scale;
     
-    // Calculate normals (perpendicular to edges, pointing outward)
-    const n1x = -v1y;
-    const n1y = v1x;
-    const n2x = -v2y;
-    const n2y = v2x;
+    deckPoints = selectedExtras.poolBuilderData.hardscapePoints.map((pt: any, idx: number) => ({
+      x: pt.x * pixelsToFeet,
+      y: pt.y * pixelsToFeet,
+      id: pt.id || `h${idx + 1}`
+    }));
     
-    // Normalize the normals
-    const len1 = Math.sqrt(n1x * n1x + n1y * n1y);
-    const len2 = Math.sqrt(n2x * n2x + n2y * n2y);
+    console.log('🎨 Using deck shape from 2D designer:', {
+      originalPoints: selectedExtras.poolBuilderData.hardscapePoints.length,
+      convertedPoints: deckPoints.length,
+      scale: scale,
+      sampleConversion: {
+        firstPoint: selectedExtras.poolBuilderData.hardscapePoints[0],
+        convertedPoint: deckPoints[0]
+      }
+    });
+  } else {
+    // Generate deck points automatically from pool shape
+    // Step 1: Generate smooth curved pool boundary
+    const smoothPoolPoints = poolPoints.length > 3 
+      ? generateCurvedPoolPoints(
+          poolPoints.map(p => ({ x: p.x, y: p.y })),
+          30,  // high resolution for smooth curves
+          0.3  // natural curve tension
+        )
+      : poolPoints.map(p => ({ x: p.x, y: p.y }));
     
-    const norm1x = len1 > 0 ? n1x / len1 : 0;
-    const norm1y = len1 > 0 ? n1y / len1 : 0;
-    const norm2x = len2 > 0 ? n2x / len2 : 0;
-    const norm2y = len2 > 0 ? n2y / len2 : 0;
+    // Step 2: Create offset deck outline by calculating outward normals
+    const rawDeckPoints = smoothPoolPoints.map((pt, i) => {
+      const prevPt = smoothPoolPoints[(i - 1 + smoothPoolPoints.length) % smoothPoolPoints.length];
+      const nextPt = smoothPoolPoints[(i + 1) % smoothPoolPoints.length];
+      
+      // Calculate edge vectors
+      const v1x = pt.x - prevPt.x;
+      const v1y = pt.y - prevPt.y;
+      const v2x = nextPt.x - pt.x;
+      const v2y = nextPt.y - pt.y;
+      
+      // Calculate normals (perpendicular to edges, pointing outward)
+      const n1x = -v1y;
+      const n1y = v1x;
+      const n2x = -v2y;
+      const n2y = v2x;
+      
+      // Normalize the normals
+      const len1 = Math.sqrt(n1x * n1x + n1y * n1y);
+      const len2 = Math.sqrt(n2x * n2x + n2y * n2y);
+      
+      const norm1x = len1 > 0 ? n1x / len1 : 0;
+      const norm1y = len1 > 0 ? n1y / len1 : 0;
+      const norm2x = len2 > 0 ? n2x / len2 : 0;
+      const norm2y = len2 > 0 ? n2y / len2 : 0;
+      
+      // Average the two normals to get the offset direction
+      const avgNx = (norm1x + norm2x) / 2;
+      const avgNy = (norm1y + norm2y) / 2;
+      const avgLen = Math.sqrt(avgNx * avgNx + avgNy * avgNy);
+      
+      const finalNx = avgLen > 0 ? avgNx / avgLen : 0;
+      const finalNy = avgLen > 0 ? avgNy / avgLen : 0;
+      
+      // Offset the point by deckWidth in the outward normal direction
+      return {
+        x: pt.x + finalNx * deckWidth,
+        y: pt.y + finalNy * deckWidth
+      };
+    });
     
-    // Average the two normals to get the offset direction
-    const avgNx = (norm1x + norm2x) / 2;
-    const avgNy = (norm1y + norm2y) / 2;
-    const avgLen = Math.sqrt(avgNx * avgNx + avgNy * avgNy);
+    // Step 3: Apply smooth spline curve to the deck outline
+    const smoothDeckPoints = rawDeckPoints.length > 3
+      ? generateCurvedPoolPoints(
+          rawDeckPoints,
+          30,
+          0.3
+        )
+      : rawDeckPoints;
     
-    const finalNx = avgLen > 0 ? avgNx / avgLen : 0;
-    const finalNy = avgLen > 0 ? avgNy / avgLen : 0;
+    // Step 4: Convert to HardscapePoint format with IDs
+    deckPoints = smoothDeckPoints.map((pt, i) => ({
+      x: pt.x,
+      y: pt.y,
+      id: `h${i + 1}`
+    }));
     
-    // Offset the point by deckWidth in the outward normal direction
-    return {
-      x: pt.x + finalNx * deckWidth,
-      y: pt.y + finalNy * deckWidth
-    };
-  });
-  
-  // Step 3: Apply smooth spline curve to the deck outline (just like pool walls)
-  const smoothDeckPoints = rawDeckPoints.length > 3
-    ? generateCurvedPoolPoints(
-        rawDeckPoints,
-        30,  // same high resolution
-        0.3  // same natural curve tension
-      )
-    : rawDeckPoints;
-  
-  // Step 4: Convert to HardscapePoint format with IDs
-  const deckPoints: HardscapePoint[] = smoothDeckPoints.map((pt, i) => ({
-    x: pt.x,
-    y: pt.y,
-    id: `h${i + 1}`
-  }));
+    console.log('🎨 Generated deck shape from pool shape:', {
+      poolPoints: poolPoints.length,
+      deckPoints: deckPoints.length
+    });
+  }
 
   // Calculate pool depths from product (shallow and deep end)
   const shallowDepth = shallowEndDepth || 3.75;
