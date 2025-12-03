@@ -855,6 +855,7 @@ export function UnifiedPoolVisualizer({
                setEnableFloorDepthSplineEdit(true);
              }
            }}
+           poolModelDepth={poolDepth}
          />
 
           {/* Climate Controller Panel */}

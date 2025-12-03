@@ -168,20 +168,20 @@ export function DraggablePoolStair({
     return Math.max(stair.numSteps, stepsNeeded);
   }, [poolDepth, stair.stepHeight, stair.numSteps]);
 
-  // Generate solid stair geometry that reaches the floor with proper UV mapping
+  // Generate solid stair geometry with pool-wall-style UV mapping (cumulative distance)
   const stairMeshes = useMemo(() => {
     const meshes: JSX.Element[] = [];
     const stepWidth = stair.width;
     const stepDepth = stair.stepDepth;
     const stepHeight = stair.stepHeight;
-    const cornerRadius = stair.cornerRadius || 0;
+    
+    // Track cumulative distance for UV mapping like pool walls
+    let cumulativeZ = 0;
     
     for (let i = 0; i < actualNumSteps; i++) {
-      // Each step starts 1ft below water and goes down
       const stepTopY = stairTopY - i * stepHeight;
-      
-      // Get floor depth at this step's position for variable depth support
       const stepZOffset = i * stepDepth + stepDepth / 2;
+      
       const localFloorDepth = getFloorDepthAt 
         ? getFloorDepthAt(position.x + Math.cos(position.angle) * stepZOffset, 
                           position.z + Math.sin(position.angle) * stepZOffset)
@@ -190,83 +190,71 @@ export function DraggablePoolStair({
       const stepBottomY = -localFloorDepth;
       const blockHeight = Math.max(0.1, stepTopY - stepBottomY);
       
-      // Create custom UV-mapped geometry for proper 1ft x 1ft texture squares
-      const geometry = new THREE.BoxGeometry(stepWidth, blockHeight, stepDepth);
+      // Create BufferGeometry with pool-wall-style UV mapping
+      const vertices: number[] = [];
+      const uvs: number[] = [];
+      const indices: number[] = [];
       
-      // Apply custom UV mapping - 1ft squares regardless of width
-      const uvAttribute = geometry.getAttribute('uv');
-      const positionAttribute = geometry.getAttribute('position');
+      const hw = stepWidth / 2;
+      const hd = stepDepth / 2;
       
-      for (let j = 0; j < uvAttribute.count; j++) {
-        const x = positionAttribute.getX(j);
-        const y = positionAttribute.getY(j);
-        const z = positionAttribute.getZ(j);
-        
-        // Determine which face based on normal direction
-        const normalIndex = Math.floor(j / 4);
-        
-        if (normalIndex === 0 || normalIndex === 1) {
-          // Top/bottom faces - use X and Z for UV
-          uvAttribute.setXY(j, (x + stepWidth/2), (z + stepDepth/2));
-        } else if (normalIndex === 2 || normalIndex === 3) {
-          // Front/back faces - use X and Y for UV  
-          uvAttribute.setXY(j, (x + stepWidth/2), (y + blockHeight/2));
-        } else {
-          // Left/right faces - use Z and Y for UV
-          uvAttribute.setXY(j, (z + stepDepth/2), (y + blockHeight/2));
-        }
-      }
+      // Top face (Y+) - UV based on XZ position (1ft = 1 UV unit)
+      const topBaseIdx = vertices.length / 3;
+      vertices.push(-hw, blockHeight/2, -hd, hw, blockHeight/2, -hd, hw, blockHeight/2, hd, -hw, blockHeight/2, hd);
+      uvs.push(0, cumulativeZ, stepWidth, cumulativeZ, stepWidth, cumulativeZ + stepDepth, 0, cumulativeZ + stepDepth);
+      indices.push(topBaseIdx, topBaseIdx+1, topBaseIdx+2, topBaseIdx, topBaseIdx+2, topBaseIdx+3);
       
-      if (stair.shape === 'curved' && cornerRadius > 0) {
-        // Create curved step with rounded front corners
-        const shape = new THREE.Shape();
-        const r = Math.min(cornerRadius, stepWidth / 4, stepDepth / 2);
-        const w = stepWidth / 2;
-        const d = stepDepth;
-        
-        shape.moveTo(-w, -d/2);
-        shape.lineTo(-w, d/2 - r);
-        shape.quadraticCurveTo(-w, d/2, -w + r, d/2);
-        shape.lineTo(w - r, d/2);
-        shape.quadraticCurveTo(w, d/2, w, d/2 - r);
-        shape.lineTo(w, -d/2);
-        shape.lineTo(-w, -d/2);
-        
-        const extrudeSettings = { 
-          depth: blockHeight, 
-          bevelEnabled: false 
-        };
-        
-        meshes.push(
-          <mesh 
-            key={`step-${i}`}
-            position={[0, stepTopY, stepZOffset]}
-            rotation={[Math.PI / 2, 0, 0]}
-          >
-            <extrudeGeometry args={[shape, extrudeSettings]} />
-            <meshStandardMaterial 
-              map={texture} 
-              roughness={0.6}
-              metalness={0.1}
-            />
-          </mesh>
-        );
-      } else {
-        // Linear step with custom UV geometry
-        meshes.push(
-          <mesh 
-            key={`step-${i}`}
-            position={[0, stepTopY - blockHeight / 2, stepZOffset]}
-            geometry={geometry}
-          >
-            <meshStandardMaterial 
-              map={texture} 
-              roughness={0.6}
-              metalness={0.1}
-            />
-          </mesh>
-        );
-      }
+      // Front face (Z+) - UV based on X and Y (cumulative)
+      const frontBaseIdx = vertices.length / 3;
+      vertices.push(-hw, blockHeight/2, hd, hw, blockHeight/2, hd, hw, -blockHeight/2, hd, -hw, -blockHeight/2, hd);
+      uvs.push(0, blockHeight, stepWidth, blockHeight, stepWidth, 0, 0, 0);
+      indices.push(frontBaseIdx, frontBaseIdx+1, frontBaseIdx+2, frontBaseIdx, frontBaseIdx+2, frontBaseIdx+3);
+      
+      // Back face (Z-) 
+      const backBaseIdx = vertices.length / 3;
+      vertices.push(hw, blockHeight/2, -hd, -hw, blockHeight/2, -hd, -hw, -blockHeight/2, -hd, hw, -blockHeight/2, -hd);
+      uvs.push(0, blockHeight, stepWidth, blockHeight, stepWidth, 0, 0, 0);
+      indices.push(backBaseIdx, backBaseIdx+1, backBaseIdx+2, backBaseIdx, backBaseIdx+2, backBaseIdx+3);
+      
+      // Left face (X-)
+      const leftBaseIdx = vertices.length / 3;
+      vertices.push(-hw, blockHeight/2, -hd, -hw, blockHeight/2, hd, -hw, -blockHeight/2, hd, -hw, -blockHeight/2, -hd);
+      uvs.push(cumulativeZ, blockHeight, cumulativeZ + stepDepth, blockHeight, cumulativeZ + stepDepth, 0, cumulativeZ, 0);
+      indices.push(leftBaseIdx, leftBaseIdx+1, leftBaseIdx+2, leftBaseIdx, leftBaseIdx+2, leftBaseIdx+3);
+      
+      // Right face (X+)
+      const rightBaseIdx = vertices.length / 3;
+      vertices.push(hw, blockHeight/2, hd, hw, blockHeight/2, -hd, hw, -blockHeight/2, -hd, hw, -blockHeight/2, hd);
+      uvs.push(cumulativeZ, blockHeight, cumulativeZ + stepDepth, blockHeight, cumulativeZ + stepDepth, 0, cumulativeZ, 0);
+      indices.push(rightBaseIdx, rightBaseIdx+1, rightBaseIdx+2, rightBaseIdx, rightBaseIdx+2, rightBaseIdx+3);
+      
+      // Bottom face (Y-)
+      const bottomBaseIdx = vertices.length / 3;
+      vertices.push(-hw, -blockHeight/2, hd, hw, -blockHeight/2, hd, hw, -blockHeight/2, -hd, -hw, -blockHeight/2, -hd);
+      uvs.push(0, cumulativeZ + stepDepth, stepWidth, cumulativeZ + stepDepth, stepWidth, cumulativeZ, 0, cumulativeZ);
+      indices.push(bottomBaseIdx, bottomBaseIdx+1, bottomBaseIdx+2, bottomBaseIdx, bottomBaseIdx+2, bottomBaseIdx+3);
+      
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      geometry.setIndex(indices);
+      geometry.computeVertexNormals();
+      
+      meshes.push(
+        <mesh 
+          key={`step-${i}`}
+          position={[0, stepTopY - blockHeight / 2, stepZOffset]}
+          geometry={geometry}
+        >
+          <meshStandardMaterial 
+            map={texture} 
+            roughness={0.6}
+            metalness={0.1}
+          />
+        </mesh>
+      );
+      
+      cumulativeZ += stepDepth;
     }
     
     return meshes;

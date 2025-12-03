@@ -88,12 +88,13 @@ export function ContourSeating({
     }
   }, [texture]);
 
-  // Generate wall meshes using PlaneGeometry like pool walls for perfect UV
+  // Generate wall meshes using pool-wall-style UV mapping (cumulative perimeter distance)
   const { wallMeshes, topMesh, endCaps } = useMemo(() => {
     const perimeterPoints = getPerimeterSection(
       seating.startPosition,
       seating.endPosition,
-      poolPerimeter
+      poolPerimeter,
+      30 // Higher resolution for smooth contour
     );
 
     if (perimeterPoints.length < 2) {
@@ -102,12 +103,16 @@ export function ContourSeating({
 
     const topBelowWater = seating.height;
     const wallMeshes: Array<{
-      geometry: THREE.BufferGeometry;
+      vertices: number[];
+      uvs: number[];
+      indices: number[];
       position: [number, number, number];
-      rotation: [number, number, number];
     }> = [];
 
-    // Create wall segments like pool walls - each gets its own PlaneGeometry
+    // Track cumulative perimeter distance for UV mapping (like pool walls)
+    let cumulativeDistance = 0;
+
+    // Create wall segments with pool-wall-style cumulative UV mapping
     for (let i = 0; i < perimeterPoints.length - 1; i++) {
       const pt1 = perimeterPoints[i];
       const pt2 = perimeterPoints[i + 1];
@@ -117,31 +122,38 @@ export function ContourSeating({
       
       const depth1 = getFloorDepthAt(pt1.x, pt1.z);
       const depth2 = getFloorDepthAt(pt2.x, pt2.z);
-      const avgDepth = (depth1 + depth2) / 2;
       
       const topY = -topBelowWater;
-      const bottomY = -avgDepth;
-      const wallHeight = Math.abs(topY - bottomY);
+      const bottomY1 = -depth1;
+      const bottomY2 = -depth2;
+      const wallHeight = Math.max(Math.abs(topY - bottomY1), Math.abs(topY - bottomY2));
       if (wallHeight < 0.01) continue;
 
-      // OUTER WALL - create plane with proper UV (1ft = 1 UV unit)
-      const outerGeo = new THREE.PlaneGeometry(segmentLength, wallHeight);
-      const outerUV = outerGeo.getAttribute('uv');
-      for (let j = 0; j < outerUV.count; j++) {
-        const u = outerUV.getX(j) * segmentLength;
-        const v = outerUV.getY(j) * wallHeight;
-        outerUV.setXY(j, u, v);
-      }
-
-      const cx = (pt1.x + pt2.x) / 2;
-      const cz = (pt1.z + pt2.z) / 2;
-      const cy = topY - wallHeight / 2;
-      const wallAngle = Math.atan2(pt2.z - pt1.z, pt2.x - pt1.x);
-
+      // OUTER WALL - custom geometry with pool-wall UV pattern
+      const outerVerts: number[] = [];
+      const outerUVs: number[] = [];
+      const outerIndices: number[] = [];
+      
+      // 4 vertices for the quad: top-left, top-right, bottom-left, bottom-right
+      outerVerts.push(pt1.x, topY, pt1.z);        // 0: top-left
+      outerVerts.push(pt2.x, topY, pt2.z);        // 1: top-right  
+      outerVerts.push(pt1.x, bottomY1, pt1.z);    // 2: bottom-left
+      outerVerts.push(pt2.x, bottomY2, pt2.z);    // 3: bottom-right
+      
+      // UV mapping like pool walls: U = cumulative distance, V = depth
+      const avgDepth = (depth1 + depth2) / 2;
+      outerUVs.push(cumulativeDistance, avgDepth);                    // 0
+      outerUVs.push(cumulativeDistance + segmentLength, avgDepth);    // 1
+      outerUVs.push(cumulativeDistance, 0);                           // 2
+      outerUVs.push(cumulativeDistance + segmentLength, 0);           // 3
+      
+      outerIndices.push(0, 3, 1, 0, 2, 3);
+      
       wallMeshes.push({
-        geometry: outerGeo,
-        position: [cx, cy, cz],
-        rotation: [0, -wallAngle, 0]
+        vertices: outerVerts,
+        uvs: outerUVs,
+        indices: outerIndices,
+        position: [0, 0, 0]
       });
 
       // INNER WALL - offset by seating width
@@ -150,29 +162,33 @@ export function ContourSeating({
       const inX2 = pt2.x + Math.cos(pt2.angle) * seating.width;
       const inZ2 = pt2.z + Math.sin(pt2.angle) * seating.width;
 
-      const innerSegmentLength = Math.sqrt((inX2 - inX1) ** 2 + (inZ2 - inZ1) ** 2);
-      if (innerSegmentLength < 0.01) continue;
+      const innerVerts: number[] = [];
+      const innerUVs: number[] = [];
+      const innerIndices: number[] = [];
       
-      const innerGeo = new THREE.PlaneGeometry(innerSegmentLength, wallHeight);
-      const innerUV = innerGeo.getAttribute('uv');
-      for (let j = 0; j < innerUV.count; j++) {
-        const u = innerUV.getX(j) * innerSegmentLength;
-        const v = innerUV.getY(j) * wallHeight;
-        innerUV.setXY(j, u, v);
-      }
-
-      const inCx = (inX1 + inX2) / 2;
-      const inCz = (inZ1 + inZ2) / 2;
-      const innerAngle = Math.atan2(inZ2 - inZ1, inX2 - inX1);
-
+      innerVerts.push(inX2, topY, inZ2);          // 0: top-left (reversed for inward normal)
+      innerVerts.push(inX1, topY, inZ1);          // 1: top-right
+      innerVerts.push(inX2, bottomY2, inZ2);      // 2: bottom-left
+      innerVerts.push(inX1, bottomY1, inZ1);      // 3: bottom-right
+      
+      innerUVs.push(cumulativeDistance + segmentLength, avgDepth);
+      innerUVs.push(cumulativeDistance, avgDepth);
+      innerUVs.push(cumulativeDistance + segmentLength, 0);
+      innerUVs.push(cumulativeDistance, 0);
+      
+      innerIndices.push(0, 3, 1, 0, 2, 3);
+      
       wallMeshes.push({
-        geometry: innerGeo,
-        position: [inCx, cy, inCz],
-        rotation: [0, -innerAngle + Math.PI, 0]
+        vertices: innerVerts,
+        uvs: innerUVs,
+        indices: innerIndices,
+        position: [0, 0, 0]
       });
+
+      cumulativeDistance += segmentLength;
     }
 
-    // Create TOP surface using Shape for accurate contour
+    // Create TOP surface using Shape
     const outerPath: Array<{ x: number; z: number }> = [];
     const innerPath: Array<{ x: number; z: number }> = [];
 
@@ -198,13 +214,12 @@ export function ContourSeating({
       shape.closePath();
 
       const topGeo = new THREE.ShapeGeometry(shape);
-      // Apply 1ft x 1ft UV mapping
       const topUV = topGeo.getAttribute('uv');
       const topPos = topGeo.getAttribute('position');
       for (let i = 0; i < topUV.count; i++) {
         const x = topPos.getX(i);
         const z = topPos.getY(i);
-        topUV.setXY(i, x, z);
+        topUV.setXY(i, x, z); // 1ft = 1 UV unit
       }
 
       topMesh = {
@@ -213,11 +228,11 @@ export function ContourSeating({
       };
     }
 
-    // Create end caps
+    // Create end caps with proper UV
     const endCaps: Array<{
-      geometry: THREE.BufferGeometry;
-      position: [number, number, number];
-      rotation: [number, number, number];
+      vertices: number[];
+      uvs: number[];
+      indices: number[];
     }> = [];
 
     if (perimeterPoints.length >= 2) {
@@ -227,21 +242,20 @@ export function ContourSeating({
       const startHeight = Math.abs(-topBelowWater - (-startDepth));
       
       if (startHeight > 0.01) {
-        const startCapGeo = new THREE.PlaneGeometry(seating.width, startHeight);
-        const startCapUV = startCapGeo.getAttribute('uv');
-        for (let j = 0; j < startCapUV.count; j++) {
-          startCapUV.setXY(j, startCapUV.getX(j) * seating.width, startCapUV.getY(j) * startHeight);
-        }
+        const inX = startPt.x + Math.cos(startPt.angle) * seating.width;
+        const inZ = startPt.z + Math.sin(startPt.angle) * seating.width;
         
-        endCaps.push({
-          geometry: startCapGeo,
-          position: [
-            startPt.x + Math.cos(startPt.angle) * seating.width / 2,
-            -topBelowWater - startHeight / 2,
-            startPt.z + Math.sin(startPt.angle) * seating.width / 2
-          ],
-          rotation: [0, -startPt.angle + Math.PI / 2, 0]
-        });
+        const startVerts: number[] = [];
+        const startUVs: number[] = [];
+        
+        startVerts.push(startPt.x, -topBelowWater, startPt.z);
+        startVerts.push(inX, -topBelowWater, inZ);
+        startVerts.push(startPt.x, -startDepth, startPt.z);
+        startVerts.push(inX, -startDepth, inZ);
+        
+        startUVs.push(0, startHeight, seating.width, startHeight, 0, 0, seating.width, 0);
+        
+        endCaps.push({ vertices: startVerts, uvs: startUVs, indices: [0, 3, 1, 0, 2, 3] });
       }
 
       // End cap
@@ -250,21 +264,20 @@ export function ContourSeating({
       const endHeight = Math.abs(-topBelowWater - (-endDepth));
       
       if (endHeight > 0.01) {
-        const endCapGeo = new THREE.PlaneGeometry(seating.width, endHeight);
-        const endCapUV = endCapGeo.getAttribute('uv');
-        for (let j = 0; j < endCapUV.count; j++) {
-          endCapUV.setXY(j, endCapUV.getX(j) * seating.width, endCapUV.getY(j) * endHeight);
-        }
+        const inX = endPt.x + Math.cos(endPt.angle) * seating.width;
+        const inZ = endPt.z + Math.sin(endPt.angle) * seating.width;
         
-        endCaps.push({
-          geometry: endCapGeo,
-          position: [
-            endPt.x + Math.cos(endPt.angle) * seating.width / 2,
-            -topBelowWater - endHeight / 2,
-            endPt.z + Math.sin(endPt.angle) * seating.width / 2
-          ],
-          rotation: [0, -endPt.angle - Math.PI / 2, 0]
-        });
+        const endVerts: number[] = [];
+        const endUVs: number[] = [];
+        
+        endVerts.push(inX, -topBelowWater, inZ);
+        endVerts.push(endPt.x, -topBelowWater, endPt.z);
+        endVerts.push(inX, -endDepth, inZ);
+        endVerts.push(endPt.x, -endDepth, endPt.z);
+        
+        endUVs.push(0, endHeight, seating.width, endHeight, 0, 0, seating.width, 0);
+        
+        endCaps.push({ vertices: endVerts, uvs: endUVs, indices: [0, 3, 1, 0, 2, 3] });
       }
     }
 
@@ -297,15 +310,36 @@ export function ContourSeating({
     side: THREE.DoubleSide
   };
 
+  // Create geometries from vertex data
+  const wallGeometries = useMemo(() => {
+    return wallMeshes.map(wall => {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(wall.vertices, 3));
+      geo.setAttribute('uv', new THREE.Float32BufferAttribute(wall.uvs, 2));
+      geo.setIndex(wall.indices);
+      geo.computeVertexNormals();
+      return geo;
+    });
+  }, [wallMeshes]);
+
+  const endCapGeometries = useMemo(() => {
+    return endCaps.map(cap => {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(cap.vertices, 3));
+      geo.setAttribute('uv', new THREE.Float32BufferAttribute(cap.uvs, 2));
+      geo.setIndex(cap.indices);
+      geo.computeVertexNormals();
+      return geo;
+    });
+  }, [endCaps]);
+
   return (
     <group ref={groupRef}>
-      {/* Wall segments with proper UV */}
-      {wallMeshes.map((wall, idx) => (
+      {/* Wall segments with pool-wall-style UV */}
+      {wallGeometries.map((geo, idx) => (
         <mesh
           key={`wall-${idx}`}
-          geometry={wall.geometry}
-          position={wall.position}
-          rotation={wall.rotation}
+          geometry={geo}
           onPointerDown={handlePointerDown}
           onPointerOver={() => gl.domElement.style.cursor = isDragging ? 'grabbing' : 'grab'}
           onPointerOut={() => !isDragging && (gl.domElement.style.cursor = 'auto')}
@@ -327,12 +361,10 @@ export function ContourSeating({
       )}
 
       {/* End caps */}
-      {endCaps.map((cap, idx) => (
+      {endCapGeometries.map((geo, idx) => (
         <mesh
           key={`cap-${idx}`}
-          geometry={cap.geometry}
-          position={cap.position}
-          rotation={cap.rotation}
+          geometry={geo}
         >
           <meshStandardMaterial {...materialProps} />
         </mesh>
