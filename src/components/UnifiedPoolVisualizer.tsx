@@ -1,7 +1,7 @@
 import { Canvas as R3FCanvas, useThree } from '@react-three/fiber';
 import { OrbitControls, TransformControls, Sky, Grid } from '@react-three/drei';
-import { useState, useEffect, useRef, Suspense, useCallback } from 'react';
-import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation, Point, PoolLightConfig } from './scene3d/types';
+import { useState, useEffect, useRef, Suspense, useCallback, useMemo } from 'react';
+import { Scene3D, TransformMode, CameraPreset, TextureConfig, Annotation, Point, PoolLightConfig, LinearDepthAnchor } from './scene3d/types';
 import { Pool3DScene } from './Pool3DScene';
 import WaterSurface from './WaterSurface';
 import { Scene3DControlPanel } from './Scene3DControlPanel';
@@ -22,6 +22,7 @@ import { WalkthroughController } from './scene3d/WalkthroughController';
 import { PoolDesignerHeader } from './scene3d/PoolDesignerHeader';
 import { SplineEditPanel } from './scene3d/SplineEditPanel';
 import { DepthProfileEditor } from './scene3d/DepthProfileEditor';
+import { createDepthInterpolator, createDefaultLinearAnchors } from './scene3d/depthUtils';
 import { Button } from './ui/button';
 import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Sun, Moon, PersonStanding, Edit3, ArrowUpDown } from 'lucide-react';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
@@ -187,6 +188,23 @@ export function UnifiedPoolVisualizer({
   const DEFAULT_STEP_DEPTH = 0.9167; // 11 inches
   
   const poolDepth = scene.pool.dimensions?.depth || 8;
+
+  // Create linearDepthAnchors if not set, based on product depths
+  const linearDepthAnchors = useMemo(() => {
+    if (scene.pool.linearDepthAnchors && scene.pool.linearDepthAnchors.length >= 2) {
+      return scene.pool.linearDepthAnchors;
+    }
+    return createDefaultLinearAnchors(poolShallowDepth, poolDeepDepth);
+  }, [scene.pool.linearDepthAnchors, poolShallowDepth, poolDeepDepth]);
+
+  // Create getFloorDepthAt function using linear depth anchors
+  const getFloorDepthAt = useMemo(() => {
+    return createDepthInterpolator(
+      linearDepthAnchors,
+      scene.pool.points,
+      scene.pool.dimensions
+    );
+  }, [linearDepthAnchors, scene.pool.points, scene.pool.dimensions]);
 
   // Update parent when scene changes
   useEffect(() => {
@@ -920,12 +938,7 @@ export function UnifiedPoolVisualizer({
           <DepthProfileEditor
             isOpen={showDepthProfileEditor && !isSplineEditMode}
             onClose={() => setShowDepthProfileEditor(false)}
-            linearDepthAnchors={scene.pool.linearDepthAnchors || [
-              { id: 'd1', position: 0, depth: poolShallowDepth },
-              { id: 'd2', position: 0.33, depth: poolShallowDepth + (poolDeepDepth - poolShallowDepth) * 0.33 },
-              { id: 'd3', position: 0.67, depth: poolShallowDepth + (poolDeepDepth - poolShallowDepth) * 0.67 },
-              { id: 'd4', position: 1, depth: poolDeepDepth },
-            ]}
+            linearDepthAnchors={linearDepthAnchors}
             onLinearDepthAnchorsChange={handleLinearDepthAnchorsChange}
             selectedAnchorId={selectedSplinePointId}
             onSelectAnchor={setSelectedSplinePointId}
@@ -1088,6 +1101,7 @@ export function UnifiedPoolVisualizer({
             selectedAssetId={selectedPoolAssetId}
             onSelectAsset={setSelectedPoolAssetId}
             poolDepth={poolDepth}
+            getFloorDepthAt={getFloorDepthAt}
           />
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />

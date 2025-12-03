@@ -80,7 +80,7 @@ export function DraggablePoolStair({
     return points;
   };
 
-  // Generate stair geometry with optional rounded corners
+  // Generate stair geometry with proper 1ft x 1ft UV mapping like pool walls
   const stairGeometry = useMemo(() => {
     const stepWidth = stair.width;
     const stepDepth = stair.stepDepth;
@@ -92,7 +92,8 @@ export function DraggablePoolStair({
     const allIndices: number[] = [];
     let vertexOffset = 0;
     
-    let cumulativeZ = 0;
+    // Cumulative distance along perimeter for UV mapping
+    let cumulativePerimeterDist = 0;
     
     for (let i = 0; i < actualNumSteps; i++) {
       const stepTopY = stairTopY - i * stepHeight;
@@ -160,21 +161,21 @@ export function DraggablePoolStair({
         // Close the loop
         profilePoints.push(profilePoints[0]);
         
-        // TOP SURFACE - Use triangulation for rounded shape
+        // TOP SURFACE - Use 1ft x 1ft UV pattern based on local coordinates
         const topBase = vertexOffset;
         const centerX = 0;
         const centerZ = zStart + stepDepth / 2;
         
         // Center vertex
         allVertices.push(centerX, stepTopY, centerZ);
-        allUVs.push(centerX, centerZ);
+        allUVs.push(centerX, centerZ); // 1ft = 1 UV unit
         vertexOffset++;
         
         // Perimeter vertices
         for (let j = 0; j < profilePoints.length - 1; j++) {
           const pt = profilePoints[j];
           allVertices.push(pt.x, stepTopY, pt.z);
-          allUVs.push(pt.x, pt.z);
+          allUVs.push(pt.x, pt.z); // 1ft = 1 UV unit
           vertexOffset++;
         }
         
@@ -184,9 +185,8 @@ export function DraggablePoolStair({
         }
         allIndices.push(topBase, topBase + profilePoints.length - 2, topBase + 1);
         
-        // SIDE WALLS - cumulative distance UV
-        let wallCumulativeDist = 0;
-        const wallBase = vertexOffset;
+        // SIDE WALLS - cumulative distance UV for proper 1ft squares
+        let wallCumulativeDist = cumulativePerimeterDist;
         
         for (let j = 0; j < profilePoints.length - 1; j++) {
           const p1 = profilePoints[j];
@@ -199,6 +199,7 @@ export function DraggablePoolStair({
           allVertices.push(p1.x, stepBottomY, p1.z);
           allVertices.push(p2.x, stepBottomY, p2.z);
           
+          // UV: cumulative distance for U, height for V (1ft = 1 UV unit)
           allUVs.push(wallCumulativeDist, blockHeight);
           allUVs.push(wallCumulativeDist + segLen, blockHeight);
           allUVs.push(wallCumulativeDist, 0);
@@ -212,9 +213,9 @@ export function DraggablePoolStair({
         }
         
       } else {
-        // Linear (rectangular) step geometry
+        // Linear (rectangular) step geometry with proper 1ft x 1ft UV mapping
         
-        // TOP face - world-space UV
+        // TOP face - local coordinate UV for 1ft grid
         let baseIdx = vertexOffset;
         allVertices.push(
           -hw, stepTopY, zStart,
@@ -222,16 +223,17 @@ export function DraggablePoolStair({
           hw, stepTopY, zEnd,
           -hw, stepTopY, zEnd
         );
+        // UV based on local X,Z for consistent 1ft tiling
         allUVs.push(
-          -hw, zStart,
-          hw, zStart,
-          hw, zEnd,
-          -hw, zEnd
+          0, 0,
+          stepWidth, 0,
+          stepWidth, stepDepth,
+          0, stepDepth
         );
         allIndices.push(baseIdx, baseIdx + 2, baseIdx + 1, baseIdx, baseIdx + 3, baseIdx + 2);
         vertexOffset += 4;
         
-        // FRONT face (Z+ direction)
+        // FRONT face (Z+ direction) - cumulative distance based UV
         baseIdx = vertexOffset;
         allVertices.push(
           -hw, stepTopY, zEnd,
@@ -239,11 +241,12 @@ export function DraggablePoolStair({
           hw, stepBottomY, zEnd,
           -hw, stepBottomY, zEnd
         );
+        // UV: width along U, height along V
         allUVs.push(
-          cumulativeZ, blockHeight,
-          cumulativeZ + stepWidth, blockHeight,
-          cumulativeZ + stepWidth, 0,
-          cumulativeZ, 0
+          cumulativePerimeterDist, blockHeight,
+          cumulativePerimeterDist + stepWidth, blockHeight,
+          cumulativePerimeterDist + stepWidth, 0,
+          cumulativePerimeterDist, 0
         );
         allIndices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
         vertexOffset += 4;
@@ -267,7 +270,7 @@ export function DraggablePoolStair({
           vertexOffset += 4;
         }
         
-        // LEFT face (X-)
+        // LEFT face (X-) - cumulative distance based UV
         baseIdx = vertexOffset;
         allVertices.push(
           -hw, stepTopY, zStart,
@@ -275,16 +278,17 @@ export function DraggablePoolStair({
           -hw, stepBottomY, zEnd,
           -hw, stepBottomY, zStart
         );
+        const leftStartDist = cumulativePerimeterDist + stepWidth;
         allUVs.push(
-          cumulativeZ, blockHeight,
-          cumulativeZ + stepDepth, blockHeight,
-          cumulativeZ + stepDepth, 0,
-          cumulativeZ, 0
+          leftStartDist, blockHeight,
+          leftStartDist + stepDepth, blockHeight,
+          leftStartDist + stepDepth, 0,
+          leftStartDist, 0
         );
         allIndices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
         vertexOffset += 4;
         
-        // RIGHT face (X+)
+        // RIGHT face (X+) - cumulative distance based UV
         baseIdx = vertexOffset;
         allVertices.push(
           hw, stepTopY, zEnd,
@@ -292,17 +296,19 @@ export function DraggablePoolStair({
           hw, stepBottomY, zStart,
           hw, stepBottomY, zEnd
         );
+        const rightStartDist = cumulativePerimeterDist + stepWidth + stepDepth;
         allUVs.push(
-          cumulativeZ + stepDepth, blockHeight,
-          cumulativeZ, blockHeight,
-          cumulativeZ, 0,
-          cumulativeZ + stepDepth, 0
+          rightStartDist + stepDepth, blockHeight,
+          rightStartDist, blockHeight,
+          rightStartDist, 0,
+          rightStartDist + stepDepth, 0
         );
         allIndices.push(baseIdx, baseIdx + 1, baseIdx + 2, baseIdx, baseIdx + 2, baseIdx + 3);
         vertexOffset += 4;
       }
       
-      cumulativeZ += stepDepth;
+      // Update cumulative distance for next step
+      cumulativePerimeterDist += (stepWidth * 2) + (stepDepth * 2);
     }
     
     const geometry = new THREE.BufferGeometry();
