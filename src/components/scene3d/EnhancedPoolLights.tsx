@@ -67,13 +67,13 @@ export function EnhancedPoolLights({
   );
 }
 
-// Create default lights (2 lights at 25% and 75% of perimeter)
+// Create default lights (2 lights at 25% and 75% of perimeter, 2ft below water by default)
 export function createDefaultPoolLights(isNightMode: boolean = false): PoolLightConfig[] {
   return [
     {
       id: 'light-default-1',
       wallPosition: 0.25,
-      depthFromSurface: 1.5,
+      depthFromSurface: 2.0, // 2 feet below water surface
       color: '#ffffff',
       colorMode: 'white',
       intensity: 2,
@@ -82,7 +82,7 @@ export function createDefaultPoolLights(isNightMode: boolean = false): PoolLight
     {
       id: 'light-default-2',
       wallPosition: 0.75,
-      depthFromSurface: 1.5,
+      depthFromSurface: 2.0, // 2 feet below water surface
       color: '#ffffff',
       colorMode: 'white',
       intensity: 2,

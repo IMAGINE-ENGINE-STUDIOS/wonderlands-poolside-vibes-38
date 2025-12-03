@@ -49,12 +49,12 @@ export function PoolAssetManager({
       id: `stair-${Date.now()}`,
       wallPosition: 0.1 + Math.random() * 0.2,
       shape,
-      width: 4,
+      width: 2, // Default 2 feet width
       numSteps: 4,
       stepHeight: 0.625, // 7.5 inches
       stepDepth: 0.917, // 11 inches
       textureUrl: poolFinishTexture,
-      cornerRadius: shape === 'curved' ? 0.5 : 0
+      cornerRadius: shape === 'curved' ? 1.0 : 0 // Default 1 foot radius for curved
     };
     onStairsChange([...stairs, newStair]);
     onSelectAsset(newStair.id);
@@ -65,7 +65,7 @@ export function PoolAssetManager({
     const presets = {
       lounge: { width: 2.5, depth: 6, height: 1.5, name: 'Tanning Ledge' },
       bench: { width: 6, depth: 1.5, height: 1.2, name: 'Pool Bench' },
-      corner: { width: 3, depth: 3, height: 1.2, name: 'Corner Seat' }
+      corner: { width: 2, depth: 2, height: 1.0, name: 'Corner Seat' } // 1 foot below water, 2x2 ft
     };
     
     const p = presets[preset];

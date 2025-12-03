@@ -18,8 +18,9 @@ import { WaterCaustics } from './scene3d/WaterCaustics';
 import { PoolAssetManager } from './scene3d/PoolAssetManager';
 import { PoolAssetsRenderer } from './scene3d/PoolAssetsRenderer';
 import { PoolStairConfig, PoolChairConfig } from './scene3d/poolAssetTypes';
+import { WalkthroughController } from './scene3d/WalkthroughController';
 import { Button } from './ui/button';
-import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Box, Sun, Moon, Footprints } from 'lucide-react';
+import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Box, Sun, Moon, Footprints, PersonStanding } from 'lucide-react';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { Checkbox } from './ui/checkbox';
 import * as THREE from 'three';
@@ -133,6 +134,9 @@ export function UnifiedPoolVisualizer({
   const [poolChairs, setPoolChairs] = useState<PoolChairConfig[]>([]);
   const [selectedPoolAssetId, setSelectedPoolAssetId] = useState<string | null>(null);
   const [showPoolAssetManager, setShowPoolAssetManager] = useState(false);
+  
+  // Walkthrough mode state
+  const [isWalkthroughMode, setIsWalkthroughMode] = useState(false);
   
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
@@ -690,7 +694,48 @@ export function UnifiedPoolVisualizer({
           >
             <Footprints className="w-5 h-5" />
           </button>
+          <button
+            onClick={() => setIsWalkthroughMode(!isWalkthroughMode)}
+            className={`p-2 rounded-lg shadow-lg transition-colors ${isWalkthroughMode ? 'bg-green-600 text-white' : 'bg-background/80 hover:bg-background'}`}
+            title="Walkthrough Mode (WASD + Space to jump)"
+          >
+            <PersonStanding className="w-5 h-5" />
+          </button>
         </div>
+
+        {/* Walkthrough Mode UI Overlay */}
+        {isWalkthroughMode && (
+          <div className="absolute inset-0 pointer-events-none z-20">
+            {/* Exit button */}
+            <button
+              onClick={() => setIsWalkthroughMode(false)}
+              className="absolute top-4 right-16 pointer-events-auto bg-red-500/80 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+            >
+              Exit Walkthrough (ESC)
+            </button>
+            
+            {/* Instructions */}
+            <div className="absolute bottom-4 left-4 pointer-events-none bg-black/50 text-white p-3 rounded-lg text-sm">
+              <p className="font-medium mb-1">Walkthrough Controls:</p>
+              <p>WASD / Arrow Keys - Move</p>
+              <p>Mouse - Look around</p>
+              <p>Space - Jump</p>
+              <p>ESC - Exit</p>
+              {isMobile && (
+                <>
+                  <p className="mt-2 font-medium">Mobile:</p>
+                  <p>Left side - Move</p>
+                  <p>Right side - Look</p>
+                </>
+              )}
+            </div>
+            
+            {/* Crosshair */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-1 h-1 bg-white rounded-full opacity-50"></div>
+            </div>
+          </div>
+        )}
 
 
          {/* Quick Controls Bar - Bottom Left */}
@@ -790,7 +835,7 @@ export function UnifiedPoolVisualizer({
                   position: scene.camera.position,
                   fov: 50
                 }}
-                frameloop="demand" // Only render when needed, not every frame
+                frameloop={isWalkthroughMode ? "always" : "demand"} // Always render during walkthrough for smooth movement
               >
           {/* Dynamic Sky with Clouds - Day/Night modes */}
           {!isNightMode ? (
@@ -1008,14 +1053,27 @@ export function UnifiedPoolVisualizer({
             onToggleConfirm={handleToggleConfirmAnnotation}
           />
           
-          <OrbitControls
-            ref={controlsRef}
-            makeDefault
-            autoRotate={autoRotate}
-            autoRotateSpeed={0.5}
-            enableDamping
-            dampingFactor={0.05}
+          {/* Walkthrough Controller */}
+          <WalkthroughController
+            enabled={isWalkthroughMode}
+            onExit={() => setIsWalkthroughMode(false)}
+            groundLevel={0}
+            playerHeight={5.5}
+            moveSpeed={10}
+            jumpForce={15}
           />
+          
+          {/* OrbitControls - disabled during walkthrough */}
+          {!isWalkthroughMode && (
+            <OrbitControls
+              ref={controlsRef}
+              makeDefault
+              autoRotate={autoRotate}
+              autoRotateSpeed={0.5}
+              enableDamping
+              dampingFactor={0.05}
+            />
+          )}
                </R3FCanvas>
             )}
           </Suspense>
