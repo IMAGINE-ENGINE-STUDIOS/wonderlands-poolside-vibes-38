@@ -348,6 +348,213 @@ export type Database = {
           },
         ]
       }
+      contractor_agreements: {
+        Row: {
+          agreement_version: string | null
+          contractor_id: string
+          created_at: string | null
+          id: string
+          ip_address: unknown
+          signature_data: string | null
+          signed_at: string | null
+          signed_name: string
+          signed_title: string | null
+        }
+        Insert: {
+          agreement_version?: string | null
+          contractor_id: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          signature_data?: string | null
+          signed_at?: string | null
+          signed_name: string
+          signed_title?: string | null
+        }
+        Update: {
+          agreement_version?: string | null
+          contractor_id?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          signature_data?: string | null
+          signed_at?: string | null
+          signed_name?: string
+          signed_title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_agreements_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractor_licenses: {
+        Row: {
+          contractor_id: string
+          created_at: string | null
+          document_url: string | null
+          expiration_date: string | null
+          id: string
+          is_verified: boolean | null
+          issuing_authority: string | null
+          license_number: string | null
+          license_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          contractor_id: string
+          created_at?: string | null
+          document_url?: string | null
+          expiration_date?: string | null
+          id?: string
+          is_verified?: boolean | null
+          issuing_authority?: string | null
+          license_number?: string | null
+          license_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          contractor_id?: string
+          created_at?: string | null
+          document_url?: string | null
+          expiration_date?: string | null
+          id?: string
+          is_verified?: boolean | null
+          issuing_authority?: string | null
+          license_number?: string | null
+          license_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_licenses_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractor_services: {
+        Row: {
+          contractor_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          labor_price: number | null
+          notes: string | null
+          price_unit: string | null
+          service_category: string
+          service_name: string
+          updated_at: string | null
+          with_materials_price: number | null
+        }
+        Insert: {
+          contractor_id: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          labor_price?: number | null
+          notes?: string | null
+          price_unit?: string | null
+          service_category: string
+          service_name: string
+          updated_at?: string | null
+          with_materials_price?: number | null
+        }
+        Update: {
+          contractor_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          labor_price?: number | null
+          notes?: string | null
+          price_unit?: string | null
+          service_category?: string
+          service_name?: string
+          updated_at?: string | null
+          with_materials_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_services_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contractors: {
+        Row: {
+          address_city: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zip: string | null
+          agreement_signed: boolean | null
+          agreement_signed_at: string | null
+          company_name: string
+          contact_name: string
+          created_at: string | null
+          email: string
+          id: string
+          notes: string | null
+          phone: string | null
+          status: Database["public"]["Enums"]["contractor_status"] | null
+          subscription_active: boolean | null
+          tax_id: string | null
+          updated_at: string | null
+          user_id: string | null
+          years_experience: number | null
+        }
+        Insert: {
+          address_city?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          agreement_signed?: boolean | null
+          agreement_signed_at?: string | null
+          company_name: string
+          contact_name: string
+          created_at?: string | null
+          email: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["contractor_status"] | null
+          subscription_active?: boolean | null
+          tax_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          years_experience?: number | null
+        }
+        Update: {
+          address_city?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          agreement_signed?: boolean | null
+          agreement_signed_at?: string | null
+          company_name?: string
+          contact_name?: string
+          created_at?: string | null
+          email?: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          status?: Database["public"]["Enums"]["contractor_status"] | null
+          subscription_active?: boolean | null
+          tax_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          years_experience?: number | null
+        }
+        Relationships: []
+      }
       conversion_funnels: {
         Row: {
           average_session_duration: unknown
@@ -2174,6 +2381,7 @@ export type Database = {
       }
     }
     Enums: {
+      contractor_status: "pending" | "approved" | "suspended" | "rejected"
       user_role: "main_admin" | "supplier" | "consumer" | "sales_rep"
     }
     CompositeTypes: {
@@ -2302,6 +2510,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      contractor_status: ["pending", "approved", "suspended", "rejected"],
       user_role: ["main_admin", "supplier", "consumer", "sales_rep"],
     },
   },
