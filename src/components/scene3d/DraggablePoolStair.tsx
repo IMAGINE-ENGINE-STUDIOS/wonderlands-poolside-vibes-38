@@ -11,6 +11,7 @@ interface DraggablePoolStairProps {
   isSelected: boolean;
   onSelect: (stairId: string) => void;
   poolDepth: number;
+  getFloorDepthAt?: (x: number, z: number) => number;
 }
 
 // Calculate position on pool wall from wallPosition (0-1)
@@ -122,7 +123,8 @@ export function DraggablePoolStair({
   onPositionChange,
   isSelected,
   onSelect,
-  poolDepth
+  poolDepth,
+  getFloorDepthAt
 }: DraggablePoolStairProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -137,26 +139,36 @@ export function DraggablePoolStair({
   useEffect(() => {
     if (texture) {
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-      texture.repeat.set(0.5, 0.5);
+      // Keep texture at 1:1 scale - don't stretch with width
+      texture.repeat.set(1, 1);
     }
   }, [texture]);
 
   // Calculate current position on wall
   const position = getPositionOnPerimeter(stair.wallPosition, poolPerimeter);
 
-  // Calculate inward direction (into pool)
-  const inwardDir = useMemo(() => ({
-    x: Math.cos(position.angle),
-    z: Math.sin(position.angle)
-  }), [position.angle]);
+  // Determine if this is a "length" wall (needs 180 rotation) based on wall angle
+  // Length walls are roughly parallel to X axis (angle near 0 or PI)
+  const isLengthWall = useMemo(() => {
+    const normalizedAngle = ((position.angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    // Check if angle is near 0, PI, or 2*PI (horizontal walls)
+    const tolerance = Math.PI / 4; // 45 degrees tolerance
+    return (normalizedAngle < tolerance || 
+            Math.abs(normalizedAngle - Math.PI) < tolerance || 
+            normalizedAngle > (2 * Math.PI - tolerance));
+  }, [position.angle]);
 
-  // Auto-calculate number of steps needed to reach the bottom
+  // Top of stairs is 1ft below water surface
+  const stairTopY = -1;
+
+  // Auto-calculate number of steps needed to reach the bottom from 1ft below water
   const actualNumSteps = useMemo(() => {
-    const stepsNeeded = Math.ceil(poolDepth / stair.stepHeight);
+    const depthToTravel = poolDepth - 1; // From 1ft below water to bottom
+    const stepsNeeded = Math.ceil(depthToTravel / stair.stepHeight);
     return Math.max(stair.numSteps, stepsNeeded);
   }, [poolDepth, stair.stepHeight, stair.numSteps]);
 
-  // Generate solid stair geometry that reaches the floor
+  // Generate solid stair geometry that reaches the floor with proper UV mapping
   const stairMeshes = useMemo(() => {
     const meshes: JSX.Element[] = [];
     const stepWidth = stair.width;
@@ -165,14 +177,45 @@ export function DraggablePoolStair({
     const cornerRadius = stair.cornerRadius || 0;
     
     for (let i = 0; i < actualNumSteps; i++) {
-      // Each step is a solid block from its top surface down to the pool floor
-      const stepTop = -i * stepHeight; // Y position of step top
-      const stepBottom = -poolDepth; // Always extends to pool floor
-      const blockHeight = Math.max(0.1, stepTop - stepBottom);
+      // Each step starts 1ft below water and goes down
+      const stepTopY = stairTopY - i * stepHeight;
       
-      // Z offset - steps go BACKWARD (away from wall, into pool center)
-      // Negative Z because we rotate the group 180 degrees
-      const zOffset = -i * stepDepth - stepDepth / 2;
+      // Get floor depth at this step's position for variable depth support
+      const stepZOffset = i * stepDepth + stepDepth / 2;
+      const localFloorDepth = getFloorDepthAt 
+        ? getFloorDepthAt(position.x + Math.cos(position.angle) * stepZOffset, 
+                          position.z + Math.sin(position.angle) * stepZOffset)
+        : poolDepth;
+      
+      const stepBottomY = -localFloorDepth;
+      const blockHeight = Math.max(0.1, stepTopY - stepBottomY);
+      
+      // Create custom UV-mapped geometry for proper 1ft x 1ft texture squares
+      const geometry = new THREE.BoxGeometry(stepWidth, blockHeight, stepDepth);
+      
+      // Apply custom UV mapping - 1ft squares regardless of width
+      const uvAttribute = geometry.getAttribute('uv');
+      const positionAttribute = geometry.getAttribute('position');
+      
+      for (let j = 0; j < uvAttribute.count; j++) {
+        const x = positionAttribute.getX(j);
+        const y = positionAttribute.getY(j);
+        const z = positionAttribute.getZ(j);
+        
+        // Determine which face based on normal direction
+        const normalIndex = Math.floor(j / 4);
+        
+        if (normalIndex === 0 || normalIndex === 1) {
+          // Top/bottom faces - use X and Z for UV
+          uvAttribute.setXY(j, (x + stepWidth/2), (z + stepDepth/2));
+        } else if (normalIndex === 2 || normalIndex === 3) {
+          // Front/back faces - use X and Y for UV  
+          uvAttribute.setXY(j, (x + stepWidth/2), (y + blockHeight/2));
+        } else {
+          // Left/right faces - use Z and Y for UV
+          uvAttribute.setXY(j, (z + stepDepth/2), (y + blockHeight/2));
+        }
+      }
       
       if (stair.shape === 'curved' && cornerRadius > 0) {
         // Create curved step with rounded front corners
@@ -181,7 +224,6 @@ export function DraggablePoolStair({
         const w = stepWidth / 2;
         const d = stepDepth;
         
-        // Shape for step tread (top surface)
         shape.moveTo(-w, -d/2);
         shape.lineTo(-w, d/2 - r);
         shape.quadraticCurveTo(-w, d/2, -w + r, d/2);
@@ -198,7 +240,7 @@ export function DraggablePoolStair({
         meshes.push(
           <mesh 
             key={`step-${i}`}
-            position={[0, stepTop, zOffset]}
+            position={[0, stepTopY, stepZOffset]}
             rotation={[Math.PI / 2, 0, 0]}
           >
             <extrudeGeometry args={[shape, extrudeSettings]} />
@@ -210,13 +252,13 @@ export function DraggablePoolStair({
           </mesh>
         );
       } else {
-        // Linear step - simple box
+        // Linear step with custom UV geometry
         meshes.push(
           <mesh 
             key={`step-${i}`}
-            position={[0, stepTop - blockHeight / 2, zOffset]}
+            position={[0, stepTopY - blockHeight / 2, stepZOffset]}
+            geometry={geometry}
           >
-            <boxGeometry args={[stepWidth, blockHeight, stepDepth]} />
             <meshStandardMaterial 
               map={texture} 
               roughness={0.6}
@@ -228,7 +270,7 @@ export function DraggablePoolStair({
     }
     
     return meshes;
-  }, [stair, texture, poolDepth, actualNumSteps]);
+  }, [stair, texture, poolDepth, actualNumSteps, position, getFloorDepthAt, stairTopY]);
 
   // Handle pointer events
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
@@ -274,16 +316,16 @@ export function DraggablePoolStair({
   // Calculate total stair depth for positioning
   const totalStairDepth = actualNumSteps * stair.stepDepth;
 
-  // Calculate inward offset to place stairs fully inside pool
-  const inwardOffset = stair.stepDepth * 0.5; // Half step depth inward
-  const offsetX = position.x + Math.cos(position.angle) * inwardOffset;
-  const offsetZ = position.z + Math.sin(position.angle) * inwardOffset;
+  // Position stairs at wall edge - back of stairs touches wall
+  // Extra rotation for length walls (180 degrees)
+  const baseRotation = position.angle + Math.PI / 2;
+  const finalRotation = isLengthWall ? baseRotation + Math.PI : baseRotation;
 
   return (
     <group
       ref={groupRef}
-      position={[offsetX, 0, offsetZ]}
-      rotation={[0, position.angle + Math.PI / 2, 0]} // Rotate 90° so back faces wall, steps go into pool
+      position={[position.x, 0, position.z]}
+      rotation={[0, finalRotation, 0]}
       onPointerDown={handlePointerDown}
       onPointerOver={() => gl.domElement.style.cursor = isDragging ? 'grabbing' : 'grab'}
       onPointerOut={() => !isDragging && (gl.domElement.style.cursor = 'auto')}
@@ -293,7 +335,7 @@ export function DraggablePoolStair({
       
       {/* Selection highlight */}
       {isSelected && (
-        <mesh position={[0, 0.05, -totalStairDepth / 2]}>
+        <mesh position={[0, stairTopY, totalStairDepth / 2]}>
           <boxGeometry args={[stair.width + 0.2, 0.05, totalStairDepth + 0.2]} />
           <meshBasicMaterial color="#00ffff" transparent opacity={0.4} />
         </mesh>

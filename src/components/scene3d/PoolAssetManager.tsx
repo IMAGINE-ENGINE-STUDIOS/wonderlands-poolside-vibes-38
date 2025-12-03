@@ -276,19 +276,41 @@ export function PoolAssetManager({
                       value={[selectedStair.width]}
                       onValueChange={([v]) => updateStair(selectedStair.id, { width: v })}
                       min={2}
-                      max={10}
+                      max={12}
                       step={0.5}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs">Steps: {selectedStair.numSteps}</Label>
+                    <Label className="text-xs">Min Steps: {selectedStair.numSteps} (auto-extends to floor)</Label>
                     <Slider
                       value={[selectedStair.numSteps]}
                       onValueChange={([v]) => updateStair(selectedStair.id, { numSteps: v })}
                       min={2}
                       max={12}
                       step={1}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs">Step Height: {(selectedStair.stepHeight * 12).toFixed(1)}" ({selectedStair.stepHeight.toFixed(2)} ft)</Label>
+                    <Slider
+                      value={[selectedStair.stepHeight]}
+                      onValueChange={([v]) => updateStair(selectedStair.id, { stepHeight: v })}
+                      min={0.5}
+                      max={0.833}
+                      step={0.042}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs">Step Depth: {(selectedStair.stepDepth * 12).toFixed(1)}" ({selectedStair.stepDepth.toFixed(2)} ft)</Label>
+                    <Slider
+                      value={[selectedStair.stepDepth]}
+                      onValueChange={([v]) => updateStair(selectedStair.id, { stepDepth: v })}
+                      min={0.75}
+                      max={1.25}
+                      step={0.042}
                     />
                   </div>
 
@@ -306,7 +328,7 @@ export function PoolAssetManager({
                   )}
 
                   <p className="text-xs text-muted-foreground">
-                    Drag in 3D view to reposition along wall
+                    Stairs start 1ft below water. Drag in 3D view to reposition.
                   </p>
                 </div>
               )}
@@ -445,7 +467,7 @@ export function PoolAssetManager({
                   </div>
 
                   <p className="text-xs text-muted-foreground">
-                    Follows pool wall contour. Adjust start/end to control length.
+                    Follows pool wall contour. Top surface 1ft below water, extends to floor.
                   </p>
                 </div>
               )}

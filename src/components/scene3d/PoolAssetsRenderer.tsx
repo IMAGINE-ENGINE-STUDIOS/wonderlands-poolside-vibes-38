@@ -89,6 +89,7 @@ export function PoolAssetsRenderer({
           isSelected={stair.id === selectedAssetId}
           onSelect={onSelectAsset}
           poolDepth={poolDepth}
+          getFloorDepthAt={getFloorDepthAt}
         />
       ))}
 
