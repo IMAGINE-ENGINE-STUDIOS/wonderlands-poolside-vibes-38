@@ -8,7 +8,6 @@ interface WalkthroughControllerProps {
   groundLevel?: number;
   playerHeight?: number;
   moveSpeed?: number;
-  jumpForce?: number;
 }
 
 export function WalkthroughController({
@@ -16,24 +15,20 @@ export function WalkthroughController({
   onExit,
   groundLevel = 0,
   playerHeight = 5.5, // 5.5 feet eye height
-  moveSpeed = 8,
-  jumpForce = 12
+  moveSpeed = 8
 }: WalkthroughControllerProps) {
   const { camera, gl } = useThree();
   
   // Movement state
   const velocity = useRef(new THREE.Vector3());
   const direction = useRef(new THREE.Vector3());
-  const isJumping = useRef(false);
-  const canJump = useRef(true);
   
   // Input state
   const keys = useRef({
     forward: false,
     backward: false,
     left: false,
-    right: false,
-    jump: false
+    right: false
   });
   
   // Mouse look state
@@ -83,9 +78,6 @@ export function WalkthroughController({
         case 'ArrowRight':
           keys.current.right = true;
           break;
-        case 'Space':
-          keys.current.jump = true;
-          break;
         case 'Escape':
           onExit();
           break;
@@ -109,9 +101,6 @@ export function WalkthroughController({
         case 'KeyD':
         case 'ArrowRight':
           keys.current.right = false;
-          break;
-        case 'Space':
-          keys.current.jump = false;
           break;
       }
     };
@@ -274,29 +263,12 @@ export function WalkthroughController({
       velocity.current.z *= 0.9;
     }
 
-    // Jump
-    if (keys.current.jump && canJump.current && !isJumping.current) {
-      velocity.current.y = jumpForce;
-      isJumping.current = true;
-      canJump.current = false;
-    }
-
-    // Gravity
-    velocity.current.y -= 30 * delta;
-
-    // Apply velocity
+    // Apply velocity (ground movement only, no jumping)
     camera.position.x += velocity.current.x * delta;
-    camera.position.y += velocity.current.y * delta;
     camera.position.z += velocity.current.z * delta;
 
-    // Ground collision
-    const floorY = groundLevel + playerHeight;
-    if (camera.position.y < floorY) {
-      camera.position.y = floorY;
-      velocity.current.y = 0;
-      isJumping.current = false;
-      canJump.current = true;
-    }
+    // Keep camera at ground level
+    camera.position.y = groundLevel + playerHeight;
 
     // Boundary limits (keep within reasonable area)
     const boundary = 100;
@@ -308,9 +280,8 @@ export function WalkthroughController({
 }
 
 // Mobile UI overlay for walkthrough controls
-export function WalkthroughMobileUI({ enabled, onJump, onExit }: { 
+export function WalkthroughMobileUI({ enabled, onExit }: { 
   enabled: boolean; 
-  onJump: () => void;
   onExit: () => void;
 }) {
   if (!enabled) return null;
@@ -323,14 +294,6 @@ export function WalkthroughMobileUI({ enabled, onJump, onExit }: {
         className="absolute top-4 right-4 pointer-events-auto bg-black/50 text-white px-4 py-2 rounded-lg"
       >
         Exit Walkthrough
-      </button>
-      
-      {/* Jump button for mobile */}
-      <button
-        onTouchStart={onJump}
-        className="absolute bottom-20 right-8 pointer-events-auto w-16 h-16 bg-white/30 rounded-full flex items-center justify-center text-white text-xl font-bold"
-      >
-        ↑
       </button>
       
       {/* Instructions */}

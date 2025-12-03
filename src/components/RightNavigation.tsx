@@ -19,7 +19,13 @@ const RightNavigation = () => {
   
   // Check if we're on the main page - only show full navigation on main page
   const isMainPage = location.pathname === '/';
+  const isWonderlandsStudio = location.pathname === '/wonderlands-studio';
   const isQuoteOpen = typeof document !== 'undefined' && document.body.dataset.quoteOpen === 'true';
+  
+  // Hide navigation completely on Wonderlands Studio page (home button is in header)
+  if (isWonderlandsStudio) {
+    return null;
+  }
 
   useEffect(() => {
     let ticking = false;
