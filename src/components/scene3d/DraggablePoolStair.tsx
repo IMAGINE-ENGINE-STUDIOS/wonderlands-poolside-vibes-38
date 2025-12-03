@@ -150,26 +150,29 @@ export function DraggablePoolStair({
     z: Math.sin(position.angle)
   }), [position.angle]);
 
+  // Auto-calculate number of steps needed to reach the bottom
+  const actualNumSteps = useMemo(() => {
+    const stepsNeeded = Math.ceil(poolDepth / stair.stepHeight);
+    return Math.max(stair.numSteps, stepsNeeded);
+  }, [poolDepth, stair.stepHeight, stair.numSteps]);
+
   // Generate solid stair geometry that reaches the floor
   const stairMeshes = useMemo(() => {
     const meshes: JSX.Element[] = [];
     const stepWidth = stair.width;
     const stepDepth = stair.stepDepth;
     const stepHeight = stair.stepHeight;
-    const numSteps = stair.numSteps;
     const cornerRadius = stair.cornerRadius || 0;
     
-    // Calculate total height needed to reach floor
-    const totalStairHeight = poolDepth;
-    
-    for (let i = 0; i < numSteps; i++) {
+    for (let i = 0; i < actualNumSteps; i++) {
       // Each step is a solid block from its top surface down to the pool floor
       const stepTop = -i * stepHeight; // Y position of step top
       const stepBottom = -poolDepth; // Always extends to pool floor
-      const blockHeight = stepTop - stepBottom;
+      const blockHeight = Math.max(0.1, stepTop - stepBottom);
       
-      // Z offset - steps go inward into the pool
-      const zOffset = i * stepDepth;
+      // Z offset - steps go BACKWARD (away from wall, into pool center)
+      // Negative Z because we rotate the group 180 degrees
+      const zOffset = -i * stepDepth - stepDepth / 2;
       
       if (stair.shape === 'curved' && cornerRadius > 0) {
         // Create curved step with rounded front corners
@@ -178,14 +181,14 @@ export function DraggablePoolStair({
         const w = stepWidth / 2;
         const d = stepDepth;
         
-        // Start from back-left, go clockwise
-        shape.moveTo(-w, 0);
-        shape.lineTo(-w, d - r);
-        shape.quadraticCurveTo(-w, d, -w + r, d);
-        shape.lineTo(w - r, d);
-        shape.quadraticCurveTo(w, d, w, d - r);
-        shape.lineTo(w, 0);
-        shape.lineTo(-w, 0);
+        // Shape for step tread (top surface)
+        shape.moveTo(-w, -d/2);
+        shape.lineTo(-w, d/2 - r);
+        shape.quadraticCurveTo(-w, d/2, -w + r, d/2);
+        shape.lineTo(w - r, d/2);
+        shape.quadraticCurveTo(w, d/2, w, d/2 - r);
+        shape.lineTo(w, -d/2);
+        shape.lineTo(-w, -d/2);
         
         const extrudeSettings = { 
           depth: blockHeight, 
@@ -211,7 +214,7 @@ export function DraggablePoolStair({
         meshes.push(
           <mesh 
             key={`step-${i}`}
-            position={[0, stepTop - blockHeight / 2, zOffset + stepDepth / 2]}
+            position={[0, stepTop - blockHeight / 2, zOffset]}
           >
             <boxGeometry args={[stepWidth, blockHeight, stepDepth]} />
             <meshStandardMaterial 
@@ -225,7 +228,7 @@ export function DraggablePoolStair({
     }
     
     return meshes;
-  }, [stair, texture, poolDepth]);
+  }, [stair, texture, poolDepth, actualNumSteps]);
 
   // Handle pointer events
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
@@ -268,18 +271,14 @@ export function DraggablePoolStair({
     };
   }, [isDragging, camera, gl.domElement, poolPerimeter, stair.id, onPositionChange]);
 
-  // Offset stairs slightly inward from wall so they're fully inside pool
-  const inwardOffset = 0.1; // Small offset to ensure stairs are inside
+  // Calculate total stair depth for positioning
+  const totalStairDepth = actualNumSteps * stair.stepDepth;
 
   return (
     <group
       ref={groupRef}
-      position={[
-        position.x + inwardDir.x * inwardOffset,
-        0,
-        position.z + inwardDir.z * inwardOffset
-      ]}
-      rotation={[0, position.angle, 0]}
+      position={[position.x, 0, position.z]}
+      rotation={[0, position.angle + Math.PI, 0]} // Rotate 180° so back faces wall
       onPointerDown={handlePointerDown}
       onPointerOver={() => gl.domElement.style.cursor = isDragging ? 'grabbing' : 'grab'}
       onPointerOut={() => !isDragging && (gl.domElement.style.cursor = 'auto')}
@@ -289,8 +288,8 @@ export function DraggablePoolStair({
       
       {/* Selection highlight */}
       {isSelected && (
-        <mesh position={[0, 0.05, stair.stepDepth * stair.numSteps / 2]}>
-          <boxGeometry args={[stair.width + 0.2, 0.05, stair.stepDepth * stair.numSteps + 0.2]} />
+        <mesh position={[0, 0.05, -totalStairDepth / 2]}>
+          <boxGeometry args={[stair.width + 0.2, 0.05, totalStairDepth + 0.2]} />
           <meshBasicMaterial color="#00ffff" transparent opacity={0.4} />
         </mesh>
       )}

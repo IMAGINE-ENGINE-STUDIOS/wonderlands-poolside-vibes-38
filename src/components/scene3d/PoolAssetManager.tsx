@@ -8,15 +8,15 @@ import { Switch } from '@/components/ui/switch';
 import { 
   Footprints, 
   Armchair, 
-  Waves, 
   Droplets,
   ChevronDown,
   ChevronUp,
   Plus,
   Trash2,
-  Move
+  Lightbulb
 } from 'lucide-react';
-import { PoolStairConfig, PoolChairConfig, PoolAsset } from './poolAssetTypes';
+import { PoolStairConfig, PoolChairConfig } from './poolAssetTypes';
+import { PoolLightConfig } from './types';
 
 interface PoolAssetManagerProps {
   isOpen: boolean;
@@ -25,9 +25,12 @@ interface PoolAssetManagerProps {
   onStairsChange: (stairs: PoolStairConfig[]) => void;
   chairs: PoolChairConfig[];
   onChairsChange: (chairs: PoolChairConfig[]) => void;
+  lights: PoolLightConfig[];
+  onLightsChange: (lights: PoolLightConfig[]) => void;
   selectedAssetId: string | null;
   onSelectAsset: (id: string | null) => void;
   poolFinishTexture: string;
+  isNightMode: boolean;
 }
 
 export function PoolAssetManager({
@@ -37,9 +40,12 @@ export function PoolAssetManager({
   onStairsChange,
   chairs,
   onChairsChange,
+  lights,
+  onLightsChange,
   selectedAssetId,
   onSelectAsset,
-  poolFinishTexture
+  poolFinishTexture,
+  isNightMode
 }: PoolAssetManagerProps) {
   const [activeTab, setActiveTab] = useState('stairs');
 
@@ -60,12 +66,12 @@ export function PoolAssetManager({
     onSelectAsset(newStair.id);
   }, [stairs, onStairsChange, onSelectAsset, poolFinishTexture]);
 
-  // Add new chair/bench
+  // Add new chair/bench - uses pool finish texture by default
   const handleAddChair = useCallback((preset: 'lounge' | 'bench' | 'corner') => {
     const presets = {
       lounge: { width: 2.5, depth: 6, height: 1.5, name: 'Tanning Ledge' },
-      bench: { width: 6, depth: 1.5, height: 1.2, name: 'Pool Bench' },
-      corner: { width: 2, depth: 2, height: 1.0, name: 'Corner Seat' } // 1 foot below water, 2x2 ft
+      bench: { width: 6, depth: 1.5, height: 1.0, name: 'Pool Bench' },
+      corner: { width: 2, depth: 2, height: 1.0, name: 'Corner Seat' } // 1 foot below water
     };
     
     const p = presets[preset];
@@ -74,9 +80,9 @@ export function PoolAssetManager({
       wallPosition: 0.3 + Math.random() * 0.2,
       width: p.width,
       depth: p.depth,
-      height: p.height,
+      height: p.height, // This is depth below water for top surface
       cornerRadius: 0.3,
-      textureUrl: poolFinishTexture,
+      textureUrl: poolFinishTexture, // Use pool finish texture
       snapToWall: true,
       followFloor: true,
       name: p.name
@@ -84,6 +90,21 @@ export function PoolAssetManager({
     onChairsChange([...chairs, newChair]);
     onSelectAsset(newChair.id);
   }, [chairs, onChairsChange, onSelectAsset, poolFinishTexture]);
+
+  // Add new light
+  const handleAddLight = useCallback(() => {
+    const newLight: PoolLightConfig = {
+      id: `light-${Date.now()}`,
+      wallPosition: Math.random() * 0.8 + 0.1,
+      depthFromSurface: 2.0, // 2 feet below water
+      color: '#ffffff',
+      colorMode: 'white',
+      intensity: 2,
+      isOn: isNightMode
+    };
+    onLightsChange([...lights, newLight]);
+    onSelectAsset(newLight.id);
+  }, [lights, onLightsChange, onSelectAsset, isNightMode]);
 
   // Delete selected asset
   const handleDeleteSelected = useCallback(() => {
@@ -93,13 +114,16 @@ export function PoolAssetManager({
       onStairsChange(stairs.filter(s => s.id !== selectedAssetId));
     } else if (selectedAssetId.startsWith('chair-')) {
       onChairsChange(chairs.filter(c => c.id !== selectedAssetId));
+    } else if (selectedAssetId.startsWith('light-')) {
+      onLightsChange(lights.filter(l => l.id !== selectedAssetId));
     }
     onSelectAsset(null);
-  }, [selectedAssetId, stairs, chairs, onStairsChange, onChairsChange, onSelectAsset]);
+  }, [selectedAssetId, stairs, chairs, lights, onStairsChange, onChairsChange, onLightsChange, onSelectAsset]);
 
-  // Get selected stair/chair for editing
+  // Get selected items for editing
   const selectedStair = stairs.find(s => s.id === selectedAssetId);
   const selectedChair = chairs.find(c => c.id === selectedAssetId);
+  const selectedLight = lights.find(l => l.id === selectedAssetId);
 
   // Update stair property
   const updateStair = useCallback((id: string, updates: Partial<PoolStairConfig>) => {
@@ -111,6 +135,11 @@ export function PoolAssetManager({
     onChairsChange(chairs.map(c => c.id === id ? { ...c, ...updates } : c));
   }, [chairs, onChairsChange]);
 
+  // Update light property
+  const updateLight = useCallback((id: string, updates: Partial<PoolLightConfig>) => {
+    onLightsChange(lights.map(l => l.id === id ? { ...l, ...updates } : l));
+  }, [lights, onLightsChange]);
+
   if (!isOpen) {
     return (
       <Button
@@ -119,7 +148,7 @@ export function PoolAssetManager({
         onClick={onToggle}
         className="absolute top-4 right-4 z-10 bg-background/80 backdrop-blur-sm"
       >
-        <Waves className="h-4 w-4 mr-2" />
+        <Footprints className="h-4 w-4 mr-2" />
         Pool Assets
         <ChevronDown className="h-4 w-4 ml-2" />
       </Button>
@@ -130,7 +159,7 @@ export function PoolAssetManager({
     <div className="absolute top-4 right-4 z-10 w-80 bg-background/95 backdrop-blur-sm border rounded-lg shadow-lg">
       <div className="flex items-center justify-between p-3 border-b">
         <h3 className="font-semibold text-sm flex items-center gap-2">
-          <Waves className="h-4 w-4" />
+          <Footprints className="h-4 w-4" />
           Pool Assets
         </h3>
         <Button variant="ghost" size="sm" onClick={onToggle}>
@@ -148,13 +177,13 @@ export function PoolAssetManager({
             <Armchair className="h-3 w-3 mr-1" />
             Seating
           </TabsTrigger>
+          <TabsTrigger value="lights" className="text-xs">
+            <Lightbulb className="h-3 w-3 mr-1" />
+            Lights
+          </TabsTrigger>
           <TabsTrigger value="jets" className="text-xs">
             <Droplets className="h-3 w-3 mr-1" />
             Jets
-          </TabsTrigger>
-          <TabsTrigger value="other" className="text-xs">
-            <Move className="h-3 w-3 mr-1" />
-            Other
           </TabsTrigger>
         </TabsList>
 
@@ -231,7 +260,7 @@ export function PoolAssetManager({
                       value={[selectedStair.numSteps]}
                       onValueChange={([v]) => updateStair(selectedStair.id, { numSteps: v })}
                       min={2}
-                      max={8}
+                      max={12}
                       step={1}
                     />
                   </div>
@@ -350,13 +379,13 @@ export function PoolAssetManager({
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs">Height: {selectedChair.height.toFixed(1)} ft</Label>
+                    <Label className="text-xs">Top Surface Depth: {selectedChair.height.toFixed(1)} ft below water</Label>
                     <Slider
                       value={[selectedChair.height]}
                       onValueChange={([v]) => updateChair(selectedChair.id, { height: v })}
                       min={0.5}
-                      max={3}
-                      step={0.1}
+                      max={4}
+                      step={0.25}
                     />
                   </div>
 
@@ -379,14 +408,6 @@ export function PoolAssetManager({
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs">Follow Floor Depth</Label>
-                    <Switch
-                      checked={selectedChair.followFloor}
-                      onCheckedChange={(v) => updateChair(selectedChair.id, { followFloor: v })}
-                    />
-                  </div>
-
                   <p className="text-xs text-muted-foreground">
                     Drag in 3D view to reposition
                   </p>
@@ -402,20 +423,124 @@ export function PoolAssetManager({
           </ScrollArea>
         </TabsContent>
 
+        {/* LIGHTS TAB */}
+        <TabsContent value="lights" className="mt-2">
+          <ScrollArea className="h-[300px]">
+            <div className="space-y-3 pr-2">
+              {/* Add Light Button */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleAddLight}
+                className="w-full text-xs"
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Add Pool Light
+              </Button>
+
+              {/* Lights List */}
+              {lights.map((light, idx) => (
+                <div
+                  key={light.id}
+                  className={`p-2 border rounded cursor-pointer transition-colors ${
+                    selectedAssetId === light.id ? 'border-primary bg-primary/10' : 'hover:bg-muted/50'
+                  }`}
+                  onClick={() => onSelectAsset(light.id)}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium flex items-center gap-1">
+                      <Lightbulb className={`h-3 w-3 ${light.isOn ? 'text-yellow-400' : 'text-muted-foreground'}`} />
+                      Light #{idx + 1}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {light.depthFromSurface}ft deep
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {/* Selected Light Controls */}
+              {selectedLight && (
+                <div className="space-y-3 p-3 bg-muted/30 rounded-lg mt-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium">Edit Light</Label>
+                    <Button variant="destructive" size="sm" onClick={handleDeleteSelected}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Light On</Label>
+                    <Switch
+                      checked={selectedLight.isOn}
+                      onCheckedChange={(v) => updateLight(selectedLight.id, { isOn: v })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs">Depth: {selectedLight.depthFromSurface.toFixed(1)} ft below water</Label>
+                    <Slider
+                      value={[selectedLight.depthFromSurface]}
+                      onValueChange={([v]) => updateLight(selectedLight.id, { depthFromSurface: v })}
+                      min={0.5}
+                      max={6}
+                      step={0.25}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs">Intensity: {selectedLight.intensity.toFixed(1)}</Label>
+                    <Slider
+                      value={[selectedLight.intensity]}
+                      onValueChange={([v]) => updateLight(selectedLight.id, { intensity: v })}
+                      min={0.5}
+                      max={5}
+                      step={0.25}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Color Mode</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        variant={selectedLight.colorMode === 'white' ? 'default' : 'outline'}
+                        size="sm"
+                        className="text-xs h-7 px-2"
+                        onClick={() => updateLight(selectedLight.id, { colorMode: 'white', color: '#ffffff' })}
+                      >
+                        White
+                      </Button>
+                      <Button
+                        variant={selectedLight.colorMode === 'gradient' ? 'default' : 'outline'}
+                        size="sm"
+                        className="text-xs h-7 px-2"
+                        onClick={() => updateLight(selectedLight.id, { colorMode: 'gradient' })}
+                      >
+                        Color Cycle
+                      </Button>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    Drag in 3D view to reposition along wall
+                  </p>
+                </div>
+              )}
+
+              {lights.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-4">
+                  No lights added. Click above to add.
+                </p>
+              )}
+            </div>
+          </ScrollArea>
+        </TabsContent>
+
         {/* JETS TAB */}
         <TabsContent value="jets" className="mt-2">
           <div className="p-4 text-center text-muted-foreground">
             <Droplets className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-xs">Jets & bubblers coming soon</p>
-          </div>
-        </TabsContent>
-
-        {/* OTHER TAB */}
-        <TabsContent value="other" className="mt-2">
-          <div className="p-4 text-center text-muted-foreground">
-            <Move className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-xs">More pool features coming soon</p>
-            <p className="text-xs mt-1">Handrails, ladders, drains...</p>
           </div>
         </TabsContent>
       </Tabs>

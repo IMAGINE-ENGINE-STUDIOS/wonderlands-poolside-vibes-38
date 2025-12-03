@@ -152,7 +152,11 @@ export function DraggablePoolChair({
   
   // Get floor depth at position
   const floorDepth = chair.followFloor ? getFloorDepthAt(posX, posZ) : 0;
-  const posY = -floorDepth + chair.height / 2;
+  // Position so TOP surface is at desired depth below water (chair.height represents depth below water for top surface)
+  // E.g., if height=1, top surface is 1ft below water, bottom rests on floor
+  const topBelowWater = chair.height; // This is how deep the TOP surface is below water
+  const chairThickness = Math.min(1, floorDepth - topBelowWater); // Actual thickness limited by floor
+  const posY = -topBelowWater - chairThickness / 2; // Center of the chair mesh
 
   // Handle pointer events
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
@@ -208,9 +212,9 @@ export function DraggablePoolChair({
       onPointerOver={() => gl.domElement.style.cursor = isDragging ? 'grabbing' : 'grab'}
       onPointerOut={() => !isDragging && (gl.domElement.style.cursor = 'auto')}
     >
-      {/* Main chair body with rounded edges */}
+      {/* Main chair body with rounded edges - thickness from floor to top surface */}
       <RoundedBox
-        args={[chair.width, chair.height, chair.depth]}
+        args={[chair.width, chairThickness, chair.depth]}
         radius={chair.cornerRadius}
         smoothness={4}
       >
@@ -223,7 +227,7 @@ export function DraggablePoolChair({
       
       {/* Selection highlight */}
       {isSelected && (
-        <mesh position={[0, chair.height / 2 + 0.05, 0]}>
+        <mesh position={[0, chairThickness / 2 + 0.05, 0]}>
           <boxGeometry args={[chair.width + 0.1, 0.05, chair.depth + 0.1]} />
           <meshBasicMaterial color="#00ffff" transparent opacity={0.5} />
         </mesh>
