@@ -1007,9 +1007,20 @@ const WonderlandsStudio = () => {
       <div className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-between gap-4">
-            <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary via-teal to-coral bg-clip-text text-transparent">
-              Wonderlands Studio
-            </h1>
+            {/* Left side: Home button + Title */}
+            <div className="flex items-center gap-3">
+              <a
+                href="/"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-1.5 transition-colors shadow-sm"
+                title="Back to Home"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Home</span>
+              </a>
+              <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary via-teal to-coral bg-clip-text text-transparent">
+                Wonderlands Studio
+              </h1>
+            </div>
             
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />

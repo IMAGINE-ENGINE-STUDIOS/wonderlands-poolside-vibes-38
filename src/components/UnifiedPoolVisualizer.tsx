@@ -666,22 +666,22 @@ export function UnifiedPoolVisualizer({
         </button>
 
         {/* Undo/Redo & Reset View Controls */}
-        <div className="absolute top-4 left-4 z-10 flex gap-2">
+        <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-1 md:gap-2 max-w-[calc(100%-80px)] md:max-w-none">
           <button
             onClick={undo}
             disabled={!canUndo}
-            className="bg-background/80 hover:bg-background p-2 rounded-lg shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-background/80 hover:bg-background p-1.5 md:p-2 rounded-lg shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             title="Undo (Ctrl+Z)"
           >
-            <Undo2 className="w-5 h-5" />
+            <Undo2 className="w-4 h-4 md:w-5 md:h-5" />
           </button>
           <button
             onClick={redo}
             disabled={!canRedo}
-            className="bg-background/80 hover:bg-background p-2 rounded-lg shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-background/80 hover:bg-background p-1.5 md:p-2 rounded-lg shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             title="Redo (Ctrl+Y)"
           >
-            <Redo2 className="w-5 h-5" />
+            <Redo2 className="w-4 h-4 md:w-5 md:h-5" />
           </button>
           <button
             onClick={() => {
@@ -695,10 +695,10 @@ export function UnifiedPoolVisualizer({
                 controls.update();
               }
             }}
-            className="bg-background/80 hover:bg-background p-2 rounded-lg shadow-lg transition-colors"
+            className="bg-background/80 hover:bg-background p-1.5 md:p-2 rounded-lg shadow-lg transition-colors"
             title="Reset View"
           >
-            <RotateCcw className="w-5 h-5" />
+            <RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
           </button>
           <button
             onClick={() => {
@@ -707,38 +707,38 @@ export function UnifiedPoolVisualizer({
               setShowMeasurements(newShowGrid);
               setShowRulers(newShowGrid);
             }}
-            className={`p-2 rounded-lg shadow-lg transition-colors ${showGrid ? 'bg-primary text-primary-foreground' : 'bg-background/80 hover:bg-background'}`}
+            className={`p-1.5 md:p-2 rounded-lg shadow-lg transition-colors ${showGrid ? 'bg-primary text-primary-foreground' : 'bg-background/80 hover:bg-background'}`}
             title={showGrid ? "Hide Grid & Measurements" : "Show Grid & Measurements"}
           >
-            <Grid3x3 className="w-5 h-5" />
+            <Grid3x3 className="w-4 h-4 md:w-5 md:h-5" />
           </button>
           <button
             onClick={() => setShowWater(!showWater)}
-            className={`p-2 rounded-lg shadow-lg transition-colors ${showWater ? 'bg-primary text-primary-foreground' : 'bg-background/80 hover:bg-background'}`}
+            className={`p-1.5 md:p-2 rounded-lg shadow-lg transition-colors ${showWater ? 'bg-primary text-primary-foreground' : 'bg-background/80 hover:bg-background'}`}
             title={showWater ? "Hide Water" : "Show Water"}
           >
-            <Waves className="w-5 h-5" />
+            <Waves className="w-4 h-4 md:w-5 md:h-5" />
           </button>
           <button
             onClick={() => setShowClimateController(!showClimateController)}
-            className={`p-2 rounded-lg shadow-lg transition-colors ${isNightMode ? 'bg-blue-600 text-white' : 'bg-background/80 hover:bg-background'}`}
+            className={`p-1.5 md:p-2 rounded-lg shadow-lg transition-colors ${isNightMode ? 'bg-blue-600 text-white' : 'bg-background/80 hover:bg-background'}`}
             title="Climate Controls"
           >
-            {isNightMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            {isNightMode ? <Moon className="w-4 h-4 md:w-5 md:h-5" /> : <Sun className="w-4 h-4 md:w-5 md:h-5" />}
           </button>
           <button
             onClick={() => setIsWalkthroughMode(!isWalkthroughMode)}
-            className={`p-2 rounded-lg shadow-lg transition-colors ${isWalkthroughMode ? 'bg-green-600 text-white' : 'bg-background/80 hover:bg-background'}`}
+            className={`hidden md:block p-1.5 md:p-2 rounded-lg shadow-lg transition-colors ${isWalkthroughMode ? 'bg-green-600 text-white' : 'bg-background/80 hover:bg-background'}`}
             title="Walkthrough Mode (WASD + Space to jump)"
           >
-            <PersonStanding className="w-5 h-5" />
+            <PersonStanding className="w-4 h-4 md:w-5 md:h-5" />
           </button>
           <button
             onClick={() => setShowDepthProfileEditor(!showDepthProfileEditor)}
-            className={`p-2 rounded-lg shadow-lg transition-colors ${showDepthProfileEditor ? 'bg-cyan-600 text-white' : 'bg-background/80 hover:bg-background'}`}
+            className={`hidden md:block p-1.5 md:p-2 rounded-lg shadow-lg transition-colors ${showDepthProfileEditor ? 'bg-cyan-600 text-white' : 'bg-background/80 hover:bg-background'}`}
             title="Depth Profile Editor"
           >
-            <ArrowUpDown className="w-5 h-5" />
+            <ArrowUpDown className="w-4 h-4 md:w-5 md:h-5" />
           </button>
           <button
             onClick={() => {
@@ -753,25 +753,26 @@ export function UnifiedPoolVisualizer({
                 setSelectedSplineComponent(null);
               }
             }}
-            className={`p-2 rounded-lg shadow-lg transition-colors ${isSplineEditMode ? 'bg-orange-600 text-white' : 'bg-background/80 hover:bg-background'}`}
+            className={`hidden md:block p-1.5 md:p-2 rounded-lg shadow-lg transition-colors ${isSplineEditMode ? 'bg-orange-600 text-white' : 'bg-background/80 hover:bg-background'}`}
             title="3D Spline Editor (Advanced)"
           >
-            <Edit3 className="w-5 h-5" />
+            <Edit3 className="w-4 h-4 md:w-5 md:h-5" />
           </button>
         </div>
 
-        {/* Pool Designer Header with Measurements & Cost - positioned in top bar */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
-          {/* Home button */}
-          <a
-            href="/"
-            className="bg-background/80 hover:bg-background p-2 rounded-lg shadow-lg transition-colors flex items-center gap-2 text-sm font-medium"
-            title="Back to Home"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Home
-          </a>
-          {/* Inline estimates */}
+        {/* Pool Designer Header with Measurements & Cost - positioned in header bar after buttons */}
+        <div className="absolute top-4 left-[320px] md:left-[400px] z-20 hidden sm:block">
+          <PoolDesignerHeader
+            poolPoints={scene.pool.points}
+            poolDepth={poolDepth}
+            deckWidth={deckWidth}
+            copingWidth={scene.deck.copingWidth || 1}
+            poolPrice={parseFloat(new URLSearchParams(window.location.search).get('price') || '50000')}
+          />
+        </div>
+        
+        {/* Mobile estimates - bottom bar */}
+        <div className="absolute bottom-16 left-4 right-4 z-20 sm:hidden">
           <PoolDesignerHeader
             poolPoints={scene.pool.points}
             poolDepth={poolDepth}
