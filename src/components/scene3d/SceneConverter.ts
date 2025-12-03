@@ -309,10 +309,29 @@ export function productToScene(
     id: `h${i + 1}`
   }));
 
+  // Calculate pool depth from product (use deepEndDepth which was parsed earlier)
+  const poolDepth = deepEndDepth || 6.6;
+  
+  // Create perimeter depth points to initialize pool bottom with correct depth
+  const perimeterDepthPoints = poolPoints.map((pt, i) => ({
+    x: pt.x - width / 2,  // Center the coordinates
+    z: pt.y - length / 2,
+    depth: poolDepth,  // Use the parsed pool depth
+    id: `perimeter-depth-${i}`,
+    type: 'smooth' as const
+  }));
+  
+  console.log('🔵 SceneConverter: Creating perimeterDepthPoints with depth:', poolDepth, {
+    pointCount: perimeterDepthPoints.length,
+    productDepthString: product.depth,
+    parsedDepth: deepEndDepth
+  });
+
   const scene: Scene3D = {
     pool: {
       points: poolPoints,
       depthPoints: depthPoints,
+      perimeterDepthPoints: perimeterDepthPoints,  // Initialize with correct depth
       shape: 'rectangle',
       finish: {
         url: linerTextureUrl,
@@ -324,7 +343,7 @@ export function productToScene(
       },
       position: [-10, 0, 20], // Pool hole at S25 grid position
       rotation: [0, 0, 0],
-      dimensions: { length, width, depth: deepEndDepth || 6.6 }
+      dimensions: { length, width, depth: poolDepth }
     },
     deck: {
       points: deckPoints,
