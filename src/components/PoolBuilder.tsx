@@ -13,7 +13,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower2, Droplets, Box } from 'lucide-react';
+import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower2, Droplets, Box, PenTool, Shapes } from 'lucide-react';
+import { ShapeRepository } from './ShapeRepository';
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import poolTextureSapphire from '@/assets/pool-texture-sapphire.jpg';
 import { paverTypes } from '@/data/paverData';
@@ -293,7 +294,9 @@ export function PoolBuilder({
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [smoothCorners, setSmoothCorners] = useState(false);
-  const [activeTool, setActiveTool] = useState<'select' | 'rotate' | 'zoom' | 'add' | null>(null);
+  const [activeTool, setActiveTool] = useState<'select' | 'rotate' | 'zoom' | 'add' | 'draw-pool' | 'draw-deck' | null>(null);
+  const [drawingPoints, setDrawingPoints] = useState<Point[]>([]);
+  const [isDrawing, setIsDrawing] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [deckOffset, setDeckOffset] = useState(3); // Deck offset from coping edge in feet (minimum 3ft)
   const [snapPoint, setSnapPoint] = useState<{
@@ -1296,8 +1299,12 @@ export function PoolBuilder({
       });
     }
 
-    // Draw landscape features first (behind pool)
-    features.filter(f => f.type === 'grass' || f.type === 'home').forEach(feature => {
+    // Draw landscape features first (behind pool) - DISABLED: Only pool/coping/finish visible
+    // features.filter(f => f.type === 'grass' || f.type === 'home').forEach(feature => { ... });
+
+    // Draw features with better styling - Only pool-related features (stairs, lights, jets)
+    const poolFeatureTypes = ['stairs', 'light', 'jet'];
+    features.filter(f => poolFeatureTypes.includes(f.type)).forEach(feature => {
       ctx.save();
       if (feature.type === 'grass') {
         // Grass patch
@@ -2748,9 +2755,6 @@ export function PoolBuilder({
               <TabsTrigger value="depth" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
                 Depth
               </TabsTrigger>
-              <TabsTrigger value="landscape" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                Landscape
-              </TabsTrigger>
             </TabsList>
 
             {/* Pool Design Tab */}
@@ -2764,32 +2768,59 @@ export function PoolBuilder({
                     {smoothCorners ? 'Smooth' : 'Squared'}
                   </Button>
                   
-                  <Button size="sm" onClick={() => setShowFenceEditor(!showFenceEditor)} variant={showFenceEditor ? "default" : "outline"} className="h-7 w-7 p-0" title="Fence">
-                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="6" width="3" height="12" />
-                      <rect x="10" y="6" width="3" height="12" />
-                      <rect x="17" y="6" width="3" height="12" />
-                      <line x1="2" y1="10" x2="22" y2="10" />
-                      <line x1="2" y1="14" x2="22" y2="14" />
-                    </svg>
+                  <Button 
+                    size="sm" 
+                    onClick={() => setActiveTool(activeTool === 'draw-pool' ? null : 'draw-pool')} 
+                    variant={activeTool === 'draw-pool' ? "default" : "outline"} 
+                    className="h-7 text-[10px]"
+                    title="Draw custom pool shape"
+                  >
+                    <PenTool className="h-3 w-3 mr-1" />
+                    Draw Pool
                   </Button>
                   
-                  <Button size="sm" onClick={() => addFeature('home')} variant="outline" className="h-7 w-7 p-0" title="House">
-                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                      <polyline points="9 22 9 12 15 12 15 22" />
-                    </svg>
+                  <Button 
+                    size="sm" 
+                    onClick={() => setActiveTool(activeTool === 'draw-deck' ? null : 'draw-deck')} 
+                    variant={activeTool === 'draw-deck' ? "default" : "outline"} 
+                    className="h-7 text-[10px]"
+                    title="Draw custom deck shape"
+                  >
+                    <PenTool className="h-3 w-3 mr-1" />
+                    Draw Deck
                   </Button>
-                  
-                  <Button size="sm" onClick={() => addFeature('pathway')} variant="outline" className="h-7 w-7 p-0" title="Path">
-                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="5" y="5" width="4" height="4" />
-                      <rect x="11" y="7" width="4" height="4" />
-                      <rect x="5" y="11" width="4" height="4" />
-                      <rect x="11" y="13" width="4" height="4" />
-                      <rect x="17" y="9" width="4" height="4" />
-                    </svg>
-                  </Button>
+                </div>
+                
+                <div className="flex gap-2">
+                  <ShapeRepository
+                    currentPoolPoints={points}
+                    currentDeckPoints={hardscapePoints}
+                    onLoadPoolShape={(newPoints) => {
+                      // Center the loaded shape on canvas
+                      const centerX = canvasSize.width / 2;
+                      const centerY = canvasSize.height / 2;
+                      const centeredPoints = newPoints.map((p, i) => ({
+                        ...p,
+                        x: p.x + centerX,
+                        y: p.y + centerY,
+                        id: `${i + 1}`
+                      }));
+                      setPoints(centeredPoints);
+                      setHardscapePoints(generateHardscapeFromPool(centeredPoints, deckOffset));
+                    }}
+                    onLoadDeckShape={(newPoints) => {
+                      const centerX = canvasSize.width / 2;
+                      const centerY = canvasSize.height / 2;
+                      const centeredPoints = newPoints.map((p, i) => ({
+                        ...p,
+                        x: p.x + centerX,
+                        y: p.y + centerY,
+                        id: `h${i + 1}`
+                      }));
+                      setHardscapePoints(centeredPoints);
+                    }}
+                    scale={scale}
+                  />
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -2802,7 +2833,13 @@ export function PoolBuilder({
                   <span className="text-xs text-muted-foreground">ft from coping</span>
                 </div>
                 
-                {/* 3D Scene Button */}
+                {/* Drawing mode instructions */}
+                {(activeTool === 'draw-pool' || activeTool === 'draw-deck') && (
+                  <div className="bg-primary/10 border border-primary/30 rounded p-2 text-xs">
+                    <p className="font-medium">Drawing Mode: {activeTool === 'draw-pool' ? 'Pool' : 'Deck'}</p>
+                    <p className="text-muted-foreground">Click to add points. Double-click or press Enter to finish.</p>
+                  </div>
+                )}
                 
               </div>
             </TabsContent>
@@ -3076,125 +3113,7 @@ export function PoolBuilder({
               <TextureBuilder currentTextures={customTextures} onTexturesChange={setCustomTextures} />
             </TabsContent>
 
-            {/* Landscape Tab */}
-            <TabsContent value="landscape" className="mt-0 p-2 space-y-2">
-              <div className="grid grid-cols-4 gap-1.5">
-                <Button size="sm" onClick={() => addFeature('tree')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
-                  <Trees className="h-4 w-4" />
-                  <span className="text-[10px]">Tree</span>
-                </Button>
-                <Button size="sm" onClick={() => addFeature('shrub')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
-                  <Flower2 className="h-4 w-4" />
-                  <span className="text-[10px]">Shrub</span>
-                </Button>
-                <Button size="sm" onClick={() => addFeature('grass')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
-                  <Flower2 className="h-4 w-4" />
-                  <span className="text-[10px]">Grass</span>
-                </Button>
-                <Button size="sm" onClick={() => addFeature('umbrella')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 2C7.03 2 3 6.03 3 11h18c0-4.97-4.03-9-9-9z" />
-                    <line x1="12" y1="11" x2="12" y2="22" />
-                  </svg>
-                  <span className="text-[10px]">Umbrella</span>
-                </Button>
-              </div>
 
-              {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'tree' && <div className="p-2 bg-muted/50 rounded space-y-1.5">
-                  <Label className="text-[10px] font-medium">Tree Type</Label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {['oak', 'palm', 'pine', 'willow', 'maple', 'cypress'].map(treeType => <Button key={treeType} size="sm" onClick={() => {
-                setFeatures(prev => prev.map(f => f.id === selectedFeature ? {
-                  ...f,
-                  treeType: treeType as any
-                } : f));
-              }} variant="outline" className="capitalize h-7 text-[10px]">
-                        {treeType}
-                      </Button>)}
-                  </div>
-                </div>}
-
-              {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'shrub' && <div className="p-2 bg-muted/50 rounded space-y-1.5">
-                  <Label className="text-[10px] font-medium">Shrub Type</Label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {['round', 'flowering', 'hedge'].map(shrubType => <Button key={shrubType} size="sm" onClick={() => {
-                setFeatures(prev => prev.map(f => f.id === selectedFeature ? {
-                  ...f,
-                  shrubType: shrubType as any
-                } : f));
-              }} variant="outline" className="capitalize h-7 text-[10px]">
-                        {shrubType}
-                      </Button>)}
-                  </div>
-                </div>}
-
-              {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'pathway' && <div className="p-2 bg-muted/50 rounded space-y-1.5">
-                  <Label className="text-[10px] font-medium">Path Type</Label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {['straight', 'curved', 'circular'].map(pathType => <Button key={pathType} size="sm" onClick={() => {
-                setFeatures(prev => prev.map(f => f.id === selectedFeature ? {
-                  ...f,
-                  pathwayType: pathType as any
-                } : f));
-              }} variant="outline" className="capitalize h-7 text-[10px]">
-                        {pathType}
-                      </Button>)}
-                  </div>
-                </div>}
-
-              {/* Fence Editor - Now integrated in canvas */}
-
-              {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'fence' && <div className="p-2 bg-muted/50 rounded space-y-1.5">
-                  <Label className="text-[10px] font-medium">Old Fence Feature</Label>
-                  <div className="flex gap-1.5">
-                    <Button size="sm" onClick={() => {
-                const fence = features.find(f => f.id === selectedFeature);
-                if (!fence) return;
-                const points = fence.roofPoints || [{
-                  x: fence.x - 40,
-                  y: fence.y,
-                  id: 'fp1'
-                }, {
-                  x: fence.x + 40,
-                  y: fence.y,
-                  id: 'fp2'
-                }];
-                const newId = `fp${points.length + 1}`;
-                setFeatures(prev => prev.map(f => f.id === selectedFeature ? {
-                  ...f,
-                  roofPoints: [...points, {
-                    x: fence.x,
-                    y: fence.y,
-                    id: newId
-                  }]
-                } : f));
-              }} variant="outline" className="flex-1 h-7 text-xs">
-                      <Plus className="h-3 w-3 mr-1" />
-                      Add Point
-                    </Button>
-                    <Button size="sm" onClick={() => {
-                setFeatures(prev => prev.map(f => {
-                  if (f.id === selectedFeature && f.roofPoints && f.roofPoints.length > 2) {
-                    return {
-                      ...f,
-                      roofPoints: f.roofPoints.slice(0, -1)
-                    };
-                  }
-                  return f;
-                }));
-              }} variant="outline" className="flex-1 h-7 text-xs">
-                      <Trash2 className="h-3 w-3 mr-1" />
-                      Remove
-                    </Button>
-                  </div>
-                </div>}
-
-              {selectedFeature && <Button size="sm" onClick={removeFeature} variant="destructive" className="w-full h-7 text-xs">
-                  <Trash2 className="h-3 w-3 mr-1" />
-                  Remove
-                </Button>}
-
-            </TabsContent>
           </Tabs>
         </div>}
 
