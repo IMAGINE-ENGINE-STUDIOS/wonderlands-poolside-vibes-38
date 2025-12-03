@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Save, FolderOpen, Trash2, Upload, Download, Shapes, Plus } from 'lucide-react';
+import { Save, FolderOpen, Trash2, Upload, Download, Shapes, Plus, Image, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { quickTracePoolShape, tracePoolShapeFromImage } from '@/utils/shapeTracing';
 
 interface Point {
   x: number;
@@ -43,6 +44,9 @@ export function ShapeRepository({
   const [shapeName, setShapeName] = useState('');
   const [saveType, setSaveType] = useState<'pool' | 'deck'>('pool');
   const [isOpen, setIsOpen] = useState(false);
+  const [isTracing, setIsTracing] = useState(false);
+  const [useMLTracing, setUseMLTracing] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   // Load saved shapes from localStorage
   useEffect(() => {
@@ -192,6 +196,51 @@ export function ShapeRepository({
     event.target.value = '';
   };
 
+  // Import pool shape from image
+  const handleImportFromImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    
+    setIsTracing(true);
+    toast.info('Analyzing pool shape from image...');
+    
+    try {
+      const traceFn = useMLTracing ? tracePoolShapeFromImage : quickTracePoolShape;
+      const result = await traceFn(file, scale);
+      
+      if (result.poolPoints.length < 3) {
+        toast.error('Could not detect pool shape. Try a clearer image.');
+        return;
+      }
+      
+      // Load the traced pool shape
+      onLoadPoolShape(result.poolPoints);
+      
+      // Show detection results
+      let message = `Traced ${result.poolPoints.length} points`;
+      if (result.stairsRegions.length > 0) {
+        message += `, ${result.stairsRegions.length} potential stairs`;
+      }
+      if (result.seatingRegions.length > 0) {
+        message += `, ${result.seatingRegions.length} potential seating areas`;
+      }
+      
+      toast.success(message);
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Error tracing pool shape:', error);
+      toast.error('Failed to trace pool shape from image');
+    } finally {
+      setIsTracing(false);
+      event.target.value = '';
+    }
+  };
+
   const poolShapes = savedShapes.filter(s => s.type === 'pool');
   const deckShapes = savedShapes.filter(s => s.type === 'deck');
 
@@ -245,7 +294,57 @@ export function ShapeRepository({
             </div>
           </div>
 
-          {/* Import/Export */}
+          {/* Import from Image */}
+          <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
+            <Label className="text-sm font-semibold flex items-center gap-2">
+              <Image className="h-4 w-4" />
+              Import from Pool Image
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Upload a pool image to automatically trace its shape. White backgrounds will be removed.
+            </p>
+            <div className="flex items-center gap-2">
+              <label className="flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={useMLTracing}
+                  onChange={(e) => setUseMLTracing(e.target.checked)}
+                  className="rounded"
+                />
+                Use ML (slower, more accurate)
+              </label>
+            </div>
+            <div className="flex gap-2">
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImportFromImage}
+                className="hidden"
+              />
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={() => imageInputRef.current?.click()}
+                disabled={isTracing}
+                className="gap-2"
+              >
+                {isTracing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Tracing...
+                  </>
+                ) : (
+                  <>
+                    <Image className="h-4 w-4" />
+                    Trace from Image
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Import/Export JSON */}
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleExportShapes} className="gap-2">
               <Download className="h-4 w-4" />
@@ -261,7 +360,7 @@ export function ShapeRepository({
               <Button variant="outline" size="sm" asChild className="gap-2 cursor-pointer">
                 <span>
                   <Upload className="h-4 w-4" />
-                  Import
+                  Import JSON
                 </span>
               </Button>
             </label>
