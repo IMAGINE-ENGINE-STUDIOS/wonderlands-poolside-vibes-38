@@ -246,6 +246,31 @@ export function ComponentControlPanel({
                   Distance from pool edge to deck edge
                 </p>
               </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Deck Elevation</Label>
+                  <span className="text-xs text-muted-foreground">
+                    {((scene.deck.deckElevation || 0) * 12).toFixed(1)} in
+                    {(scene.deck.deckElevation || 0) > 0 ? ' (raised)' : (scene.deck.deckElevation || 0) < 0 ? ' (sunken)' : ' (flush)'}
+                  </span>
+                </div>
+                <Slider
+                  value={[(scene.deck.deckElevation || 0) * 12]}
+                  onValueChange={(value) => {
+                    const updated = { ...scene };
+                    updated.deck.deckElevation = value[0] / 12;
+                    onSceneChange(updated);
+                  }}
+                  min={-24}
+                  max={24}
+                  step={1}
+                  className="w-full"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Negative = sunken patio, Positive = raised deck
+                </p>
+              </div>
             </div>
           </>
         )}

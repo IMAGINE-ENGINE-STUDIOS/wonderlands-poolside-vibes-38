@@ -90,6 +90,7 @@ export interface Pool3DSceneProps {
   deckHeight?: number;
   copingWidth?: number;
   deckWidth?: number;
+  deckElevation?: number; // Height above/below ground (positive = above, negative = below, 0 = flush)
   stairs?: Array<{
     id: string;
     position: [number, number, number];
@@ -912,6 +913,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
   deckHeight = 2 / 12,
   copingWidth = 1.1,
   deckWidth = 3,
+  deckElevation = 0, // Height above/below ground
   stairs = [],
   onStairsChange,
   isStairsPlacementMode = false,
@@ -1195,6 +1197,7 @@ export const Pool3DScene: React.FC<Pool3DSceneProps> = ({
               copingWidth={localCopingWidth}
               borderHeight={0.25} // 3 inches
               borderWidth={Math.max(3, localDeckWidth)} // minimum 3ft, can grow
+              deckElevation={deckElevation}
               textureUrl={normalizedPaverUrl}
               textureScale={paverTextureScale}
               textureOffset={paverTextureOffset}

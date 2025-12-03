@@ -775,6 +775,7 @@ export function UnifiedPoolVisualizer({
               deckHeight={scene.deck.deckHeight || 2 / 12}
               copingWidth={scene.deck.copingWidth || 1.0}
               deckWidth={deckWidth}
+              deckElevation={scene.deck.deckElevation || 0}
               stairs={scene.stairs}
               onStairsChange={handleStairsChange}
               isStairsPlacementMode={isStairsPlacementMode}

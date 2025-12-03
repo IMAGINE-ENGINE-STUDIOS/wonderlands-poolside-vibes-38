@@ -112,6 +112,7 @@ export interface Scene3D {
     copingHeight?: number;
     deckHeight?: number;
     copingWidth?: number;
+    deckElevation?: number; // Height above/below ground (positive = above, negative = below, 0 = flush)
   };
   features: PoolFeature[];
   stairs: PoolStair[];
