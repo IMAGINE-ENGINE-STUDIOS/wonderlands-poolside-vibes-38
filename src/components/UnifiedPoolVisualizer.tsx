@@ -13,7 +13,7 @@ import { AssetManager, Asset3DRenderer } from './AssetManager';
 import { SplineLegend } from './SplineLegend';
 import { ComponentControlPanel } from './ComponentControlPanel';
 import { Button } from './ui/button';
-import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3 } from 'lucide-react';
+import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Box } from 'lucide-react';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { Checkbox } from './ui/checkbox';
 import * as THREE from 'three';
@@ -110,6 +110,7 @@ export function UnifiedPoolVisualizer({
   const [showRulers, setShowRulers] = useState(false);
   const [showWireframe, setShowWireframe] = useState(false);
   const [showDebugBoundaries, setShowDebugBoundaries] = useState(false);
+  const [showWater, setShowWater] = useState(true);
   const [deckWidth, setDeckWidth] = useState(3); // Default 3 feet
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<any>(null);
@@ -617,6 +618,27 @@ export function UnifiedPoolVisualizer({
           >
             <RotateCcw className="w-5 h-5" />
           </button>
+          <button
+            onClick={() => setShowGrid(!showGrid)}
+            className={`p-2 rounded-lg shadow-lg transition-colors ${showGrid ? 'bg-primary text-primary-foreground' : 'bg-background/80 hover:bg-background'}`}
+            title={showGrid ? "Hide Grid" : "Show Grid"}
+          >
+            <Grid3x3 className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setShowWater(!showWater)}
+            className={`p-2 rounded-lg shadow-lg transition-colors ${showWater ? 'bg-primary text-primary-foreground' : 'bg-background/80 hover:bg-background'}`}
+            title={showWater ? "Hide Water" : "Show Water"}
+          >
+            <Waves className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setShowWireframe(!showWireframe)}
+            className={`p-2 rounded-lg shadow-lg transition-colors ${showWireframe ? 'bg-primary text-primary-foreground' : 'bg-background/80 hover:bg-background'}`}
+            title={showWireframe ? "Hide Wireframe" : "Show Wireframe"}
+          >
+            <Box className="w-5 h-5" />
+          </button>
         </div>
 
 
@@ -773,13 +795,15 @@ export function UnifiedPoolVisualizer({
           </group>
 
           {/* Water surface - follows actual pool shape */}
-          <group position={[0, 0, 0]}>
-            <WaterSurface 
-              poolPoints={scene.pool.points}
-              depthPoints={scene.pool.depthPoints}
-              poolDimensions={scene.pool.dimensions}
-            />
-          </group>
+          {showWater && (
+            <group position={[0, 0, 0]}>
+              <WaterSurface 
+                poolPoints={scene.pool.points}
+                depthPoints={scene.pool.depthPoints}
+                poolDimensions={scene.pool.dimensions}
+              />
+            </group>
+          )}
 
           {/* 3D Assets */}
           {assets3D.map((asset) => (
