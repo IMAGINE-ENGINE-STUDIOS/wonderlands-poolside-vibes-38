@@ -22,7 +22,7 @@ import { WalkthroughController } from './scene3d/WalkthroughController';
 import { PoolDesignerHeader } from './scene3d/PoolDesignerHeader';
 import { SplineEditPanel } from './scene3d/SplineEditPanel';
 import { Button } from './ui/button';
-import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Box, Sun, Moon, Footprints, PersonStanding, Edit3 } from 'lucide-react';
+import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Sun, Moon, PersonStanding, Edit3 } from 'lucide-react';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { Checkbox } from './ui/checkbox';
 import * as THREE from 'three';
@@ -675,9 +675,14 @@ export function UnifiedPoolVisualizer({
             <RotateCcw className="w-5 h-5" />
           </button>
           <button
-            onClick={() => setShowGrid(!showGrid)}
+            onClick={() => {
+              const newShowGrid = !showGrid;
+              setShowGrid(newShowGrid);
+              setShowMeasurements(newShowGrid);
+              setShowRulers(newShowGrid);
+            }}
             className={`p-2 rounded-lg shadow-lg transition-colors ${showGrid ? 'bg-primary text-primary-foreground' : 'bg-background/80 hover:bg-background'}`}
-            title={showGrid ? "Hide Grid" : "Show Grid"}
+            title={showGrid ? "Hide Grid & Measurements" : "Show Grid & Measurements"}
           >
             <Grid3x3 className="w-5 h-5" />
           </button>
@@ -689,25 +694,11 @@ export function UnifiedPoolVisualizer({
             <Waves className="w-5 h-5" />
           </button>
           <button
-            onClick={() => setShowWireframe(!showWireframe)}
-            className={`p-2 rounded-lg shadow-lg transition-colors ${showWireframe ? 'bg-primary text-primary-foreground' : 'bg-background/80 hover:bg-background'}`}
-            title={showWireframe ? "Hide Wireframe" : "Show Wireframe"}
-          >
-            <Box className="w-5 h-5" />
-          </button>
-          <button
             onClick={() => setShowClimateController(!showClimateController)}
             className={`p-2 rounded-lg shadow-lg transition-colors ${isNightMode ? 'bg-blue-600 text-white' : 'bg-background/80 hover:bg-background'}`}
             title="Climate Controls"
           >
             {isNightMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-          </button>
-          <button
-            onClick={() => setShowPoolAssetManager(!showPoolAssetManager)}
-            className={`p-2 rounded-lg shadow-lg transition-colors ${showPoolAssetManager ? 'bg-primary text-primary-foreground' : 'bg-background/80 hover:bg-background'}`}
-            title="Pool Assets (Stairs, Seating)"
-          >
-            <Footprints className="w-5 h-5" />
           </button>
           <button
             onClick={() => setIsWalkthroughMode(!isWalkthroughMode)}
@@ -720,13 +711,16 @@ export function UnifiedPoolVisualizer({
             onClick={() => {
               const newMode = !isSplineEditMode;
               setIsSplineEditMode(newMode);
-              // When entering spline edit mode, enable appropriate editing
               if (newMode) {
-                setEnablePoolSplineEdit(true);
+                setEnableFloorDepthSplineEdit(true);
+                setSelectedSplineComponent('pool-floor');
+              } else {
+                setEnableFloorDepthSplineEdit(false);
+                setSelectedSplineComponent(null);
               }
             }}
             className={`p-2 rounded-lg shadow-lg transition-colors ${isSplineEditMode ? 'bg-orange-600 text-white' : 'bg-background/80 hover:bg-background'}`}
-            title="Spline Edit Mode (locks camera for precise editing)"
+            title="Pool Depth Editor (3D)"
           >
             <Edit3 className="w-5 h-5" />
           </button>
