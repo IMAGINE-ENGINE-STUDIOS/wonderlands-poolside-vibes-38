@@ -195,6 +195,12 @@ export function DraggablePoolLight({
     };
   }, [isDragging, camera, gl.domElement, poolPerimeter, light.id, onPositionChange]);
 
+  // Calculate inward direction for light projection (into pool)
+  const inwardDir = {
+    x: Math.cos(position.angle),
+    z: Math.sin(position.angle)
+  };
+
   return (
     <group
       ref={groupRef}
@@ -203,45 +209,73 @@ export function DraggablePoolLight({
       onPointerOver={() => gl.domElement.style.cursor = isDragging ? 'grabbing' : 'grab'}
       onPointerOut={() => !isDragging && (gl.domElement.style.cursor = 'auto')}
     >
-      {/* Outer ring - 2 inch diameter (0.167 ft), 0.5 inch thick */}
-      <mesh rotation={[Math.PI / 2, 0, position.angle]}>
-        <torusGeometry args={[0.083, 0.021, 8, 24]} />
-        <meshStandardMaterial
-          color={isSelected ? '#ffff00' : '#888888'}
-          metalness={0.8}
-          roughness={0.2}
-        />
-      </mesh>
-      
-      {/* Inner light lens - 1 inch diameter */}
-      <mesh rotation={[Math.PI / 2, 0, position.angle]} position={[0, 0, 0.01]}>
-        <circleGeometry args={[0.042, 24]} />
-        <meshStandardMaterial
-          color={light.isOn ? currentColor : '#333333'}
-          emissive={light.isOn ? currentColor : '#000000'}
-          emissiveIntensity={light.isOn ? 2.5 : 0}
-          transparent
-          opacity={0.95}
-        />
-      </mesh>
-      
-      {/* Selection indicator ring */}
-      {isSelected && (
-        <mesh rotation={[Math.PI / 2, 0, position.angle]}>
-          <ringGeometry args={[0.12, 0.14, 32]} />
-          <meshBasicMaterial color="#00ffff" transparent opacity={0.8} />
+      {/* Light housing - facing inward into pool (rotated 90° from wall) */}
+      <group rotation={[0, position.angle + Math.PI / 2, 0]}>
+        {/* Outer ring - 2 inch diameter (0.167 ft), 0.5 inch thick */}
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.083, 0.021, 8, 24]} />
+          <meshStandardMaterial
+            color={isSelected ? '#ffff00' : '#888888'}
+            metalness={0.8}
+            roughness={0.2}
+          />
         </mesh>
-      )}
+        
+        {/* Inner light lens - 1 inch diameter, facing into pool */}
+        <mesh rotation={[Math.PI / 2, 0, 0]} position={[0.02, 0, 0]}>
+          <circleGeometry args={[0.042, 24]} />
+          <meshStandardMaterial
+            color={light.isOn ? currentColor : '#333333'}
+            emissive={light.isOn ? currentColor : '#000000'}
+            emissiveIntensity={light.isOn ? 3.0 : 0}
+            transparent
+            opacity={0.95}
+          />
+        </mesh>
+        
+        {/* Selection indicator ring */}
+        {isSelected && (
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.12, 0.14, 32]} />
+            <meshBasicMaterial color="#00ffff" transparent opacity={0.8} />
+          </mesh>
+        )}
+      </group>
       
-      {/* Actual point light source */}
+      {/* Main spotlight - projecting INTO the pool with scattered cone */}
       {light.isOn && (
-        <pointLight
-          color={currentColor}
-          intensity={light.intensity}
-          distance={20}
-          decay={2}
-          castShadow={false}
-        />
+        <>
+          {/* Primary spotlight pointing into pool */}
+          <spotLight
+            color={currentColor}
+            intensity={light.intensity * 3}
+            distance={25}
+            angle={Math.PI / 4}
+            penumbra={0.8}
+            decay={1.5}
+            position={[inwardDir.x * 0.1, 0, inwardDir.z * 0.1]}
+            target-position={[inwardDir.x * 5, -2, inwardDir.z * 5]}
+            castShadow={false}
+          />
+          
+          {/* Secondary scattered light for softer glow */}
+          <pointLight
+            color={currentColor}
+            intensity={light.intensity * 0.8}
+            distance={12}
+            decay={2}
+            position={[inwardDir.x * 0.3, 0, inwardDir.z * 0.3]}
+          />
+          
+          {/* Ambient scatter for realistic underwater light spread */}
+          <pointLight
+            color={currentColor}
+            intensity={light.intensity * 0.4}
+            distance={8}
+            decay={2.5}
+            position={[inwardDir.x * 0.5, -0.5, inwardDir.z * 0.5]}
+          />
+        </>
       )}
     </group>
   );
