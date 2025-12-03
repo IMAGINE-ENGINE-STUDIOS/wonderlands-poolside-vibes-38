@@ -31,6 +31,7 @@ import AdminInvoiceTool from '@/components/AdminInvoiceTool';
 import AdminInvoicesManager from '@/components/AdminInvoicesManager';
 import { PoolCalculator } from '@/components/PoolCalculator';
 import { PerformanceMonitoring } from '@/components/admin/PerformanceMonitoring';
+import AdminContractorManagement from '@/components/admin/AdminContractorManagement';
 
 // Navigation Item Component
 const NavItem = ({

@@ -23,6 +23,8 @@ const QuotationTool = lazy(() => import("./pages/QuotationTool"));
 const PoolCalculatorPage = lazy(() => import("./pages/PoolCalculatorPage"));
 const SalesRepRegister = lazy(() => import("./pages/SalesRepRegister"));
 const SalesRepDashboard = lazy(() => import("./pages/SalesRepDashboard"));
+const ContractorRegistration = lazy(() => import("./pages/ContractorRegistration"));
+const ContractorProfile = lazy(() => import("./pages/ContractorProfile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -103,6 +105,8 @@ const App = () => {
                 </ProtectedRoute>
               } 
             />
+            <Route path="/contractor-registration" element={<ContractorRegistration />} />
+            <Route path="/contractor-profile/:id" element={<ContractorProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
