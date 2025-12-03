@@ -89,6 +89,19 @@ export interface Annotation {
   confirmed?: boolean;
 }
 
+// Pool light configuration for draggable wall-mounted lights
+export type PoolLightColorMode = 'white' | 'gradient';
+
+export interface PoolLightConfig {
+  id: string;
+  wallPosition: number;      // 0-1 position along pool perimeter
+  depthFromSurface: number;  // How deep below water (default 1.5ft)
+  color: string;             // '#ffffff' for white or current gradient color
+  colorMode: PoolLightColorMode;
+  intensity: number;         // Light intensity (0-5)
+  isOn: boolean;
+}
+
 export interface Scene3D {
   pool: {
     points: Point[];
@@ -112,8 +125,9 @@ export interface Scene3D {
     copingHeight?: number;
     deckHeight?: number;
     copingWidth?: number;
-    deckElevation?: number; // Height above/below ground (positive = above, negative = below, 0 = flush)
+    deckElevation?: number;
   };
+  poolLights?: PoolLightConfig[];
   features: PoolFeature[];
   stairs: PoolStair[];
   annotations: Annotation[];

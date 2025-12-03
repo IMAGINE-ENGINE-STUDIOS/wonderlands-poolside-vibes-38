@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { X, Paintbrush, Move, Layers, Edit3 } from 'lucide-react';
-import { Scene3D, TextureConfig } from './scene3d/types';
+import { X, Paintbrush, Move, Layers, Edit3, Lightbulb } from 'lucide-react';
+import { Scene3D, TextureConfig, PoolLightConfig } from './scene3d/types';
 import { Separator } from './ui/separator';
 import { Checkbox } from './ui/checkbox';
+import { PoolLightControls } from './scene3d/PoolLightControls';
 
 interface ComponentControlPanelProps {
   selectedComponent: 'pool' | 'deck' | 'coping' | 'waterline' | null;
@@ -25,6 +26,12 @@ interface ComponentControlPanelProps {
   onPoolSplineEditToggle?: () => void;
   enableFloorDepthSplineEdit?: boolean;
   onFloorDepthSplineEditToggle?: () => void;
+  // Pool lights
+  poolLights?: PoolLightConfig[];
+  onPoolLightsChange?: (lights: PoolLightConfig[]) => void;
+  selectedLightId?: string | null;
+  onSelectLight?: (id: string | null) => void;
+  isNightMode?: boolean;
 }
 
 export function ComponentControlPanel({
@@ -40,7 +47,12 @@ export function ComponentControlPanel({
   enablePoolSplineEdit = false,
   onPoolSplineEditToggle,
   enableFloorDepthSplineEdit = false,
-  onFloorDepthSplineEditToggle
+  onFloorDepthSplineEditToggle,
+  poolLights = [],
+  onPoolLightsChange,
+  selectedLightId = null,
+  onSelectLight,
+  isNightMode = false
 }: ComponentControlPanelProps) {
   if (!selectedComponent) return null;
 
@@ -397,6 +409,26 @@ export function ComponentControlPanel({
                     </ul>
                   </div>
                 )}
+              </div>
+            )}
+            
+            <Separator />
+            
+            {/* Pool Lights Controls */}
+            {onPoolLightsChange && onSelectLight && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4 text-primary" />
+                  <Label className="text-sm font-semibold">Pool Lights</Label>
+                </div>
+                
+                <PoolLightControls
+                  lights={poolLights}
+                  onLightsChange={onPoolLightsChange}
+                  selectedLightId={selectedLightId}
+                  onSelectLight={onSelectLight}
+                  isNightMode={isNightMode}
+                />
               </div>
             )}
             
