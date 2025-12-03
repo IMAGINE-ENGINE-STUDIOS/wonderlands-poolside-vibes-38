@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { X, Plus, Minus, Move, Edit3, Layers, Trash2 } from 'lucide-react';
+import { X, Plus, Trash2, Layers, ArrowUpDown, Sofa } from 'lucide-react';
 import { PerimeterDepthPoint } from './types';
 
 interface SplineEditPanelProps {
@@ -16,6 +16,8 @@ interface SplineEditPanelProps {
   // Component selection
   selectedComponent: 'pool-floor' | 'seating' | 'stairs' | null;
   onSelectComponent: (component: 'pool-floor' | 'seating' | 'stairs' | null) => void;
+  // Pool depth from selected model
+  poolModelDepth?: number;
 }
 
 export function SplineEditPanel({
@@ -26,20 +28,27 @@ export function SplineEditPanel({
   selectedPointId,
   onSelectPoint,
   selectedComponent,
-  onSelectComponent
+  onSelectComponent,
+  poolModelDepth = 6
 }: SplineEditPanelProps) {
-  const [uniformDepth, setUniformDepth] = useState(5);
+  const [uniformDepth, setUniformDepth] = useState(poolModelDepth);
+
+  // Sync uniform depth with pool model depth
+  useEffect(() => {
+    if (poolModelDepth) {
+      setUniformDepth(poolModelDepth);
+    }
+  }, [poolModelDepth]);
 
   if (!isOpen) return null;
 
   const selectedPoint = perimeterDepthPoints.find(p => p.id === selectedPointId);
 
-  const handleAddPoint = () => {
+  const handleAddPointBetween = (index: number) => {
     if (perimeterDepthPoints.length < 2) return;
     
-    // Add a point between first and second point
-    const p1 = perimeterDepthPoints[0];
-    const p2 = perimeterDepthPoints[1];
+    const p1 = perimeterDepthPoints[index];
+    const p2 = perimeterDepthPoints[(index + 1) % perimeterDepthPoints.length];
     
     const newPoint: PerimeterDepthPoint = {
       x: (p1.x + p2.x) / 2,
@@ -49,7 +58,11 @@ export function SplineEditPanel({
       type: 'smooth'
     };
     
-    const newPoints = [p1, newPoint, ...perimeterDepthPoints.slice(1)];
+    const newPoints = [
+      ...perimeterDepthPoints.slice(0, index + 1),
+      newPoint,
+      ...perimeterDepthPoints.slice(index + 1)
+    ];
     onPerimeterDepthPointsChange(newPoints);
   };
 
@@ -69,6 +82,14 @@ export function SplineEditPanel({
     onPerimeterDepthPointsChange(newPoints);
   };
 
+  const handleSyncToPoolModel = () => {
+    const newPoints = perimeterDepthPoints.map(p => ({
+      ...p,
+      depth: poolModelDepth
+    }));
+    onPerimeterDepthPointsChange(newPoints);
+  };
+
   const handlePointDepthChange = (depth: number) => {
     if (!selectedPointId) return;
     
@@ -79,12 +100,12 @@ export function SplineEditPanel({
   };
 
   return (
-    <div className="fixed right-4 top-1/2 -translate-y-1/2 w-72 bg-background/98 backdrop-blur-md border border-orange-500/50 rounded-xl shadow-2xl z-40 animate-in slide-in-from-right duration-300">
+    <div className="fixed right-4 top-1/2 -translate-y-1/2 w-80 bg-background/98 backdrop-blur-md border border-orange-500/50 rounded-xl shadow-2xl z-40 animate-in slide-in-from-right duration-300">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-orange-500/30 bg-orange-500/10">
         <div className="flex items-center gap-2">
-          <Edit3 className="w-4 h-4 text-orange-500" />
-          <h3 className="font-semibold text-base">Spline Editor</h3>
+          <ArrowUpDown className="w-4 h-4 text-orange-500" />
+          <h3 className="font-semibold text-base">Pool Depth Editor</h3>
         </div>
         <Button
           variant="ghost"
@@ -100,7 +121,7 @@ export function SplineEditPanel({
       <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
         {/* Component Selection */}
         <div className="space-y-2">
-          <Label className="text-xs font-semibold text-muted-foreground">Select Component</Label>
+          <Label className="text-xs font-semibold text-muted-foreground">Edit Component</Label>
           <div className="grid grid-cols-1 gap-2">
             <button
               onClick={() => onSelectComponent('pool-floor')}
@@ -113,12 +134,39 @@ export function SplineEditPanel({
               <Layers className="w-4 h-4" />
               Pool Floor Depth
             </button>
+            <button
+              onClick={() => onSelectComponent('seating')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                selectedComponent === 'seating' 
+                  ? 'bg-green-500/20 border border-green-500 text-green-400' 
+                  : 'bg-muted hover:bg-muted/80 border border-transparent'
+              }`}
+            >
+              <Sofa className="w-4 h-4" />
+              Contour Seating
+            </button>
           </div>
         </div>
 
         {/* Pool Floor Controls */}
         {selectedComponent === 'pool-floor' && (
           <>
+            {/* Sync with Pool Model */}
+            <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-3">
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-xs font-semibold">Pool Model Depth</Label>
+                <span className="text-sm font-bold text-cyan-400">{poolModelDepth.toFixed(1)} ft</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSyncToPoolModel}
+                className="w-full border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/20"
+              >
+                Sync All Points to Model Depth
+              </Button>
+            </div>
+
             <div className="border-t border-border pt-4 space-y-3">
               <Label className="text-xs font-semibold">Point Controls</Label>
               
@@ -126,7 +174,12 @@ export function SplineEditPanel({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleAddPoint}
+                  onClick={() => {
+                    const idx = selectedPointId 
+                      ? perimeterDepthPoints.findIndex(p => p.id === selectedPointId)
+                      : 0;
+                    handleAddPointBetween(idx >= 0 ? idx : 0);
+                  }}
                   className="flex-1"
                 >
                   <Plus className="w-4 h-4 mr-1" />
@@ -145,7 +198,7 @@ export function SplineEditPanel({
               </div>
 
               <div className="text-xs text-muted-foreground">
-                {perimeterDepthPoints.length} control points
+                {perimeterDepthPoints.length} control points around perimeter
               </div>
             </div>
 
@@ -153,13 +206,13 @@ export function SplineEditPanel({
             {selectedPoint && (
               <div className="border-t border-border pt-4 space-y-3">
                 <Label className="text-xs font-semibold text-cyan-400">
-                  Selected Point: {selectedPoint.id.split('-').pop()}
+                  Point #{perimeterDepthPoints.findIndex(p => p.id === selectedPointId) + 1}
                 </Label>
                 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs">Depth</Label>
-                    <span className="text-xs text-muted-foreground">{selectedPoint.depth.toFixed(1)} ft</span>
+                    <span className="text-sm font-mono text-cyan-400">{selectedPoint.depth.toFixed(1)} ft</span>
                   </div>
                   <Slider
                     value={[selectedPoint.depth]}
@@ -171,7 +224,7 @@ export function SplineEditPanel({
                   />
                 </div>
 
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-muted-foreground font-mono">
                   Position: ({selectedPoint.x.toFixed(1)}, {selectedPoint.z.toFixed(1)})
                 </div>
               </div>
@@ -179,7 +232,7 @@ export function SplineEditPanel({
 
             {/* Uniform Depth Tool */}
             <div className="border-t border-border pt-4 space-y-3">
-              <Label className="text-xs font-semibold">Set Uniform Depth</Label>
+              <Label className="text-xs font-semibold">Custom Uniform Depth</Label>
               
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -208,6 +261,20 @@ export function SplineEditPanel({
           </>
         )}
 
+        {/* Seating Controls */}
+        {selectedComponent === 'seating' && (
+          <div className="space-y-3">
+            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+              <p className="text-xs text-green-400">
+                Seating contours follow the pool wall. Use the Pool Asset Manager to adjust seating start/end positions and width.
+              </p>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Seating automatically extends from water surface to pool floor following the wall contour.
+            </div>
+          </div>
+        )}
+
         {/* Instructions */}
         <div className="border-t border-border pt-4">
           <div className="bg-orange-500/5 border border-orange-500/20 rounded-lg p-3">
@@ -215,10 +282,10 @@ export function SplineEditPanel({
               Editing Tips:
             </p>
             <ul className="text-xs text-muted-foreground space-y-1">
-              <li>• Click cyan spheres to select points</li>
-              <li>• Drag vertically to change depth</li>
-              <li>• Camera rotation is locked</li>
-              <li>• Scroll to zoom, drag to pan</li>
+              <li>• Click cyan spheres to select depth points</li>
+              <li>• Drag vertically to change individual depth</li>
+              <li>• Use "Sync to Model" for accurate pool depth</li>
+              <li>• Camera rotation is locked for editing</li>
             </ul>
           </div>
         </div>
