@@ -18,7 +18,15 @@ interface SegmentInfo {
  * @param angleThreshold - Angle threshold in degrees (default 20 = only very gentle curves)
  * @returns true if segment should be curved
  */
-function shouldCurveSegment(p0: Point2D, p1: Point2D, p2: Point2D, angleThreshold: number = 20): boolean {
+/**
+ * Detects if a segment should be curved based on angle between edges
+ * @param p0 - Previous point
+ * @param p1 - Current point  
+ * @param p2 - Next point
+ * @param angleThreshold - Angle threshold in degrees (default 70 = keep sharp corners straight)
+ * @returns true if segment should be curved (gentle curves), false for sharp corners
+ */
+function shouldCurveSegment(p0: Point2D, p1: Point2D, p2: Point2D, angleThreshold: number = 70): boolean {
   const v1x = p1.x - p0.x;
   const v1y = p1.y - p0.y;
   const v2x = p2.x - p1.x;
@@ -30,11 +38,14 @@ function shouldCurveSegment(p0: Point2D, p1: Point2D, p2: Point2D, angleThreshol
   if (len1 === 0 || len2 === 0) return false;
   
   const dot = (v1x * v2x + v1y * v2y) / (len1 * len2);
+  // angle = 0 means straight line, angle = 180 means U-turn
   const angle = Math.acos(Math.max(-1, Math.min(1, dot))) * (180 / Math.PI);
   
-  // Only curve if angle is very small (nearly straight line with gentle curve)
-  // 90-degree corners and sharp angles will NOT be curved
-  return angle > 0 && angle < angleThreshold;
+  // Curve if angle is LESS than threshold (gentle direction change)
+  // Keep as straight line if angle is >= threshold (sharp corner like 90°)
+  // angle < 70 means curve (gentle bends in kidney/freeform shapes)
+  // angle >= 70 means straight (90° corners in rectangles)
+  return angle < angleThreshold;
 }
 
 /**
@@ -42,14 +53,14 @@ function shouldCurveSegment(p0: Point2D, p1: Point2D, p2: Point2D, angleThreshol
  * @param points - Array of pool boundary points
  * @param segmentsPerEdge - Number of subdivisions per curved edge
  * @param tension - Curve tension (0 = linear, 1 = very curved)
- * @param angleThreshold - Angle threshold for curve detection (default 20 = only gentle curves)
+ * @param angleThreshold - Angle threshold for curve detection (default 70 = curve gentle bends, keep 90° corners sharp)
  * @returns Array of interpolated points with mixed straight/curved segments
  */
 export function generateCurvedPoolPoints(
   points: Point2D[],
   segmentsPerEdge: number = 20,
   tension: number = 0.5,
-  angleThreshold: number = 20
+  angleThreshold: number = 70
 ): Point2D[] {
   if (points.length < 3) return points;
 
