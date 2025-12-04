@@ -75,8 +75,11 @@ const SurveyQuoteTool = ({
   
   // Debug: Log extras data when component mounts or extras changes
   useEffect(() => {
-    console.log('🔍 SurveyQuoteTool RECEIVED EXTRAS:', extras);
-    console.log('🔍 EXTRAS BREAKDOWN:', extras?.extrasBreakdown);
+    console.log('🔍 SurveyQuoteTool RECEIVED EXTRAS:', {
+      extrasTotal: extras?.extrasTotal,
+      breakdownCount: extras?.extrasBreakdown?.length || 0,
+      breakdown: extras?.extrasBreakdown
+    });
   }, [extras]);
   
   // Load cached form data on mount
@@ -406,9 +409,11 @@ const SurveyQuoteTool = ({
     }, 0);
     basePrice += optionsPrice;
 
-    // Add extras from product card exactly as configured (matching Wonderlands Studio)
-    const extrasTotal = (extras as any)?.extrasTotal ? Number((extras as any).extrasTotal) : 0;
+    // Add extras from WonderlandsStudio breakdown (now passed synchronously via ref)
+    const extrasTotal = extras?.extrasTotal ? Number(extras.extrasTotal) : 0;
     basePrice += extrasTotal;
+    
+    console.log('💰 calculateQuote:', { basePrice: pool?.price || customProduct?.price, extrasTotal, optionsPrice, total: basePrice });
 
     // Add sauna if selected (exclusive offer for eligible pools)
     if (saunaSelected) {

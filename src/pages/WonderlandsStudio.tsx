@@ -1,5 +1,5 @@
 import * as React from "react";
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -390,6 +390,12 @@ const WonderlandsStudio = () => {
   const [viewMode, setViewMode] = useState<'product-image' | '2d-designer' | '3d-viewer'>('product-image');
   const [customPoolShape, setCustomPoolShape] = useState<any[] | null>(null);
   const [showPricePanel, setShowPricePanel] = useState(false);
+  
+  // Ref to store extras data synchronously for the quote modal (avoids race condition)
+  const extrasDataRef = useRef<{ extrasBreakdown: Array<{ name: string; price: number; image: string }>; extrasTotal: number }>({
+    extrasBreakdown: [],
+    extrasTotal: 0
+  });
 
   // Handle URL parameters for product search integration
   useEffect(() => {
@@ -886,7 +892,10 @@ const WonderlandsStudio = () => {
     console.log('✅ EXTRAS BREAKDOWN COMPLETE:', extrasBreakdown);
     console.log('💰 TOTAL EXTRAS:', extrasTotal);
 
-    // Store the breakdown for the quote modal
+    // Store in ref SYNCHRONOUSLY before opening modal (fixes race condition)
+    extrasDataRef.current = { extrasBreakdown, extrasTotal };
+    
+    // Also update state for consistency
     setSelectedExtras(prev => ({
       ...prev,
       extrasBreakdown,
@@ -2623,8 +2632,9 @@ const WonderlandsStudio = () => {
       warrantyYears: selectedProduct.warrantyYears
     } : null} isOpen={showQuoteModal} onClose={() => setShowQuoteModal(false)} extras={{
       ...selectedExtras,
-      extrasBreakdown: selectedExtras.extrasBreakdown || [],
-      extrasTotal: selectedExtras.extrasTotal || 0,
+      // Use ref data which is set synchronously before modal opens
+      extrasBreakdown: extrasDataRef.current.extrasBreakdown,
+      extrasTotal: extrasDataRef.current.extrasTotal,
       deliveryTime: selectedExtras.concreteConstruction ? '8-12 weeks+' : '6 weeks'
     }} />
     </div>;
