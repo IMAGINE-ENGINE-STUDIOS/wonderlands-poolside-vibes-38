@@ -527,7 +527,7 @@ const PaversSection = () => {
         onClose={() => setShowQuoteModal(false)} 
         customProduct={{
           name: selectedPaverType ? `${getCollectionName()} - ${selectedPaverType.name}` : `${getCollectionName()} Pavers`,
-          price: calculateTotalPrice(),
+          price: 0, // Price is in extras to avoid double-counting
           type: 'paver',
           image: selectedPaverType?.image || appianPavers[0]?.image
         }}

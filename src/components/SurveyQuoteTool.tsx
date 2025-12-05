@@ -1234,7 +1234,7 @@ const SurveyQuoteTool = ({
                                 <span className="font-semibold text-lg">${(extras?.totalPrice || customProduct?.price || 0).toLocaleString()}</span>
                               </div>
                             </div>
-                          ) : (
+                          ) : customProduct?.type !== 'paver' ? (
                             <div className="bg-gradient-to-br from-orange-100 to-teal-100 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg">
                               <h4 className="font-semibold mb-2">
                                 {isPoolProduct ? 'Pool Model' : 'Product'}: {pool?.model || customProduct?.name}
@@ -1249,10 +1249,10 @@ const SurveyQuoteTool = ({
                                 <span className="font-semibold">${(pool?.price || customProduct?.price || 0).toLocaleString()}</span>
                               </div>
                             </div>
-                          )}
+                          ) : null}
                           
-                          {/* Delivery & Installation - Only for non-pool, non-lanai products */}
-                          {!isPoolProduct && !isLanaiProduct && (
+                          {/* Delivery & Installation - Only for non-pool, non-lanai, non-paver products */}
+                          {!isPoolProduct && !isLanaiProduct && customProduct?.type !== 'paver' && (
                             <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
                               <h4 className="font-semibold mb-2 text-teal-600">Delivery & Installation</h4>
                               <div className="space-y-2 text-sm">
@@ -1273,8 +1273,8 @@ const SurveyQuoteTool = ({
                             </div>
                           )}
                           
-                          {/* Pavers and Screen Enclosure Details */}
-                          {!hiddenSections.has('paver-deck') && isPoolProduct && !isLanaiProduct && (
+                          {/* Pavers and Screen Enclosure Details - Show for pool products OR standalone paver products */}
+                          {!hiddenSections.has('paver-deck') && (isPoolProduct || customProduct?.type === 'paver') && !isLanaiProduct && (
                             <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg relative space-y-4">
                               {isEditMode && (
                                 <button
