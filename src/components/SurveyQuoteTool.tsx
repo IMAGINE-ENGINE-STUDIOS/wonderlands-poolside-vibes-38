@@ -1,5 +1,6 @@
 import * as React from "react";
 const { useState, useEffect } = React;
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";  
 import { Input } from "@/components/ui/input";
@@ -74,6 +75,7 @@ const SurveyQuoteTool = ({
   const {
     user
   } = useAuth();
+  const navigate = useNavigate();
   
   // Debug: Log extras data when component mounts or extras changes
   useEffect(() => {
@@ -721,11 +723,12 @@ const SurveyQuoteTool = ({
       
       toast({
         title: "Invoice Generated!",
-        description: `Invoice ${invoice.invoice_number} has been created successfully.`,
+        description: `Invoice ${invoice.invoice_number} has been created. Redirecting...`,
       });
       
-      // Navigate to public invoice detail page in new tab
-      window.open(`/invoice/${invoice.id}`, '_blank');
+      // Close the dialog and navigate to the invoice page
+      onClose();
+      navigate(`/invoice/${invoice.id}`);
       
     } catch (error: any) {
       console.error('Error generating invoice:', error);
