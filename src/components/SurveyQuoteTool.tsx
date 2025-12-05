@@ -20,6 +20,7 @@ import ImageCard from "./ImageCard";
 import ExclusiveSaunaOffer from "./ExclusiveSaunaOffer";
 const poolHeaterImg = "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png";
 import fenceQuoteImage from "@/assets/fence-quote-image.jpg";
+import aluminumPanelImage from "@/assets/aluminum-panel-2.jpg";
 // Jets intentionally have no image in the quote
 interface Pool {
   model: string;
@@ -1591,6 +1592,8 @@ const SurveyQuoteTool = ({
                       itemImage = '/lovable-uploads/631882e5-0b2d-43a0-9ee8-27e7e984fb3d.png';
                     } else if (item.name.includes('Screen Enclosure')) {
                       itemImage = '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png';
+                    } else if (item.name.includes('Aluminum Fence') || item.name.includes('Patio Fencing') || item.name.includes('patio-fencing')) {
+                      itemImage = aluminumPanelImage;
                     } else if (item.name.includes('Concrete Construction')) {
                       itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
                     } else if (item.name.includes('sq ft') && !item.name.includes('Screen Enclosure')) {
