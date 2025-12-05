@@ -78,6 +78,8 @@ const App = () => {
                  </ProtectedRoute>
                } 
              />
+            {/* Public invoice view route - no auth required */}
+            <Route path="/invoice/:invoiceId" element={<InvoiceDetailPage />} />
             <Route 
               path="/content-editor" 
               element={
