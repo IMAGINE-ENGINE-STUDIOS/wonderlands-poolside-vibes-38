@@ -19,6 +19,7 @@ interface DrivewayGateProps {
   warranty: string;
   brand: string;
   priceIncludesInstallation: boolean;
+  deliveryTime?: string;
   sizes: Array<{ dimensions: string; price: number }>;
   addons: Array<{ name: string; price: number; description: string }>;
 }
@@ -82,6 +83,11 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
                 incl. installation
               </span>
             </div>
+            {gate.deliveryTime && (
+              <p className="text-sm font-medium text-green-600">
+                {gate.deliveryTime}
+              </p>
+            )}
           </div>
         </CardContent>
 
@@ -193,6 +199,11 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
               <p className="text-xs text-muted-foreground">
                 Includes delivery and installation
               </p>
+              {gate.deliveryTime && (
+                <p className="text-sm font-medium text-green-600">
+                  {gate.deliveryTime}
+                </p>
+              )}
             </div>
 
             <Button

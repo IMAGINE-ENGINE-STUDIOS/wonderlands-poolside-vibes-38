@@ -27,6 +27,7 @@ const baseGateInfo = {
   type: "Driveway Gate",
   category: "premium" as const,
   priceIncludesInstallation: true,
+  deliveryTime: "Arrives in 6 days after ordering",
   sizes: allSizes,
   addons: [
     {
