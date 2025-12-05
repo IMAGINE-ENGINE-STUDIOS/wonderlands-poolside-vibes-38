@@ -19,6 +19,7 @@ import { OptimizedImage } from "./OptimizedImage";
 import ImageCard from "./ImageCard";
 import ExclusiveSaunaOffer from "./ExclusiveSaunaOffer";
 const poolHeaterImg = "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png";
+import fenceQuoteImage from "@/assets/fence-quote-image.jpg";
 // Jets intentionally have no image in the quote
 interface Pool {
   model: string;
@@ -1397,8 +1398,8 @@ const SurveyQuoteTool = ({
                         <div>
                           <div className="mb-4">
                             <ImageCard 
-                              src={pool?.image || customProduct?.image || ''} 
-                              alt={pool?.model || customProduct?.name || 'Product'} 
+                              src={pool?.image || customProduct?.image || fenceQuoteImage} 
+                              alt={pool?.model || customProduct?.name || 'Product'}
                               className="w-full h-48 rounded-lg border border-orange-200" 
                               objectFit="cover" 
                               enableZoom={true} 
