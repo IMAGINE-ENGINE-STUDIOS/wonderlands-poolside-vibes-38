@@ -606,12 +606,7 @@ const SurveyQuoteTool = ({
   };
   
   const handleGenerateInvoice = async () => {
-    if (!user) {
-      setShowAuthPrompt(true);
-      return;
-    }
-    
-    // Validate required fields
+    // Validate required fields - no login required
     if (!surveyData.name || !surveyData.email || !surveyData.address) {
       toast({
         title: "Missing Information",
@@ -622,7 +617,7 @@ const SurveyQuoteTool = ({
     }
     
     setIsGeneratingInvoice(true);
-    console.log('📄 Generating invoice...', { user: user.id, surveyData });
+    console.log('📄 Generating invoice...', { surveyData });
     
     try {
       // Calculate quote amount and prepare line items
@@ -716,8 +711,8 @@ const SurveyQuoteTool = ({
           status: 'draft',
           notes: surveyData.specialRequests || 'Thank you for choosing Wonderlands Pools & Spas!',
           terms_conditions: 'Payment is due within 30 days of invoice date. A 50% deposit is required to begin work. Final payment is due upon completion and inspection.',
-          created_by: user.id,
-          user_id: user.id
+          created_by: user?.id || null,
+          user_id: user?.id || null
         }])
         .select()
         .single();
