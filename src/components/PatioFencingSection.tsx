@@ -31,14 +31,14 @@ const fencingOptions: FencingOption[] = [
   {
     name: "46\" Aluminum Fence",
     height: "46",
-    pricePerLinearFt: 40,
+    pricePerLinearFt: 50,
     description: "Pool code compliant 46-inch aluminum fencing with standard spacing",
     features: ["Pool Code Door", "Standard Spacing", "Full Assembly", "Powder Coated Finish"]
   },
   {
     name: "56\" Aluminum Fence",
     height: "56",
-    pricePerLinearFt: 50,
+    pricePerLinearFt: 60,
     description: "Premium 56-inch aluminum fencing with enhanced security and standard spacing",
     features: ["Pool Code Door", "Standard Spacing", "Full Assembly", "Powder Coated Finish", "Enhanced Security"]
   }
