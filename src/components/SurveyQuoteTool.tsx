@@ -149,6 +149,8 @@ const SurveyQuoteTool = ({
   useEffect(() => {
     if (isOpen) {
       document.body.dataset.quoteOpen = 'true';
+      // Reset editable quote amount when dialog opens to ensure fresh calculation
+      setEditableQuoteAmount(0);
     } else {
       delete document.body.dataset.quoteOpen;
     }
@@ -1254,7 +1256,9 @@ const SurveyQuoteTool = ({
                               <div className="space-y-2 text-sm">
                                 <p className="flex items-center gap-2">
                                   <span className="font-medium">Arrives:</span>
-                                  <span className="text-teal-600">October 24, 2025</span>
+                                  <span className="text-teal-600">
+                                    {new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                                  </span>
                                 </p>
                                 <p className="flex items-center gap-2">
                                   <span className="font-medium">Installation:</span>
@@ -1894,7 +1898,8 @@ const SurveyQuoteTool = ({
                         const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
                         
                         if (!isPoolProduct) {
-                          return "Arrives October 24, 2025 • Installation same day";
+                          const deliveryDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                          return `Arrives ${deliveryDate} • Installation same day`;
                         }
                         
                         // Pool product logic - concrete pools are ALWAYS 18+ weeks
