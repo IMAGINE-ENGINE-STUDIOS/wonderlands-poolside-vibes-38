@@ -611,7 +611,18 @@ const SurveyQuoteTool = ({
       return;
     }
     
+    // Validate required fields
+    if (!surveyData.name || !surveyData.email || !surveyData.address) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in your name, email, and address before generating an invoice.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsGeneratingInvoice(true);
+    console.log('📄 Generating invoice...', { user: user.id, surveyData });
     
     try {
       // Calculate quote amount and prepare line items
