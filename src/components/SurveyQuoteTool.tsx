@@ -724,8 +724,8 @@ const SurveyQuoteTool = ({
         description: `Invoice ${invoice.invoice_number} has been created successfully.`,
       });
       
-      // Navigate to invoice detail page in new tab
-      window.open(`/admin/invoices/${invoice.id}`, '_blank');
+      // Navigate to public invoice detail page in new tab
+      window.open(`/invoice/${invoice.id}`, '_blank');
       
     } catch (error: any) {
       console.error('Error generating invoice:', error);
