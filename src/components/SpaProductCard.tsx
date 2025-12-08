@@ -703,8 +703,79 @@ const SpaProductCard = ({
               </div>}
           </div>}
         
-        {/* Action Buttons */}
-        <div className="space-y-2">
+        {/* Finish Carousel - Always Visible when collapsed */}
+        {!showDetails && (
+          <div className="space-y-3">
+            <div 
+              className="space-y-2"
+              onMouseEnter={() => setShowDetails(true)}
+              onTouchStart={() => setShowDetails(true)}
+            >
+              <h4 className="font-semibold text-foreground text-sm">Spa Finishes</h4>
+              <Carousel 
+                className="w-full"
+                opts={{
+                  align: "start",
+                  loop: false,
+                  duration: 25,
+                }}
+              >
+                <CarouselContent className="-ml-1">
+                  {finishOptions.slice(0, 6).map((finish, idx) => (
+                    <CarouselItem
+                      key={`spa-preview-${finish.name}-${idx}`}
+                      className="pl-1 basis-1/2"
+                    >
+                      <div
+                        className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? "border-primary bg-primary/10" : "border-border"}`}
+                        onClick={() => {
+                          setExtras((prev) => ({
+                            ...prev,
+                            finish: finish.name,
+                          }));
+                          setShowDetails(true);
+                        }}
+                      >
+                        <div className="w-full h-12 rounded-md mb-1 overflow-hidden flex-shrink-0">
+                          <img
+                            src={finish.image}
+                            alt={finish.name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                        <p className="text-[10px] font-medium text-center line-clamp-1">{finish.name}</p>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0 h-6 w-6" />
+                <CarouselNext className="right-0 h-6 w-6" />
+              </Carousel>
+            </div>
+            
+            {/* Expand Arrow */}
+            <div 
+              className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-lg transition-all group"
+              onClick={() => setShowDetails(true)}
+              onMouseEnter={() => setShowDetails(true)}
+            >
+              <span className="text-xs text-muted-foreground mb-1">View all options</span>
+              <svg 
+                className="w-5 h-5 text-primary animate-bounce group-hover:text-primary/80 transition-colors" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+        )}
+        
+        {/* Action Buttons - Only when expanded */}
+        {showDetails && (
+          <div className="space-y-2">
           <div className="grid grid-cols-2 gap-2">
             <Button variant="outline" size="sm" onClick={() => onViewDetails(spa)} className="text-xs">Customize Spa</Button>
             <Button variant="outline" size="sm" onClick={() => {
@@ -787,6 +858,7 @@ const SpaProductCard = ({
           
           
         </div>
+        )}
       </CardContent>
       
       {/* Image Editor Modal */}

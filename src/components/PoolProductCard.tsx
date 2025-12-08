@@ -1712,152 +1712,73 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
           </div>
         )}
 
-        {/* Default Action Buttons */}
+        {/* Finish Carousel - Always Visible */}
         {!showDetails && (
-          <div className="space-y-2">
-            <Button
-              onClick={() => {
-                // Create extras breakdown for quote
-                const extrasBreakdown = [];
-
-                // Add finish if not default
-                const selectedFinish = finishOptions.find((finish) => finish.name === extras.finish);
-                if (selectedFinish && selectedFinish.price) {
-                  extrasBreakdown.push({
-                    name: selectedFinish.name,
-                    price: selectedFinish.price,
-                    image: selectedFinish.image,
-                  });
-                }
-
-                // Add heater if selected
-                if (extras.heater) {
-                  const selectedHeater = poolHeaters.find((heater) => heater.name === extras.heaterModel);
-                  if (selectedHeater) {
-                    extrasBreakdown.push({
-                      name: selectedHeater.name,
-                      price: selectedHeater.price,
-                      image: "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png",
-                    });
-                  }
-                }
-
-                // Add jets if selected
-                if (extras.jets) {
-                  extrasBreakdown.push({
-                    name: `Spa Jets (${extras.jetQuantity})`,
-                    price: getExtraPrice("jets") * extras.jetQuantity,
-                    image: "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png",
-                  });
-                }
-
-                // Add liner if selected and not standard
-                const linerOption = linerOptions.find((option) => option.name === extras.linerOption);
-                if (linerOption && extras.linerOption !== "Standard Blue") {
-                  extrasBreakdown.push({
-                    name: `${linerOption.name} Liner`,
-                    price: 4500,
-                    image: linerOption.image,
-                  });
-                }
-
-                // Add cover if selected
-                const coverOption = coverOptions.find((option) => option.name === extras.coverOption);
-                if (coverOption && extras.cover && coverOption.name !== "NO COVER") {
-                  extrasBreakdown.push({
-                    name: coverOption.name,
-                    price: coverOption.price,
-                    image: coverOption.image,
-                  });
-                }
-
-                // Add tiles if selected
-                const tileOption = tileOptions.find((option) => option.name === extras.tileOption);
-                if (tileOption && extras.tiles) {
-                  extrasBreakdown.push({
-                    name: tileOption.name,
-                    price: tileOption.price,
-                    image: tileOption.image,
-                  });
-                }
-
-                // Add paver surface area cost
-                if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-                  extrasBreakdown.push({
-                    name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
-                    price: parseFloat(paverSurfaceArea) * 20,
-                    image: "/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png",
-                  });
-                }
-
-                // Add spa if selected
-                if (extras.spa) {
-                  const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
-                  if (selectedSpa) {
-                    extrasBreakdown.push({
-                      name: `${selectedSpa.model} Spa`,
-                      price: selectedSpa.price,
-                      image: selectedSpa.image,
-                    });
-                  }
-                }
-
-                // Add tanning ledge if selected
-                if (extras.tanningLedge) {
-                  const selectedLedge = tanningLedges.find((ledge: any) => ledge.name === extras.tanningLedgeModel);
-                  if (selectedLedge) {
-                    extrasBreakdown.push({
-                      name: `${selectedLedge.name} Tanning Ledge`,
-                      price: selectedLedge.price,
-                      image: selectedLedge.image,
-                    });
-                  }
-                }
-
-                // Add screen enclosure if area provided
-                if (extras.screenEnclosureArea > 0) {
-                  let pricePerSqFt = 20;
-                  if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
-                  if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
-                  const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
-                  extrasBreakdown.push({
-                    name: `Screen Enclosure - ${extras.screenEnclosureQuality === "standard" ? "Wonder Cage" : extras.screenEnclosureQuality === "deluxe" ? "Deluxe" : "Premium"} (${extras.screenEnclosureArea} sq ft)`,
-                    price: enclosurePrice,
-                    image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
-                  });
-                }
-
-                // Add concrete construction if selected
-                if (extras.concreteConstruction) {
-                  const concreteMarkup = Math.round(getPoolPrice(pool) * 0.2);
-                  extrasBreakdown.push({
-                    name: "Concrete Construction",
-                    price: concreteMarkup,
-                    image: "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png",
-                  });
-                }
-                const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
-                onRequestQuote(pool, {
-                  ...extras,
-                  extrasBreakdown,
-                  extrasTotal,
-                  deliveryTime: extras.concreteConstruction ? "18+ weeks" : "8+ weeks",
-                });
-              }}
-              variant="outline"
-              className="w-full"
-              size="sm"
+          <div className="space-y-3">
+            <div 
+              className="space-y-2"
+              onMouseEnter={() => setShowDetails(true)}
+              onTouchStart={() => setShowDetails(true)}
             >
-              Instant Quote
-            </Button>
-            <Button
-              onClick={() => setShowDetails(!showDetails)}
-              variant="gradient"
-              className="w-full hover:scale-105 transition-all duration-300"
-              size="sm"
+              <h4 className="font-semibold text-foreground text-sm">Pool Finishes</h4>
+              <Carousel 
+                className="w-full"
+                opts={{
+                  align: "start",
+                  loop: false,
+                  duration: 25,
+                }}
+              >
+                <CarouselContent className="-ml-1">
+                  {finishOptions.slice(0, 6).map((finish, idx) => (
+                    <CarouselItem
+                      key={`pool-preview-${finish.name}-${idx}`}
+                      className="pl-1 basis-1/2"
+                    >
+                      <div
+                        className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? "border-primary bg-primary/10" : "border-border"}`}
+                        onClick={() => {
+                          setExtras((prev) => ({
+                            ...prev,
+                            finish: finish.name,
+                          }));
+                          setShowDetails(true);
+                        }}
+                      >
+                        <div className="w-full h-12 rounded-md mb-1 overflow-hidden flex-shrink-0">
+                          <OptimizedImage
+                            src={finish.image}
+                            alt={finish.name}
+                            className="w-full h-full object-cover"
+                            sizeConfig="thumbnail"
+                          />
+                        </div>
+                        <p className="text-[10px] font-medium text-center line-clamp-1">{finish.name}</p>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0 h-6 w-6" />
+                <CarouselNext className="right-0 h-6 w-6" />
+              </Carousel>
+            </div>
+            
+            {/* Expand Arrow */}
+            <div 
+              className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-lg transition-all group"
+              onClick={() => setShowDetails(true)}
+              onMouseEnter={() => setShowDetails(true)}
             >
-              Select Details
-            </Button>
+              <span className="text-xs text-muted-foreground mb-1">View all options</span>
+              <svg 
+                className="w-5 h-5 text-primary animate-bounce group-hover:text-primary/80 transition-colors" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </div>
         )}
       </CardContent>

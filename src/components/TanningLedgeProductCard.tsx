@@ -540,63 +540,75 @@ const TanningLedgeProductCard = ({
             </div>
           </div>}
         
-        {/* Default Action Buttons */}
-        {!showDetails && <div className="space-y-2">
-            <Button onClick={() => {
-          // Create extras breakdown for quote
-          const extrasBreakdown = [];
-
-          // Add finish if not default
-          const selectedFinish = finishOptions.find(finish => finish.name === extras.finish);
-          if (selectedFinish && selectedFinish.price) {
-            extrasBreakdown.push({
-              name: selectedFinish.name,
-              price: selectedFinish.price,
-              image: selectedFinish.image
-            });
-          }
-
-          // Add heater if selected
-          if (extras.heater) {
-            const selectedHeater = ledgeHeaters.find(heater => heater.name === extras.heaterModel);
-            if (selectedHeater) {
-              extrasBreakdown.push({
-                name: selectedHeater.name,
-                price: selectedHeater.price,
-                image: selectedHeater.image
-              });
-            }
-          }
-
-          // Add jets if selected
-          if (extras.jets) {
-            extrasBreakdown.push({
-              name: `Tanning Ledge Jets (${extras.jetQuantity})`,
-              price: getExtraPrice('jets') * extras.jetQuantity,
-              image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
-            });
-          }
-
-          // Add paver surface area cost
-          if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-            extrasBreakdown.push({
-              name: `${extras.paverOption} (${paverSurfaceArea} sq ft)`,
-              price: parseFloat(paverSurfaceArea) * 15,
-              image: '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
-            });
-          }
-          const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
-          onRequestQuote(ledge, {
-            ...extras,
-            extrasBreakdown,
-            extrasTotal
-          });
-        }} variant="outline" className="w-full" size="sm">
-              Instant Quote
-            </Button>
-            <Button onClick={handleImageClick} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="sm">Customize Tanning Ledge</Button>
+        {/* Finish Carousel - Always Visible when collapsed */}
+        {!showDetails && (
+          <div className="space-y-3">
+            <div 
+              className="space-y-2"
+              onMouseEnter={() => setShowDetails(true)}
+              onTouchStart={() => setShowDetails(true)}
+            >
+              <h4 className="font-semibold text-foreground text-sm">Finish Options</h4>
+              <Carousel 
+                className="w-full"
+                opts={{
+                  align: "start",
+                  loop: false,
+                  duration: 25,
+                }}
+              >
+                <CarouselContent className="-ml-1">
+                  {finishOptions.slice(0, 6).map((finish, idx) => (
+                    <CarouselItem
+                      key={`ledge-preview-${finish.name}-${idx}`}
+                      className="pl-1 basis-1/2"
+                    >
+                      <div
+                        className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.finish === finish.name ? "border-coral bg-coral/10" : "border-border"}`}
+                        onClick={() => {
+                          setExtras((prev) => ({
+                            ...prev,
+                            finish: finish.name,
+                          }));
+                          setShowDetails(true);
+                        }}
+                      >
+                        <div className="w-full h-12 rounded-md mb-1 overflow-hidden flex-shrink-0">
+                          <img
+                            src={finish.image}
+                            alt={finish.name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                        <p className="text-[10px] font-medium text-center line-clamp-1">{finish.name}</p>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0 h-6 w-6" />
+                <CarouselNext className="right-0 h-6 w-6" />
+              </Carousel>
+            </div>
             
-          </div>}
+            {/* Expand Arrow */}
+            <div 
+              className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-lg transition-all group"
+              onClick={() => setShowDetails(true)}
+              onMouseEnter={() => setShowDetails(true)}
+            >
+              <span className="text-xs text-muted-foreground mb-1">View all options</span>
+              <svg 
+                className="w-5 h-5 text-coral animate-bounce group-hover:text-coral/80 transition-colors" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+        )}
       </CardContent>
       
       {/* Image Editor Modal */}
