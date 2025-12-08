@@ -242,17 +242,31 @@ const SurveyQuoteTool = ({
 
   const handleDownloadPDF = async () => {
     const quoteElement = document.querySelector('[data-quote-content]') as HTMLElement;
-    if (!quoteElement) return;
+    if (!quoteElement) {
+      toast({
+        title: "Error",
+        description: "Could not find quote content. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
-      // @ts-ignore - html2pdf is loaded via CDN
-      const html2pdf = (await import('html2pdf.js')).default;
+      // @ts-ignore - html2pdf dynamic import
+      const html2pdfModule = await import('html2pdf.js');
+      // @ts-ignore
+      const html2pdf = html2pdfModule.default;
       
       const opt = {
         margin: 0.5,
-        filename: `pool-quote-${Date.now()}.pdf`,
+        filename: `quote-${pool?.model || customProduct?.name || 'product'}-${Date.now()}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true,
+          logging: false,
+          allowTaint: true
+        },
         jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' as const }
       };
 
@@ -318,6 +332,21 @@ const SurveyQuoteTool = ({
       setIsSendingEmail(false);
     }
   };
+  const getInstallationTimeText = () => {
+    const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+    
+    if (!isPoolProduct) {
+      const deliveryDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      return `Arrives ${deliveryDate} • Installation same day`;
+    }
+    
+    if (extras?.concreteConstruction || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima") {
+      return "18+ weeks";
+    }
+    
+    return "16+ weeks";
+  };
+
   const handleEnterEditMode = () => {
     if (passcodeInput === "WONDERMAGIC") {
       setIsEditMode(true);
@@ -339,6 +368,8 @@ const SurveyQuoteTool = ({
         'total-title': prev['total-title'] || 'Total Investment',
         'paver-deck-title': prev['paver-deck-title'] || 'Paver Deck',
         'paver-deck-description': prev['paver-deck-description'] || "Custom paver selection with full area pricing",
+        'installation-time-title': prev['installation-time-title'] || (pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct?.type || '')) ? 'Estimated Build Time' : 'Installation Time'),
+        'installation-time-text': prev['installation-time-text'] || getInstallationTimeText(),
         ...prev
       }));
       
@@ -1921,29 +1952,31 @@ const SurveyQuoteTool = ({
                     </button>
                   )}
                   <div className="bg-gradient-to-br from-blue-100 to-green-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
-                    <h4 className="font-bold text-lg mb-2 text-blue-600">
-                      {(() => {
-                        const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
-                        return isPoolProduct ? 'Estimated Build Time' : 'Installation Time';
-                      })()}
-                    </h4>
-                    <p className="text-sm">
-                      {(() => {
-                        const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
-                        
-                        if (!isPoolProduct) {
-                          const deliveryDate = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-                          return `Arrives ${deliveryDate} • Installation same day`;
-                        }
-                        
-                        // Pool product logic - concrete pools are ALWAYS 18+ weeks
-                        if (extras?.concreteConstruction || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima") {
-                          return "18+ weeks";
-                        }
-                        
-                        return "16+ weeks";
-                      })()}
-                    </p>
+                    {isEditMode ? (
+                      <Input
+                        value={editableTexts['installation-time-title'] || 'Installation Time'}
+                        onChange={(e) => setEditableTexts(prev => ({ ...prev, 'installation-time-title': e.target.value }))}
+                        className="font-bold text-lg mb-2 text-blue-600 bg-white/50"
+                      />
+                    ) : (
+                      <h4 className="font-bold text-lg mb-2 text-blue-600">
+                        {editableTexts['installation-time-title'] || (() => {
+                          const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
+                          return isPoolProduct ? 'Estimated Build Time' : 'Installation Time';
+                        })()}
+                      </h4>
+                    )}
+                    {isEditMode ? (
+                      <Input
+                        value={editableTexts['installation-time-text'] || getInstallationTimeText()}
+                        onChange={(e) => setEditableTexts(prev => ({ ...prev, 'installation-time-text': e.target.value }))}
+                        className="text-sm bg-white/50"
+                      />
+                    ) : (
+                      <p className="text-sm">
+                        {editableTexts['installation-time-text'] || getInstallationTimeText()}
+                      </p>
+                    )}
                     {(() => {
                       const isPoolProduct = pool || (customProduct && ['Pool', 'Spa', 'Tanning Ledge'].includes(customProduct.type || ''));
                       
