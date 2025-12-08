@@ -343,18 +343,9 @@ const TanningLedgeProductCard = ({
             {/* Paver Options */}
             <div className="space-y-3">
               <h4 className="font-semibold text-foreground">Paver Options & Surface Area Calculator</h4>
-              <div className="mb-3">
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                  Paver Surface Area (sq ft)
-                </label>
-                <Input type="number" placeholder="Enter surface area for pavers" value={paverSurfaceArea} onChange={e => setPaverSurfaceArea(e.target.value)} className="mb-2" />
-                {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && <div className="text-xs text-green-600 font-medium">
-                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()} ({paverSurfaceArea} sq ft × $15/sq ft)
-                  </div>}
-              </div>
               <Carousel className="w-full">
                 <CarouselContent className="-ml-1">
-                  {paverOptions.map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/2 sm:basis-1/3 md:basis-1/4">
+                  {paverOptions.map(paver => <CarouselItem key={paver.name} className="pl-1 basis-1/2">
                       <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.paverOption === paver.name ? 'border-coral bg-coral/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
                   ...prev,
                   paverOption: paver.name
@@ -372,6 +363,15 @@ const TanningLedgeProductCard = ({
                 <CarouselPrevious className="left-0" />
                 <CarouselNext className="right-0" />
               </Carousel>
+              <div className="mt-3">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                  Paver Surface Area (sq ft)
+                </label>
+                <Input type="number" placeholder="Enter surface area for pavers" value={paverSurfaceArea} onChange={e => setPaverSurfaceArea(e.target.value)} className="mb-2" />
+                {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && <div className="text-xs text-green-600 font-medium">
+                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()} ({paverSurfaceArea} sq ft × $15/sq ft)
+                  </div>}
+              </div>
             </div>
 
             {/* Add-ons */}
