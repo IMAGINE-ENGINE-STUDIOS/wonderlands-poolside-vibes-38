@@ -67,8 +67,6 @@ const InvoiceDetailPage = () => {
       setLoading(true);
       const { data, error } = await supabase.from("invoices").select("*").eq("id", invoiceId).single();
       if (error) throw error;
-      const paidAmount = data.paid_amount || 0;
-      const remainingPayments = data.total_amount - paidAmount;
       const invoiceData = {
         ...data,
         line_items: Array.isArray(data.line_items) ? data.line_items : JSON.parse(data.line_items as string),
@@ -76,8 +74,6 @@ const InvoiceDetailPage = () => {
         due_date:
           data.due_date ||
           new Date(new Date(data.invoice_date).getTime() + 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-        // Calculate remaining payments from total - paid
-        remaining_payments: remainingPayments > 0 && paidAmount > 0 ? remainingPayments : 0,
       };
       setInvoice(invoiceData as Invoice);
       setEditedInvoice(invoiceData as Invoice);
@@ -166,32 +162,25 @@ const InvoiceDetailPage = () => {
   const handleSave = async () => {
     if (!editedInvoice) return;
     try {
-      const updateData: any = {
-        invoice_number: editedInvoice.invoice_number,
-        invoice_date: editedInvoice.invoice_date,
-        due_date: editedInvoice.due_date,
-        customer_name: editedInvoice.customer_name,
-        customer_email: editedInvoice.customer_email,
-        customer_phone: editedInvoice.customer_phone,
-        customer_address: editedInvoice.customer_address,
-        line_items: JSON.parse(JSON.stringify(editedInvoice.line_items)),
-        subtotal: editedInvoice.subtotal,
-        tax_rate: editedInvoice.tax_rate,
-        tax_amount: editedInvoice.tax_amount,
-        discount_amount: editedInvoice.discount_amount,
-        total_amount: editedInvoice.total_amount,
-        payment_terms: editedInvoice.payment_terms,
-        notes: editedInvoice.notes,
-      };
-      
-      // Only include remaining_payments if it has a value
-      if (editedInvoice.remaining_payments && editedInvoice.remaining_payments > 0) {
-        updateData.paid_amount = editedInvoice.total_amount - editedInvoice.remaining_payments;
-      }
-      
       const { error } = await supabase
         .from("invoices")
-        .update(updateData)
+        .update({
+          invoice_number: editedInvoice.invoice_number,
+          invoice_date: editedInvoice.invoice_date,
+          due_date: editedInvoice.due_date,
+          customer_name: editedInvoice.customer_name,
+          customer_email: editedInvoice.customer_email,
+          customer_phone: editedInvoice.customer_phone,
+          customer_address: editedInvoice.customer_address,
+          line_items: JSON.parse(JSON.stringify(editedInvoice.line_items)),
+          subtotal: editedInvoice.subtotal,
+          tax_rate: editedInvoice.tax_rate,
+          tax_amount: editedInvoice.tax_amount,
+          discount_amount: editedInvoice.discount_amount,
+          total_amount: editedInvoice.total_amount,
+          payment_terms: editedInvoice.payment_terms,
+          notes: editedInvoice.notes,
+        })
         .eq("id", invoiceId);
       if (error) throw error;
       toast({
@@ -661,6 +650,12 @@ const InvoiceDetailPage = () => {
                         </span>
                       </div>
                     )}
+                    {invoice.remaining_payments && invoice.remaining_payments > 0 && (
+                      <div className="flex justify-between py-2 border-b bg-blue-50">
+                        <span className="text-blue-700 font-semibold">Remaining Payments</span>
+                        <span className="font-bold text-blue-600">${invoice.remaining_payments.toLocaleString()}</span>
+                      </div>
+                    )}
                     {invoice.tax_amount > 0 && (
                       <div className="flex justify-between py-2 border-b">
                         <span className="text-muted-foreground">Tax ({invoice.tax_rate}%)</span>
@@ -671,37 +666,6 @@ const InvoiceDetailPage = () => {
                       <span className="text-lg font-bold">Total Due</span>
                       <span className="text-2xl font-bold text-primary">${invoice.total_amount.toLocaleString()}</span>
                     </div>
-                    
-                    {/* Payment Breakdown */}
-                    <div className="mt-4 pt-4 border-t">
-                      <h4 className="text-sm font-semibold text-muted-foreground mb-2">Payment Breakdown</h4>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">1st Payment (20%)</span>
-                          <span className="font-medium">${(invoice.total_amount * 0.20).toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">2nd Payment (35%)</span>
-                          <span className="font-medium">${(invoice.total_amount * 0.35).toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">3rd Payment (40%)</span>
-                          <span className="font-medium">${(invoice.total_amount * 0.40).toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">4th Payment (10%)</span>
-                          <span className="font-medium">${(invoice.total_amount * 0.10).toLocaleString()}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Remaining Payments - only show if there's a remaining balance */}
-                    {invoice.remaining_payments && invoice.remaining_payments > 0 && (
-                      <div className="flex justify-between py-3 bg-amber-50 px-4 rounded-lg mt-3 border border-amber-200">
-                        <span className="text-amber-800 font-bold">Remaining Balance</span>
-                        <span className="text-xl font-bold text-amber-700">${invoice.remaining_payments.toLocaleString()}</span>
-                      </div>
-                    )}
                   </>
                 )}
               </div>
