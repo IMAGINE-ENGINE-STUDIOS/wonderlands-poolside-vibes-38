@@ -19,7 +19,14 @@ import DrivewayGateSection from "@/components/DrivewayGateSection";
 import SaunaSection from "@/components/SaunaSection";
 import Footer from "@/components/Footer";
 import LazySection from "@/components/LazySection";
+import SectionBanner from "@/components/SectionBanner";
 import lathamGilmerBanner from "@/assets/latham-gilmer-banner.jpeg";
+import saunaBanner from "@/assets/banners/sauna-banner.jpg";
+import spaBanner from "@/assets/banners/spa-banner.jpg";
+import screenEnclosureBanner from "@/assets/banners/screen-enclosure-banner.jpg";
+import paversBanner from "@/assets/banners/pavers-banner.jpg";
+import coversBanner from "@/assets/banners/covers-banner.jpg";
+import drivewayGateBanner from "@/assets/banners/driveway-gate-banner.jpg";
 
 const Index = () => {
   useEffect(() => {
@@ -68,11 +75,23 @@ const Index = () => {
       </LazySection>
       
       <div id="saunas" />
+      <SectionBanner 
+        image={saunaBanner} 
+        alt="Luxury Saunas" 
+        title="Premium Saunas"
+        subtitle="Experience the ultimate relaxation with our collection of luxury indoor and outdoor saunas"
+      />
       <LazySection>
         <SaunaSection />
       </LazySection>
       
       <div id="spas" />
+      <SectionBanner 
+        image={spaBanner} 
+        alt="Hot Tubs & Spas" 
+        title="Hot Tubs & Spas"
+        subtitle="Transform your backyard into a personal oasis with our premium spa collection"
+      />
       <LazySection eager={true}>
         <SpaCatalog />
       </LazySection>
@@ -84,34 +103,66 @@ const Index = () => {
       <LazySection>
         <TanningLedgeSection />
       </LazySection>
+      
       <div id="screen-enclosures" />
+      <SectionBanner 
+        image={screenEnclosureBanner} 
+        alt="Screen Enclosures" 
+        title="Screen Enclosures"
+        subtitle="Protect your pool area from bugs and debris while enjoying the Florida sunshine"
+      />
       <LazySection>
         <ScreenEnclosureSection />
       </LazySection>
+      
       <div id="patio-fencing" />
       <LazySection>
         <PatioFencingSection />
       </LazySection>
+      
       <div id="lanai" />
       <LazySection>
         <LanaiSection />
       </LazySection>
+      
       <div id="pavers" />
+      <SectionBanner 
+        image={paversBanner} 
+        alt="Pool Pavers" 
+        title="Premium Pavers"
+        subtitle="Elevate your outdoor space with stunning paver designs around your pool"
+      />
       <LazySection>
         <PaversSection />
       </LazySection>
+      
       <div id="covers" />
+      <SectionBanner 
+        image={coversBanner} 
+        alt="Automatic Pool Covers" 
+        title="Automatic Pool Covers"
+        subtitle="Safety, energy efficiency, and convenience with our automatic cover systems"
+      />
       <LazySection>
         <AutomaticCoversSection />
       </LazySection>
+      
       <div id="driveway-gates" />
+      <SectionBanner 
+        image={drivewayGateBanner} 
+        alt="Driveway Gates" 
+        title="Driveway Gates"
+        subtitle="Add security and elegance to your property with our custom gate solutions"
+      />
       <LazySection>
         <DrivewayGateSection />
       </LazySection>
+      
       <div id="finishes" />
       <LazySection>
         <PoolFinishesSection />
       </LazySection>
+      
       <div id="liners" />
       <LazySection>
         <LinersSection />
