@@ -5,9 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Printer, Send, Edit2, Save, X } from "lucide-react";
+import { ArrowLeft, Printer, Send, Edit2, Save, X, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+const DEFAULT_PAYMENT_TERMS = `Payment will be broken down into 4 payments:
+• 20% due same day of signing the contract
+• 35% due same day after permits are approved and when the excavator arrives to the house
+• 40% before concrete machine arrives and same day after excavations are completed
+• 10% due same day when the last inspection is approved
+
+It will be fully explained in the contract.`;
+interface LineItem {
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
+
 interface Invoice {
   id: string;
   invoice_number: string;
@@ -17,7 +32,7 @@ interface Invoice {
   customer_address: string;
   invoice_date: string;
   due_date: string;
-  line_items: any;
+  line_items: LineItem[];
   subtotal: number;
   tax_rate: number;
   tax_amount: number;
@@ -30,6 +45,7 @@ interface Invoice {
   terms_conditions: string | null;
   created_at: string;
   sent_at: string | null;
+  remaining_payments?: number;
 }
 const InvoiceDetailPage = () => {
   const { invoiceId } = useParams<{
@@ -156,11 +172,13 @@ const InvoiceDetailPage = () => {
           customer_email: editedInvoice.customer_email,
           customer_phone: editedInvoice.customer_phone,
           customer_address: editedInvoice.customer_address,
+          line_items: JSON.parse(JSON.stringify(editedInvoice.line_items)),
           subtotal: editedInvoice.subtotal,
           tax_rate: editedInvoice.tax_rate,
           tax_amount: editedInvoice.tax_amount,
           discount_amount: editedInvoice.discount_amount,
           total_amount: editedInvoice.total_amount,
+          payment_terms: editedInvoice.payment_terms,
           notes: editedInvoice.notes,
         })
         .eq("id", invoiceId);
@@ -178,6 +196,46 @@ const InvoiceDetailPage = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const addLineItem = () => {
+    if (!editedInvoice) return;
+    const newItem: LineItem = {
+      description: "New Item",
+      quantity: 1,
+      unit_price: 0,
+      total: 0,
+    };
+    setEditedInvoice({
+      ...editedInvoice,
+      line_items: [...editedInvoice.line_items, newItem],
+    });
+  };
+
+  const removeLineItem = (index: number) => {
+    if (!editedInvoice) return;
+    const newItems = editedInvoice.line_items.filter((_, i) => i !== index);
+    setEditedInvoice({
+      ...editedInvoice,
+      line_items: newItems,
+    });
+  };
+
+  const updateLineItem = (index: number, field: keyof LineItem, value: string | number) => {
+    if (!editedInvoice) return;
+    const newItems = [...editedInvoice.line_items];
+    newItems[index] = {
+      ...newItems[index],
+      [field]: value,
+    };
+    // Recalculate total for the line item
+    if (field === 'quantity' || field === 'unit_price') {
+      newItems[index].total = newItems[index].quantity * newItems[index].unit_price;
+    }
+    setEditedInvoice({
+      ...editedInvoice,
+      line_items: newItems,
+    });
   };
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -414,6 +472,14 @@ const InvoiceDetailPage = () => {
 
             {/* Line Items Table */}
             <div className="mb-8">
+              {editMode && (
+                <div className="flex justify-end mb-2">
+                  <Button onClick={addLineItem} size="sm" variant="outline">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Product
+                  </Button>
+                </div>
+              )}
               <table className="w-full">
                 <thead>
                   <tr className="border-b-2 border-primary">
@@ -421,22 +487,63 @@ const InvoiceDetailPage = () => {
                     <th className="text-center py-3 font-semibold w-24">Qty</th>
                     <th className="text-right py-3 font-semibold w-32">Rate</th>
                     <th className="text-right py-3 font-semibold w-32">Amount</th>
+                    {editMode && <th className="w-12"></th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {invoice.line_items &&
-                    invoice.line_items.map((item: any, index: number) => (
-                      <tr key={index} className="border-b border-gray-200">
-                        <td className="py-3">{item.description}</td>
-                        <td className="text-center py-3">{item.quantity || 1}</td>
-                        <td className="text-right py-3">
-                          ${(item.unit_price || item.rate || item.total || 0).toLocaleString()}
-                        </td>
-                        <td className="text-right py-3 font-semibold">
-                          ${(item.total || item.amount || 0).toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
+                  {editMode
+                    ? editedInvoice?.line_items?.map((item: any, index: number) => (
+                        <tr key={index} className="border-b border-gray-200">
+                          <td className="py-2">
+                            <Input
+                              value={item.description || ""}
+                              onChange={(e) => updateLineItem(index, "description", e.target.value)}
+                              className="w-full"
+                            />
+                          </td>
+                          <td className="py-2">
+                            <Input
+                              type="number"
+                              value={item.quantity || 1}
+                              onChange={(e) => updateLineItem(index, "quantity", parseInt(e.target.value) || 1)}
+                              className="w-20 text-center"
+                            />
+                          </td>
+                          <td className="py-2">
+                            <Input
+                              type="number"
+                              value={item.unit_price || item.rate || 0}
+                              onChange={(e) => updateLineItem(index, "unit_price", parseFloat(e.target.value) || 0)}
+                              className="w-28 text-right"
+                            />
+                          </td>
+                          <td className="text-right py-2 font-semibold">
+                            ${(item.total || item.amount || (item.quantity || 1) * (item.unit_price || 0)).toLocaleString()}
+                          </td>
+                          <td className="py-2">
+                            <Button
+                              onClick={() => removeLineItem(index)}
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    : invoice.line_items?.map((item: any, index: number) => (
+                        <tr key={index} className="border-b border-gray-200">
+                          <td className="py-3">{item.description}</td>
+                          <td className="text-center py-3">{item.quantity || 1}</td>
+                          <td className="text-right py-3">
+                            ${(item.unit_price || item.rate || item.total || 0).toLocaleString()}
+                          </td>
+                          <td className="text-right py-3 font-semibold">
+                            ${(item.total || item.amount || 0).toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
                 </tbody>
               </table>
             </div>
@@ -470,6 +577,20 @@ const InvoiceDetailPage = () => {
                           )
                         }
                         className="w-32 text-right"
+                      />
+                    </div>
+                    <div className="flex justify-between py-2 border-b items-center bg-blue-50">
+                      <span className="text-blue-700 font-semibold">Remaining Payments</span>
+                      <Input
+                        type="number"
+                        value={editedInvoice?.remaining_payments || 0}
+                        onChange={(e) =>
+                          setEditedInvoice((prev) =>
+                            prev ? { ...prev, remaining_payments: parseFloat(e.target.value) || 0 } : null
+                          )
+                        }
+                        className="w-32 text-right"
+                        placeholder="0"
                       />
                     </div>
                     <div className="flex justify-between py-2 border-b items-center">
@@ -529,6 +650,12 @@ const InvoiceDetailPage = () => {
                         </span>
                       </div>
                     )}
+                    {invoice.remaining_payments && invoice.remaining_payments > 0 && (
+                      <div className="flex justify-between py-2 border-b bg-blue-50">
+                        <span className="text-blue-700 font-semibold">Remaining Payments</span>
+                        <span className="font-bold text-blue-600">${invoice.remaining_payments.toLocaleString()}</span>
+                      </div>
+                    )}
                     {invoice.tax_amount > 0 && (
                       <div className="flex justify-between py-2 border-b">
                         <span className="text-muted-foreground">Tax ({invoice.tax_rate}%)</span>
@@ -547,26 +674,25 @@ const InvoiceDetailPage = () => {
             {/* Payment Terms */}
             <div className="mb-8 pb-8 border-b">
               <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-3">Payment Terms</h3>
-              <div className="bg-muted/30 p-4 rounded-lg space-y-2">
-                <p className="text-sm font-semibold mb-2">Payment will be broken down into 4 payments:</p>
-                <div className="space-y-1.5 text-sm">
-                  <p>
-                    • <span className="font-semibold">20%</span> due same day of signing the contract
-                  </p>
-                  <p>
-                    • <span className="font-semibold">35%</span> due same day after permits are approved and when the
-                    excavator arrives to the house
-                  </p>
-                  <p>
-                    • <span className="font-semibold">40%</span> before concrete machine arrives and same day after
-                    excavations are completed
-                  </p>
-                  <p>
-                    • <span className="font-semibold">10%</span> due same day when the last inspection is approved
+              {editMode ? (
+                <Textarea
+                  value={editedInvoice?.payment_terms || DEFAULT_PAYMENT_TERMS}
+                  onChange={(e) =>
+                    setEditedInvoice((prev) =>
+                      prev ? { ...prev, payment_terms: e.target.value } : null
+                    )
+                  }
+                  rows={10}
+                  className="w-full"
+                  placeholder="Enter payment terms..."
+                />
+              ) : (
+                <div className="bg-muted/30 p-4 rounded-lg">
+                  <p className="text-sm whitespace-pre-line">
+                    {invoice.payment_terms || DEFAULT_PAYMENT_TERMS}
                   </p>
                 </div>
-                <p className="text-sm italic mt-3 text-muted-foreground">It will be fully explained in the contract.</p>
-              </div>
+              )}
               {invoice.sent_at && (
                 <div className="mt-4">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Sent Date</h3>
