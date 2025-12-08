@@ -67,23 +67,6 @@ const InvoiceDetailPage = () => {
       setLoading(true);
       const { data, error } = await supabase.from("invoices").select("*").eq("id", invoiceId).single();
       if (error) throw error;
-      
-      // Parse remaining_payments from notes if stored there
-      let remainingPayments = 0;
-      let notesText = data.notes;
-      if (data.notes) {
-        try {
-          const parsed = JSON.parse(data.notes);
-          if (parsed.remaining_payments) {
-            remainingPayments = parsed.remaining_payments;
-            notesText = parsed.text || '';
-          }
-        } catch {
-          // Notes is plain text, not JSON
-          notesText = data.notes;
-        }
-      }
-
       const invoiceData = {
         ...data,
         line_items: Array.isArray(data.line_items) ? data.line_items : JSON.parse(data.line_items as string),
@@ -91,10 +74,6 @@ const InvoiceDetailPage = () => {
         due_date:
           data.due_date ||
           new Date(new Date(data.invoice_date).getTime() + 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-        // Set default payment terms if not set
-        payment_terms: data.payment_terms || DEFAULT_PAYMENT_TERMS,
-        remaining_payments: remainingPayments,
-        notes: notesText,
       };
       setInvoice(invoiceData as Invoice);
       setEditedInvoice(invoiceData as Invoice);
@@ -183,14 +162,6 @@ const InvoiceDetailPage = () => {
   const handleSave = async () => {
     if (!editedInvoice) return;
     try {
-      // Store remaining_payments in notes JSON if needed (since DB may not have column)
-      const notesData = editedInvoice.remaining_payments && editedInvoice.remaining_payments > 0
-        ? JSON.stringify({ 
-            text: editedInvoice.notes || '', 
-            remaining_payments: editedInvoice.remaining_payments 
-          })
-        : editedInvoice.notes;
-
       const { error } = await supabase
         .from("invoices")
         .update({
@@ -207,8 +178,8 @@ const InvoiceDetailPage = () => {
           tax_amount: editedInvoice.tax_amount,
           discount_amount: editedInvoice.discount_amount,
           total_amount: editedInvoice.total_amount,
-          payment_terms: editedInvoice.payment_terms || DEFAULT_PAYMENT_TERMS,
-          notes: notesData,
+          payment_terms: editedInvoice.payment_terms,
+          notes: editedInvoice.notes,
         })
         .eq("id", invoiceId);
       if (error) throw error;
