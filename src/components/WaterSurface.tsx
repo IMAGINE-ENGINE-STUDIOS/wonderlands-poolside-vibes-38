@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Point } from './scene3d/types';
 import { generateCurvedPoolPoints } from '@/utils/curveUtils';
+import { validateAndRepairPolygon, ensureCounterClockwise } from '@/utils/shapeValidation';
 
 interface DepthPoint {
   position: number;
@@ -56,85 +57,106 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
 
     console.log('🌊 WaterSurface: Creating water from pool points (EXACT match with pool floor):', poolPoints.length);
     
-    // CRITICAL: Use generateCurvedPoolPoints with EXACT same parameters as Pool3DScene PoolMesh
-    const curvedPoints = generateCurvedPoolPoints(
-      poolPoints.map(p => ({ x: p.x, y: p.y })),
-      30,  // MUST match Pool3DScene segments
-      0.3  // MUST match Pool3DScene tension
-    );
+    try {
+      // CRITICAL: Use generateCurvedPoolPoints with EXACT same parameters as Pool3DScene PoolMesh
+      // LIMIT segments to prevent WebGL crashes with complex shapes
+      const segmentsPerEdge = Math.min(20, Math.ceil(100 / poolPoints.length));
+      const curvedPoints = generateCurvedPoolPoints(
+        poolPoints.map(p => ({ x: p.x, y: p.y })),
+        segmentsPerEdge,  // Adaptive segments
+        0.3  // MUST match Pool3DScene tension
+      );
 
-    // Calculate center using EXACT same method as Pool3DScene (lines 210-215)
-    const minX = Math.min(...curvedPoints.map(p => p.x));
-    const maxX = Math.max(...curvedPoints.map(p => p.x));
-    const minY = Math.min(...curvedPoints.map(p => p.y));
-    const maxY = Math.max(...curvedPoints.map(p => p.y));
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
+      // Calculate center using EXACT same method as Pool3DScene (lines 210-215)
+      const minX = Math.min(...curvedPoints.map(p => p.x));
+      const maxX = Math.max(...curvedPoints.map(p => p.x));
+      const minY = Math.min(...curvedPoints.map(p => p.y));
+      const maxY = Math.max(...curvedPoints.map(p => p.y));
+      const centerX = (minX + maxX) / 2;
+      const centerY = (minY + maxY) / 2;
 
-    // Calculate pool dimensions for depth mapping
-    const poolWidth = maxX - minX;
-    const poolLength = maxY - minY;
-    const lengthDirection = poolLength > poolWidth ? 'y' : 'x';
+      // Calculate pool dimensions for depth mapping
+      const poolWidth = maxX - minX;
+      const poolLength = maxY - minY;
+      const lengthDirection = poolLength > poolWidth ? 'y' : 'x';
 
-    // Normalize points to match Pool3DScene coordinate system (lines 217-220)
-    // CRITICAL: This MUST produce identical coordinates as pool floor
-    const normalizedPoints = curvedPoints.map(p => ({
-      x: p.x - centerX,
-      z: p.y - centerY
-    }));
+      // Normalize points to match Pool3DScene coordinate system (lines 217-220)
+      const normalizedPoints = curvedPoints.map(p => ({
+        x: p.x - centerX,
+        y: p.y - centerY
+      }));
 
-    console.log('🌊 Water normalized bounds:', {
-      centerX,
-      centerY,
-      poolWidth,
-      poolLength,
-      lengthDirection,
-      firstNormalizedPoint: normalizedPoints[0],
-      lastNormalizedPoint: normalizedPoints[normalizedPoints.length - 1]
-    });
+      // VALIDATE the polygon before creating geometry
+      const validatedPoints = validateAndRepairPolygon(normalizedPoints, {
+        maxVertices: 100,
+        simplifyEpsilon: 0.3,
+        fallbackToConvexHull: true,
+        fallbackToBoundingBox: true
+      });
 
-    // Create shape from normalized points - water fills pool boundary EXACTLY
-    const shape = new THREE.Shape();
-    normalizedPoints.forEach((point, i) => {
-      if (i === 0) {
-        shape.moveTo(point.x, point.z);
-      } else {
-        shape.lineTo(point.x, point.z);
-      }
-    });
-    shape.closePath();
+      console.log('🌊 Water validated:', validatedPoints.length, 'points from', normalizedPoints.length);
 
-    // Create highly tessellated geometry for smooth wave deformation and depth variation
-    const geometry = new THREE.ShapeGeometry(shape, 128);
-    
-    // Add depth attribute for depth-based coloring
-    const positions = geometry.getAttribute('position');
-    const depthArray = new Float32Array(positions.count);
-    
-    for (let i = 0; i < positions.count; i++) {
-      const x = positions.getX(i);
-      const z = positions.getZ(i);
-      
-      // Calculate position ratio along pool length (SAME logic as pool floor)
-      let lengthRatio;
-      if (lengthDirection === 'y') {
-        // lengthDirection 'y' means we're progressing along Z axis in 3D
-        lengthRatio = (z - (minY - centerY)) / poolLength;
-      } else {
-        // lengthDirection 'x' means we're progressing along X axis in 3D
-        lengthRatio = (x - (minX - centerX)) / poolWidth;
+      // Create shape from validated points - water fills pool boundary EXACTLY
+      const shape = new THREE.Shape();
+      validatedPoints.forEach((point, i) => {
+        if (i === 0) {
+          shape.moveTo(point.x, point.y);
+        } else {
+          shape.lineTo(point.x, point.y);
+        }
+      });
+      shape.closePath();
+
+      // Create tessellated geometry with error handling
+      let geometry: THREE.ShapeGeometry;
+      try {
+        geometry = new THREE.ShapeGeometry(shape, 64); // Reduced from 128 for stability
+      } catch (shapeError) {
+        console.warn('⚠️ WaterSurface: ShapeGeometry failed, using simplified shape');
+        // Fallback to bounding box
+        const fallbackShape = new THREE.Shape();
+        const padding = 0.5;
+        fallbackShape.moveTo(minX - centerX - padding, minY - centerY - padding);
+        fallbackShape.lineTo(maxX - centerX + padding, minY - centerY - padding);
+        fallbackShape.lineTo(maxX - centerX + padding, maxY - centerY + padding);
+        fallbackShape.lineTo(minX - centerX - padding, maxY - centerY + padding);
+        fallbackShape.closePath();
+        geometry = new THREE.ShapeGeometry(fallbackShape, 32);
       }
       
-      lengthRatio = Math.max(0, Math.min(1, lengthRatio));
-      const depth = getDepthAtPosition(lengthRatio);
-      depthArray[i] = depth;
+      // Add depth attribute for depth-based coloring
+      const positions = geometry.getAttribute('position');
+      const depthArray = new Float32Array(positions.count);
+      
+      for (let i = 0; i < positions.count; i++) {
+        const x = positions.getX(i);
+        const z = positions.getZ(i);
+        
+        // Calculate position ratio along pool length (SAME logic as pool floor)
+        let lengthRatio;
+        if (lengthDirection === 'y') {
+          lengthRatio = (z - (minY - centerY)) / poolLength;
+        } else {
+          lengthRatio = (x - (minX - centerX)) / poolWidth;
+        }
+        
+        lengthRatio = Math.max(0, Math.min(1, lengthRatio));
+        const depth = getDepthAtPosition(lengthRatio);
+        depthArray[i] = depth;
+      }
+      
+      geometry.setAttribute('depth', new THREE.BufferAttribute(depthArray, 1));
+      geometry.rotateX(-Math.PI / 2); // Rotate to horizontal
+      
+      console.log('✅ WaterSurface: Water geometry created with exact pool boundary match');
+      return geometry;
+    } catch (error) {
+      console.error('❌ WaterSurface: Failed to create geometry:', error);
+      // Return simple fallback plane
+      const fallbackGeometry = new THREE.PlaneGeometry(20, 40);
+      fallbackGeometry.rotateX(-Math.PI / 2);
+      return fallbackGeometry;
     }
-    
-    geometry.setAttribute('depth', new THREE.BufferAttribute(depthArray, 1));
-    geometry.rotateX(-Math.PI / 2); // Rotate to horizontal
-    
-    console.log('✅ WaterSurface: Water geometry created with exact pool boundary match');
-    return geometry;
   }, [poolPoints, getDepthAtPosition]);
 
   // Enhanced water shader material with depth-based colors, god rays, and water texture
