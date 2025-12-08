@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, Camera, FileText, LogIn, Phone, Mail, Download, Printer, Receipt } from "lucide-react";
+import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, Camera, FileText, LogIn, Phone, Mail, Download, Printer, Receipt, Clock } from "lucide-react";
 import PoolCustomizationOptions from "./PoolCustomizationOptions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -2032,101 +2032,114 @@ const SurveyQuoteTool = ({
               </div>
             </div>
             
-            {/* Controller Panel - Fixed at bottom, outside quote content */}
-            <div className="sticky bottom-0 left-0 right-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-t-2 border-orange-500 shadow-2xl p-4 no-print print:hidden z-50">
-              <div className="max-w-5xl mx-auto space-y-3">
-                {/* Edit Mode Controls */}
-                {!isEditMode ? (
-                  <div className="flex gap-3 justify-center items-center">
-                    <Input
-                      type="password"
-                      placeholder="Enter passcode to edit"
-                      value={passcodeInput}
-                      onChange={(e) => setPasscodeInput(e.target.value)}
-                      className="max-w-xs"
-                      onKeyDown={(e) => e.key === 'Enter' && handleEnterEditMode()}
-                    />
-                    <Button 
-                      variant="outline" 
-                      onClick={handleEnterEditMode}
-                      className="border-orange-500 text-orange-600 hover:bg-orange-50"
-                    >
-                      Edit Quote
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex gap-3 justify-center">
-                    <Button 
-                      variant="default"
-                      onClick={handleSaveEditedQuote}
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      Save & Update Quote
-                    </Button>
-                  </div>
-                )}
+            {/* Controller Panel - Redesigned with clean modern layout */}
+            <div className="sticky bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.15)] no-print print:hidden z-50">
+              <div className="max-w-4xl mx-auto px-4 py-4">
                 
-                {/* Main Action Buttons */}
-                <div className="flex flex-wrap gap-2 justify-center">
-                  <Button variant="default" className="bg-gradient-to-r from-orange-500 to-teal-500 hover:from-orange-600 hover:to-teal-600 text-white" onClick={handlePrintQuote}>
-                    <Printer className="h-4 w-4 mr-2" />
-                    Print
-                  </Button>
-                  <Button variant="default" className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white" onClick={handleDownloadPDF}>
-                    <Download className="h-4 w-4 mr-2" />
-                    PDF
-                  </Button>
+                {/* Edit Mode Toggle - Compact top bar */}
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100 dark:border-gray-800">
+                  {!isEditMode ? (
+                    <div className="flex items-center gap-2 w-full">
+                      <div className="relative flex-1 max-w-[200px]">
+                        <Input
+                          type="password"
+                          placeholder="Passcode"
+                          value={passcodeInput}
+                          onChange={(e) => setPasscodeInput(e.target.value)}
+                          className="h-9 text-sm pr-20 border-gray-300 focus:border-orange-400 focus:ring-orange-400"
+                          onKeyDown={(e) => e.key === 'Enter' && handleEnterEditMode()}
+                        />
+                        <Button 
+                          size="sm"
+                          variant="ghost" 
+                          onClick={handleEnterEditMode}
+                          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 px-2 text-xs text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                      <Button 
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setCurrentStep('options')}
+                        className="text-gray-500 hover:text-gray-700 text-sm"
+                      >
+                        <Settings className="h-4 w-4 mr-1" />
+                        Options
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button 
+                      size="sm"
+                      onClick={handleSaveEditedQuote}
+                      className="bg-green-500 hover:bg-green-600 text-white shadow-md"
+                    >
+                      <FileText className="h-4 w-4 mr-1" />
+                      Save Changes
+                    </Button>
+                  )}
+                </div>
+                
+                {/* Main Actions - Clean grid layout */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
                   <Button 
-                    variant="default" 
-                    className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white" 
+                    onClick={handlePrintQuote}
+                    className="h-12 flex flex-col items-center justify-center gap-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border-0 shadow-sm"
+                  >
+                    <Printer className="h-5 w-5" />
+                    <span className="text-xs font-medium">Print</span>
+                  </Button>
+                  
+                  <Button 
+                    onClick={handleDownloadPDF}
+                    className="h-12 flex flex-col items-center justify-center gap-1 bg-blue-500 hover:bg-blue-600 text-white border-0 shadow-sm"
+                  >
+                    <Download className="h-5 w-5" />
+                    <span className="text-xs font-medium">PDF</span>
+                  </Button>
+                  
+                  <Button 
                     onClick={handleGenerateInvoice}
                     disabled={isGeneratingInvoice}
+                    className="h-12 flex flex-col items-center justify-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white border-0 shadow-sm disabled:opacity-50"
                   >
                     {isGeneratingInvoice ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Generating...
-                      </>
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                      <>
-                        <Receipt className="h-4 w-4 mr-2" />
-                        Invoice
-                      </>
+                      <Receipt className="h-5 w-5" />
                     )}
+                    <span className="text-xs font-medium">Invoice</span>
                   </Button>
-                  <Button variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-50" onClick={() => setCurrentStep('options')}>
-                    Modify Options
-                  </Button>
-                  <Button variant="default" className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white" onClick={handleScheduleInstallation}>
-                    Schedule
+                  
+                  <Button 
+                    onClick={handleScheduleInstallation}
+                    className="h-12 flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white border-0 shadow-sm"
+                  >
+                    <Clock className="h-5 w-5" />
+                    <span className="text-xs font-medium">Schedule</span>
                   </Button>
                 </div>
                 
-                {/* Email Quote Section */}
-                <div className="flex flex-col sm:flex-row gap-2 items-center justify-center">
+                {/* Email Section - Compact inline design */}
+                <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2">
+                  <Mail className="h-4 w-4 text-gray-400 ml-2 flex-shrink-0" />
                   <Input
                     type="email"
-                    placeholder="Enter email address"
+                    placeholder="Send quote to email..."
                     value={emailAddress}
                     onChange={(e) => setEmailAddress(e.target.value)}
-                    className="max-w-xs"
+                    className="flex-1 h-9 border-0 bg-transparent focus:ring-0 text-sm placeholder:text-gray-400"
                   />
                   <Button 
-                    variant="default" 
-                    className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
+                    size="sm"
                     onClick={handleEmailQuote}
-                    disabled={isSendingEmail}
+                    disabled={isSendingEmail || !emailAddress}
+                    className="bg-blue-500 hover:bg-blue-600 text-white h-8 px-4 text-sm disabled:opacity-50"
                   >
                     {isSendingEmail ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Sending...
-                      </>
+                      <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <>
-                        <Mail className="h-4 w-4 mr-2" />
-                        Email Quote
-                      </>
+                      'Send'
                     )}
                   </Button>
                 </div>
