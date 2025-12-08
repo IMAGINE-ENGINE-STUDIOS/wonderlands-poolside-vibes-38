@@ -2358,13 +2358,12 @@ const WonderlandsStudio = () => {
 
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                      <Button onClick={handleQuoteRequest} variant="outline" className="flex-1 text-xs sm:text-sm">
+                      <Button onClick={handleQuoteRequest} className="flex-1 bg-gradient-to-r from-primary to-teal text-white hover:from-primary/90 hover:to-teal/90 text-xs sm:text-sm">
                         <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-                        <span className="truncate">Generate Quote</span>
+                        <span className="truncate">Instant Quote</span>
                       </Button>
-                      <Button onClick={handleAddToCart} variant="outline" className="flex-1 text-xs sm:text-sm">
-                        <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-                        <span className="truncate">Add to Cart</span>
+                      <Button onClick={handleAddToCart} variant="outline" size="icon" className="w-10 h-10">
+                        <ShoppingCart className="h-4 w-4" />
                       </Button>
                       <StripeCheckoutButton 
                         productId={`${selectedProduct.type}_${selectedProduct.model?.replace(/\s+/g, '_') || selectedProduct.name?.replace(/\s+/g, '_')}`} 

@@ -578,24 +578,22 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
         <Separator />
 
         {/* Add to Cart Button */}
-        <div className="flex flex-col gap-2">
+        <div className="flex gap-2">
           <Button 
-            onClick={handleAddToCart}
-            size="lg"
-            className="w-full flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+            onClick={() => setShowQuoteTool(true)} 
+            className="flex-1 bg-gradient-to-r from-primary to-teal text-white hover:from-primary/90 hover:to-teal/90"
           >
-            <ShoppingCart className="h-5 w-5" />
-            Add to Cart - ${(pool.price + calculateExtrasTotal()).toLocaleString()}
+            <FileText className="h-4 w-4 mr-2" />
+            Instant Quote
           </Button>
           
           <Button 
-            onClick={() => setShowQuoteTool(true)} 
-            variant="secondary" 
-            size="lg"
-            className="w-full gap-2"
+            onClick={handleAddToCart}
+            variant="outline"
+            size="icon"
+            className="w-10 h-10"
           >
-            <FileText className="h-4 w-4" />
-            Create Instant Quote
+            <ShoppingCart className="h-5 w-5" />
           </Button>
         </div>
       </CardContent>

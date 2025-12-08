@@ -814,13 +814,12 @@ const SpaProductCard = ({
               extrasBreakdown,
               extrasTotal
             });
-          }} className="text-xs">Instant Quote</Button>
-          </div>
+          }} className="flex-1 bg-gradient-to-r from-primary to-teal text-white hover:from-primary/90 hover:to-teal/90 text-xs">Instant Quote</Button>
           
-          <Button onClick={handleAddToCart} className="w-full bg-gradient-to-r from-primary to-teal hover:from-primary/90 hover:to-teal/90" size="sm">
-            <ShoppingCart className="h-4 w-4 mr-2" />
-            Add to Cart
+          <Button onClick={handleAddToCart} variant="outline" size="icon" className="w-10 h-10">
+            <ShoppingCart className="h-4 w-4" />
           </Button>
+          </div>
           
           <StripeCheckoutButton productId={`spa_${spa.model.replace(/\s+/g, '_')}`} productName={`${spa.model} Spa`} price={calculateTotalPrice()} size="sm" className="w-full text-xs" />
           

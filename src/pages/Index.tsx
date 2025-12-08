@@ -27,6 +27,9 @@ import screenEnclosureBanner from "@/assets/banners/screen-enclosure-banner.jpg"
 import paversBanner from "@/assets/banners/pavers-banner.jpg";
 import coversBanner from "@/assets/banners/covers-banner.jpg";
 import drivewayGateBanner from "@/assets/banners/driveway-gate-banner.jpg";
+import tanningLedgeBanner from "@/assets/banners/tanning-ledge-banner.jpg";
+import patioFencingBanner from "@/assets/banners/patio-fencing-banner.jpg";
+import lanaiBanner from "@/assets/banners/lanai-banner.jpg";
 
 const Index = () => {
   useEffect(() => {
@@ -100,6 +103,14 @@ const Index = () => {
       <LazySection>
         <GilmerSpasSection />
       </LazySection>
+      
+      <div id="tanning-ledges" />
+      <SectionBanner 
+        image={tanningLedgeBanner} 
+        alt="Tanning Ledges" 
+        title="Tanning Ledges"
+        subtitle="Relax in style with our premium in-pool tanning ledges and sun shelves"
+      />
       <LazySection>
         <TanningLedgeSection />
       </LazySection>
@@ -116,11 +127,23 @@ const Index = () => {
       </LazySection>
       
       <div id="patio-fencing" />
+      <SectionBanner 
+        image={patioFencingBanner} 
+        alt="Patio Fencing" 
+        title="Aluminum Patio Fencing"
+        subtitle="Premium pool-code compliant aluminum fencing for safety and style"
+      />
       <LazySection>
         <PatioFencingSection />
       </LazySection>
       
       <div id="lanai" />
+      <SectionBanner 
+        image={lanaiBanner} 
+        alt="Lanai Enclosures" 
+        title="Lanai Enclosures"
+        subtitle="Transform your outdoor space into a luxurious covered living area"
+      />
       <LazySection>
         <LanaiSection />
       </LazySection>
