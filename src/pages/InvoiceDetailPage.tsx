@@ -580,7 +580,7 @@ const InvoiceDetailPage = () => {
                       />
                     </div>
                     <div className="flex justify-between py-2 border-b items-center bg-blue-50">
-                      <span className="text-blue-700 font-semibold">Amount Paid</span>
+                      <span className="text-blue-700 font-semibold">Remaining Balance Owed</span>
                       <Input
                         type="number"
                         value={editedInvoice?.remaining_payments || 0}
@@ -651,9 +651,9 @@ const InvoiceDetailPage = () => {
                       </div>
                     )}
                     {invoice.remaining_payments && invoice.remaining_payments > 0 && (
-                      <div className="flex justify-between py-2 border-b bg-blue-50">
-                        <span className="text-blue-700 font-semibold">Remaining Balance</span>
-                        <span className="font-bold text-blue-600">
+                      <div className="flex justify-between py-2 border-b bg-orange-50">
+                        <span className="text-orange-700 font-semibold">Amount Paid</span>
+                        <span className="font-bold text-orange-600">
                           ${(invoice.total_amount - invoice.remaining_payments).toLocaleString()}
                         </span>
                       </div>
@@ -668,6 +668,12 @@ const InvoiceDetailPage = () => {
                       <span className="text-lg font-bold">Total Due</span>
                       <span className="text-2xl font-bold text-primary">${invoice.total_amount.toLocaleString()}</span>
                     </div>
+                    {invoice.remaining_payments && invoice.remaining_payments > 0 && (
+                      <div className="flex justify-between py-3 bg-red-100 px-4 rounded-lg mt-2">
+                        <span className="text-lg font-bold text-red-700">Remaining Balance</span>
+                        <span className="text-2xl font-bold text-red-600">${invoice.remaining_payments.toLocaleString()}</span>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
