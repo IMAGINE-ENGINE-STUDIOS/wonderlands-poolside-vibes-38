@@ -115,10 +115,10 @@ const LanaiSection = () => {
 
   const paverOptions = [
     {
-      name: 'No Pavers',
+      name: 'Concrete Patio',
       price: 0,
-      image: lanaiStandardImg,
-      description: 'Standard concrete foundation'
+      image: '/images/concrete-patio-texture.avif',
+      description: 'Standard concrete patio'
     },
     ...paverTypes.map(paver => ({
       name: paver.name,

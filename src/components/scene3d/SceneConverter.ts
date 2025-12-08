@@ -100,7 +100,7 @@ export const getPaverTextureUrl = (paverName?: string, paverTypes?: any[]): stri
     paverTypesLength: paverTypes?.length 
   });
   
-  if (!paverName || paverName === 'None' || paverName === 'No Pavers' || paverName === '' || paverName === 'undefined') {
+  if (!paverName || paverName === 'None' || paverName === 'Concrete Patio' || paverName === '' || paverName === 'undefined') {
     console.log('   → Returning fallback (invalid input)');
     return '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
   }

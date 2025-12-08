@@ -125,7 +125,7 @@ const coverOptions: FeatureOption[] = [
 ];
 
 const paverOptions: FeatureOption[] = [
-  { name: 'No Pavers', price: 0, image: azureBlueFinish, collection: 'none' },
+  { name: 'Concrete Patio', price: 0, image: '/images/concrete-patio-texture.avif', collection: 'none' },
   
   // Appian Collection - $20/sq ft
   { name: 'Appian Adobe', price: 20, image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png', collection: 'Appian Collection' },

@@ -109,11 +109,11 @@ const finishOptions = getProductsByCategory('finish').map(finish => ({
 
 // Convert paver data to options format
 const paverOptions = [{
-  name: 'No Pavers',
+  name: 'Concrete Patio',
   color: '#808080',
   price: 0,
-  image: azureBlueFinish,
-  description: 'No additional pavers',
+  image: '/images/concrete-patio-texture.avif',
+  description: 'Standard concrete patio',
   collection: 'none'
 }, ...paverTypes.map(paver => ({
   name: paver.name,
