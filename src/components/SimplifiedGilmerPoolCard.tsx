@@ -18,6 +18,7 @@ import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermomete
 import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
 import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
+import FinancingOptions from "./FinancingOptions";
 
 interface SimplifiedGilmerPoolCardProps {
   pool: {
@@ -355,29 +356,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
 
             {/* Pavers Options - matching Latham format */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Pavers Surface Area - Calculator</h4>
-              <div className="mb-3">
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                  Paver Surface Area (sq ft)
-                </label>
-                <Input 
-                  type="number" 
-                  placeholder="Enter surface area for pavers" 
-                  value={options.paverSurfaceArea} 
-                  onChange={(e) => {
-                    updateOption('paverSurfaceArea', e.target.value);
-                    if (e.target.value && !isNaN(parseFloat(e.target.value)) && parseFloat(e.target.value) > 0) {
-                      updateOption('pavers', true);
-                    }
-                  }} 
-                  className="mb-2" 
-                />
-                {options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) && (
-                  <div className="text-xs text-green-600 font-medium">
-                    Calculated Cost: ${(parseFloat(options.paverSurfaceArea) * 20).toLocaleString()} (${options.paverSurfaceArea} sq ft × $20/sq ft)
-                  </div>
-                )}
-              </div>
+              <h4 className="font-semibold text-foreground">Deck Pavers</h4>
               <Carousel 
                 className="w-full"
                 opts={{
@@ -418,43 +397,33 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 <CarouselPrevious className="left-0 animate-pulse" />
                 <CarouselNext className="right-0 animate-pulse" />
               </Carousel>
+              <div className="mt-3">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                  Paver Surface Area (sq ft)
+                </label>
+                <Input 
+                  type="number" 
+                  placeholder="Enter surface area for pavers" 
+                  value={options.paverSurfaceArea} 
+                  onChange={(e) => {
+                    updateOption('paverSurfaceArea', e.target.value);
+                    if (e.target.value && !isNaN(parseFloat(e.target.value)) && parseFloat(e.target.value) > 0) {
+                      updateOption('pavers', true);
+                    }
+                  }} 
+                  className="mb-2" 
+                />
+                {options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) && (
+                  <div className="text-xs text-green-600 font-medium">
+                    Calculated Cost: ${(parseFloat(options.paverSurfaceArea) * 20).toLocaleString()} (${options.paverSurfaceArea} sq ft × $20/sq ft)
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Screen Enclosure Options - matching Latham format */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Screen Enclosure Surface Area - Calculator</h4>
-              <div className="mb-3">
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                  Screen Enclosure Area (sq ft)
-                </label>
-                <Input
-                  type="number"
-                  placeholder="Enter surface area for screen enclosure"
-                  value={options.screenEnclosureArea || ''}
-                  onChange={(e) => {
-                    const value = parseFloat(e.target.value) || 0;
-                    updateOption('screenEnclosureArea', value);
-                    if (value > 0) {
-                      updateOption('screenEnclosure', true);
-                    }
-                  }}
-                  className="mb-2"
-                />
-                {options.screenEnclosureArea > 0 && (
-                  <div className="text-xs text-green-600 font-medium">
-                    Calculated Cost: ${(() => {
-                      let pricePerSqFt = 15;
-                      if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
-                      if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
-                      return (options.screenEnclosureArea * pricePerSqFt).toLocaleString();
-                    })()} (${options.screenEnclosureArea} sq ft × ${(() => {
-                      if (options.screenEnclosureQuality === 'deluxe') return '$22';
-                      if (options.screenEnclosureQuality === 'premium') return '$28';
-                      return '$15';
-                    })()}/sq ft)
-                  </div>
-                )}
-              </div>
+              <h4 className="font-semibold text-foreground">Screen Enclosure</h4>
               <Carousel 
                 className="w-full"
                 opts={{
@@ -496,6 +465,38 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 <CarouselPrevious className="left-0 animate-pulse" />
                 <CarouselNext className="right-0 animate-pulse" />
               </Carousel>
+              <div className="mt-3">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                  Screen Enclosure Area (sq ft)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Enter surface area for screen enclosure"
+                  value={options.screenEnclosureArea || ''}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value) || 0;
+                    updateOption('screenEnclosureArea', value);
+                    if (value > 0) {
+                      updateOption('screenEnclosure', true);
+                    }
+                  }}
+                  className="mb-2"
+                />
+                {options.screenEnclosureArea > 0 && (
+                  <div className="text-xs text-green-600 font-medium">
+                    Calculated Cost: ${(() => {
+                      let pricePerSqFt = 20;
+                      if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 27;
+                      if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 33;
+                      return (options.screenEnclosureArea * pricePerSqFt).toLocaleString();
+                    })()} ({options.screenEnclosureArea} sq ft × ${(() => {
+                      if (options.screenEnclosureQuality === 'deluxe') return '27';
+                      if (options.screenEnclosureQuality === 'premium') return '33';
+                      return '20';
+                    })()}/sq ft)
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Additional Features - matching Latham format */}
@@ -678,53 +679,10 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               />
               
               {/* Financing Options */}
-              <div className="mt-4 p-4 bg-gradient-to-r from-teal/5 to-primary/5 rounded-lg border border-teal/20">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h5 className="font-semibold text-sm text-foreground">Finance This Purchase</h5>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => setShowFinancing(!showFinancing)} 
-                      className="text-xs"
-                    >
-                      <CreditCard className="w-3 h-3 mr-1" />
-                      {showFinancing ? 'Hide' : 'Show'} Options
-                    </Button>
-                  </div>
-                  
-                  {showFinancing && (
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div className="text-center p-2 bg-white/50 rounded">
-                          <div className="font-semibold">3 Years</div>
-                          <div className="text-teal-600">${Math.round((pool.price + calculateTotal()) / 36).toLocaleString()}/mo</div>
-                        </div>
-                        <div className="text-center p-2 bg-white/50 rounded">
-                          <div className="font-semibold">6 Years</div>
-                          <div className="text-teal-600">${Math.round((pool.price + calculateTotal()) / 72).toLocaleString()}/mo</div>
-                        </div>
-                      </div>
-                      
-                      <Button 
-                        variant="outline" 
-                        className="w-full" 
-                        size="sm" 
-                        onClick={() => {
-                          const lyonFinancialUrl = `https://www.lyonfinancial.net/apply/?amount=${pool.price + calculateTotal()}&product=${encodeURIComponent(pool.model)}&description=${encodeURIComponent(`Complete pool configuration including ${pool.model}`)}&monthly_payment=${Math.round((pool.price + calculateTotal()) * 0.008)}&loan_term=60&project_type=Pool%20Installation`;
-                          window.open(lyonFinancialUrl, '_blank');
-                        }}
-                      >
-                        Apply with Lyon Financial
-                      </Button>
-                      
-                      <div className="text-xs text-muted-foreground text-center">
-                        *Financing subject to credit approval. APR varies.
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <FinancingOptions 
+                totalPrice={pool.price + calculateTotal()}
+                productName={`${pool.brand} ${pool.model}`}
+              />
             </div>
           </div>
         )}

@@ -13,6 +13,7 @@ import { X, DollarSign, Thermometer, Shield, Zap, Droplets, Sun, Waves, Clock, A
 import { parseDimensions, parseDepth } from "@/components/scene3d/SceneConverter";
 import { Label } from "@/components/ui/label";
 import StripeCheckoutButton from "@/components/StripeCheckoutButton";
+import FinancingOptions from "@/components/FinancingOptions";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { spas, pools } from "@/components/PoolCatalog";
 import { gilmerPools } from "@/data/gilmerPools";
@@ -2583,19 +2584,11 @@ const WonderlandsStudio = () => {
                       </div>
 
                       {/* Financing Options */}
-                      <div className="p-2 sm:p-3 bg-muted/50 rounded-lg">
-                        <p className="text-[10px] sm:text-xs font-medium mb-1.5 sm:mb-2">Financing Options:</p>
-                        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
-                          <div className="text-center p-1.5 sm:p-2 bg-background rounded">
-                            <div className="font-semibold text-[10px] sm:text-xs">36 months</div>
-                            <div className="text-primary text-[10px] sm:text-xs">${((poolBuilderData.breakdown?.total || 0) / 36).toLocaleString()}/mo</div>
-                          </div>
-                          <div className="text-center p-1.5 sm:p-2 bg-background rounded">
-                            <div className="font-semibold text-[10px] sm:text-xs">72 months</div>
-                            <div className="text-primary text-[10px] sm:text-xs">${((poolBuilderData.breakdown?.total || 0) / 72).toLocaleString()}/mo</div>
-                          </div>
-                        </div>
-                      </div>
+                      <FinancingOptions 
+                        totalPrice={poolBuilderData.breakdown?.total || 0}
+                        productName="Pool Configuration"
+                        compact
+                      />
                     </> : selectedProduct ? <>
                       <div className="space-y-1.5 sm:space-y-2">
                         <div className="flex justify-between text-xs sm:text-sm">
@@ -2620,19 +2613,11 @@ const WonderlandsStudio = () => {
                       </div>
 
                       {/* Financing Options */}
-                      <div className="p-2 sm:p-3 bg-muted/50 rounded-lg">
-                        <p className="text-[10px] sm:text-xs font-medium mb-1.5 sm:mb-2">Financing Options:</p>
-                        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
-                          <div className="text-center p-1.5 sm:p-2 bg-background rounded">
-                            <div className="font-semibold text-[10px] sm:text-xs">36 months</div>
-                            <div className="text-primary text-[10px] sm:text-xs">${(calculateTotalPrice() / 36).toLocaleString()}/mo</div>
-                          </div>
-                          <div className="text-center p-1.5 sm:p-2 bg-background rounded">
-                            <div className="font-semibold text-[10px] sm:text-xs">72 months</div>
-                            <div className="text-primary text-[10px] sm:text-xs">${(calculateTotalPrice() / 72).toLocaleString()}/mo</div>
-                          </div>
-                        </div>
-                      </div>
+                      <FinancingOptions 
+                        totalPrice={calculateTotalPrice()}
+                        productName={selectedProduct.model || selectedProduct.name || 'Product'}
+                        compact
+                      />
                     </> : <div className="text-center text-muted-foreground py-8">
                       <DollarSign className="h-8 w-8 mx-auto mb-2" />
                       <p className="text-sm">Select a product to see pricing</p>
