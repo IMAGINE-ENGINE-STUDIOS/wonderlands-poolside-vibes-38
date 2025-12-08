@@ -1,5 +1,3 @@
-import { OptimizedImage } from "./OptimizedImage";
-
 interface SectionBannerProps {
   image: string;
   alt: string;
@@ -9,12 +7,13 @@ interface SectionBannerProps {
 
 const SectionBanner = ({ image, alt, title, subtitle }: SectionBannerProps) => {
   return (
-    <div className="relative w-full h-48 md:h-64 lg:h-80 overflow-hidden">
-      <OptimizedImage
+    <div className="relative w-full overflow-hidden">
+      <img
         src={image}
         alt={alt}
-        className="w-full h-full object-cover"
+        className="w-full h-auto object-cover"
         loading="lazy"
+        decoding="async"
       />
       {(title || subtitle) && (
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent flex flex-col justify-end p-6 md:p-10">

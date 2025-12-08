@@ -15,6 +15,8 @@ import { OptimizedImage } from "./OptimizedImage";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import StripeCheckoutButton from "./StripeCheckoutButton";
 import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermometer, Home, Zap, Palette, Calculator, CreditCard, Cpu } from 'lucide-react';
+import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
+import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
 
 interface SimplifiedGilmerPoolCardProps {
   pool: {
@@ -64,7 +66,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     tiles: false,
     tileOption: 'Mountain',
     screenEnclosure: false,
-    screenEnclosureArea: 1000,
+    screenEnclosureArea: 0,
     screenEnclosureQuality: 'standard',
     poolHeater: false,
     heaterModel: 'Pentair MasterTemp 125 (125K BTU)',
@@ -457,8 +459,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 <CarouselContent className="-ml-1">
                   {[
                     { key: "standard", name: "Wonder Cage", price: 20, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
-                    { key: "deluxe", name: "Deluxe", price: 27, image: "/lovable-uploads/c4b57a78-5a42-4268-884f-c8397a65a270.png" },
-                    { key: "premium", name: "2 Stories", price: 33, image: "/lovable-uploads/1c09e3d5-ee90-4c32-a32f-e1ae1a7b0f36.png" },
+                    { key: "deluxe", name: "Deluxe", price: 27, image: screenEnclosureDeluxe },
+                    { key: "premium", name: "2 Stories", price: 33, image: screenEnclosurePremium },
                   ].map((quality) => (
                     <CarouselItem key={quality.key} className="pl-1 basis-1/2">
                       <div
@@ -643,8 +645,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   onClick={() => {
                     setShowQuoteModal(true);
                   }}
-                  variant="outline" 
-                  className="flex-1"
+                  className="flex-1 bg-gradient-to-r from-primary to-teal text-white hover:from-primary/90 hover:to-teal/90"
                 >
                   <Calculator className="w-4 h-4 mr-2" />
                   Instant Quote
@@ -653,10 +654,10 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 <Button 
                   onClick={handleAddToCart}
                   variant="outline" 
-                  className="flex-1"
+                  size="icon"
+                  className="w-10 h-10"
                 >
-                  <ShoppingCart className="w-4 h-4 mr-2" />
-                  Cart
+                  <ShoppingCart className="w-4 h-4" />
                 </Button>
               </div>
 

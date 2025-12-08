@@ -209,8 +209,8 @@ const PaversSection = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="grid grid-cols-2 gap-3">
-                  <Button onClick={() => handleRequestQuote('appian')} variant="outline" size="sm">Instant Quote</Button>
+                <div className="flex gap-3">
+                  <Button onClick={() => handleRequestQuote('appian')} className="flex-1 bg-gradient-to-r from-primary to-teal text-white hover:from-primary/90 hover:to-teal/90" size="sm">Instant Quote</Button>
                   <Button onClick={() => {
                     setSelectedCollection('appian');
                     setSelectedPaverType(appianPavers[0]);
@@ -302,8 +302,8 @@ const PaversSection = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="grid grid-cols-2 gap-3">
-                  <Button onClick={() => handleRequestQuote('catalina-grana')} variant="outline" size="sm">Instant Quote</Button>
+                <div className="flex gap-3">
+                  <Button onClick={() => handleRequestQuote('catalina-grana')} className="flex-1 bg-gradient-to-r from-primary to-teal text-white hover:from-primary/90 hover:to-teal/90" size="sm">Instant Quote</Button>
                   <Button onClick={() => {
                     setSelectedCollection('catalina-grana');
                     setSelectedPaverType(catalinaGranaPavers[0]);
@@ -395,8 +395,8 @@ const PaversSection = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="grid grid-cols-2 gap-3">
-                  <Button onClick={() => handleRequestQuote('catalina')} variant="outline" size="sm">Instant Quote</Button>
+                <div className="flex gap-3">
+                  <Button onClick={() => handleRequestQuote('catalina')} className="flex-1 bg-gradient-to-r from-primary to-teal text-white hover:from-primary/90 hover:to-teal/90" size="sm">Instant Quote</Button>
                   <Button onClick={() => {
                     setSelectedCollection('catalina');
                     setSelectedPaverType(catalinaPavers[0]);
