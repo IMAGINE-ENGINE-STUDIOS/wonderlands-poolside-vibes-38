@@ -9,13 +9,7 @@ import { ArrowLeft, Printer, Send, Edit2, Save, X, Plus, Trash2 } from "lucide-r
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-const DEFAULT_PAYMENT_TERMS = `Payment will be broken down into 4 payments:
-• 20% due same day of signing the contract
-• 35% due same day after permits are approved and when the excavator arrives to the house
-• 40% before concrete machine arrives and same day after excavations are completed
-• 10% due same day when the last inspection is approved
-
-It will be fully explained in the contract.`;
+const DEFAULT_PAYMENT_TERMS = `20% due same day of signing the contract . 35% due same day after permits are approved and when the excavator arrives to the house . 40% before concrete machine arrives and same day after excavations are completed . 10% due same day when the last inspection is approved It will be fully explained in the contract.`;
 interface LineItem {
   description: string;
   quantity: number;
