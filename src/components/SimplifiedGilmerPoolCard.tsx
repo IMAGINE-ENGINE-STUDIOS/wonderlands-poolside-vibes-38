@@ -688,27 +688,66 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
           </div>
         )}
         
-        {/* Default Action Buttons */}
+        {/* Color Carousel - Always Visible when collapsed */}
         {!showDetails && (
-          <div className="space-y-2">
-            <Button 
-              onClick={() => {
-                setShowQuoteModal(true);
-              }}
-              variant="outline" 
-              className="w-full" 
-              size="sm"
+          <div className="space-y-3">
+            <div 
+              className="space-y-2"
+              onMouseEnter={() => setShowDetails(true)}
+              onTouchStart={() => setShowDetails(true)}
             >
-              Instant Quote
-            </Button>
-            <Button 
-              onClick={() => setShowDetails(true)} 
-              variant="gradient" 
-              className="w-full hover:scale-105 transition-all duration-300" 
-              size="sm"
+              <h4 className="font-semibold text-foreground text-sm">Color Options</h4>
+              <Carousel 
+                className="w-full"
+                opts={{
+                  align: "start",
+                  loop: false,
+                  duration: 25,
+                }}
+              >
+                <CarouselContent className="-ml-1">
+                  {colorOptions.map((color, idx) => (
+                    <CarouselItem
+                      key={`gilmer-preview-${color.name}-${idx}`}
+                      className="pl-1 basis-1/2"
+                    >
+                      <div
+                        className={`p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${options.colorFinish === color.name ? "border-primary bg-primary/10" : "border-border"}`}
+                        onClick={() => {
+                          updateOption('colorFinish', color.name);
+                          setShowDetails(true);
+                        }}
+                      >
+                        <div 
+                          className="w-full h-12 rounded-md mb-1 overflow-hidden flex-shrink-0"
+                          style={{ backgroundColor: color.color }}
+                        />
+                        <p className="text-[10px] font-medium text-center line-clamp-1">{color.name}</p>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0 h-6 w-6" />
+                <CarouselNext className="right-0 h-6 w-6" />
+              </Carousel>
+            </div>
+            
+            {/* Expand Arrow */}
+            <div 
+              className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-lg transition-all group"
+              onClick={() => setShowDetails(true)}
+              onMouseEnter={() => setShowDetails(true)}
             >
-              View Details
-            </Button>
+              <span className="text-xs text-muted-foreground mb-1">View all options</span>
+              <svg 
+                className="w-5 h-5 text-primary animate-bounce group-hover:text-primary/80 transition-colors" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </div>
         )}
       </CardContent>

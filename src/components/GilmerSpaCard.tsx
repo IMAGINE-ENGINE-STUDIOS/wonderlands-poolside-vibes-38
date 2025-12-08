@@ -405,18 +405,66 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="space-y-2 pt-2">
-          <Button
-            className="w-full bg-gradient-to-r from-primary to-teal hover:shadow-lg transition-all"
-            onClick={handleRequestQuote}
-          >
-            Instant Quote
-          </Button>
-          <Button variant="outline" className="w-full" onClick={handleImageClick}>
-            {showDetails ? "Hide" : "Show"} Details
-          </Button>
-        </div>
+        {/* Color Preview - Always Visible when collapsed */}
+        {!showDetails && (
+          <div className="space-y-3">
+            <div 
+              className="space-y-2"
+              onMouseEnter={() => setShowDetails(true)}
+              onTouchStart={() => setShowDetails(true)}
+            >
+              <h4 className="font-semibold text-foreground text-sm">Color Options</h4>
+              <div className="flex gap-2 flex-wrap">
+                {spa.colorOptions.slice(0, 5).map((color, idx) => (
+                  <div
+                    key={`spa-color-${color}-${idx}`}
+                    className={`w-10 h-10 rounded-lg cursor-pointer border-2 transition-all hover:scale-110 ${
+                      selectedColor === color ? "border-primary ring-2 ring-primary/30" : "border-border"
+                    } ${colorSwatches[color] || "bg-gray-400"}`}
+                    onClick={() => {
+                      setSelectedColor(color);
+                      setExtras((prev) => ({ ...prev, color }));
+                      setShowDetails(true);
+                    }}
+                    title={color}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            {/* Expand Arrow */}
+            <div 
+              className="flex flex-col items-center cursor-pointer py-2 hover:bg-muted/50 rounded-lg transition-all group"
+              onClick={() => setShowDetails(true)}
+              onMouseEnter={() => setShowDetails(true)}
+            >
+              <span className="text-xs text-muted-foreground mb-1">View all options</span>
+              <svg 
+                className="w-5 h-5 text-primary animate-bounce group-hover:text-primary/80 transition-colors" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+        )}
+        
+        {/* Action Buttons - Only when expanded */}
+        {showDetails && (
+          <div className="space-y-2 pt-2">
+            <Button
+              className="w-full bg-gradient-to-r from-primary to-teal hover:shadow-lg transition-all"
+              onClick={handleRequestQuote}
+            >
+              Instant Quote
+            </Button>
+            <Button variant="outline" className="w-full" onClick={handleImageClick}>
+              Hide Details
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
