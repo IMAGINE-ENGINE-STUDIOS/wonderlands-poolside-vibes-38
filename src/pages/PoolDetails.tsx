@@ -1825,10 +1825,35 @@ const PoolDetails = () => {
 
                 {/* Pool Liner Options */}
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-foreground">Premium Pool Liners</h4>
+                  <h4 className="font-semibold text-foreground">Pool Liner</h4>
                   <Carousel className="w-full">
                     <CarouselContent className="-ml-1">
-                      {linerOptions.map(liner => <CarouselItem key={liner.name} className="pl-1 basis-1/2 sm:basis-1/3">
+                      {/* First option: Selected Pool Finish (no liner) */}
+                      <CarouselItem className="pl-1 basis-1/2 sm:basis-1/3">
+                        <div
+                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.linerOption === "" || extras.linerOption === "Standard Blue" ? "border-primary bg-primary/10" : "border-border"}`}
+                          onClick={() => setExtras(prev => ({
+                            ...prev,
+                            linerOption: "",
+                          }))}
+                        >
+                          <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                            <img
+                              src={finishOptions.find(f => f.name === extras.finish)?.image || azureBlueFinish}
+                              alt={extras.finish || "Pool Finish"}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 flex flex-col justify-between min-h-0">
+                            <p className="text-xs font-medium text-center line-clamp-2">{extras.finish || "Pool Finish"}</p>
+                            <div className="mt-1 space-y-1">
+                              <p className="text-xs text-primary text-center font-semibold">Selected Finish</p>
+                            </div>
+                          </div>
+                        </div>
+                      </CarouselItem>
+                      {/* Premium liner options */}
+                      {linerOptions.filter(l => l.name !== "Standard Blue").map(liner => <CarouselItem key={liner.name} className="pl-1 basis-1/2 sm:basis-1/3">
                           <div className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.linerOption === liner.name ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
                         ...prev,
                         linerOption: liner.name
@@ -1847,7 +1872,7 @@ const PoolDetails = () => {
                               <p className="text-xs font-medium text-center line-clamp-2">{liner.name}</p>
                               <div className="mt-1 space-y-1">
                                 {liner.type && liner.type !== 'Standard' && <p className="text-xs text-primary text-center font-semibold">{liner.type}</p>}
-                                {liner.price > 0 && <p className="text-xs text-foreground font-semibold text-center">+${liner.price.toLocaleString()}</p>}
+                                <p className="text-xs text-foreground font-semibold text-center">+$4,500</p>
                               </div>
                             </div>
                           </div>
@@ -1923,26 +1948,48 @@ const PoolDetails = () => {
                     })()}/sq ft)
                       </div>}
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[{
-                    key: 'standard',
-                    name: 'Wonder Cage'
-                  }, {
-                    key: 'deluxe',
-                    name: 'Deluxe'
-                  }, {
-                    key: 'premium',
-                    name: '2 stories'
-                  }].map(quality => <div key={quality.key} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md text-center ${extras.screenEnclosureQuality === quality.key ? 'border-primary bg-primary/10' : 'border-border'}`} onClick={() => setExtras(prev => ({
-                    ...prev,
-                    screenEnclosureQuality: quality.key as 'standard' | 'deluxe' | 'premium'
-                  }))}>
-                        <p className="text-sm font-medium">{quality.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          ${quality.key === 'standard' ? '15' : quality.key === 'deluxe' ? '22' : '28'}/sq ft
-                        </p>
-                      </div>)}
-                  </div>
+                  <Carousel 
+                    className="w-full"
+                    opts={{
+                      align: "start",
+                      loop: false,
+                      duration: 25,
+                    }}
+                  >
+                    <CarouselContent className="-ml-1">
+                      {[
+                        { key: "standard", name: "Wonder Cage", price: 15, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
+                        { key: "deluxe", name: "Deluxe", price: 22, image: "/lovable-uploads/c4b57a78-5a42-4268-884f-c8397a65a270.png" },
+                        { key: "premium", name: "2 Stories", price: 28, image: "/lovable-uploads/1c09e3d5-ee90-4c32-a32f-e1ae1a7b0f36.png" },
+                      ].map((quality) => (
+                        <CarouselItem key={quality.key} className="pl-1 basis-1/2">
+                          <div
+                            className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.screenEnclosureQuality === quality.key ? 'border-primary bg-primary/10' : 'border-border'}`}
+                            onClick={() => setExtras(prev => ({
+                              ...prev,
+                              screenEnclosureQuality: quality.key as 'standard' | 'deluxe' | 'premium'
+                            }))}
+                          >
+                            <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <img 
+                                src={quality.image} 
+                                alt={quality.name} 
+                                className="w-full h-full object-cover" 
+                              />
+                            </div>
+                            <div className="flex-1 flex flex-col justify-between min-h-0">
+                              <p className="text-xs font-medium text-center line-clamp-2">{quality.name}</p>
+                              <p className="text-xs text-primary font-semibold text-center mt-1">
+                                ${quality.price}/sq ft
+                              </p>
+                            </div>
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-0 animate-pulse" />
+                    <CarouselNext className="right-0 animate-pulse" />
+                  </Carousel>
                 </div>
 
                 {/* Additional Features */}

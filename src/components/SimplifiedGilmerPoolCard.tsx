@@ -446,22 +446,47 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   </div>
                 )}
               </div>
-              <div className="grid grid-cols-3 gap-2">
-                {screenEnclosureQualities.map((quality) => (
-                  <div
-                    key={quality.key}
-                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      options.screenEnclosureQuality === quality.key ? 'border-primary bg-primary/10' : 'border-border'
-                    }`}
-                    onClick={() => updateOption('screenEnclosureQuality', quality.key)}
-                  >
-                    <p className="text-sm font-medium">{quality.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      ${quality.price}/sq ft
-                    </p>
-                  </div>
-                ))}
-              </div>
+              <Carousel 
+                className="w-full"
+                opts={{
+                  align: "start",
+                  loop: false,
+                  duration: 25,
+                }}
+              >
+                <CarouselContent className="-ml-1">
+                  {[
+                    { key: "standard", name: "Wonder Cage", price: 20, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
+                    { key: "deluxe", name: "Deluxe", price: 27, image: "/lovable-uploads/c4b57a78-5a42-4268-884f-c8397a65a270.png" },
+                    { key: "premium", name: "2 Stories", price: 33, image: "/lovable-uploads/1c09e3d5-ee90-4c32-a32f-e1ae1a7b0f36.png" },
+                  ].map((quality) => (
+                    <CarouselItem key={quality.key} className="pl-1 basis-1/2">
+                      <div
+                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                          options.screenEnclosureQuality === quality.key ? 'border-primary bg-primary/10' : 'border-border'
+                        }`}
+                        onClick={() => updateOption('screenEnclosureQuality', quality.key)}
+                      >
+                        <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                          <img 
+                            src={quality.image} 
+                            alt={quality.name} 
+                            className="w-full h-full object-cover" 
+                          />
+                        </div>
+                        <div className="flex-1 flex flex-col justify-between min-h-0">
+                          <p className="text-xs font-medium text-center line-clamp-2">{quality.name}</p>
+                          <p className="text-xs text-primary font-semibold text-center mt-1">
+                            ${quality.price}/sq ft
+                          </p>
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="left-0 animate-pulse" />
+                <CarouselNext className="right-0 animate-pulse" />
+              </Carousel>
             </div>
 
             {/* Additional Features - matching Latham format */}
