@@ -19,6 +19,7 @@ import { Maximize2, Minimize2, Move } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
 import { generateCurvedPoolPoints, normalize2DTo3D } from '@/utils/curveUtils';
 import { BoundaryDebugOverlay } from './scene3d/BoundaryDebugOverlay';
+import { validateAndRepairPolygon, ensureCounterClockwise } from '@/utils/shapeValidation';
 
 interface Point {
   x: number;
@@ -659,9 +660,6 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPo
   const terrainGeometry = useMemo(() => {
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(200, 200);
-    
-    // Import validation utilities dynamically to avoid circular deps
-    const { validateAndRepairPolygon, ensureCounterClockwise } = require('@/utils/shapeValidation');
     
     // Create terrain shape (10000ft x 10000ft centered at origin)
     const terrainShape = new THREE.Shape();
