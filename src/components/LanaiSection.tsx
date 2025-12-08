@@ -20,6 +20,7 @@ import { Home, Shield, TrendingUp } from "lucide-react";
 import lanaiStandardImg from "@/assets/lanai-standard.jpg";
 import lanaiDeluxeImg from "@/assets/lanai-deluxe.jpg";
 import lanaiPremiumImg from "@/assets/lanai-premium.jpg";
+import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
 
 interface LanaiOption {
   id: string;
@@ -115,10 +116,10 @@ const LanaiSection = () => {
 
   const paverOptions = [
     {
-      name: 'Concrete Patio',
+      name: 'Concrete Deck',
       price: 0,
-      image: '/images/concrete-patio-texture.avif',
-      description: 'Standard concrete patio'
+      image: concreteDeckTexture,
+      description: 'Standard concrete deck'
     },
     ...paverTypes.map(paver => ({
       name: paver.name,

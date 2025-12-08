@@ -215,12 +215,16 @@ const tileOptions = poolTilesData.map(tile => ({
   image: tile.image
 }));
 
+import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
+import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
+import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
+
 // Paver options - using consolidated data + existing paverTypes
 const paverOptions = [{
   name: 'Concrete Deck',
   color: '#808080',
   price: 0,
-  image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
+  image: concreteDeckTexture,
   collection: 'concrete'
 }, ...paverTypes.map(paver => ({
   name: paver.name,
@@ -2109,29 +2113,7 @@ const WonderlandsStudio = () => {
                         {/* Deck Pavers */}
                         <div className="space-y-3">
                           <h4 className="font-semibold text-foreground">Deck Pavers</h4>
-                          <div className="mb-3">
-                            <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                              Paver Surface Area (sq ft)
-                            </label>
-                            <Input
-                              type="number"
-                              placeholder="Enter surface area"
-                              value={selectedExtras.paverSurfaceArea || ""}
-                              onChange={(e) =>
-                                setSelectedExtras((prev: any) => ({
-                                  ...prev,
-                                  paverSurfaceArea: e.target.value,
-                                }))
-                              }
-                              className="mb-2"
-                            />
-                            {selectedExtras.paverSurfaceArea && !isNaN(parseFloat(selectedExtras.paverSurfaceArea)) && (
-                              <div className="text-xs text-green-600 font-medium">
-                                Calculated Cost: ${(parseFloat(selectedExtras.paverSurfaceArea) * 20).toLocaleString()} (${selectedExtras.paverSurfaceArea} sq ft × $20/sq ft)
-                              </div>
-                            )}
-                          </div>
-                          <Carousel 
+                          <Carousel
                             className="w-full"
                             opts={{
                               align: "start",
@@ -2168,42 +2150,33 @@ const WonderlandsStudio = () => {
                             <CarouselPrevious className="left-0 animate-pulse" />
                             <CarouselNext className="right-0 animate-pulse" />
                           </Carousel>
+                          <div className="mt-3">
+                            <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                              Paver Surface Area (sq ft)
+                            </label>
+                            <Input
+                              type="number"
+                              placeholder="Enter surface area"
+                              value={selectedExtras.paverSurfaceArea || ""}
+                              onChange={(e) =>
+                                setSelectedExtras((prev: any) => ({
+                                  ...prev,
+                                  paverSurfaceArea: e.target.value,
+                                }))
+                              }
+                              className="mb-2"
+                            />
+                            {selectedExtras.paverSurfaceArea && !isNaN(parseFloat(selectedExtras.paverSurfaceArea)) && (
+                              <div className="text-xs text-green-600 font-medium">
+                                Calculated Cost: ${(parseFloat(selectedExtras.paverSurfaceArea) * 20).toLocaleString()} (${selectedExtras.paverSurfaceArea} sq ft × $20/sq ft)
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {/* Screen Enclosure */}
                         <div className="space-y-3">
                           <h4 className="font-semibold text-foreground">Screen Enclosure</h4>
-                          <div className="mb-3">
-                            <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                              Screen Enclosure Area (sq ft)
-                            </label>
-                            <Input
-                              type="number"
-                              placeholder="Enter surface area"
-                              value={selectedExtras.screenEnclosureArea || ""}
-                              onChange={(e) =>
-                                setSelectedExtras((prev: any) => ({
-                                  ...prev,
-                                  screenEnclosureArea: parseFloat(e.target.value) || 0,
-                                }))
-                              }
-                              className="mb-2"
-                            />
-                            {selectedExtras.screenEnclosureArea > 0 && (
-                              <div className="text-xs text-green-600 font-medium">
-                                Calculated Cost: ${(() => {
-                                  let pricePerSqFt = 20; // Wonder Cage starts at $20
-                                  if (selectedExtras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
-                                  if (selectedExtras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
-                                  return (selectedExtras.screenEnclosureArea * pricePerSqFt).toLocaleString();
-                                })()} ({selectedExtras.screenEnclosureArea} sq ft × ${(() => {
-                                  if (selectedExtras.screenEnclosureQuality === "deluxe") return "27";
-                                  if (selectedExtras.screenEnclosureQuality === "premium") return "33";
-                                  return "20";
-                                })()}/sq ft)
-                              </div>
-                            )}
-                          </div>
                           <Carousel 
                             className="w-full"
                             opts={{
@@ -2215,8 +2188,8 @@ const WonderlandsStudio = () => {
                             <CarouselContent className="-ml-1">
                               {[
                                 { key: "standard", name: "Wonder Cage", price: 20, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
-                                { key: "deluxe", name: "Deluxe", price: 27, image: "/lovable-uploads/c4b57a78-5a42-4268-884f-c8397a65a270.png" },
-                                { key: "premium", name: "2 Stories", price: 33, image: "/lovable-uploads/1c09e3d5-ee90-4c32-a32f-e1ae1a7b0f36.png" },
+                                { key: "deluxe", name: "Deluxe", price: 27, image: screenEnclosureDeluxe },
+                                { key: "premium", name: "2 Stories", price: 33, image: screenEnclosurePremium },
                               ].map((quality) => (
                                 <CarouselItem key={quality.key} className="pl-1 basis-1/2 md:basis-1/3">
                                   <div
@@ -2248,6 +2221,37 @@ const WonderlandsStudio = () => {
                             <CarouselPrevious className="left-0 animate-pulse" />
                             <CarouselNext className="right-0 animate-pulse" />
                           </Carousel>
+                          <div className="mt-3">
+                            <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                              Screen Enclosure Area (sq ft)
+                            </label>
+                            <Input
+                              type="number"
+                              placeholder="Enter surface area"
+                              value={selectedExtras.screenEnclosureArea || ""}
+                              onChange={(e) =>
+                                setSelectedExtras((prev: any) => ({
+                                  ...prev,
+                                  screenEnclosureArea: parseFloat(e.target.value) || 0,
+                                }))
+                              }
+                              className="mb-2"
+                            />
+                            {selectedExtras.screenEnclosureArea > 0 && (
+                              <div className="text-xs text-green-600 font-medium">
+                                Calculated Cost: ${(() => {
+                                  let pricePerSqFt = 20;
+                                  if (selectedExtras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
+                                  if (selectedExtras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
+                                  return (selectedExtras.screenEnclosureArea * pricePerSqFt).toLocaleString();
+                                })()} ({selectedExtras.screenEnclosureArea} sq ft × ${(() => {
+                                  if (selectedExtras.screenEnclosureQuality === "deluxe") return "27";
+                                  if (selectedExtras.screenEnclosureQuality === "premium") return "33";
+                                  return "20";
+                                })()}/sq ft)
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {/* Concrete Construction - Hidden for Wonderlands World pools */}

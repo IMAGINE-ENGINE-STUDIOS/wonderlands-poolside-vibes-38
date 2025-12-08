@@ -47,6 +47,7 @@ import shaleGrayFinish from "@/assets/finishes/shale-gray-g3.jpg";
 import noCoverBlack from "@/assets/no-cover-black.png";
 import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
 import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
+import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
 
 // Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: Pool) => {
@@ -291,7 +292,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
   ];
 
   const paverOptions = [
-    { name: "Concrete Patio", color: "#808080", price: 0, image: "/images/concrete-patio-texture.avif", description: "Standard concrete patio", collection: "none" },
+    { name: "Concrete Deck", color: "#808080", price: 0, image: concreteDeckTexture, description: "Standard concrete deck", collection: "none" },
     ...paverTypes.map((paver) => ({ name: paver.name, color: "#D3D3D3", price: 0, image: paver.image || azureBlueFinish, description: paver.description, collection: paver.id.includes("appian") ? "appian" : paver.id.includes("catalina") ? "catalina" : "standard" })),
   ];
 
@@ -894,26 +895,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
             {/* Pavers Options */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Pavers Surface Area - Calculator</h4>
-              <div className="mb-3">
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                  Paver Surface Area (sq ft)
-                </label>
-                <Input
-                  type="number"
-                  placeholder="Enter surface area for pavers"
-                  value={paverSurfaceArea}
-                  onChange={(e) => setPaverSurfaceArea(e.target.value)}
-                  className="mb-2"
-                />
-                {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
-                  <div className="text-xs text-green-600 font-medium">
-                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * 20).toLocaleString()} (${paverSurfaceArea} sq ft
-                    × $20/sq ft)
-                  </div>
-                )}
-              </div>
-              <Carousel 
+              <h4 className="font-semibold text-foreground">Deck Pavers</h4>
+              <Carousel
                 className="w-full"
                 opts={{
                   align: "start",
@@ -965,50 +948,32 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="left-0 animate-pulse" />
+              <CarouselPrevious className="left-0 animate-pulse" />
                 <CarouselNext className="right-0 animate-pulse" />
               </Carousel>
+              <div className="mt-3">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                  Paver Surface Area (sq ft)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Enter surface area for pavers"
+                  value={paverSurfaceArea}
+                  onChange={(e) => setPaverSurfaceArea(e.target.value)}
+                  className="mb-2"
+                />
+                {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
+                  <div className="text-xs text-green-600 font-medium">
+                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * 20).toLocaleString()} (${paverSurfaceArea} sq ft × $20/sq ft)
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Screen Enclosure Options */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Screen Enclosure Surface Area - Calculator</h4>
-              <div className="mb-3">
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                  Screen Enclosure Area (sq ft)
-                </label>
-                <Input
-                  type="number"
-                  placeholder="Enter surface area for screen enclosure"
-                  value={extras.screenEnclosureArea || ""}
-                  onChange={(e) =>
-                    setExtras((prev) => ({
-                      ...prev,
-                      screenEnclosureArea: parseFloat(e.target.value) || 0,
-                    }))
-                  }
-                  className="mb-2"
-                />
-                {extras.screenEnclosureArea > 0 && (
-                  <div className="text-xs text-green-600 font-medium">
-                    Calculated Cost: $
-                    {(() => {
-                      let pricePerSqFt = 20;
-                      if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
-                      if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
-                      return (extras.screenEnclosureArea * pricePerSqFt).toLocaleString();
-                    })()}{" "}
-                    (${extras.screenEnclosureArea} sq ft × $
-                    {(() => {
-                      if (extras.screenEnclosureQuality === "deluxe") return "$27";
-                      if (extras.screenEnclosureQuality === "premium") return "$33";
-                      return "$20";
-                    })()}
-                    /sq ft)
-                  </div>
-                )}
-              </div>
-              <Carousel 
+              <h4 className="font-semibold text-foreground">Screen Enclosure</h4>
+              <Carousel
                 className="w-full"
                 opts={{
                   align: "start",
@@ -1052,6 +1017,37 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                 <CarouselPrevious className="left-0 animate-pulse" />
                 <CarouselNext className="right-0 animate-pulse" />
               </Carousel>
+              <div className="mt-3">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                  Screen Enclosure Area (sq ft)
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Enter surface area for screen enclosure"
+                  value={extras.screenEnclosureArea || ""}
+                  onChange={(e) =>
+                    setExtras((prev) => ({
+                      ...prev,
+                      screenEnclosureArea: parseFloat(e.target.value) || 0,
+                    }))
+                  }
+                  className="mb-2"
+                />
+                {extras.screenEnclosureArea > 0 && (
+                  <div className="text-xs text-green-600 font-medium">
+                    Calculated Cost: ${(() => {
+                      let pricePerSqFt = 20;
+                      if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
+                      if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
+                      return (extras.screenEnclosureArea * pricePerSqFt).toLocaleString();
+                    })()} ({extras.screenEnclosureArea} sq ft × ${(() => {
+                      if (extras.screenEnclosureQuality === "deluxe") return "27";
+                      if (extras.screenEnclosureQuality === "premium") return "33";
+                      return "20";
+                    })()}/sq ft)
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Cover Options */}

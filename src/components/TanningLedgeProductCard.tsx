@@ -21,6 +21,7 @@ import lagoonBlueFinish from '@/assets/finishes/lagoon-blue-g2.jpg';
 import azureBlueFinish from '@/assets/finishes/azure-blue-g2.jpg';
 import coastalBronzeFinish from '@/assets/finishes/coastal-bronze-g3.jpg';
 import shaleGrayFinish from '@/assets/finishes/shale-gray-g3.jpg';
+import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
 interface TanningLedge {
   name: string;
   price: number;
@@ -109,11 +110,11 @@ const finishOptions = getProductsByCategory('finish').map(finish => ({
 
 // Convert paver data to options format
 const paverOptions = [{
-  name: 'Concrete Patio',
+  name: 'Concrete Deck',
   color: '#808080',
   price: 0,
-  image: '/images/concrete-patio-texture.avif',
-  description: 'Standard concrete patio',
+  image: concreteDeckTexture,
+  description: 'Standard concrete deck',
   collection: 'none'
 }, ...paverTypes.map(paver => ({
   name: paver.name,
