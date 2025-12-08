@@ -1764,13 +1764,13 @@ const WonderlandsStudio = () => {
                           </Carousel>
                         </div>
 
-                        {/* Pool Liners - Default is No Liner (shows selected finish) */}
+                        {/* Pool Liners - Default shows selected finish texture */}
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <h4 className="font-semibold text-foreground">Pool Liner</h4>
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-muted-foreground">
-                                {selectedExtras.liner ? 'Liner Selected' : 'No Liner (uses finish)'}
+                                {selectedExtras.liner ? 'Liner Selected' : 'Uses Pool Finish'}
                               </span>
                               <Checkbox
                                 checked={selectedExtras.liner}
@@ -1796,9 +1796,9 @@ const WonderlandsStudio = () => {
                                 />
                               </div>
                               <p className="text-xs font-medium text-center truncate">
-                                {selectedExtras.finish || 'Aquamarine'} (No Liner)
+                                {selectedExtras.finish || 'Aquamarine'}
                               </p>
-                              <p className="text-[10px] text-primary text-center font-semibold">No additional cost</p>
+                              <p className="text-[10px] text-primary text-center font-semibold">Selected Pool Finish</p>
                             </div>
                           )}
                           
@@ -2204,29 +2204,50 @@ const WonderlandsStudio = () => {
                               </div>
                             )}
                           </div>
-                          <div className="grid grid-cols-3 gap-2">
-                            {[
-                              { key: "standard", name: "Wonder Cage" },
-                              { key: "deluxe", name: "Deluxe" },
-                              { key: "premium", name: "2 stories" },
-                            ].map((quality) => (
-                              <div
-                                key={quality.key}
-                                className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md ${selectedExtras.screenEnclosureQuality === quality.key ? "border-primary bg-primary/10" : "border-border"}`}
-                                onClick={() =>
-                                  setSelectedExtras((prev: any) => ({
-                                    ...prev,
-                                    screenEnclosureQuality: quality.key,
-                                  }))
-                                }
-                              >
-                                <p className="text-sm font-medium">{quality.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  ${quality.key === "standard" ? "20" : quality.key === "deluxe" ? "27" : "33"}/sq ft
-                                </p>
-                              </div>
-                            ))}
-                          </div>
+                          <Carousel 
+                            className="w-full"
+                            opts={{
+                              align: "start",
+                              loop: false,
+                              duration: 25,
+                            }}
+                          >
+                            <CarouselContent className="-ml-1">
+                              {[
+                                { key: "standard", name: "Wonder Cage", price: 20, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
+                                { key: "deluxe", name: "Deluxe", price: 27, image: "/lovable-uploads/c4b57a78-5a42-4268-884f-c8397a65a270.png" },
+                                { key: "premium", name: "2 Stories", price: 33, image: "/lovable-uploads/1c09e3d5-ee90-4c32-a32f-e1ae1a7b0f36.png" },
+                              ].map((quality) => (
+                                <CarouselItem key={quality.key} className="pl-1 basis-1/2 md:basis-1/3">
+                                  <div
+                                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.screenEnclosureQuality === quality.key ? "border-primary bg-primary/10" : "border-border"}`}
+                                    onClick={() =>
+                                      setSelectedExtras((prev: any) => ({
+                                        ...prev,
+                                        screenEnclosureQuality: quality.key,
+                                      }))
+                                    }
+                                  >
+                                    <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                      <img
+                                        src={quality.image}
+                                        alt={quality.name}
+                                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                                      />
+                                    </div>
+                                    <div className="flex flex-col gap-0.5">
+                                      <p className="text-xs font-medium text-center truncate">{quality.name}</p>
+                                      <p className="text-xs text-primary font-semibold text-center">
+                                        ${quality.price}/sq ft
+                                      </p>
+                                    </div>
+                                  </div>
+                                </CarouselItem>
+                              ))}
+                            </CarouselContent>
+                            <CarouselPrevious className="left-0 animate-pulse" />
+                            <CarouselNext className="right-0 animate-pulse" />
+                          </Carousel>
                         </div>
 
                         {/* Concrete Construction - Hidden for Wonderlands World pools */}
