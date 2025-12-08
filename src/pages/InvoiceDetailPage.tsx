@@ -11,8 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 
 const DEFAULT_PAYMENT_TERMS = `Payment will be broken down into 4 payments:
 • 20% due same day of signing the contract
-• 40% due same day after permits are approved and when the excavator arrives to the house
-• 30% before concrete machine arrives and same day after excavations are completed
+• 35% due same day after permits are approved and when the excavator arrives to the house
+• 40% before concrete machine arrives and same day after excavations are completed
 • 10% due same day when the last inspection is approved
 
 It will be fully explained in the contract.`;
@@ -326,7 +326,7 @@ const InvoiceDetailPage = () => {
                 <img
                   src="/lovable-uploads/02222bf9-70e0-46ee-9772-cacbabb3e9c2.png"
                   alt="Wonderlands Logo"
-                  className="h-32 mb-4 object-contain"
+                  className="h-16 mb-4 object-contain"
                 />
                 <h1 className="text-4xl font-bold mb-2">INVOICE</h1>
                 {editMode ? (
@@ -580,7 +580,7 @@ const InvoiceDetailPage = () => {
                       />
                     </div>
                     <div className="flex justify-between py-2 border-b items-center bg-blue-50">
-                      <span className="text-blue-700 font-semibold">Remaining Balance Owed</span>
+                      <span className="text-blue-700 font-semibold">Remaining Payments</span>
                       <Input
                         type="number"
                         value={editedInvoice?.remaining_payments || 0}
@@ -651,11 +651,9 @@ const InvoiceDetailPage = () => {
                       </div>
                     )}
                     {invoice.remaining_payments && invoice.remaining_payments > 0 && (
-                      <div className="flex justify-between py-2 border-b bg-orange-50">
-                        <span className="text-orange-700 font-semibold">Amount Paid</span>
-                        <span className="font-bold text-orange-600">
-                          ${(invoice.total_amount - invoice.remaining_payments).toLocaleString()}
-                        </span>
+                      <div className="flex justify-between py-2 border-b bg-blue-50">
+                        <span className="text-blue-700 font-semibold">Remaining Payments</span>
+                        <span className="font-bold text-blue-600">${invoice.remaining_payments.toLocaleString()}</span>
                       </div>
                     )}
                     {invoice.tax_amount > 0 && (
@@ -668,12 +666,6 @@ const InvoiceDetailPage = () => {
                       <span className="text-lg font-bold">Total Due</span>
                       <span className="text-2xl font-bold text-primary">${invoice.total_amount.toLocaleString()}</span>
                     </div>
-                    {invoice.remaining_payments && invoice.remaining_payments > 0 && (
-                      <div className="flex justify-between py-3 bg-red-100 px-4 rounded-lg mt-2">
-                        <span className="text-lg font-bold text-red-700">Remaining Balance</span>
-                        <span className="text-2xl font-bold text-red-600">${invoice.remaining_payments.toLocaleString()}</span>
-                      </div>
-                    )}
                   </>
                 )}
               </div>
