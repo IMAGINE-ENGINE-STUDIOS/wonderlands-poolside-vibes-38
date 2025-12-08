@@ -2011,19 +2011,25 @@ const PoolDetails = () => {
 
                     {extras.heater && <div className="ml-6 space-y-2">
                         <label className="text-xs font-medium text-muted-foreground">Select Heater Model:</label>
-                        <div className="grid grid-cols-1 gap-2">
-                          {poolHeaters.map(heater => <button key={heater.name} onClick={() => setExtras(prev => ({
-                        ...prev,
-                        heaterModel: heater.name
-                      }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.heaterModel === heater.name ? 'border-coral bg-coral/10 text-coral' : 'border-border hover:border-coral/50'}`}>
-                              <img src={heater.image} alt={heater.name} className="w-8 h-8 rounded object-cover" />
-                              <div className="flex-1 text-left">
-                                <div>{heater.name}</div>
-                                <div className="text-xs text-muted-foreground">${heater.price.toLocaleString()}</div>
-                                {heater.description && <div className="text-xs text-muted-foreground">{heater.description}</div>}
-                              </div>
-                            </button>)}
-                        </div>
+                        <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
+                          <CarouselContent className="-ml-1">
+                            {poolHeaters.map(heater => (
+                              <CarouselItem key={heater.name} className="pl-1 basis-1/2">
+                                <div onClick={() => setExtras(prev => ({ ...prev, heaterModel: heater.name }))} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.heaterModel === heater.name ? 'border-coral bg-coral/10' : 'border-border'}`}>
+                                  <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                    <img src={heater.image} alt={heater.name} className="w-full h-full object-cover" />
+                                  </div>
+                                  <div className="flex-1 flex flex-col justify-between min-h-0">
+                                    <p className="text-xs font-medium text-center line-clamp-2">{heater.name}</p>
+                                    <p className="text-xs text-coral font-semibold text-center mt-1">${heater.price.toLocaleString()}</p>
+                                  </div>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious className="left-0 animate-pulse" />
+                          <CarouselNext className="right-0 animate-pulse" />
+                        </Carousel>
                       </div>}
 
                     {/* Pool Covers */}
@@ -2040,18 +2046,25 @@ const PoolDetails = () => {
 
                     {extras.cover && <div className="ml-6 space-y-2">
                         <label className="text-xs font-medium text-muted-foreground">Select Cover Type:</label>
-                        <div className="grid grid-cols-1 gap-2">
-                          {coverOptions.map(cover => <button key={cover.name} onClick={() => setExtras(prev => ({
-                        ...prev,
-                        coverOption: cover.name
-                      }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.coverOption === cover.name ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'}`}>
-                              <img src={cover.image} alt={cover.name} className="w-8 h-8 rounded object-cover" />
-                              <div className="flex-1 text-left">
-                                <div>{cover.name}</div>
-                                <div className="text-xs text-muted-foreground">{cover.price > 0 ? `$${cover.price.toLocaleString()}` : 'No Cost'}</div>
-                              </div>
-                            </button>)}
-                        </div>
+                        <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
+                          <CarouselContent className="-ml-1">
+                            {coverOptions.map(cover => (
+                              <CarouselItem key={cover.name} className="pl-1 basis-1/2">
+                                <div onClick={() => setExtras(prev => ({ ...prev, coverOption: cover.name }))} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.coverOption === cover.name ? 'border-primary bg-primary/10' : 'border-border'}`}>
+                                  <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                    <img src={cover.image} alt={cover.name} className="w-full h-full object-cover" />
+                                  </div>
+                                  <div className="flex-1 flex flex-col justify-between min-h-0">
+                                    <p className="text-xs font-medium text-center line-clamp-2">{cover.name}</p>
+                                    <p className="text-xs text-primary font-semibold text-center mt-1">{cover.price > 0 ? `$${cover.price.toLocaleString()}` : 'No Cost'}</p>
+                                  </div>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious className="left-0 animate-pulse" />
+                          <CarouselNext className="right-0 animate-pulse" />
+                        </Carousel>
                         
                         {/* Color Selection for Covers */}
                         {extras.coverOption && (() => {
@@ -2084,18 +2097,25 @@ const PoolDetails = () => {
 
                     {extras.spa && <div className="ml-6 space-y-2">
                         <label className="text-xs font-medium text-muted-foreground">Select Spa Model:</label>
-                        <div className="grid grid-cols-1 gap-2">
-                          {spas.map((spa: any) => <button key={spa.model} onClick={() => setExtras(prev => ({
-                        ...prev,
-                        spaModel: spa.model
-                      }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.spaModel === spa.model ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'}`}>
-                              {spa.image && <img src={spa.image} alt={spa.model} className="w-8 h-8 rounded object-cover" />}
-                              <div className="flex-1 text-left">
-                                <div>{spa.model}</div>
-                                <div className="text-xs text-muted-foreground">${spa.price.toLocaleString()}</div>
-                              </div>
-                            </button>)}
-                        </div>
+                        <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
+                          <CarouselContent className="-ml-1">
+                            {spas.map((spa: any) => (
+                              <CarouselItem key={spa.model} className="pl-1 basis-1/2">
+                                <div onClick={() => setExtras(prev => ({ ...prev, spaModel: spa.model }))} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.spaModel === spa.model ? 'border-primary bg-primary/10' : 'border-border'}`}>
+                                  <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                    {spa.image && <img src={spa.image} alt={spa.model} className="w-full h-full object-cover" />}
+                                  </div>
+                                  <div className="flex-1 flex flex-col justify-between min-h-0">
+                                    <p className="text-xs font-medium text-center line-clamp-2">{spa.model}</p>
+                                    <p className="text-xs text-primary font-semibold text-center mt-1">${spa.price.toLocaleString()}</p>
+                                  </div>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious className="left-0 animate-pulse" />
+                          <CarouselNext className="right-0 animate-pulse" />
+                        </Carousel>
                       </div>}
 
                     {/* Tanning Ledge */}
@@ -2112,18 +2132,25 @@ const PoolDetails = () => {
 
                     {extras.tanningLedge && <div className="ml-6 space-y-2">
                         <label className="text-xs font-medium text-muted-foreground">Select Tanning Ledge Model:</label>
-                        <div className="grid grid-cols-1 gap-2">
-                          {tanningLedges.map((ledge: any) => <button key={ledge.name} onClick={() => setExtras(prev => ({
-                        ...prev,
-                        tanningLedgeModel: ledge.name
-                      }))} className={`p-2 text-xs rounded-md border transition-all flex items-center gap-2 ${extras.tanningLedgeModel === ledge.name ? 'border-coral bg-coral/10 text-coral' : 'border-border hover:border-coral/50'}`}>
-                              <img src={ledge.image} alt={ledge.name} className="w-8 h-8 rounded object-cover" />
-                              <div className="flex-1 text-left">
-                                <div>{ledge.name}</div>
-                                <div className="text-xs text-muted-foreground">${ledge.price.toLocaleString()}</div>
-                              </div>
-                            </button>)}
-                        </div>
+                        <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
+                          <CarouselContent className="-ml-1">
+                            {tanningLedges.map((ledge: any) => (
+                              <CarouselItem key={ledge.name} className="pl-1 basis-1/2">
+                                <div onClick={() => setExtras(prev => ({ ...prev, tanningLedgeModel: ledge.name }))} className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.tanningLedgeModel === ledge.name ? 'border-coral bg-coral/10' : 'border-border'}`}>
+                                  <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                    <img src={ledge.image} alt={ledge.name} className="w-full h-full object-cover" />
+                                  </div>
+                                  <div className="flex-1 flex flex-col justify-between min-h-0">
+                                    <p className="text-xs font-medium text-center line-clamp-2">{ledge.name}</p>
+                                    <p className="text-xs text-coral font-semibold text-center mt-1">${ledge.price.toLocaleString()}</p>
+                                  </div>
+                                </div>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselPrevious className="left-0 animate-pulse" />
+                          <CarouselNext className="right-0 animate-pulse" />
+                        </Carousel>
                       </div>}
 
                     {/* Make it on Concrete */}
