@@ -17,6 +17,7 @@ import StripeCheckoutButton from "./StripeCheckoutButton";
 import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermometer, Home, Zap, Palette, Calculator, CreditCard, Cpu } from 'lucide-react';
 import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
 import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
+import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
 
 interface SimplifiedGilmerPoolCardProps {
   pool: {
@@ -85,15 +86,21 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
   ];
 
   // Paver options from paverData with $20/sq ft pricing
-  const paverOptions = paverTypes
+  const paverOptions = [{
+    name: 'Concrete Deck',
+    price: 0,
+    image: concreteDeckTexture,
+    description: 'Standard concrete deck',
+    pricePerSqFt: 20
+  }, ...paverTypes
     .filter(paver => paver.category === 'paver')
     .map(paver => ({
       name: paver.name,
-      price: 0, // Base price for selection, actual cost calculated per sq ft
+      price: 0,
       image: paver.image,
       description: paver.description,
-      pricePerSqFt: paver.basePrice // $20 per sq ft
-    }));
+      pricePerSqFt: paver.basePrice
+    }))];
 
   // Pool tile options
   const tileOptions = [
