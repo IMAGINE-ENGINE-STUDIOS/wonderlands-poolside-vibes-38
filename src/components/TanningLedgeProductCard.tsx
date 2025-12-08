@@ -487,8 +487,8 @@ const TanningLedgeProductCard = ({
                 extrasBreakdown,
                 extrasTotal
               });
-            }} className="flex-1 relative overflow-hidden bg-gradient-to-r from-coral via-orange to-coral bg-[length:200%_100%] animate-[gradient-shift_3s_ease-in-out_infinite] text-white font-semibold hover:shadow-lg hover:shadow-coral/30 hover:scale-105 transition-all duration-300 border-0" size="sm">
-                  <span className="relative z-10">Instant Quote</span>
+            }} className="flex-1 instant-quote-btn transition-all duration-300" size="sm">
+                  Instant Quote
                 </Button>
               </div>
               

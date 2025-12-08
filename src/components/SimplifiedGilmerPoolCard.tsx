@@ -653,7 +653,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   onClick={() => {
                     setShowQuoteModal(true);
                   }}
-                  className="flex-1 bg-gradient-to-r from-primary to-teal text-white hover:from-primary/90 hover:to-teal/90"
+                  className="flex-1 instant-quote-btn transition-all duration-300"
                 >
                   <Calculator className="w-4 h-4 mr-2" />
                   Instant Quote

@@ -817,7 +817,7 @@ const SpaProductCard = ({
               extrasBreakdown,
               extrasTotal
             });
-          }} className="flex-1 bg-gradient-to-r from-primary to-teal text-white hover:from-primary/90 hover:to-teal/90 text-xs">Instant Quote</Button>
+          }} className="flex-1 instant-quote-btn transition-all duration-300 text-xs">Instant Quote</Button>
           
           <Button onClick={handleAddToCart} variant="outline" size="icon" className="w-10 h-10">
             <ShoppingCart className="h-4 w-4" />

@@ -266,10 +266,9 @@ const SmartProductCard = ({
               <ShoppingCart className="h-4 w-4 mr-1" />
               Add to Cart
             </Button>
-            <Button 
+            <Button
               onClick={() => setShowQuoteTool(true)}
-              variant="secondary"
-              className="w-full gap-2"
+              className="w-full gap-2 instant-quote-btn transition-all duration-300"
               size="sm"
             >
               <FileText className="h-4 w-4" />

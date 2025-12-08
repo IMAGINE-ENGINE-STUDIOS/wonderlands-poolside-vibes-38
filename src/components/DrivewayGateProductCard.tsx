@@ -108,8 +108,7 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
             </Button>
           </div>
           <Button
-            variant="secondary"
-            className="w-full gap-2"
+            className="w-full gap-2 instant-quote-btn transition-all duration-300"
             onClick={() => setShowQuoteTool(true)}
           >
             <FileText className="h-4 w-4" />

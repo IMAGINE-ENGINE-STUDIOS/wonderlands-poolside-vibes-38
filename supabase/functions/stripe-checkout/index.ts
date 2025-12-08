@@ -19,7 +19,8 @@ serve(async (req) => {
       price, 
       quantity = 1, 
       cartItems = null,
-      customerInfo = null 
+      customerInfo = null,
+      paymentMethod = 'card' // 'card', 'klarna', or 'affirm'
     } = await req.json();
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -90,10 +91,19 @@ serve(async (req) => {
       }];
     }
 
+    // Determine payment method types based on request
+    let paymentMethodTypes: Stripe.Checkout.SessionCreateParams.PaymentMethodType[] = ['card'];
+    if (paymentMethod === 'klarna') {
+      paymentMethodTypes = ['klarna'];
+    } else if (paymentMethod === 'affirm') {
+      paymentMethodTypes = ['affirm'];
+    }
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       line_items: lineItems,
       mode: "payment",
+      payment_method_types: paymentMethodTypes,
       success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/payment-canceled`,
       customer_email: userEmail || customerInfo?.email,
@@ -103,6 +113,7 @@ serve(async (req) => {
         user_id: userId || 'guest',
         total_amount: totalAmount.toString(),
         is_cart_checkout: cartItems ? 'true' : 'false',
+        payment_method: paymentMethod,
       },
     });
 
