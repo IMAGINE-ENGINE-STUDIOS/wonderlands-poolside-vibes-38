@@ -282,11 +282,11 @@ const tileOptions = [{
 
 // Paver options - using exact same collections as PaversSection
 const paverOptions = [{
-  name: 'No Pavers',
+  name: 'Concrete Patio',
   color: '#808080',
   price: 0,
-  image: '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
-  description: 'No additional pavers'
+  image: '/images/concrete-patio-texture.avif',
+  description: 'Standard concrete patio'
 }, ...paverTypes.map(paver => ({
   name: paver.name,
   color: '#D3D3D3',
@@ -421,7 +421,7 @@ const PoolDetails = () => {
     if (item.category === 'Pavers') {
       setExtras(prev => ({
         ...prev,
-        paverOption: 'No Pavers'
+        paverOption: 'Concrete Patio'
       }));
       setPaverSurfaceArea('');
     }
@@ -477,7 +477,7 @@ const PoolDetails = () => {
     tanningLedgeModel: tanningLedges[0]?.name || 'Genesis',
     heaterModel: poolHeaters[0]?.name || 'Pentair MasterTemp 125 (125K BTU)',
     pavers: false,
-    paverOption: 'No Pavers',
+    paverOption: 'Concrete Patio',
     copingPaverOption: 'No Coping',
     screenEnclosure: false,
     screenEnclosureArea: 0,

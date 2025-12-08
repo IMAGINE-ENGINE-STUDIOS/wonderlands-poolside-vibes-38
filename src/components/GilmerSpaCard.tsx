@@ -53,9 +53,10 @@ const spaHeaters = [
 // Paver options
 const paverOptions = [
   {
-    name: "No Pavers",
+    name: "Concrete Patio",
     price: 0,
-    description: "No additional pavers",
+    description: "Standard concrete patio",
+    image: "/images/concrete-patio-texture.avif",
   },
   ...paverTypes.map((paver) => ({
     name: paver.name,

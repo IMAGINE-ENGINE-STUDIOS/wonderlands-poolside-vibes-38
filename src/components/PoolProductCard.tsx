@@ -291,7 +291,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
   ];
 
   const paverOptions = [
-    { name: "No Pavers", color: "#808080", price: 0, image: azureBlueFinish, description: "No additional pavers", collection: "none" },
+    { name: "Concrete Patio", color: "#808080", price: 0, image: "/images/concrete-patio-texture.avif", description: "Standard concrete patio", collection: "none" },
     ...paverTypes.map((paver) => ({ name: paver.name, color: "#D3D3D3", price: 0, image: paver.image || azureBlueFinish, description: paver.description, collection: paver.id.includes("appian") ? "appian" : paver.id.includes("catalina") ? "catalina" : "standard" })),
   ];
 

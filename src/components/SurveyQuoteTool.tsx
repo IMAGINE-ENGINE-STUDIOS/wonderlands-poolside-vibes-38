@@ -390,9 +390,9 @@ const SurveyQuoteTool = ({
     
     let basePrice = pool?.price || customProduct?.price || 0;
 
-    // Apply No Pavers discount if applicable (matching product cards) - NOT for lanai
-    const hasNoPaversDiscount = extras && (extras as any).paverOption === 'No Pavers';
-    if (hasNoPaversDiscount) {
+    // Apply Concrete Patio discount if applicable (matching product cards) - NOT for lanai
+    const hasConcretePatioPricing = extras && (extras as any).paverOption === 'Concrete Patio';
+    if (hasConcretePatioPricing) {
       basePrice -= 2000;
     }
 
