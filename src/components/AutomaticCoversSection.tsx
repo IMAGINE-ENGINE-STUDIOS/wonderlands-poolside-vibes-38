@@ -209,7 +209,7 @@ const AutomaticCoversSection = () => {
                   </div>
                   
                   {/* Action Button */}
-                  <Button onClick={() => handleRequestQuote(cover)} variant="gradient" className="w-full hover:scale-105 transition-all duration-300" size="lg">Instant Quote with Installation</Button>
+                  <Button onClick={() => handleRequestQuote(cover)} className="w-full instant-quote-btn transition-all duration-300" size="lg">Instant Quote with Installation</Button>
                 </CardContent>
               </Card>)}
           </div>

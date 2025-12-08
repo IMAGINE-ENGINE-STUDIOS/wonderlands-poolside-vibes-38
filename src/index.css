@@ -87,6 +87,31 @@
 @tailwind utilities;
 
 @layer utilities {
+  /* Instant Quote Button Cycling Gradient */
+  @keyframes gradient-cycle {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  .instant-quote-btn {
+    background: linear-gradient(90deg, 
+      hsl(12 76% 61%), 
+      hsl(27 87% 67%), 
+      hsl(12 76% 61%), 
+      hsl(27 87% 67%)
+    );
+    background-size: 300% 100%;
+    animation: gradient-cycle 3s ease-in-out infinite;
+    color: white;
+    font-weight: 600;
+    border: none;
+  }
+  
+  .instant-quote-btn:hover {
+    filter: brightness(1.1);
+    transform: scale(1.02);
+  }
   /* Spaceship Command Center Effects */
   .holographic-panel {
     position: relative;

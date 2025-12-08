@@ -539,7 +539,7 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
           <CardFooter className="p-6 pt-0 flex gap-2">
             <Button
               onClick={() => setShowQuote(true)}
-              className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+              className="flex-1 instant-quote-btn transition-all duration-300"
             >
               Get Instant Quote
             </Button>

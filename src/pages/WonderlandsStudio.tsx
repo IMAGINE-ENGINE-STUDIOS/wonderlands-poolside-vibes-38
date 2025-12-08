@@ -2363,7 +2363,7 @@ const WonderlandsStudio = () => {
 
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                      <Button onClick={handleQuoteRequest} className="flex-1 bg-gradient-to-r from-primary to-teal text-white hover:from-primary/90 hover:to-teal/90 text-xs sm:text-sm">
+                      <Button onClick={handleQuoteRequest} className="flex-1 instant-quote-btn text-xs sm:text-sm transition-all duration-300">
                         <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                         <span className="truncate">Instant Quote</span>
                       </Button>

@@ -2375,7 +2375,7 @@ const PoolDetails = () => {
                     deliveryTime: '6 weeks'
                   });
                   setShowQuoteModal(true);
-                }} variant="outline" className="w-full" size="sm">
+                }} className="w-full instant-quote-btn transition-all duration-300" size="sm">
                     Instant Quote
                   </Button>
                   

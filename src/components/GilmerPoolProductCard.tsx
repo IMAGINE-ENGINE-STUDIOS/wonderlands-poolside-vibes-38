@@ -581,7 +581,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
         <div className="flex gap-2">
           <Button 
             onClick={() => setShowQuoteTool(true)} 
-            className="flex-1 bg-gradient-to-r from-primary to-teal text-white hover:from-primary/90 hover:to-teal/90"
+            className="flex-1 instant-quote-btn transition-all duration-300"
           >
             <FileText className="h-4 w-4 mr-2" />
             Instant Quote

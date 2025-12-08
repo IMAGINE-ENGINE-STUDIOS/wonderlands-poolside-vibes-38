@@ -457,7 +457,7 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
         {showDetails && (
           <div className="space-y-2 pt-2">
             <Button
-              className="w-full bg-gradient-to-r from-primary to-teal hover:shadow-lg transition-all"
+              className="w-full instant-quote-btn transition-all duration-300"
               onClick={handleRequestQuote}
             >
               Instant Quote

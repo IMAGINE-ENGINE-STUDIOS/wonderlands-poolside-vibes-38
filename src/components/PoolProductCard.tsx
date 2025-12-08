@@ -1602,7 +1602,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                           : undefined,
                     });
                   }}
-                  className="flex-1 bg-gradient-to-r from-primary to-teal text-white hover:from-primary/90 hover:to-teal/90"
+                  className="flex-1 instant-quote-btn transition-all duration-300"
                   size="sm"
                 >
                   Instant Quote
