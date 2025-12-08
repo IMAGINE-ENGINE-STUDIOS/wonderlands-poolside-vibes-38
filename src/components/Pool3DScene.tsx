@@ -660,6 +660,9 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPo
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.repeat.set(200, 200);
     
+    // Import validation utilities dynamically to avoid circular deps
+    const { validateAndRepairPolygon, ensureCounterClockwise } = require('@/utils/shapeValidation');
+    
     // Create terrain shape (10000ft x 10000ft centered at origin)
     const terrainShape = new THREE.Shape();
     terrainShape.moveTo(-5000, -5000);
@@ -673,7 +676,10 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPo
       if (poolPoints.length >= 3) {
         // Use curved pool points for the hole (same as pool walls/water surface)
         const poolCurve2D = poolPoints.map(p => ({ x: p.x, y: p.y }));
-        const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
+        
+        // LIMIT curve segments to prevent WebGL crashes
+        const segmentsPerEdge = Math.min(15, Math.ceil(100 / poolPoints.length));
+        const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, segmentsPerEdge, 0.3);
         
         if (smoothPoolCurve.length >= 3) {
           // CRITICAL: Normalize coordinates to match pool walls (centered at origin)
@@ -689,15 +695,28 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPo
             y: p.y - centerY
           }));
           
-          const poolHole = new THREE.Path();
-          poolHole.moveTo(normalizedPoints[0].x, normalizedPoints[0].y);
-          for (let i = 1; i < normalizedPoints.length; i++) {
-            poolHole.lineTo(normalizedPoints[i].x, normalizedPoints[i].y);
-          }
-          poolHole.closePath();
-          terrainShape.holes.push(poolHole);
+          // VALIDATE and REPAIR the polygon before creating the hole
+          const validatedPoints = validateAndRepairPolygon(normalizedPoints, {
+            maxVertices: 80, // Lower limit for terrain holes to prevent WebGL issues
+            simplifyEpsilon: 0.5,
+            fallbackToConvexHull: true,
+            fallbackToBoundingBox: true
+          });
           
-          console.log('✅ GrassTerrain: Created NORMALIZED pool hole with', normalizedPoints.length, 'smooth points');
+          // Ensure counter-clockwise winding for holes
+          const ccwPoints = ensureCounterClockwise(validatedPoints);
+          
+          if (ccwPoints.length >= 3) {
+            const poolHole = new THREE.Path();
+            poolHole.moveTo(ccwPoints[0].x, ccwPoints[0].y);
+            for (let i = 1; i < ccwPoints.length; i++) {
+              poolHole.lineTo(ccwPoints[i].x, ccwPoints[i].y);
+            }
+            poolHole.closePath();
+            terrainShape.holes.push(poolHole);
+            
+            console.log('✅ GrassTerrain: Created VALIDATED pool hole with', ccwPoints.length, 'points (from', normalizedPoints.length, 'original)');
+          }
         }
       } else {
         console.warn('⚠️ GrassTerrain: Not enough pool points for hole, using default');
