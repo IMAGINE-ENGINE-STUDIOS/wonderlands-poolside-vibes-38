@@ -77,14 +77,19 @@ const SurveyQuoteTool = ({
   } = useAuth();
   const navigate = useNavigate();
   
-  // Debug: Log extras data when component mounts or extras changes
+  // Debug: Log all received props when component opens
   useEffect(() => {
-    console.log('🔍 SurveyQuoteTool RECEIVED EXTRAS:', {
-      extrasTotal: extras?.extrasTotal,
-      breakdownCount: extras?.extrasBreakdown?.length || 0,
-      breakdown: extras?.extrasBreakdown
-    });
-  }, [extras]);
+    if (isOpen) {
+      console.log('🔍 SurveyQuoteTool OPENED WITH:', {
+        pool: pool,
+        poolPrice: pool?.price,
+        customProduct: customProduct,
+        extrasTotal: extras?.extrasTotal,
+        extrasBreakdown: extras?.extrasBreakdown,
+        extras: extras
+      });
+    }
+  }, [isOpen, pool, customProduct, extras]);
   
   // Load cached form data on mount
   const loadCachedData = (): Partial<SurveyData> => {
@@ -388,7 +393,23 @@ const SurveyQuoteTool = ({
       return Math.round(extras.totalPrice);
     }
     
+    // Get the base price from pool or customProduct
     let basePrice = pool?.price || customProduct?.price || 0;
+    
+    console.log('💰 calculateQuote START:', { 
+      poolPrice: pool?.price, 
+      customProductPrice: customProduct?.price,
+      basePrice,
+      extrasFromProps: extras?.extrasTotal,
+      totalPriceFromExtras: extras?.totalPrice
+    });
+
+    // If extras.totalPrice is provided (from SimplifiedGilmerPoolCard), use it directly
+    // This avoids double-counting extras
+    if (extras?.totalPrice && !isLanaiProduct) {
+      console.log('💰 Using pre-calculated totalPrice:', extras.totalPrice);
+      return Math.round(extras.totalPrice);
+    }
 
     // Apply Concrete Patio discount if applicable (matching product cards) - NOT for lanai
     const hasConcretePatioPricing = extras && (extras as any).paverOption === 'Concrete Patio';
@@ -419,7 +440,7 @@ const SurveyQuoteTool = ({
     const extrasTotal = extras?.extrasTotal ? Number(extras.extrasTotal) : 0;
     basePrice += extrasTotal;
     
-    console.log('💰 calculateQuote:', { basePrice: pool?.price || customProduct?.price, extrasTotal, optionsPrice, total: basePrice });
+    console.log('💰 calculateQuote FINAL:', { originalBasePrice: pool?.price || customProduct?.price, extrasTotal, optionsPrice, total: basePrice });
 
     // Add sauna if selected (exclusive offer for eligible pools)
     if (saunaSelected) {
