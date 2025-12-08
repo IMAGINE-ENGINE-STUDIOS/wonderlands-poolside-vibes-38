@@ -635,16 +635,7 @@ const SpaProductCard = ({
 
             {/* Pavers Options */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-foreground">Pavers & Surface Area Calculator</h4>
-              <div className="mb-3">
-                <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                  Paver Surface Area (sq ft)
-                </label>
-                <Input type="number" placeholder="Enter surface area for pavers" value={paverSurfaceArea} onChange={e => setPaverSurfaceArea(e.target.value)} className="mb-2" />
-                {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && <div className="text-xs text-green-600 font-medium">
-                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * 15).toLocaleString()} ({paverSurfaceArea} sq ft × $15/sq ft)
-                  </div>}
-              </div>
+              <h4 className="font-semibold text-foreground">Deck Pavers</h4>
               <Carousel className="w-full" opts={{
             align: "start",
             loop: false,
@@ -670,13 +661,22 @@ const SpaProductCard = ({
                         </div>
                         <p className="text-xs font-medium text-center">{paver.name}</p>
                         {paver.collection !== 'none' && <p className="text-[10px] text-secondary font-semibold text-center capitalize">{paver.collection}</p>}
-                        <p className="text-[10px] text-muted-foreground text-center mt-1">$15/sq ft</p>
+                        <p className="text-[10px] text-muted-foreground text-center mt-1">$20/sq ft</p>
                       </div>
                     </CarouselItem>)}
                 </CarouselContent>
                 <CarouselPrevious className="left-0 animate-pulse" />
                 <CarouselNext className="right-0 animate-pulse" />
               </Carousel>
+              <div className="mt-3">
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                  Paver Surface Area (sq ft)
+                </label>
+                <Input type="number" placeholder="Enter surface area for pavers" value={paverSurfaceArea} onChange={e => setPaverSurfaceArea(e.target.value)} className="mb-2" />
+                {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && <div className="text-xs text-green-600 font-medium">
+                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * 20).toLocaleString()} ({paverSurfaceArea} sq ft × $20/sq ft)
+                  </div>}
+              </div>
             </div>
 
             {/* Jets Quantity */}

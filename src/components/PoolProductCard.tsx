@@ -48,6 +48,7 @@ import noCoverBlack from "@/assets/no-cover-black.png";
 import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
 import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
+import FinancingOptions from "./FinancingOptions";
 
 // Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: Pool) => {
@@ -1681,59 +1682,10 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
             </div>
 
             {/* Bottom Dashboard - Integrated Financing */}
-            <div className="mt-4 p-4 bg-gradient-to-r from-teal/5 to-primary/5 rounded-lg border border-teal/20">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h5 className="font-semibold text-sm text-foreground">Finance This Purchase</h5>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowFinancing(!showFinancing)}
-                    className="text-xs"
-                  >
-                    {showFinancing ? "Hide" : "Show"} Options
-                  </Button>
-                </div>
-
-                {showFinancing && (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div className="text-center p-2 bg-white/50 rounded">
-                        <div className="font-semibold">3 Years</div>
-                        <div className="text-teal-600">${(calculateTotalPrice() / 36).toLocaleString()}/mo</div>
-                      </div>
-                      <div className="text-center p-2 bg-white/50 rounded">
-                        <div className="font-semibold">6 Years</div>
-                        <div className="text-teal-600">${(calculateTotalPrice() / 72).toLocaleString()}/mo</div>
-                      </div>
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      size="sm"
-                      onClick={() => {
-                        const lyonFinancialUrl =
-                          `https://www.lyonfinancial.net/apply/?` +
-                          `amount=${calculateTotalPrice()}&` +
-                          `product=${encodeURIComponent(pool.model)}&` +
-                          `description=${encodeURIComponent(`Complete pool configuration including ${pool.model}`)}&` +
-                          `monthly_payment=${Math.round(calculateTotalPrice() * 0.008)}&` +
-                          `loan_term=60&` +
-                          `project_type=Pool%20Installation`;
-                        window.open(lyonFinancialUrl, "_blank");
-                      }}
-                    >
-                      Apply with Lyon Financial
-                    </Button>
-
-                    <div className="text-xs text-muted-foreground text-center">
-                      *Financing subject to credit approval. APR varies.
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+            <FinancingOptions 
+              totalPrice={calculateTotalPrice()}
+              productName={pool.model}
+            />
           </div>
         )}
 

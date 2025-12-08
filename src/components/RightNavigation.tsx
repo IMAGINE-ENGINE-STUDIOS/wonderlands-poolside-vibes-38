@@ -21,13 +21,11 @@ const RightNavigation = () => {
   const isMainPage = location.pathname === '/';
   const isWonderlandsStudio = location.pathname === '/wonderlands-studio';
   const isQuoteOpen = typeof document !== 'undefined' && document.body.dataset.quoteOpen === 'true';
-  
-  // Hide navigation completely on Wonderlands Studio page (home button is in header)
-  if (isWonderlandsStudio) {
-    return null;
-  }
 
   useEffect(() => {
+    // Skip scroll handling if on Wonderlands Studio page
+    if (isWonderlandsStudio) return;
+    
     let ticking = false;
     
     const handleScroll = () => {
@@ -65,7 +63,12 @@ const RightNavigation = () => {
     handleScroll(); // Initial check on mount
 
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isWonderlandsStudio]);
+  
+  // Hide navigation completely on Wonderlands Studio page (home button is in header)
+  if (isWonderlandsStudio) {
+    return null;
+  }
 
   const scrollToSection = (sectionId: string) => {
     if (sectionId === "home") {
