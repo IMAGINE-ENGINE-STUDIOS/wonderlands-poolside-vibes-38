@@ -489,12 +489,6 @@ const SurveyQuoteTool = ({
       }
     }
 
-    // Florida-specific adjustments
-    if (surveyData.soilType === "sand") basePrice *= 0.95; // Easier excavation
-    if (surveyData.soilType === "clay") basePrice *= 1.1; // Harder excavation
-    if (surveyData.accessWidth === "narrow") basePrice *= 1.05; // Access difficulty
-    if (surveyData.yardSize === "large") basePrice *= 1.02; // More landscaping
-
     return Math.round(basePrice);
   };
   const getPoolArea = () => {
