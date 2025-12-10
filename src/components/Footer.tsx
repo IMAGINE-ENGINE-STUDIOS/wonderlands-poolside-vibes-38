@@ -51,7 +51,8 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <MapPin className="w-4 h-4 text-coral" />
-                <span className="text-muted-foreground">License by TechcTerra Corp #CGC1537275 startegic construciion partner                                </span>
+                <span className="text-muted-foreground">​Powered by Wonderlands Platform.
+Installed by Licensed GC  Tech Terra Corp #CGC1537275                                         </span>
               </div>
             </div>
           </div>
