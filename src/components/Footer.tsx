@@ -22,7 +22,7 @@ const Footer = () => {
               <div className="flex items-center text-orange">
                 {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
               </div>
-              <span className="text-sm text-muted-foreground">500+ Happy Customers</span>
+              <span className="text-sm text-muted-foreground"> Happy Customers</span>
             </div>
           </div>
 
