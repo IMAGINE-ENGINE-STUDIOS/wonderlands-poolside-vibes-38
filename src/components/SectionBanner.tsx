@@ -3,11 +3,12 @@ interface SectionBannerProps {
   alt: string;
   title?: string;
   subtitle?: string;
+  id?: string;
 }
 
-const SectionBanner = ({ image, alt, title, subtitle }: SectionBannerProps) => {
+const SectionBanner = ({ image, alt, title, subtitle, id }: SectionBannerProps) => {
   return (
-    <div className="relative w-full overflow-hidden">
+    <div id={id} className="relative w-full overflow-hidden">
       <img
         src={image}
         alt={alt}

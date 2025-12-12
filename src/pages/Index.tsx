@@ -77,8 +77,8 @@ const Index = () => {
         <GilmerPoolsSection />
       </LazySection>
       
-      <div id="saunas" />
       <SectionBanner 
+        id="saunas"
         image={saunaBanner} 
         alt="Luxury Saunas" 
         title="Premium Saunas"
@@ -88,8 +88,8 @@ const Index = () => {
         <SaunaSection />
       </LazySection>
       
-      <div id="spas" />
       <SectionBanner 
+        id="spas"
         image={spaBanner} 
         alt="Hot Tubs & Spas" 
         title="Hot Tubs & Spas"
@@ -104,8 +104,8 @@ const Index = () => {
         <GilmerSpasSection />
       </LazySection>
       
-      <div id="tanning-ledges" />
       <SectionBanner 
+        id="tanning-ledges"
         image={tanningLedgeBanner} 
         alt="Tanning Ledges" 
         title="Tanning Ledges"
@@ -115,8 +115,8 @@ const Index = () => {
         <TanningLedgeSection />
       </LazySection>
       
-      <div id="screen-enclosures" />
       <SectionBanner 
+        id="screen-enclosures"
         image={screenEnclosureBanner} 
         alt="Screen Enclosures" 
         title="Screen Enclosures"
@@ -126,8 +126,8 @@ const Index = () => {
         <ScreenEnclosureSection />
       </LazySection>
       
-      <div id="patio-fencing" />
       <SectionBanner 
+        id="patio-fencing"
         image={patioFencingBanner} 
         alt="Patio Fencing" 
         title="Aluminum Patio Fencing"
@@ -137,8 +137,8 @@ const Index = () => {
         <PatioFencingSection />
       </LazySection>
       
-      <div id="lanai" />
       <SectionBanner 
+        id="lanai"
         image={lanaiBanner} 
         alt="Lanai Enclosures" 
         title="Lanai Enclosures"
@@ -148,8 +148,8 @@ const Index = () => {
         <LanaiSection />
       </LazySection>
       
-      <div id="pavers" />
       <SectionBanner 
+        id="pavers"
         image={paversBanner} 
         alt="Pool Pavers" 
         title="Premium Pavers"
@@ -159,8 +159,8 @@ const Index = () => {
         <PaversSection />
       </LazySection>
       
-      <div id="covers" />
       <SectionBanner 
+        id="covers"
         image={coversBanner} 
         alt="Automatic Pool Covers" 
         title="Automatic Pool Covers"
@@ -170,8 +170,8 @@ const Index = () => {
         <AutomaticCoversSection />
       </LazySection>
       
-      <div id="driveway-gates" />
       <SectionBanner 
+        id="driveway-gates"
         image={drivewayGateBanner} 
         alt="Driveway Gates" 
         title="Driveway Gates"
@@ -181,12 +181,10 @@ const Index = () => {
         <DrivewayGateSection />
       </LazySection>
       
-      <div id="finishes" />
       <LazySection>
         <PoolFinishesSection />
       </LazySection>
       
-      <div id="liners" />
       <LazySection>
         <LinersSection />
       </LazySection>
