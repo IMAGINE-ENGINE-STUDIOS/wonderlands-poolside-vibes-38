@@ -432,7 +432,12 @@ const AdvancedSearch = () => {
   const shouldShowSectionMenu = isFocused && !searchQuery && !showResults;
 
   return (
-    <div className="relative w-full max-w-md mx-auto" ref={containerRef}>
+    <div 
+      className={`relative w-full max-w-md mx-auto transition-transform duration-300 ${
+        shouldShowSectionMenu ? '-translate-y-16 sm:-translate-y-8' : ''
+      }`} 
+      ref={containerRef}
+    >
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
@@ -453,7 +458,7 @@ const AdvancedSearch = () => {
               Browse Categories
             </div>
           </div>
-          <ScrollArea className="h-[45vh] sm:h-[50vh] px-3 pb-3">
+          <ScrollArea className="h-[55vh] sm:h-[50vh] px-3 pb-3">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
               {mainPageSections.map((section) => (
                 <div
