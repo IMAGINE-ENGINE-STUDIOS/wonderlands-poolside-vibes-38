@@ -57,7 +57,9 @@ const Index = () => {
       <Hero />
       
       {/* ========== MAIN POOLS SECTION (Wonderlands + Latham) ========== */}
-      <PoolCatalog />
+      <div id="pools">
+        <PoolCatalog />
+      </div>
       
       {/* Banner between Latham and Gilmer Pools */}
       <div className="w-full">
