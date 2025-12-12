@@ -392,13 +392,26 @@ const AdvancedSearch = () => {
     setShowSectionMenu(false);
     setIsFocused(false);
     
-    // Navigate to the section on the main page
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    // Check if we're on the main page
+    const currentPath = window.location.pathname;
+    
+    if (currentPath === '/' || currentPath === '') {
+      // Already on main page, scroll to section
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
     } else {
-      // If not on main page, navigate there first
-      navigate(`/#${sectionId}`);
+      // Navigate to main page with hash
+      navigate('/');
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 300);
     }
   };
 
@@ -434,14 +447,14 @@ const AdvancedSearch = () => {
 
       {/* Section Quick Navigation Menu */}
       {shouldShowSectionMenu && (
-        <Card className="absolute top-full left-0 right-0 mt-2 z-50 bg-background border-2 border-primary/20 shadow-2xl overflow-hidden">
+        <Card className="fixed left-1/2 -translate-x-1/2 top-auto mt-2 w-[95vw] max-w-2xl z-[100] bg-background border-2 border-primary/20 shadow-2xl overflow-hidden">
           <div className="p-3 pb-0">
             <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-2">
               Browse Categories
             </div>
           </div>
-          <ScrollArea className="h-[60vh] px-3 pb-3">
-            <div className="grid grid-cols-2 gap-2">
+          <ScrollArea className="h-[50vh] sm:h-[60vh] px-3 pb-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
               {mainPageSections.map((section) => (
                 <div
                   key={section.id}
@@ -449,7 +462,7 @@ const AdvancedSearch = () => {
                   onClick={() => handleSectionClick(section.id)}
                 >
                   {/* Background Image */}
-                  <div className="relative h-24">
+                  <div className="relative h-20 sm:h-24">
                     <img 
                       src={section.image} 
                       alt={section.label}
@@ -459,11 +472,11 @@ const AdvancedSearch = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
                     
                     {/* Content */}
-                    <div className="absolute inset-0 flex flex-col justify-end p-3">
-                      <h4 className="text-white font-bold text-sm leading-tight drop-shadow-lg">
+                    <div className="absolute inset-0 flex flex-col justify-end p-2 sm:p-3">
+                      <h4 className="text-white font-bold text-xs sm:text-sm leading-tight drop-shadow-lg">
                         {section.label}
                       </h4>
-                      <p className="text-white/90 text-[10px] leading-tight line-clamp-2 drop-shadow-md mt-0.5">
+                      <p className="text-white/90 text-[9px] sm:text-[10px] leading-tight line-clamp-2 drop-shadow-md mt-0.5">
                         {section.description}
                       </p>
                     </div>
