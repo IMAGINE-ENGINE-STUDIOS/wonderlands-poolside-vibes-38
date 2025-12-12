@@ -56,8 +56,6 @@ const Index = () => {
       <Header />
       <Hero />
       
-      {/* Anchors for RightNavigation */}
-      <div id="pools" />
       {/* Load PoolCatalog eagerly - it's above the fold */}
       <PoolCatalog />
       
@@ -72,7 +70,6 @@ const Index = () => {
         />
       </div>
       
-      <div id="gilmer-pools" />
       <LazySection>
         <GilmerPoolsSection />
       </LazySection>
@@ -99,7 +96,6 @@ const Index = () => {
         <SpaCatalog />
       </LazySection>
       
-      <div id="gilmer-spas" />
       <LazySection>
         <GilmerSpasSection />
       </LazySection>
