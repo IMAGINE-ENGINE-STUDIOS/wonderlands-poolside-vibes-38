@@ -389,23 +389,42 @@ const AdvancedSearch = () => {
   };
 
   const handleSectionClick = (sectionId: string) => {
+    console.log('handleSectionClick called with:', sectionId);
     setShowSectionMenu(false);
     setIsFocused(false);
     
-    // Simple: just navigate to the hash URL
-    const targetUrl = `/#${sectionId}`;
+    const currentPath = window.location.pathname;
+    console.log('Current path:', currentPath);
     
-    if (window.location.pathname !== '/') {
-      navigate(targetUrl);
-    } else {
-      // Already on home page - scroll to section
+    const scrollToSection = (retries = 0) => {
+      console.log('scrollToSection attempt:', retries, 'looking for:', sectionId);
       const element = document.getElementById(sectionId);
+      console.log('Found element:', element);
+      
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const headerOffset = 100;
+        const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+        console.log('Scrolling to position:', elementPosition - headerOffset);
+        window.scrollTo({
+          top: elementPosition - headerOffset,
+          behavior: 'smooth'
+        });
+      } else if (retries < 15) {
+        // Lazy sections may not be rendered yet - scroll down to trigger them, then retry
+        window.scrollBy(0, 400);
+        setTimeout(() => scrollToSection(retries + 1), 150);
       } else {
-        // Section might be lazy loaded - navigate with hash to trigger scroll after load
+        // Final fallback - use native hash navigation
+        console.log('Fallback to hash:', sectionId);
         window.location.hash = sectionId;
       }
+    };
+    
+    if (currentPath === '/' || currentPath === '') {
+      setTimeout(() => scrollToSection(0), 100);
+    } else {
+      navigate('/');
+      setTimeout(() => scrollToSection(0), 600);
     }
   };
 
