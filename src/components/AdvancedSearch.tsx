@@ -389,16 +389,22 @@ const AdvancedSearch = () => {
   };
 
   const handleSectionClick = (sectionId: string) => {
+    console.log('handleSectionClick called with:', sectionId);
     setShowSectionMenu(false);
     setIsFocused(false);
     
     const currentPath = window.location.pathname;
+    console.log('Current path:', currentPath);
     
     const scrollToSection = (retries = 0) => {
+      console.log('scrollToSection attempt:', retries, 'looking for:', sectionId);
       const element = document.getElementById(sectionId);
+      console.log('Found element:', element);
+      
       if (element) {
         const headerOffset = 100;
         const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+        console.log('Scrolling to position:', elementPosition - headerOffset);
         window.scrollTo({
           top: elementPosition - headerOffset,
           behavior: 'smooth'
@@ -409,6 +415,7 @@ const AdvancedSearch = () => {
         setTimeout(() => scrollToSection(retries + 1), 150);
       } else {
         // Final fallback - use native hash navigation
+        console.log('Fallback to hash:', sectionId);
         window.location.hash = sectionId;
       }
     };
