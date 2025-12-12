@@ -394,7 +394,7 @@ const AdvancedSearch = () => {
     
     const currentPath = window.location.pathname;
     
-    const scrollToSection = () => {
+    const scrollToSection = (retries = 0) => {
       const element = document.getElementById(sectionId);
       if (element) {
         const headerOffset = 100;
@@ -403,14 +403,21 @@ const AdvancedSearch = () => {
           top: elementPosition - headerOffset,
           behavior: 'smooth'
         });
+      } else if (retries < 15) {
+        // Lazy sections may not be rendered yet - scroll down to trigger them, then retry
+        window.scrollBy(0, 400);
+        setTimeout(() => scrollToSection(retries + 1), 150);
+      } else {
+        // Final fallback - use native hash navigation
+        window.location.hash = sectionId;
       }
     };
     
     if (currentPath === '/' || currentPath === '') {
-      scrollToSection();
+      setTimeout(() => scrollToSection(0), 100);
     } else {
       navigate('/');
-      setTimeout(scrollToSection, 800);
+      setTimeout(() => scrollToSection(0), 600);
     }
   };
 
