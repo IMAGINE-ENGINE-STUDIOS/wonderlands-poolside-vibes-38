@@ -460,10 +460,15 @@ const AdvancedSearch = () => {
           <ScrollArea className="h-[60vh] sm:h-[55vh] px-3 pb-3">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
               {mainPageSections.map((section) => (
-                <div
+                <button
+                  type="button"
                   key={section.id}
-                  className="group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg border border-border/50"
-                  onClick={() => handleSectionClick(section.id)}
+                  className="group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg border border-border/50 text-left w-full"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSectionClick(section.id);
+                  }}
                 >
                   {/* Background Image */}
                   <div className="relative h-20 sm:h-24">
@@ -473,10 +478,10 @@ const AdvancedSearch = () => {
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     />
                     {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20 pointer-events-none" />
                     
                     {/* Content */}
-                    <div className="absolute inset-0 flex flex-col justify-end p-2 sm:p-3">
+                    <div className="absolute inset-0 flex flex-col justify-end p-2 sm:p-3 pointer-events-none">
                       <h4 className="text-white font-bold text-xs sm:text-sm leading-tight drop-shadow-lg">
                         {section.label}
                       </h4>
@@ -486,13 +491,13 @@ const AdvancedSearch = () => {
                     </div>
                     
                     {/* Hover indicator */}
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                       <div className="bg-white/20 backdrop-blur-sm rounded-full p-1">
                         <Search className="h-3 w-3 text-white" />
                       </div>
                     </div>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </ScrollArea>
