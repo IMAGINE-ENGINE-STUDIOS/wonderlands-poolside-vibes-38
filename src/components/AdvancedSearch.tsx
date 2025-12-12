@@ -389,45 +389,23 @@ const AdvancedSearch = () => {
   };
 
   const handleSectionClick = (sectionId: string) => {
-    console.log('handleSectionClick called with:', sectionId);
     setShowSectionMenu(false);
     setIsFocused(false);
     
-    const currentPath = window.location.pathname;
+    // Simple: just navigate to the hash URL
+    const targetUrl = `/#${sectionId}`;
     
-    const scrollToSection = (retries = 0) => {
+    if (window.location.pathname !== '/') {
+      navigate(targetUrl);
+    } else {
+      // Already on home page - scroll to section
       const element = document.getElementById(sectionId);
-      console.log('Looking for element:', sectionId, 'Found:', !!element, 'Retry:', retries);
-      
       if (element) {
-        const headerOffset = 80;
-        const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-        console.log('Scrolling to:', elementPosition - headerOffset);
-        window.scrollTo({
-          top: elementPosition - headerOffset,
-          behavior: 'smooth'
-        });
-      } else if (retries < 20) {
-        // Lazy sections may not be rendered yet - scroll down to trigger them
-        window.scrollTo(0, (retries + 1) * 800);
-        setTimeout(() => scrollToSection(retries + 1), 100);
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else {
-        // Final fallback - use native hash navigation
-        console.log('Using hash fallback for:', sectionId);
+        // Section might be lazy loaded - navigate with hash to trigger scroll after load
         window.location.hash = sectionId;
       }
-    };
-    
-    if (currentPath === '/' || currentPath === '') {
-      // First scroll to top, then find section
-      window.scrollTo(0, 0);
-      setTimeout(() => scrollToSection(0), 150);
-    } else {
-      navigate('/');
-      setTimeout(() => {
-        window.scrollTo(0, 0);
-        setTimeout(() => scrollToSection(0), 150);
-      }, 500);
     }
   };
 
