@@ -75,6 +75,7 @@ const Index = () => {
       </LazySection>
       
       <SectionBanner 
+        id="saunas"
         image={saunaBanner} 
         alt="Luxury Saunas" 
         title="Premium Saunas"
@@ -85,6 +86,7 @@ const Index = () => {
       </LazySection>
       
       <SectionBanner 
+        id="spas"
         image={spaBanner} 
         alt="Hot Tubs & Spas" 
         title="Hot Tubs & Spas"
@@ -99,6 +101,7 @@ const Index = () => {
       </LazySection>
       
       <SectionBanner 
+        id="tanning-ledges"
         image={tanningLedgeBanner} 
         alt="Tanning Ledges" 
         title="Tanning Ledges"
@@ -109,6 +112,7 @@ const Index = () => {
       </LazySection>
       
       <SectionBanner 
+        id="screen-enclosures"
         image={screenEnclosureBanner} 
         alt="Screen Enclosures" 
         title="Screen Enclosures"
@@ -119,6 +123,7 @@ const Index = () => {
       </LazySection>
       
       <SectionBanner 
+        id="patio-fencing"
         image={patioFencingBanner} 
         alt="Patio Fencing" 
         title="Aluminum Patio Fencing"
@@ -129,6 +134,7 @@ const Index = () => {
       </LazySection>
       
       <SectionBanner 
+        id="lanai"
         image={lanaiBanner} 
         alt="Lanai Enclosures" 
         title="Lanai Enclosures"
@@ -139,6 +145,7 @@ const Index = () => {
       </LazySection>
       
       <SectionBanner 
+        id="pavers"
         image={paversBanner} 
         alt="Pool Pavers" 
         title="Premium Pavers"
@@ -149,6 +156,7 @@ const Index = () => {
       </LazySection>
       
       <SectionBanner 
+        id="covers"
         image={coversBanner} 
         alt="Automatic Pool Covers" 
         title="Automatic Pool Covers"
@@ -159,6 +167,7 @@ const Index = () => {
       </LazySection>
       
       <SectionBanner 
+        id="driveway-gates"
         image={drivewayGateBanner} 
         alt="Driveway Gates" 
         title="Driveway Gates"

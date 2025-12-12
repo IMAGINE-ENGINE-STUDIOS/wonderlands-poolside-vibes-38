@@ -131,7 +131,7 @@ const SpaCatalog = () => {
         </div>
       </section>
 
-      <section id="spas" className="py-20 px-4 relative overflow-hidden">
+      <section className="py-20 px-4 relative overflow-hidden">
         {/* Animated Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-background to-muted/30">
           <div className="absolute inset-0 opacity-20">
