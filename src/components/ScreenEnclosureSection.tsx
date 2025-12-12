@@ -73,7 +73,7 @@ const ScreenEnclosureSection = () => {
     return sqFt * enclosure.pricePerSqFt;
   };
   return <>
-      <section className="py-12 px-4 bg-gradient-to-br from-muted/30 to-background">
+      <section id="screen-enclosures" className="py-12 px-4 bg-gradient-to-br from-muted/30 to-background">
         <div className="max-w-7xl mx-auto">
 
           <div className="text-center mb-16">

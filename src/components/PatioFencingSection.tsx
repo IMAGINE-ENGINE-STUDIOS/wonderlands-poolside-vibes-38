@@ -86,7 +86,7 @@ const PatioFencingSection = () => {
   };
   const getColorName = () => colorOptions.find(c => c.id === selectedColor)?.name || "Basic Black";
   return <>
-      <section className="py-12 px-4 bg-gradient-to-br from-background to-muted/30">
+      <section id="patio-fencing" className="py-12 px-4 bg-gradient-to-br from-background to-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
