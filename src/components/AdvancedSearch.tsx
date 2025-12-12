@@ -389,29 +389,30 @@ const AdvancedSearch = () => {
   };
 
   const handleSectionClick = (sectionId: string) => {
+    // Close menus immediately
     setShowSectionMenu(false);
     setIsFocused(false);
     
     // Check if we're on the main page
     const currentPath = window.location.pathname;
     
+    const scrollToSection = (retries = 0) => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (retries < 5) {
+        // Retry if element not found yet
+        setTimeout(() => scrollToSection(retries + 1), 200);
+      }
+    };
+    
     if (currentPath === '/' || currentPath === '') {
       // Already on main page, scroll to section
-      setTimeout(() => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
+      setTimeout(() => scrollToSection(), 150);
     } else {
-      // Navigate to main page with hash
+      // Navigate to main page first, then scroll
       navigate('/');
-      setTimeout(() => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 300);
+      setTimeout(() => scrollToSection(), 500);
     }
   };
 
@@ -434,7 +435,7 @@ const AdvancedSearch = () => {
   return (
     <div 
       className={`relative w-full max-w-md mx-auto transition-transform duration-300 ${
-        shouldShowSectionMenu ? '-translate-y-16 sm:-translate-y-8' : ''
+        shouldShowSectionMenu ? '-translate-y-32 sm:-translate-y-16' : ''
       }`} 
       ref={containerRef}
     >
@@ -452,14 +453,14 @@ const AdvancedSearch = () => {
 
       {/* Section Quick Navigation Menu */}
       {shouldShowSectionMenu && (
-        <Card className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[90vw] sm:w-[600px] max-w-[600px] z-[100] bg-background border-2 border-primary/20 shadow-2xl overflow-hidden">
+        <Card className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[95vw] sm:w-[850px] max-w-[900px] z-[100] bg-background border-2 border-primary/20 shadow-2xl overflow-hidden">
           <div className="p-3 pb-0">
             <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-2">
               Browse Categories
             </div>
           </div>
-          <ScrollArea className="h-[55vh] sm:h-[50vh] px-3 pb-3">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+          <ScrollArea className="h-[60vh] sm:h-[55vh] px-3 pb-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
               {mainPageSections.map((section) => (
                 <div
                   key={section.id}
