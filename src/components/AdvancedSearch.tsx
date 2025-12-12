@@ -4,6 +4,7 @@ import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNavigate } from 'react-router-dom';
 import { allProducts, getProductsByCategory } from '@/data/consolidatedProducts';
 import { poolLiners, poolTiles, tanningLedges } from '@/data/poolData';
@@ -12,18 +13,29 @@ import { saunas } from '@/data/saunaData';
 import { drivewayGates } from '@/data/drivewayGates';
 import { gilmerPools } from '@/data/gilmerPools';
 
+// Import banner images for sections
+import saunaBanner from "@/assets/banners/sauna-banner.jpg";
+import spaBanner from "@/assets/banners/spa-banner.jpg";
+import screenEnclosureBanner from "@/assets/banners/screen-enclosure-banner.jpg";
+import paversBanner from "@/assets/banners/pavers-banner.jpg";
+import coversBanner from "@/assets/banners/covers-banner.jpg";
+import drivewayGateBanner from "@/assets/banners/driveway-gate-banner.jpg";
+import tanningLedgeBanner from "@/assets/banners/tanning-ledge-banner.jpg";
+import patioFencingBanner from "@/assets/banners/patio-fencing-banner.jpg";
+import lanaiBanner from "@/assets/banners/lanai-banner.jpg";
+
 // Section data for quick navigation dropdown
 const mainPageSections = [
   { id: 'pools', label: 'Pools', image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png', description: 'Premium fiberglass & concrete pools' },
-  { id: 'saunas', label: 'Saunas', image: '/lovable-uploads/2ed70b80-5912-48ce-8c67-88a6163c0c60.png', description: 'Indoor & outdoor barrel saunas' },
-  { id: 'spas', label: 'Hot Tubs & Spas', image: '/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.png', description: 'Luxury hot tubs & jacuzzis' },
-  { id: 'tanning-ledges', label: 'Tanning Ledges', image: '/lovable-uploads/05a5bc24-a6bf-4a4e-af94-0cce9a8cf0ca.png', description: 'In-pool sun shelves & ledges' },
-  { id: 'screen-enclosures', label: 'Screen Enclosures', image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', description: 'Pool cage & patio enclosures' },
-  { id: 'patio-fencing', label: 'Patio Fencing', image: '/lovable-uploads/3bb42bcc-d423-4bc5-aea5-3b5ad9b37c6b.png', description: 'Aluminum pool-code fencing' },
-  { id: 'lanai', label: 'Lanai', image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', description: 'Covered outdoor living spaces' },
-  { id: 'pavers', label: 'Pavers', image: '/lovable-uploads/b81f0b77-f8cd-47ca-9212-d37d0c6237cc.png', description: 'Pool deck & patio pavers' },
-  { id: 'covers', label: 'Pool Covers', image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png', description: 'Automatic safety covers' },
-  { id: 'driveway-gates', label: 'Driveway Gates', image: '/lovable-uploads/a76e1d6b-60e9-4b73-99c6-32ab84dfe9be.png', description: 'Ornamental entry gates' },
+  { id: 'saunas', label: 'Saunas', image: saunaBanner, description: 'Indoor & outdoor barrel saunas' },
+  { id: 'spas', label: 'Hot Tubs & Spas', image: spaBanner, description: 'Luxury hot tubs & jacuzzis' },
+  { id: 'tanning-ledges', label: 'Tanning Ledges', image: tanningLedgeBanner, description: 'In-pool sun shelves & ledges' },
+  { id: 'screen-enclosures', label: 'Screen Enclosures', image: screenEnclosureBanner, description: 'Pool cage & patio enclosures' },
+  { id: 'patio-fencing', label: 'Patio Fencing', image: patioFencingBanner, description: 'Aluminum pool-code fencing' },
+  { id: 'lanai', label: 'Lanai', image: lanaiBanner, description: 'Covered outdoor living spaces' },
+  { id: 'pavers', label: 'Pavers', image: paversBanner, description: 'Pool deck & patio pavers' },
+  { id: 'covers', label: 'Pool Covers', image: coversBanner, description: 'Automatic safety covers' },
+  { id: 'driveway-gates', label: 'Driveway Gates', image: drivewayGateBanner, description: 'Ornamental entry gates' },
   { id: 'finishes', label: 'Pool Finishes', image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png', description: 'Interior pool finishes' },
   { id: 'liners', label: 'Pool Liners', image: '/lovable-uploads/c5cd2f96-d31a-446b-943b-6dd1620f6521.png', description: 'Glass & porcelain tiles' },
 ];
@@ -422,42 +434,51 @@ const AdvancedSearch = () => {
 
       {/* Section Quick Navigation Menu */}
       {shouldShowSectionMenu && (
-        <Card className="absolute top-full left-0 right-0 mt-2 max-h-[70vh] overflow-y-auto z-50 bg-background border-2 border-primary/20 shadow-2xl">
-          <div className="p-3">
+        <Card className="absolute top-full left-0 right-0 mt-2 z-50 bg-background border-2 border-primary/20 shadow-2xl overflow-hidden">
+          <div className="p-3 pb-0">
             <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-2">
               Browse Categories
             </div>
+          </div>
+          <ScrollArea className="h-[60vh] px-3 pb-3">
             <div className="grid grid-cols-2 gap-2">
               {mainPageSections.map((section) => (
                 <div
                   key={section.id}
-                  className="group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+                  className="group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg border border-border/50"
                   onClick={() => handleSectionClick(section.id)}
                 >
                   {/* Background Image */}
-                  <div className="relative h-20">
+                  <div className="relative h-24">
                     <img 
                       src={section.image} 
                       alt={section.label}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     />
                     {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
                     
                     {/* Content */}
-                    <div className="absolute inset-0 flex flex-col justify-end p-2">
-                      <h4 className="text-white font-semibold text-sm leading-tight drop-shadow-md">
+                    <div className="absolute inset-0 flex flex-col justify-end p-3">
+                      <h4 className="text-white font-bold text-sm leading-tight drop-shadow-lg">
                         {section.label}
                       </h4>
-                      <p className="text-white/80 text-[10px] leading-tight line-clamp-1 drop-shadow-sm">
+                      <p className="text-white/90 text-[10px] leading-tight line-clamp-2 drop-shadow-md mt-0.5">
                         {section.description}
                       </p>
+                    </div>
+                    
+                    {/* Hover indicator */}
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-white/20 backdrop-blur-sm rounded-full p-1">
+                        <Search className="h-3 w-3 text-white" />
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </ScrollArea>
         </Card>
       )}
 
