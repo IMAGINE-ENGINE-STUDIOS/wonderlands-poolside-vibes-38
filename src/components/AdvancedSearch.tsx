@@ -1,5 +1,5 @@
 import * as React from 'react';
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -11,6 +11,22 @@ import { paverTypes, copingTypes } from '@/data/paverData';
 import { saunas } from '@/data/saunaData';
 import { drivewayGates } from '@/data/drivewayGates';
 import { gilmerPools } from '@/data/gilmerPools';
+
+// Section data for quick navigation dropdown
+const mainPageSections = [
+  { id: 'pools', label: 'Pools', image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png', description: 'Premium fiberglass & concrete pools' },
+  { id: 'saunas', label: 'Saunas', image: '/lovable-uploads/2ed70b80-5912-48ce-8c67-88a6163c0c60.png', description: 'Indoor & outdoor barrel saunas' },
+  { id: 'spas', label: 'Hot Tubs & Spas', image: '/lovable-uploads/f6a9fa78-9ca7-44a8-85ae-9c0b3b3be906.png', description: 'Luxury hot tubs & jacuzzis' },
+  { id: 'tanning-ledges', label: 'Tanning Ledges', image: '/lovable-uploads/05a5bc24-a6bf-4a4e-af94-0cce9a8cf0ca.png', description: 'In-pool sun shelves & ledges' },
+  { id: 'screen-enclosures', label: 'Screen Enclosures', image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', description: 'Pool cage & patio enclosures' },
+  { id: 'patio-fencing', label: 'Patio Fencing', image: '/lovable-uploads/3bb42bcc-d423-4bc5-aea5-3b5ad9b37c6b.png', description: 'Aluminum pool-code fencing' },
+  { id: 'lanai', label: 'Lanai', image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', description: 'Covered outdoor living spaces' },
+  { id: 'pavers', label: 'Pavers', image: '/lovable-uploads/b81f0b77-f8cd-47ca-9212-d37d0c6237cc.png', description: 'Pool deck & patio pavers' },
+  { id: 'covers', label: 'Pool Covers', image: '/lovable-uploads/1fd97401-223a-4a79-bf65-e7734138513e.png', description: 'Automatic safety covers' },
+  { id: 'driveway-gates', label: 'Driveway Gates', image: '/lovable-uploads/a76e1d6b-60e9-4b73-99c6-32ab84dfe9be.png', description: 'Ornamental entry gates' },
+  { id: 'finishes', label: 'Pool Finishes', image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png', description: 'Interior pool finishes' },
+  { id: 'liners', label: 'Pool Liners', image: '/lovable-uploads/c5cd2f96-d31a-446b-943b-6dd1620f6521.png', description: 'Glass & porcelain tiles' },
+];
 
 interface SearchResult {
   id: string;
@@ -26,6 +42,9 @@ const AdvancedSearch = () => {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [showSectionMenu, setShowSectionMenu] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   // COMPREHENSIVE PRODUCT DATABASE - All products from all data sources
@@ -357,27 +376,100 @@ const AdvancedSearch = () => {
     setSearchQuery('');
   };
 
+  const handleSectionClick = (sectionId: string) => {
+    setShowSectionMenu(false);
+    setIsFocused(false);
+    
+    // Navigate to the section on the main page
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      // If not on main page, navigate there first
+      navigate(`/#${sectionId}`);
+    }
+  };
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setShowSectionMenu(false);
+        setIsFocused(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Show section menu when focused and no search query
+  const shouldShowSectionMenu = isFocused && !searchQuery && !showResults;
+
   return (
-    <div className="relative w-full max-w-md mx-auto">
+    <div className="relative w-full max-w-md mx-auto" ref={containerRef}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
           type="text"
           placeholder="Search pools, spas, covers, heaters, tiles, pavers... or try '16 x 40'"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 pr-4 py-3 w-full border-2 border-primary/20 rounded-lg focus:border-primary transition-colors bg-white/80 backdrop-blur-sm"
+          onFocus={() => setIsFocused(true)}
+          className="pl-10 pr-4 py-3 w-full border-2 border-primary/20 rounded-lg focus:border-primary transition-colors bg-background/80 backdrop-blur-sm"
         />
       </div>
 
+      {/* Section Quick Navigation Menu */}
+      {shouldShowSectionMenu && (
+        <Card className="absolute top-full left-0 right-0 mt-2 max-h-[70vh] overflow-y-auto z-50 bg-background border-2 border-primary/20 shadow-2xl">
+          <div className="p-3">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-2">
+              Browse Categories
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {mainPageSections.map((section) => (
+                <div
+                  key={section.id}
+                  className="group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+                  onClick={() => handleSectionClick(section.id)}
+                >
+                  {/* Background Image */}
+                  <div className="relative h-20">
+                    <img 
+                      src={section.image} 
+                      alt={section.label}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    />
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                    
+                    {/* Content */}
+                    <div className="absolute inset-0 flex flex-col justify-end p-2">
+                      <h4 className="text-white font-semibold text-sm leading-tight drop-shadow-md">
+                        {section.label}
+                      </h4>
+                      <p className="text-white/80 text-[10px] leading-tight line-clamp-1 drop-shadow-sm">
+                        {section.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Search Results */}
       {showResults && (
-        <Card className="absolute top-full left-0 right-0 mt-2 max-h-96 overflow-y-auto z-50 bg-white/95 backdrop-blur-sm border-2 border-primary/20 shadow-xl">
+        <Card className="absolute top-full left-0 right-0 mt-2 max-h-96 overflow-y-auto z-50 bg-background border-2 border-primary/20 shadow-xl">
           <div className="p-2">
             {isLoading ? (
-              <div className="text-center py-4 text-gray-500">Searching...</div>
+              <div className="text-center py-4 text-muted-foreground">Searching...</div>
             ) : searchResults.length > 0 ? (
               <>
-                <div className="text-sm text-gray-600 mb-2 px-2">
+                <div className="text-sm text-muted-foreground mb-2 px-2">
                   Found {searchResults.length} results
                 </div>
                 {searchResults.map((result) => (
@@ -394,12 +486,12 @@ const AdvancedSearch = () => {
                       />
                     )}
                     <div className="flex-1">
-                      <div className="font-medium text-gray-900">{result.name}</div>
+                      <div className="font-medium text-foreground">{result.name}</div>
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="text-xs">
                           {result.category}
                         </Badge>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-muted-foreground">
                           ${result.price.toLocaleString()}
                         </span>
                       </div>
@@ -408,7 +500,7 @@ const AdvancedSearch = () => {
                 ))}
               </>
             ) : (
-              <div className="text-center py-4 text-gray-500">
+              <div className="text-center py-4 text-muted-foreground">
                 No results found for "{searchQuery}"
               </div>
             )}
