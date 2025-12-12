@@ -435,7 +435,7 @@ const AdvancedSearch = () => {
   return (
     <div 
       className={`relative w-full max-w-md mx-auto transition-transform duration-300 ${
-        shouldShowSectionMenu ? '-translate-y-32 sm:-translate-y-16' : ''
+        shouldShowSectionMenu ? '-translate-y-40 sm:-translate-y-16' : ''
       }`} 
       ref={containerRef}
     >
