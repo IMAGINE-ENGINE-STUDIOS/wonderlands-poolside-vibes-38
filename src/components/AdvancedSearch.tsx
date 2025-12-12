@@ -394,37 +394,40 @@ const AdvancedSearch = () => {
     setIsFocused(false);
     
     const currentPath = window.location.pathname;
-    console.log('Current path:', currentPath);
     
     const scrollToSection = (retries = 0) => {
-      console.log('scrollToSection attempt:', retries, 'looking for:', sectionId);
       const element = document.getElementById(sectionId);
-      console.log('Found element:', element);
+      console.log('Looking for element:', sectionId, 'Found:', !!element, 'Retry:', retries);
       
       if (element) {
-        const headerOffset = 100;
+        const headerOffset = 80;
         const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-        console.log('Scrolling to position:', elementPosition - headerOffset);
+        console.log('Scrolling to:', elementPosition - headerOffset);
         window.scrollTo({
           top: elementPosition - headerOffset,
           behavior: 'smooth'
         });
-      } else if (retries < 15) {
-        // Lazy sections may not be rendered yet - scroll down to trigger them, then retry
-        window.scrollBy(0, 400);
-        setTimeout(() => scrollToSection(retries + 1), 150);
+      } else if (retries < 20) {
+        // Lazy sections may not be rendered yet - scroll down to trigger them
+        window.scrollTo(0, (retries + 1) * 800);
+        setTimeout(() => scrollToSection(retries + 1), 100);
       } else {
         // Final fallback - use native hash navigation
-        console.log('Fallback to hash:', sectionId);
+        console.log('Using hash fallback for:', sectionId);
         window.location.hash = sectionId;
       }
     };
     
     if (currentPath === '/' || currentPath === '') {
-      setTimeout(() => scrollToSection(0), 100);
+      // First scroll to top, then find section
+      window.scrollTo(0, 0);
+      setTimeout(() => scrollToSection(0), 150);
     } else {
       navigate('/');
-      setTimeout(() => scrollToSection(0), 600);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        setTimeout(() => scrollToSection(0), 150);
+      }, 500);
     }
   };
 
