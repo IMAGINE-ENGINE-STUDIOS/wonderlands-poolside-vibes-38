@@ -397,22 +397,36 @@ const AdvancedSearch = () => {
     const currentPath = window.location.pathname;
     
     const scrollToSection = (retries = 0) => {
+      console.log(`[AdvancedSearch] Attempting to scroll to: ${sectionId}, retry: ${retries}`);
       const element = document.getElementById(sectionId);
+      console.log(`[AdvancedSearch] Element found:`, element);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else if (retries < 5) {
-        // Retry if element not found yet
-        setTimeout(() => scrollToSection(retries + 1), 200);
+        // Use a more aggressive scroll with offset for header
+        const headerOffset = 80;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+        console.log(`[AdvancedSearch] Scrolled to ${sectionId} at position ${offsetPosition}`);
+      } else if (retries < 10) {
+        // More retries with longer delays for lazy-loaded sections
+        console.log(`[AdvancedSearch] Element not found, retrying...`);
+        setTimeout(() => scrollToSection(retries + 1), 300);
+      } else {
+        console.error(`[AdvancedSearch] Failed to find element with id: ${sectionId}`);
       }
     };
     
     if (currentPath === '/' || currentPath === '') {
       // Already on main page, scroll to section
-      setTimeout(() => scrollToSection(), 150);
+      setTimeout(() => scrollToSection(), 100);
     } else {
       // Navigate to main page first, then scroll
       navigate('/');
-      setTimeout(() => scrollToSection(), 500);
+      setTimeout(() => scrollToSection(), 600);
     }
   };
 
