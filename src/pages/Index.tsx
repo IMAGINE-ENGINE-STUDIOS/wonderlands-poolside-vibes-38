@@ -56,7 +56,7 @@ const Index = () => {
       <Header />
       <Hero />
       
-      {/* Load PoolCatalog eagerly - it's above the fold */}
+      {/* ========== MAIN POOLS SECTION (Wonderlands + Latham) ========== */}
       <PoolCatalog />
       
       {/* Banner between Latham and Gilmer Pools */}
@@ -70,10 +70,12 @@ const Index = () => {
         />
       </div>
       
+      {/* ========== GILMER POOLS SECTION ========== */}
       <LazySection>
         <GilmerPoolsSection />
       </LazySection>
       
+      {/* ========== SAUNAS SECTION ========== */}
       <SectionBanner 
         id="saunas"
         image={saunaBanner} 
@@ -85,6 +87,7 @@ const Index = () => {
         <SaunaSection />
       </LazySection>
       
+      {/* ========== SPAS SECTION ========== */}
       <SectionBanner 
         id="spas"
         image={spaBanner} 
@@ -96,10 +99,12 @@ const Index = () => {
         <SpaCatalog />
       </LazySection>
       
+      {/* ========== GILMER SPAS SECTION ========== */}
       <LazySection>
         <GilmerSpasSection />
       </LazySection>
       
+      {/* ========== TANNING LEDGES SECTION ========== */}
       <SectionBanner 
         id="tanning-ledges"
         image={tanningLedgeBanner} 
@@ -111,6 +116,7 @@ const Index = () => {
         <TanningLedgeSection />
       </LazySection>
       
+      {/* ========== SCREEN ENCLOSURES SECTION ========== */}
       <SectionBanner 
         id="screen-enclosures"
         image={screenEnclosureBanner} 
@@ -122,6 +128,7 @@ const Index = () => {
         <ScreenEnclosureSection />
       </LazySection>
       
+      {/* ========== PATIO FENCING SECTION ========== */}
       <SectionBanner 
         id="patio-fencing"
         image={patioFencingBanner} 
@@ -133,6 +140,7 @@ const Index = () => {
         <PatioFencingSection />
       </LazySection>
       
+      {/* ========== LANAI SECTION ========== */}
       <SectionBanner 
         id="lanai"
         image={lanaiBanner} 
@@ -144,6 +152,7 @@ const Index = () => {
         <LanaiSection />
       </LazySection>
       
+      {/* ========== PAVERS SECTION ========== */}
       <SectionBanner 
         id="pavers"
         image={paversBanner} 
@@ -155,6 +164,7 @@ const Index = () => {
         <PaversSection />
       </LazySection>
       
+      {/* ========== COVERS SECTION ========== */}
       <SectionBanner 
         id="covers"
         image={coversBanner} 
@@ -166,6 +176,7 @@ const Index = () => {
         <AutomaticCoversSection />
       </LazySection>
       
+      {/* ========== DRIVEWAY GATES SECTION ========== */}
       <SectionBanner 
         id="driveway-gates"
         image={drivewayGateBanner} 
@@ -177,10 +188,12 @@ const Index = () => {
         <DrivewayGateSection />
       </LazySection>
       
+      {/* ========== POOL FINISHES SECTION ========== */}
       <LazySection>
         <PoolFinishesSection />
       </LazySection>
       
+      {/* ========== LINERS SECTION ========== */}
       <LazySection>
         <LinersSection />
       </LazySection>
