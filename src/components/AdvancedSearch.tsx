@@ -389,44 +389,28 @@ const AdvancedSearch = () => {
   };
 
   const handleSectionClick = (sectionId: string) => {
-    // Close menus immediately
     setShowSectionMenu(false);
     setIsFocused(false);
     
-    // Check if we're on the main page
     const currentPath = window.location.pathname;
     
-    const scrollToSection = (retries = 0) => {
-      console.log(`[AdvancedSearch] Attempting to scroll to: ${sectionId}, retry: ${retries}`);
+    const scrollToSection = () => {
       const element = document.getElementById(sectionId);
-      console.log(`[AdvancedSearch] Element found:`, element);
       if (element) {
-        // Use a more aggressive scroll with offset for header
-        const headerOffset = 80;
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-        
+        const headerOffset = 100;
+        const elementPosition = element.getBoundingClientRect().top + window.scrollY;
         window.scrollTo({
-          top: offsetPosition,
+          top: elementPosition - headerOffset,
           behavior: 'smooth'
         });
-        console.log(`[AdvancedSearch] Scrolled to ${sectionId} at position ${offsetPosition}`);
-      } else if (retries < 10) {
-        // More retries with longer delays for lazy-loaded sections
-        console.log(`[AdvancedSearch] Element not found, retrying...`);
-        setTimeout(() => scrollToSection(retries + 1), 300);
-      } else {
-        console.error(`[AdvancedSearch] Failed to find element with id: ${sectionId}`);
       }
     };
     
     if (currentPath === '/' || currentPath === '') {
-      // Already on main page, scroll to section
-      setTimeout(() => scrollToSection(), 100);
+      scrollToSection();
     } else {
-      // Navigate to main page first, then scroll
       navigate('/');
-      setTimeout(() => scrollToSection(), 600);
+      setTimeout(scrollToSection, 800);
     }
   };
 
