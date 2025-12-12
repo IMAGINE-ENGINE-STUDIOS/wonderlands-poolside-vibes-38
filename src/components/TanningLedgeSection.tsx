@@ -67,7 +67,7 @@ const handleRequestQuote = (ledge: TanningLedge, extras?: any) => {
 
   return (
     <>
-      <section className="py-12 px-4 bg-gradient-to-br from-background to-coral/5" data-tanning-ledge-section>
+      <section id="tanning-ledges" className="py-12 px-4 bg-gradient-to-br from-background to-coral/5" data-tanning-ledge-section>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-coral via-orange to-amber-500">
