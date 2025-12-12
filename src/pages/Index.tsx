@@ -189,14 +189,18 @@ const Index = () => {
       </LazySection>
       
       {/* ========== POOL FINISHES SECTION ========== */}
-      <LazySection>
-        <PoolFinishesSection />
-      </LazySection>
+      <div id="finishes">
+        <LazySection>
+          <PoolFinishesSection />
+        </LazySection>
+      </div>
       
       {/* ========== LINERS SECTION ========== */}
-      <LazySection>
-        <LinersSection />
-      </LazySection>
+      <div id="liners">
+        <LazySection>
+          <LinersSection />
+        </LazySection>
+      </div>
       <Footer />
     </div>;
 };
