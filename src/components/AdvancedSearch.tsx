@@ -447,13 +447,13 @@ const AdvancedSearch = () => {
 
       {/* Section Quick Navigation Menu */}
       {shouldShowSectionMenu && (
-        <Card className="fixed left-1/2 -translate-x-1/2 top-auto mt-2 w-[95vw] max-w-2xl z-[100] bg-background border-2 border-primary/20 shadow-2xl overflow-hidden">
+        <Card className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[90vw] sm:w-[600px] max-w-[600px] z-[100] bg-background border-2 border-primary/20 shadow-2xl overflow-hidden">
           <div className="p-3 pb-0">
             <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-2">
               Browse Categories
             </div>
           </div>
-          <ScrollArea className="h-[50vh] sm:h-[60vh] px-3 pb-3">
+          <ScrollArea className="h-[45vh] sm:h-[50vh] px-3 pb-3">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
               {mainPageSections.map((section) => (
                 <div
