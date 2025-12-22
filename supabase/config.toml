@@ -1,1 +1,13 @@
 project_id = "bwngxlbnavnhbtahyzbf"
+
+[functions.send-sms]
+verify_jwt = true
+
+[functions.send-whatsapp]
+verify_jwt = true
+
+[functions.make-voice-call]
+verify_jwt = true
+
+[functions.send-notification]
+verify_jwt = true
