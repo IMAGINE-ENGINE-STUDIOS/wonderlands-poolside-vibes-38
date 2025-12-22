@@ -505,8 +505,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
     // Add calculated paver surface area cost using selected paver's basePrice
     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-      const selectedPaverType = paverTypes.find(p => p.name === extras.paverOption);
-      const pricePerSqFt = selectedPaverType?.basePrice || 20;
+      const paverName = extras.paverOption || "Concrete Deck";
+      const selectedPaver = paverOptions.find((p) => p.name === paverName);
+      const pricePerSqFt = selectedPaver?.basePrice || 20;
       total += parseFloat(paverSurfaceArea) * pricePerSqFt;
     }
 
@@ -975,6 +976,10 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                           className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-primary transition-all"
                           onClick={(e) => {
                             e.stopPropagation();
+                            setExtras((prev) => ({
+                              ...prev,
+                              paverOption: paver.name,
+                            }));
                             setImagePopup({
                               isOpen: true,
                               imageSrc: paver.image,
@@ -1661,12 +1666,13 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
                     // Add paver surface area cost using selected paver's basePrice
                     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-                      const selectedPaverType = paverTypes.find(p => p.name === extras.paverOption);
-                      const pricePerSqFt = selectedPaverType?.basePrice || 20;
+                      const paverName = extras.paverOption || "Concrete Deck";
+                      const selectedPaver = paverOptions.find((p) => p.name === paverName);
+                      const pricePerSqFt = selectedPaver?.basePrice || 20;
                       extrasBreakdown.push({
-                        name: `${extras.paverOption} (${paverSurfaceArea} sq ft @ $${pricePerSqFt}/sq ft)`,
+                        name: `${paverName} (${paverSurfaceArea} sq ft @ $${pricePerSqFt}/sq ft)`,
                         price: parseFloat(paverSurfaceArea) * pricePerSqFt,
-                        image: selectedPaverType?.image || "/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png",
+                        image: selectedPaver?.image,
                       });
                     }
 
