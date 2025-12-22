@@ -156,9 +156,11 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     let total = 0;
     
     if (options.pavers) {
-      // Only calculate paver surface area cost, no base price
+      // Calculate paver surface area cost using selected paver's basePrice
       if (options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea))) {
-        total += parseFloat(options.paverSurfaceArea) * 20;
+        const selectedPaver = paverOptions.find(p => p.name === options.paverOption);
+        const pricePerSqFt = selectedPaver?.pricePerSqFt || 20;
+        total += parseFloat(options.paverSurfaceArea) * pricePerSqFt;
       }
     }
     
@@ -220,7 +222,9 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     const extrasArray = [];
     extrasArray.push({ name: `Color: ${options.colorFinish}`, price: 0 });
     if (options.pavers && options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea))) {
-      extrasArray.push({ name: `Paver Surface Area (${options.paverSurfaceArea} sq ft)`, price: parseFloat(options.paverSurfaceArea) * 20 });
+      const selectedPaver = paverOptions.find(p => p.name === options.paverOption);
+      const pricePerSqFt = selectedPaver?.pricePerSqFt || 20;
+      extrasArray.push({ name: `Paver Surface Area (${options.paverSurfaceArea} sq ft)`, price: parseFloat(options.paverSurfaceArea) * pricePerSqFt });
     }
     if (options.tiles) extrasArray.push({ name: `Tiles: ${options.tileOption}`, price: tileOptions.find(t => t.name === options.tileOption)?.price || 0 });
     if (options.screenEnclosure && options.screenEnclosureArea > 0) {
@@ -433,7 +437,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 />
                 {options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) && (
                   <div className="text-xs text-green-600 font-medium">
-                    Calculated Cost: ${(parseFloat(options.paverSurfaceArea) * 20).toLocaleString()} (${options.paverSurfaceArea} sq ft × $20/sq ft)
+                    Calculated Cost: ${(parseFloat(options.paverSurfaceArea) * (paverOptions.find(p => p.name === options.paverOption)?.pricePerSqFt || 20)).toLocaleString()} ({options.paverSurfaceArea} sq ft × ${paverOptions.find(p => p.name === options.paverOption)?.pricePerSqFt || 20}/sq ft)
                   </div>
                 )}
               </div>
@@ -882,10 +886,10 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               description: 'Included gelcoat finish color',
               category: 'finish'
             },
-            ...(options.pavers && options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) ? [{ 
-              name: `Paver Installation Area: ${options.paverSurfaceArea} sq ft`, 
-              price: parseFloat(options.paverSurfaceArea) * 20,
-              description: `Professional paver installation at $20 per sq ft`,
+            ...(options.pavers && options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) ? [{
+              name: `Paver Installation: ${options.paverOption}`, 
+              price: parseFloat(options.paverSurfaceArea) * (paverOptions.find(p => p.name === options.paverOption)?.pricePerSqFt || 20),
+              description: `${options.paverSurfaceArea} sq ft at $${paverOptions.find(p => p.name === options.paverOption)?.pricePerSqFt || 20} per sq ft`,
               category: 'pavers',
               image: paverOptions.find(p => p.name === options.paverOption)?.image || '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
             }] : []),
