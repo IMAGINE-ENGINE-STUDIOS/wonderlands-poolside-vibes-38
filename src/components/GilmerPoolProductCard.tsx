@@ -67,6 +67,10 @@ interface GilmerExtras {
   spaOption: string;
   addTanningLedge: boolean;
   tanningLedgeOption: string;
+  sunsetGroveCoping: boolean;
+  sunsetGroveCopingColor: string;
+  castleRock: boolean;
+  castleRockColor: string;
 }
 
 const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
@@ -92,8 +96,26 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
     addSpa: false,
     spaOption: '',
     addTanningLedge: false,
-    tanningLedgeOption: ''
+    tanningLedgeOption: '',
+    sunsetGroveCoping: false,
+    sunsetGroveCopingColor: 'Natural Stone',
+    castleRock: false,
+    castleRockColor: 'Castle Rock'
   });
+
+  // Sunset Grove Coping Edge options
+  const sunsetGroveCopingColors = [
+    { name: 'Natural Stone', hex: '#B8A589' },
+    { name: 'Charcoal', hex: '#4A4A4A' },
+    { name: 'Sand', hex: '#D4C4A8' },
+  ];
+
+  // Castle Rock options (in order: Castle Rock, Gray, Brown)
+  const castleRockOptions = [
+    { name: 'Castle Rock', price: 0, image: '/lovable-uploads/castle-rock-grey.png' },
+    { name: 'Gray', price: 0, image: '/lovable-uploads/classic-grey.png' },
+    { name: 'Brown', price: 0, image: '/lovable-uploads/classic-brown.png' },
+  ];
 
   // Gilmer Glass color options
   const colorOptions = [
@@ -211,6 +233,10 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
       total += ledgePrice;
     }
     
+    if (extras.sunsetGroveCoping) {
+      total += 19500;
+    }
+    
     return total;
   };
 
@@ -240,6 +266,8 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
     if (extras.concreteConstruction) extrasArray.push({ name: 'Concrete Construction', price: 15000 });
     if (extras.addSpa) extrasArray.push({ name: `Spa: ${extras.spaOption}`, price: gilmerSpaOptions.find(s => s.name === extras.spaOption)?.price || 0 });
     if (extras.addTanningLedge) extrasArray.push({ name: `Tanning Ledge: ${extras.tanningLedgeOption}`, price: gilmerTanningLedgeOptions.find(l => l.name === extras.tanningLedgeOption)?.price || 0 });
+    if (extras.sunsetGroveCoping) extrasArray.push({ name: `Sunset Grove Coping Edge (${extras.sunsetGroveCopingColor})`, price: 19500 });
+    if (extras.castleRock) extrasArray.push({ name: `Castle Rock: ${extras.castleRockColor}`, price: 0 });
     
     const productData = {
       id: `gilmer-${pool.model.toLowerCase().replace(/\s+/g, '-')}`,
@@ -543,6 +571,84 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
                 </label>
               </div>
             )}
+
+            {/* Sunset Grove Coping Edge */}
+            <div className="space-y-2">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <Checkbox 
+                  checked={extras.sunsetGroveCoping} 
+                  onCheckedChange={() => toggleExtra('sunsetGroveCoping')} 
+                />
+                <div className="flex items-center space-x-1">
+                  <Home size={16} className="text-amber-600" />
+                  <span className="font-medium">Sunset Grove Coping Edge (+$19,500)</span>
+                </div>
+              </label>
+              {extras.sunsetGroveCoping && (
+                <div className="flex items-center gap-3 ml-6">
+                  <img 
+                    src="/lovable-uploads/sunset-grove-coping.jpg" 
+                    alt="Sunset Grove Coping"
+                    className="w-16 h-16 rounded-lg object-cover border"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    {sunsetGroveCopingColors.map((color) => (
+                      <button
+                        key={color.name}
+                        onClick={() => updateExtra('sunsetGroveCopingColor', color.name)}
+                        className={`p-2 text-xs rounded-md border transition-all flex flex-col items-center gap-1 ${
+                          extras.sunsetGroveCopingColor === color.name 
+                            ? 'border-amber-600 bg-amber-600/10 text-amber-700' 
+                            : 'border-border hover:border-amber-600/50'
+                        }`}
+                      >
+                        <div 
+                          className="w-5 h-5 rounded-full border border-border"
+                          style={{ backgroundColor: color.hex }}
+                        />
+                        <span className="text-[10px]">{color.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Castle Rock */}
+            <div className="space-y-2">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <Checkbox 
+                  checked={extras.castleRock} 
+                  onCheckedChange={() => toggleExtra('castleRock')} 
+                />
+                <div className="flex items-center space-x-1">
+                  <Shield size={16} className="text-stone-600" />
+                  <span className="font-medium">Castle Rock (Included)</span>
+                </div>
+              </label>
+              {extras.castleRock && (
+                <div className="grid grid-cols-3 gap-2 ml-6">
+                  {castleRockOptions.map((rock) => (
+                    <button
+                      key={rock.name}
+                      onClick={() => updateExtra('castleRockColor', rock.name)}
+                      className={`p-2 rounded-lg border transition-all flex flex-col items-center gap-1 ${
+                        extras.castleRockColor === rock.name 
+                          ? 'border-stone-600 bg-stone-600/10' 
+                          : 'border-border hover:border-stone-600/50'
+                      }`}
+                    >
+                      <img 
+                        src={rock.image} 
+                        alt={rock.name}
+                        className="w-12 h-12 rounded object-cover"
+                      />
+                      <span className="text-xs font-medium">{rock.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Add Spa */}
             <div className="space-y-2">
