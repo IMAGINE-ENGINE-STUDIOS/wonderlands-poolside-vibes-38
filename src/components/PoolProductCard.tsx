@@ -102,8 +102,6 @@ interface PoolExtras {
   screenEnclosureArea: number;
   screenEnclosureQuality: "standard" | "deluxe" | "premium";
   concreteConstruction: boolean;
-  sunsetGroveCoping: boolean;
-  sunsetGroveCopingColor: string;
   rockyWaterfalls: boolean;
   rockyWaterfallsColor: string;
   deliveryTime?: string;
@@ -329,20 +327,11 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
     screenEnclosureArea: 0,
     screenEnclosureQuality: "standard",
     concreteConstruction: false,
-    sunsetGroveCoping: false,
-    sunsetGroveCopingColor: "Natural Stone",
     rockyWaterfalls: false,
     rockyWaterfallsColor: "Castle Rock",
   });
 
-  // Sunset Grove Coping Edge options
-  const sunsetGroveCopingColors = [
-    { name: 'Natural Stone', hex: '#B8A589' },
-    { name: 'Charcoal', hex: '#4A4A4A' },
-    { name: 'Sand', hex: '#D4C4A8' },
-  ];
-
-  // Rocky Waterfalls options (in order: Castle Rock, Gray, Brown) - $19,500 add-on
+  // Rocky Waterfalls - Sunset Grove Coping options (3 colors) - $19,500 add-on
   const rockyWaterfallsOptions = [
     { name: 'Castle Rock', price: 19500, image: '/lovable-uploads/castle-rock-grey.png' },
     { name: 'Gray', price: 19500, image: '/lovable-uploads/classic-grey.png' },
@@ -444,11 +433,6 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
           ...prev,
           concreteConstruction: !prev.concreteConstruction,
         };
-      } else if (extra === "sunsetGroveCoping") {
-        return {
-          ...prev,
-          sunsetGroveCoping: !prev.sunsetGroveCoping,
-        };
       } else if (extra === "rockyWaterfalls") {
         return {
           ...prev,
@@ -526,12 +510,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
       total += extras.screenEnclosureArea * pricePerSqFt;
     }
 
-    // Add Sunset Grove Coping Edge price if selected
-    if (extras.sunsetGroveCoping) {
-      total += 19500;
-    }
-
-    // Add Rocky Waterfalls price if selected
+    // Add Rocky Waterfalls - Sunset Grove Coping price if selected
     if (extras.rockyWaterfalls) {
       total += 19500;
     }
@@ -640,19 +619,10 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
       });
     }
 
-    // Add Sunset Grove Coping Edge to cart if selected
-    if (extras.sunsetGroveCoping) {
-      cartExtras.push({
-        name: `Sunset Grove Coping Edge (${extras.sunsetGroveCopingColor})`,
-        price: 19500,
-      });
-    }
-
-    // Add Rocky Waterfalls to cart if selected
+    // Add Rocky Waterfalls - Sunset Grove Coping to cart if selected
     if (extras.rockyWaterfalls) {
-      const selectedRock = rockyWaterfallsOptions.find(r => r.name === extras.rockyWaterfallsColor);
       cartExtras.push({
-        name: `Rocky Waterfalls: ${extras.rockyWaterfallsColor}`,
+        name: `Rocky Waterfalls - Sunset Grove Coping: ${extras.rockyWaterfallsColor}`,
         price: 19500,
       });
     }
@@ -1328,54 +1298,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </>
                 )}
 
-                {/* Sunset Grove Coping Edge */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox
-                    checked={extras.sunsetGroveCoping}
-                    onCheckedChange={() => toggleExtra("sunsetGroveCoping")}
-                    className="data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600"
-                  />
-                  <div className="flex items-center space-x-1">
-                    <Shield size={16} className="text-amber-600" />
-                    <span className="text-sm">
-                      Sunset Grove Coping Edge (+$19,500)
-                    </span>
-                  </div>
-                </label>
-
-                {extras.sunsetGroveCoping && (
-                  <div className="ml-6 space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">Select Coping Color:</label>
-                    <div className="flex items-center gap-3">
-                      <img 
-                        src="/lovable-uploads/sunset-grove-coping.jpg" 
-                        alt="Sunset Grove Coping"
-                        className="w-16 h-16 rounded-lg object-cover border"
-                      />
-                      <div className="flex flex-wrap gap-2">
-                        {sunsetGroveCopingColors.map((color) => (
-                          <button
-                            key={color.name}
-                            onClick={() => setExtras((prev) => ({ ...prev, sunsetGroveCopingColor: color.name }))}
-                            className={`p-2 text-xs rounded-md border transition-all flex flex-col items-center gap-1 ${
-                              extras.sunsetGroveCopingColor === color.name 
-                                ? 'border-amber-600 bg-amber-600/10 text-amber-700' 
-                                : 'border-border hover:border-amber-600/50'
-                            }`}
-                          >
-                            <div 
-                              className="w-5 h-5 rounded-full border border-border"
-                              style={{ backgroundColor: color.hex }}
-                            />
-                            <span className="text-[10px]">{color.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Rocky Waterfalls */}
+                {/* Rocky Waterfalls - Sunset Grove Coping */}
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox
                     checked={extras.rockyWaterfalls}
@@ -1385,7 +1308,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   <div className="flex items-center space-x-1">
                     <Waves size={16} className="text-stone-600" />
                     <span className="text-sm">
-                      Rocky Waterfalls (+$19,500)
+                      Rocky Waterfalls - Sunset Grove Coping (+$19,500)
                     </span>
                   </div>
                 </label>
