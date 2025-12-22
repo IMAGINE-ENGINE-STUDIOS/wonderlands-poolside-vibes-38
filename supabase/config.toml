@@ -11,3 +11,9 @@ verify_jwt = true
 
 [functions.send-notification]
 verify_jwt = true
+
+[functions.process-client-automation]
+verify_jwt = false
+
+[functions.scheduled-outreach]
+verify_jwt = false
