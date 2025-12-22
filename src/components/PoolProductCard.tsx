@@ -104,8 +104,8 @@ interface PoolExtras {
   concreteConstruction: boolean;
   sunsetGroveCoping: boolean;
   sunsetGroveCopingColor: string;
-  castleRock: boolean;
-  castleRockColor: string;
+  rockyWaterfalls: boolean;
+  rockyWaterfallsColor: string;
   deliveryTime?: string;
   extrasBreakdown?: Array<{
     name: string;
@@ -331,8 +331,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
     concreteConstruction: false,
     sunsetGroveCoping: false,
     sunsetGroveCopingColor: "Natural Stone",
-    castleRock: false,
-    castleRockColor: "Castle Rock",
+    rockyWaterfalls: false,
+    rockyWaterfallsColor: "Castle Rock",
   });
 
   // Sunset Grove Coping Edge options
@@ -342,11 +342,11 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
     { name: 'Sand', hex: '#D4C4A8' },
   ];
 
-  // Castle Rock options (in order: Castle Rock, Gray, Brown)
-  const castleRockOptions = [
-    { name: 'Castle Rock', price: 0, image: '/lovable-uploads/castle-rock-grey.png' },
-    { name: 'Gray', price: 0, image: '/lovable-uploads/classic-grey.png' },
-    { name: 'Brown', price: 0, image: '/lovable-uploads/classic-brown.png' },
+  // Rocky Waterfalls options (in order: Castle Rock, Gray, Brown) - $19,500 add-on
+  const rockyWaterfallsOptions = [
+    { name: 'Castle Rock', price: 19500, image: '/lovable-uploads/castle-rock-grey.png' },
+    { name: 'Gray', price: 19500, image: '/lovable-uploads/classic-grey.png' },
+    { name: 'Brown', price: 19500, image: '/lovable-uploads/classic-brown.png' },
   ];
   const [paverSurfaceArea, setPaverSurfaceArea] = useState("");
   const [copingSurfaceArea, setCopingSurfaceArea] = useState("");
@@ -449,10 +449,10 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
           ...prev,
           sunsetGroveCoping: !prev.sunsetGroveCoping,
         };
-      } else if (extra === "castleRock") {
+      } else if (extra === "rockyWaterfalls") {
         return {
           ...prev,
-          castleRock: !prev.castleRock,
+          rockyWaterfalls: !prev.rockyWaterfalls,
         };
       }
       return prev;
@@ -528,6 +528,11 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
     // Add Sunset Grove Coping Edge price if selected
     if (extras.sunsetGroveCoping) {
+      total += 19500;
+    }
+
+    // Add Rocky Waterfalls price if selected
+    if (extras.rockyWaterfalls) {
       total += 19500;
     }
 
@@ -643,11 +648,12 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
       });
     }
 
-    // Add Castle Rock to cart if selected
-    if (extras.castleRock) {
+    // Add Rocky Waterfalls to cart if selected
+    if (extras.rockyWaterfalls) {
+      const selectedRock = rockyWaterfallsOptions.find(r => r.name === extras.rockyWaterfallsColor);
       cartExtras.push({
-        name: `Castle Rock: ${extras.castleRockColor}`,
-        price: 0,
+        name: `Rocky Waterfalls: ${extras.rockyWaterfallsColor}`,
+        price: 19500,
       });
     }
     addToCart({
@@ -1369,32 +1375,32 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </div>
                 )}
 
-                {/* Castle Rock */}
+                {/* Rocky Waterfalls */}
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox
-                    checked={extras.castleRock}
-                    onCheckedChange={() => toggleExtra("castleRock")}
+                    checked={extras.rockyWaterfalls}
+                    onCheckedChange={() => toggleExtra("rockyWaterfalls")}
                     className="data-[state=checked]:bg-stone-600 data-[state=checked]:border-stone-600"
                   />
                   <div className="flex items-center space-x-1">
-                    <Shield size={16} className="text-stone-600" />
+                    <Waves size={16} className="text-stone-600" />
                     <span className="text-sm">
-                      Castle Rock (Included)
+                      Rocky Waterfalls (+$19,500)
                     </span>
                   </div>
                 </label>
 
-                {extras.castleRock && (
+                {extras.rockyWaterfalls && (
                   <div className="ml-6 space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">Select Castle Rock Color:</label>
+                    <label className="text-xs font-medium text-muted-foreground">Select Rocky Waterfalls Color:</label>
                     <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
                       <CarouselContent className="-ml-1">
-                        {castleRockOptions.map((rock) => (
+                        {rockyWaterfallsOptions.map((rock) => (
                           <CarouselItem key={rock.name} className="pl-1 basis-1/3">
                             <div
-                              onClick={() => setExtras((prev) => ({ ...prev, castleRockColor: rock.name }))}
+                              onClick={() => setExtras((prev) => ({ ...prev, rockyWaterfallsColor: rock.name }))}
                               className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                                extras.castleRockColor === rock.name
+                                extras.rockyWaterfallsColor === rock.name
                                   ? 'border-stone-600 bg-stone-600/10'
                                   : 'border-border'
                               }`}
@@ -1409,7 +1415,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                               </div>
                               <div className="flex-1 flex flex-col justify-between min-h-0">
                                 <p className="text-xs font-medium text-center line-clamp-2">{rock.name}</p>
-                                <p className="text-xs text-stone-600 font-semibold text-center mt-1">Included</p>
+                                <p className="text-xs text-stone-600 font-semibold text-center mt-1">$19,500</p>
                               </div>
                             </div>
                           </CarouselItem>
@@ -1420,6 +1426,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                     </Carousel>
                   </div>
                 )}
+
+                {/* Exclusive Sauna Offer - Moved here, after Rocky Waterfalls */}
+                <ExclusiveSaunaOffer poolModel={pool.model} poolPrice={pool.price} />
 
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox checked={extras.spa} onCheckedChange={() => toggleExtra("spa")} />
@@ -1616,8 +1625,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
               </div>
             )}
 
-            {/* Exclusive Sauna Offer */}
-            <ExclusiveSaunaOffer poolModel={pool.model} poolPrice={pool.price} />
+            {/* Sauna section moved above - now rendered after Rocky Waterfalls */}
 
             {/* Action Buttons */}
             <div className="space-y-2">
@@ -1744,6 +1752,16 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         name: "Concrete Construction",
                         price: concreteMarkup,
                         image: "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png",
+                      });
+                    }
+                    
+                    // Add Rocky Waterfalls if selected
+                    if (extras.rockyWaterfalls) {
+                      const selectedRock = rockyWaterfallsOptions.find(r => r.name === extras.rockyWaterfallsColor);
+                      extrasBreakdown.push({
+                        name: `Rocky Waterfalls: ${extras.rockyWaterfallsColor}`,
+                        price: 19500,
+                        image: selectedRock?.image,
                       });
                     }
                     const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);

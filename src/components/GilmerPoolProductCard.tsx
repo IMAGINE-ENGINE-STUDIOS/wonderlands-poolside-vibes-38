@@ -69,8 +69,8 @@ interface GilmerExtras {
   tanningLedgeOption: string;
   sunsetGroveCoping: boolean;
   sunsetGroveCopingColor: string;
-  castleRock: boolean;
-  castleRockColor: string;
+  rockyWaterfalls: boolean;
+  rockyWaterfallsColor: string;
 }
 
 const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
@@ -99,8 +99,8 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
     tanningLedgeOption: '',
     sunsetGroveCoping: false,
     sunsetGroveCopingColor: 'Natural Stone',
-    castleRock: false,
-    castleRockColor: 'Castle Rock'
+    rockyWaterfalls: false,
+    rockyWaterfallsColor: 'Castle Rock'
   });
 
   // Sunset Grove Coping Edge options
@@ -110,11 +110,11 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
     { name: 'Sand', hex: '#D4C4A8' },
   ];
 
-  // Castle Rock options (in order: Castle Rock, Gray, Brown)
-  const castleRockOptions = [
-    { name: 'Castle Rock', price: 0, image: '/lovable-uploads/castle-rock-grey.png' },
-    { name: 'Gray', price: 0, image: '/lovable-uploads/classic-grey.png' },
-    { name: 'Brown', price: 0, image: '/lovable-uploads/classic-brown.png' },
+  // Rocky Waterfalls options (in order: Castle Rock, Gray, Brown) - $19,500 add-on
+  const rockyWaterfallsOptions = [
+    { name: 'Castle Rock', price: 19500, image: '/lovable-uploads/castle-rock-grey.png' },
+    { name: 'Gray', price: 19500, image: '/lovable-uploads/classic-grey.png' },
+    { name: 'Brown', price: 19500, image: '/lovable-uploads/classic-brown.png' },
   ];
 
   // Gilmer Glass color options
@@ -237,6 +237,10 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
       total += 19500;
     }
     
+    if (extras.rockyWaterfalls) {
+      total += 19500;
+    }
+    
     return total;
   };
 
@@ -267,7 +271,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
     if (extras.addSpa) extrasArray.push({ name: `Spa: ${extras.spaOption}`, price: gilmerSpaOptions.find(s => s.name === extras.spaOption)?.price || 0 });
     if (extras.addTanningLedge) extrasArray.push({ name: `Tanning Ledge: ${extras.tanningLedgeOption}`, price: gilmerTanningLedgeOptions.find(l => l.name === extras.tanningLedgeOption)?.price || 0 });
     if (extras.sunsetGroveCoping) extrasArray.push({ name: `Sunset Grove Coping Edge (${extras.sunsetGroveCopingColor})`, price: 19500 });
-    if (extras.castleRock) extrasArray.push({ name: `Castle Rock: ${extras.castleRockColor}`, price: 0 });
+    if (extras.rockyWaterfalls) extrasArray.push({ name: `Rocky Waterfalls: ${extras.rockyWaterfallsColor}`, price: 19500 });
     
     const productData = {
       id: `gilmer-${pool.model.toLowerCase().replace(/\s+/g, '-')}`,
@@ -614,26 +618,26 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
               )}
             </div>
 
-            {/* Castle Rock */}
+            {/* Rocky Waterfalls */}
             <div className="space-y-2">
               <label className="flex items-center space-x-2 cursor-pointer">
                 <Checkbox 
-                  checked={extras.castleRock} 
-                  onCheckedChange={() => toggleExtra('castleRock')} 
+                  checked={extras.rockyWaterfalls} 
+                  onCheckedChange={() => toggleExtra('rockyWaterfalls')} 
                 />
                 <div className="flex items-center space-x-1">
-                  <Shield size={16} className="text-stone-600" />
-                  <span className="font-medium">Castle Rock (Included)</span>
+                  <Waves size={16} className="text-stone-600" />
+                  <span className="font-medium">Rocky Waterfalls (+$19,500)</span>
                 </div>
               </label>
-              {extras.castleRock && (
+              {extras.rockyWaterfalls && (
                 <div className="grid grid-cols-3 gap-2 ml-6">
-                  {castleRockOptions.map((rock) => (
+                  {rockyWaterfallsOptions.map((rock) => (
                     <button
                       key={rock.name}
-                      onClick={() => updateExtra('castleRockColor', rock.name)}
+                      onClick={() => updateExtra('rockyWaterfallsColor', rock.name)}
                       className={`p-2 rounded-lg border transition-all flex flex-col items-center gap-1 ${
-                        extras.castleRockColor === rock.name 
+                        extras.rockyWaterfallsColor === rock.name 
                           ? 'border-stone-600 bg-stone-600/10' 
                           : 'border-border hover:border-stone-600/50'
                       }`}
@@ -644,6 +648,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
                         className="w-12 h-12 rounded object-cover"
                       />
                       <span className="text-xs font-medium">{rock.name}</span>
+                      <span className="text-[10px] text-stone-600">$19,500</span>
                     </button>
                   ))}
                 </div>
@@ -790,6 +795,15 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
             if (extras.addTanningLedge && extras.tanningLedgeOption) {
               const ledge = gilmerTanningLedgeOptions.find(l => l.name === extras.tanningLedgeOption);
               if (ledge) breakdown.push({ name: `Tanning Ledge: ${extras.tanningLedgeOption}`, price: ledge.price });
+            }
+            
+            if (extras.rockyWaterfalls && extras.rockyWaterfallsColor) {
+              const selectedRock = rockyWaterfallsOptions.find(r => r.name === extras.rockyWaterfallsColor);
+              breakdown.push({ 
+                name: `Rocky Waterfalls: ${extras.rockyWaterfallsColor}`, 
+                price: 19500,
+                image: selectedRock?.image
+              });
             }
             
             return breakdown;
