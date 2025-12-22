@@ -3,13 +3,23 @@ import { gilmerSpas } from "@/data/gilmerSpas";
 import GilmerSpaCard from "./GilmerSpaCard";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import type { GilmerSpa } from "@/data/gilmerSpas";
+
+interface SpaExtras {
+  selectedColor?: string;
+  extrasBreakdown?: Array<{name: string; price: number}>;
+  extrasTotal?: number;
+}
+
 const GilmerSpasSection = () => {
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [selectedSpa, setSelectedSpa] = useState<GilmerSpa | null>(null);
   const [selectedColor, setSelectedColor] = useState("");
-  const handleRequestQuote = (spa: GilmerSpa, color: string) => {
+  const [spaExtras, setSpaExtras] = useState<SpaExtras>({});
+  
+  const handleRequestQuote = (spa: GilmerSpa, extras: SpaExtras) => {
     setSelectedSpa(spa);
-    setSelectedColor(color);
+    setSelectedColor(extras.selectedColor || "");
+    setSpaExtras(extras);
     setShowQuoteModal(true);
   };
   return <>
@@ -76,12 +86,21 @@ const GilmerSpasSection = () => {
       </section>
 
       {/* Quote Tool */}
-      <SurveyQuoteTool pool={null} isOpen={showQuoteModal} onClose={() => setShowQuoteModal(false)} customProduct={selectedSpa ? {
-      name: `${selectedSpa.model}${selectedColor ? ` - ${selectedColor}` : ''}`,
-      price: selectedSpa.price,
-      type: 'spa',
-      image: selectedSpa.image
-    } : undefined} />
+      <SurveyQuoteTool 
+        pool={null} 
+        isOpen={showQuoteModal} 
+        onClose={() => setShowQuoteModal(false)} 
+        customProduct={selectedSpa ? {
+          name: `${selectedSpa.model}${selectedColor ? ` - ${selectedColor}` : ''}`,
+          price: selectedSpa.price,
+          type: 'spa',
+          image: selectedSpa.image
+        } : undefined}
+        extras={spaExtras.extrasBreakdown && spaExtras.extrasBreakdown.length > 0 ? {
+          extrasBreakdown: spaExtras.extrasBreakdown,
+          extrasTotal: spaExtras.extrasTotal || 0
+        } : undefined}
+      />
     </>;
 };
 export default GilmerSpasSection;
