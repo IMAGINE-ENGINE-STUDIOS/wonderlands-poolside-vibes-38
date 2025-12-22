@@ -79,7 +79,8 @@ const GilmerSpasSection = () => {
       <SurveyQuoteTool pool={null} isOpen={showQuoteModal} onClose={() => setShowQuoteModal(false)} customProduct={selectedSpa ? {
       name: `${selectedSpa.model}${selectedColor ? ` - ${selectedColor}` : ''}`,
       price: selectedSpa.price,
-      type: 'spa'
+      type: 'spa',
+      image: selectedSpa.image
     } : undefined} />
     </>;
 };
