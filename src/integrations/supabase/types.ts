@@ -185,6 +185,87 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_sequences: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          trigger_event: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          trigger_event?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          trigger_event?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      automation_steps: {
+        Row: {
+          channels: Database["public"]["Enums"]["message_channel"][]
+          conditions: Json | null
+          created_at: string | null
+          delay_hours: number | null
+          id: string
+          is_active: boolean | null
+          sequence_id: string
+          step_order: number
+          template_id: string | null
+        }
+        Insert: {
+          channels?: Database["public"]["Enums"]["message_channel"][]
+          conditions?: Json | null
+          created_at?: string | null
+          delay_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          sequence_id: string
+          step_order?: number
+          template_id?: string | null
+        }
+        Update: {
+          channels?: Database["public"]["Enums"]["message_channel"][]
+          conditions?: Json | null
+          created_at?: string | null
+          delay_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          sequence_id?: string
+          step_order?: number
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_steps_sequence_id_fkey"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "automation_sequences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_steps_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_activities: {
         Row: {
           activity_type: string
@@ -223,6 +304,63 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_automations: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          current_step: number | null
+          error_message: string | null
+          id: string
+          last_action_at: string | null
+          next_action_at: string | null
+          sequence_id: string
+          started_at: string | null
+          status: Database["public"]["Enums"]["automation_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          current_step?: number | null
+          error_message?: string | null
+          id?: string
+          last_action_at?: string | null
+          next_action_at?: string | null
+          sequence_id: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["automation_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          current_step?: number | null
+          error_message?: string | null
+          id?: string
+          last_action_at?: string | null
+          next_action_at?: string | null
+          sequence_id?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["automation_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_automations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_automations_sequence_id_fkey"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "automation_sequences"
             referencedColumns: ["id"]
           },
         ]
@@ -306,6 +444,85 @@ export type Database = {
             columns: ["assigned_sales_rep_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      communication_logs: {
+        Row: {
+          channel: Database["public"]["Enums"]["message_channel"]
+          client_automation_id: string | null
+          client_id: string
+          created_at: string | null
+          delivered_at: string | null
+          direction: string | null
+          error_message: string | null
+          external_id: string | null
+          id: string
+          message_content: string
+          opened_at: string | null
+          recipient: string
+          sent_at: string | null
+          status: Database["public"]["Enums"]["message_status"] | null
+          subject: string | null
+          template_id: string | null
+        }
+        Insert: {
+          channel: Database["public"]["Enums"]["message_channel"]
+          client_automation_id?: string | null
+          client_id: string
+          created_at?: string | null
+          delivered_at?: string | null
+          direction?: string | null
+          error_message?: string | null
+          external_id?: string | null
+          id?: string
+          message_content: string
+          opened_at?: string | null
+          recipient: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["message_status"] | null
+          subject?: string | null
+          template_id?: string | null
+        }
+        Update: {
+          channel?: Database["public"]["Enums"]["message_channel"]
+          client_automation_id?: string | null
+          client_id?: string
+          created_at?: string | null
+          delivered_at?: string | null
+          direction?: string | null
+          error_message?: string | null
+          external_id?: string | null
+          id?: string
+          message_content?: string
+          opened_at?: string | null
+          recipient?: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["message_status"] | null
+          subject?: string | null
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communication_logs_client_automation_id_fkey"
+            columns: ["client_automation_id"]
+            isOneToOne: false
+            referencedRelation: "client_automations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "communication_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "communication_logs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -1017,6 +1234,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      message_templates: {
+        Row: {
+          body: string
+          channel: Database["public"]["Enums"]["message_channel"]
+          created_at: string | null
+          html_content: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          subject: string | null
+          template_type: string
+          updated_at: string | null
+          variables: Json | null
+        }
+        Insert: {
+          body: string
+          channel: Database["public"]["Enums"]["message_channel"]
+          created_at?: string | null
+          html_content?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          subject?: string | null
+          template_type?: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          body?: string
+          channel?: Database["public"]["Enums"]["message_channel"]
+          created_at?: string | null
+          html_content?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          subject?: string | null
+          template_type?: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Relationships: []
       }
       message_threads: {
         Row: {
@@ -2381,7 +2640,21 @@ export type Database = {
       }
     }
     Enums: {
+      automation_status:
+        | "pending"
+        | "in_progress"
+        | "completed"
+        | "paused"
+        | "failed"
       contractor_status: "pending" | "approved" | "suspended" | "rejected"
+      message_channel: "email" | "sms" | "whatsapp" | "voice"
+      message_status:
+        | "pending"
+        | "sent"
+        | "delivered"
+        | "failed"
+        | "opened"
+        | "clicked"
       user_role: "main_admin" | "supplier" | "consumer" | "sales_rep"
     }
     CompositeTypes: {
@@ -2510,7 +2783,23 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      automation_status: [
+        "pending",
+        "in_progress",
+        "completed",
+        "paused",
+        "failed",
+      ],
       contractor_status: ["pending", "approved", "suspended", "rejected"],
+      message_channel: ["email", "sms", "whatsapp", "voice"],
+      message_status: [
+        "pending",
+        "sent",
+        "delivered",
+        "failed",
+        "opened",
+        "clicked",
+      ],
       user_role: ["main_admin", "supplier", "consumer", "sales_rep"],
     },
   },
