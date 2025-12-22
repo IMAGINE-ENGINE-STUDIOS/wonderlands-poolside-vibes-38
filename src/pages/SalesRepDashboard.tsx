@@ -6,8 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Users, FileText, LogOut, Phone, Mail, MapPin, DollarSign, Calendar } from 'lucide-react';
+import { Users, FileText, LogOut, Phone, Mail, MapPin, DollarSign, Calendar, Zap, History, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import SurveyQuoteTool from '@/components/SurveyQuoteTool';
+import { useTriggerAutomation } from '@/hooks/useTriggerAutomation';
 
 interface Client {
   id: string;
@@ -27,14 +29,38 @@ interface Client {
   created_at: string;
 }
 
+interface ClientAutomation {
+  id: string;
+  client_id: string;
+  status: string;
+  current_step: number;
+  next_action_at?: string;
+}
+
+interface CommunicationLog {
+  id: string;
+  channel: string;
+  status: string;
+  sent_at?: string;
+  message_content: string;
+  subject?: string;
+}
+
 const SalesRepDashboard = () => {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const { toast } = useToast();
+  const { triggerAutomationForClient, isLoading: automationLoading } = useTriggerAutomation();
   const [clients, setClients] = useState<Client[]>([]);
+  const [clientAutomations, setClientAutomations] = useState<Record<string, ClientAutomation>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [showQuoteTool, setShowQuoteTool] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [historyClient, setHistoryClient] = useState<Client | null>(null);
+  const [communicationLogs, setCommunicationLogs] = useState<CommunicationLog[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [triggeringClientId, setTriggeringClientId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -61,6 +87,22 @@ const SalesRepDashboard = () => {
 
       if (error) throw error;
       setClients(data || []);
+
+      // Fetch active automations for these clients
+      if (data && data.length > 0) {
+        const clientIds = data.map(c => c.id);
+        const { data: automations } = await supabase
+          .from('client_automations')
+          .select('id, client_id, status, current_step, next_action_at')
+          .in('client_id', clientIds)
+          .in('status', ['pending', 'in_progress']);
+        
+        const automationMap: Record<string, ClientAutomation> = {};
+        (automations || []).forEach(a => {
+          automationMap[a.client_id] = a;
+        });
+        setClientAutomations(automationMap);
+      }
     } catch (error) {
       console.error('Error fetching clients:', error);
       toast({
@@ -70,6 +112,77 @@ const SalesRepDashboard = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchCommunicationHistory = async (clientId: string) => {
+    setLoadingHistory(true);
+    try {
+      const { data, error } = await supabase
+        .from('communication_logs')
+        .select('id, channel, status, sent_at, message_content, subject')
+        .eq('client_id', clientId)
+        .order('sent_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      setCommunicationLogs(data || []);
+    } catch (error) {
+      console.error('Error fetching communication logs:', error);
+      setCommunicationLogs([]);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const handleViewHistory = (client: Client) => {
+    setHistoryClient(client);
+    setShowHistoryDialog(true);
+    fetchCommunicationHistory(client.id);
+  };
+
+  const handleTriggerAutomation = async (client: Client) => {
+    setTriggeringClientId(client.id);
+    const result = await triggerAutomationForClient(client.id, 'manual_trigger');
+    if (result.success) {
+      toast({
+        title: "Automation Started",
+        description: `Automation triggered for ${client.first_name} ${client.last_name}`,
+      });
+      // Refresh to get updated automation status
+      fetchAssignedClients();
+    } else {
+      toast({
+        title: "Error",
+        description: result.error || "Failed to trigger automation",
+        variant: "destructive"
+      });
+    }
+    setTriggeringClientId(null);
+  };
+
+  const getAutomationBadge = (clientId: string) => {
+    const automation = clientAutomations[clientId];
+    if (!automation) return null;
+    
+    if (automation.status === 'in_progress') {
+      return (
+        <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 font-mono text-xs">
+          <Zap className="h-3 w-3 mr-1" />
+          Step {automation.current_step}
+        </Badge>
+      );
+    }
+    return null;
+  };
+
+  const getChannelIcon = (channel: string) => {
+    switch (channel) {
+      case 'email': return <Mail className="h-4 w-4" />;
+      case 'sms': return <Phone className="h-4 w-4" />;
+      case 'whatsapp': return <Phone className="h-4 w-4" />;
+      case 'voice': return <Phone className="h-4 w-4" />;
+      default: return <Mail className="h-4 w-4" />;
     }
   };
 
@@ -228,21 +341,49 @@ const SalesRepDashboard = () => {
                     className="holographic-panel border-cyan-500/20 p-4 rounded-lg hover:border-cyan-500/40 transition-all"
                   >
                     <div className="flex items-start justify-between mb-3">
-                      <div>
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="text-lg font-semibold text-cyan-300 font-mono">
                           {client.first_name} {client.last_name}
                         </h3>
-                        <Badge className={`${getStatusColor(client.status)} font-mono text-xs mt-1`}>
+                        <Badge className={`${getStatusColor(client.status)} font-mono text-xs`}>
                           {client.status.replace('_', ' ').toUpperCase()}
                         </Badge>
+                        {getAutomationBadge(client.id)}
                       </div>
-                      <Button
-                        onClick={() => handleCreateQuote(client)}
-                        className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30"
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Create Quote
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleViewHistory(client)}
+                          className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+                        >
+                          <History className="h-4 w-4 mr-1" />
+                          History
+                        </Button>
+                        {!clientAutomations[client.id] && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleTriggerAutomation(client)}
+                            disabled={triggeringClientId === client.id}
+                            className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
+                          >
+                            {triggeringClientId === client.id ? (
+                              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                            ) : (
+                              <Zap className="h-4 w-4 mr-1" />
+                            )}
+                            Start Automation
+                          </Button>
+                        )}
+                        <Button
+                          onClick={() => handleCreateQuote(client)}
+                          className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Create Quote
+                        </Button>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
@@ -300,6 +441,54 @@ const SalesRepDashboard = () => {
           setSelectedClient(null);
         }}
       />
+
+      {/* Communication History Dialog */}
+      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+        <DialogContent className="bg-slate-900 border-cyan-500/30 max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-cyan-300 font-mono">
+              Communication History - {historyClient?.first_name} {historyClient?.last_name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {loadingHistory ? (
+            <div className="text-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-cyan-400 mx-auto" />
+              <p className="text-cyan-400/60 font-mono text-sm mt-4">Loading history...</p>
+            </div>
+          ) : communicationLogs.length === 0 ? (
+            <div className="text-center py-8">
+              <History className="h-12 w-12 text-cyan-400/40 mx-auto mb-4" />
+              <p className="text-cyan-400/60 font-mono text-sm">No communication history yet</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {communicationLogs.map((log) => (
+                <div key={log.id} className="holographic-panel border-cyan-500/20 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="p-1.5 rounded bg-cyan-500/20">
+                      {getChannelIcon(log.channel)}
+                    </div>
+                    <Badge className="font-mono text-xs capitalize">{log.channel}</Badge>
+                    <Badge className={`font-mono text-xs ${log.status === 'sent' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+                      {log.status}
+                    </Badge>
+                    {log.sent_at && (
+                      <span className="text-xs text-cyan-400/60 font-mono ml-auto">
+                        {new Date(log.sent_at).toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                  {log.subject && (
+                    <p className="text-sm text-cyan-300 font-medium mb-1">{log.subject}</p>
+                  )}
+                  <p className="text-sm text-cyan-400/80 line-clamp-3">{log.message_content}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

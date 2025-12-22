@@ -519,9 +519,15 @@ export default function AutomationSequencesManager() {
                         className="ml-12 border-dashed border-cyan-500/30 text-cyan-400"
                         onClick={() => {
                           setCurrentSequenceId(sequence.id);
+                          // Auto-calculate next step_order based on max existing
+                          const existingSteps = steps[sequence.id] || [];
+                          const maxStepOrder = existingSteps.reduce((max, step) => Math.max(max, step.step_order), 0);
                           setStepForm({
-                            ...stepForm,
-                            step_order: (steps[sequence.id]?.length || 0) + 1
+                            step_order: maxStepOrder + 1,
+                            channels: ['email'],
+                            template_id: '',
+                            delay_hours: 0,
+                            is_active: true
                           });
                           setIsStepDialogOpen(true);
                         }}
