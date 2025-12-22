@@ -617,6 +617,69 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   </div>
                 )}
 
+                {/* Add Spa */}
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                  <Checkbox 
+                    checked={options.addSpa}
+                    onCheckedChange={(checked) => {
+                      const isChecked = checked === true;
+                      setOptions((prev) => ({
+                        ...prev,
+                        addSpa: isChecked,
+                        spaOption: isChecked ? (prev.spaOption || gilmerSpaOptions[0]?.name || '') : ''
+                      }));
+                    }}
+                    className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
+                  />
+                  <div className="flex items-center space-x-1">
+                    <Droplets size={16} className="text-coral" />
+                    <span className="text-sm">
+                      Add Gilmer Spa (+$
+                      {options.addSpa
+                        ? (gilmerSpaOptions.find((s) => s.name === options.spaOption)?.price || 0).toLocaleString()
+                        : '0'}
+                      )
+                    </span>
+                  </div>
+                </label>
+
+                {options.addSpa && (
+                  <div className="ml-6 space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">Select Spa Model:</label>
+                    <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
+                      <CarouselContent className="-ml-1">
+                        {gilmerSpaOptions.map((spa) => (
+                          <CarouselItem key={spa.name} className="pl-1 basis-1/2">
+                            <div
+                              onClick={() => updateOption('spaOption', spa.name)}
+                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                                options.spaOption === spa.name
+                                  ? 'border-coral bg-coral/10'
+                                  : 'border-border'
+                              }`}
+                            >
+                              <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                <OptimizedImage
+                                  src={spa.image}
+                                  alt={spa.name}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                />
+                              </div>
+                              <div className="flex-1 flex flex-col justify-between min-h-0">
+                                <p className="text-xs font-medium text-center line-clamp-2">{spa.name}</p>
+                                <p className="text-xs text-coral font-semibold text-center mt-1">${spa.price.toLocaleString()}</p>
+                              </div>
+                            </div>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      <CarouselPrevious className="left-0 animate-pulse" />
+                      <CarouselNext className="right-0 animate-pulse" />
+                    </Carousel>
+                  </div>
+                )}
+
                 {/* Concrete Construction */}
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox 
