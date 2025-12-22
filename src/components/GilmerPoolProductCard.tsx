@@ -25,6 +25,7 @@ import {
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { useToast } from "@/hooks/use-toast";
+import { gilmerSpas } from "@/data/gilmerSpas";
 
 // Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: { price: number }) => {
@@ -135,13 +136,12 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
     { name: 'Atom Loop-Loc Cover', price: 25000 }
   ];
 
-  // Gilmer Glass Spa options (different from Latham)
-  const gilmerSpaOptions = [
-    { name: 'Harmony Linear', price: 25000 },
-    { name: 'Harmony', price: 22000 },
-    { name: 'Leisure', price: 20000 },
-    { name: 'Leisure Spill Over', price: 28000 }
-  ];
+  // Use real Gilmer Glass Spa data
+  const gilmerSpaOptions = gilmerSpas.map(spa => ({
+    name: spa.model,
+    price: spa.price,
+    image: spa.image
+  }));
 
   // Gilmer Glass Tanning Ledge options (different from Latham)
   const gilmerTanningLedgeOptions = [
