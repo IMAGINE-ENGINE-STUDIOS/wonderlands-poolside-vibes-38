@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Users, 
   Eye, 
@@ -25,10 +26,14 @@ import {
   Clock,
   Upload,
   FileText,
-  MessageSquare
+  MessageSquare,
+  Zap,
+  Play,
+  Loader2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTriggerAutomation } from '@/hooks/useTriggerAutomation';
 import { format } from 'date-fns';
 
 interface Client {
@@ -78,6 +83,7 @@ const AdminClientManager = () => {
   const [salesReps, setSalesReps] = useState<SalesRep[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -100,7 +106,9 @@ const AdminClientManager = () => {
     survey_uploaded: boolean;
   }>>([]);
   const [newActivity, setNewActivity] = useState({ type: 'note', description: '' });
+  const [clientAutomationStatus, setClientAutomationStatus] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
+  const { isLoading: automationLoading, triggerAutomationForClient, triggerAutomationForMultiple, triggerAutomationForAll } = useTriggerAutomation();
 
   // Form state
   const [formData, setFormData] = useState<Partial<Client>>({
@@ -132,6 +140,20 @@ const AdminClientManager = () => {
 
       if (error) throw error;
       setClients(data || []);
+      
+      // Fetch automation status for all clients
+      if (data && data.length > 0) {
+        const { data: automations } = await supabase
+          .from('client_automations')
+          .select('client_id')
+          .in('status', ['pending', 'in_progress']);
+        
+        const statusMap: Record<string, boolean> = {};
+        automations?.forEach(a => {
+          statusMap[a.client_id] = true;
+        });
+        setClientAutomationStatus(statusMap);
+      }
     } catch (error) {
       console.error('Error fetching clients:', error);
       toast({
@@ -515,6 +537,73 @@ const AdminClientManager = () => {
     });
   };
 
+  // Automation trigger handlers
+  const handleTriggerAutomation = async (clientId: string) => {
+    const result = await triggerAutomationForClient(clientId);
+    if (result.success) {
+      toast({
+        title: "Automation Started",
+        description: "Client automation has been triggered successfully",
+      });
+      setClientAutomationStatus(prev => ({ ...prev, [clientId]: true }));
+    } else {
+      toast({
+        title: "Error",
+        description: result.error || "Failed to trigger automation",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleTriggerSelectedAutomations = async () => {
+    const clientIds = Array.from(selectedClients);
+    if (clientIds.length === 0) {
+      toast({
+        title: "No clients selected",
+        description: "Please select clients to trigger automations",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const result = await triggerAutomationForMultiple(clientIds);
+    toast({
+      title: "Automations Triggered",
+      description: `${result.successful} successful, ${result.failed} failed`,
+    });
+    setSelectedClients(new Set());
+    fetchClients();
+  };
+
+  const handleTriggerAllAutomations = async () => {
+    const result = await triggerAutomationForAll();
+    toast({
+      title: "Bulk Automation Complete",
+      description: `${result.successful} automations started, ${result.failed} failed`,
+    });
+    fetchClients();
+  };
+
+  const toggleClientSelection = (clientId: string) => {
+    setSelectedClients(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(clientId)) {
+        newSet.delete(clientId);
+      } else {
+        newSet.add(clientId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedClients.size === filteredClients.length) {
+      setSelectedClients(new Set());
+    } else {
+      setSelectedClients(new Set(filteredClients.map(c => c.id)));
+    }
+  };
+
   useEffect(() => {
     fetchClients();
     fetchSalesReps();
@@ -763,6 +852,28 @@ const AdminClientManager = () => {
                 </div>
               </DialogContent>
             </Dialog>
+
+            {/* Automation Bulk Actions */}
+            {selectedClients.size > 0 && (
+              <Button 
+                onClick={handleTriggerSelectedAutomations}
+                disabled={automationLoading}
+                className="holographic-panel neon-border-blue text-blue-300 hover:bg-blue-500/20 font-mono"
+              >
+                {automationLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Zap className="h-4 w-4 mr-2" />}
+                Automate Selected ({selectedClients.size})
+              </Button>
+            )}
+            
+            <Button 
+              onClick={handleTriggerAllAutomations}
+              disabled={automationLoading}
+              variant="outline"
+              className="holographic-panel border-purple-500/30 text-purple-300 hover:bg-purple-500/10 font-mono"
+            >
+              {automationLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Play className="h-4 w-4 mr-2" />}
+              Automate All
+            </Button>
             
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
@@ -1118,6 +1229,13 @@ const AdminClientManager = () => {
             <Table>
               <TableHeader>
                 <TableRow className="border-cyan-500/20 hover:bg-cyan-500/5">
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={selectedClients.size === filteredClients.length && filteredClients.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                      className="border-cyan-500/50"
+                    />
+                  </TableHead>
                   <TableHead className="text-cyan-400 font-mono">CLIENT</TableHead>
                   <TableHead className="text-cyan-400 font-mono">LOCATION</TableHead>
                   <TableHead className="text-cyan-400 font-mono">BUDGET</TableHead>
@@ -1131,6 +1249,13 @@ const AdminClientManager = () => {
               <TableBody>
                 {filteredClients.map((client) => (
                   <TableRow key={client.id} className="border-cyan-500/10 hover:bg-cyan-500/5">
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedClients.has(client.id)}
+                        onCheckedChange={() => toggleClientSelection(client.id)}
+                        className="border-cyan-500/50"
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="font-mono">
                         <p className="font-medium text-cyan-300">
@@ -1200,7 +1325,26 @@ const AdminClientManager = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1">
+                        {/* Automation Button */}
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleTriggerAutomation(client.id)}
+                          disabled={clientAutomationStatus[client.id] || automationLoading}
+                          className={`holographic-panel font-mono ${
+                            clientAutomationStatus[client.id] 
+                              ? 'border-green-500/30 text-green-400' 
+                              : 'border-purple-500/30 text-purple-300 hover:bg-purple-500/10'
+                          }`}
+                          title={clientAutomationStatus[client.id] ? 'Automation active' : 'Start automation'}
+                        >
+                          {clientAutomationStatus[client.id] ? (
+                            <CheckCircle className="h-4 w-4" />
+                          ) : (
+                            <Zap className="h-4 w-4" />
+                          )}
+                        </Button>
                         <Button 
                           variant="outline" 
                           size="sm"
