@@ -886,7 +886,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               name: `Paver Installation Area: ${options.paverSurfaceArea} sq ft`, 
               price: parseFloat(options.paverSurfaceArea) * 20,
               description: `Professional paver installation at $20 per sq ft`,
-              category: 'pavers'
+              category: 'pavers',
+              image: paverOptions.find(p => p.name === options.paverOption)?.image || '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png'
             }] : []),
             ...(options.tiles ? [{ 
               name: `Pool Tiles: ${options.tileOption}`, 
