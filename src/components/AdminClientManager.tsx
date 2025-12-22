@@ -293,6 +293,46 @@ const AdminClientManager = () => {
     }
   };
 
+  const assignSalesRep = async (clientId: string, salesRepId: string | null) => {
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .update({ assigned_sales_rep_id: salesRepId })
+        .eq('id', clientId);
+
+      if (error) throw error;
+
+      // Log assignment activity
+      const repName = salesRepId 
+        ? salesReps.find(r => r.id === salesRepId)?.first_name + ' ' + salesReps.find(r => r.id === salesRepId)?.last_name
+        : 'Unassigned';
+      
+      await supabase.from('client_activities').insert([{
+        client_id: clientId,
+        activity_type: 'assignment',
+        description: `Assigned to ${repName}`
+      }]);
+
+      setClients(prev => 
+        prev.map(client => 
+          client.id === clientId ? { ...client, assigned_sales_rep_id: salesRepId || undefined } : client
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: salesRepId ? "Client assigned to sales rep" : "Client unassigned",
+      });
+    } catch (error) {
+      console.error('Error assigning sales rep:', error);
+      toast({
+        title: "Error",
+        description: "Failed to assign sales rep",
+        variant: "destructive",
+      });
+    }
+  };
+
   const addActivity = async () => {
     if (!selectedClient || !newActivity.description) return;
 
@@ -888,6 +928,191 @@ const AdminClientManager = () => {
             </Dialog>
           </div>
 
+          {/* Edit Client Dialog */}
+          <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+            setIsEditDialogOpen(open);
+            if (!open) {
+              setSelectedClient(null);
+              resetForm();
+            }
+          }}>
+            <DialogContent className="max-w-3xl holographic-panel neon-border-cyan max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-cyan-300 font-mono neon-glow-cyan">⬡ EDIT CLIENT ⬡</DialogTitle>
+                <DialogDescription className="text-cyan-400/60 font-mono">
+                  Update client information
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-cyan-300 font-mono">First Name</Label>
+                  <Input
+                    value={formData.first_name}
+                    onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-cyan-300 font-mono">Last Name</Label>
+                  <Input
+                    value={formData.last_name}
+                    onChange={(e) => setFormData({...formData, last_name: e.target.value})}
+                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-cyan-300 font-mono">Email</Label>
+                  <Input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-cyan-300 font-mono">Phone</Label>
+                  <Input
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                  />
+                </div>
+                <div className="col-span-2 space-y-2">
+                  <Label className="text-cyan-300 font-mono">Address</Label>
+                  <Input
+                    value={formData.address_street}
+                    onChange={(e) => setFormData({...formData, address_street: e.target.value})}
+                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    placeholder="Street address"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-cyan-300 font-mono">City</Label>
+                  <Input
+                    value={formData.address_city}
+                    onChange={(e) => setFormData({...formData, address_city: e.target.value})}
+                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-cyan-300 font-mono">State</Label>
+                  <Input
+                    value={formData.address_state}
+                    onChange={(e) => setFormData({...formData, address_state: e.target.value})}
+                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-cyan-300 font-mono">ZIP</Label>
+                  <Input
+                    value={formData.address_zip}
+                    onChange={(e) => setFormData({...formData, address_zip: e.target.value})}
+                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-cyan-300 font-mono">Region</Label>
+                  <Input
+                    value={formData.location_region}
+                    onChange={(e) => setFormData({...formData, location_region: e.target.value})}
+                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    placeholder="e.g., South Florida"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-cyan-300 font-mono">Price Range Min</Label>
+                  <Input
+                    type="number"
+                    value={formData.price_range_min || ''}
+                    onChange={(e) => setFormData({...formData, price_range_min: parseFloat(e.target.value)})}
+                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-cyan-300 font-mono">Price Range Max</Label>
+                  <Input
+                    type="number"
+                    value={formData.price_range_max || ''}
+                    onChange={(e) => setFormData({...formData, price_range_max: parseFloat(e.target.value)})}
+                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-cyan-300 font-mono">Assigned Sales Rep</Label>
+                  <Select 
+                    value={formData.assigned_sales_rep_id || 'unassigned'} 
+                    onValueChange={(value) => setFormData({...formData, assigned_sales_rep_id: value === 'unassigned' ? undefined : value})}
+                  >
+                    <SelectTrigger className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono">
+                      <SelectValue placeholder="Select sales rep" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      {salesReps.map(rep => (
+                        <SelectItem key={rep.id} value={rep.id}>
+                          {rep.first_name} {rep.last_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-cyan-300 font-mono">Status</Label>
+                  <Select 
+                    value={formData.status} 
+                    onValueChange={(value) => setFormData({...formData, status: value})}
+                  >
+                    <SelectTrigger className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="new">New</SelectItem>
+                      <SelectItem value="contacted">Contacted</SelectItem>
+                      <SelectItem value="qualified">Qualified</SelectItem>
+                      <SelectItem value="proposal_sent">Proposal Sent</SelectItem>
+                      <SelectItem value="negotiating">Negotiating</SelectItem>
+                      <SelectItem value="won">Won</SelectItem>
+                      <SelectItem value="lost">Lost</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-cyan-300 font-mono">Source</Label>
+                  <Input
+                    value={formData.source}
+                    onChange={(e) => setFormData({...formData, source: e.target.value})}
+                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    placeholder="e.g., Referral, Website, Ad"
+                  />
+                </div>
+                <div className="col-span-2 space-y-2">
+                  <Label className="text-cyan-300 font-mono">Notes</Label>
+                  <Textarea
+                    value={formData.notes}
+                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                    className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 mt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {setIsEditDialogOpen(false); setSelectedClient(null); resetForm();}}
+                  className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                >
+                  CANCEL
+                </Button>
+                <Button 
+                  onClick={updateClient}
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white neon-border-cyan font-mono"
+                >
+                  SAVE CHANGES
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           {/* Clients Table */}
           <div className="border border-cyan-500/20 rounded-lg overflow-hidden">
             <Table>
@@ -948,12 +1173,23 @@ const AdminClientManager = () => {
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="font-mono text-sm text-cyan-300">
-                      {client.assigned_sales_rep_id ? (
-                        salesReps.find(r => r.id === client.assigned_sales_rep_id)?.first_name || 'Assigned'
-                      ) : (
-                        <span className="text-cyan-400/40">Unassigned</span>
-                      )}
+                    <TableCell className="font-mono text-sm">
+                      <Select
+                        value={client.assigned_sales_rep_id || 'unassigned'}
+                        onValueChange={(value) => assignSalesRep(client.id, value === 'unassigned' ? null : value)}
+                      >
+                        <SelectTrigger className="w-32 h-8 holographic-panel border-cyan-500/30 text-cyan-300 font-mono text-xs">
+                          <SelectValue placeholder="Assign" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unassigned">Unassigned</SelectItem>
+                          {salesReps.map(rep => (
+                            <SelectItem key={rep.id} value={rep.id}>
+                              {rep.first_name} {rep.last_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>{getStatusBadge(client.status)}</TableCell>
                     <TableCell className="font-mono text-sm text-cyan-300">
@@ -965,6 +1201,36 @@ const AdminClientManager = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedClient(client);
+                            setFormData({
+                              first_name: client.first_name,
+                              last_name: client.last_name,
+                              email: client.email,
+                              phone: client.phone || '',
+                              address_street: client.address_street || '',
+                              address_city: client.address_city || '',
+                              address_state: client.address_state || 'FL',
+                              address_zip: client.address_zip || '',
+                              location_region: client.location_region || '',
+                              price_range_min: client.price_range_min,
+                              price_range_max: client.price_range_max,
+                              interests: client.interests || [],
+                              survey_uploaded: client.survey_uploaded,
+                              assigned_sales_rep_id: client.assigned_sales_rep_id,
+                              status: client.status,
+                              source: client.source || '',
+                              notes: client.notes || ''
+                            });
+                            setIsEditDialogOpen(true);
+                          }}
+                          className="holographic-panel border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10 font-mono"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         <Dialog 
                           open={isDetailsOpen && selectedClient?.id === client.id} 
                           onOpenChange={(open) => {
