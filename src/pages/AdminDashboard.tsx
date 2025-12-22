@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Eye, Edit, Trash2, Plus, Download, Filter, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap } from 'lucide-react';
+import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Eye, Edit, Trash2, Plus, Download, Filter, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -267,6 +267,13 @@ const AdminDashboard = () => {
                 <NavItem icon={Database} label="Setup" active={activeSection === "setup"} onClick={() => setActiveSection("setup")} />
                 <NavItem icon={BarChart3} label="Pool Calculator" active={activeSection === "calculator"} onClick={() => setActiveSection("calculator")} />
                 <NavItem icon={Activity} label="Performance" active={activeSection === "performance"} onClick={() => setActiveSection("performance")} />
+                
+                <div className="text-xs font-bold text-orange-400 uppercase tracking-widest px-3 py-2 mt-4 font-mono border-l-2 border-orange-500/50">
+                  ⬢ AUTOMATION
+                </div>
+                <NavItem icon={Mail} label="Message Templates" active={activeSection === "automation-templates"} onClick={() => setActiveSection("automation-templates")} />
+                <NavItem icon={Zap} label="Sequences" active={activeSection === "automation-sequences"} onClick={() => setActiveSection("automation-sequences")} />
+                <NavItem icon={MessageSquare} label="Status Monitor" active={activeSection === "automation-status"} onClick={() => setActiveSection("automation-status")} />
               </>}
           </div>
         </div>
@@ -706,6 +713,21 @@ const AdminDashboard = () => {
           {/* Performance Monitoring Tab */}
           {isMainAdmin && activeSection === "performance" && <div className="space-y-6 animate-fade-in">
               <PerformanceMonitoring />
+            </div>}
+
+          {/* Automation Templates Tab */}
+          {isMainAdmin && activeSection === "automation-templates" && <div className="space-y-6 animate-fade-in">
+              <AutomationTemplatesManager />
+            </div>}
+
+          {/* Automation Sequences Tab */}
+          {isMainAdmin && activeSection === "automation-sequences" && <div className="space-y-6 animate-fade-in">
+              <AutomationSequencesManager />
+            </div>}
+
+          {/* Automation Status Tab */}
+          {isMainAdmin && activeSection === "automation-status" && <div className="space-y-6 animate-fade-in">
+              <AutomationStatusManager />
             </div>}
         </div>
       </div>
