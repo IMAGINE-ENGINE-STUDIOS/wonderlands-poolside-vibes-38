@@ -102,6 +102,10 @@ interface PoolExtras {
   screenEnclosureArea: number;
   screenEnclosureQuality: "standard" | "deluxe" | "premium";
   concreteConstruction: boolean;
+  sunsetGroveCoping: boolean;
+  sunsetGroveCopingColor: string;
+  castleRock: boolean;
+  castleRockColor: string;
   deliveryTime?: string;
   extrasBreakdown?: Array<{
     name: string;
@@ -325,7 +329,25 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
     screenEnclosureArea: 0,
     screenEnclosureQuality: "standard",
     concreteConstruction: false,
+    sunsetGroveCoping: false,
+    sunsetGroveCopingColor: "Natural Stone",
+    castleRock: false,
+    castleRockColor: "Castle Rock",
   });
+
+  // Sunset Grove Coping Edge options
+  const sunsetGroveCopingColors = [
+    { name: 'Natural Stone', hex: '#B8A589' },
+    { name: 'Charcoal', hex: '#4A4A4A' },
+    { name: 'Sand', hex: '#D4C4A8' },
+  ];
+
+  // Castle Rock options (in order: Castle Rock, Gray, Brown)
+  const castleRockOptions = [
+    { name: 'Castle Rock', price: 0, image: '/lovable-uploads/castle-rock-grey.png' },
+    { name: 'Gray', price: 0, image: '/lovable-uploads/classic-grey.png' },
+    { name: 'Brown', price: 0, image: '/lovable-uploads/classic-brown.png' },
+  ];
   const [paverSurfaceArea, setPaverSurfaceArea] = useState("");
   const [copingSurfaceArea, setCopingSurfaceArea] = useState("");
   const [showFinancing, setShowFinancing] = useState(false);
@@ -422,6 +444,16 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
           ...prev,
           concreteConstruction: !prev.concreteConstruction,
         };
+      } else if (extra === "sunsetGroveCoping") {
+        return {
+          ...prev,
+          sunsetGroveCoping: !prev.sunsetGroveCoping,
+        };
+      } else if (extra === "castleRock") {
+        return {
+          ...prev,
+          castleRock: !prev.castleRock,
+        };
       }
       return prev;
     });
@@ -493,6 +525,12 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
       if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
       total += extras.screenEnclosureArea * pricePerSqFt;
     }
+
+    // Add Sunset Grove Coping Edge price if selected
+    if (extras.sunsetGroveCoping) {
+      total += 19500;
+    }
+
     return total;
   };
   const hasExtras = Object.values(extras).some((value) => value);
@@ -594,6 +632,22 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
       cartExtras.push({
         name: `Screen Enclosure - ${extras.screenEnclosureQuality} (${extras.screenEnclosureArea} sq ft)`,
         price: enclosurePrice,
+      });
+    }
+
+    // Add Sunset Grove Coping Edge to cart if selected
+    if (extras.sunsetGroveCoping) {
+      cartExtras.push({
+        name: `Sunset Grove Coping Edge (${extras.sunsetGroveCopingColor})`,
+        price: 19500,
+      });
+    }
+
+    // Add Castle Rock to cart if selected
+    if (extras.castleRock) {
+      cartExtras.push({
+        name: `Castle Rock: ${extras.castleRockColor}`,
+        price: 0,
       });
     }
     addToCart({
@@ -1266,6 +1320,105 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                       </p>
                     )}
                   </>
+                )}
+
+                {/* Sunset Grove Coping Edge */}
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                  <Checkbox
+                    checked={extras.sunsetGroveCoping}
+                    onCheckedChange={() => toggleExtra("sunsetGroveCoping")}
+                    className="data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600"
+                  />
+                  <div className="flex items-center space-x-1">
+                    <Shield size={16} className="text-amber-600" />
+                    <span className="text-sm">
+                      Sunset Grove Coping Edge (+$19,500)
+                    </span>
+                  </div>
+                </label>
+
+                {extras.sunsetGroveCoping && (
+                  <div className="ml-6 space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">Select Coping Color:</label>
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src="/lovable-uploads/sunset-grove-coping.jpg" 
+                        alt="Sunset Grove Coping"
+                        className="w-16 h-16 rounded-lg object-cover border"
+                      />
+                      <div className="flex flex-wrap gap-2">
+                        {sunsetGroveCopingColors.map((color) => (
+                          <button
+                            key={color.name}
+                            onClick={() => setExtras((prev) => ({ ...prev, sunsetGroveCopingColor: color.name }))}
+                            className={`p-2 text-xs rounded-md border transition-all flex flex-col items-center gap-1 ${
+                              extras.sunsetGroveCopingColor === color.name 
+                                ? 'border-amber-600 bg-amber-600/10 text-amber-700' 
+                                : 'border-border hover:border-amber-600/50'
+                            }`}
+                          >
+                            <div 
+                              className="w-5 h-5 rounded-full border border-border"
+                              style={{ backgroundColor: color.hex }}
+                            />
+                            <span className="text-[10px]">{color.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Castle Rock */}
+                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                  <Checkbox
+                    checked={extras.castleRock}
+                    onCheckedChange={() => toggleExtra("castleRock")}
+                    className="data-[state=checked]:bg-stone-600 data-[state=checked]:border-stone-600"
+                  />
+                  <div className="flex items-center space-x-1">
+                    <Shield size={16} className="text-stone-600" />
+                    <span className="text-sm">
+                      Castle Rock (Included)
+                    </span>
+                  </div>
+                </label>
+
+                {extras.castleRock && (
+                  <div className="ml-6 space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">Select Castle Rock Color:</label>
+                    <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
+                      <CarouselContent className="-ml-1">
+                        {castleRockOptions.map((rock) => (
+                          <CarouselItem key={rock.name} className="pl-1 basis-1/3">
+                            <div
+                              onClick={() => setExtras((prev) => ({ ...prev, castleRockColor: rock.name }))}
+                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
+                                extras.castleRockColor === rock.name
+                                  ? 'border-stone-600 bg-stone-600/10'
+                                  : 'border-border'
+                              }`}
+                            >
+                              <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                <OptimizedImage
+                                  src={rock.image}
+                                  alt={rock.name}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                />
+                              </div>
+                              <div className="flex-1 flex flex-col justify-between min-h-0">
+                                <p className="text-xs font-medium text-center line-clamp-2">{rock.name}</p>
+                                <p className="text-xs text-stone-600 font-semibold text-center mt-1">Included</p>
+                              </div>
+                            </div>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      <CarouselPrevious className="left-0 animate-pulse" />
+                      <CarouselNext className="right-0 animate-pulse" />
+                    </Carousel>
+                  </div>
                 )}
 
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
