@@ -32,6 +32,7 @@ import AdminInvoicesManager from '@/components/AdminInvoicesManager';
 import { PoolCalculator } from '@/components/PoolCalculator';
 import { PerformanceMonitoring } from '@/components/admin/PerformanceMonitoring';
 import AdminContractorManagement from '@/components/admin/AdminContractorManagement';
+import SalesRepManager from '@/components/admin/SalesRepManager';
 
 // Navigation Item Component
 const NavItem = ({
@@ -246,6 +247,7 @@ const AdminDashboard = () => {
                   ⬢ MANAGEMENT
                 </div>
                 <NavItem icon={Users} label="Users" active={activeSection === "users"} onClick={() => setActiveSection("users")} />
+                <NavItem icon={Users} label="Sales Reps" active={activeSection === "sales-reps"} onClick={() => setActiveSection("sales-reps")} />
                 <NavItem icon={Users} label="Clients" active={activeSection === "clients"} onClick={() => setActiveSection("clients")} />
                 <NavItem icon={Building2} label="Contractors" active={activeSection === "contractors"} onClick={() => setActiveSection("contractors")} />
                 <NavItem icon={Gift} label="Referrals" active={activeSection === "referrals"} onClick={() => setActiveSection("referrals")} />
@@ -364,6 +366,24 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
             </div>}
+
+          {/* Sales Reps Tab */}
+          {activeSection === "sales-reps" && <div className="space-y-6 animate-fade-in">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  Sales Representatives
+                </CardTitle>
+                <CardDescription>
+                  Manage sales representatives and their assigned clients
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SalesRepManager />
+              </CardContent>
+            </Card>
+          </div>}
 
           {/* Clients Tab */}
           {activeSection === "clients" && <div className="space-y-6 animate-fade-in">
