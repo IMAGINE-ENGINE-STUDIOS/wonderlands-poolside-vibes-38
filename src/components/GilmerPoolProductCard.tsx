@@ -26,6 +26,7 @@ import SurveyQuoteTool from "./SurveyQuoteTool";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { useToast } from "@/hooks/use-toast";
 import { gilmerSpas } from "@/data/gilmerSpas";
+import { paverTypes } from "@/data/paverData";
 
 // Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: { price: number }) => {
@@ -51,6 +52,7 @@ interface GilmerExtras {
   colorFinish: string;
   pavers: boolean;
   paverOption: string;
+  paverSurfaceArea: string;
   screenEnclosure: boolean;
   screenEnclosureArea: number;
   screenEnclosureQuality: string;
@@ -76,6 +78,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
     colorFinish: '',
     pavers: false,
     paverOption: '',
+    paverSurfaceArea: '',
     screenEnclosure: false,
     screenEnclosureArea: 0,
     screenEnclosureQuality: '',
@@ -103,13 +106,15 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
     { name: 'Glacier Blue', color: '#0EA5E9', price: 0 }
   ];
 
-  // Paver options (same as other pool cards)
-  const paverOptions = [
-    { name: 'Catalina Grana Blend', price: 12000 },
-    { name: 'Appian Cobble', price: 14000 },
-    { name: 'Catalina Classic', price: 11000 },
-    { name: 'Travertine Look', price: 15000 }
-  ];
+  // Paver options from paverData with dynamic per-sq-ft pricing
+  const paverOptions = paverTypes
+    .filter(paver => paver.category === 'paver')
+    .map(paver => ({
+      name: paver.name,
+      pricePerSqFt: paver.basePrice,
+      image: paver.image,
+      description: paver.description
+    }));
 
   // Screen enclosure options
   const screenEnclosureQualities = [
@@ -166,9 +171,10 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
   const calculateExtrasTotal = () => {
     let total = 0;
     
-    if (extras.pavers) {
-      const paverPrice = paverOptions.find(p => p.name === extras.paverOption)?.price || 0;
-      total += paverPrice;
+    if (extras.pavers && extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea))) {
+      const selectedPaver = paverOptions.find(p => p.name === extras.paverOption);
+      const pricePerSqFt = selectedPaver?.pricePerSqFt || 20;
+      total += parseFloat(extras.paverSurfaceArea) * pricePerSqFt;
     }
     
     if (extras.screenEnclosure) {
@@ -222,7 +228,11 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
     // Convert extras to array format for cart compatibility
     const extrasArray = [];
     extrasArray.push({ name: `Color: ${extras.colorFinish}`, price: 0 });
-    if (extras.pavers) extrasArray.push({ name: `Pavers: ${extras.paverOption}`, price: paverOptions.find(p => p.name === extras.paverOption)?.price || 0 });
+    if (extras.pavers && extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea))) {
+      const selectedPaver = paverOptions.find(p => p.name === extras.paverOption);
+      const pricePerSqFt = selectedPaver?.pricePerSqFt || 20;
+      extrasArray.push({ name: `Pavers: ${extras.paverOption} (${extras.paverSurfaceArea} sq ft)`, price: parseFloat(extras.paverSurfaceArea) * pricePerSqFt });
+    }
     if (extras.screenEnclosure) extrasArray.push({ name: `Screen Enclosure: ${extras.screenEnclosureQuality}`, price: (screenEnclosureQualities.find(q => q.name === extras.screenEnclosureQuality)?.price || 0) * (extras.screenEnclosureArea / 1000) });
     if (extras.poolHeater) extrasArray.push({ name: `Heater: ${extras.heaterModel}`, price: heaterOptions.find(h => h.name === extras.heaterModel)?.price || 0 });
     if (extras.spaJets) extrasArray.push({ name: `Spa Jets (${extras.jetQuantity})`, price: extras.jetQuantity * 300 });
@@ -361,18 +371,35 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
                 </div>
               </label>
               {extras.pavers && (
-                <Select value={extras.paverOption} onValueChange={(value) => updateExtra('paverOption', value)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {paverOptions.map((paver) => (
-                      <SelectItem key={paver.name} value={paver.name}>
-                        {paver.name} (+${paver.price.toLocaleString()})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2">
+                  <Select value={extras.paverOption} onValueChange={(value) => updateExtra('paverOption', value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select paver type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {paverOptions.map((paver) => (
+                        <SelectItem key={paver.name} value={paver.name}>
+                          {paver.name} (${paver.pricePerSqFt}/sq ft)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex items-center space-x-2">
+                    <Label className="text-xs">Surface Area (sq ft):</Label>
+                    <Input
+                      type="number"
+                      value={extras.paverSurfaceArea}
+                      onChange={(e) => updateExtra('paverSurfaceArea', e.target.value)}
+                      className="w-24 h-8"
+                      placeholder="Enter sq ft"
+                    />
+                  </div>
+                  {extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea)) && (
+                    <div className="text-xs text-green-600 font-medium">
+                      Total: ${(parseFloat(extras.paverSurfaceArea) * (paverOptions.find(p => p.name === extras.paverOption)?.pricePerSqFt || 20)).toLocaleString()}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
@@ -613,9 +640,14 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
           extrasBreakdown: (() => {
             const breakdown: Array<{name: string; price: number; image?: string}> = [];
             
-            if (extras.pavers && extras.paverOption) {
+            if (extras.pavers && extras.paverOption && extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea))) {
               const paver = paverOptions.find(p => p.name === extras.paverOption);
-              if (paver) breakdown.push({ name: `Pavers: ${extras.paverOption}`, price: paver.price });
+              const pricePerSqFt = paver?.pricePerSqFt || 20;
+              breakdown.push({ 
+                name: `Pavers: ${extras.paverOption} (${extras.paverSurfaceArea} sq ft)`, 
+                price: parseFloat(extras.paverSurfaceArea) * pricePerSqFt,
+                image: paver?.image
+              });
             }
             
             if (extras.screenEnclosure && extras.screenEnclosureQuality) {

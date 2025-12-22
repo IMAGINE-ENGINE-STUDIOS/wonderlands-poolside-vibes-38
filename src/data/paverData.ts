@@ -166,6 +166,16 @@ export const paverTypes: PaverType[] = [
     basePrice: 20,
     category: 'paver',
     image: '/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.png'
+  },
+  
+  // Premium Porcelain
+  {
+    id: 'coralina-blanco',
+    name: 'Coralina',
+    description: 'Premium Coralina Blanco 24x24 matte porcelain pavers',
+    basePrice: 25,
+    category: 'paver',
+    image: '/lovable-uploads/coralina-blanco.jpg'
   }
 ];
 
