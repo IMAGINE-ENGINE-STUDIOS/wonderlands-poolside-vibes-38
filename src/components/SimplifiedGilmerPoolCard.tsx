@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { poolTiles } from "@/data/poolData";
 import { paverTypes } from "@/data/paverData";
+import { gilmerSpas } from "@/data/gilmerSpas";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -14,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { OptimizedImage } from "./OptimizedImage";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import StripeCheckoutButton from "./StripeCheckoutButton";
-import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermometer, Home, Zap, Palette, Calculator, CreditCard, Cpu } from 'lucide-react';
+import { DollarSign, Clock, Shield, Waves, Star, Award, ShoppingCart, Thermometer, Home, Zap, Palette, Calculator, CreditCard, Cpu, Droplets } from 'lucide-react';
 import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
 import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
@@ -48,6 +49,8 @@ interface GilmerOptions {
   screenEnclosureQuality: string;
   poolHeater: boolean;
   heaterModel: string;
+  addSpa: boolean;
+  spaOption: string;
   concreteConstruction: boolean;
 }
 
@@ -72,6 +75,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     screenEnclosureQuality: 'standard',
     poolHeater: false,
     heaterModel: 'Pentair MasterTemp 125 (125K BTU)',
+    addSpa: false,
+    spaOption: '',
     concreteConstruction: false
   });
 
@@ -126,6 +131,13 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     { name: 'Pentair UltraTemp 140 Heat Pump', price: 7475 }
   ];
 
+  // Gilmer Spa add-on options (real data)
+  const gilmerSpaOptions = gilmerSpas.map((spa) => ({
+    name: spa.model,
+    price: spa.price,
+    image: spa.image,
+  }));
+
   const toggleOption = (option: keyof GilmerOptions) => {
     setOptions(prev => ({
       ...prev,
@@ -165,6 +177,11 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     if (options.poolHeater) {
       const heaterPrice = heaterOptions.find(h => h.name === options.heaterModel)?.price || 0;
       total += heaterPrice;
+    }
+
+    if (options.addSpa) {
+      const spaPrice = gilmerSpaOptions.find(s => s.name === options.spaOption)?.price || 0;
+      total += spaPrice;
     }
     
     if (options.concreteConstruction) {
@@ -213,6 +230,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
       extrasArray.push({ name: `Screen Enclosure: ${screenEnclosureQualities.find(q => q.key === options.screenEnclosureQuality)?.name} (${options.screenEnclosureArea} sq ft)`, price: options.screenEnclosureArea * pricePerSqFt });
     }
     if (options.poolHeater) extrasArray.push({ name: `Heater: ${options.heaterModel}`, price: heaterOptions.find(h => h.name === options.heaterModel)?.price || 0 });
+    if (options.addSpa) extrasArray.push({ name: `Spa: ${options.spaOption || 'Gilmer Spa'}`, price: gilmerSpaOptions.find(s => s.name === options.spaOption)?.price || 0 });
     if (options.concreteConstruction) extrasArray.push({ name: 'Concrete Construction', price: 15000 });
     
     const productData = {
@@ -755,7 +773,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
       <SurveyQuoteTool 
         pool={{
           model: pool.model,
-          price: pool.price + calculateTotal(),
+          price: pool.price,
           category: 'premium' as const,
           dimensions: pool.dimensions,
           depth: pool.depth,
@@ -785,6 +803,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
           screenEnclosureQuality: options.screenEnclosureQuality,
           poolHeater: options.poolHeater,
           heaterModel: options.heaterModel,
+          addSpa: options.addSpa,
+          spaOption: options.spaOption,
           concreteConstruction: options.concreteConstruction,
           
           // Installation Details
@@ -801,8 +821,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             },
             ...(options.pavers && options.paverSurfaceArea && !isNaN(parseFloat(options.paverSurfaceArea)) ? [{ 
               name: `Paver Installation Area: ${options.paverSurfaceArea} sq ft`, 
-              price: parseFloat(options.paverSurfaceArea) * 15,
-              description: `Professional paver installation at $15 per sq ft`,
+              price: parseFloat(options.paverSurfaceArea) * 20,
+              description: `Professional paver installation at $20 per sq ft`,
               category: 'pavers'
             }] : []),
             ...(options.tiles ? [{ 
@@ -814,15 +834,15 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             ...(options.screenEnclosure && options.screenEnclosureArea > 0 ? [{ 
               name: `Screen Enclosure: ${screenEnclosureQualities.find(q => q.key === options.screenEnclosureQuality)?.name}`, 
               price: (() => {
-                let pricePerSqFt = 15;
-                if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
-                if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                let pricePerSqFt = 20;
+                if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 27;
+                if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 33;
                 return options.screenEnclosureArea * pricePerSqFt;
               })(),
               description: `${options.screenEnclosureArea} sq ft at $${(() => {
-                if (options.screenEnclosureQuality === 'deluxe') return '22';
-                if (options.screenEnclosureQuality === 'premium') return '28';
-                return '15';
+                if (options.screenEnclosureQuality === 'deluxe') return '27';
+                if (options.screenEnclosureQuality === 'premium') return '33';
+                return '20';
               })()} per sq ft`,
               category: 'enclosure'
             }] : []),
@@ -831,6 +851,13 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               price: heaterOptions.find(h => h.name === options.heaterModel)?.price || 0,
               description: 'Professional heater installation included',
               category: 'heating'
+            }] : []),
+            ...(options.addSpa ? [{
+              name: `Spa: ${options.spaOption || 'Gilmer Spa'}`,
+              price: gilmerSpaOptions.find(s => s.name === options.spaOption)?.price || 0,
+              image: gilmerSpaOptions.find(s => s.name === options.spaOption)?.image,
+              description: 'Gilmer Glass spa add-on (installed with pool)',
+              category: 'spa'
             }] : []),
             ...(options.concreteConstruction ? [{ 
               name: 'Premium Concrete Construction', 
