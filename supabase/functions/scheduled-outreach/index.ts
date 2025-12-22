@@ -13,15 +13,25 @@ interface ClientData {
   last_name: string;
   email: string;
   phone?: string;
+  address_city?: string;
+  address_state?: string;
+  status?: string;
 }
 
 // Replace template variables with actual values
 function replaceVariables(text: string, client: ClientData): string {
+  const firstName = client.first_name || '';
+  const lastName = client.last_name || '';
+  const fullName = lastName ? `${firstName} ${lastName}` : firstName;
+  
   return text
-    .replace(/{first_name}/g, client.first_name || '')
-    .replace(/{last_name}/g, client.last_name || '')
-    .replace(/{full_name}/g, `${client.first_name || ''} ${client.last_name || ''}`.trim())
-    .replace(/{email}/g, client.email || '');
+    .replace(/{first_name}/g, firstName)
+    .replace(/{last_name}/g, lastName)
+    .replace(/{full_name}/g, fullName.trim())
+    .replace(/{email}/g, client.email || '')
+    .replace(/{phone}/g, client.phone || '')
+    .replace(/{address_city}/g, client.address_city || '')
+    .replace(/{address_state}/g, client.address_state || '');
 }
 
 // Send email using Resend
@@ -39,7 +49,7 @@ async function sendEmail(
 
     const resend = new Resend(resendApiKey);
     const response = await resend.emails.send({
-      from: "Gala Pools <onboarding@resend.dev>",
+      from: "Wonderlands World <onboarding@resend.dev>",
       to: [to],
       subject: subject,
       html: htmlContent || `<p>${body}</p>`,
@@ -282,7 +292,7 @@ const handler = async (req: Request): Promise<Response> => {
         switch (channel) {
           case "email":
             recipient = client.email;
-            sendResult = await sendEmail(recipient, messageSubject || "Message from Gala Pools", messageBody, htmlContent);
+            sendResult = await sendEmail(recipient, messageSubject || "Message from Wonderlands World", messageBody, htmlContent);
             break;
           case "sms":
             if (!client.phone) {
@@ -328,6 +338,23 @@ const handler = async (req: Request): Promise<Response> => {
         });
 
         stepResults.push({ channel, success: sendResult.success, error: sendResult.error });
+      }
+
+      // Update client status and last_contacted_at if any message was sent successfully
+      const successfulSends = stepResults.filter(r => r.success);
+      if (successfulSends.length > 0) {
+        const updateData: any = { 
+          last_contacted_at: new Date().toISOString() 
+        };
+        // Only update status to 'contacted' if current status is 'new'
+        if (client.status === 'new') {
+          updateData.status = 'contacted';
+        }
+        await supabase
+          .from("clients")
+          .update(updateData)
+          .eq("id", client.id);
+        console.log(`Updated client ${client.id} last_contacted_at${client.status === 'new' ? ' and status to contacted' : ''}`);
       }
 
       // Move to next step
