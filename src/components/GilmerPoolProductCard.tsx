@@ -532,7 +532,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
               {extras.addSpa && (
                 <Select value={extras.spaOption} onValueChange={(value) => updateExtra('spaOption', value)}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select a Gilmer Spa..." />
                   </SelectTrigger>
                   <SelectContent>
                     {gilmerSpaOptions.map((spa) => (
@@ -560,7 +560,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
               {extras.addTanningLedge && (
                 <Select value={extras.tanningLedgeOption} onValueChange={(value) => updateExtra('tanningLedgeOption', value)}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select a tanning ledge..." />
                   </SelectTrigger>
                   <SelectContent>
                     {gilmerTanningLedgeOptions.map((ledge) => (
@@ -609,6 +609,55 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
         }}
         isOpen={showQuoteTool}
         onClose={() => setShowQuoteTool(false)}
+        extras={{
+          extrasBreakdown: (() => {
+            const breakdown: Array<{name: string; price: number; image?: string}> = [];
+            
+            if (extras.pavers && extras.paverOption) {
+              const paver = paverOptions.find(p => p.name === extras.paverOption);
+              if (paver) breakdown.push({ name: `Pavers: ${extras.paverOption}`, price: paver.price });
+            }
+            
+            if (extras.screenEnclosure && extras.screenEnclosureQuality) {
+              const enclosure = screenEnclosureQualities.find(q => q.name === extras.screenEnclosureQuality);
+              if (enclosure) {
+                const areaMultiplier = extras.screenEnclosureArea / 1000;
+                breakdown.push({ name: `Screen Enclosure: ${extras.screenEnclosureQuality} (${extras.screenEnclosureArea} sq ft)`, price: enclosure.price * areaMultiplier });
+              }
+            }
+            
+            if (extras.poolHeater && extras.heaterModel) {
+              const heater = heaterOptions.find(h => h.name === extras.heaterModel);
+              if (heater) breakdown.push({ name: `Heater: ${extras.heaterModel}`, price: heater.price });
+            }
+            
+            if (extras.spaJets && extras.jetQuantity > 0) {
+              breakdown.push({ name: `Pool Jets (${extras.jetQuantity})`, price: extras.jetQuantity * 300 });
+            }
+            
+            if (extras.poolCover && extras.coverOption) {
+              const cover = coverOptions.find(c => c.name === extras.coverOption);
+              if (cover) breakdown.push({ name: `Pool Cover: ${extras.coverOption}`, price: cover.price });
+            }
+            
+            if (extras.concreteConstruction) {
+              breakdown.push({ name: 'Concrete Construction Upgrade', price: 15000 });
+            }
+            
+            if (extras.addSpa && extras.spaOption) {
+              const spa = gilmerSpaOptions.find(s => s.name === extras.spaOption);
+              if (spa) breakdown.push({ name: `Gilmer Spa: ${extras.spaOption}`, price: spa.price, image: spa.image });
+            }
+            
+            if (extras.addTanningLedge && extras.tanningLedgeOption) {
+              const ledge = gilmerTanningLedgeOptions.find(l => l.name === extras.tanningLedgeOption);
+              if (ledge) breakdown.push({ name: `Tanning Ledge: ${extras.tanningLedgeOption}`, price: ledge.price });
+            }
+            
+            return breakdown;
+          })(),
+          extrasTotal: calculateExtrasTotal()
+        }}
       />
     </Card>
   );
