@@ -33,7 +33,7 @@ const SalesRepManager = () => {
       const { data: reps, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('role', 'sales_rep')
+        .eq('role', 'sales_rep' as any)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
