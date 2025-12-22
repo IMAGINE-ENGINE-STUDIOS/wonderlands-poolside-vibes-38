@@ -1349,9 +1349,9 @@ const SurveyQuoteTool = ({
                                 const paverItem = extras.extrasBreakdown.find((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure'));
                                 console.log('🟢 PAVER ITEM:', paverItem);
                                 if (paverItem) {
-                                  const selectedPaverName = paverItem.name.split(' (')[0];
-                                  const areaMatch = paverItem.name.match(/\((\d+)\s*sq\s*ft\)/i);
-                                  const paverArea = areaMatch ? parseInt(areaMatch[1]) : 0;
+                                  const selectedPaverName = (paverItem.name.split(' (')[0] || '').trim() || 'Concrete Deck';
+                                  const areaMatch = paverItem.name.match(/(\d+(?:\.\d+)?)\s*sq\s*ft/i);
+                                  const paverArea = areaMatch ? Math.round(parseFloat(areaMatch[1])) : 0;
                                   
                                   const paverImages = {
                                     'Appian Adobe': '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png',
@@ -1377,7 +1377,7 @@ const SurveyQuoteTool = ({
                                     'Tremron Pavers': '/lovable-uploads/87fbe0eb-0a2f-4101-b01c-d0a02fe350f7.png',
                                     'Cambridge Pavers': '/lovable-uploads/8033278d-a737-4b1d-84bf-fd0ac9126406.png'
                                   };
-                                  const paverImage = paverImages[selectedPaverName] || paverImages['Premier Pavers'];
+                                  const paverImage = paverItem.image || paverImages[selectedPaverName] || paverImages['Premier Pavers'];
                                   
                                   return (
                                     <div className="border-b border-teal-300 dark:border-gray-600 pb-4">
@@ -1412,8 +1412,8 @@ const SurveyQuoteTool = ({
                                 const enclosureItem = extras.extrasBreakdown.find((item: any) => item.name.includes('Screen Enclosure'));
                                 console.log('🔵 SCREEN ENCLOSURE ITEM:', enclosureItem);
                                 if (enclosureItem) {
-                                  const areaMatch = enclosureItem.name.match(/\((\d+)\s*sq\s*ft\)/i);
-                                  const enclosureArea = areaMatch ? parseInt(areaMatch[1]) : 0;
+                                  const areaMatch = enclosureItem.name.match(/(\d+(?:\.\d+)?)\s*sq\s*ft/i);
+                                  const enclosureArea = areaMatch ? Math.round(parseFloat(areaMatch[1])) : 0;
                                   const enclosureType = enclosureItem.name.includes('Wonder Cage') ? 'Wonder Cage (Standard)' 
                                     : enclosureItem.name.includes('Deluxe') ? 'Deluxe' 
                                     : 'Premium';
