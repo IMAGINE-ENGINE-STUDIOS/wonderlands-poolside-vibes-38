@@ -27,6 +27,9 @@ import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { useToast } from "@/hooks/use-toast";
 import { gilmerSpas } from "@/data/gilmerSpas";
 import { paverTypes } from "@/data/paverData";
+import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.jpg";
+import maldivesImage from "@/assets/maldiveskit-castlerock.jpg";
+import serenityImage from "@/assets/serenitykit.jpg";
 
 // Helper function to get pool price (no discount applied)
 const getPoolPrice = (pool: { price: number }) => {
@@ -68,6 +71,7 @@ interface GilmerExtras {
   addTanningLedge: boolean;
   tanningLedgeOption: string;
   rockyWaterfalls: boolean;
+  rockyWaterfallsType: string;
   rockyWaterfallsColor: string;
 }
 
@@ -96,14 +100,30 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
     addTanningLedge: false,
     tanningLedgeOption: '',
     rockyWaterfalls: false,
+    rockyWaterfallsType: 'Sunset Grove',
     rockyWaterfallsColor: 'Castle Rock'
   });
 
-  // Rocky Waterfalls - Sunset Grove Coping options (3 colors) - $19,500 add-on
-  const rockyWaterfallsOptions = [
-    { name: 'Castle Rock', price: 19500, image: '/lovable-uploads/castle-rock-grey.png' },
-    { name: 'Gray', price: 19500, image: '/lovable-uploads/classic-grey.png' },
-    { name: 'Brown', price: 19500, image: '/lovable-uploads/classic-brown.png' },
+  // Rocky Waterfalls types with their prices and color options
+  const rockyWaterfallsTypes = [
+    { 
+      name: 'Sunset Grove', 
+      price: 17500, 
+      image: sunsetGroveImage,
+      colors: ['Castle Rock', 'Gray', 'Brown']
+    },
+    { 
+      name: 'Maldives', 
+      price: 5600, 
+      image: maldivesImage,
+      colors: ['Castle Rock', 'Gray', 'Brown']
+    },
+    { 
+      name: 'Serenity', 
+      price: 9500, 
+      image: serenityImage,
+      colors: ['Castle Rock', 'Gray', 'Brown']
+    },
   ];
 
   // Gilmer Glass color options
@@ -223,7 +243,8 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
     }
     
     if (extras.rockyWaterfalls) {
-      total += 19500;
+      const waterfallType = rockyWaterfallsTypes.find(t => t.name === extras.rockyWaterfallsType);
+      total += waterfallType?.price || 17500;
     }
     
     return total;
@@ -255,7 +276,10 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
     if (extras.concreteConstruction) extrasArray.push({ name: 'Concrete Construction', price: 15000 });
     if (extras.addSpa) extrasArray.push({ name: `Spa: ${extras.spaOption}`, price: gilmerSpaOptions.find(s => s.name === extras.spaOption)?.price || 0 });
     if (extras.addTanningLedge) extrasArray.push({ name: `Tanning Ledge: ${extras.tanningLedgeOption}`, price: gilmerTanningLedgeOptions.find(l => l.name === extras.tanningLedgeOption)?.price || 0 });
-    if (extras.rockyWaterfalls) extrasArray.push({ name: `Rocky Waterfalls - Sunset Grove Coping: ${extras.rockyWaterfallsColor}`, price: 19500 });
+    if (extras.rockyWaterfalls) {
+      const waterfallType = rockyWaterfallsTypes.find(t => t.name === extras.rockyWaterfallsType);
+      extrasArray.push({ name: `Rocky Waterfalls - ${extras.rockyWaterfallsType}: ${extras.rockyWaterfallsColor}`, price: waterfallType?.price || 17500 });
+    }
     
     const productData = {
       id: `gilmer-${pool.model.toLowerCase().replace(/\s+/g, '-')}`,
@@ -560,7 +584,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
             </div>
             )}
 
-            {/* Rocky Waterfalls - Sunset Grove Coping */}
+            {/* Rocky Waterfalls */}
             <div className="space-y-2">
               <label className="flex items-center space-x-2 cursor-pointer">
                 <Checkbox 
@@ -569,30 +593,42 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
                 />
                 <div className="flex items-center space-x-1">
                   <Waves size={16} className="text-stone-600" />
-                  <span className="font-medium">Rocky Waterfalls - Sunset Grove Coping (+$19,500)</span>
+                  <span className="font-medium">Rocky Waterfalls (+${extras.rockyWaterfalls ? (rockyWaterfallsTypes.find(t => t.name === extras.rockyWaterfallsType)?.price || 17500).toLocaleString() : '0'})</span>
                 </div>
               </label>
               {extras.rockyWaterfalls && (
-                <div className="grid grid-cols-3 gap-2 ml-6">
-                  {rockyWaterfallsOptions.map((rock) => (
-                    <button
-                      key={rock.name}
-                      onClick={() => updateExtra('rockyWaterfallsColor', rock.name)}
-                      className={`p-2 rounded-lg border transition-all flex flex-col items-center gap-1 ${
-                        extras.rockyWaterfallsColor === rock.name 
-                          ? 'border-stone-600 bg-stone-600/10' 
-                          : 'border-border hover:border-stone-600/50'
-                      }`}
-                    >
-                      <img 
-                        src={rock.image} 
-                        alt={rock.name}
-                        className="w-12 h-12 rounded object-cover"
-                      />
-                      <span className="text-xs font-medium">{rock.name}</span>
-                      <span className="text-[10px] text-stone-600">$19,500</span>
-                    </button>
-                  ))}
+                <div className="space-y-3 ml-6">
+                  <Select value={extras.rockyWaterfallsType} onValueChange={(value) => {
+                    updateExtra('rockyWaterfallsType', value);
+                    const type = rockyWaterfallsTypes.find(t => t.name === value);
+                    if (type) updateExtra('rockyWaterfallsColor', type.colors[0]);
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select waterfall type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {rockyWaterfallsTypes.map((waterfall) => (
+                        <SelectItem key={waterfall.name} value={waterfall.name}>
+                          {waterfall.name} (+${waterfall.price.toLocaleString()})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex gap-2">
+                    {(rockyWaterfallsTypes.find(t => t.name === extras.rockyWaterfallsType)?.colors || ['Castle Rock', 'Gray', 'Brown']).map((color) => (
+                      <button
+                        key={color}
+                        onClick={() => updateExtra('rockyWaterfallsColor', color)}
+                        className={`px-3 py-2 rounded-lg border text-xs font-medium transition-all ${
+                          extras.rockyWaterfallsColor === color 
+                            ? 'border-stone-600 bg-stone-600/10' 
+                            : 'border-border hover:border-stone-600/50'
+                        }`}
+                      >
+                        {color}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -739,12 +775,12 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
               if (ledge) breakdown.push({ name: `Tanning Ledge: ${extras.tanningLedgeOption}`, price: ledge.price });
             }
             
-            if (extras.rockyWaterfalls && extras.rockyWaterfallsColor) {
-              const selectedRock = rockyWaterfallsOptions.find(r => r.name === extras.rockyWaterfallsColor);
+            if (extras.rockyWaterfalls) {
+              const waterfallType = rockyWaterfallsTypes.find(t => t.name === extras.rockyWaterfallsType);
               breakdown.push({ 
-                name: `Rocky Waterfalls: ${extras.rockyWaterfallsColor}`, 
-                price: 19500,
-                image: selectedRock?.image
+                name: `Rocky Waterfalls - ${extras.rockyWaterfallsType}: ${extras.rockyWaterfallsColor}`, 
+                price: waterfallType?.price || 17500,
+                image: waterfallType?.image
               });
             }
             

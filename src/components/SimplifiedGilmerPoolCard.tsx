@@ -37,6 +37,10 @@ interface SimplifiedGilmerPoolCardProps {
   };
 }
 
+import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.jpg";
+import maldivesImage from "@/assets/maldiveskit-castlerock.jpg";
+import serenityImage from "@/assets/serenitykit.jpg";
+
 interface GilmerOptions {
   colorFinish: string;
   pavers: boolean;
@@ -53,6 +57,7 @@ interface GilmerOptions {
   spaOption: string;
   concreteConstruction: boolean;
   rockyWaterfalls: boolean;
+  rockyWaterfallsType: string;
   rockyWaterfallsColor: string;
 }
 
@@ -81,14 +86,30 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     spaOption: '',
     concreteConstruction: false,
     rockyWaterfalls: false,
+    rockyWaterfallsType: 'Sunset Grove',
     rockyWaterfallsColor: 'Castle Rock'
   });
 
-  // Rocky Waterfalls - Sunset Grove Coping options (3 colors) - $19,500 add-on
-  const rockyWaterfallsOptions = [
-    { name: 'Castle Rock', price: 19500, image: '/lovable-uploads/castle-rock-grey.png' },
-    { name: 'Gray', price: 19500, image: '/lovable-uploads/classic-grey.png' },
-    { name: 'Brown', price: 19500, image: '/lovable-uploads/classic-brown.png' },
+  // Rocky Waterfalls types with their prices and color options
+  const rockyWaterfallsTypes = [
+    { 
+      name: 'Sunset Grove', 
+      price: 17500, 
+      image: sunsetGroveImage,
+      colors: ['Castle Rock', 'Gray', 'Brown']
+    },
+    { 
+      name: 'Maldives', 
+      price: 5600, 
+      image: maldivesImage,
+      colors: ['Castle Rock', 'Gray', 'Brown']
+    },
+    { 
+      name: 'Serenity', 
+      price: 9500, 
+      image: serenityImage,
+      colors: ['Castle Rock', 'Gray', 'Brown']
+    },
   ];
 
   // Gilmer Glass color options
@@ -202,7 +223,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     }
     
     if (options.rockyWaterfalls) {
-      total += 19500;
+      const waterfallType = rockyWaterfallsTypes.find(t => t.name === options.rockyWaterfallsType);
+      total += waterfallType?.price || 17500;
     }
     
     return total;
@@ -251,7 +273,10 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     if (options.poolHeater) extrasArray.push({ name: `Heater: ${options.heaterModel}`, price: heaterOptions.find(h => h.name === options.heaterModel)?.price || 0 });
     if (options.addSpa) extrasArray.push({ name: `Spa: ${options.spaOption || 'Gilmer Spa'}`, price: gilmerSpaOptions.find(s => s.name === options.spaOption)?.price || 0 });
     if (options.concreteConstruction) extrasArray.push({ name: 'Concrete Construction', price: 15000 });
-    if (options.rockyWaterfalls) extrasArray.push({ name: `Rocky Waterfalls - Sunset Grove Coping: ${options.rockyWaterfallsColor}`, price: 19500 });
+    if (options.rockyWaterfalls) {
+      const waterfallType = rockyWaterfallsTypes.find(t => t.name === options.rockyWaterfallsType);
+      extrasArray.push({ name: `Rocky Waterfalls - ${options.rockyWaterfallsType}: ${options.rockyWaterfallsColor}`, price: waterfallType?.price || 17500 });
+    }
     
     const productData = {
       id: `gilmer-${pool.model.toLowerCase().replace(/\s+/g, '-')}`,
@@ -637,7 +662,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   </div>
                 )}
 
-                {/* Rocky Waterfalls - Sunset Grove Coping */}
+                {/* Rocky Waterfalls */}
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox 
                     checked={options.rockyWaterfalls}
@@ -647,37 +672,40 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   <div className="flex items-center space-x-1">
                     <Waves size={16} className="text-stone-600" />
                     <span className="text-sm">
-                      Rocky Waterfalls - Sunset Grove Coping (+$19,500)
+                      Rocky Waterfalls (+${options.rockyWaterfalls ? (rockyWaterfallsTypes.find(t => t.name === options.rockyWaterfallsType)?.price || 17500).toLocaleString() : '0'})
                     </span>
                   </div>
                 </label>
 
                 {options.rockyWaterfalls && (
-                  <div className="ml-6 space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">Select Rocky Waterfalls Color:</label>
+                  <div className="ml-6 space-y-4">
+                    <label className="text-xs font-medium text-muted-foreground">Select Waterfall Type:</label>
                     <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
                       <CarouselContent className="-ml-1">
-                        {rockyWaterfallsOptions.map((rock) => (
-                          <CarouselItem key={rock.name} className="pl-1 basis-1/3">
+                        {rockyWaterfallsTypes.map((waterfall) => (
+                          <CarouselItem key={waterfall.name} className="pl-1 basis-1/3">
                             <div
-                              onClick={() => updateOption('rockyWaterfallsColor', rock.name)}
+                              onClick={() => {
+                                updateOption('rockyWaterfallsType', waterfall.name);
+                                updateOption('rockyWaterfallsColor', waterfall.colors[0]);
+                              }}
                               className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${
-                                options.rockyWaterfallsColor === rock.name
+                                options.rockyWaterfallsType === waterfall.name
                                   ? 'border-stone-600 bg-stone-600/10'
                                   : 'border-border'
                               }`}
                             >
-                              <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                              <div className="w-full h-20 rounded-md mb-2 overflow-hidden flex-shrink-0">
                                 <OptimizedImage
-                                  src={rock.image}
-                                  alt={rock.name}
+                                  src={waterfall.image}
+                                  alt={waterfall.name}
                                   className="w-full h-full object-cover"
                                   loading="lazy"
                                 />
                               </div>
                               <div className="flex-1 flex flex-col justify-between min-h-0">
-                                <p className="text-xs font-medium text-center line-clamp-2">{rock.name}</p>
-                                <p className="text-xs text-stone-600 font-semibold text-center mt-1">$19,500</p>
+                                <p className="text-xs font-medium text-center line-clamp-2">{waterfall.name}</p>
+                                <p className="text-xs text-stone-600 font-semibold text-center mt-1">${waterfall.price.toLocaleString()}</p>
                               </div>
                             </div>
                           </CarouselItem>
@@ -686,6 +714,23 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                       <CarouselPrevious className="left-0 animate-pulse" />
                       <CarouselNext className="right-0 animate-pulse" />
                     </Carousel>
+
+                    <label className="text-xs font-medium text-muted-foreground">Select Color:</label>
+                    <div className="flex gap-2">
+                      {(rockyWaterfallsTypes.find(t => t.name === options.rockyWaterfallsType)?.colors || ['Castle Rock', 'Gray', 'Brown']).map((color) => (
+                        <button
+                          key={color}
+                          onClick={() => updateOption('rockyWaterfallsColor', color)}
+                          className={`px-3 py-2 rounded-lg border text-xs font-medium transition-all ${
+                            options.rockyWaterfallsColor === color
+                              ? 'border-stone-600 bg-stone-600/10 text-stone-700'
+                              : 'border-border hover:border-stone-600/50'
+                          }`}
+                        >
+                          {color}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -1002,9 +1047,9 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               category: 'construction'
             }] : []),
             ...(options.rockyWaterfalls ? [{
-              name: `Rocky Waterfalls: ${options.rockyWaterfallsColor}`,
-              price: 19500,
-              image: rockyWaterfallsOptions.find(r => r.name === options.rockyWaterfallsColor)?.image,
+              name: `Rocky Waterfalls - ${options.rockyWaterfallsType}: ${options.rockyWaterfallsColor}`,
+              price: rockyWaterfallsTypes.find(t => t.name === options.rockyWaterfallsType)?.price || 17500,
+              image: rockyWaterfallsTypes.find(t => t.name === options.rockyWaterfallsType)?.image,
               description: 'Premium rocky waterfall feature',
               category: 'waterfall'
             }] : [])
