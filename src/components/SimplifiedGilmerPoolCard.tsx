@@ -52,8 +52,6 @@ interface GilmerOptions {
   addSpa: boolean;
   spaOption: string;
   concreteConstruction: boolean;
-  sunsetGroveCoping: boolean;
-  sunsetGroveCopingColor: string;
   rockyWaterfalls: boolean;
   rockyWaterfallsColor: string;
 }
@@ -82,20 +80,11 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     addSpa: false,
     spaOption: '',
     concreteConstruction: false,
-    sunsetGroveCoping: false,
-    sunsetGroveCopingColor: 'Natural Stone',
     rockyWaterfalls: false,
     rockyWaterfallsColor: 'Castle Rock'
   });
 
-  // Sunset Grove Coping Edge options
-  const sunsetGroveCopingColors = [
-    { name: 'Natural Stone', hex: '#B8A589' },
-    { name: 'Charcoal', hex: '#4A4A4A' },
-    { name: 'Sand', hex: '#D4C4A8' },
-  ];
-
-  // Rocky Waterfalls options (in order: Castle Rock, Gray, Brown) - $19,500 add-on
+  // Rocky Waterfalls - Sunset Grove Coping options (3 colors) - $19,500 add-on
   const rockyWaterfallsOptions = [
     { name: 'Castle Rock', price: 19500, image: '/lovable-uploads/castle-rock-grey.png' },
     { name: 'Gray', price: 19500, image: '/lovable-uploads/classic-grey.png' },
@@ -212,10 +201,6 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
       total += 15000;
     }
     
-    if (options.sunsetGroveCoping) {
-      total += 19500;
-    }
-    
     if (options.rockyWaterfalls) {
       total += 19500;
     }
@@ -266,8 +251,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     if (options.poolHeater) extrasArray.push({ name: `Heater: ${options.heaterModel}`, price: heaterOptions.find(h => h.name === options.heaterModel)?.price || 0 });
     if (options.addSpa) extrasArray.push({ name: `Spa: ${options.spaOption || 'Gilmer Spa'}`, price: gilmerSpaOptions.find(s => s.name === options.spaOption)?.price || 0 });
     if (options.concreteConstruction) extrasArray.push({ name: 'Concrete Construction', price: 15000 });
-    if (options.sunsetGroveCoping) extrasArray.push({ name: `Sunset Grove Coping Edge (${options.sunsetGroveCopingColor})`, price: 19500 });
-    if (options.rockyWaterfalls) extrasArray.push({ name: `Rocky Waterfalls: ${options.rockyWaterfallsColor}`, price: 19500 });
+    if (options.rockyWaterfalls) extrasArray.push({ name: `Rocky Waterfalls - Sunset Grove Coping: ${options.rockyWaterfallsColor}`, price: 19500 });
     
     const productData = {
       id: `gilmer-${pool.model.toLowerCase().replace(/\s+/g, '-')}`,
@@ -653,57 +637,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   </div>
                 )}
 
-                {/* Sunset Grove Coping Edge */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox 
-                    checked={options.sunsetGroveCoping}
-                    onCheckedChange={() => toggleOption('sunsetGroveCoping')}
-                    className="data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600"
-                  />
-                  <div className="flex items-center space-x-1">
-                    <Home size={16} className="text-amber-600" />
-                    <span className="text-sm">
-                      Sunset Grove Coping Edge (+$19,500)
-                    </span>
-                  </div>
-                </label>
-
-                {options.sunsetGroveCoping && (
-                  <div className="ml-6 space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">Select Coping Color:</label>
-                    <div className="flex items-center gap-2">
-                      <div className="w-20 h-20 rounded-lg overflow-hidden border">
-                        <OptimizedImage 
-                          src="/lovable-uploads/sunset-grove-coping.jpg" 
-                          alt="Sunset Grove Coping" 
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {sunsetGroveCopingColors.map((color) => (
-                          <button
-                            key={color.name}
-                            onClick={() => updateOption('sunsetGroveCopingColor', color.name)}
-                            className={`p-2 text-xs rounded-md border transition-all flex flex-col items-center gap-1 ${
-                              options.sunsetGroveCopingColor === color.name 
-                                ? 'border-amber-600 bg-amber-600/10 text-amber-700' 
-                                : 'border-border hover:border-amber-600/50'
-                            }`}
-                          >
-                            <div 
-                              className="w-6 h-6 rounded-full border border-border"
-                              style={{ backgroundColor: color.hex }}
-                            />
-                            <span className="text-[10px] leading-tight text-center">{color.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Rocky Waterfalls */}
+                {/* Rocky Waterfalls - Sunset Grove Coping */}
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox 
                     checked={options.rockyWaterfalls}
@@ -713,7 +647,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   <div className="flex items-center space-x-1">
                     <Waves size={16} className="text-stone-600" />
                     <span className="text-sm">
-                      Rocky Waterfalls (+$19,500)
+                      Rocky Waterfalls - Sunset Grove Coping (+$19,500)
                     </span>
                   </div>
                 </label>
