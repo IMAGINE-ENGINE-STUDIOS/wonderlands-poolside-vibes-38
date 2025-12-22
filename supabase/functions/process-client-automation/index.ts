@@ -232,14 +232,22 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Find active automation sequence for this trigger
-    const { data: sequence, error: seqError } = await supabase
+    // For manual triggers, find any active sequence (prefer new_client)
+    let sequenceQuery = supabase
       .from("automation_sequences")
       .select("*")
-      .eq("trigger_event", trigger_event)
-      .eq("is_active", true)
-      .limit(1)
-      .single();
+      .eq("is_active", true);
+
+    if (trigger_event === "manual_trigger") {
+      // For manual triggers, use the first available active sequence
+      sequenceQuery = sequenceQuery.order("created_at", { ascending: true }).limit(1);
+    } else {
+      // For specific triggers, match the trigger event
+      sequenceQuery = sequenceQuery.eq("trigger_event", trigger_event).limit(1);
+    }
+
+    const { data: sequences, error: seqError } = await sequenceQuery;
+    const sequence = sequences?.[0];
 
     if (seqError || !sequence) {
       console.log("No active automation sequence found for trigger:", trigger_event);
@@ -247,6 +255,25 @@ const handler = async (req: Request): Promise<Response> => {
         JSON.stringify({ message: "No automation sequence configured for this trigger" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Check if client already has an active automation for this sequence
+    if (trigger_event === "manual_trigger") {
+      const { data: existingAutomation } = await supabase
+        .from("client_automations")
+        .select("id")
+        .eq("client_id", client.id)
+        .eq("sequence_id", sequence.id)
+        .in("status", ["pending", "in_progress"])
+        .limit(1);
+
+      if (existingAutomation && existingAutomation.length > 0) {
+        console.log("Client already has active automation for this sequence");
+        return new Response(
+          JSON.stringify({ message: "Client already has an active automation" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // Get all steps for this sequence
