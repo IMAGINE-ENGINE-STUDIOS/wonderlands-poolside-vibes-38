@@ -53,18 +53,26 @@ async function sendEmail(
     }
 
     const resend = new Resend(resendApiKey);
-    const response = await resend.emails.send({
-      from: "Wonderlands World <onboarding@resend.dev>",
+    const from = Deno.env.get("RESEND_FROM") || "Wonderlands World <onboarding@resend.dev>";
+
+    const { data, error } = await resend.emails.send({
+      from,
       to: [to],
-      subject: subject,
+      subject,
       html: htmlContent || `<p>${body}</p>`,
+      text: body,
     });
 
-    console.log("Email sent:", response);
-    return { success: true, externalId: response.data?.id };
+    if (error) {
+      console.error("Resend error:", error);
+      return { success: false, error: error.message || String(error) };
+    }
+
+    console.log("Email sent:", data);
+    return { success: true, externalId: data?.id };
   } catch (error: any) {
     console.error("Email send error:", error);
-    return { success: false, error: error.message };
+    return { success: false, error: error?.message || "Email send error" };
   }
 }
 
@@ -242,21 +250,15 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // For manual triggers, find any active sequence (prefer new_client)
-    let sequenceQuery = supabase
+    // Find an active automation sequence matching the trigger
+    const { data: sequences, error: seqError } = await supabase
       .from("automation_sequences")
       .select("*")
-      .eq("is_active", true);
+      .eq("is_active", true)
+      .eq("trigger_event", trigger_event)
+      .order("created_at", { ascending: true })
+      .limit(1);
 
-    if (trigger_event === "manual_trigger") {
-      // For manual triggers, use the first available active sequence
-      sequenceQuery = sequenceQuery.order("created_at", { ascending: true }).limit(1);
-    } else {
-      // For specific triggers, match the trigger event
-      sequenceQuery = sequenceQuery.eq("trigger_event", trigger_event).limit(1);
-    }
-
-    const { data: sequences, error: seqError } = await sequenceQuery;
     const sequence = sequences?.[0];
 
     if (seqError || !sequence) {
