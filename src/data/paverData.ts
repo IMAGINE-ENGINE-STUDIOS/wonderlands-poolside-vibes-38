@@ -176,6 +176,64 @@ export const paverTypes: PaverType[] = [
     basePrice: 25,
     category: 'paver',
     image: '/lovable-uploads/coralina-blanco.jpg'
+  },
+  
+  // Priceline Deck Collection - Premium deck options at $25/sqft
+  {
+    id: 'priceline-light',
+    name: 'Priceline Light',
+    description: 'Premium Priceline Light travertine-style deck finish',
+    basePrice: 25,
+    category: 'paver',
+    image: '/lovable-uploads/deck-light.png'
+  },
+  {
+    id: 'priceline-dark',
+    name: 'Priceline Dark',
+    description: 'Premium Priceline Dark travertine-style deck finish',
+    basePrice: 25,
+    category: 'paver',
+    image: '/lovable-uploads/deck-dark.png'
+  },
+  {
+    id: 'priceline-misty',
+    name: 'Priceline Misty',
+    description: 'Premium Priceline Misty travertine-style deck finish',
+    basePrice: 25,
+    category: 'paver',
+    image: '/lovable-uploads/deck-misty.png'
+  },
+  {
+    id: 'priceline-steel',
+    name: 'Priceline Steel',
+    description: 'Premium Priceline Steel stone-style deck finish',
+    basePrice: 25,
+    category: 'paver',
+    image: '/lovable-uploads/deck-steel.png'
+  },
+  {
+    id: 'priceline-pearly',
+    name: 'Priceline Pearly',
+    description: 'Premium Priceline Pearly stone-style deck finish',
+    basePrice: 25,
+    category: 'paver',
+    image: '/lovable-uploads/deck-pearly.png'
+  },
+  {
+    id: 'priceline-silver',
+    name: 'Priceline Silver',
+    description: 'Premium Priceline Silver stone-style deck finish',
+    basePrice: 25,
+    category: 'paver',
+    image: '/lovable-uploads/deck-silver.png'
+  },
+  {
+    id: 'priceline-rustic',
+    name: 'Priceline Rustic',
+    description: 'Premium Priceline Rustic stone-style deck finish',
+    basePrice: 25,
+    category: 'paver',
+    image: '/lovable-uploads/deck-rustic.png'
   }
 ];
 
