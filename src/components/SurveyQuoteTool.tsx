@@ -1676,6 +1676,16 @@ const SurveyQuoteTool = ({
                         'Catalina Napoli': '/lovable-uploads/d07719a5-6046-4bbc-94f7-d0390932f6c7.png',
                         'Catalina Slate': '/lovable-uploads/3f98fbbb-b09a-4dbc-82f5-5d811564b9f4.png',
                         'Catalina Titanium': '/lovable-uploads/0491db41-90e0-48c5-ba33-3772268815aa.png',
+                        // Priceline Deck Collection
+                        'Priceline Light': '/lovable-uploads/deck-light.png',
+                        'Priceline Dark': '/lovable-uploads/deck-dark.png',
+                        'Priceline Misty': '/lovable-uploads/deck-misty.png',
+                        'Priceline Steel': '/lovable-uploads/deck-steel.png',
+                        'Priceline Pearly': '/lovable-uploads/deck-pearly.png',
+                        'Priceline Silver': '/lovable-uploads/deck-silver.png',
+                        'Priceline Rustic': '/lovable-uploads/deck-rustic.png',
+                        // Premium Porcelain
+                        'Coralina': '/lovable-uploads/coralina-blanco.jpg',
                         // Fallback brands
                         'Premier Pavers': '/lovable-uploads/4511f6d7-594e-4c22-bd69-221e519f2f34.png',
                         'Belgard Pavers': '/lovable-uploads/46d142d3-b106-406d-9867-9bf7b63fd469.png',
