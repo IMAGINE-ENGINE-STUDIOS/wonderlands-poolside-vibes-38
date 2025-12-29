@@ -1,6 +1,30 @@
 // Consolidated Products Database
 // All products in the application - pools, finishes, liners, tiles, ledges, etc.
 
+// Complete list of Latham pool models for compatibility mapping
+const LATHAM_POOLS = [
+  // Tuscan Collection
+  "Tuscan 11.20", "Tuscan 13.24", "Tuscan 14.27", "Tuscan 14.30", "Tuscan 14.40",
+  // Classic Collection
+  "Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio",
+  // Apollo Collection
+  "Apollo 12", "Apollo 14",
+  // Enchantment Collection
+  "Enchantment 9.17", "Enchantment 9.21", "Enchantment 9.24",
+  // Resort Collection
+  "Cancún Deluxe", "Pleasant Cove", "St. Lucia", "Delray",
+  // Island Collection
+  "Java", "Bermuda", "Key West", "Valencia",
+  // Vista Collection
+  "Vista Isle", "Bay Isle", "Laguna",
+  // Corinthian Collection
+  "Corinthian 12", "Corinthian 12 BME", "Corinthian 14", "Corinthian 14 BME",
+  // Olympia Collection
+  "Olympia 12", "Olympia 14",
+  // Other Models
+  "Claremont", "Axiom 14"
+];
+
 export interface Product {
   id: string;
   name: string;
@@ -34,7 +58,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Deep & Dramatic",
     collection: "Crystite Crystal",
     poolType: "fiberglass",
-    compatiblePools: ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9.17", "Enchantment 9.21", "Enchantment 9.24", "Cancún Deluxe", "Pleasant Cove", "Tuscan 11.20", "Tuscan 13.24", "Tuscan 14.27"], // Latham pools only
+    compatiblePools: [...LATHAM_POOLS],
     price: 3500,
     image: "/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png",
     description: "A stunning deep blue with crystalline sparkle that creates a luxurious Caribbean feel",
@@ -50,7 +74,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Deep & Dramatic",
     collection: "Crystite Crystal",
     poolType: "fiberglass",
-    compatiblePools: ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9.17", "Enchantment 9.21", "Enchantment 9.24", "Cancún Deluxe", "Pleasant Cove", "Tuscan 11.20", "Tuscan 13.24", "Tuscan 14.27"],
+    compatiblePools: [...LATHAM_POOLS],
     price: 3500,
     image: "/lovable-uploads/2103693f-cf54-423d-99c7-68d6f3951388.png",
     description: "Deep ocean blue with crystal aggregates for a premium tropical look",
@@ -65,7 +89,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Deep & Dramatic",
     collection: "Crystite Crystal",
     poolType: "fiberglass",
-    compatiblePools: ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9.17", "Enchantment 9.21", "Enchantment 9.24", "Cancún Deluxe", "Pleasant Cove", "Tuscan 11.20", "Tuscan 13.24", "Tuscan 14.27"],
+    compatiblePools: [...LATHAM_POOLS],
     price: 3500,
     image: "/lovable-uploads/90fe0136-31f1-4fa3-b816-56a7a74484fa.png",
     description: "Dark blue with brilliant crystal flecks that shimmer like stars in the night sky",
@@ -80,7 +104,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Light & Tranquil",
     collection: "Crystite Crystal",
     poolType: "fiberglass",
-    compatiblePools: ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9.17", "Enchantment 9.21", "Enchantment 9.24", "Cancún Deluxe", "Pleasant Cove", "Tuscan 11.20", "Tuscan 13.24", "Tuscan 14.27"],
+    compatiblePools: [...LATHAM_POOLS],
     price: 3500,
     image: "/lovable-uploads/15032ed4-f745-4152-ae9b-c26fdb52f68c.png",
     description: "Sophisticated gray with crystal accents for a modern, refined appearance",
@@ -95,7 +119,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Rich & Vibrant",
     collection: "Crystite Crystal",
     poolType: "fiberglass",
-    compatiblePools: ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9.17", "Enchantment 9.21", "Enchantment 9.24", "Cancún Deluxe", "Pleasant Cove", "Tuscan 11.20", "Tuscan 13.24", "Tuscan 14.27"],
+    compatiblePools: [...LATHAM_POOLS],
     price: 3500,
     image: "/lovable-uploads/b1abd5c3-af2e-46fa-82be-5db27d20a388.png",
     description: "Warm bronze tones with crystal sparkle reminiscent of coastal sunsets",
@@ -110,7 +134,7 @@ export const poolFinishes: Product[] = [
     subcategory: "Light & Tranquil",
     collection: "Crystite Crystal",
     poolType: "fiberglass",
-    compatiblePools: ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9.17", "Enchantment 9.21", "Enchantment 9.24", "Cancún Deluxe", "Pleasant Cove", "Tuscan 11.20", "Tuscan 13.24", "Tuscan 14.27"],
+    compatiblePools: [...LATHAM_POOLS],
     price: 3500,
     image: "/lovable-uploads/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.png",
     description: "Elegant white with pearl-like crystal finish for timeless sophistication",
