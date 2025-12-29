@@ -56,13 +56,14 @@ const paverOptions = [
   {
     name: "Concrete Deck",
     price: 0,
+    pricePerSqFt: 20,
     description: "Standard concrete deck",
     image: concreteDeckTexture,
   },
   ...paverTypes.map((paver) => ({
     name: paver.name,
     price: 0,
-    // Base price is 0, actual cost calculated by surface area × $15/sq ft
+    pricePerSqFt: paver.basePrice,
     description: paver.description,
     image: paver.image || azureBlueFinish,
   })),
@@ -124,9 +125,11 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
       total += extras.jetQuantity * 1800; // $1800 per jet
     }
 
-    // Add paver surface area cost
+    // Add paver surface area cost using selected paver's basePrice
     if (extras.pavers && extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea))) {
-      total += parseFloat(extras.paverSurfaceArea) * 20; // $20 per sq ft
+      const selectedPaver = paverOptions.find(p => p.name === extras.paverOption);
+      const pricePerSqFt = selectedPaver?.pricePerSqFt || 20;
+      total += parseFloat(extras.paverSurfaceArea) * pricePerSqFt;
     }
     return total;
   };
@@ -149,9 +152,12 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
         });
       }
       if (extras.pavers && extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea))) {
+        const selectedPaver = paverOptions.find(p => p.name === extras.paverOption);
+        const pricePerSqFt = selectedPaver?.pricePerSqFt || 20;
         extrasBreakdown.push({
-          name: `${extras.paverOption} (${extras.paverSurfaceArea} sq ft)`,
-          price: parseFloat(extras.paverSurfaceArea) * 20,
+          name: `${extras.paverOption} (${extras.paverSurfaceArea} sq ft @ $${pricePerSqFt}/sq ft)`,
+          price: parseFloat(extras.paverSurfaceArea) * pricePerSqFt,
+          image: selectedPaver?.image,
         });
       }
       onRequestQuote(spa, {
@@ -357,7 +363,7 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
               <div className="space-y-3">
                 <h4 className="font-semibold text-foreground flex items-center gap-2">
                   <Cpu size={16} />
-                  Pavers ($20/sq ft)
+                  Pavers (from $20/sq ft)
                 </h4>
                 <div className="space-y-3">
                   <select
@@ -394,11 +400,15 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
                         placeholder="Enter square footage"
                         className="w-full"
                       />
-                      {extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea)) && (
-                        <p className="text-sm text-primary font-medium">
-                          Paver Cost: ${(parseFloat(extras.paverSurfaceArea) * 20).toLocaleString()}
-                        </p>
-                      )}
+                      {extras.paverSurfaceArea && !isNaN(parseFloat(extras.paverSurfaceArea)) && (() => {
+                        const selectedPaver = paverOptions.find(p => p.name === extras.paverOption);
+                        const pricePerSqFt = selectedPaver?.pricePerSqFt || 20;
+                        return (
+                          <p className="text-sm text-primary font-medium">
+                            Paver Cost: ${(parseFloat(extras.paverSurfaceArea) * pricePerSqFt).toLocaleString()} (${pricePerSqFt}/sq ft)
+                          </p>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>

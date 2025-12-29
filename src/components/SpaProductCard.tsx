@@ -192,18 +192,18 @@ const paverOptions = [{
   name: 'Concrete Deck',
   color: '#808080',
   price: 0,
+  pricePerSqFt: 20,
   image: concreteDeckTexture,
   description: 'Standard concrete deck',
   collection: 'none'
 }, ...paverTypes.map(paver => ({
   name: paver.name,
   color: '#D3D3D3',
-  // Default color for all pavers
   price: 0,
-  // Base price is 0, actual cost calculated by surface area × $15/sq ft
+  pricePerSqFt: paver.basePrice,
   image: paver.image || azureBlueFinish,
   description: paver.description,
-  collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina') ? 'catalina' : 'standard'
+  collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina') ? 'catalina' : paver.id.includes('priceline') ? 'priceline' : 'standard'
 }))];
 const SpaProductCard = ({
   spa,
@@ -324,9 +324,11 @@ const SpaProductCard = ({
     const tileOption = tileOptions.find(option => option.name === extras.tileOption);
     if (tileOption && extras.tiles) total += tileOption.price;
 
-    // Add calculated paver surface area cost
+    // Add calculated paver surface area cost using selected paver's basePrice
     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-      total += parseFloat(paverSurfaceArea) * 20;
+      const selectedPaver = paverOptions.find(p => p.name === extras.paverOption);
+      const pricePerSqFt = selectedPaver?.pricePerSqFt || 20;
+      total += parseFloat(paverSurfaceArea) * pricePerSqFt;
     }
     return total;
   };
