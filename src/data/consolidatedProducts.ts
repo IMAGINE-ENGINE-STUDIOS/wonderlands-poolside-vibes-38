@@ -22,7 +22,7 @@ const LATHAM_POOLS = [
   // Olympia Collection
   "Olympia 12", "Olympia 14",
   // Other Models
-  "Claremont", "Axiom 14"
+  "Claremont", "Axiom 14", "Genesis"
 ];
 
 export interface Product {
