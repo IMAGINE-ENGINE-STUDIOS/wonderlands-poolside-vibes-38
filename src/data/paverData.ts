@@ -336,7 +336,7 @@ export const calculatePaverArea = (poolLength: number, poolWidth: number, deckWi
 // Helper function to calculate price for pavers based on pool dimensions and deck width
 export const calculatePaverPrice = (poolLength: number, poolWidth: number, deckWidth: number): number => {
   const paverArea = calculatePaverArea(poolLength, poolWidth, deckWidth);
-  const pricePerSqFt = 20; // Standard paver price per square foot
+  const pricePerSqFt = 50; // Standard paver price per square foot
   return paverArea * pricePerSqFt;
 };
 

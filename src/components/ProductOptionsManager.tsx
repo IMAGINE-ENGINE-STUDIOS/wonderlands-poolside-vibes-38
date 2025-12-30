@@ -67,7 +67,7 @@ const ProductOptionsManager = ({ productType, productName, onOptionsChange }: Pr
     }
     if (productType === 'paver') {
       const area = parseFloat(surfaceArea) || 0;
-      const calculatedPrice = area * 20;
+      const calculatedPrice = area * 50;
 
       setSelectedOptions({
         surfaceArea: area,
@@ -204,12 +204,12 @@ const ProductOptionsManager = ({ productType, productName, onOptionsChange }: Pr
                     <div>
                       <h4 className="font-semibold">Price Calculation</h4>
                       <p className="text-sm text-muted-foreground">
-                        {surfaceArea} sq ft × $20/sq ft
+                        {surfaceArea} sq ft × $50/sq ft
                       </p>
                     </div>
                     <div className="text-right">
                       <span className="text-2xl font-bold text-primary">
-                        ${(parseFloat(surfaceArea) * 20).toLocaleString()}
+                        ${(parseFloat(surfaceArea) * 50).toLocaleString()}
                       </span>
                     </div>
                   </div>

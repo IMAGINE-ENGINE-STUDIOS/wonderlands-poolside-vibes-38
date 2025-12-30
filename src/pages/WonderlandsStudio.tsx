@@ -865,7 +865,7 @@ const WonderlandsStudio = () => {
     // Add paver surface area cost (dynamic based on selected paver's basePrice)
     if (selectedExtras.pavers && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
       const selectedPaver = paverTypes.find(p => p.name === selectedExtras.paverOption);
-      const pricePerSqFt = selectedPaver?.basePrice || 20;
+      const pricePerSqFt = selectedPaver?.basePrice || 50;
       extrasBreakdown.push({
         name: `${selectedExtras.paverOption} (${paverSurfaceArea} sq ft @ $${pricePerSqFt}/sqft)`,
         price: parseFloat(paverSurfaceArea) * pricePerSqFt,
@@ -976,11 +976,13 @@ const WonderlandsStudio = () => {
       }
     }
 
-    // Add paver surface area cost ($20/sqft)
+    // Add paver surface area cost (dynamic pricing based on selected paver)
     if (selectedExtras.pavers && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && selectedExtras.paverOption && selectedExtras.paverOption !== 'None' && selectedExtras.paverOption !== '') {
+      const selectedPaver = paverTypes.find(p => p.name === selectedExtras.paverOption);
+      const pricePerSqFt = selectedPaver?.basePrice || 50;
       extrasArray.push({
         name: `${selectedExtras.paverOption} (${paverSurfaceArea} sq ft)`,
-        price: parseFloat(paverSurfaceArea) * 20
+        price: parseFloat(paverSurfaceArea) * pricePerSqFt
       });
     }
 
@@ -2172,7 +2174,7 @@ const WonderlandsStudio = () => {
                             />
                             {selectedExtras.paverSurfaceArea && !isNaN(parseFloat(selectedExtras.paverSurfaceArea)) && (
                               <div className="text-xs text-green-600 font-medium">
-                                Calculated Cost: ${(parseFloat(selectedExtras.paverSurfaceArea) * 20).toLocaleString()} (${selectedExtras.paverSurfaceArea} sq ft × $20/sq ft)
+                                Calculated Cost: ${(parseFloat(selectedExtras.paverSurfaceArea) * (paverTypes.find(p => p.name === selectedExtras.paverOption)?.basePrice || 50)).toLocaleString()} (${selectedExtras.paverSurfaceArea} sq ft × ${paverTypes.find(p => p.name === selectedExtras.paverOption)?.basePrice || 50}/sq ft)
                               </div>
                             )}
                           </div>
@@ -2492,7 +2494,7 @@ const WonderlandsStudio = () => {
                                 <span>Deck Pavers</span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-muted-foreground">
-                                    +${paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) ? (parseFloat(paverSurfaceArea) * (paverTypes.find(p => p.name === selectedExtras.paverOption)?.basePrice || 20)).toLocaleString() : '0'}
+                                    +${paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) ? (parseFloat(paverSurfaceArea) * (paverTypes.find(p => p.name === selectedExtras.paverOption)?.basePrice || 50)).toLocaleString() : '0'}
                                   </span>
                                   <Button variant="ghost" size="sm" onClick={() => removeExtra('pavers')} className="h-6 w-6 p-0">
                                     <X className="h-3 w-3" />

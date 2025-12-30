@@ -378,7 +378,7 @@ const RealTimeContentEditor = ({ isOpen = true, onClose }: RealTimeContentEditor
     
     // Calculate actual surface area (patio minus pool area)
     const actualSurfaceArea = Math.max(0, totalPatioArea - poolAreaValue);
-    const cost = actualSurfaceArea * 20; // $20 per sq ft including installation
+    const cost = actualSurfaceArea * 50; // $50 per sq ft for travertine including installation
     
     setCalculatedCost(cost);
     setSurfaceArea(actualSurfaceArea.toString());

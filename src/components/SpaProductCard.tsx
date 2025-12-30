@@ -663,7 +663,7 @@ const SpaProductCard = ({
                         </div>
                         <p className="text-xs font-medium text-center">{paver.name}</p>
                         {paver.collection !== 'none' && <p className="text-[10px] text-secondary font-semibold text-center capitalize">{paver.collection}</p>}
-                        <p className="text-[10px] text-muted-foreground text-center mt-1">$20/sq ft</p>
+                        <p className="text-[10px] text-muted-foreground text-center mt-1">${paver.pricePerSqFt || 50}/sq ft</p>
                       </div>
                     </CarouselItem>)}
                 </CarouselContent>
@@ -676,7 +676,7 @@ const SpaProductCard = ({
                 </label>
                 <Input type="number" placeholder="Enter surface area for pavers" value={paverSurfaceArea} onChange={e => setPaverSurfaceArea(e.target.value)} className="mb-2" />
                 {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && <div className="text-xs text-green-600 font-medium">
-                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * 20).toLocaleString()} ({paverSurfaceArea} sq ft × $20/sq ft)
+                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * (paverOptions.find(p => p.name === extras.paverOption)?.pricePerSqFt || 50)).toLocaleString()} ({paverSurfaceArea} sq ft × ${paverOptions.find(p => p.name === extras.paverOption)?.pricePerSqFt || 50}/sq ft)
                   </div>}
               </div>
             </div>
