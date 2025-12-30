@@ -114,7 +114,7 @@ const AdvancedSearch = () => {
       { id: 'cape-cod', name: 'Cape Cod', category: 'Pool', price: 67800, image: '/public/lovable-uploads/822d9341-f6f8-46ee-9d13-07d0f2126252.png', keywords: ['pool', 'deluxe', 'cape', 'cod'] },
       { id: 'fiji', name: 'Fiji', category: 'Pool', price: 58900, image: '/public/lovable-uploads/9382c72a-0c7d-4981-8f03-878d568dd1b2.png', keywords: ['pool', 'deluxe', 'fiji', 'tropical'] },
       { id: 'synergy', name: 'Synergy', category: 'Pool', price: 92300, image: '/public/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.png', keywords: ['pool', 'premium', 'synergy'] },
-      { id: 'genesis', name: 'Genesis', category: 'Pool', price: 78900, image: '/public/lovable-uploads/1a143a47-5e78-46a8-8172-426b7644bea8.png', keywords: ['pool', 'premium', 'genesis'] }
+      { id: 'genesis-pool', name: 'Genesis', category: 'Pool', price: 133860, image: '/lovable-uploads/2a611c90-6445-41af-aa15-7d223e357e64.png', keywords: ['pool', 'premium', 'genesis', 'latham', '16x40', '16 x 40', 'freeform'] }
     ];
 
     // Spas and Hot Tubs

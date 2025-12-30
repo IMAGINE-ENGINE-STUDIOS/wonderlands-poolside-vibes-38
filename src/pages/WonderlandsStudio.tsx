@@ -1714,7 +1714,7 @@ const WonderlandsStudio = () => {
                                 .filter((finish) => {
                                   // Define pool type categories
                                   const wonderlandsWorldModels = ["Madre Perla", "Pacific Ridge", "Winderview", "Maxima"];
-                                  const lathamModels = ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9'17\"", "Enchantment 9'21\"", "Enchantment 9'24\"", "Cancún Deluxe"];
+                                  const lathamModels = ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9'17\"", "Enchantment 9'21\"", "Enchantment 9'24\"", "Cancún Deluxe", "Genesis", "Claremont", "Axiom 14", "Bay Isle", "Laguna", "Vista Isle", "Olympia 12", "Olympia 14", "Corinthian 12", "Corinthian 14", "Key West", "Valencia", "Bermuda", "Java", "Pleasant Cove", "St. Lucia", "Delray"];
                                   
                                   const isWonderlandsWorld = wonderlandsWorldModels.includes(selectedProduct?.model || "");
                                   const isLathamPool = lathamModels.includes(selectedProduct?.model || "");
