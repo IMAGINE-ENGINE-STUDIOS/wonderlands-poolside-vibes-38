@@ -234,6 +234,32 @@ export const paverTypes: PaverType[] = [
     basePrice: 25,
     category: 'paver',
     image: '/lovable-uploads/deck-rustic.png'
+  },
+  
+  // Premium Travertine Collection - $50/sqft
+  {
+    id: 'travertine-classic',
+    name: 'Travertine Classic',
+    description: 'Premium natural travertine pavers with classic finish',
+    basePrice: 50,
+    category: 'paver',
+    image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png'
+  },
+  {
+    id: 'travertine-tumbled',
+    name: 'Travertine Tumbled',
+    description: 'Premium tumbled travertine pavers with antique finish',
+    basePrice: 50,
+    category: 'paver',
+    image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png'
+  },
+  {
+    id: 'travertine-honed',
+    name: 'Travertine Honed',
+    description: 'Premium honed travertine pavers with smooth finish',
+    basePrice: 50,
+    category: 'paver',
+    image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png'
   }
 ];
 
