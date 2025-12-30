@@ -37,6 +37,7 @@ import {
   ArrowRight,
   Package
 } from "lucide-react";
+import { DEFAULT_PAVER_PRICE_PER_SQFT, calculatePaverCost } from "@/utils/paverPricing";
 
 // Lazy-loaded components
 const Hero = lazy(() => import("@/components/Hero"));
@@ -378,7 +379,7 @@ const RealTimeContentEditor = ({ isOpen = true, onClose }: RealTimeContentEditor
     
     // Calculate actual surface area (patio minus pool area)
     const actualSurfaceArea = Math.max(0, totalPatioArea - poolAreaValue);
-    const cost = actualSurfaceArea * 50; // $50 per sq ft for travertine including installation
+    const cost = actualSurfaceArea * DEFAULT_PAVER_PRICE_PER_SQFT;
     
     setCalculatedCost(cost);
     setSurfaceArea(actualSurfaceArea.toString());

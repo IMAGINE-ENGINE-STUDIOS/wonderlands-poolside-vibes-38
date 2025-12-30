@@ -34,6 +34,7 @@ import ExclusiveSaunaOffer from "./ExclusiveSaunaOffer";
 import { spas } from "./PoolCatalog";
 import { tanningLedges } from "@/data/poolData";
 import { paverTypes, copingTypes } from "@/data/paverData";
+import { getPaverPricePerSqFt, calculatePaverCost, formatPaverCostDisplay, SCREEN_ENCLOSURE_PRICING } from "@/utils/paverPricing";
 import { supabase } from "@/integrations/supabase/client";
 import aquamarineFinish from "@/assets/finishes/aquamarine-g3.jpg";
 import oceanBlueFinish from "@/assets/finishes/ocean-blue-g3.jpg";
@@ -503,12 +504,10 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
     const paverOption = paverOptions.find((option) => option.name === extras.paverOption);
     if (paverOption) total += paverOption.price;
 
-    // Add calculated paver surface area cost using selected paver's basePrice
+    // Add calculated paver surface area cost using centralized pricing utility
     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
       const paverName = extras.paverOption || "Concrete Deck";
-      const selectedPaver = paverOptions.find((p) => p.name === paverName);
-      const pricePerSqFt = selectedPaver?.basePrice || 50;
-      total += parseFloat(paverSurfaceArea) * pricePerSqFt;
+      total += calculatePaverCost(paverSurfaceArea, paverName);
     }
 
     // Add spa price if selected
@@ -523,11 +522,10 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
       if (selectedLedge) total += selectedLedge.price;
     }
 
-    // Add screen enclosure price if selected
+    // Add screen enclosure price if selected using centralized pricing
     if (extras.screenEnclosureArea > 0) {
-      let pricePerSqFt = 20; // standard
-      if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
-      if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
+      const quality = extras.screenEnclosureQuality as 'standard' | 'deluxe' | 'premium' || 'standard';
+      const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[quality] || SCREEN_ENCLOSURE_PRICING.standard;
       total += extras.screenEnclosureArea * pricePerSqFt;
     }
 
@@ -1024,7 +1022,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                 />
                 {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
                   <div className="text-xs text-green-600 font-medium">
-                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * (paverOptions.find(p => p.name === extras.paverOption)?.basePrice || 50)).toLocaleString()} (${paverSurfaceArea} sq ft × ${paverOptions.find(p => p.name === extras.paverOption)?.basePrice || 50}/sq ft)
+                    Calculated Cost: ${calculatePaverCost(paverSurfaceArea, extras.paverOption).toLocaleString()} ({paverSurfaceArea} sq ft × ${getPaverPricePerSqFt(extras.paverOption)}/sq ft)
                   </div>
                 )}
               </div>
@@ -1664,14 +1662,14 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                       });
                     }
 
-                    // Add paver surface area cost using selected paver's basePrice
+                    // Add paver surface area cost using centralized pricing utility
                     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
                       const paverName = extras.paverOption || "Concrete Deck";
+                      const pricePerSqFt = getPaverPricePerSqFt(paverName);
                       const selectedPaver = paverOptions.find((p) => p.name === paverName);
-                      const pricePerSqFt = selectedPaver?.basePrice || 50;
                       extrasBreakdown.push({
                         name: `${paverName} (${paverSurfaceArea} sq ft @ $${pricePerSqFt}/sq ft)`,
-                        price: parseFloat(paverSurfaceArea) * pricePerSqFt,
+                        price: calculatePaverCost(paverSurfaceArea, paverName),
                         image: selectedPaver?.image,
                       });
                     }
@@ -1798,9 +1796,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                       const paverOption = paverOptions.find((option) => option.name === extras.paverOption);
                       if (paverOption) originalTotal += paverOption.price;
                       if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
-                        const selectedPaverType = paverTypes.find(p => p.name === extras.paverOption);
-                        const pricePerSqFt = selectedPaverType?.basePrice || 50;
-                        originalTotal += parseFloat(paverSurfaceArea) * pricePerSqFt;
+                        originalTotal += calculatePaverCost(paverSurfaceArea, extras.paverOption);
                       }
                       if (extras.spa) {
                         const selectedSpa = spas.find((spa: any) => spa.model === extras.spaModel);
