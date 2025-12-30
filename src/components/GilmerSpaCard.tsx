@@ -363,7 +363,7 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
               <div className="space-y-3">
                 <h4 className="font-semibold text-foreground flex items-center gap-2">
                   <Cpu size={16} />
-                  Pavers (from $20/sq ft)
+                  Pavers (from $50/sq ft)
                 </h4>
                 <div className="space-y-3">
                   <select

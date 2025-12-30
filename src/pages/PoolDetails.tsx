@@ -291,7 +291,7 @@ const paverOptions = [{
   name: paver.name,
   color: '#D3D3D3',
   price: 0,
-  // Base price is 0, actual cost calculated by surface area × $20/sq ft
+  // Base price is 0, actual cost calculated by surface area × $50/sq ft
   image: paver.image,
   description: paver.description,
   collection: paver.id.includes('appian') ? 'appian' : paver.id.includes('catalina') ? 'catalina' : 'standard'

@@ -507,7 +507,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
       const paverName = extras.paverOption || "Concrete Deck";
       const selectedPaver = paverOptions.find((p) => p.name === paverName);
-      const pricePerSqFt = selectedPaver?.basePrice || 20;
+      const pricePerSqFt = selectedPaver?.basePrice || 50;
       total += parseFloat(paverSurfaceArea) * pricePerSqFt;
     }
 
@@ -1024,7 +1024,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                 />
                 {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && (
                   <div className="text-xs text-green-600 font-medium">
-                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * 20).toLocaleString()} (${paverSurfaceArea} sq ft × $20/sq ft)
+                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * (paverOptions.find(p => p.name === extras.paverOption)?.basePrice || 50)).toLocaleString()} (${paverSurfaceArea} sq ft × ${paverOptions.find(p => p.name === extras.paverOption)?.basePrice || 50}/sq ft)
                   </div>
                 )}
               </div>
@@ -1668,7 +1668,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                     if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
                       const paverName = extras.paverOption || "Concrete Deck";
                       const selectedPaver = paverOptions.find((p) => p.name === paverName);
-                      const pricePerSqFt = selectedPaver?.basePrice || 20;
+                      const pricePerSqFt = selectedPaver?.basePrice || 50;
                       extrasBreakdown.push({
                         name: `${paverName} (${paverSurfaceArea} sq ft @ $${pricePerSqFt}/sq ft)`,
                         price: parseFloat(paverSurfaceArea) * pricePerSqFt,
@@ -1799,7 +1799,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                       if (paverOption) originalTotal += paverOption.price;
                       if (paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
                         const selectedPaverType = paverTypes.find(p => p.name === extras.paverOption);
-                        const pricePerSqFt = selectedPaverType?.basePrice || 20;
+                        const pricePerSqFt = selectedPaverType?.basePrice || 50;
                         originalTotal += parseFloat(paverSurfaceArea) * pricePerSqFt;
                       }
                       if (extras.spa) {
