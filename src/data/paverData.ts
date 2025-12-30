@@ -302,7 +302,7 @@ export const copingTypes: PaverType[] = [
     colors: [
       { name: 'Bluestone', hex: '#4682B4', priceModifier: 1.0 },
       { name: 'Limestone', hex: '#E5E4E2', priceModifier: 1.05 },
-      { name: 'Travertine', hex: '#F5DEB3', priceModifier: 1.1 },
+      { name: 'Travertine', hex: '#F5DEB3', priceModifier: 1.55 },
       { name: 'Granite', hex: '#2F4F4F', priceModifier: 1.3 }
     ]
   },

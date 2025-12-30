@@ -469,16 +469,18 @@ const WonderlandsStudio = () => {
         setActiveTab('spas');
       }
 
-      // Check in tanning ledges
-      const ledgeMatch = tanningLedges.find(l => l.name === model);
-      if (ledgeMatch) {
-        foundProduct = {
-          ...ledgeMatch,
-          type: 'tanning-ledge' as const,
-          model: ledgeMatch.name,
-          category: 'premium'
-        };
-        setActiveTab('tanning-ledges');
+      // Check in tanning ledges - only if not already found as a pool (to avoid conflicts like "Genesis" pool vs "Genesis" ledge)
+      if (!foundProduct) {
+        const ledgeMatch = tanningLedges.find(l => l.name === model);
+        if (ledgeMatch) {
+          foundProduct = {
+            ...ledgeMatch,
+            type: 'tanning-ledge' as const,
+            model: ledgeMatch.name,
+            category: 'premium'
+          };
+          setActiveTab('tanning-ledges');
+        }
       }
 
       // Check in saunas
@@ -860,12 +862,13 @@ const WonderlandsStudio = () => {
       }
     }
 
-    // Add paver surface area cost ($20/sqft)
+    // Add paver surface area cost (dynamic based on selected paver's basePrice)
     if (selectedExtras.pavers && paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea))) {
       const selectedPaver = paverTypes.find(p => p.name === selectedExtras.paverOption);
+      const pricePerSqFt = selectedPaver?.basePrice || 20;
       extrasBreakdown.push({
-        name: `${selectedExtras.paverOption} (${paverSurfaceArea} sq ft)`,
-        price: parseFloat(paverSurfaceArea) * 20,
+        name: `${selectedExtras.paverOption} (${paverSurfaceArea} sq ft @ $${pricePerSqFt}/sqft)`,
+        price: parseFloat(paverSurfaceArea) * pricePerSqFt,
         image: selectedPaver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png'
       });
     }
