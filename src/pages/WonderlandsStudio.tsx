@@ -2492,7 +2492,7 @@ const WonderlandsStudio = () => {
                                 <span>Deck Pavers</span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-muted-foreground">
-                                    +${paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) ? (parseFloat(paverSurfaceArea) * 20).toLocaleString() : '0'}
+                                    +${paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) ? (parseFloat(paverSurfaceArea) * (paverTypes.find(p => p.name === selectedExtras.paverOption)?.basePrice || 20)).toLocaleString() : '0'}
                                   </span>
                                   <Button variant="ghost" size="sm" onClick={() => removeExtra('pavers')} className="h-6 w-6 p-0">
                                     <X className="h-3 w-3" />

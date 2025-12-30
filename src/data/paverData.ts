@@ -178,72 +178,72 @@ export const paverTypes: PaverType[] = [
     image: '/lovable-uploads/coralina-blanco.jpg'
   },
   
-  // Priceline Deck Collection - Premium deck options at $25/sqft
+  // Premium Travertine Collection - $50/sqft
   {
-    id: 'priceline-light',
-    name: 'Priceline Light',
-    description: 'Premium Priceline Light travertine-style deck finish',
-    basePrice: 25,
+    id: 'travertine-light',
+    name: 'Travertine Light',
+    description: 'Premium Travertine Light natural stone deck finish',
+    basePrice: 50,
     category: 'paver',
     image: '/lovable-uploads/deck-light.png'
   },
   {
-    id: 'priceline-dark',
-    name: 'Priceline Dark',
-    description: 'Premium Priceline Dark travertine-style deck finish',
-    basePrice: 25,
+    id: 'travertine-dark',
+    name: 'Travertine Dark',
+    description: 'Premium Travertine Dark natural stone deck finish',
+    basePrice: 50,
     category: 'paver',
     image: '/lovable-uploads/deck-dark.png'
   },
   {
-    id: 'priceline-misty',
-    name: 'Priceline Misty',
-    description: 'Premium Priceline Misty travertine-style deck finish',
-    basePrice: 25,
+    id: 'travertine-misty',
+    name: 'Travertine Misty',
+    description: 'Premium Travertine Misty natural stone deck finish',
+    basePrice: 50,
     category: 'paver',
     image: '/lovable-uploads/deck-misty.png'
   },
   {
-    id: 'priceline-steel',
-    name: 'Priceline Steel',
-    description: 'Premium Priceline Steel stone-style deck finish',
-    basePrice: 25,
+    id: 'travertine-steel',
+    name: 'Travertine Steel',
+    description: 'Premium Travertine Steel natural stone deck finish',
+    basePrice: 50,
     category: 'paver',
     image: '/lovable-uploads/deck-steel.png'
   },
   {
-    id: 'priceline-pearly',
-    name: 'Priceline Pearly',
-    description: 'Premium Priceline Pearly stone-style deck finish',
-    basePrice: 25,
+    id: 'travertine-pearly',
+    name: 'Travertine Pearly',
+    description: 'Premium Travertine Pearly natural stone deck finish',
+    basePrice: 50,
     category: 'paver',
     image: '/lovable-uploads/deck-pearly.png'
   },
   {
-    id: 'priceline-silver',
-    name: 'Priceline Silver',
-    description: 'Premium Priceline Silver stone-style deck finish',
-    basePrice: 25,
+    id: 'travertine-silver',
+    name: 'Travertine Silver',
+    description: 'Premium Travertine Silver natural stone deck finish',
+    basePrice: 50,
     category: 'paver',
     image: '/lovable-uploads/deck-silver.png'
   },
   {
-    id: 'priceline-rustic',
-    name: 'Priceline Rustic',
-    description: 'Premium Priceline Rustic stone-style deck finish',
-    basePrice: 25,
+    id: 'travertine-rustic',
+    name: 'Travertine Rustic',
+    description: 'Premium Travertine Rustic natural stone deck finish',
+    basePrice: 50,
     category: 'paver',
     image: '/lovable-uploads/deck-rustic.png'
   },
   
-  // Premium Travertine Collection - $50/sqft
+  // Premium Travertine Finishes - $50/sqft
   {
     id: 'travertine-classic',
     name: 'Travertine Classic',
     description: 'Premium natural travertine pavers with classic finish',
     basePrice: 50,
     category: 'paver',
-    image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png'
+    image: '/lovable-uploads/classic-brown.png'
   },
   {
     id: 'travertine-tumbled',
@@ -251,7 +251,7 @@ export const paverTypes: PaverType[] = [
     description: 'Premium tumbled travertine pavers with antique finish',
     basePrice: 50,
     category: 'paver',
-    image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png'
+    image: '/lovable-uploads/classic-grey.png'
   },
   {
     id: 'travertine-honed',
@@ -259,7 +259,7 @@ export const paverTypes: PaverType[] = [
     description: 'Premium honed travertine pavers with smooth finish',
     basePrice: 50,
     category: 'paver',
-    image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png'
+    image: '/lovable-uploads/deck-light.png'
   }
 ];
 

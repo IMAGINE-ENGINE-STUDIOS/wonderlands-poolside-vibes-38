@@ -12,7 +12,7 @@ import { useShoppingCart } from "./ShoppingCartProvider";
 import { toast } from "sonner";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 
-const PRICE_PER_SQFT = 20; // All pavers $20/sqft
+const PRICE_PER_SQFT = 20; // Base price for Appian, Catalina collections
 
 const PaversSection = () => {
   const [showOptionsModal, setShowOptionsModal] = useState(false);
@@ -31,7 +31,9 @@ const PaversSection = () => {
     if (!surfaceArea) return 0;
     const area = parseFloat(surfaceArea);
     if (isNaN(area)) return 0;
-    return PRICE_PER_SQFT * area;
+    // Use selected paver's basePrice if available, otherwise default PRICE_PER_SQFT
+    const pricePerSqFt = selectedPaverType?.basePrice || PRICE_PER_SQFT;
+    return pricePerSqFt * area;
   };
 
   const handleAddToCart = () => {
@@ -77,10 +79,11 @@ const PaversSection = () => {
     const area = parseFloat(surfaceArea);
     if (isNaN(area)) return undefined;
     
-    const totalPrice = PRICE_PER_SQFT * area;
+    const pricePerSqFt = selectedPaverType?.basePrice || PRICE_PER_SQFT;
+    const totalPrice = pricePerSqFt * area;
     return {
       extrasBreakdown: [{
-        name: `${selectedPaverType.name} (${area} sq ft)`,
+        name: `${selectedPaverType.name} (${area} sq ft @ $${pricePerSqFt}/sqft)`,
         price: totalPrice
       }],
       extrasTotal: totalPrice
@@ -101,7 +104,7 @@ const PaversSection = () => {
                 <img src={paver.image} alt={paver.name} className="w-full h-full object-cover" />
               </div>
               <p className="text-xs font-medium truncate">{paver.name.replace('Appian ', '').replace('Catalina Grana ', '').replace('Catalina ', '')}</p>
-              <p className="text-xs text-muted-foreground">${PRICE_PER_SQFT}/sq ft</p>
+              <p className="text-xs text-muted-foreground">${paver.basePrice}/sq ft</p>
             </div>
           </CarouselItem>
         ))}
@@ -438,7 +441,7 @@ const PaversSection = () => {
                         <p className="text-sm font-medium text-center">
                           {paver.name.replace(selectedCollection === 'appian' ? 'Appian ' : selectedCollection === 'catalina-grana' ? 'Catalina Grana ' : 'Catalina ', '')}
                         </p>
-                        <p className="text-xs text-muted-foreground text-center">${PRICE_PER_SQFT}/sq ft</p>
+                        <p className="text-xs text-muted-foreground text-center">${paver.basePrice}/sq ft</p>
                       </div>
                     </CarouselItem>
                   ))}
@@ -492,7 +495,7 @@ const PaversSection = () => {
                   </div>
                   <div className="flex justify-between">
                     <span>Price per sq ft:</span>
-                    <span>${PRICE_PER_SQFT}.00</span>
+                    <span>${selectedPaverType?.basePrice || PRICE_PER_SQFT}.00</span>
                   </div>
                 </div>
               )}
