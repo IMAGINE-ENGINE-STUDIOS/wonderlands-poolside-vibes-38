@@ -14,6 +14,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { ProductImageModal } from "./ProductImageModal";
 import { tanningLedges } from "@/data/poolData";
 import { paverTypes, copingTypes } from "@/data/paverData";
+import { getPaverPricePerSqFt, calculatePaverCost } from "@/utils/paverPricing";
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
 import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
@@ -663,7 +664,7 @@ const SpaProductCard = ({
                         </div>
                         <p className="text-xs font-medium text-center">{paver.name}</p>
                         {paver.collection !== 'none' && <p className="text-[10px] text-secondary font-semibold text-center capitalize">{paver.collection}</p>}
-                        <p className="text-[10px] text-muted-foreground text-center mt-1">${paver.pricePerSqFt || 50}/sq ft</p>
+                        <p className="text-[10px] text-muted-foreground text-center mt-1">${getPaverPricePerSqFt(paver.name)}/sq ft</p>
                       </div>
                     </CarouselItem>)}
                 </CarouselContent>
@@ -676,7 +677,7 @@ const SpaProductCard = ({
                 </label>
                 <Input type="number" placeholder="Enter surface area for pavers" value={paverSurfaceArea} onChange={e => setPaverSurfaceArea(e.target.value)} className="mb-2" />
                 {paverSurfaceArea && !isNaN(parseFloat(paverSurfaceArea)) && <div className="text-xs text-green-600 font-medium">
-                    Calculated Cost: ${(parseFloat(paverSurfaceArea) * (paverOptions.find(p => p.name === extras.paverOption)?.pricePerSqFt || 50)).toLocaleString()} ({paverSurfaceArea} sq ft × ${paverOptions.find(p => p.name === extras.paverOption)?.pricePerSqFt || 50}/sq ft)
+                    Calculated Cost: ${calculatePaverCost(paverSurfaceArea, extras.paverOption).toLocaleString()} ({paverSurfaceArea} sq ft × ${getPaverPricePerSqFt(extras.paverOption)}/sq ft)
                   </div>}
               </div>
             </div>

@@ -17,6 +17,7 @@ import {
   Grid3X3,
   Home
 } from 'lucide-react';
+import { DEFAULT_PAVER_PRICE_PER_SQFT, calculatePaverCost } from '@/utils/paverPricing';
 
 export type ProductCategory = 'pool' | 'spa' | 'tanning-ledge' | 'finish' | 'liner' | 'cover' | 'paver' | 'coping' | 'tile' | 'screen-enclosure';
 
@@ -67,7 +68,7 @@ const ProductOptionsManager = ({ productType, productName, onOptionsChange }: Pr
     }
     if (productType === 'paver') {
       const area = parseFloat(surfaceArea) || 0;
-      const calculatedPrice = area * 50;
+      const calculatedPrice = calculatePaverCost(area);
 
       setSelectedOptions({
         surfaceArea: area,
@@ -204,12 +205,12 @@ const ProductOptionsManager = ({ productType, productName, onOptionsChange }: Pr
                     <div>
                       <h4 className="font-semibold">Price Calculation</h4>
                       <p className="text-sm text-muted-foreground">
-                        {surfaceArea} sq ft × $50/sq ft
+                        {surfaceArea} sq ft × ${DEFAULT_PAVER_PRICE_PER_SQFT}/sq ft
                       </p>
                     </div>
                     <div className="text-right">
                       <span className="text-2xl font-bold text-primary">
-                        ${(parseFloat(surfaceArea) * 50).toLocaleString()}
+                        ${calculatePaverCost(surfaceArea).toLocaleString()}
                       </span>
                     </div>
                   </div>

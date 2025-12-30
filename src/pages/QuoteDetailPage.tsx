@@ -10,6 +10,7 @@ import { OptimizedImage } from '@/components/OptimizedImage';
 import ImageCard from '@/components/ImageCard';
 import poolHeaterImg from '@/assets/pool-heater.png';
 import InvoiceGenerator from '@/components/InvoiceGenerator';
+import { DEFAULT_PAVER_PRICE_PER_SQFT } from "@/utils/paverPricing";
 
 interface UserQuotation {
   id: string;
@@ -226,7 +227,7 @@ const QuoteDetailPage = () => {
                 <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg">
                   <h4 className="font-semibold mb-2">Paver Deck ({quote.deck_width || 3}ft Width)</h4>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Paver deck priced at $50/sq ft
+                    Paver deck priced at ${DEFAULT_PAVER_PRICE_PER_SQFT}/sq ft
                   </p>
                 </div>
 
