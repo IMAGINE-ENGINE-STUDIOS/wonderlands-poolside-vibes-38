@@ -2070,6 +2070,77 @@ const WonderlandsStudio = () => {
                               </Carousel>
                             );
                           })()}
+                          
+                          {/* Spa Finish Selection - Only for Latham spas on Glimmerglass pools */}
+                          {selectedExtras.spa && selectedExtras.spaModel && (() => {
+                            const lathamSpaModels = ["Mystic", "Regal", "Royal", "Shafta"];
+                            const isLathamSpa = lathamSpaModels.some(model => 
+                              selectedExtras.spaModel?.toLowerCase().includes(model.toLowerCase())
+                            );
+                            const productName = selectedProduct?.model || selectedProduct?.name || '';
+                            const isGlimmerglassPool = gilmerPools.some(p => p.model === productName) || 
+                              productName.toLowerCase().includes('glimmerglass') ||
+                              productName.toLowerCase().includes('serafin');
+                            
+                            if (isGlimmerglassPool && isLathamSpa) {
+                              const crystiteFinishes = [
+                                { id: 'sapphire-blue', name: 'Sapphire Blue', price: 3500, image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png' },
+                                { id: 'ocean-blue', name: 'Ocean Blue', price: 3500, image: '/lovable-uploads/2103693f-cf54-423d-99c7-68d6f3951388.png' },
+                                { id: 'night-sky', name: 'Night Sky', price: 3500, image: '/lovable-uploads/90fe0136-31f1-4fa3-b816-56a7a74484fa.png' },
+                                { id: 'shale-gray', name: 'Shale Gray', price: 3500, image: '/lovable-uploads/15032ed4-f745-4152-ae9b-c26fdb52f68c.png' },
+                                { id: 'coastal-bronze', name: 'Coastal Bronze', price: 3500, image: '/lovable-uploads/b1abd5c3-af2e-46fa-82be-5db27d20a388.png' },
+                                { id: 'pearl-white', name: 'Pearl White', price: 3500, image: '/lovable-uploads/0a3d28a3-a0dd-41e8-91ba-6c0ec4dbe9af.png' },
+                              ];
+                              
+                              return (
+                                <div className="space-y-2 mt-4">
+                                  <label className="text-xs font-medium text-muted-foreground">Select Spa Finish (Crystite Crystal):</label>
+                                  <Carousel 
+                                    className="w-full"
+                                    opts={{
+                                      align: "start",
+                                      loop: false,
+                                      duration: 25,
+                                    }}
+                                  >
+                                    <CarouselContent className="-ml-1">
+                                      {crystiteFinishes.map((finish) => (
+                                        <CarouselItem key={finish.id} className="pl-1 basis-1/2 md:basis-1/4">
+                                          <div
+                                            className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.spaFinish === finish.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                            onClick={() =>
+                                              setSelectedExtras((prev: any) => ({
+                                                ...prev,
+                                                spaFinish: finish.name,
+                                                spaFinishPrice: finish.price,
+                                              }))
+                                            }
+                                          >
+                                            <div className="w-full h-20 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                              <img
+                                                src={finish.image}
+                                                alt={finish.name}
+                                                className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                                              />
+                                            </div>
+                                            <div className="flex flex-col gap-0.5">
+                                              <p className="text-xs font-medium text-center truncate">{finish.name}</p>
+                                              <p className="text-xs text-primary font-semibold text-center">
+                                                +${finish.price.toLocaleString()}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </CarouselItem>
+                                      ))}
+                                    </CarouselContent>
+                                    <CarouselPrevious className="left-0 animate-pulse" />
+                                    <CarouselNext className="right-0 animate-pulse" />
+                                  </Carousel>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
                         </div>
 
                         {/* Tanning Ledge */}
@@ -2207,7 +2278,7 @@ const WonderlandsStudio = () => {
                           >
                             <CarouselContent className="-ml-1">
                               {[
-                                { key: "standard", name: "Wonder Cage", price: 20, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
+                                { key: "standard", name: "Wonder Cage", price: 25, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
                                 { key: "deluxe", name: "Deluxe", price: 27, image: screenEnclosureDeluxe },
                                 { key: "premium", name: "2 Stories", price: 33, image: screenEnclosurePremium },
                               ].map((quality) => (

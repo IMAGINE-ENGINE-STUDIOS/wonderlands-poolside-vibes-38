@@ -149,7 +149,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
 
   // Screen enclosure options with proper quality names and pricing
   const screenEnclosureQualities = [
-    { key: 'standard', name: 'Wonder Cage', price: 20 },
+    { key: 'standard', name: 'Wonder Cage', price: 25 },
     { key: 'deluxe', name: 'Deluxe', price: 27 },
     { key: 'premium', name: '2 stories', price: 33 }
   ];

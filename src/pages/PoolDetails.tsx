@@ -706,7 +706,7 @@ const PoolDetails = () => {
 
     // Screen Enclosure
     if (extras.screenEnclosureArea && extras.screenEnclosureArea > 0) {
-      let pricePerSqFt = 20; // standard Wonder Cage
+      let pricePerSqFt = 25; // standard Wonder Cage
       if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 27;
       if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 33;
       const qualityName = extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality === 'deluxe' ? 'Deluxe' : '2 Stories';
@@ -2346,9 +2346,9 @@ const PoolDetails = () => {
 
                   // Add screen enclosure if area provided (no separate toggle needed)
                   if (extras.screenEnclosureArea && !isNaN(parseFloat(extras.screenEnclosureArea.toString()))) {
-                    let pricePerSqFt = 15;
-                    if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 22;
-                    if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 28;
+                    let pricePerSqFt = 25;
+                    if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 27;
+                    if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 33;
                     const enclosurePrice = parseFloat(extras.screenEnclosureArea.toString()) * pricePerSqFt;
                     extrasBreakdown.push({
                       name: `Screen Enclosure - ${extras.screenEnclosureQuality === 'standard' ? 'Wonder Cage' : extras.screenEnclosureQuality} (${extras.screenEnclosureArea} sq ft)`,
