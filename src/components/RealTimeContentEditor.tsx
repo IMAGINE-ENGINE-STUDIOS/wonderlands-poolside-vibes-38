@@ -635,7 +635,7 @@ const RealTimeContentEditor = ({ isOpen = true, onClose }: RealTimeContentEditor
                 <div className="space-y-2">
                   {[
                     { id: 'spas', name: 'Spas & Hot Tubs', description: 'Relaxation solutions', products: ['Luxury Spa', 'Corner Spa', 'Family Spa'] },
-                    { id: 'pavers', name: 'Pavers', description: '$20/sq ft (incl. installation)', products: ['Travertine Pavers', 'Concrete Pavers', 'Natural Stone'] },
+                    { id: 'pavers', name: 'Pavers', description: '$25/sq ft (incl. installation)', products: ['Travertine Pavers', 'Concrete Pavers', 'Natural Stone'] },
                     { id: 'copings', name: 'Copings', description: '$20/sq ft (incl. installation)', products: ['Pool Coping Edge', 'Decorative Coping', 'Safety Coping'] },
                     { id: 'tiles', name: 'Pool Tiles', description: 'Decorative finishes', products: ['Ceramic Tiles', 'Glass Tiles', 'Natural Stone Tiles'] },
                     { id: 'covers', name: 'Pool Covers', description: 'Safety & maintenance', products: ['NO COVER', 'Automatic Cover', 'Safety Cover', 'Solar Cover'] },
@@ -668,7 +668,7 @@ const RealTimeContentEditor = ({ isOpen = true, onClose }: RealTimeContentEditor
                                    type: 'product',
                                    content: product,
                                    category: category.name,
-                                   price: category.id === 'pavers' || category.id === 'copings' ? 15 : Math.floor(Math.random() * 5000) + 1000
+                                   price: category.id === 'pavers' || category.id === 'copings' ? 25 : Math.floor(Math.random() * 5000) + 1000
                                  }));
                                }}
                                onDragEnd={(e) => {
@@ -710,7 +710,7 @@ const RealTimeContentEditor = ({ isOpen = true, onClose }: RealTimeContentEditor
                     <div className="mt-2 text-lg font-bold text-green-600">
                       Total Cost: ${calculatedCost.toLocaleString()}
                       <div className="text-xs text-green-600 font-normal">
-                        Surface area: {surfaceArea} sq ft × $20/sq ft
+                        Surface area: {surfaceArea} sq ft × $25/sq ft
                       </div>
                     </div>
                   </div>
