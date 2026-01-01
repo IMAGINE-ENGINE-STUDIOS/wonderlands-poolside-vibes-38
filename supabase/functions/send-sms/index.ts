@@ -37,10 +37,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
     
+    // Status callback URL for delivery tracking
+    const statusCallbackUrl = `https://bwngxlbnavnhbtahyzbf.supabase.co/functions/v1/twilio-status-webhook`;
+    
     const formData = new URLSearchParams();
     formData.append("To", to);
     formData.append("From", fromNumber);
     formData.append("Body", message);
+    formData.append("StatusCallback", statusCallbackUrl);
 
     const response = await fetch(twilioUrl, {
       method: "POST",
