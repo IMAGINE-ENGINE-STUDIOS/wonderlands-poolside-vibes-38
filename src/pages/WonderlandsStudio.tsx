@@ -17,6 +17,7 @@ import FinancingOptions from "@/components/FinancingOptions";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { spas, pools } from "@/components/PoolCatalog";
 import { gilmerPools } from "@/data/gilmerPools";
+import { gilmerSpas } from "@/data/gilmerSpas";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
 import { paverTypes } from "@/data/paverData";
 import { getPaverPricePerSqFt, calculatePaverCost, SCREEN_ENCLOSURE_PRICING } from "@/utils/paverPricing";
@@ -2011,48 +2012,64 @@ const WonderlandsStudio = () => {
                               }
                             />
                           </div>
-                          {selectedExtras.spa && (
-                            <Carousel 
-                              className="w-full"
-                              opts={{
-                                align: "start",
-                                loop: false,
-                                duration: 25,
-                              }}
-                            >
-                              <CarouselContent className="-ml-1">
-                                {spas.map((spa: any) => (
-                                  <CarouselItem key={spa.model} className="pl-1 basis-1/2 md:basis-1/4">
-                                    <div
-                                      className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.spaModel === spa.model ? "border-primary bg-primary/10" : "border-border"}`}
-                                      onClick={() =>
-                                        setSelectedExtras((prev: any) => ({
-                                          ...prev,
-                                          spaModel: spa.model,
-                                        }))
-                                      }
-                                    >
-                                      <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                        <img
-                                          src={spa.image}
-                                          alt={spa.model}
-                                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                                        />
+                          {selectedExtras.spa && (() => {
+                            // Check if selected product is a Glimmerglass pool
+                            const productName = selectedProduct?.model || selectedProduct?.name || '';
+                            const isGlimmerglassPool = gilmerPools.some(p => p.model === productName) || 
+                              productName.toLowerCase().includes('glimmerglass') ||
+                              productName.toLowerCase().includes('serafin');
+                            
+                            // Combine spas - Gilmer spas first for Glimmerglass pools
+                            const combinedSpas = isGlimmerglassPool 
+                              ? [...gilmerSpas.map(s => ({ ...s, brand: 'Glimmerglass' })), ...spas]
+                              : [...spas, ...gilmerSpas.map(s => ({ ...s, brand: 'Glimmerglass' }))];
+                            
+                            return (
+                              <Carousel 
+                                className="w-full"
+                                opts={{
+                                  align: "start",
+                                  loop: false,
+                                  duration: 25,
+                                }}
+                              >
+                                <CarouselContent className="-ml-1">
+                                  {combinedSpas.map((spa: any) => (
+                                    <CarouselItem key={spa.model} className="pl-1 basis-1/2 md:basis-1/4">
+                                      <div
+                                        className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.spaModel === spa.model ? "border-primary bg-primary/10" : "border-border"}`}
+                                        onClick={() =>
+                                          setSelectedExtras((prev: any) => ({
+                                            ...prev,
+                                            spaModel: spa.model,
+                                          }))
+                                        }
+                                      >
+                                        <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                          <img
+                                            src={spa.image}
+                                            alt={spa.model}
+                                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                                          />
+                                        </div>
+                                        <div className="flex flex-col gap-0.5">
+                                          <p className="text-xs font-medium text-center truncate">{spa.model}</p>
+                                          {spa.brand === 'Glimmerglass' && (
+                                            <p className="text-[10px] text-muted-foreground text-center">Glimmerglass</p>
+                                          )}
+                                          <p className="text-xs text-primary font-semibold text-center">
+                                            +${spa.price.toLocaleString()}
+                                          </p>
+                                        </div>
                                       </div>
-                                      <div className="flex flex-col gap-0.5">
-                                        <p className="text-xs font-medium text-center truncate">{spa.model}</p>
-                                        <p className="text-xs text-primary font-semibold text-center">
-                                          +${spa.price.toLocaleString()}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </CarouselItem>
-                                ))}
-                              </CarouselContent>
-                              <CarouselPrevious className="left-0 animate-pulse" />
-                              <CarouselNext className="right-0 animate-pulse" />
-                            </Carousel>
-                          )}
+                                    </CarouselItem>
+                                  ))}
+                                </CarouselContent>
+                                <CarouselPrevious className="left-0 animate-pulse" />
+                                <CarouselNext className="right-0 animate-pulse" />
+                              </Carousel>
+                            );
+                          })()}
                         </div>
 
                         {/* Tanning Ledge */}
@@ -2243,14 +2260,12 @@ const WonderlandsStudio = () => {
                             {selectedExtras.screenEnclosureArea > 0 && (
                               <div className="text-xs text-green-600 font-medium">
                                 Calculated Cost: ${(() => {
-                                  let pricePerSqFt = 20;
-                                  if (selectedExtras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
-                                  if (selectedExtras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
+                                  const quality = selectedExtras.screenEnclosureQuality as 'standard' | 'deluxe' | 'premium' || 'standard';
+                                  const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[quality] || SCREEN_ENCLOSURE_PRICING.standard;
                                   return (selectedExtras.screenEnclosureArea * pricePerSqFt).toLocaleString();
                                 })()} ({selectedExtras.screenEnclosureArea} sq ft × ${(() => {
-                                  if (selectedExtras.screenEnclosureQuality === "deluxe") return "27";
-                                  if (selectedExtras.screenEnclosureQuality === "premium") return "33";
-                                  return "20";
+                                  const quality = selectedExtras.screenEnclosureQuality as 'standard' | 'deluxe' | 'premium' || 'standard';
+                                  return SCREEN_ENCLOSURE_PRICING[quality] || SCREEN_ENCLOSURE_PRICING.standard;
                                 })()}/sq ft)
                               </div>
                             )}
