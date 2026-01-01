@@ -451,7 +451,7 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       description: 'Total square footage to be enclosed',
       type: 'area',
       icon: 'Home',
-      pricePerUnit: 20
+      pricePerUnit: 25
     },
     {
       id: 'quality',
@@ -459,7 +459,7 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       type: 'selection',
       icon: 'Star',
       options: [
-        { name: 'Standard ($20/sq ft)', price: 20 },
+        { name: 'Standard ($25/sq ft)', price: 25 },
         { name: 'Deluxe ($27/sq ft)', price: 27 },
         { name: 'Premium ($33/sq ft)', price: 33 }
       ]

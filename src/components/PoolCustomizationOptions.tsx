@@ -174,7 +174,7 @@ const poolOptions: PoolOption[] = [
   { 
     id: 'screen-standard-1-story', 
     name: 'Standard Screen Enclosure - 1 Story', 
-    description: 'Premium aluminum frame with standard screen mesh - $20/sq ft',
+    description: 'Premium aluminum frame with standard screen mesh - $25/sq ft',
     price: 0, // Base price, calculated by area
     category: 'screen-enclosure',
     image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
@@ -190,7 +190,7 @@ const poolOptions: PoolOption[] = [
   { 
     id: 'screen-premium-1-story', 
     name: 'Premium Screen Enclosure - 1 Story', 
-    description: 'High-end aluminum frame with superior screen mesh - $20/sq ft',
+    description: 'High-end aluminum frame with superior screen mesh - $27/sq ft',
     price: 0, // Base price, calculated by area
     category: 'screen-enclosure',
     image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
@@ -381,10 +381,10 @@ const PoolCustomizationOptions = ({ onSelectionChange }: PoolCustomizationOption
                   <span className="text-xl font-bold text-primary">
                     {option.price === 0 
                       ? (option.category === 'screen-enclosure' 
-                          ? option.description.includes('$20') ? '$20/sq ft'
+                          ? option.description.includes('$25') ? '$25/sq ft'
                             : option.description.includes('$27') ? '$27/sq ft'
                             : '$33/sq ft'
-                          : '$20/sq ft')
+                          : '$25/sq ft')
                       : `+$${option.price.toLocaleString()}`
                     }
                   </span>

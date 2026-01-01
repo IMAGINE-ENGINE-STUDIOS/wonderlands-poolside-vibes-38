@@ -32,6 +32,8 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { ProductImageModal } from "./ProductImageModal";
 import ExclusiveSaunaOffer from "./ExclusiveSaunaOffer";
 import { spas } from "./PoolCatalog";
+import { gilmerSpas } from "@/data/gilmerSpas";
+import { gilmerPools } from "@/data/gilmerPools";
 import { tanningLedges } from "@/data/poolData";
 import { paverTypes, copingTypes } from "@/data/paverData";
 import { getPaverPricePerSqFt, calculatePaverCost, formatPaverCostDisplay, SCREEN_ENCLOSURE_PRICING } from "@/utils/paverPricing";
@@ -1412,33 +1414,48 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </div>
                 </label>
 
-                {extras.spa && (
-                  <div className="ml-6 space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">Select Spa Model:</label>
-                    <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
-                      <CarouselContent className="-ml-1">
-                        {spas.map((spa: any) => (
-                          <CarouselItem key={spa.model} className="pl-1 basis-1/2">
-                            <div
-                              onClick={() => setExtras((prev) => ({ ...prev, spaModel: spa.model }))}
-                              className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.spaModel === spa.model ? "border-primary bg-primary/10" : "border-border"}`}
-                            >
-                              <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
-                                {spa.image && <img src={spa.image} alt={spa.model} className="w-full h-full object-cover" />}
+                {extras.spa && (() => {
+                  // Check if current pool is a Glimmerglass pool
+                  const isGlimmerglassPool = gilmerPools.some(p => p.model === pool.model) || 
+                    pool.model.toLowerCase().includes('glimmerglass') ||
+                    pool.model.toLowerCase().includes('serafin');
+                  
+                  // Combine spas - Gilmer spas first for Glimmerglass pools
+                  const combinedSpas = isGlimmerglassPool 
+                    ? [...gilmerSpas.map(s => ({ ...s, brand: 'Glimmerglass' })), ...spas]
+                    : [...spas, ...gilmerSpas.map(s => ({ ...s, brand: 'Glimmerglass' }))];
+                  
+                  return (
+                    <div className="ml-6 space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground">Select Spa Model:</label>
+                      <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
+                        <CarouselContent className="-ml-1">
+                          {combinedSpas.map((spa: any) => (
+                            <CarouselItem key={spa.model} className="pl-1 basis-1/2">
+                              <div
+                                onClick={() => setExtras((prev) => ({ ...prev, spaModel: spa.model }))}
+                                className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${extras.spaModel === spa.model ? "border-primary bg-primary/10" : "border-border"}`}
+                              >
+                                <div className="w-full h-16 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                  {spa.image && <img src={spa.image} alt={spa.model} className="w-full h-full object-cover" />}
+                                </div>
+                                <div className="flex-1 flex flex-col justify-between min-h-0">
+                                  <p className="text-xs font-medium text-center line-clamp-2">{spa.model}</p>
+                                  {spa.brand === 'Glimmerglass' && (
+                                    <p className="text-[10px] text-muted-foreground text-center">Glimmerglass</p>
+                                  )}
+                                  <p className="text-xs text-primary font-semibold text-center mt-1">${spa.price.toLocaleString()}</p>
+                                </div>
                               </div>
-                              <div className="flex-1 flex flex-col justify-between min-h-0">
-                                <p className="text-xs font-medium text-center line-clamp-2">{spa.model}</p>
-                                <p className="text-xs text-primary font-semibold text-center mt-1">${spa.price.toLocaleString()}</p>
-                              </div>
-                            </div>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      <CarouselPrevious className="left-0 animate-pulse" />
-                      <CarouselNext className="right-0 animate-pulse" />
-                    </Carousel>
-                  </div>
-                )}
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="left-0 animate-pulse" />
+                        <CarouselNext className="right-0 animate-pulse" />
+                      </Carousel>
+                    </div>
+                  );
+                })()}
 
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox checked={extras.tanningLedge} onCheckedChange={() => toggleExtra("tanningLedge")} />

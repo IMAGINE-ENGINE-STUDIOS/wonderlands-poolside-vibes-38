@@ -5,7 +5,7 @@ export const DEFAULT_PAVER_PRICE_PER_SQFT = 50;
 
 // Screen enclosure pricing tiers
 export const SCREEN_ENCLOSURE_PRICING = {
-  standard: 20,
+  standard: 25,
   deluxe: 27,
   premium: 33,
 } as const;
