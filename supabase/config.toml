@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.twilio-status-webhook]
 verify_jwt = false
+
+[functions.test-twilio]
+verify_jwt = true
