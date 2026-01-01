@@ -36,6 +36,7 @@ import SalesRepManager from '@/components/admin/SalesRepManager';
 import AutomationTemplatesManager from '@/components/admin/AutomationTemplatesManager';
 import AutomationSequencesManager from '@/components/admin/AutomationSequencesManager';
 import AutomationStatusManager from '@/components/admin/AutomationStatusManager';
+import { TwilioTestPanel } from '@/components/admin/TwilioTestPanel';
 
 // Navigation Item Component
 const NavItem = ({
@@ -727,6 +728,7 @@ const AdminDashboard = () => {
 
           {/* Automation Status Tab */}
           {isMainAdmin && activeSection === "automation-status" && <div className="space-y-6 animate-fade-in">
+              <TwilioTestPanel />
               <AutomationStatusManager />
             </div>}
         </div>
