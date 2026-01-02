@@ -383,7 +383,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
     description: undefined,
   });
 
-  // No need to fetch from database - using static paver data with $20/sq ft pricing
+  // No need to fetch from database - using static paver data
 
   const handleImageClick = () => {
     // Navigate to Wonderlands Studio with the selected product
@@ -1767,7 +1767,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
                     // Add screen enclosure if area provided
                     if (extras.screenEnclosureArea > 0) {
-                      let pricePerSqFt = 20;
+                      let pricePerSqFt = 25;
                       if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
                       if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
                       const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
@@ -1876,7 +1876,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         if (selectedLedge) originalTotal += selectedLedge.price;
                       }
                       if (extras.screenEnclosureArea > 0) {
-                        let pricePerSqFt = 20;
+                        let pricePerSqFt = 25;
                         if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
                         if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
                         originalTotal += extras.screenEnclosureArea * pricePerSqFt;
