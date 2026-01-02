@@ -560,12 +560,22 @@ export const calculateFeaturePrice = (
     case 'quantity':
       price = (feature.basePrice || 0) * (value || 0);
       break;
-    case 'area':
+    case 'area': {
       const area = parseFloat(value) || 0;
-      const selectedOption = feature.options?.find(opt => opt.name === extras[`${feature.id}Option`]);
-      const pricePerUnit = selectedOption?.price || feature.pricePerUnit || 0;
+
+      // Some screens store the "option" value under different keys.
+      // Support the legacy keys so area-based pricing uses the correct rate.
+      const optionKey = `${feature.id}Option`;
+      const optionName =
+        extras?.[optionKey] ??
+        (feature.id === 'pavers' ? extras?.paverOption : undefined) ??
+        (feature.id === 'screenEnclosure' ? extras?.screenEnclosureQuality : undefined);
+
+      const selectedOption = feature.options?.find((opt) => opt.name === optionName);
+      const pricePerUnit = selectedOption?.price ?? feature.pricePerUnit ?? 0;
       price = area * pricePerUnit;
       break;
+    }
     case 'nested':
       // For nested features, calculate main feature price
       if (value && feature.options) {
