@@ -2278,7 +2278,7 @@ const WonderlandsStudio = () => {
                           >
                             <CarouselContent className="-ml-1">
                               {[
-                                { key: "standard", name: "Wonder Cage", price: 25, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
+                                { key: "standard", name: "Wonder Cage", price: 27, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
                                 { key: "deluxe", name: "Deluxe", price: 27, image: screenEnclosureDeluxe },
                                 { key: "premium", name: "2 Stories", price: 33, image: screenEnclosurePremium },
                               ].map((quality) => (

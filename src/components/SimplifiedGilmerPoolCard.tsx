@@ -149,7 +149,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
 
   // Screen enclosure options with proper quality names and pricing
   const screenEnclosureQualities = [
-    { key: 'standard', name: 'Wonder Cage', price: 25 },
+    { key: 'standard', name: 'Wonder Cage', price: 27 },
     { key: 'deluxe', name: 'Deluxe', price: 27 },
     { key: 'premium', name: '2 stories', price: 33 }
   ];
@@ -498,7 +498,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               >
                 <CarouselContent className="-ml-1">
                   {[
-                    { key: "standard", name: "Wonder Cage", price: 20, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
+                    { key: "standard", name: "Wonder Cage", price: 27, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
                     { key: "deluxe", name: "Deluxe", price: 27, image: screenEnclosureDeluxe },
                     { key: "premium", name: "2 Stories", price: 33, image: screenEnclosurePremium },
                   ].map((quality) => (

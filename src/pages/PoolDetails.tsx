@@ -572,7 +572,7 @@ const PoolDetails = () => {
 
     // Add screen enclosure price if area is provided and valid
     if (extras.screenEnclosureArea && extras.screenEnclosureArea > 0) {
-      let pricePerSqFt = 20; // standard
+      let pricePerSqFt = 27; // standard Wonder Cage
       if (extras.screenEnclosureQuality === 'deluxe') pricePerSqFt = 27;
       if (extras.screenEnclosureQuality === 'premium') pricePerSqFt = 33;
       total += extras.screenEnclosureArea * pricePerSqFt;
