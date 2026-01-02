@@ -232,9 +232,9 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       label: 'Screen Enclosure',
       type: 'area',
       icon: 'Home',
-      pricePerUnit: 20, // Base rate, modified by quality
+      pricePerUnit: 27, // Base rate (Wonder Cage)
       options: [
-        { name: 'standard', price: 20 },
+        { name: 'standard', price: 27 },
         { name: 'deluxe', price: 27 },
         { name: 'premium', price: 33 }
       ]
@@ -329,9 +329,9 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       label: 'Screen Enclosure',
       type: 'area',
       icon: 'Home',
-      pricePerUnit: 20,
+      pricePerUnit: 27,
       options: [
-        { name: 'standard', price: 20 },
+        { name: 'standard', price: 27 },
         { name: 'deluxe', price: 27 },
         { name: 'premium', price: 33 }
       ]
@@ -451,7 +451,7 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       description: 'Total square footage to be enclosed',
       type: 'area',
       icon: 'Home',
-      pricePerUnit: 25
+      pricePerUnit: 27
     },
     {
       id: 'quality',

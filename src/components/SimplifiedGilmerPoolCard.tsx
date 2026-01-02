@@ -203,9 +203,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     }
     
     if (options.screenEnclosure) {
-      let pricePerSqFt = 20;
-      if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 27;
-      if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 33;
+      const quality = (options.screenEnclosureQuality as 'standard' | 'deluxe' | 'premium') || 'standard';
+      const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[quality] || SCREEN_ENCLOSURE_PRICING.standard;
       total += options.screenEnclosureArea * pricePerSqFt;
     }
     
@@ -266,9 +265,8 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     }
     if (options.tiles) extrasArray.push({ name: `Tiles: ${options.tileOption}`, price: tileOptions.find(t => t.name === options.tileOption)?.price || 0 });
     if (options.screenEnclosure && options.screenEnclosureArea > 0) {
-      let pricePerSqFt = 20;
-      if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 27;
-      if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 33;
+      const quality = (options.screenEnclosureQuality as 'standard' | 'deluxe' | 'premium') || 'standard';
+      const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[quality] || SCREEN_ENCLOSURE_PRICING.standard;
       extrasArray.push({ name: `Screen Enclosure: ${screenEnclosureQualities.find(q => q.key === options.screenEnclosureQuality)?.name} (${options.screenEnclosureArea} sq ft)`, price: options.screenEnclosureArea * pricePerSqFt });
     }
     if (options.poolHeater) extrasArray.push({ name: `Heater: ${options.heaterModel}`, price: heaterOptions.find(h => h.name === options.heaterModel)?.price || 0 });
