@@ -459,7 +459,7 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       type: 'selection',
       icon: 'Star',
       options: [
-        { name: 'Standard ($25/sq ft)', price: 25 },
+        { name: 'Standard ($27/sq ft)', price: 27 },
         { name: 'Deluxe ($27/sq ft)', price: 27 },
         { name: 'Premium ($33/sq ft)', price: 33 }
       ]

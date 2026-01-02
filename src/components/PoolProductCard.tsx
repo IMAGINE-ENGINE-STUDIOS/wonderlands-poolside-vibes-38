@@ -1045,7 +1045,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
               >
                 <CarouselContent className="-ml-1">
                   {[
-                    { key: "standard", name: "Wonder Cage", price: 25, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
+                    { key: "standard", name: "Wonder Cage", price: 27, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
                     { key: "deluxe", name: "Deluxe", price: 27, image: screenEnclosureDeluxe },
                     { key: "premium", name: "2 Stories", price: 33, image: screenEnclosurePremium },
                   ].map((quality) => (
@@ -1767,7 +1767,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
                     // Add screen enclosure if area provided
                     if (extras.screenEnclosureArea > 0) {
-                      let pricePerSqFt = 25;
+                      let pricePerSqFt = 27;
                       if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
                       if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
                       const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
@@ -1876,7 +1876,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         if (selectedLedge) originalTotal += selectedLedge.price;
                       }
                       if (extras.screenEnclosureArea > 0) {
-                        let pricePerSqFt = 25;
+                        let pricePerSqFt = 27;
                         if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
                         if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
                         originalTotal += extras.screenEnclosureArea * pricePerSqFt;

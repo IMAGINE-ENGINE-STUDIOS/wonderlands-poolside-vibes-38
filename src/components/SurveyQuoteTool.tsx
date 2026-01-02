@@ -454,7 +454,7 @@ const SurveyQuoteTool = ({
         // Calculate screen enclosure price based on enclosure footprint area
         const enclosureArea = getEnclosureArea();
         if (option.id.includes('standard-1-story')) {
-          return total + enclosureArea * 25; // Updated standard price
+          return total + enclosureArea * 27; // Wonder Cage standard price
         } else if (option.id.includes('standard-2-story')) {
           return total + enclosureArea * 27;
         } else if (option.id.includes('premium-1-story')) {
