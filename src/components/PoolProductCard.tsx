@@ -734,8 +734,11 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
             <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
             <div className="flex flex-col">
               <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
-                ${getPoolPrice(pool).toLocaleString()}
+                ${(getPoolPrice(pool) * priceMultiplier).toLocaleString()}
               </span>
+              {projectType === 'commercial' && (
+                <span className="text-xs text-amber-600 font-medium">Commercial Rate</span>
+              )}
             </div>
           </div>
           {pool.category === "deluxe" && <div className="flex items-center gap-2"></div>}
@@ -1882,7 +1885,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
                         originalTotal += extras.screenEnclosureArea * pricePerSqFt;
                       }
-                      return Math.round(originalTotal).toLocaleString();
+                      // Apply project type multiplier
+                      return Math.round(originalTotal * priceMultiplier).toLocaleString();
                     })()}
                   </div>
                   <div className="text-2xl font-bold text-foreground">${calculateTotalPrice().toLocaleString()}</div>

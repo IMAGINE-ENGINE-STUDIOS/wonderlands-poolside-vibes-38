@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -94,6 +94,11 @@ const SmartProductCard = ({
   const [selectedOptions, setSelectedOptions] = useState<any>({});
   const [totalPrice, setTotalPrice] = useState(price * priceMultiplier);
   const { addToCart } = useShoppingCart();
+
+  // Update totalPrice when priceMultiplier changes
+  useEffect(() => {
+    recomputeTotal(price, primaryOptions, screenOptions);
+  }, [priceMultiplier]);
 
   const recomputeTotal = (basePrice = price, primary = primaryOptions, screen = screenOptions) => {
     let calculated = basePrice;
@@ -233,15 +238,18 @@ const SmartProductCard = ({
               <DollarSign className="h-4 w-4 text-primary" />
               <span className="text-xl font-bold text-foreground">
                 {category === 'screen-enclosure' || category === 'paver' 
-                  ? `$${price}/sq ft` 
+                  ? `$${(price * priceMultiplier).toFixed(0)}/sq ft` 
                   : `$${totalPrice.toLocaleString()}`}
               </span>
-              {totalPrice !== price && category !== 'screen-enclosure' && category !== 'paver' && (
+              {totalPrice !== price * priceMultiplier && category !== 'screen-enclosure' && category !== 'paver' && (
                 <span className="text-sm text-muted-foreground line-through">
-                  ${price.toLocaleString()}
+                  ${(price * priceMultiplier).toLocaleString()}
                 </span>
               )}
             </div>
+            {projectType === 'commercial' && (
+              <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-500/30">Commercial</Badge>
+            )}
           </div>
 
           {/* Available Options Info */}
