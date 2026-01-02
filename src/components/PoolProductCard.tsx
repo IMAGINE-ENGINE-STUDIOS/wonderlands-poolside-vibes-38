@@ -1098,14 +1098,12 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                 {extras.screenEnclosureArea > 0 && (
                   <div className="text-xs text-green-600 font-medium">
                     Calculated Cost: ${(() => {
-                      let pricePerSqFt = 25;
-                      if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
-                      if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
+                      const quality = (extras.screenEnclosureQuality as 'standard' | 'deluxe' | 'premium') || 'standard';
+                      const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[quality] || SCREEN_ENCLOSURE_PRICING.standard;
                       return (extras.screenEnclosureArea * pricePerSqFt).toLocaleString();
                     })()} ({extras.screenEnclosureArea} sq ft × ${(() => {
-                      if (extras.screenEnclosureQuality === "deluxe") return "27";
-                      if (extras.screenEnclosureQuality === "premium") return "33";
-                      return "25";
+                      const quality = (extras.screenEnclosureQuality as 'standard' | 'deluxe' | 'premium') || 'standard';
+                      return SCREEN_ENCLOSURE_PRICING[quality] || SCREEN_ENCLOSURE_PRICING.standard;
                     })()}/sq ft)
                   </div>
                 )}
@@ -1767,12 +1765,11 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
                     // Add screen enclosure if area provided
                     if (extras.screenEnclosureArea > 0) {
-                      let pricePerSqFt = 27;
-                      if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
-                      if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
+                      const quality = (extras.screenEnclosureQuality as 'standard' | 'deluxe' | 'premium') || 'standard';
+                      const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[quality] || SCREEN_ENCLOSURE_PRICING.standard;
                       const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
                       extrasBreakdown.push({
-                        name: `Screen Enclosure - ${extras.screenEnclosureQuality === "standard" ? "Wonder Cage" : extras.screenEnclosureQuality === "deluxe" ? "Deluxe" : "Premium"} (${extras.screenEnclosureArea} sq ft)`,
+                        name: `Screen Enclosure - ${quality === "standard" ? "Wonder Cage" : quality === "deluxe" ? "Deluxe" : "Premium"} (${extras.screenEnclosureArea} sq ft)`,
                         price: enclosurePrice,
                         image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
                       });
