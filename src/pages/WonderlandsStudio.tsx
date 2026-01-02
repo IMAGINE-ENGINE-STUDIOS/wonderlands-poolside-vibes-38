@@ -2263,12 +2263,17 @@ const WonderlandsStudio = () => {
                                 <CarouselItem key={paver.name} className="pl-1 basis-1/2 md:basis-1/4">
                                   <div
                                     className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.paverOption === paver.name ? "border-primary bg-primary/10" : "border-border"}`}
-                                    onClick={() =>
+                                    onClick={() => {
+                                      const isConcrete = paver.name === "Concrete Deck";
+                                      if (isConcrete) setPaverSurfaceArea("");
+
                                       setSelectedExtras((prev: any) => ({
                                         ...prev,
+                                        pavers: !isConcrete,
                                         paverOption: paver.name,
-                                      }))
-                                    }
+                                        paverSurfaceArea: isConcrete ? "" : prev.paverSurfaceArea,
+                                      }));
+                                    }}
                                   >
                                     <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
                                       <img
@@ -2279,6 +2284,9 @@ const WonderlandsStudio = () => {
                                     </div>
                                     <div className="flex flex-col gap-0.5">
                                       <p className="text-xs font-medium text-center truncate">{paver.name}</p>
+                                      <p className="text-xs text-primary font-semibold text-center">
+                                        {paver.name === "Concrete Deck" ? "$0" : `$${getPaverPricePerSqFt(paver.name)}/sq ft`}
+                                      </p>
                                     </div>
                                   </div>
                                 </CarouselItem>
@@ -2296,16 +2304,30 @@ const WonderlandsStudio = () => {
                               placeholder="Enter surface area"
                               value={selectedExtras.paverSurfaceArea || ""}
                               onChange={(e) => {
-                                setPaverSurfaceArea(e.target.value);
-                                setSelectedExtras((prev: any) => ({
-                                  ...prev,
-                                  paverSurfaceArea: e.target.value,
-                                }));
+                                const nextArea = e.target.value;
+                                setPaverSurfaceArea(nextArea);
+
+                                setSelectedExtras((prev: any) => {
+                                  const nextAreaNum = parseFloat(nextArea);
+                                  const shouldEnablePavers =
+                                    !!nextArea &&
+                                    !isNaN(nextAreaNum) &&
+                                    nextAreaNum > 0 &&
+                                    !!prev.paverOption &&
+                                    prev.paverOption !== "Concrete Deck";
+
+                                  return {
+                                    ...prev,
+                                    pavers: shouldEnablePavers,
+                                    paverSurfaceArea: nextArea,
+                                  };
+                                });
                               }}
                               className="mb-2"
                             />
                             {selectedExtras.paverSurfaceArea &&
                               !isNaN(parseFloat(selectedExtras.paverSurfaceArea)) &&
+                              selectedExtras.paverOption &&
                               selectedExtras.paverOption !== "Concrete Deck" && (
                                 <div className="text-xs text-green-600 font-medium">
                                   Calculated Cost: ${calculatePaverCost(selectedExtras.paverSurfaceArea, selectedExtras.paverOption).toLocaleString()} ({selectedExtras.paverSurfaceArea} sq ft × ${getPaverPricePerSqFt(selectedExtras.paverOption)}/sq ft)
@@ -2337,6 +2359,7 @@ const WonderlandsStudio = () => {
                                     onClick={() =>
                                       setSelectedExtras((prev: any) => ({
                                         ...prev,
+                                        screenEnclosure: true,
                                         screenEnclosureQuality: quality.key,
                                       }))
                                     }
@@ -2369,12 +2392,14 @@ const WonderlandsStudio = () => {
                               type="number"
                               placeholder="Enter surface area"
                               value={selectedExtras.screenEnclosureArea || ""}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                const nextArea = parseFloat(e.target.value) || 0;
                                 setSelectedExtras((prev: any) => ({
                                   ...prev,
-                                  screenEnclosureArea: parseFloat(e.target.value) || 0,
-                                }))
-                              }
+                                  screenEnclosure: nextArea > 0 || !!prev.screenEnclosureQuality,
+                                  screenEnclosureArea: nextArea,
+                                }));
+                              }}
                               className="mb-2"
                             />
                             {selectedExtras.screenEnclosureArea > 0 && (
