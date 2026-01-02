@@ -27,6 +27,7 @@ import { useShoppingCart } from "@/components/ShoppingCartProvider";
 import { useToast } from "@/hooks/use-toast";
 import { gilmerSpas } from "@/data/gilmerSpas";
 import { paverTypes } from "@/data/paverData";
+import { useProjectType } from "@/contexts/ProjectTypeContext";
 import sunsetGroveImage from "@/assets/sunset-grove-kit-pool.jpg";
 import maldivesImage from "@/assets/maldiveskit-castlerock.jpg";
 import serenityImage from "@/assets/serenitykit.jpg";
@@ -78,6 +79,7 @@ interface GilmerExtras {
 const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
   const { addToCart } = useShoppingCart();
   const { toast } = useToast();
+  const { priceMultiplier, projectType } = useProjectType();
   const [showQuoteTool, setShowQuoteTool] = useState(false);
   
   const [extras, setExtras] = useState<GilmerExtras>({
@@ -247,7 +249,12 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
       total += waterfallType?.price || 17500;
     }
     
-    return total;
+    // Apply project type multiplier (3x for commercial)
+    return total * priceMultiplier;
+  };
+
+  const getTotalPoolPrice = () => {
+    return (pool.price + calculateExtrasTotal() / priceMultiplier) * priceMultiplier;
   };
 
   const getInstallationTime = () => {

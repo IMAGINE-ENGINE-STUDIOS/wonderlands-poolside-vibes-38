@@ -21,11 +21,13 @@ import { gilmerSpas } from "@/data/gilmerSpas";
 import { tanningLedges, poolLiners, poolTiles } from "@/data/poolData";
 import { paverTypes } from "@/data/paverData";
 import { getPaverPricePerSqFt, calculatePaverCost, SCREEN_ENCLOSURE_PRICING } from "@/utils/paverPricing";
+import { useProjectType } from "@/contexts/ProjectTypeContext";
 import { saunas } from "@/data/saunaData";
 import { poolFinishes as poolFinishesData, poolLiners as poolLinersData, poolTiles as poolTilesData, tanningLedges as tanningLedgesData } from "@/data/consolidatedProducts";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SurveyQuoteTool from "@/components/SurveyQuoteTool";
+import ProjectTypeToggle from "@/components/ProjectTypeToggle";
 import { DynamicFeatureRenderer } from "@/components/DynamicFeatureRenderer";
 import { PoolBuilder } from "@/components/PoolBuilder";
 import HeaterSizeCalculator from "@/components/HeaterSizeCalculator";
@@ -334,6 +336,7 @@ const WonderlandsStudio = () => {
   const {
     toast
   } = useToast();
+  const { priceMultiplier, projectType } = useProjectType();
   const [activeTab, setActiveTab] = useState<'pools' | 'spas' | 'tanning-ledges' | 'saunas' | 'scenes' | 'build-a-pool'>('pools');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -752,7 +755,8 @@ const WonderlandsStudio = () => {
       }
     }
 
-    return total;
+    // Apply project type multiplier (3x for commercial)
+    return total * priceMultiplier;
   };
   const getSelectedExtrasCount = () => {
     let count = 0;
@@ -1078,6 +1082,11 @@ const WonderlandsStudio = () => {
               <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary via-teal to-coral bg-clip-text text-transparent">
                 Wonderlands Studio
               </h1>
+            </div>
+            
+            {/* Project Type Toggle */}
+            <div className="w-48 md:w-64">
+              <ProjectTypeToggle showPriceNote={false} />
             </div>
             
             <div className="relative">

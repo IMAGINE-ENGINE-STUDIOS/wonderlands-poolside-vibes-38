@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useShoppingCart } from "@/components/ShoppingCartProvider";
+import { useProjectType } from "@/contexts/ProjectTypeContext";
 import { toast } from "sonner";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { FileText } from "lucide-react";
@@ -25,6 +26,7 @@ interface DrivewayGateProps {
 }
 
 const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
+  const { priceMultiplier, projectType } = useProjectType();
   const [showDetails, setShowDetails] = useState(false);
   // Set initial selected size to match the card's base size
   const initialSize = gate.sizes.find(s => s.dimensions === gate.baseDimensions) || gate.sizes[0];
@@ -33,7 +35,7 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
   const [showQuoteTool, setShowQuoteTool] = useState(false);
   const { addToCart } = useShoppingCart();
 
-  const totalPrice = selectedSize.price + (includeOpener ? gate.addons[0].price : 0);
+  const totalPrice = (selectedSize.price + (includeOpener ? gate.addons[0].price : 0)) * priceMultiplier;
 
   const handleAddToCart = () => {
     const cartItem = {

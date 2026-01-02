@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import ProductOptionsManager, { ProductCategory } from './ProductOptionsManager';
 import { Edit, ShoppingCart, DollarSign, Waves, Eye, ExternalLink, FileText } from 'lucide-react';
 import { useShoppingCart } from './ShoppingCartProvider';
+import { useProjectType } from '@/contexts/ProjectTypeContext';
 import SurveyQuoteTool from './SurveyQuoteTool';
 
 interface SmartProductCardProps {
@@ -85,12 +86,13 @@ const SmartProductCard = ({
   isAdmin = false,
   onEdit 
 }: SmartProductCardProps) => {
+  const { priceMultiplier, projectType } = useProjectType();
   const [showOptions, setShowOptions] = useState(false);
   const [showQuoteTool, setShowQuoteTool] = useState(false);
   const [primaryOptions, setPrimaryOptions] = useState<any>({});
   const [screenOptions, setScreenOptions] = useState<any | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<any>({});
-  const [totalPrice, setTotalPrice] = useState(price);
+  const [totalPrice, setTotalPrice] = useState(price * priceMultiplier);
   const { addToCart } = useShoppingCart();
 
   const recomputeTotal = (basePrice = price, primary = primaryOptions, screen = screenOptions) => {
@@ -110,7 +112,8 @@ const SmartProductCard = ({
       calculated = Number(primary.totalPrice);
     }
 
-    setTotalPrice(calculated);
+    // Apply project type multiplier (3x for commercial)
+    setTotalPrice(calculated * priceMultiplier);
   };
 
   const handlePrimaryOptionsChange = (options: any) => {
