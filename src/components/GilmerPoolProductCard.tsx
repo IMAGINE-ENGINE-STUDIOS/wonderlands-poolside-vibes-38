@@ -341,13 +341,16 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
           </div>
           <div className="text-right">
             <div className="text-3xl font-bold text-primary">
-              ${(getPoolPrice(pool) + calculateExtrasTotal()).toLocaleString()}
+              ${getTotalPoolPrice().toLocaleString()}
             </div>
             <div className="text-sm text-muted-foreground">
               {calculateExtrasTotal() > 0 && (
                 <span>+ ${calculateExtrasTotal().toLocaleString()} extras</span>
               )}
             </div>
+            {projectType === 'commercial' && (
+              <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-500/30 mt-1">Commercial Rate</Badge>
+            )}
           </div>
         </div>
       </CardHeader>

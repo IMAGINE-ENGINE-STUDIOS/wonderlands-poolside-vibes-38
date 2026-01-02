@@ -206,8 +206,11 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
                 <div className="bg-white/95 dark:bg-black/95 backdrop-blur-sm px-4 py-2 rounded-lg shadow-xl border border-amber-200 dark:border-amber-800">
                   <div className="text-xs text-muted-foreground">From</div>
                   <div className="text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                    ${sauna.price.toLocaleString()}
+                    ${(sauna.price * priceMultiplier).toLocaleString()}
                   </div>
+                  {projectType === 'commercial' && (
+                    <div className="text-xs text-amber-600 font-medium">Commercial</div>
+                  )}
                 </div>
               </div>
               

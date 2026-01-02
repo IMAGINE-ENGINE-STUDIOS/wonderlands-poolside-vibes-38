@@ -79,11 +79,14 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
             <p className="text-sm line-clamp-2">{gate.description}</p>
             <div className="flex items-baseline gap-2 pt-2">
               <span className="text-2xl font-bold text-primary">
-                ${gate.basePrice.toLocaleString()}
+                ${(gate.basePrice * priceMultiplier).toLocaleString()}
               </span>
               <span className="text-sm text-muted-foreground">
                 incl. installation
               </span>
+              {projectType === 'commercial' && (
+                <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-500/30">Commercial</Badge>
+              )}
             </div>
             {gate.deliveryTime && (
               <p className="text-sm font-medium text-green-600">
