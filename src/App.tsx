@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ProjectTypeProvider } from "@/contexts/ProjectTypeContext";
 import { ShoppingCartProvider } from "@/components/ShoppingCartProvider";
 import RightNavigation from "@/components/RightNavigation";
 
@@ -42,8 +43,9 @@ const App = () => {
 
   return (
     <AuthProvider>
-      <ShoppingCartProvider>
-        <RightNavigation />
+      <ProjectTypeProvider>
+        <ShoppingCartProvider>
+          <RightNavigation />
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -113,8 +115,9 @@ const App = () => {
             <Route path="/contractor-login" element={<ContractorLogin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </Suspense>
-      </ShoppingCartProvider>
+          </Suspense>
+        </ShoppingCartProvider>
+      </ProjectTypeProvider>
     </AuthProvider>
   );
 };

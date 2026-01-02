@@ -37,6 +37,7 @@ import { gilmerPools } from "@/data/gilmerPools";
 import { tanningLedges } from "@/data/poolData";
 import { paverTypes, copingTypes } from "@/data/paverData";
 import { getPaverPricePerSqFt, calculatePaverCost, formatPaverCostDisplay, SCREEN_ENCLOSURE_PRICING } from "@/utils/paverPricing";
+import { useProjectType } from "@/contexts/ProjectTypeContext";
 import { supabase } from "@/integrations/supabase/client";
 import aquamarineFinish from "@/assets/finishes/aquamarine-g3.jpg";
 import oceanBlueFinish from "@/assets/finishes/ocean-blue-g3.jpg";
@@ -160,6 +161,8 @@ import { getProductsByCompatiblePool } from "@/data/consolidatedProducts";
 import { poolLiners, poolTiles } from "@/data/poolData";
 
 const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false, priority = false }: PoolProductCardProps) => {
+  const { priceMultiplier, projectType } = useProjectType();
+  
   // Filter finishes based on pool model compatibility
   const compatibleFinishes = getProductsByCompatiblePool("finish", pool.model);
   
@@ -539,7 +542,8 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
       total += waterfallType?.price || 17500;
     }
 
-    return total;
+    // Apply project type multiplier (3x for commercial)
+    return total * priceMultiplier;
   };
   const hasExtras = Object.values(extras).some((value) => value);
   const handleImageSave = (imageBlob: Blob) => {

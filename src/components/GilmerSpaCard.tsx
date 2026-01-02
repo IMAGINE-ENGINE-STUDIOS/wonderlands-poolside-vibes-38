@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Waves, DollarSign, Thermometer, Zap, Droplets, Clock, Award, Cpu } from "lucide-react";
 import { GilmerSpa } from "@/data/gilmerSpas";
 import { paverTypes } from "@/data/paverData";
+import { useProjectType } from "@/contexts/ProjectTypeContext";
 import azureBlueFinish from "@/assets/finishes/azure-blue-g2.jpg";
 import concreteDeckTexture from "@/assets/textures/concrete-deck.avif";
 interface GilmerSpaCardProps {
@@ -69,6 +70,7 @@ const paverOptions = [
   })),
 ];
 const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
+  const { priceMultiplier, projectType } = useProjectType();
   const [showDetails, setShowDetails] = useState(false);
   const [selectedColor, setSelectedColor] = useState(spa.colorOptions[0]);
   const [extras, setExtras] = useState({
@@ -131,7 +133,9 @@ const GilmerSpaCard = ({ spa, onRequestQuote }: GilmerSpaCardProps) => {
       const pricePerSqFt = selectedPaver?.pricePerSqFt || 20;
       total += parseFloat(extras.paverSurfaceArea) * pricePerSqFt;
     }
-    return total;
+    
+    // Apply project type multiplier (3x for commercial)
+    return total * priceMultiplier;
   };
   const handleRequestQuote = () => {
     if (onRequestQuote) {

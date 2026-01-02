@@ -15,6 +15,7 @@ import { ProductImageModal } from "./ProductImageModal";
 import { tanningLedges } from "@/data/poolData";
 import { paverTypes, copingTypes } from "@/data/paverData";
 import { getPaverPricePerSqFt, calculatePaverCost } from "@/utils/paverPricing";
+import { useProjectType } from "@/contexts/ProjectTypeContext";
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import oceanBlueFinish from '@/assets/finishes/ocean-blue-g3.jpg';
 import sapphireBlueFinish from '@/assets/finishes/sapphire-blue-g3.jpg';
@@ -212,6 +213,7 @@ const SpaProductCard = ({
   onRequestQuote,
   isAdmin = false
 }: SpaProductCardProps) => {
+  const { priceMultiplier, projectType } = useProjectType();
   const [showDetails, setShowDetails] = useState(false);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [showQuoteTool, setShowQuoteTool] = useState(false);
@@ -331,7 +333,9 @@ const SpaProductCard = ({
       const pricePerSqFt = selectedPaver?.pricePerSqFt || 20;
       total += parseFloat(paverSurfaceArea) * pricePerSqFt;
     }
-    return total;
+    
+    // Apply project type multiplier (3x for commercial)
+    return total * priceMultiplier;
   };
   const hasExtras = Object.values(extras).some(value => value);
   const handleImageSave = (imageBlob: Blob) => {

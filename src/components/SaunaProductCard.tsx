@@ -10,6 +10,7 @@ import { OptimizedImage } from "./OptimizedImage";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { poolLiners, tanningLedges } from "@/data/poolData";
 import { paverTypes } from "@/data/paverData";
+import { useProjectType } from "@/contexts/ProjectTypeContext";
 
 // Spa interface and data
 interface Spa {
@@ -97,6 +98,7 @@ const poolHeaters = [
 ];
 
 const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
+  const { priceMultiplier, projectType } = useProjectType();
   const [showQuote, setShowQuote] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [extras, setExtras] = useState<SaunaExtras>({
@@ -151,7 +153,12 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
       }
     }
     
-    return total;
+    // Apply project type multiplier (3x for commercial)
+    return total * priceMultiplier;
+  };
+
+  const getTotalSaunaPrice = () => {
+    return (sauna.price + calculateExtrasTotal() / priceMultiplier) * priceMultiplier;
   };
 
   const getCategoryColor = (category: string) => {

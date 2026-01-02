@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { poolTiles } from "@/data/poolData";
 import { paverTypes } from "@/data/paverData";
 import { getPaverPricePerSqFt, calculatePaverCost, SCREEN_ENCLOSURE_PRICING } from "@/utils/paverPricing";
+import { useProjectType } from "@/contexts/ProjectTypeContext";
 import { gilmerSpas } from "@/data/gilmerSpas";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -66,6 +67,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
   const navigate = useNavigate();
   const { addToCart } = useShoppingCart();
   const { toast } = useToast();
+  const { priceMultiplier, projectType } = useProjectType();
   
   const [showFinancing, setShowFinancing] = useState(false);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -227,7 +229,13 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
       total += waterfallType?.price || 17500;
     }
     
-    return total;
+    // Apply project type multiplier (3x for commercial)
+    return total * priceMultiplier;
+  };
+
+  // Calculate total pool price with multiplier
+  const getTotalPoolPrice = () => {
+    return (pool.price + calculateTotal() / priceMultiplier) * priceMultiplier;
   };
 
   const getInstallationTime = () => {
@@ -341,8 +349,11 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-teal" />
             <div className="flex flex-col">
               <span className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
-                ${(pool.price + calculateTotal()).toLocaleString()}
+                ${getTotalPoolPrice().toLocaleString()}
               </span>
+              {projectType === 'commercial' && (
+                <Badge variant="outline" className="ml-2 text-xs bg-amber-500/10 text-amber-600 border-amber-500/30">Commercial</Badge>
+              )}
             </div>
           </div>
         </div>
