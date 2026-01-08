@@ -192,7 +192,7 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
         
         // Reflections
         reflectionStrength: { value: 0.5 },
-        transparency: { value: 0.88 },
+        transparency: { value: 0.1 },
         
         // Depth settings
         maxDepth: { value: Math.max(...depthPoints.map(d => d.depth)) },
