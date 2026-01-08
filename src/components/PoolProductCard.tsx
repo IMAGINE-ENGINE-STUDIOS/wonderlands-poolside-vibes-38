@@ -776,7 +776,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
           {pool.installationTimeWeeks && (
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              <span>Installation: {pool.installationTimeWeeks} weeks</span>
+              <span>{extras.concreteConstruction ? 'Construction' : 'Installation'}: {pool.installationTimeWeeks} weeks</span>
             </div>
           )}
           {pool.warrantyYears && !extras.concreteConstruction && (
