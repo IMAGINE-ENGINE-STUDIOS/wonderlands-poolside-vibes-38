@@ -416,25 +416,26 @@ export function productToScene(
   const shallowDepth = shallowEndDepth || 3.75;
   const deepDepth = deepEndDepth || 6.6;
   
-  // Create perimeter depth points with gradient from shallow to deep end
-  // Shallow end is at the start (position 0), deep end is at ~0.4-0.6 (opposite side with flat zone)
+  // Determine depth direction: along SHORTEST side (width axis)
+  // Pool goes shallow -> deep along the width (shortest dimension)
+  const isWidthShorter = width < length;
+  
+  // Create perimeter depth points with gradient along SHORTEST side
   const perimeterDepthPoints = poolPoints.map((pt, i, arr) => {
-    // Calculate normalized position around perimeter (0 to 1)
-    const normalizedPos = i / arr.length;
+    // Calculate depth based on position along shortest axis
+    let depthRatio: number;
     
-    // Create a gradient with flat deep zone: shallow at 0, transition to deep at 0.35, 
-    // flat deep zone from 0.35 to 0.65, then transition back to shallow at 1
-    let depth: number;
-    if (normalizedPos <= 0.35) {
-      // First transition: shallow to deep
-      depth = shallowDepth + (deepDepth - shallowDepth) * (normalizedPos / 0.35);
-    } else if (normalizedPos <= 0.65) {
-      // Flat deep zone - both deepest corners at same depth
-      depth = deepDepth;
+    if (isWidthShorter) {
+      // Depth gradient along X axis (width)
+      depthRatio = pt.x / width;
     } else {
-      // Second transition: deep to shallow
-      depth = deepDepth - (deepDepth - shallowDepth) * ((normalizedPos - 0.65) / 0.35);
+      // Depth gradient along Y axis (length)
+      depthRatio = pt.y / length;
     }
+    
+    // Clamp ratio and calculate depth linearly from shallow to deep
+    depthRatio = Math.max(0, Math.min(1, depthRatio));
+    const depth = shallowDepth + (deepDepth - shallowDepth) * depthRatio;
     
     return {
       x: pt.x - width / 2,  // Center the coordinates
@@ -448,6 +449,7 @@ export function productToScene(
   console.log('🔵 SceneConverter: Creating perimeterDepthPoints with depth range:', {
     shallowDepth,
     deepDepth,
+    depthDirection: isWidthShorter ? 'along width (X)' : 'along length (Y)',
     pointCount: perimeterDepthPoints.length,
     productDepthString: product.depth,
     sampleDepths: perimeterDepthPoints.slice(0, 4).map(p => p.depth.toFixed(2))
