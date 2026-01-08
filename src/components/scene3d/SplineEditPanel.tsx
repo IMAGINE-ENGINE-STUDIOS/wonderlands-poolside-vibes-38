@@ -499,6 +499,9 @@ export function SplineEditPanel({
           <div className="space-y-3">
             <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
               <Label className="text-xs font-semibold text-amber-400 mb-2 block">Coping Dimensions</Label>
+              <p className="text-xs text-muted-foreground mb-3">
+                Coping automatically follows the pool perimeter shape. Adjust width and height below.
+              </p>
               <div className="space-y-3">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -530,8 +533,8 @@ export function SplineEditPanel({
                 </div>
               </div>
             </div>
-            <div className="text-xs text-muted-foreground">
-              Coping follows pool perimeter. Use Texture panel to change material.
+            <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">
+              ℹ️ No individual spline points - coping shape is derived from pool perimeter.
             </div>
           </div>
         )}
@@ -541,6 +544,9 @@ export function SplineEditPanel({
           <div className="space-y-3">
             <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
               <Label className="text-xs font-semibold text-orange-400 mb-2 block">Deck Width</Label>
+              <p className="text-xs text-muted-foreground mb-3">
+                Deck automatically surrounds the pool, extending outward from the coping.
+              </p>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs">Width from Coping</Label>
@@ -556,8 +562,8 @@ export function SplineEditPanel({
                 />
               </div>
             </div>
-            <div className="text-xs text-muted-foreground">
-              Deck surrounds the pool. Use Texture panel to change paver material.
+            <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">
+              ℹ️ No individual spline points - deck shape is derived from pool perimeter + coping.
             </div>
           </div>
         )}
