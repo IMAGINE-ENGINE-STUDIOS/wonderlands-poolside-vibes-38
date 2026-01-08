@@ -1,12 +1,12 @@
 import { paverTypes, PaverType } from '@/data/paverData';
 
-// Default price per sq ft for pavers (Travertine pricing)
-export const DEFAULT_PAVER_PRICE_PER_SQFT = 50;
+// Default price per sq ft for pavers (Concrete deck pricing)
+export const DEFAULT_PAVER_PRICE_PER_SQFT = 20;
 
 // Screen enclosure pricing tiers
 export const SCREEN_ENCLOSURE_PRICING = {
   standard: 27,
-  deluxe: 27,
+  deluxe: 30,
   premium: 33,
 } as const;
 
