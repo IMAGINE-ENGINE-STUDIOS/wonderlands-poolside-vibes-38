@@ -2,6 +2,7 @@
 
 import { Scene3D, TextureConfig, Point, DepthPoint, HardscapePoint } from './types';
 import { generateCurvedPoolPoints } from '@/utils/curveUtils';
+import { poolModelShapes, getPoolModelShape } from '@/data/poolModelShapes';
 
 // Parse dimensions from string like "14' x 28'" or "16 feet x 32 feet" or "16' × 40'"
 export const parseDimensions = (dimensionsStr?: string): { length: number; width: number } => {
@@ -189,7 +190,10 @@ export function productToScene(
     }
   });
 
-  // Create pool shape points - use custom shape if provided, otherwise default rectangle
+  // Create pool shape points - priority order:
+  // 1. Custom shape from 2D editor
+  // 2. Predefined model shape from library
+  // 3. Fallback to rectangle
   let poolPoints: Point[];
   
   if (selectedExtras.customPoolShape && Array.isArray(selectedExtras.customPoolShape) && selectedExtras.customPoolShape.length >= 3) {
@@ -216,13 +220,48 @@ export function productToScene(
       }
     });
   } else {
-    // Create basic pool shape points (rectangle)
-    poolPoints = [
-      { x: 0, y: 0, id: 'p1' },
-      { x: width, y: 0, id: 'p2' },
-      { x: width, y: length, id: 'p3' },
-      { x: 0, y: length, id: 'p4' },
-    ];
+    // Check for predefined model shape in library
+    const modelName = product?.model || product?.name;
+    const modelShape = modelName ? getPoolModelShape(modelName) : undefined;
+    
+    if (modelShape) {
+      // Use predefined shape from library, scaled to actual dimensions
+      // The shape library stores points in their natural dimensions
+      // We scale them to match the product's actual dimensions
+      const shapeWidth = Math.max(...modelShape.points.map(p => p.x));
+      const shapeLength = Math.max(...modelShape.points.map(p => p.y));
+      
+      const scaleX = width / shapeWidth;
+      const scaleY = length / shapeLength;
+      
+      poolPoints = modelShape.points.map((pt, idx) => ({
+        x: pt.x * scaleX,
+        y: pt.y * scaleY,
+        id: `p${idx + 1}`
+      }));
+      
+      console.log('🎨 Using predefined model shape from library:', {
+        modelName: modelShape.modelName,
+        originalDimensions: { width: shapeWidth, length: shapeLength },
+        targetDimensions: { width, length },
+        scale: { scaleX, scaleY },
+        pointCount: poolPoints.length,
+        features: modelShape.features
+      });
+    } else {
+      // Fallback: Create basic pool shape points (rectangle)
+      poolPoints = [
+        { x: 0, y: 0, id: 'p1' },
+        { x: width, y: 0, id: 'p2' },
+        { x: width, y: length, id: 'p3' },
+        { x: 0, y: length, id: 'p4' },
+      ];
+      
+      console.log('🎨 Using fallback rectangle shape (no model shape found):', {
+        modelName: modelName,
+        dimensions: { width, length }
+      });
+    }
   }
 
   // Parse shallow end depth from product depth string OR use depthProfile from selectedExtras
