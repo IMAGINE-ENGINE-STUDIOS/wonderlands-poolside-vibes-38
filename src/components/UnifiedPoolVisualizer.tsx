@@ -23,6 +23,8 @@ import { PoolDesignerHeader } from './scene3d/PoolDesignerHeader';
 import { SplineEditPanel } from './scene3d/SplineEditPanel';
 import { DepthProfileEditor } from './scene3d/DepthProfileEditor';
 import { createDepthInterpolator, createDefaultLinearAnchors } from './scene3d/depthUtils';
+import { TerrainEditor, TerrainAsset, AssetLibraryItem } from './scene3d/TerrainEditor';
+import { TerrainAssetsRenderer } from './scene3d/TerrainAssetsRenderer';
 import { Button } from './ui/button';
 import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Sun, Moon, PersonStanding, Edit3, ArrowUpDown } from 'lucide-react';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
@@ -233,6 +235,10 @@ export function UnifiedPoolVisualizer({
   
   // Walkthrough mode state
   const [isWalkthroughMode, setIsWalkthroughMode] = useState(false);
+  
+  // Terrain editor state
+  const [terrainAssets, setTerrainAssets] = useState<TerrainAsset[]>([]);
+  const [assetLibrary, setAssetLibrary] = useState<AssetLibraryItem[]>([]);
   
   // Spline edit mode - locks camera when editing splines
   const [isSplineEditMode, setIsSplineEditMode] = useState(false);
@@ -1294,6 +1300,9 @@ export function UnifiedPoolVisualizer({
             <Asset3DRenderer key={asset.id} asset={asset} />
           ))}
 
+          {/* Terrain Assets from Terrain Editor */}
+          <TerrainAssetsRenderer assets={terrainAssets} />
+
           {/* Grid with Labels */}
           {showGrid && (
             <>
@@ -1400,6 +1409,14 @@ export function UnifiedPoolVisualizer({
           poolFinishTexture={linerTextureUrl}
           isNightMode={isNightMode}
           availableFinishes={textureLibrary.finishes}
+        />
+
+        {/* Terrain Editor */}
+        <TerrainEditor
+          terrainAssets={terrainAssets}
+          onTerrainAssetsChange={setTerrainAssets}
+          assetLibrary={assetLibrary}
+          onAssetLibraryChange={setAssetLibrary}
         />
       </div>
     </div>
