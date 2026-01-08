@@ -19,15 +19,46 @@ declare global {
         'shadow-intensity'?: string;
         'auto-rotate'?: boolean;
         'rotation-per-second'?: string;
+        'ios-src'?: string; // USDZ support for iOS AR
+        ar?: boolean;
+        'ar-modes'?: string;
       };
     }
   }
 }
+
+// Supported 3D file formats
+export type Model3DFormat = 'glb' | 'gltf' | 'obj' | 'fbx' | 'usdz';
+
+export function getSupportedFormats(): string[] {
+  return ['GLB', 'GLTF', 'OBJ', 'FBX', 'USDZ'];
+}
+
+export function detectFormat(url: string): Model3DFormat | null {
+  const extension = url.split('.').pop()?.toLowerCase();
+  switch (extension) {
+    case 'glb':
+    case 'gltf':
+      return 'glb';
+    case 'obj':
+      return 'obj';
+    case 'fbx':
+      return 'fbx';
+    case 'usdz':
+      return 'usdz';
+    default:
+      return null;
+  }
+}
+
 interface BelgardRoom {
   name: string;
   image: string;
   description: string;
-  glb?: string;
+  glb?: string; // GLB/GLTF model URL
+  usdz?: string; // USDZ model URL for iOS AR
+  obj?: string; // OBJ model URL
+  fbx?: string; // FBX model URL
   category?: string;
 }
 const defaultRooms: BelgardRoom[] = [{
@@ -87,9 +118,50 @@ const RoomCard: React.FC<RoomCardProps> = ({
     setError('');
     toast.success("3D model loaded successfully!");
   };
+  // Get the best available 3D model URL (prioritize GLB, then others)
+  const modelUrl = room.glb || room.obj || room.fbx;
+  const usdzUrl = room.usdz;
+  const modelFormat = modelUrl ? detectFormat(modelUrl) : null;
+  
+  // Check if format is supported by model-viewer (GLB/GLTF only)
+  const isModelViewerCompatible = modelFormat === 'glb' || modelFormat === 'gltf';
+  
   return <Card className="group bg-card border-border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
       <div className="relative aspect-[16/10] bg-muted overflow-hidden rounded-t-lg">
-        {!isViewing3D ? <img src={room.image} alt={room.name} className="absolute inset-0 w-full h-full object-cover cursor-zoom-in transition-transform duration-300 group-hover:scale-105" onClick={() => onImageClick(room.image, room.name)} /> : <model-viewer ref={modelViewerRef} src={room.glb} camera-controls environment-image="neutral" exposure="1" shadow-intensity="1" auto-rotate rotation-per-second="30deg" className="absolute inset-0 w-full h-full" onError={handleModelError} onLoad={handleModelLoad} />}
+        {!isViewing3D ? (
+          <img 
+            src={room.image} 
+            alt={room.name} 
+            className="absolute inset-0 w-full h-full object-cover cursor-zoom-in transition-transform duration-300 group-hover:scale-105" 
+            onClick={() => onImageClick(room.image, room.name)} 
+          />
+        ) : isModelViewerCompatible ? (
+          <model-viewer 
+            ref={modelViewerRef} 
+            src={modelUrl} 
+            ios-src={usdzUrl}
+            ar={!!usdzUrl}
+            ar-modes="webxr scene-viewer quick-look"
+            camera-controls 
+            environment-image="neutral" 
+            exposure="1" 
+            shadow-intensity="1" 
+            auto-rotate 
+            rotation-per-second="30deg" 
+            className="absolute inset-0 w-full h-full" 
+            onError={handleModelError} 
+            onLoad={handleModelLoad} 
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted">
+            <div className="text-center p-4">
+              <p className="text-sm text-muted-foreground mb-2">
+                {modelFormat?.toUpperCase()} format requires Three.js viewer
+              </p>
+              <Badge variant="outline">{modelFormat?.toUpperCase()}</Badge>
+            </div>
+          </div>
+        )}
       </div>
       
       <CardContent className="p-4 space-y-3">
@@ -179,6 +251,14 @@ export const Belgard3DVisualizer: React.FC = () => {
         <p className="text-muted-foreground mb-4">
           Explore our stunning Belgard room designs. Click images to expand or view in interactive 3D.
         </p>
+        <div className="flex flex-wrap gap-2 mb-4">
+          <span className="text-xs text-muted-foreground">Supported formats:</span>
+          {getSupportedFormats().map(format => (
+            <Badge key={format} variant="secondary" className="text-xs">
+              {format}
+            </Badge>
+          ))}
+        </div>
         
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <div className="relative flex-1 max-w-md">
