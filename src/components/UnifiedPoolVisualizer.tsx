@@ -244,7 +244,7 @@ export function UnifiedPoolVisualizer({
   // Spline edit mode - locks camera when editing splines
   const [isSplineEditMode, setIsSplineEditMode] = useState(false);
   const [selectedSplinePointId, setSelectedSplinePointId] = useState<string | null>(null);
-  const [selectedSplineComponent, setSelectedSplineComponent] = useState<'pool-floor' | 'seating' | 'stairs' | 'waterline' | 'deck' | null>(null);
+  const [selectedSplineComponent, setSelectedSplineComponent] = useState<'pool-floor' | 'seating' | 'stairs' | 'waterline' | 'deck' | 'coping' | null>(null);
   const [showDepthProfileEditor, setShowDepthProfileEditor] = useState(false);
   
   // Parse pool depth from URL or scene

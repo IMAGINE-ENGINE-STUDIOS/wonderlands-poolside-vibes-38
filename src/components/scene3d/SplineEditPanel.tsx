@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { X, Plus, Trash2, Layers, ArrowUpDown, Sofa, Footprints, Waves } from 'lucide-react';
+import { X, Plus, Trash2, Layers, ArrowUpDown, Sofa, Footprints, Waves, Square, Frame } from 'lucide-react';
 import { PerimeterDepthPoint } from './types';
 import { PoolStairConfig, ContourSeatingConfig } from './poolAssetTypes';
 
@@ -14,9 +14,9 @@ interface SplineEditPanelProps {
   onPerimeterDepthPointsChange: (points: PerimeterDepthPoint[]) => void;
   selectedPointId: string | null;
   onSelectPoint: (id: string | null) => void;
-  // Component selection
-  selectedComponent: 'pool-floor' | 'seating' | 'stairs' | 'waterline' | 'deck' | null;
-  onSelectComponent: (component: 'pool-floor' | 'seating' | 'stairs' | 'waterline' | 'deck' | null) => void;
+  // Component selection - now includes coping and deck
+  selectedComponent: 'pool-floor' | 'seating' | 'stairs' | 'waterline' | 'deck' | 'coping' | null;
+  onSelectComponent: (component: 'pool-floor' | 'seating' | 'stairs' | 'waterline' | 'deck' | 'coping' | null) => void;
   // Pool depth from selected model
   poolModelDepth?: number;
   poolModelShallowDepth?: number;
@@ -26,6 +26,13 @@ interface SplineEditPanelProps {
   contourSeating?: ContourSeatingConfig[];
   onContourSeatingChange?: (seating: ContourSeatingConfig[]) => void;
   selectedAssetId?: string | null;
+  // Coping and deck properties
+  copingWidth?: number;
+  onCopingWidthChange?: (width: number) => void;
+  copingHeight?: number;
+  onCopingHeightChange?: (height: number) => void;
+  deckWidth?: number;
+  onDeckWidthChange?: (width: number) => void;
 }
 
 export function SplineEditPanel({
@@ -43,7 +50,13 @@ export function SplineEditPanel({
   onStairsChange,
   contourSeating = [],
   onContourSeatingChange,
-  selectedAssetId
+  selectedAssetId,
+  copingWidth = 1.0,
+  onCopingWidthChange,
+  copingHeight = 0.5,
+  onCopingHeightChange,
+  deckWidth = 8,
+  onDeckWidthChange
 }: SplineEditPanelProps) {
   const [uniformDepth, setUniformDepth] = useState(poolModelDepth);
 
@@ -179,7 +192,7 @@ export function SplineEditPanel({
         {/* Component Selection */}
         <div className="space-y-2">
           <Label className="text-xs font-semibold text-muted-foreground">Edit Component</Label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => onSelectComponent('pool-floor')}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
@@ -189,7 +202,29 @@ export function SplineEditPanel({
               }`}
             >
               <Layers className="w-4 h-4" />
-              Pool Floor
+              Floor
+            </button>
+            <button
+              onClick={() => onSelectComponent('coping')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                selectedComponent === 'coping' 
+                  ? 'bg-amber-500/20 border border-amber-500 text-amber-400' 
+                  : 'bg-muted hover:bg-muted/80 border border-transparent'
+              }`}
+            >
+              <Frame className="w-4 h-4" />
+              Coping
+            </button>
+            <button
+              onClick={() => onSelectComponent('deck')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                selectedComponent === 'deck' 
+                  ? 'bg-orange-500/20 border border-orange-500 text-orange-400' 
+                  : 'bg-muted hover:bg-muted/80 border border-transparent'
+              }`}
+            >
+              <Square className="w-4 h-4" />
+              Deck
             </button>
             <button
               onClick={() => onSelectComponent('stairs')}
@@ -222,7 +257,7 @@ export function SplineEditPanel({
               }`}
             >
               <Waves className="w-4 h-4" />
-              Waterline
+              Water
             </button>
           </div>
         </div>
@@ -459,6 +494,74 @@ export function SplineEditPanel({
           </div>
         )}
 
+        {/* Coping Controls */}
+        {selectedComponent === 'coping' && (
+          <div className="space-y-3">
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
+              <Label className="text-xs font-semibold text-amber-400 mb-2 block">Coping Dimensions</Label>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Width</Label>
+                    <span className="text-sm font-mono text-amber-400">{copingWidth.toFixed(1)} ft</span>
+                  </div>
+                  <Slider
+                    value={[copingWidth]}
+                    onValueChange={(value) => onCopingWidthChange?.(value[0])}
+                    min={0.5}
+                    max={3}
+                    step={0.25}
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Height</Label>
+                    <span className="text-sm font-mono text-amber-400">{copingHeight.toFixed(2)} ft</span>
+                  </div>
+                  <Slider
+                    value={[copingHeight]}
+                    onValueChange={(value) => onCopingHeightChange?.(value[0])}
+                    min={0.25}
+                    max={1}
+                    step={0.05}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Coping follows pool perimeter. Use Texture panel to change material.
+            </div>
+          </div>
+        )}
+
+        {/* Deck Controls */}
+        {selectedComponent === 'deck' && (
+          <div className="space-y-3">
+            <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
+              <Label className="text-xs font-semibold text-orange-400 mb-2 block">Deck Width</Label>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Width from Coping</Label>
+                  <span className="text-sm font-mono text-orange-400">{deckWidth.toFixed(0)} ft</span>
+                </div>
+                <Slider
+                  value={[deckWidth]}
+                  onValueChange={(value) => onDeckWidthChange?.(value[0])}
+                  min={3}
+                  max={20}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Deck surrounds the pool. Use Texture panel to change paver material.
+            </div>
+          </div>
+        )}
+
         {/* Waterline Controls */}
         {selectedComponent === 'waterline' && (
           <div className="space-y-3">
@@ -469,7 +572,7 @@ export function SplineEditPanel({
               </p>
             </div>
             <div className="text-xs text-muted-foreground">
-              Waterline is 0.5ft tall, positioned at water surface level around the entire pool perimeter.
+              Waterline is 0.5ft tall, positioned at water surface level.
             </div>
           </div>
         )}

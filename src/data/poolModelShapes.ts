@@ -22,24 +22,168 @@ export interface PoolModelShape {
   };
 }
 
-// Helper to create kidney/freeform pool shapes
+// Helper to create GEOMETRICALLY SYMMETRICAL kidney shape
+// Uses parametric equation for perfect bilateral symmetry
 const createKidneyShape = (width: number, length: number, curveFactor: number = 0.2): Array<{ x: number; y: number }> => {
   const points: Array<{ x: number; y: number }> = [];
-  const segments = 32;
+  const segments = 48; // More segments for smoother curves
+  
+  // Parametric kidney shape: symmetrical about the Y-axis (length direction)
+  for (let i = 0; i < segments; i++) {
+    const t = (i / segments) * Math.PI * 2;
+    
+    // Base ellipse
+    const baseX = (width / 2) * Math.cos(t);
+    const baseY = (length / 2) * Math.sin(t);
+    
+    // Apply SYMMETRICAL kidney indentation on LEFT side (negative X)
+    // Uses sin^2 for smooth transition at both ends
+    const indentStrength = Math.pow(Math.sin(t), 2) * curveFactor * width;
+    let x = baseX;
+    
+    // Only indent on the left side (when x is negative, i.e., cos(t) < 0)
+    if (Math.cos(t) < 0) {
+      // Push inward (toward positive x) proportionally
+      x += indentStrength * 0.8;
+    }
+    
+    // Center at width/2, length/2
+    points.push({ 
+      x: x + width / 2, 
+      y: baseY + length / 2 
+    });
+  }
+  
+  return points;
+};
+
+// Helper to create PERFECTLY SYMMETRICAL oval/ellipse shape
+const createSymmetricalOval = (width: number, length: number): Array<{ x: number; y: number }> => {
+  const points: Array<{ x: number; y: number }> = [];
+  const segments = 48;
   
   for (let i = 0; i < segments; i++) {
     const t = (i / segments) * Math.PI * 2;
-    // Base oval
-    let x = (width / 2) * Math.cos(t) + width / 2;
-    let y = (length / 2) * Math.sin(t) + length / 2;
+    points.push({
+      x: (width / 2) * Math.cos(t) + width / 2,
+      y: (length / 2) * Math.sin(t) + length / 2
+    });
+  }
+  
+  return points;
+};
+
+// Helper to create SYMMETRICAL figure-8/peanut shape
+const createFigure8Shape = (width: number, length: number): Array<{ x: number; y: number }> => {
+  const points: Array<{ x: number; y: number }> = [];
+  const segments = 48;
+  
+  for (let i = 0; i < segments; i++) {
+    const t = (i / segments) * Math.PI * 2;
     
-    // Apply kidney curve - indent on one side
-    const indentFactor = Math.sin(t) * curveFactor * width;
-    if (t > Math.PI / 2 && t < Math.PI * 1.5) {
-      x += indentFactor;
-    }
+    // Figure-8 uses a modified lemniscate with bilateral symmetry
+    const baseX = (width / 2) * Math.cos(t);
+    const baseY = (length / 2) * Math.sin(t);
     
-    points.push({ x, y });
+    // Pinch in the middle (at y=0)
+    const pinchFactor = 1 - 0.25 * Math.pow(Math.cos(t), 2);
+    const x = baseX * pinchFactor;
+    
+    points.push({
+      x: x + width / 2,
+      y: baseY + length / 2
+    });
+  }
+  
+  return points;
+};
+
+// Helper to create SYMMETRICAL lazy-L shape
+const createLazyLShape = (width: number, length: number): Array<{ x: number; y: number }> => {
+  const points: Array<{ x: number; y: number }> = [];
+  const cornerRadius = Math.min(width, length) * 0.15;
+  const segments = 8;
+  
+  // Main rectangle with L-shaped cutout (symmetrical about center)
+  // Bottom left corner
+  for (let i = 0; i <= segments; i++) {
+    const angle = Math.PI + (i / segments) * (Math.PI / 2);
+    points.push({
+      x: cornerRadius + cornerRadius * Math.cos(angle),
+      y: cornerRadius + cornerRadius * Math.sin(angle)
+    });
+  }
+  
+  // Left side up to L notch
+  points.push({ x: 0, y: length * 0.4 });
+  
+  // L notch (cuts into upper left)
+  points.push({ x: width * 0.35, y: length * 0.4 });
+  points.push({ x: width * 0.35, y: length * 0.6 });
+  
+  // Continue left side
+  points.push({ x: 0, y: length * 0.6 });
+  
+  // Top left corner
+  for (let i = 0; i <= segments; i++) {
+    const angle = Math.PI / 2 + (i / segments) * (Math.PI / 2);
+    points.push({
+      x: cornerRadius + cornerRadius * Math.cos(angle),
+      y: length - cornerRadius + cornerRadius * Math.sin(angle)
+    });
+  }
+  
+  // Top right corner
+  for (let i = 0; i <= segments; i++) {
+    const angle = (i / segments) * (Math.PI / 2);
+    points.push({
+      x: width - cornerRadius + cornerRadius * Math.cos(angle),
+      y: length - cornerRadius + cornerRadius * Math.sin(angle)
+    });
+  }
+  
+  // Bottom right corner
+  for (let i = 0; i <= segments; i++) {
+    const angle = Math.PI * 1.5 + (i / segments) * (Math.PI / 2);
+    points.push({
+      x: width - cornerRadius + cornerRadius * Math.cos(angle),
+      y: cornerRadius + cornerRadius * Math.sin(angle)
+    });
+  }
+  
+  return points;
+};
+
+// Helper to create SYMMETRICAL grecian shape (rectangle with semicircular ends)
+const createGrecianShape = (width: number, length: number): Array<{ x: number; y: number }> => {
+  const points: Array<{ x: number; y: number }> = [];
+  const endRadius = width / 2;
+  const segments = 24;
+  
+  // Left side (straight)
+  points.push({ x: 0, y: endRadius });
+  points.push({ x: 0, y: length - endRadius });
+  
+  // Top semicircle (perfectly symmetrical)
+  for (let i = 0; i <= segments; i++) {
+    const angle = Math.PI + (i / segments) * Math.PI;
+    points.push({
+      x: width / 2 + endRadius * Math.cos(angle),
+      y: length - endRadius - endRadius * Math.sin(angle)
+    });
+  }
+  
+  // Right side (straight)
+  points.push({ x: width, y: length - endRadius });
+  points.push({ x: width, y: endRadius });
+  
+  // Bottom semicircle (perfectly symmetrical)
+  for (let i = 0; i <= segments; i++) {
+    const angle = (i / segments) * Math.PI;
+    points.push({
+      x: width / 2 + endRadius * Math.cos(angle),
+      y: endRadius - endRadius * Math.sin(angle)
+    });
   }
   
   return points;
