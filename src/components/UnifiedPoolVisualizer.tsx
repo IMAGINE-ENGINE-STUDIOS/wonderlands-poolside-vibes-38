@@ -1382,11 +1382,24 @@ export function UnifiedPoolVisualizer({
           </Suspense>
         </Scene3DErrorBoundary>
 
-        {/* Asset Manager - Visible in fullscreen */}
+        {/* Asset Manager - Visible in fullscreen with Pool Assets */}
         <AssetManager 
           assets={assets3D}
           onAddAsset={(asset) => setAssets3D([...assets3D, asset])}
           onRemoveAsset={(id) => setAssets3D(assets3D.filter(a => a.id !== id))}
+          stairs={poolStairs}
+          onStairsChange={setPoolStairs}
+          chairs={poolChairs}
+          onChairsChange={setPoolChairs}
+          contourSeating={contourSeating}
+          onContourSeatingChange={setContourSeating}
+          lights={poolLights}
+          onLightsChange={handlePoolLightsChange}
+          selectedAssetId={selectedPoolAssetId}
+          onSelectAsset={setSelectedPoolAssetId}
+          poolFinishTexture={linerTextureUrl}
+          isNightMode={isNightMode}
+          availableFinishes={textureLibrary.finishes}
         />
       </div>
     </div>
