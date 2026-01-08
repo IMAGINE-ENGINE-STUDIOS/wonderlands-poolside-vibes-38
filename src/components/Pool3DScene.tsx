@@ -1,5 +1,5 @@
 import * as React from 'react';
-const { useState, useMemo, useEffect, useRef } = React;
+const { useState, useMemo, useEffect, useRef, Suspense } = React;
 import { PerspectiveCamera, Grid, useTexture, TransformControls, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { textureCache, disposeTexture } from '@/utils/textureCache';
@@ -20,6 +20,7 @@ import { Canvas } from '@react-three/fiber';
 import { generateCurvedPoolPoints, normalize2DTo3D, generateOffsetCurve } from '@/utils/curveUtils';
 import { BoundaryDebugOverlay } from './scene3d/BoundaryDebugOverlay';
 import { validateAndRepairPolygon, ensureCounterClockwise } from '@/utils/shapeValidation';
+import { Model3DLoader } from './scene3d/Model3DLoader';
 
 interface Point {
   x: number;
@@ -653,8 +654,43 @@ const FenceMesh: React.FC<{
   );
 };
 
-// Grass Terrain Component with Pool Cutout Following Exact Pool Walls + Coping
-const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPosition?: [number, number, number] }> = ({ poolPoints, copingWidth = 1.0, poolPosition = [0, 0, 0] }) => {
+// 3D Terrain Component - Uses USDZ model as default terrain
+const Terrain3DModel: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPosition?: [number, number, number] }> = ({ poolPoints, copingWidth = 1.0, poolPosition = [0, 0, 0] }) => {
+  const [modelLoaded, setModelLoaded] = useState(false);
+  const [modelError, setModelError] = useState(false);
+  
+  const handleLoad = () => {
+    console.log('✅ Terrain USDZ model loaded successfully');
+    setModelLoaded(true);
+  };
+  
+  const handleError = (error: Error) => {
+    console.error('❌ Failed to load terrain USDZ model:', error);
+    setModelError(true);
+  };
+  
+  // If USDZ fails to load, fall back to grass texture
+  if (modelError) {
+    return <GrassTerrainFallback poolPoints={poolPoints} copingWidth={copingWidth} />;
+  }
+  
+  return (
+    <Suspense fallback={<GrassTerrainFallback poolPoints={poolPoints} copingWidth={copingWidth} />}>
+      <Model3DLoader
+        url="/models/American_Road_Intersection.usdz"
+        format="usdz"
+        position={[0, -0.05, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        scale={50}
+        onLoad={handleLoad}
+        onError={handleError}
+      />
+    </Suspense>
+  );
+};
+
+// Fallback Grass Terrain Component with Pool Cutout Following Exact Pool Walls + Coping
+const GrassTerrainFallback: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPosition?: [number, number, number] }> = ({ poolPoints, copingWidth = 1.0, poolPosition = [0, 0, 0] }) => {
   const texture = useTexture(grassTexture);
   
   const terrainGeometry = useMemo(() => {
@@ -673,7 +709,7 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPo
     // This ensures no grass shows inside the pool/coping area
     try {
       if (poolPoints.length >= 3) {
-        // Use curved pool points for the hole (same as pool walls/water surface)
+        // Use curved pool points for the hole (same as pool walls)
         const poolCurve2D = poolPoints.map(p => ({ x: p.x, y: p.y }));
         
         // MUST use same segments as pool walls (30) for exact alignment
@@ -771,6 +807,9 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPo
     </mesh>
   );
 };
+
+// Legacy alias for backwards compatibility
+const GrassTerrain = Terrain3DModel;
 
 const PoolFeatures: React.FC<{ features: PoolFeature[] }> = ({ features }) => {
   return (
