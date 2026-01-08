@@ -3,8 +3,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { X, ArrowUpDown, RefreshCw, Plus, Trash2 } from 'lucide-react';
-import { LinearDepthAnchor } from './types';
+import { X, ArrowUpDown, RefreshCw, Plus, Trash2, Link2 } from 'lucide-react';
+import { LinearDepthAnchor, PerimeterDepthPoint } from './types';
 
 interface DepthProfileEditorProps {
   isOpen: boolean;
@@ -16,6 +16,9 @@ interface DepthProfileEditorProps {
   // Pool depth from selected product
   poolShallowDepth?: number;
   poolDeepDepth?: number;
+  // Perimeter depth points from spline editor
+  perimeterDepthPoints?: PerimeterDepthPoint[];
+  onPerimeterDepthPointsChange?: (points: PerimeterDepthPoint[]) => void;
 }
 
 export function DepthProfileEditor({
@@ -27,6 +30,8 @@ export function DepthProfileEditor({
   onSelectAnchor,
   poolShallowDepth = 3.75,
   poolDeepDepth = 8.5,
+  perimeterDepthPoints = [],
+  onPerimeterDepthPointsChange,
 }: DepthProfileEditorProps) {
   // Initialize anchors from props or defaults
   const [anchors, setAnchors] = useState<LinearDepthAnchor[]>(() => {
@@ -128,6 +133,68 @@ export function DepthProfileEditor({
     updateAnchors(newAnchors);
   };
 
+  // Sync linear depth anchors to perimeter spline points
+  const handleSyncToSplinePoints = () => {
+    if (!onPerimeterDepthPointsChange || perimeterDepthPoints.length === 0) return;
+    
+    const sortedAnchors = [...anchors].sort((a, b) => a.position - b.position);
+    
+    // Apply depth gradient to perimeter points based on their position
+    const updatedPoints = perimeterDepthPoints.map((point, index) => {
+      // Normalize position along perimeter (0-1)
+      const normalizedPos = index / perimeterDepthPoints.length;
+      
+      // Find the two anchors this position falls between
+      let depth = sortedAnchors[0].depth;
+      for (let i = 0; i < sortedAnchors.length - 1; i++) {
+        const a1 = sortedAnchors[i];
+        const a2 = sortedAnchors[i + 1];
+        if (normalizedPos >= a1.position && normalizedPos <= a2.position) {
+          const t = (normalizedPos - a1.position) / (a2.position - a1.position);
+          depth = a1.depth + t * (a2.depth - a1.depth);
+          break;
+        }
+      }
+      if (normalizedPos > sortedAnchors[sortedAnchors.length - 1].position) {
+        depth = sortedAnchors[sortedAnchors.length - 1].depth;
+      }
+      
+      return { ...point, depth };
+    });
+    
+    onPerimeterDepthPointsChange(updatedPoints);
+  };
+
+  // Sync from perimeter spline points to linear depth anchors
+  const handleSyncFromSplinePoints = () => {
+    if (perimeterDepthPoints.length < 2) return;
+    
+    // Calculate average depth at shallow end (first quarter) and deep end (last quarter)
+    const pointCount = perimeterDepthPoints.length;
+    const quarterCount = Math.max(1, Math.floor(pointCount / 4));
+    
+    let shallowSum = 0;
+    let deepSum = 0;
+    
+    for (let i = 0; i < quarterCount; i++) {
+      shallowSum += perimeterDepthPoints[i].depth;
+      deepSum += perimeterDepthPoints[pointCount - 1 - i].depth;
+    }
+    
+    const avgShallow = shallowSum / quarterCount;
+    const avgDeep = deepSum / quarterCount;
+    
+    // Create new anchors based on spline point depths
+    const newAnchors = [
+      { id: 'd1', position: 0, depth: avgShallow },
+      { id: 'd2', position: 0.33, depth: avgShallow + (avgDeep - avgShallow) * 0.33 },
+      { id: 'd3', position: 0.67, depth: avgShallow + (avgDeep - avgShallow) * 0.67 },
+      { id: 'd4', position: 1, depth: avgDeep },
+    ];
+    
+    updateAnchors(newAnchors);
+  };
+
   if (!isOpen) return null;
 
   const sortedAnchors = [...anchors].sort((a, b) => a.position - b.position);
@@ -167,6 +234,37 @@ export function DepthProfileEditor({
             Reset
           </Button>
         </div>
+
+        {/* Spline Sync Controls */}
+        {perimeterDepthPoints.length > 0 && onPerimeterDepthPointsChange && (
+          <div className="p-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg space-y-2">
+            <div className="flex items-center gap-2">
+              <Link2 className="w-4 h-4 text-cyan-500" />
+              <Label className="text-xs font-medium text-cyan-600">Spline Point Sync</Label>
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              Sync depth profile with {perimeterDepthPoints.length} perimeter spline points
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 h-7 text-xs border-cyan-500/50 text-cyan-600 hover:bg-cyan-500/10"
+                onClick={handleSyncToSplinePoints}
+              >
+                Apply to Splines
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 h-7 text-xs border-cyan-500/50 text-cyan-600 hover:bg-cyan-500/10"
+                onClick={handleSyncFromSplinePoints}
+              >
+                Load from Splines
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Depth Anchor Controls */}
         <div className="space-y-2">

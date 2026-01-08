@@ -1044,6 +1044,8 @@ export function UnifiedPoolVisualizer({
             onSelectAnchor={setSelectedSplinePointId}
             poolShallowDepth={poolShallowDepth}
             poolDeepDepth={poolDeepDepth}
+            perimeterDepthPoints={scene.pool.perimeterDepthPoints || []}
+            onPerimeterDepthPointsChange={handlePerimeterDepthPointsChange}
           />
 
           {/* Climate Controller Panel */}
