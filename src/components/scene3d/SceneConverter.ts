@@ -195,6 +195,7 @@ export function productToScene(
   // 2. Predefined model shape from library
   // 3. Fallback to rectangle
   let poolPoints: Point[];
+  let modelShape: ReturnType<typeof getPoolModelShape> | undefined;
   
   if (selectedExtras.customPoolShape && Array.isArray(selectedExtras.customPoolShape) && selectedExtras.customPoolShape.length >= 3) {
     // Convert 2D editor points to 3D pool points
@@ -222,7 +223,7 @@ export function productToScene(
   } else {
     // Check for predefined model shape in library
     const modelName = product?.model || product?.name;
-    const modelShape = modelName ? getPoolModelShape(modelName) : undefined;
+    modelShape = modelName ? getPoolModelShape(modelName) : undefined;
     
     if (modelShape) {
       // Use predefined shape from library, scaled to actual dimensions
@@ -271,19 +272,39 @@ export function productToScene(
     // Use depth profile from 2D designer
     depthPoints = selectedExtras.depthProfile;
     console.log('🎨 Using custom depth profile from 2D designer:', depthPoints);
-  } else {
-    // Use parsed shallow and deep depths from product specification
-    const shallowDepth = shallowEndDepth;
-    const deepDepth = deepEndDepth;
+  } else if (modelShape?.depthAnchors && modelShape.depthAnchors.length >= 2) {
+    // Use model-specific depth anchors scaled to product depth range
+    const modelAnchors = modelShape.depthAnchors;
+    const modelMinDepth = Math.min(...modelAnchors.map(a => a.depth));
+    const modelMaxDepth = Math.max(...modelAnchors.map(a => a.depth));
+    const modelDepthRange = modelMaxDepth - modelMinDepth || 1;
     
-    console.log('🎨 Using product depth range:', { shallowDepth, deepDepth, productDepth: product.depth });
+    depthPoints = modelAnchors.map((anchor, idx) => {
+      const normalizedDepth = (anchor.depth - modelMinDepth) / modelDepthRange;
+      const scaledDepth = shallowEndDepth + normalizedDepth * (deepEndDepth - shallowEndDepth);
+      
+      return {
+        position: anchor.position,
+        depth: scaledDepth,
+        id: `d${idx + 1}`
+      };
+    });
+    
+    console.log('🎨 Using model-specific depth profile:', {
+      modelName: modelShape.modelName,
+      productDepthRange: { shallow: shallowEndDepth, deep: deepEndDepth },
+      depthPoints
+    });
+  } else {
+    // Fallback: Use simple linear depth profile from product specification
+    console.log('🎨 Using fallback linear depth range:', { shallowEndDepth, deepEndDepth, productDepth: product.depth });
     
     depthPoints = [
-      { position: 0, depth: shallowDepth, id: 'd1' },                    // Shallow end
-      { position: 0.25, depth: shallowDepth + (deepDepth - shallowDepth) * 0.25, id: 'd2' },
-      { position: 0.5, depth: shallowDepth + (deepDepth - shallowDepth) * 0.5, id: 'd3' },
-      { position: 0.75, depth: shallowDepth + (deepDepth - shallowDepth) * 0.75, id: 'd4' },
-      { position: 1, depth: deepDepth, id: 'd5' },                        // Deep end
+      { position: 0, depth: shallowEndDepth, id: 'd1' },
+      { position: 0.25, depth: shallowEndDepth + (deepEndDepth - shallowEndDepth) * 0.25, id: 'd2' },
+      { position: 0.5, depth: shallowEndDepth + (deepEndDepth - shallowEndDepth) * 0.5, id: 'd3' },
+      { position: 0.75, depth: shallowEndDepth + (deepEndDepth - shallowEndDepth) * 0.75, id: 'd4' },
+      { position: 1, depth: deepEndDepth, id: 'd5' },
     ];
   }
 
@@ -429,13 +450,43 @@ export function productToScene(
     sampleDepths: perimeterDepthPoints.slice(0, 4).map(p => p.depth.toFixed(2))
   });
 
-  // Create linear depth anchors for simple shallow-to-deep profile
-  const linearDepthAnchors = [
-    { id: 'anchor-0', position: 0, depth: shallowDepth },
-    { id: 'anchor-33', position: 0.33, depth: shallowDepth + (deepDepth - shallowDepth) * 0.33 },
-    { id: 'anchor-67', position: 0.67, depth: shallowDepth + (deepDepth - shallowDepth) * 0.67 },
-    { id: 'anchor-100', position: 1, depth: deepDepth },
-  ];
+  // Create linear depth anchors - use model-specific anchors if available
+  let linearDepthAnchors: Array<{ id: string; position: number; depth: number }>;
+  
+  if (modelShape?.depthAnchors && modelShape.depthAnchors.length >= 2) {
+    // Use model-specific depth anchors, scaled to product's actual depth range
+    const modelAnchors = modelShape.depthAnchors;
+    const modelMinDepth = Math.min(...modelAnchors.map(a => a.depth));
+    const modelMaxDepth = Math.max(...modelAnchors.map(a => a.depth));
+    const modelDepthRange = modelMaxDepth - modelMinDepth || 1;
+    
+    linearDepthAnchors = modelAnchors.map((anchor, idx) => {
+      // Normalize the model depth to 0-1 range, then scale to actual product depth
+      const normalizedDepth = (anchor.depth - modelMinDepth) / modelDepthRange;
+      const scaledDepth = shallowDepth + normalizedDepth * (deepDepth - shallowDepth);
+      
+      return {
+        id: `anchor-${idx}`,
+        position: anchor.position,
+        depth: scaledDepth
+      };
+    });
+    
+    console.log('🎨 Using model-specific depth anchors:', {
+      modelName: modelShape.modelName,
+      originalAnchors: modelAnchors,
+      scaledAnchors: linearDepthAnchors,
+      productDepthRange: { shallowDepth, deepDepth }
+    });
+  } else {
+    // Fallback: simple linear shallow-to-deep profile
+    linearDepthAnchors = [
+      { id: 'anchor-0', position: 0, depth: shallowDepth },
+      { id: 'anchor-33', position: 0.33, depth: shallowDepth + (deepDepth - shallowDepth) * 0.33 },
+      { id: 'anchor-67', position: 0.67, depth: shallowDepth + (deepDepth - shallowDepth) * 0.67 },
+      { id: 'anchor-100', position: 1, depth: deepDepth },
+    ];
+  }
 
   const scene: Scene3D = {
     pool: {
