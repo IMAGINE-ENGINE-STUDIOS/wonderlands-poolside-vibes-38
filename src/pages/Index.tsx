@@ -58,7 +58,7 @@ const Index = () => {
       <Hero />
       
       {/* Project Type Toggle - Residential/Commercial */}
-      <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm border-b border-border py-3 px-4">
+      <div className="bg-background/95 backdrop-blur-sm border-b border-border py-3 px-4">
         <div className="container mx-auto max-w-md">
           <ProjectTypeToggle showPriceNote={true} />
         </div>
