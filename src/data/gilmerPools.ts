@@ -32,7 +32,7 @@ export const gilmerPools = [
   {
     model: "Serafina",
     dimensions: "8'6\" x 14'",
-    depth: "4'",
+    depth: "3'6\" - 4'",
     price: 55034,
     image: gilmerSerafina,
     warranty: "Life Warranty",
@@ -46,7 +46,7 @@ export const gilmerPools = [
   {
     model: "Coral Cove",
     dimensions: "9'6\" x 16'",
-    depth: "4'",
+    depth: "3'6\" - 4'",
     price: 58400,
     image: gilmerCoralCove,
     warranty: "Life Warranty",
@@ -59,7 +59,7 @@ export const gilmerPools = [
   {
     model: "Retreat",
     dimensions: "10'3\" x 18'5\"",
-    depth: "4'4\"",
+    depth: "3'6\" - 4'4\"",
     price: 57630,
     image: gilmerRetreat,
     warranty: "Life Warranty",
@@ -72,7 +72,7 @@ export const gilmerPools = [
   {
     model: "Regal Plunge",
     dimensions: "10' x 16'",
-    depth: "5'5\"",
+    depth: "4' - 5'5\"",
     price: 63350,
     image: gilmerRegalPlunge,
     warranty: "Life Warranty",
@@ -85,7 +85,7 @@ export const gilmerPools = [
   {
     model: "Regal",
     dimensions: "10' x 20'",
-    depth: "5'4\"",
+    depth: "3'6\" - 5'4\"",
     price: 71600,
     image: gilmerRegal,
     warranty: "Life Warranty",
@@ -98,7 +98,7 @@ export const gilmerPools = [
   {
     model: "Mini Extreme",
     dimensions: "8'2\" x 20'",
-    depth: "5'",
+    depth: "3'6\" - 5'",
     price: 82600,
     image: "/lovable-uploads/gilmer-extreme-27.jpeg",
     warranty: "Life Warranty",
@@ -113,7 +113,7 @@ export const gilmerPools = [
   {
     model: "Caribbean",
     dimensions: "11' x 20'",
-    depth: "5'",
+    depth: "3'6\" - 5'",
     price: 70566,
     image: gilmerCaribbean,
     warranty: "Life Warranty",
@@ -126,7 +126,7 @@ export const gilmerPools = [
   {
     model: "Neptune",
     dimensions: "11' x 23'",
-    depth: "5'6\"",
+    depth: "3'6\" - 5'6\"",
     price: 74706,
     image: gilmerNeptune,
     warranty: "Life Warranty",
@@ -139,7 +139,7 @@ export const gilmerPools = [
   {
     model: "Islander",
     dimensions: "12' x 24'",
-    depth: "5'6\"",
+    depth: "3'6\" - 5'6\"",
     price: 71600,
     image: gilmerIslander,
     warranty: "Life Warranty",
@@ -152,7 +152,7 @@ export const gilmerPools = [
   {
     model: "Emerald",
     dimensions: "12' x 25'",
-    depth: "5'7\"",
+    depth: "3'6\" - 5'7\"",
     price: 74706,
     image: gilmerEmerald,
     warranty: "Life Warranty",
@@ -165,7 +165,7 @@ export const gilmerPools = [
   {
     model: "Roman",
     dimensions: "11' x 27'",
-    depth: "6'2\"",
+    depth: "3'6\" - 6'2\"",
     price: 82600,
     image: gilmerRoman,
     warranty: "Life Warranty",
@@ -178,7 +178,7 @@ export const gilmerPools = [
   {
     model: "Superior",
     dimensions: "12' x 25'8\"",
-    depth: "5'6\"",
+    depth: "3'6\" - 5'6\"",
     price: 82600,
     image: gilmerSuperior,
     warranty: "Life Warranty",
@@ -191,7 +191,7 @@ export const gilmerPools = [
   {
     model: "Capri",
     dimensions: "12' x 28'",
-    depth: "4'6\"",
+    depth: "3'6\" - 4'6\"",
     price: 79881,
     image: gilmerCapri,
     warranty: "Life Warranty",
@@ -204,7 +204,7 @@ export const gilmerPools = [
   {
     model: "Costa Brava",
     dimensions: "12' x 29'",
-    depth: "6'",
+    depth: "3'6\" - 6'",
     price: 79881,
     image: gilmerCostaBrava,
     warranty: "Life Warranty",
@@ -217,7 +217,7 @@ export const gilmerPools = [
   {
     model: "Majestic",
     dimensions: "13' x 25'6\"",
-    depth: "6'",
+    depth: "3'6\" - 6'",
     price: 78530,
     image: gilmerMajestic,
     warranty: "Life Warranty",
@@ -232,7 +232,7 @@ export const gilmerPools = [
   {
     model: "Gold Coast w/ built-in Spa",
     dimensions: "14' x 28'",
-    depth: "5'8\"",
+    depth: "3'6\" - 5'8\"",
     price: 104600,
     image: gilmerGoldCoast,
     warranty: "Life Warranty",
@@ -245,7 +245,7 @@ export const gilmerPools = [
   {
     model: "Atlantis",
     dimensions: "14' x 32'",
-    depth: "6'",
+    depth: "3'6\" - 6'",
     price: 104600,
     image: gilmerAtlantis,
     warranty: "Life Warranty",
@@ -258,7 +258,7 @@ export const gilmerPools = [
   {
     model: "Extreme 27 w/ built-in Spa & Splash Deck",
     dimensions: "12'6\" x 27'",
-    depth: "5'11\"",
+    depth: "3'6\" - 5'11\"",
     price: 93600,
     image: "/lovable-uploads/gilmer-extreme-27.jpeg",
     media: [
@@ -276,7 +276,7 @@ export const gilmerPools = [
   {
     model: "Tortola",
     dimensions: "14' x 30'",
-    depth: "6'",
+    depth: "3'6\" - 6'",
     price: 95800,
     image: gilmerTortola,
     warranty: "Life Warranty",
@@ -291,7 +291,7 @@ export const gilmerPools = [
   {
     model: "Silver Shore",
     dimensions: "15' x 28'",
-    depth: "6'",
+    depth: "3'6\" - 6'",
     price: 82050,
     image: gilmerSilverShore,
     warranty: "Life Warranty",
@@ -304,7 +304,7 @@ export const gilmerPools = [
   {
     model: "Mystic",
     dimensions: "15' x 32'",
-    depth: "6'",
+    depth: "3'6\" - 6'",
     price: 106800,
     image: gilmerMystic,
     warranty: "Life Warranty",
@@ -317,7 +317,7 @@ export const gilmerPools = [
   {
     model: "Aloha",
     dimensions: "15' x 34'",
-    depth: "6'",
+    depth: "3'6\" - 6'",
     price: 106800,
     image: gilmerAloha,
     warranty: "Life Warranty",
@@ -330,7 +330,7 @@ export const gilmerPools = [
   {
     model: "Bellagio",
     dimensions: "15' x 34'",
-    depth: "6'6\"",
+    depth: "3'6\" - 6'6\"",
     price: 106800,
     image: gilmerBallagio,
     warranty: "Life Warranty",
@@ -343,7 +343,7 @@ export const gilmerPools = [
   {
     model: "Extreme 38 w/ built-in Spa & Splash Deck",
     dimensions: "15'6\" x 38'",
-    depth: "7'",
+    depth: "3'6\" - 7'",
     price: 126600,
     image: "/lovable-uploads/gilmer-extreme-38.jpeg",
     warranty: "Life Warranty",
@@ -356,7 +356,7 @@ export const gilmerPools = [
   {
     model: "Ponce XL",
     dimensions: "15'6\" x 32'",
-    depth: "6'",
+    depth: "3'6\" - 6'",
     price: 113400,
     image: gilmerPonceXL,
     warranty: "Life Warranty",
@@ -369,7 +369,7 @@ export const gilmerPools = [
   {
     model: "Newport",
     dimensions: "16' x 35'",
-    depth: "6'",
+    depth: "3'6\" - 6'",
     price: 106800,
     image: gilmerNewport,
     warranty: "Life Warranty",

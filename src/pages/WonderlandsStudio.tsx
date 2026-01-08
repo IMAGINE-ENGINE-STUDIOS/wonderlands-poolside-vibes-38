@@ -438,6 +438,7 @@ const WonderlandsStudio = () => {
     const category = urlParams.get('category');
     const image = urlParams.get('image');
     const dimensions = urlParams.get('dimensions');
+    const depth = urlParams.get('depth');
     if (model && price) {
       // First try to find the product in our existing data
       let foundProduct: Product | null = null;
@@ -533,6 +534,7 @@ const WonderlandsStudio = () => {
           category: category || 'standard',
           image: image ? decodeURIComponent(image) : undefined,
           dimensions: dimensions ? decodeURIComponent(dimensions) : undefined,
+          depth: depth ? decodeURIComponent(depth) : undefined,
           type: productType
         };
         

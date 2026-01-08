@@ -389,11 +389,13 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
   // No need to fetch from database - using static paver data
 
   const handleImageClick = () => {
-    // Navigate to Wonderlands Studio with the selected product
+    // Navigate to Wonderlands Studio with the selected product including depth
     const params = new URLSearchParams({
       model: pool.model,
       price: pool.price.toString(),
       category: pool.category,
+      ...(pool.depth && { depth: pool.depth }),
+      ...(pool.dimensions && { dimensions: pool.dimensions }),
       ...(currentPoolImage && {
         image: encodeURIComponent(currentPoolImage),
       }),
