@@ -416,21 +416,21 @@ export function productToScene(
   const shallowDepth = shallowEndDepth || 3.75;
   const deepDepth = deepEndDepth || 6.6;
   
-  // Determine depth direction: along SHORTEST side (width axis)
-  // Pool goes shallow -> deep along the width (shortest dimension)
-  const isWidthShorter = width < length;
+  // Determine depth direction: along LONGEST side (length axis)
+  // Pool goes shallow -> deep along the length (longest dimension)
+  const isLengthLonger = length > width;
   
-  // Create perimeter depth points with gradient along SHORTEST side
+  // Create perimeter depth points with gradient along LONGEST side
   const perimeterDepthPoints = poolPoints.map((pt, i, arr) => {
     // Calculate depth based on position along shortest axis
     let depthRatio: number;
     
-    if (isWidthShorter) {
-      // Depth gradient along X axis (width)
-      depthRatio = pt.x / width;
-    } else {
-      // Depth gradient along Y axis (length)
+    if (isLengthLonger) {
+      // Depth gradient along Y axis (length - the longer side)
       depthRatio = pt.y / length;
+    } else {
+      // Depth gradient along X axis (width - the longer side)
+      depthRatio = pt.x / width;
     }
     
     // Clamp ratio and calculate depth linearly from shallow to deep
@@ -449,7 +449,7 @@ export function productToScene(
   console.log('🔵 SceneConverter: Creating perimeterDepthPoints with depth range:', {
     shallowDepth,
     deepDepth,
-    depthDirection: isWidthShorter ? 'along width (X)' : 'along length (Y)',
+    depthDirection: isLengthLonger ? 'along length (Y)' : 'along width (X)',
     pointCount: perimeterDepthPoints.length,
     productDepthString: product.depth,
     sampleDepths: perimeterDepthPoints.slice(0, 4).map(p => p.depth.toFixed(2))

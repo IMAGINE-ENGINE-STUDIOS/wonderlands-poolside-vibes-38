@@ -76,10 +76,10 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
       const centerY = (minY + maxY) / 2;
 
       // Calculate pool dimensions for depth mapping
-      // DEPTH DIRECTION: Along the SHORTEST side (width axis) - shallow to deep
+      // DEPTH DIRECTION: Along the LONGEST side (length axis) - shallow to deep
       const poolWidth = maxX - minX;
       const poolLength = maxY - minY;
-      const depthDirection = poolWidth < poolLength ? 'x' : 'y';
+      const depthDirection = poolLength > poolWidth ? 'y' : 'x';
 
       // Normalize points to match Pool3DScene coordinate system (lines 217-220)
       const normalizedPoints = curvedPoints.map(p => ({
@@ -133,12 +133,12 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
         const x = positions.getX(i);
         const z = positions.getZ(i);
         
-        // Calculate position ratio along SHORTEST axis (width) for depth gradient
+        // Calculate position ratio along LONGEST axis (length) for depth gradient
         let depthRatio;
-        if (depthDirection === 'x') {
-          depthRatio = (x - (minX - centerX)) / poolWidth;
-        } else {
+        if (depthDirection === 'y') {
           depthRatio = (z - (minY - centerY)) / poolLength;
+        } else {
+          depthRatio = (x - (minX - centerX)) / poolWidth;
         }
         
         depthRatio = Math.max(0, Math.min(1, depthRatio));
