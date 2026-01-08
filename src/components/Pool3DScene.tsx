@@ -17,7 +17,7 @@ import earcut from 'earcut';
 import grassTexture from '@/assets/grass-texture.avif';
 import { Maximize2, Minimize2, Move } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
-import { generateCurvedPoolPoints, normalize2DTo3D } from '@/utils/curveUtils';
+import { generateCurvedPoolPoints, normalize2DTo3D, generateOffsetCurve } from '@/utils/curveUtils';
 import { BoundaryDebugOverlay } from './scene3d/BoundaryDebugOverlay';
 import { validateAndRepairPolygon, ensureCounterClockwise } from '@/utils/shapeValidation';
 
@@ -653,7 +653,7 @@ const FenceMesh: React.FC<{
   );
 };
 
-// Grass Terrain Component with Pool Cutout Following Exact Pool Walls
+// Grass Terrain Component with Pool Cutout Following Exact Pool Walls + Coping
 const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPosition?: [number, number, number] }> = ({ poolPoints, copingWidth = 1.0, poolPosition = [0, 0, 0] }) => {
   const texture = useTexture(grassTexture);
   
@@ -669,15 +669,15 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPo
     terrainShape.lineTo(-5000, 5000);
     terrainShape.closePath();
     
-    // Create hole following exact pool wall boundaries with validation
+    // Create hole following exact pool wall boundaries + COPING WIDTH
+    // This ensures no grass shows inside the pool/coping area
     try {
       if (poolPoints.length >= 3) {
         // Use curved pool points for the hole (same as pool walls/water surface)
         const poolCurve2D = poolPoints.map(p => ({ x: p.x, y: p.y }));
         
-        // LIMIT curve segments to prevent WebGL crashes
-        const segmentsPerEdge = Math.min(15, Math.ceil(100 / poolPoints.length));
-        const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, segmentsPerEdge, 0.3);
+        // MUST use same segments as pool walls (30) for exact alignment
+        const smoothPoolCurve = generateCurvedPoolPoints(poolCurve2D, 30, 0.3);
         
         if (smoothPoolCurve.length >= 3) {
           // CRITICAL: Normalize coordinates to match pool walls (centered at origin)
@@ -688,15 +688,26 @@ const GrassTerrain: React.FC<{ poolPoints: Point[]; copingWidth?: number; poolPo
           const centerX = (minX + maxX) / 2;
           const centerY = (minY + maxY) / 2;
           
-          const normalizedPoints = smoothPoolCurve.map(p => ({
+          // Normalize to 3D coordinates (x, z)
+          const normalizedPoints3D = smoothPoolCurve.map(p => ({
             x: p.x - centerX,
-            y: p.y - centerY
+            z: p.y - centerY
+          }));
+          
+          // OFFSET OUTWARD by coping width to include coping in the hole
+          // This prevents grass from showing inside the pool/coping area
+          const offsetPoints = generateOffsetCurve(normalizedPoints3D, copingWidth + 0.1);
+          
+          // Convert back to 2D for the hole (x, y)
+          const normalizedPoints = offsetPoints.map(p => ({
+            x: p.x,
+            y: p.z
           }));
           
           // VALIDATE and REPAIR the polygon before creating the hole
           const validatedPoints = validateAndRepairPolygon(normalizedPoints, {
-            maxVertices: 80, // Lower limit for terrain holes to prevent WebGL issues
-            simplifyEpsilon: 0.5,
+            maxVertices: 120, // Increase limit for smoother holes
+            simplifyEpsilon: 0.3,
             fallbackToConvexHull: true,
             fallbackToBoundingBox: true
           });
