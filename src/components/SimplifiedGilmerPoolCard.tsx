@@ -311,7 +311,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
       <div 
         className="relative w-full h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/10 to-teal/10 overflow-hidden group/image cursor-pointer"
         onClick={() => {
-          navigate(`/wonderlands-studio?model=${encodeURIComponent(pool.model)}&price=${pool.price}&category=premium&image=${encodeURIComponent(pool.image)}`);
+          navigate(`/wonderlands-studio?model=${encodeURIComponent(pool.model)}&price=${pool.price}&category=premium&depth=${encodeURIComponent(pool.depth)}&dimensions=${encodeURIComponent(pool.dimensions)}&image=${encodeURIComponent(pool.image)}`);
         }}
       >
         <OptimizedImage
