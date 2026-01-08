@@ -17,7 +17,7 @@ import { EnhancedPoolLights, createDefaultPoolLights } from './scene3d/EnhancedP
 import { WaterCaustics } from './scene3d/WaterCaustics';
 import { PoolAssetManager } from './scene3d/PoolAssetManager';
 import { PoolAssetsRenderer } from './scene3d/PoolAssetsRenderer';
-import { PoolStairConfig, PoolChairConfig } from './scene3d/poolAssetTypes';
+import { PoolStairConfig, PoolChairConfig, ContourSeatingConfig } from './scene3d/poolAssetTypes';
 import { WalkthroughController } from './scene3d/WalkthroughController';
 import { PoolDesignerHeader } from './scene3d/PoolDesignerHeader';
 import { SplineEditPanel } from './scene3d/SplineEditPanel';
@@ -227,14 +227,7 @@ export function UnifiedPoolVisualizer({
   // Pool assets state (stairs, chairs, contour seating)
   const [poolStairs, setPoolStairs] = useState<PoolStairConfig[]>([]);
   const [poolChairs, setPoolChairs] = useState<PoolChairConfig[]>([]);
-  const [contourSeating, setContourSeating] = useState<Array<{
-    id: string;
-    startPosition: number;
-    endPosition: number;
-    width: number;
-    height: number;
-    textureUrl: string;
-  }>>([]);
+  const [contourSeating, setContourSeating] = useState<ContourSeatingConfig[]>([]);
   const [selectedPoolAssetId, setSelectedPoolAssetId] = useState<string | null>(null);
   const [showPoolAssetManager, setShowPoolAssetManager] = useState(false);
   
@@ -1000,29 +993,46 @@ export function UnifiedPoolVisualizer({
          )}
 
          {/* Spline Edit Panel - shown only in spline edit mode */}
-         <SplineEditPanel
-           isOpen={isSplineEditMode}
-           onClose={() => {
-             setIsSplineEditMode(false);
-             setEnablePoolSplineEdit(false);
-             setEnableFloorDepthSplineEdit(false);
-             setSelectedSplineComponent(null);
-             setSelectedSplinePointId(null);
-           }}
-           perimeterDepthPoints={scene.pool.perimeterDepthPoints || []}
-           onPerimeterDepthPointsChange={handlePerimeterDepthPointsChange}
-           selectedPointId={selectedSplinePointId}
-           onSelectPoint={setSelectedSplinePointId}
-           selectedComponent={selectedSplineComponent}
-           onSelectComponent={(comp) => {
-             setSelectedSplineComponent(comp);
-             if (comp === 'pool-floor') {
-               setEnableFloorDepthSplineEdit(true);
-             }
-           }}
-           poolModelDepth={poolDeepDepth}
-           poolModelShallowDepth={poolShallowDepth}
-         />
+          <SplineEditPanel
+            isOpen={isSplineEditMode}
+            onClose={() => {
+              setIsSplineEditMode(false);
+              setEnablePoolSplineEdit(false);
+              setEnableFloorDepthSplineEdit(false);
+              setSelectedSplineComponent(null);
+              setSelectedSplinePointId(null);
+            }}
+            perimeterDepthPoints={scene.pool.perimeterDepthPoints || []}
+            onPerimeterDepthPointsChange={handlePerimeterDepthPointsChange}
+            selectedPointId={selectedSplinePointId}
+            onSelectPoint={setSelectedSplinePointId}
+            selectedComponent={selectedSplineComponent}
+            onSelectComponent={(comp) => {
+              setSelectedSplineComponent(comp);
+              if (comp === 'pool-floor') {
+                setEnableFloorDepthSplineEdit(true);
+              }
+            }}
+            poolModelDepth={poolDeepDepth}
+            poolModelShallowDepth={poolShallowDepth}
+            stairs={poolStairs}
+            onStairsChange={setPoolStairs}
+            contourSeating={contourSeating}
+            onContourSeatingChange={setContourSeating}
+            selectedAssetId={selectedPoolAssetId}
+            copingWidth={scene.deck.copingWidth ?? 1.0}
+            onCopingWidthChange={(width) => setScene({
+              ...scene,
+              deck: { ...scene.deck, copingWidth: width }
+            })}
+            copingHeight={scene.deck.copingHeight ?? 0.5}
+            onCopingHeightChange={(height) => setScene({
+              ...scene,
+              deck: { ...scene.deck, copingHeight: height }
+            })}
+            deckWidth={deckWidth}
+            onDeckWidthChange={setDeckWidth}
+          />
 
          {/* Depth Profile Editor - similar to 2D designer depth tab */}
           <DepthProfileEditor
