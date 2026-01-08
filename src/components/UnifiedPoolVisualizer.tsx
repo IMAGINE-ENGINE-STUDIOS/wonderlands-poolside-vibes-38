@@ -71,6 +71,96 @@ function CameraController({
   return null;
 }
 
+// Smooth zoom controller for component selection
+function SelectionZoomController({
+  selectedComponent,
+  controlsRef,
+  poolDimensions
+}: {
+  selectedComponent: 'pool' | 'deck' | 'coping' | 'waterline' | null;
+  controlsRef: React.RefObject<any>;
+  poolDimensions?: { width?: number; length?: number };
+}) {
+  const { camera } = useThree();
+  const animationRef = useRef<number | null>(null);
+  const previousComponent = useRef<string | null>(null);
+  
+  useEffect(() => {
+    // Only animate when selection changes to a new component
+    if (selectedComponent === previousComponent.current) return;
+    previousComponent.current = selectedComponent;
+    
+    if (!selectedComponent || !controlsRef.current) return;
+    
+    const controls = controlsRef.current;
+    const width = poolDimensions?.width || 15;
+    const length = poolDimensions?.length || 30;
+    const poolSize = Math.max(width, length);
+    
+    // Target positions for each component - closer zoom for details
+    const zoomConfigs: Record<string, { position: [number, number, number]; target: [number, number, number] }> = {
+      pool: { 
+        position: [poolSize * 0.8, poolSize * 0.6, poolSize * 0.8], 
+        target: [0, -2, 0] 
+      },
+      deck: { 
+        position: [poolSize * 1.0, poolSize * 0.5, poolSize * 1.0], 
+        target: [0, 0, 0] 
+      },
+      coping: { 
+        position: [poolSize * 0.6, poolSize * 0.4, poolSize * 0.6], 
+        target: [0, 0.5, 0] 
+      },
+      waterline: { 
+        position: [poolSize * 0.5, poolSize * 0.3, poolSize * 0.5], 
+        target: [0, -0.5, 0] 
+      }
+    };
+    
+    const config = zoomConfigs[selectedComponent];
+    if (!config) return;
+    
+    const startPosition = camera.position.clone();
+    const startTarget = controls.target.clone();
+    const endPosition = new THREE.Vector3(...config.position);
+    const endTarget = new THREE.Vector3(...config.target);
+    
+    let progress = 0;
+    const duration = 800; // ms
+    const startTime = performance.now();
+    
+    const animate = (currentTime: number) => {
+      progress = Math.min((currentTime - startTime) / duration, 1);
+      
+      // Ease out cubic for smooth deceleration
+      const eased = 1 - Math.pow(1 - progress, 3);
+      
+      camera.position.lerpVectors(startPosition, endPosition, eased);
+      controls.target.lerpVectors(startTarget, endTarget, eased);
+      controls.update();
+      
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      }
+    };
+    
+    // Cancel any existing animation
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+    
+    animationRef.current = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [selectedComponent, camera, controlsRef, poolDimensions]);
+  
+  return null;
+}
+
 export function UnifiedPoolVisualizer({
   scene: initialScene,
   textureLibrary,
@@ -1105,6 +1195,13 @@ export function UnifiedPoolVisualizer({
           />
           
           <CameraController preset={cameraPreset} target={scene.camera.target} />
+          
+          {/* Smooth zoom on component selection */}
+          <SelectionZoomController
+            selectedComponent={selectedComponent}
+            controlsRef={controlsRef}
+            poolDimensions={scene.pool.dimensions}
+          />
           
           {/* Pool walls, floor, coping, waterline, AND deck - all in one rendering */}
           <group ref={poolGroupRef} position={[0, 0, 0]} key={`pool-${scene.pool.position.join('-')}`}>

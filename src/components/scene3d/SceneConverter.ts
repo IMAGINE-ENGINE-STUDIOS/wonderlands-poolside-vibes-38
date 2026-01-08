@@ -417,20 +417,23 @@ export function productToScene(
   const deepDepth = deepEndDepth || 6.6;
   
   // Create perimeter depth points with gradient from shallow to deep end
-  // Shallow end is at the start (position 0), deep end is at position 0.5 (opposite side)
+  // Shallow end is at the start (position 0), deep end is at ~0.4-0.6 (opposite side with flat zone)
   const perimeterDepthPoints = poolPoints.map((pt, i, arr) => {
     // Calculate normalized position around perimeter (0 to 1)
     const normalizedPos = i / arr.length;
     
-    // Create a gradient: shallow at 0, deep at 0.5, shallow again at 1
-    // This creates a realistic pool depth profile
+    // Create a gradient with flat deep zone: shallow at 0, transition to deep at 0.35, 
+    // flat deep zone from 0.35 to 0.65, then transition back to shallow at 1
     let depth: number;
-    if (normalizedPos <= 0.5) {
-      // First half: shallow to deep
-      depth = shallowDepth + (deepDepth - shallowDepth) * (normalizedPos * 2);
+    if (normalizedPos <= 0.35) {
+      // First transition: shallow to deep
+      depth = shallowDepth + (deepDepth - shallowDepth) * (normalizedPos / 0.35);
+    } else if (normalizedPos <= 0.65) {
+      // Flat deep zone - both deepest corners at same depth
+      depth = deepDepth;
     } else {
-      // Second half: deep to shallow
-      depth = deepDepth - (deepDepth - shallowDepth) * ((normalizedPos - 0.5) * 2);
+      // Second transition: deep to shallow
+      depth = deepDepth - (deepDepth - shallowDepth) * ((normalizedPos - 0.65) / 0.35);
     }
     
     return {
