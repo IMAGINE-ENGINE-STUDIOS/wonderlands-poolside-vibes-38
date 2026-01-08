@@ -76,9 +76,10 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
       const centerY = (minY + maxY) / 2;
 
       // Calculate pool dimensions for depth mapping
+      // DEPTH DIRECTION: Along the SHORTEST side (width axis) - shallow to deep
       const poolWidth = maxX - minX;
       const poolLength = maxY - minY;
-      const lengthDirection = poolLength > poolWidth ? 'y' : 'x';
+      const depthDirection = poolWidth < poolLength ? 'x' : 'y';
 
       // Normalize points to match Pool3DScene coordinate system (lines 217-220)
       const normalizedPoints = curvedPoints.map(p => ({
@@ -132,16 +133,16 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
         const x = positions.getX(i);
         const z = positions.getZ(i);
         
-        // Calculate position ratio along pool length (SAME logic as pool floor)
-        let lengthRatio;
-        if (lengthDirection === 'y') {
-          lengthRatio = (z - (minY - centerY)) / poolLength;
+        // Calculate position ratio along SHORTEST axis (width) for depth gradient
+        let depthRatio;
+        if (depthDirection === 'x') {
+          depthRatio = (x - (minX - centerX)) / poolWidth;
         } else {
-          lengthRatio = (x - (minX - centerX)) / poolWidth;
+          depthRatio = (z - (minY - centerY)) / poolLength;
         }
         
-        lengthRatio = Math.max(0, Math.min(1, lengthRatio));
-        const depth = getDepthAtPosition(lengthRatio);
+        depthRatio = Math.max(0, Math.min(1, depthRatio));
+        const depth = getDepthAtPosition(depthRatio);
         depthArray[i] = depth;
       }
       
@@ -192,7 +193,7 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
         
         // Reflections
         reflectionStrength: { value: 0.5 },
-        transparency: { value: 0.1 },
+        transparency: { value: 0.3 },
         
         // Depth settings
         maxDepth: { value: Math.max(...depthPoints.map(d => d.depth)) },
