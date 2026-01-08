@@ -59,11 +59,10 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
     
     try {
       // CRITICAL: Use generateCurvedPoolPoints with EXACT same parameters as Pool3DScene PoolMesh
-      // LIMIT segments to prevent WebGL crashes with complex shapes
-      const segmentsPerEdge = Math.min(20, Math.ceil(100 / poolPoints.length));
+      // MUST use 30 segments to match pool walls exactly for waterline intersection
       const curvedPoints = generateCurvedPoolPoints(
         poolPoints.map(p => ({ x: p.x, y: p.y })),
-        segmentsPerEdge,  // Adaptive segments
+        30, // MUST match Pool3DScene segments for exact alignment
         0.3  // MUST match Pool3DScene tension
       );
 
@@ -84,46 +83,45 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
       // Normalize points to match Pool3DScene coordinate system (lines 217-220)
       const normalizedPoints = curvedPoints.map(p => ({
         x: p.x - centerX,
-        y: p.y - centerY
+        z: p.y - centerY // Use z to match Pool3DScene
       }));
 
-      // VALIDATE the polygon before creating geometry
-      const validatedPoints = validateAndRepairPolygon(normalizedPoints, {
-        maxVertices: 100,
-        simplifyEpsilon: 0.3,
-        fallbackToConvexHull: true,
-        fallbackToBoundingBox: true
-      });
+      // Create water geometry using EXACT same triangulation as pool floor
+      // This ensures water mesh clips exactly at waterline intersection with walls
+      const geometry = new THREE.BufferGeometry();
+      const vertices: number[] = [];
+      const indices: number[] = [];
+      const uvs: number[] = [];
 
-      console.log('🌊 Water validated:', validatedPoints.length, 'points from', normalizedPoints.length);
+      // Calculate center point for fan triangulation (matches pool floor method)
+      const centerWaterX = normalizedPoints.reduce((sum, p) => sum + p.x, 0) / normalizedPoints.length;
+      const centerWaterZ = normalizedPoints.reduce((sum, p) => sum + p.z, 0) / normalizedPoints.length;
 
-      // Create shape from validated points - water fills pool boundary EXACTLY
-      const shape = new THREE.Shape();
-      validatedPoints.forEach((point, i) => {
-        if (i === 0) {
-          shape.moveTo(point.x, point.y);
-        } else {
-          shape.lineTo(point.x, point.y);
-        }
-      });
-      shape.closePath();
+      // Add center vertex first (index 0)
+      vertices.push(centerWaterX, 0, centerWaterZ);
+      uvs.push(0.5, 0.5);
 
-      // Create tessellated geometry with error handling
-      let geometry: THREE.ShapeGeometry;
-      try {
-        geometry = new THREE.ShapeGeometry(shape, 64); // Reduced from 128 for stability
-      } catch (shapeError) {
-        console.warn('⚠️ WaterSurface: ShapeGeometry failed, using simplified shape');
-        // Fallback to bounding box
-        const fallbackShape = new THREE.Shape();
-        const padding = 0.5;
-        fallbackShape.moveTo(minX - centerX - padding, minY - centerY - padding);
-        fallbackShape.lineTo(maxX - centerX + padding, minY - centerY - padding);
-        fallbackShape.lineTo(maxX - centerX + padding, maxY - centerY + padding);
-        fallbackShape.lineTo(minX - centerX - padding, maxY - centerY + padding);
-        fallbackShape.closePath();
-        geometry = new THREE.ShapeGeometry(fallbackShape, 32);
+      // Add perimeter vertices - these match pool wall inner edges exactly
+      for (const p of normalizedPoints) {
+        vertices.push(p.x, 0, p.z);
+        // Calculate UV based on position
+        const u = (p.x - (minX - centerX)) / poolWidth;
+        const v = (p.z - (minY - centerY)) / poolLength;
+        uvs.push(u, v);
       }
+
+      // Create triangles using fan from center (matches pool floor triangulation)
+      for (let i = 0; i < normalizedPoints.length; i++) {
+        const currIdx = 1 + i;
+        const nextIdx = 1 + ((i + 1) % normalizedPoints.length);
+        // Counterclockwise winding for top-facing surface
+        indices.push(0, currIdx, nextIdx);
+      }
+
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      geometry.setIndex(indices);
+      geometry.computeVertexNormals();
       
       // Add depth attribute for depth-based coloring
       const positions = geometry.getAttribute('position');
@@ -134,10 +132,13 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
         const z = positions.getZ(i);
         
         // Calculate position ratio along LONGEST axis (length) for depth gradient
+        // z corresponds to the y-axis in 2D pool space
         let depthRatio;
         if (depthDirection === 'y') {
+          // Length is longer, gradient along z (which was y in 2D)
           depthRatio = (z - (minY - centerY)) / poolLength;
         } else {
+          // Width is longer, gradient along x
           depthRatio = (x - (minX - centerX)) / poolWidth;
         }
         
@@ -147,9 +148,9 @@ const WaterSurface: React.FC<WaterSurfaceProps> = ({ poolPoints, depthPoints, po
       }
       
       geometry.setAttribute('depth', new THREE.BufferAttribute(depthArray, 1));
-      geometry.rotateX(-Math.PI / 2); // Rotate to horizontal
+      // No rotation needed - geometry is already in correct XZ plane
       
-      console.log('✅ WaterSurface: Water geometry created with exact pool boundary match');
+      console.log('✅ WaterSurface: Water geometry created with exact pool boundary match (fan triangulation)');
       return geometry;
     } catch (error) {
       console.error('❌ WaterSurface: Failed to create geometry:', error);
