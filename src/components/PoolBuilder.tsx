@@ -3045,14 +3045,51 @@ export function PoolBuilder({
       ctx.stroke();
       ctx.setLineDash([]);
       
-      // Draw curve type indicator on each segment
+      // Draw distance measurements and curve type indicator on each segment
       for (let i = 1; i < splineDrawing.points.length; i++) {
         const prev = splineDrawing.points[i - 1];
         const curr = splineDrawing.points[i];
         const midX = (prev.x + curr.x) / 2;
         const midY = (prev.y + curr.y) / 2;
         
-        // Small curve type badge
+        // Calculate linear distance in feet
+        const distPx = Math.sqrt(Math.pow(curr.x - prev.x, 2) + Math.pow(curr.y - prev.y, 2));
+        const distFeet = (distPx / scale).toFixed(1);
+        
+        // Calculate angle for text rotation
+        const angle = Math.atan2(curr.y - prev.y, curr.x - prev.x);
+        
+        // Offset label perpendicular to the line
+        const offsetDist = 20;
+        const perpX = Math.cos(angle + Math.PI / 2) * offsetDist;
+        const perpY = Math.sin(angle + Math.PI / 2) * offsetDist;
+        
+        // Draw distance label background
+        ctx.save();
+        ctx.translate(midX + perpX, midY + perpY);
+        // Rotate text to be readable (flip if upside down)
+        let textAngle = angle;
+        if (textAngle > Math.PI / 2 || textAngle < -Math.PI / 2) {
+          textAngle += Math.PI;
+        }
+        ctx.rotate(textAngle);
+        
+        // Draw background pill
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+        const textWidth = ctx.measureText(distFeet + ' ft').width + 12;
+        ctx.beginPath();
+        ctx.roundRect(-textWidth / 2, -10, textWidth, 20, 4);
+        ctx.fill();
+        
+        // Draw distance text
+        ctx.fillStyle = '#00D4FF';
+        ctx.font = 'bold 11px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(distFeet + ' ft', 0, 0);
+        ctx.restore();
+        
+        // Small curve type badge (positioned on the line)
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         ctx.beginPath();
         ctx.arc(midX, midY, 10, 0, Math.PI * 2);
@@ -3063,6 +3100,86 @@ export function PoolBuilder({
         ctx.textBaseline = 'middle';
         const label = curr.curveType === 'linear' ? 'L' : curr.curveType === 'curve' ? 'C' : curr.curveType === 'arc' ? 'A' : 'F';
         ctx.fillText(label, midX, midY);
+      }
+      
+      // Draw distance from last point to cursor (live measurement)
+      if (splineDrawing.points.length >= 1) {
+        const lastPt = splineDrawing.points[splineDrawing.points.length - 1];
+        const distToCursorPx = Math.sqrt(Math.pow(cursorPos.x - lastPt.x, 2) + Math.pow(cursorPos.y - lastPt.y, 2));
+        const distToCursorFeet = (distToCursorPx / scale).toFixed(1);
+        
+        if (distToCursorPx > 10) { // Only show if cursor is not too close
+          const midX = (lastPt.x + cursorPos.x) / 2;
+          const midY = (lastPt.y + cursorPos.y) / 2;
+          const angle = Math.atan2(cursorPos.y - lastPt.y, cursorPos.x - lastPt.x);
+          
+          // Offset perpendicular to line
+          const offsetDist = 25;
+          const perpX = Math.cos(angle + Math.PI / 2) * offsetDist;
+          const perpY = Math.sin(angle + Math.PI / 2) * offsetDist;
+          
+          ctx.save();
+          ctx.translate(midX + perpX, midY + perpY);
+          let textAngle = angle;
+          if (textAngle > Math.PI / 2 || textAngle < -Math.PI / 2) {
+            textAngle += Math.PI;
+          }
+          ctx.rotate(textAngle);
+          
+          // Draw background pill for cursor distance
+          ctx.fillStyle = 'rgba(34, 197, 94, 0.9)';
+          const textWidth = ctx.measureText(distToCursorFeet + ' ft').width + 14;
+          ctx.beginPath();
+          ctx.roundRect(-textWidth / 2, -11, textWidth, 22, 5);
+          ctx.fill();
+          
+          // Draw distance text
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 12px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(distToCursorFeet + ' ft', 0, 0);
+          ctx.restore();
+        }
+      }
+      
+      // Draw closing segment distance (from last to first)
+      if (splineDrawing.points.length >= 2) {
+        const lastPt = splineDrawing.points[splineDrawing.points.length - 1];
+        const firstPt = splineDrawing.points[0];
+        const closingDistPx = Math.sqrt(Math.pow(firstPt.x - lastPt.x, 2) + Math.pow(firstPt.y - lastPt.y, 2));
+        const closingDistFeet = (closingDistPx / scale).toFixed(1);
+        
+        const midX = (lastPt.x + firstPt.x) / 2;
+        const midY = (lastPt.y + firstPt.y) / 2;
+        const angle = Math.atan2(firstPt.y - lastPt.y, firstPt.x - lastPt.x);
+        
+        const offsetDist = 20;
+        const perpX = Math.cos(angle + Math.PI / 2) * offsetDist;
+        const perpY = Math.sin(angle + Math.PI / 2) * offsetDist;
+        
+        ctx.save();
+        ctx.translate(midX + perpX, midY + perpY);
+        let textAngle = angle;
+        if (textAngle > Math.PI / 2 || textAngle < -Math.PI / 2) {
+          textAngle += Math.PI;
+        }
+        ctx.rotate(textAngle);
+        
+        // Draw background pill (dimmed for closing segment)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        const textWidth = ctx.measureText(closingDistFeet + ' ft').width + 12;
+        ctx.beginPath();
+        ctx.roundRect(-textWidth / 2, -10, textWidth, 20, 4);
+        ctx.fill();
+        
+        // Draw distance text (dimmed)
+        ctx.fillStyle = 'rgba(0, 212, 255, 0.7)';
+        ctx.font = 'bold 10px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(closingDistFeet + ' ft', 0, 0);
+        ctx.restore();
       }
       
       // Draw spline points
