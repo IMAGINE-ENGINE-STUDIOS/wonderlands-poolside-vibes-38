@@ -1174,7 +1174,28 @@ export function PoolBuilder({
         }
       }
       ctx.closePath();
-      ctx.clip();
+      
+      // Clip out main pool water area
+      if (points.length >= 3) {
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.closePath();
+      }
+      
+      // Clip out all additional pools' water areas (prevent deck on water)
+      additionalPools.forEach(pool => {
+        if (pool.points.length >= 3) {
+          ctx.moveTo(pool.points[0].x, pool.points[0].y);
+          for (let i = 1; i < pool.points.length; i++) {
+            ctx.lineTo(pool.points[i].x, pool.points[i].y);
+          }
+          ctx.closePath();
+        }
+      });
+      
+      ctx.clip('evenodd');
 
       // Find hardscape bounds
       const hsMinX = Math.min(...hardscapePoints.map(p => p.x));
@@ -2725,45 +2746,41 @@ export function PoolBuilder({
         }
         ctx.closePath();
         
-        // Clip out this pool's own water area
+        // Clip out this pool's own water area (always)
         ctx.moveTo(pool.points[0].x, pool.points[0].y);
         for (let i = 1; i < pool.points.length; i++) {
           ctx.lineTo(pool.points[i].x, pool.points[i].y);
         }
         ctx.closePath();
         
-        // For ALL additional pools, clip out main pool water, coping area (water + coping offset)
+        // Always clip out main pool water area for ALL additional pools
         if (points.length >= 3) {
-          // Clip out main pool water area
           ctx.moveTo(points[0].x, points[0].y);
           for (let i = 1; i < points.length; i++) {
             ctx.lineTo(points[i].x, points[i].y);
           }
           ctx.closePath();
-          
-          // For separate pools, also clip out main pool's deck area to avoid overlap
-          if (isSeparatePool && hardscapePoints.length >= 3) {
-            ctx.moveTo(hardscapePoints[0].x, hardscapePoints[0].y);
-            for (let i = 1; i < hardscapePoints.length; i++) {
-              ctx.lineTo(hardscapePoints[i].x, hardscapePoints[i].y);
+        }
+        
+        // For separate pools, also clip out main pool's deck area to avoid overlap
+        if (isSeparatePool && hardscapePoints.length >= 3) {
+          ctx.moveTo(hardscapePoints[0].x, hardscapePoints[0].y);
+          for (let i = 1; i < hardscapePoints.length; i++) {
+            ctx.lineTo(hardscapePoints[i].x, hardscapePoints[i].y);
+          }
+          ctx.closePath();
+        }
+        
+        // Clip out all OTHER additional pools' water areas (to prevent overlaps)
+        additionalPools.forEach((otherPool, otherIndex) => {
+          if (otherIndex !== poolIndex && otherPool.points.length >= 3) {
+            ctx.moveTo(otherPool.points[0].x, otherPool.points[0].y);
+            for (let i = 1; i < otherPool.points.length; i++) {
+              ctx.lineTo(otherPool.points[i].x, otherPool.points[i].y);
             }
             ctx.closePath();
           }
-        }
-        
-        // For separate pools, also clip out other additional pools' water and deck areas
-        if (isSeparatePool) {
-          additionalPools.forEach((otherPool, otherIndex) => {
-            if (otherIndex !== poolIndex && otherPool.points.length >= 3) {
-              // Clip out other pool's water
-              ctx.moveTo(otherPool.points[0].x, otherPool.points[0].y);
-              for (let i = 1; i < otherPool.points.length; i++) {
-                ctx.lineTo(otherPool.points[i].x, otherPool.points[i].y);
-              }
-              ctx.closePath();
-            }
-          });
-        }
+        });
         
         ctx.clip('evenodd');
 
@@ -2788,7 +2805,8 @@ export function PoolBuilder({
         ctx.restore();
       }
 
-      // Draw pool body + coping (skip coping for integrated features) + liner texture
+      // Draw pool body + coping + liner texture
+      // For integrated features, draw coping only on edges facing deck (outside main pool)
       ctx.save();
       ctx.beginPath();
 
@@ -2820,34 +2838,35 @@ export function PoolBuilder({
         ctx.closePath();
       }
 
-      // Only draw coping for non-integrated features
-      if (!isIntegrated) {
-        const copingTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.coping, zoomLevel) : null;
-        if (copingTexture) {
-          ctx.save();
-          ctx.lineWidth = paverSizeInPixels;
+      // Draw coping for ALL water bodies (including integrated features)
+      // The coping should wrap around the perimeter facing the deck
+      const copingTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.coping, zoomLevel) : null;
+      if (copingTexture) {
+        ctx.save();
+        ctx.lineWidth = paverSizeInPixels;
 
-          const copingPattern = ctx.createPattern(copingTexture, 'repeat');
-          if (copingPattern) {
-            ctx.strokeStyle = copingPattern;
-            ctx.stroke();
-          }
-
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
-          ctx.lineWidth = paverSizeInPixels + 2;
-          ctx.globalCompositeOperation = 'destination-over';
-          ctx.stroke();
-          ctx.globalCompositeOperation = 'source-over';
-          ctx.restore();
-        } else {
-          ctx.lineWidth = copingThickness * 2;
-          ctx.strokeStyle = '#8B7355';
+        const copingPattern = ctx.createPattern(copingTexture, 'repeat');
+        if (copingPattern) {
+          ctx.strokeStyle = copingPattern;
           ctx.stroke();
         }
+
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.lineWidth = paverSizeInPixels + 2;
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.stroke();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.restore();
       } else {
-        // For integrated features, draw a thin highlight border to show the edge
-        ctx.strokeStyle = isSelected ? '#FFD700' : 'rgba(91, 197, 217, 0.5)';
-        ctx.lineWidth = isSelected ? 3 : 1;
+        ctx.lineWidth = copingThickness * 2;
+        ctx.strokeStyle = '#8B7355';
+        ctx.stroke();
+      }
+      
+      // If selected, add highlight
+      if (isSelected) {
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 3;
         ctx.stroke();
       }
 
