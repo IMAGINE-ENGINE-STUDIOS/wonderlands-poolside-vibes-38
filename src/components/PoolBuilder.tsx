@@ -2691,473 +2691,431 @@ export function PoolBuilder({
       y: current.y + dy
     } : p));
   };
-  return <div ref={containerRef} className="h-full flex flex-col bg-gradient-to-br from-background to-muted/20">
-      {/* Top Control Bar */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b bg-background/95 backdrop-blur">
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={() => setShowControls(!showControls)}>
-            {showControls ? 'Hide Controls' : 'Show Controls'}
-          </Button>
+  return <div ref={containerRef} className="h-full flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden">
+      {/* Minimal Top Bar */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-6 px-6 py-3 bg-background/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 rounded-lg">
+            <Ruler className="h-3.5 w-3.5 text-primary" />
+            <span className="text-sm font-semibold">{calculatePerimeter()}</span>
+            <span className="text-xs text-muted-foreground">ft</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 rounded-lg">
+            <Box className="h-3.5 w-3.5 text-blue-400" />
+            <span className="text-sm font-semibold">{calculateArea()}</span>
+            <span className="text-xs text-muted-foreground">sq ft</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 rounded-lg">
+            <span className="text-sm font-semibold">{calculateHardscapeArea().toFixed(0)}</span>
+            <span className="text-xs text-muted-foreground">deck</span>
+          </div>
         </div>
-
-        
-        <div className="flex items-center gap-4 ml-auto">
-          <div className="flex items-center gap-1 text-xs">
-            <Ruler className="h-3 w-3" />
-            <span className="font-bold">{calculatePerimeter()}</span>
-            <span className="text-muted-foreground">ft</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs">
-            <span className="font-bold">{calculateArea()}</span>
-            <span className="text-muted-foreground">sq ft pool</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs">
-            <span className="font-bold">{points.length}</span>
-            <span className="text-muted-foreground">corners</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs">
-            <span className="font-bold">{features.length}</span>
-            <span className="text-muted-foreground">features</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs">
-            <span className="font-bold">{calculateHardscapeArea().toFixed(1)}</span>
-            <span className="text-muted-foreground">sq ft deck</span>
-          </div>
-          <div className="h-5 w-px bg-border" />
-          <div className="flex items-center gap-1 text-xs font-semibold text-primary">
-            <span className="text-muted-foreground">Total:</span>
-            <span className="text-lg">${projectCost.total.toLocaleString('en-US', {
-              maximumFractionDigits: 0
-            })}</span>
-          </div>
+        <div className="h-6 w-px bg-border/50" />
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Total</span>
+          <span className="text-xl font-bold text-primary">${projectCost.total.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
         </div>
       </div>
 
-      {/* Collapsible Controls Panel */}
-      {showControls && <div className="border-b bg-background/95 backdrop-blur">
-          <Tabs defaultValue="pool" className="w-full" onValueChange={setActiveTab}>
-            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto">
-              <TabsTrigger value="pool" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                Pool Design
-              </TabsTrigger>
-              <TabsTrigger value="materials" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                Materials
-              </TabsTrigger>
-              <TabsTrigger value="textures" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                Textures
-              </TabsTrigger>
-              <TabsTrigger value="features" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                Features
-              </TabsTrigger>
-              <TabsTrigger value="shape" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                Shape
-              </TabsTrigger>
-              <TabsTrigger value="depth" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                Depth
-              </TabsTrigger>
-            </TabsList>
+      {/* Left Floating Toolbar */}
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-2 p-3 bg-background/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl">
+        {/* Tool Selection */}
+        <div className="flex flex-col gap-1">
+          <Button 
+            size="sm" 
+            variant={activeTool === 'select' ? "default" : "ghost"} 
+            onClick={() => setActiveTool('select')} 
+            className="h-10 w-10 p-0 rounded-xl"
+            title="Select & Move"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z" />
+            </svg>
+          </Button>
+          <Button 
+            size="sm" 
+            variant={activeTool === 'rotate' ? "default" : "ghost"} 
+            onClick={() => setActiveTool('rotate')} 
+            className="h-10 w-10 p-0 rounded-xl"
+            title="Rotate"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
+            </svg>
+          </Button>
+        </div>
+        
+        <div className="h-px bg-border/50" />
+        
+        {/* Drawing Tools */}
+        <div className="flex flex-col gap-1">
+          <Button 
+            size="sm" 
+            variant={activeTool === 'draw-pool' ? "default" : "ghost"} 
+            onClick={() => setActiveTool(activeTool === 'draw-pool' ? null : 'draw-pool')} 
+            className="h-10 w-10 p-0 rounded-xl"
+            title="Draw Pool"
+          >
+            <PenTool className="h-5 w-5" />
+          </Button>
+          <Button 
+            size="sm" 
+            variant={activeTool === 'draw-deck' ? "default" : "ghost"} 
+            onClick={() => setActiveTool(activeTool === 'draw-deck' ? null : 'draw-deck')} 
+            className="h-10 w-10 p-0 rounded-xl"
+            title="Draw Deck"
+          >
+            <Home className="h-5 w-5" />
+          </Button>
+          <Button 
+            size="sm" 
+            variant={smoothCorners ? "default" : "ghost"} 
+            onClick={() => setSmoothCorners(!smoothCorners)} 
+            className="h-10 w-10 p-0 rounded-xl"
+            title={smoothCorners ? "Smooth Corners" : "Sharp Corners"}
+          >
+            <Shapes className="h-5 w-5" />
+          </Button>
+        </div>
+        
+        <div className="h-px bg-border/50" />
+        
+        {/* Zoom Controls */}
+        <div className="flex flex-col gap-1">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => setZoomLevel(prev => Math.min(prev + 0.2, 2))} 
+            className="h-10 w-10 p-0 rounded-xl"
+            title="Zoom In"
+          >
+            <Plus className="h-5 w-5" />
+          </Button>
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={() => setZoomLevel(prev => Math.max(prev - 0.2, 0.5))} 
+            className="h-10 w-10 p-0 rounded-xl"
+            title="Zoom Out"
+          >
+            <Minus className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
 
-            {/* Pool Design Tab */}
-            <TabsContent value="pool" className="mt-0 p-2 space-y-2">
+      {/* Right Panel - Tabbed Controls */}
+      <div className="absolute right-4 top-20 bottom-4 z-30 w-72 flex flex-col bg-background/90 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl overflow-hidden">
+        <Tabs defaultValue="pool" className="flex-1 flex flex-col" onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-4 gap-1 p-2 bg-transparent border-b border-border/30">
+            <TabsTrigger value="pool" className="text-[10px] px-2 py-1.5 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Pool
+            </TabsTrigger>
+            <TabsTrigger value="shape" className="text-[10px] px-2 py-1.5 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Shape
+            </TabsTrigger>
+            <TabsTrigger value="materials" className="text-[10px] px-2 py-1.5 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Style
+            </TabsTrigger>
+            <TabsTrigger value="features" className="text-[10px] px-2 py-1.5 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Add
+            </TabsTrigger>
+          </TabsList>
+
+          <div className="flex-1 overflow-y-auto">
+            {/* Pool Tab */}
+            <TabsContent value="pool" className="mt-0 p-4 space-y-4 h-full">
+              {/* Deck Size */}
               <div className="space-y-2">
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => setSmoothCorners(!smoothCorners)} variant={smoothCorners ? "default" : "outline"} className="h-7 text-[10px]">
-                    <svg className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M3 3h18v18H3z" strokeLinejoin={smoothCorners ? "round" : "miter"} />
-                    </svg>
-                    {smoothCorners ? 'Smooth' : 'Squared'}
-                  </Button>
-                  
-                  <Button 
-                    size="sm" 
-                    onClick={() => setActiveTool(activeTool === 'draw-pool' ? null : 'draw-pool')} 
-                    variant={activeTool === 'draw-pool' ? "default" : "outline"} 
-                    className="h-7 text-[10px]"
-                    title="Draw custom pool shape"
-                  >
-                    <PenTool className="h-3 w-3 mr-1" />
-                    Draw Pool
-                  </Button>
-                  
-                  <Button 
-                    size="sm" 
-                    onClick={() => setActiveTool(activeTool === 'draw-deck' ? null : 'draw-deck')} 
-                    variant={activeTool === 'draw-deck' ? "default" : "outline"} 
-                    className="h-7 text-[10px]"
-                    title="Draw custom deck shape"
-                  >
-                    <PenTool className="h-3 w-3 mr-1" />
-                    Draw Deck
-                  </Button>
-                </div>
-                
-                <div className="flex gap-2">
-                  <ShapeRepository
-                    currentPoolPoints={points}
-                    currentDeckPoints={hardscapePoints}
-                    onLoadPoolShape={(newPoints) => {
-                      // Center the loaded shape on canvas
-                      const centerX = canvasSize.width / 2;
-                      const centerY = canvasSize.height / 2;
-                      const centeredPoints = newPoints.map((p, i) => ({
-                        ...p,
-                        x: p.x + centerX,
-                        y: p.y + centerY,
-                        id: `${i + 1}`
-                      }));
-                      setPoints(centeredPoints);
-                      setHardscapePoints(generateHardscapeFromPool(centeredPoints, deckOffset));
-                    }}
-                    onLoadDeckShape={(newPoints) => {
-                      const centerX = canvasSize.width / 2;
-                      const centerY = canvasSize.height / 2;
-                      const centeredPoints = newPoints.map((p, i) => ({
-                        ...p,
-                        x: p.x + centerX,
-                        y: p.y + centerY,
-                        id: `h${i + 1}`
-                      }));
-                      setHardscapePoints(centeredPoints);
-                    }}
-                    scale={scale}
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deck Width</Label>
+                <div className="flex items-center gap-3">
+                  <Input 
+                    type="number" 
+                    value={deckOffset} 
+                    onChange={e => {
+                      const newOffset = Math.max(3, parseFloat(e.target.value) || 3);
+                      setDeckOffset(newOffset);
+                      setHardscapePoints(generateHardscapeFromPool(points, newOffset));
+                    }} 
+                    className="h-10 flex-1 bg-muted/50 border-0 rounded-xl text-center font-semibold" 
+                    min="3" 
+                    step="0.5" 
                   />
+                  <span className="text-sm text-muted-foreground">ft</span>
                 </div>
-                
-                <div className="flex items-center gap-2">
-                  <Label className="text-xs whitespace-nowrap" title="Measured from coping edge outward">Deck Size:</Label>
-                  <Input type="number" value={deckOffset} onChange={e => {
-                const newOffset = Math.max(3, parseFloat(e.target.value) || 3);
-                setDeckOffset(newOffset);
-                setHardscapePoints(generateHardscapeFromPool(points, newOffset));
-              }} className="h-7 w-20 text-xs" min="3" step="0.5" title="Distance from coping edge to deck edge" />
-                  <span className="text-xs text-muted-foreground">ft from coping</span>
-                </div>
-                
-                {/* Drawing mode instructions */}
-                {(activeTool === 'draw-pool' || activeTool === 'draw-deck') && (
-                  <div className="bg-primary/10 border border-primary/30 rounded p-2 text-xs">
-                    <p className="font-medium">Drawing Mode: {activeTool === 'draw-pool' ? 'Pool' : 'Deck'}</p>
-                    <p className="text-muted-foreground">Click to add points. Double-click or press Enter to finish.</p>
-                  </div>
-                )}
-                
               </div>
-            </TabsContent>
 
-            {/* Shape Tab */}
-            <TabsContent value="shape" className="mt-0 p-2 space-y-2">
-              <div className="grid grid-cols-3 gap-2">
-                <Button size="sm" variant={poolShape === 'rectangle' ? 'default' : 'outline'} onClick={() => {
-              setPoolShape('rectangle');
-              const newPoolPoints = getShapePoints('rectangle');
-              setPoints(newPoolPoints);
-              setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
-              setFeatures([]);
-            }} className="h-8 text-xs">
-                  Rectangle
-                </Button>
-                <Button size="sm" variant={poolShape === 'kidney' ? 'default' : 'outline'} onClick={() => {
-              setPoolShape('kidney');
-              const newPoolPoints = getShapePoints('kidney');
-              setPoints(newPoolPoints);
-              setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
-              setFeatures([]);
-            }} className="h-8 text-xs">
-                  Kidney
-                </Button>
-                <Button size="sm" variant={poolShape === 'freeform' ? 'default' : 'outline'} onClick={() => {
-              setPoolShape('freeform');
-              const newPoolPoints = getShapePoints('freeform');
-              setPoints(newPoolPoints);
-              setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
-              setFeatures([]);
-            }} className="h-8 text-xs">
-                  Freeform
-                </Button>
+              {/* Shape Library */}
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Library</Label>
+                <ShapeRepository
+                  currentPoolPoints={points}
+                  currentDeckPoints={hardscapePoints}
+                  onLoadPoolShape={(newPoints) => {
+                    const centerX = canvasSize.width / 2;
+                    const centerY = canvasSize.height / 2;
+                    const centeredPoints = newPoints.map((p, i) => ({
+                      ...p,
+                      x: p.x + centerX,
+                      y: p.y + centerY,
+                      id: `${i + 1}`
+                    }));
+                    setPoints(centeredPoints);
+                    setHardscapePoints(generateHardscapeFromPool(centeredPoints, deckOffset));
+                  }}
+                  onLoadDeckShape={(newPoints) => {
+                    const centerX = canvasSize.width / 2;
+                    const centerY = canvasSize.height / 2;
+                    const centeredPoints = newPoints.map((p, i) => ({
+                      ...p,
+                      x: p.x + centerX,
+                      y: p.y + centerY,
+                      id: `h${i + 1}`
+                    }));
+                    setHardscapePoints(centeredPoints);
+                  }}
+                  scale={scale}
+                />
               </div>
-            </TabsContent>
 
-            {/* Depth Tab */}
-            <TabsContent value="depth" className="mt-0 p-3 space-y-3">
+              {/* Depth Profile */}
               <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Depth Profile</Label>
-                  <p className="text-xs text-muted-foreground">Adjust depth at each anchor point</p>
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Depth Profile</Label>
+                <div className="flex gap-2">
+                  {depthPoints.sort((a, b) => a.position - b.position).map((dp) => (
+                    <div key={dp.id} className="flex-1 space-y-1">
+                      <Label className="text-[9px] text-muted-foreground text-center block">
+                        {(dp.position * 100).toFixed(0)}%
+                      </Label>
+                      <Input 
+                        type="number" 
+                        value={dp.depth.toFixed(1)} 
+                        onChange={e => {
+                          const value = e.target.value;
+                          if (value === '') return;
+                          const newDepth = Math.max(1, Math.min(12, parseFloat(value)));
+                          setDepthPoints(prev => prev.map(d => d.id === dp.id ? { ...d, depth: newDepth } : d));
+                        }} 
+                        className="h-9 text-xs text-center bg-muted/50 border-0 rounded-lg" 
+                        min="1" 
+                        max="12" 
+                        step="0.5" 
+                      />
+                      <span className="text-[9px] text-muted-foreground text-center block">ft</span>
+                    </div>
+                  ))}
                 </div>
-
-                {/* Depth Anchor Controls */}
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Depth Anchors (Shallow to Deep)</Label>
-                  <div className="flex gap-1.5">
-                    {depthPoints.sort((a, b) => a.position - b.position).map((dp, index) => <div key={dp.id} className="flex-1 space-y-1">
-                        <Label className="text-[10px] text-muted-foreground">
-                          {(dp.position * 100).toFixed(0)}%
-                        </Label>
-                        <div className="flex items-center gap-0.5">
-                          <Input type="number" value={dp.depth.toFixed(1)} onChange={e => {
-                      const value = e.target.value;
-                      if (value === '') return;
-                      const newDepth = Math.max(1, Math.min(12, parseFloat(value)));
-                      setDepthPoints(prev => prev.map(d => d.id === dp.id ? {
-                        ...d,
-                        depth: newDepth
-                      } : d));
-                    }} className="h-7 text-[10px] px-1" min="1" max="12" step="0.1" />
-                          <span className="text-[10px] text-muted-foreground">ft</span>
-                        </div>
-                      </div>)}
-                  </div>
+                
+                {/* Mini depth visualization */}
+                <div className="bg-muted/30 rounded-xl p-3">
+                  <svg width="100%" height="60" viewBox="0 0 200 60" className="overflow-visible">
+                    <line x1="10" y1="5" x2="190" y2="5" stroke="hsl(var(--primary))" strokeWidth="2" />
+                    <path 
+                      d={(() => {
+                        const sortedPoints = depthPoints.sort((a, b) => a.position - b.position);
+                        let pathData = `M ${10 + sortedPoints[0].position * 180},5`;
+                        sortedPoints.forEach(dp => {
+                          const x = 10 + dp.position * 180;
+                          const y = 5 + dp.depth / 12 * 50;
+                          pathData += ` L ${x},${y}`;
+                        });
+                        pathData += ` L ${10 + sortedPoints[sortedPoints.length - 1].position * 180},5 Z`;
+                        return pathData;
+                      })()} 
+                      fill="hsl(var(--primary)/0.2)" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth="1.5" 
+                    />
+                    {depthPoints.sort((a, b) => a.position - b.position).map((dp) => (
+                      <circle 
+                        key={dp.id} 
+                        cx={10 + dp.position * 180} 
+                        cy={5 + dp.depth / 12 * 50} 
+                        r="3" 
+                        fill="hsl(var(--primary))" 
+                      />
+                    ))}
+                  </svg>
                 </div>
+              </div>
 
-                {/* Section Cut Visualization */}
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Section Cut - Depth Profile</Label>
-                  <div className="bg-muted/30 rounded-lg p-4 border">
-                    <svg width="100%" height="120" viewBox="0 0 300 120" className="overflow-visible">
-                      {/* Water line at 0' */}
-                      <line x1="10" y1="10" x2="290" y2="10" stroke="hsl(var(--primary))" strokeWidth="2" />
-                      <text x="5" y="12" fontSize="10" fill="hsl(var(--muted-foreground))" textAnchor="end">0'</text>
-                      
-                      {/* Depth anchor points and labels */}
-                      {depthPoints.sort((a, b) => a.position - b.position).map((dp, i) => {
-                    const x = 10 + dp.position * 280;
-                    const y = 10 + dp.depth / 12 * 100;
-                    return <g key={dp.id}>
-                            <circle cx={x} cy={y} r="3" fill="hsl(var(--primary))" />
-                            <line x1={x} y1={y} x2={x} y2="115" stroke="hsl(var(--muted-foreground))" strokeWidth="1" strokeDasharray="2,2" opacity="0.5" />
-                            <text x={x} y={y - 6} fontSize="9" fill="hsl(var(--foreground))" textAnchor="middle" fontWeight="600">
-                              {dp.depth.toFixed(1)}'
-                            </text>
-                            <text x={x} y="125" fontSize="8" fill="hsl(var(--muted-foreground))" textAnchor="middle">
-                              {(dp.position * 100).toFixed(0)}%
-                            </text>
-                          </g>;
-                  })}
-                      
-                      {/* Closed contour: 0% at 0' -> spline points -> 100% at 0' -> back to start */}
-                      <path d={(() => {
-                    const sortedPoints = depthPoints.sort((a, b) => a.position - b.position);
-                    // Start at 0% anchor at water level (0')
-                    let pathData = `M ${10 + sortedPoints[0].position * 280},10`;
-                    // Draw spline through all depth points
-                    sortedPoints.forEach(dp => {
-                      const x = 10 + dp.position * 280;
-                      const y = 10 + dp.depth / 12 * 100;
-                      pathData += ` L ${x},${y}`;
-                    });
-                    // Connect last point (100%) back to water level at 100%
-                    pathData += ` L ${10 + sortedPoints[sortedPoints.length - 1].position * 280},10`;
-                    // Close the contour back to start (0% at 0')
-                    pathData += ' Z';
-                    return pathData;
-                  })()} fill="hsl(var(--primary)/0.15)" stroke="hsl(var(--primary))" strokeWidth="2" />
-                    </svg>
-                  </div>
+              {/* Drawing mode instructions */}
+              {(activeTool === 'draw-pool' || activeTool === 'draw-deck') && (
+                <div className="bg-primary/10 border border-primary/30 rounded-xl p-3">
+                  <p className="text-xs font-medium">Drawing: {activeTool === 'draw-pool' ? 'Pool' : 'Deck'}</p>
+                  <p className="text-[10px] text-muted-foreground">Click to add points. Double-click to finish.</p>
                 </div>
+              )}
+            </TabsContent>
 
-                {selectedDepthPoint && <div className="p-3 bg-muted/50 rounded-lg space-y-2">
-                    <Label className="text-xs font-medium">Depth Point Editor</Label>
-                    {depthPoints.filter(dp => dp.id === selectedDepthPoint).map(dp => <div key={dp.id} className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Label className="text-xs flex-1">Position: {(dp.position * 100).toFixed(0)}%</Label>
-                          <Input type="number" value={(dp.position * 100).toFixed(0)} onChange={e => {
-                    const newPos = Math.max(0, Math.min(100, parseFloat(e.target.value))) / 100;
-                    setDepthPoints(prev => prev.map(d => d.id === dp.id ? {
-                      ...d,
-                      position: newPos
-                    } : d));
-                  }} className="h-7 w-20" min="0" max="100" step="1" />
-                        </div>
-                         <div className="flex items-center gap-2">
-                           <Label className="text-xs flex-1">Depth: {dp.depth.toFixed(1)}'</Label>
-                           <Input type="number" value={dp.depth.toFixed(1)} onChange={e => {
-                    const newDepth = Math.max(1, Math.min(9, parseFloat(e.target.value)));
-                    setDepthPoints(prev => prev.map(d => d.id === dp.id ? {
-                      ...d,
-                      depth: newDepth
-                    } : d));
-                  }} className="h-7 w-20" min="1" max="9" step="0.5" />
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" onClick={() => {
-                    const maxId = Math.max(...depthPoints.map(d => parseInt(d.id.replace('d', ''))));
-                    setDepthPoints([...depthPoints, {
-                      id: `d${maxId + 1}`,
-                      position: 0.5,
-                      depth: 5
-                    }]);
-                  }} variant="outline" className="flex-1">
-                            <Plus className="h-4 w-4 mr-1" />
-                            Add Point
-                          </Button>
-                          <Button size="sm" onClick={() => {
-                    if (depthPoints.length > 2) {
-                      setDepthPoints(prev => prev.filter(d => d.id !== selectedDepthPoint));
-                      setSelectedDepthPoint(null);
-                    }
-                  }} variant="outline" disabled={depthPoints.length <= 2} className="flex-1">
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Remove
-                          </Button>
-                        </div>
-                      </div>)}
-                  </div>}
+            <TabsContent value="shape" className="mt-0 p-4 space-y-3 h-full">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Preset Shapes</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {(['rectangle', 'kidney', 'freeform'] as const).map((shape) => (
+                  <Button 
+                    key={shape}
+                    size="sm" 
+                    variant={poolShape === shape ? 'default' : 'outline'} 
+                    onClick={() => {
+                      setPoolShape(shape);
+                      const newPoolPoints = getShapePoints(shape);
+                      setPoints(newPoolPoints);
+                      setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+                      setFeatures([]);
+                    }} 
+                    className="h-12 text-xs capitalize rounded-xl"
+                  >
+                    {shape}
+                  </Button>
+                ))}
               </div>
             </TabsContent>
 
             {/* Materials Tab */}
-            <TabsContent value="materials" className="mt-0 p-3 space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Pool Finish</Label>
-                  <Select value={selectedFinishId} onValueChange={setSelectedFinishId}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px] z-50 bg-background">
-                      {finishes.map(finish => <SelectItem key={finish.id} value={finish.id}>
-                          <div className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded border bg-cover bg-center" style={{
-                        backgroundImage: `url(${finish.image})`
-                      }} />
-                            <span>{finish.name}</span>
-                          </div>
-                        </SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <TabsContent value="materials" className="mt-0 p-4 space-y-4 h-full">
+              <div className="space-y-3">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Pool Finish</Label>
+                <Select value={selectedFinishId} onValueChange={setSelectedFinishId}>
+                  <SelectTrigger className="w-full h-12 bg-muted/50 border-0 rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px] z-50 bg-background">
+                    {finishes.map(finish => (
+                      <SelectItem key={finish.id} value={finish.id}>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg border bg-cover bg-center" style={{ backgroundImage: `url(${finish.image})` }} />
+                          <span className="text-sm">{finish.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Coping Pavers</Label>
-                  <Select value={selectedCopingId} onValueChange={setSelectedCopingId}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px] z-50 bg-background">
-                      {paverTypes.filter(p => p.category === 'paver').map(paver => <SelectItem key={paver.id} value={paver.id}>
-                          <div className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded border bg-cover bg-center" style={{
-                        backgroundImage: `url(${paver.image})`
-                      }} />
-                            <span>{paver.name}</span>
-                          </div>
-                        </SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-3">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Coping</Label>
+                <Select value={selectedCopingId} onValueChange={setSelectedCopingId}>
+                  <SelectTrigger className="w-full h-12 bg-muted/50 border-0 rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px] z-50 bg-background">
+                    {paverTypes.filter(p => p.category === 'paver').map(paver => (
+                      <SelectItem key={paver.id} value={paver.id}>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg border bg-cover bg-center" style={{ backgroundImage: `url(${paver.image})` }} />
+                          <span className="text-sm">{paver.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Deck Pavers</Label>
-                  <Select value={selectedPaverId} onValueChange={setSelectedPaverId}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px] z-50 bg-background">
-                      {paverTypes.filter(p => p.category === 'paver').map(paver => <SelectItem key={paver.id} value={paver.id}>
-                          <div className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded border bg-cover bg-center" style={{
-                        backgroundImage: `url(${paver.image})`
-                      }} />
-                            <span>{paver.name}</span>
-                          </div>
-                        </SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-3">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Deck Pavers</Label>
+                <Select value={selectedPaverId} onValueChange={setSelectedPaverId}>
+                  <SelectTrigger className="w-full h-12 bg-muted/50 border-0 rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px] z-50 bg-background">
+                    {paverTypes.filter(p => p.category === 'paver').map(paver => (
+                      <SelectItem key={paver.id} value={paver.id}>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg border bg-cover bg-center" style={{ backgroundImage: `url(${paver.image})` }} />
+                          <span className="text-sm">{paver.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="pt-2">
+                <TextureBuilder currentTextures={customTextures} onTexturesChange={setCustomTextures} />
               </div>
             </TabsContent>
 
             {/* Features Tab */}
-            <TabsContent value="features" className="mt-0 p-2 space-y-2">
-              <div className="grid grid-cols-4 gap-1.5">
-                <Button size="sm" onClick={() => addFeature('stairs')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
-                  <Move className="h-4 w-4" />
+            <TabsContent value="features" className="mt-0 p-4 space-y-4 h-full">
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Pool Features</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button size="sm" onClick={() => addFeature('stairs')} variant="outline" className="h-16 flex-col gap-1 rounded-xl">
+                  <Move className="h-5 w-5" />
                   <span className="text-[10px]">Stairs</span>
                 </Button>
-                <Button size="sm" onClick={() => addFeature('light')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
-                  <Lightbulb className="h-4 w-4" />
+                <Button size="sm" onClick={() => addFeature('light')} variant="outline" className="h-16 flex-col gap-1 rounded-xl">
+                  <Lightbulb className="h-5 w-5" />
                   <span className="text-[10px]">Light</span>
                 </Button>
-                <Button size="sm" onClick={() => addFeature('jet')} variant="outline" disabled={pendingFeature === 'jet'} className="h-auto py-2 flex-col gap-0.5">
-                  <Waves className="h-4 w-4" />
+                <Button size="sm" onClick={() => addFeature('jet')} variant="outline" disabled={pendingFeature === 'jet'} className="h-16 flex-col gap-1 rounded-xl">
+                  <Waves className="h-5 w-5" />
                   <span className="text-[10px]">Jet</span>
                 </Button>
-                <Button size="sm" onClick={() => addFeature('fountain')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
-                  <Droplets className="h-4 w-4" />
+                <Button size="sm" onClick={() => addFeature('fountain')} variant="outline" className="h-16 flex-col gap-1 rounded-xl">
+                  <Droplets className="h-5 w-5" />
                   <span className="text-[10px]">Fountain</span>
                 </Button>
               </div>
 
-              {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'stairs' && <div className="p-2 bg-muted/50 rounded space-y-1.5">
-                  <Label className="text-[10px] font-medium">Stairs</Label>
-                  <div className="flex gap-1.5">
-                    <Button size="sm" onClick={addStairStep} variant="outline" className="flex-1 h-7 text-xs">
-                      <Plus className="h-3 w-3 mr-1" />
-                      Step
+              {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'stairs' && (
+                <div className="p-3 bg-muted/30 rounded-xl space-y-2">
+                  <Label className="text-xs font-medium">Stair Steps</Label>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={addStairStep} variant="outline" className="flex-1 h-9 rounded-lg">
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add
                     </Button>
-                    <Button size="sm" onClick={removeStairStep} variant="outline" className="flex-1 h-7 text-xs">
-                      <Minus className="h-3 w-3 mr-1" />
-                      Step
+                    <Button size="sm" onClick={removeStairStep} variant="outline" className="flex-1 h-9 rounded-lg">
+                      <Minus className="h-4 w-4 mr-1" />
+                      Remove
                     </Button>
                   </div>
-                </div>}
+                </div>
+              )}
 
-              {selectedFeature && <Button size="sm" onClick={removeFeature} variant="destructive" className="w-full h-7 text-xs">
-                  <Trash2 className="h-3 w-3 mr-1" />
-                  Remove
-                </Button>}
+              {selectedFeature && (
+                <Button size="sm" onClick={removeFeature} variant="destructive" className="w-full h-10 rounded-xl">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Selected
+                </Button>
+              )}
+              
+              {/* Feature count */}
+              <div className="pt-2 text-xs text-muted-foreground text-center">
+                {features.length} feature{features.length !== 1 ? 's' : ''} added
+              </div>
             </TabsContent>
+          </div>
+        </Tabs>
+      </div>
 
-            {/* Textures Tab */}
-            <TabsContent value="textures" className="mt-0 p-2">
-              <TextureBuilder currentTextures={customTextures} onTexturesChange={setCustomTextures} />
-            </TabsContent>
-
-
-          </Tabs>
-        </div>}
-
-      {/* Canvas with Legend */}
-      <div className="flex-1 flex gap-4 p-4 overflow-hidden relative">
-        {/* Main Canvas */}
-        <div className="flex-1 flex items-center justify-center overflow-hidden">
-          <div style={{
+      {/* Canvas Area */}
+      <div className="flex-1 flex items-center justify-center overflow-hidden relative pr-80">
+        <div style={{
           transform: `scale(${zoomLevel})`,
           transformOrigin: 'center',
           transition: 'transform 0.2s'
         }}>
-            <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} onClick={handleCanvasClick} onMouseDown={handleCanvasMouseDown} onMouseMove={handleCanvasMouseMove} onMouseUp={handleCanvasMouseUp} onMouseLeave={handleCanvasMouseUp} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchEnd} className="border-2 border-border rounded-lg shadow-2xl bg-gradient-to-br from-background to-muted/10" style={{
-            cursor: fenceAddMode ? 'crosshair' : pendingFeature === 'jet' ? 'crosshair' : activeTool === 'add' ? 'crosshair' : 'default',
-            pointerEvents: 'auto'
-          }} />
-          </div>
+          <canvas 
+            ref={canvasRef} 
+            width={canvasSize.width} 
+            height={canvasSize.height} 
+            onClick={handleCanvasClick} 
+            onMouseDown={handleCanvasMouseDown} 
+            onMouseMove={handleCanvasMouseMove} 
+            onMouseUp={handleCanvasMouseUp} 
+            onMouseLeave={handleCanvasMouseUp} 
+            onTouchStart={handleTouchStart} 
+            onTouchMove={handleTouchMove} 
+            onTouchEnd={handleTouchEnd} 
+            onTouchCancel={handleTouchEnd} 
+            className="rounded-2xl shadow-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-white/10" 
+            style={{
+              cursor: fenceAddMode ? 'crosshair' : pendingFeature === 'jet' ? 'crosshair' : activeTool === 'add' || activeTool === 'draw-pool' || activeTool === 'draw-deck' ? 'crosshair' : 'default',
+              pointerEvents: 'auto'
+            }} 
+          />
         </div>
-
-
-        {/* Tool Buttons - Top Left of Canvas */}
-        <div className="absolute top-8 left-8 flex items-center gap-2 z-20 bg-background/95 backdrop-blur p-2 rounded-lg border shadow-lg scale-[0.8] opacity-20 hover:opacity-100 transition-opacity duration-300">
-          <Button size="sm" variant={activeTool === 'select' ? "default" : "outline"} onClick={() => setActiveTool('select')} className="h-8 w-8 p-0" title="Select">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z" />
-            </svg>
-          </Button>
-          <Button size="sm" variant={activeTool === 'rotate' ? "default" : "outline"} onClick={() => setActiveTool('rotate')} className="h-8 w-8 p-0" title="Rotate">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
-            </svg>
-          </Button>
-          <div className="h-4 w-px bg-border" />
-          <Button size="sm" variant="outline" onClick={() => setZoomLevel(prev => Math.max(prev - 0.2, 0.5))} className="h-8 w-8 p-0" title="Zoom Out">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M5 12h14" />
-            </svg>
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => setZoomLevel(prev => Math.min(prev + 0.2, 2))} className="h-8 w-8 p-0" title="Zoom In">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-          </Button>
-        </div>
+      </div>
 
         {/* Fence Builder Controls - Inside Canvas */}
         {showFenceEditor ? <div className="absolute bottom-8 left-8 z-20 bg-background/95 backdrop-blur p-3 rounded-lg border shadow-lg max-w-xs space-y-2">
