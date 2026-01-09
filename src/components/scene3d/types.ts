@@ -118,6 +118,7 @@ export interface AdditionalPool {
   shape: 'rectangle' | 'kidney' | 'freeform';
   featureType?: 'regular' | 'spillover-spa' | 'tanning-ledge';
   isMerged?: boolean; // Whether water bodies are merged (no coping at intersection)
+  spilloverEdges?: number[]; // Edge indices where water flows from spa to pool (no coping, water-fall effect)
   depth?: number;
   finish?: TextureConfig;
 }
