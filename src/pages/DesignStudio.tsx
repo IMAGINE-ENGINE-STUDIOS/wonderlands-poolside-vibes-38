@@ -237,57 +237,55 @@ const DesignStudio = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 shrink-0 z-50">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => navigate(-1)}
-            className="gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Button>
-          <div className="h-6 w-px bg-border" />
-          <div>
-            <h1 className="text-sm font-semibold">{selectedProduct.model || selectedProduct.name}</h1>
-            <p className="text-xs text-muted-foreground">{selectedProduct.dimensions}</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          {/* View Toggle */}
-          <Tabs value={activeView} onValueChange={(v) => {
-            if (v === '3d') handleSwitch3D();
-            else setActiveView(v as '2d' | '3d');
-          }}>
-            <TabsList className="h-9">
-              <TabsTrigger value="2d" className="gap-1.5 text-xs px-3">
-                <Layers className="h-3.5 w-3.5" />
-                2D Designer
-              </TabsTrigger>
-              <TabsTrigger value="3d" className="gap-1.5 text-xs px-3">
-                <Box className="h-3.5 w-3.5" />
-                3D Viewer
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          <div className="h-6 w-px bg-border" />
-          
-          <Button variant="ghost" size="icon" onClick={toggleFullscreen} title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}>
-            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-          </Button>
-        </div>
-      </header>
-
-      {/* Category Toolbar - only show in 2D view */}
-      {activeView === '2d' && (
+      {/* Category Toolbar with integrated header elements */}
+      {activeView === '2d' ? (
         <>
           <CategoryToolbar 
             activeCategory={activeCategory} 
-            onCategoryChange={setActiveCategory} 
+            onCategoryChange={setActiveCategory}
+            headerLeft={
+              <div className="flex items-center gap-4">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => navigate(-1)}
+                  className="gap-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back
+                </Button>
+                <div className="h-6 w-px bg-border" />
+                <div>
+                  <h1 className="text-sm font-semibold">{selectedProduct.model || selectedProduct.name}</h1>
+                  <p className="text-xs text-muted-foreground">{selectedProduct.dimensions}</p>
+                </div>
+              </div>
+            }
+            headerRight={
+              <div className="flex items-center gap-2">
+                <Tabs value={activeView} onValueChange={(v) => {
+                  if (v === '3d') handleSwitch3D();
+                  else setActiveView(v as '2d' | '3d');
+                }}>
+                  <TabsList className="h-9">
+                    <TabsTrigger value="2d" className="gap-1.5 text-xs px-3">
+                      <Layers className="h-3.5 w-3.5" />
+                      2D Designer
+                    </TabsTrigger>
+                    <TabsTrigger value="3d" className="gap-1.5 text-xs px-3">
+                      <Box className="h-3.5 w-3.5" />
+                      3D Viewer
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                
+                <div className="h-6 w-px bg-border" />
+                
+                <Button variant="ghost" size="icon" onClick={toggleFullscreen} title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}>
+                  {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                </Button>
+              </div>
+            }
           />
           <SubToolbar 
             category={activeCategory} 
@@ -303,6 +301,49 @@ const DesignStudio = () => {
             } : null}
           />
         </>
+      ) : (
+        <header className="h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 shrink-0 z-50">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate(-1)}
+              className="gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
+            <div className="h-6 w-px bg-border" />
+            <div>
+              <h1 className="text-sm font-semibold">{selectedProduct.model || selectedProduct.name}</h1>
+              <p className="text-xs text-muted-foreground">{selectedProduct.dimensions}</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Tabs value={activeView} onValueChange={(v) => {
+              if (v === '3d') handleSwitch3D();
+              else setActiveView(v as '2d' | '3d');
+            }}>
+              <TabsList className="h-9">
+                <TabsTrigger value="2d" className="gap-1.5 text-xs px-3">
+                  <Layers className="h-3.5 w-3.5" />
+                  2D Designer
+                </TabsTrigger>
+                <TabsTrigger value="3d" className="gap-1.5 text-xs px-3">
+                  <Box className="h-3.5 w-3.5" />
+                  3D Viewer
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
+            <div className="h-6 w-px bg-border" />
+            
+            <Button variant="ghost" size="icon" onClick={toggleFullscreen} title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}>
+              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </Button>
+          </div>
+        </header>
       )}
 
       {/* Main Content */}
