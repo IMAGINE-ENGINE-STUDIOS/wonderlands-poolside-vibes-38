@@ -90,6 +90,8 @@ interface PoolBuilderProps {
   initialDimensions?: string; // e.g., "16' × 40'"
   initialDepth?: string; // e.g., "3'9\" - 8'6\""
   externalTool?: string | null; // Tool ID from external toolbar
+  externalTab?: string | null; // Tab ID from external toolbar (pool, materials, features, etc.)
+  hideInternalTabs?: boolean; // Hide internal tab navigation when controlled externally
   onToolUsed?: () => void; // Callback when tool is used
   onPoolDataChange?: (data: {
     points: Point[];
@@ -123,6 +125,8 @@ export function PoolBuilder({
   initialDimensions,
   initialDepth,
   externalTool,
+  externalTab,
+  hideInternalTabs = false,
   onToolUsed,
   onPoolDataChange
 }: PoolBuilderProps) {
@@ -412,6 +416,26 @@ export function PoolBuilder({
     'water-curtain': 5500,
   };
 
+  // Sync external tab with internal activeTab
+  useEffect(() => {
+    if (externalTab) {
+      // Map external category/tool to internal tab
+      const tabMap: Record<string, string> = {
+        'pool': 'pool',
+        'pool-shape': 'shape',
+        'pool-deck': 'pool',
+        'materials': 'materials',
+        'textures': 'textures',
+        'features': 'features',
+        'shape': 'shape',
+        'depth': 'depth',
+        'landscape': 'features',
+        'water-features': 'features',
+      };
+      const mappedTab = tabMap[externalTab] || 'pool';
+      setActiveTab(mappedTab);
+    }
+  }, [externalTab]);
 
   // Helper function to parse dimension string like "11' x 20'" or "8'6\" x 14'" or "15'6\" x 38'"
   const parseDimensionValue = (dimStr: string): number => {
@@ -2759,10 +2783,26 @@ export function PoolBuilder({
   useEffect(() => {
     if (!externalTool) return;
     
+    // Panel-switching tools (these switch tabs, not add features)
+    const panelTools: Record<string, string> = {
+      'pool-shape': 'shape',
+      'pool-deck': 'pool',
+      'pool-depth': 'depth',
+      'pool-materials': 'materials',
+    };
+    
+    if (panelTools[externalTool]) {
+      setActiveTab(panelTools[externalTool]);
+      if (externalTool === 'pool-shape') {
+        setActiveTool('draw-pool');
+      } else if (externalTool === 'pool-deck') {
+        setActiveTool('draw-deck');
+      }
+      return;
+    }
+    
     // Map toolbar tool IDs to feature types
-    const toolToFeatureMap: Record<string, PoolFeature['type'] | 'draw-pool' | 'draw-deck' | null> = {
-      'pool-shape': 'draw-pool',
-      'pool-deck': 'draw-deck',
+    const toolToFeatureMap: Record<string, PoolFeature['type']> = {
       'pool-stairs': 'stairs',
       'pool-seat': 'pool-seat',
       'pool-wall': 'pool-wall',
@@ -2794,11 +2834,7 @@ export function PoolBuilder({
     };
     
     const featureType = toolToFeatureMap[externalTool];
-    if (featureType === 'draw-pool') {
-      setActiveTool('draw-pool');
-    } else if (featureType === 'draw-deck') {
-      setActiveTool('draw-deck');
-    } else if (featureType) {
+    if (featureType) {
       addFeature(featureType);
     }
   }, [externalTool]);
@@ -2879,29 +2915,32 @@ export function PoolBuilder({
         </div>
       </div>
 
-      {/* Collapsible Controls Panel */}
+      {/* Collapsible Controls Panel - Only show tabs if not externally controlled */}
       {showControls && <div className="border-b bg-background/95 backdrop-blur">
-          <Tabs defaultValue="pool" className="w-full" onValueChange={setActiveTab}>
-            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto">
-              <TabsTrigger value="pool" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                Pool Design
-              </TabsTrigger>
-              <TabsTrigger value="materials" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                Materials
-              </TabsTrigger>
-              <TabsTrigger value="textures" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                Textures
-              </TabsTrigger>
-              <TabsTrigger value="features" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                Features
-              </TabsTrigger>
-              <TabsTrigger value="shape" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                Shape
-              </TabsTrigger>
-              <TabsTrigger value="depth" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                Depth
-              </TabsTrigger>
-            </TabsList>
+          <Tabs value={activeTab} defaultValue="pool" className="w-full" onValueChange={setActiveTab}>
+            {/* Only show tab list if not hidden by external control */}
+            {!hideInternalTabs && (
+              <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto">
+                <TabsTrigger value="pool" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
+                  Pool Design
+                </TabsTrigger>
+                <TabsTrigger value="materials" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
+                  Materials
+                </TabsTrigger>
+                <TabsTrigger value="textures" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
+                  Textures
+                </TabsTrigger>
+                <TabsTrigger value="features" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
+                  Features
+                </TabsTrigger>
+                <TabsTrigger value="shape" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
+                  Shape
+                </TabsTrigger>
+                <TabsTrigger value="depth" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
+                  Depth
+                </TabsTrigger>
+              </TabsList>
+            )}
 
             {/* Pool Design Tab */}
             <TabsContent value="pool" className="mt-0 p-2 space-y-2">

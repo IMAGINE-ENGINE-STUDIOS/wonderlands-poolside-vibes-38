@@ -300,6 +300,8 @@ const DesignStudio = () => {
               initialDimensions={selectedProduct.dimensions}
               initialDepth={selectedProduct.depth}
               externalTool={activeTool}
+              externalTab={activeCategory}
+              hideInternalTabs={true}
               onToolUsed={handleToolUsed}
               onPoolDataChange={handlePoolDataChange}
             />
