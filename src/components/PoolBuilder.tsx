@@ -658,23 +658,70 @@ export function PoolBuilder({
     return { mergedPolygon, mergePoints, spaEdgesOutsideMain };
   }, [isPointInPolygon]);
   
-  // Check if new pool intersects with any existing pool's DECK (not the pool itself)
-  const checkDeckIntersection = useCallback((newPoolPoints: Point[]): string | null => {
-    // Check main pool's deck/hardscape
+  // Check if new pool intersects with any existing pool's WATER, COPING, or DECK
+  const checkPoolAreaIntersection = useCallback((newPoolPoints: Point[]): string | null => {
+    // Check main pool's water mesh (interior)
+    if (points.length >= 3 && doPolygonsIntersect(newPoolPoints, points)) {
+      return 'main';
+    }
+    
+    // Check main pool's deck/hardscape (includes coping area)
     if (hardscapePoints.length >= 3 && doPolygonsIntersect(newPoolPoints, hardscapePoints)) {
       return 'main';
     }
-    // Check additional pools' decks
+    
+    // Check additional pools' water and deck areas
     for (const pool of additionalPools) {
-      if (pool.points.length >= 3 && !pool.isPerimeterSnapped) {
-        const poolDeck = generateHardscapeFromPool(pool.points, deckOffset);
-        if (poolDeck.length >= 3 && doPolygonsIntersect(newPoolPoints, poolDeck)) {
+      if (pool.points.length >= 3) {
+        // Check water mesh
+        if (doPolygonsIntersect(newPoolPoints, pool.points)) {
           return pool.id;
+        }
+        // Check deck (for non-perimeter-snapped pools)
+        if (!pool.isPerimeterSnapped) {
+          const poolDeck = generateHardscapeFromPool(pool.points, deckOffset);
+          if (poolDeck.length >= 3 && doPolygonsIntersect(newPoolPoints, poolDeck)) {
+            return pool.id;
+          }
         }
       }
     }
     return null;
-  }, [hardscapePoints, additionalPools, doPolygonsIntersect, deckOffset]);
+  }, [points, hardscapePoints, additionalPools, doPolygonsIntersect, deckOffset]);
+  
+  // Legacy alias for backward compatibility
+  const checkDeckIntersection = checkPoolAreaIntersection;
+  
+  // Check if a single click point is on any existing pool's water, coping, or deck area
+  const checkClickedOnPoolArea = useCallback((x: number, y: number): string | null => {
+    // Check if point is inside main pool water mesh
+    if (points.length >= 3 && isPointInPolygon(x, y, points)) {
+      return 'main';
+    }
+    
+    // Check if point is inside main pool's deck/hardscape (includes coping)
+    if (hardscapePoints.length >= 3 && isPointInPolygon(x, y, hardscapePoints)) {
+      return 'main';
+    }
+    
+    // Check additional pools' water and deck areas
+    for (const pool of additionalPools) {
+      if (pool.points.length >= 3) {
+        // Check water mesh
+        if (isPointInPolygon(x, y, pool.points)) {
+          return pool.id;
+        }
+        // Check deck (for non-perimeter-snapped pools)
+        if (!pool.isPerimeterSnapped) {
+          const poolDeck = generateHardscapeFromPool(pool.points, deckOffset);
+          if (poolDeck.length >= 3 && isPointInPolygon(x, y, poolDeck)) {
+            return pool.id;
+          }
+        }
+      }
+    }
+    return null;
+  }, [points, hardscapePoints, additionalPools, isPointInPolygon, deckOffset]);
   
   // Calculate perimeter position from a point (0-1 along pool perimeter)
   const getPerimeterPositionFromPoint = useCallback((x: number, y: number): number => {
@@ -3786,6 +3833,23 @@ export function PoolBuilder({
         id: Date.now().toString(),
         curveType: splineDrawing.currentCurveType,
       };
+      
+      // Check if this is the FIRST point and it's on an existing pool area
+      // Show the dialog immediately so user knows they're creating an integrated feature
+      if (splineDrawing.points.length === 0 && !perimeterAnchorMode.isActive) {
+        const clickedPoolId = checkClickedOnPoolArea(x, y);
+        if (clickedPoolId) {
+          // Show dialog immediately when starting to draw on an existing pool
+          // Store the first point and show dialog
+          setPendingPoolData({
+            points: [{ x, y, id: '1', curveType: splineDrawing.currentCurveType }],
+            intersectsWith: clickedPoolId,
+          });
+          setShowPoolTypeDialog(true);
+          // Don't add the point yet - wait for dialog selection
+          return;
+        }
+      }
       
       // Check if clicking near first point to close the shape
       if (splineDrawing.points.length >= 3) {
