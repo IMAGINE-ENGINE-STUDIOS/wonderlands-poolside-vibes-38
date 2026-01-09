@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { textureCache, disposeTexture } from '@/utils/textureCache';
 
@@ -31,10 +32,12 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
 }) => {
   const [waterlineTexture, setWaterlineTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
+  const { invalidate } = useThree();
 
   useEffect(() => {
     if (!waterlineTextureUrl || waterlineTextureUrl === '' || waterlineTextureUrl === 'undefined' || waterlineTextureUrl === 'null') {
       setWaterlineTexture(null);
+      invalidate();
       return;
     }
     
@@ -47,12 +50,15 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
         texture.userData.textureUrl = waterlineTextureUrl;
         texture.needsUpdate = true;
         setWaterlineTexture(texture);
+        // IMPORTANT: Canvas is frameloop="demand"; force a frame when async texture finishes.
+        invalidate();
       })
       .catch(err => {
         console.error('Failed to load waterline texture');
         setWaterlineTexture(null);
+        invalidate();
       });
-  }, [waterlineTextureUrl, poolPoints, waterlineWidth, waterlineTextureOffset]);
+  }, [waterlineTextureUrl, poolPoints, waterlineWidth, waterlineTextureOffset, invalidate]);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {

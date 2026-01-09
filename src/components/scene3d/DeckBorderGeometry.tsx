@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { useMemo, useEffect, useState } from 'react';
+import { useThree } from '@react-three/fiber';
 import { generateOffsetCurve } from '@/utils/curveUtils';
 import { textureCache } from '@/utils/textureCache';
 
@@ -28,10 +29,12 @@ export const DeckBorderGeometry = ({
 }: DeckBorderGeometryProps) => {
   
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  const { invalidate } = useThree();
   
   useEffect(() => {
     if (!textureUrl || textureUrl === '' || textureUrl === 'undefined') {
       setTexture(null);
+      invalidate();
       return;
     }
     
@@ -47,12 +50,15 @@ export const DeckBorderGeometry = ({
         loadedTexture.wrapT = THREE.RepeatWrapping;
         loadedTexture.needsUpdate = true;
         setTexture(loadedTexture);
+        // IMPORTANT: Canvas is frameloop="demand"; force a frame when async texture finishes.
+        invalidate();
       })
       .catch((error) => {
         console.error('DeckBorderGeometry: Failed to load texture:', error);
         setTexture(null);
+        invalidate();
       });
-  }, [textureUrl, textureOffset, textureScale]);
+  }, [textureUrl, textureOffset, textureScale, invalidate]);
   
   const geometry = useMemo(() => {
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
