@@ -3020,8 +3020,23 @@ export function PoolBuilder({
       }
       ctx.stroke();
       
+      // Always draw the closing line from last point back to first point (perimeter trace)
+      if (splineDrawing.points.length >= 2) {
+        ctx.setLineDash([8, 4]);
+        ctx.strokeStyle = 'hsl(var(--primary) / 0.6)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const lastPt = splineDrawing.points[splineDrawing.points.length - 1];
+        const firstPt = splineDrawing.points[0];
+        ctx.moveTo(lastPt.x, lastPt.y);
+        drawCurvedSegment(ctx, lastPt, firstPt, splineDrawing.currentCurveType);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      
       // Draw preview line to cursor with current curve type
       ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = 'hsl(var(--primary))';
       ctx.lineWidth = 2;
       ctx.beginPath();
       const lastPoint = splineDrawing.points[splineDrawing.points.length - 1];
