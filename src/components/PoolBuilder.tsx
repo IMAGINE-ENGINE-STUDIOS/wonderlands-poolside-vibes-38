@@ -410,6 +410,17 @@ export function PoolBuilder({
     currentCurveType: 'linear',
   });
   
+  // Symmetry mode for spline drawing
+  const [symmetryMode, setSymmetryMode] = useState<{
+    enabled: boolean;
+    axes: 'horizontal' | 'vertical' | 'both';
+    snapDistance: number; // pixels to snap
+  }>({
+    enabled: true,
+    axes: 'both',
+    snapDistance: 15,
+  });
+  
   // Multi-pool support
   interface MergePoint {
     poolPointIndex: number; // Index on the additional pool where merge starts/ends
@@ -1377,6 +1388,43 @@ export function PoolBuilder({
     const poolAreaSqFt = parseFloat(calculateArea());
     return Math.max(0, hardscapeAreaSqFt - poolAreaSqFt);
   }, [hardscapePoints, scale, points]);
+
+  // Get symmetry-snapped position for a point
+  const getSymmetrySnappedPosition = useCallback((x: number, y: number): { 
+    x: number; 
+    y: number; 
+    snappedVertical: boolean; 
+    snappedHorizontal: boolean 
+  } => {
+    if (!symmetryMode.enabled) {
+      return { x, y, snappedVertical: false, snappedHorizontal: false };
+    }
+    
+    const centerX = canvasSize.width / 2;
+    const centerY = canvasSize.height / 2;
+    const snapDist = symmetryMode.snapDistance;
+    
+    let snappedX = x;
+    let snappedY = y;
+    let snappedVertical = false;
+    let snappedHorizontal = false;
+    
+    // Snap to vertical axis (center line)
+    if ((symmetryMode.axes === 'vertical' || symmetryMode.axes === 'both') && 
+        Math.abs(x - centerX) < snapDist) {
+      snappedX = centerX;
+      snappedVertical = true;
+    }
+    
+    // Snap to horizontal axis (center line)
+    if ((symmetryMode.axes === 'horizontal' || symmetryMode.axes === 'both') && 
+        Math.abs(y - centerY) < snapDist) {
+      snappedY = centerY;
+      snappedHorizontal = true;
+    }
+    
+    return { x: snappedX, y: snappedY, snappedVertical, snappedHorizontal };
+  }, [symmetryMode.enabled, symmetryMode.axes, symmetryMode.snapDistance, canvasSize.width, canvasSize.height]);
 
   // Find nearest point on pool perimeter
   const findNearestWallPoint = (x: number, y: number) => {
@@ -2986,6 +3034,75 @@ export function PoolBuilder({
       }
     };
 
+    // Draw symmetry guide lines when spline drawing is active
+    if (splineDrawing.isActive && symmetryMode.enabled) {
+      ctx.save();
+      ctx.setLineDash([10, 6]);
+      ctx.lineWidth = 1;
+      
+      const centerX = canvasSize.width / 2;
+      const centerY = canvasSize.height / 2;
+      
+      // Vertical symmetry line (for left-right symmetry)
+      if (symmetryMode.axes === 'vertical' || symmetryMode.axes === 'both') {
+        ctx.strokeStyle = 'rgba(255, 100, 100, 0.4)';
+        ctx.beginPath();
+        ctx.moveTo(centerX, 0);
+        ctx.lineTo(centerX, canvasSize.height);
+        ctx.stroke();
+        
+        // Draw center marker
+        ctx.fillStyle = 'rgba(255, 100, 100, 0.6)';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
+      // Horizontal symmetry line (for top-bottom symmetry)
+      if (symmetryMode.axes === 'horizontal' || symmetryMode.axes === 'both') {
+        ctx.strokeStyle = 'rgba(100, 100, 255, 0.4)';
+        ctx.beginPath();
+        ctx.moveTo(0, centerY);
+        ctx.lineTo(canvasSize.width, centerY);
+        ctx.stroke();
+      }
+      
+      // Draw snap indicators when cursor is near symmetry lines
+      const snappedPos = getSymmetrySnappedPosition(cursorPos.x, cursorPos.y);
+      if (snappedPos.snappedVertical || snappedPos.snappedHorizontal) {
+        ctx.setLineDash([]);
+        
+        // Highlight snap point
+        ctx.beginPath();
+        ctx.arc(snappedPos.x, snappedPos.y, 8, 0, Math.PI * 2);
+        ctx.strokeStyle = snappedPos.snappedVertical && snappedPos.snappedHorizontal 
+          ? 'rgba(255, 200, 50, 0.9)' 
+          : snappedPos.snappedVertical 
+            ? 'rgba(255, 100, 100, 0.9)' 
+            : 'rgba(100, 100, 255, 0.9)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Snap label
+        ctx.fillStyle = snappedPos.snappedVertical && snappedPos.snappedHorizontal 
+          ? 'rgba(255, 200, 50, 0.9)' 
+          : snappedPos.snappedVertical 
+            ? 'rgba(255, 100, 100, 0.9)' 
+            : 'rgba(100, 100, 255, 0.9)';
+        ctx.font = 'bold 9px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        const snapLabel = snappedPos.snappedVertical && snappedPos.snappedHorizontal 
+          ? 'CENTER' 
+          : snappedPos.snappedVertical 
+            ? 'V-AXIS' 
+            : 'H-AXIS';
+        ctx.fillText(snapLabel, snappedPos.x, snappedPos.y - 12);
+      }
+      
+      ctx.restore();
+    }
+
     // Draw spline drawing preview when in draw mode
     if (splineDrawing.isActive && splineDrawing.points.length > 0) {
       ctx.save();
@@ -4035,8 +4152,8 @@ export function PoolBuilder({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    let x = e.clientX - rect.left;
+    let y = e.clientY - rect.top;
 
     // If in spline drawing mode (draw-pool), handle spline point interactions
     if (activeTool === 'draw-pool') {
@@ -4044,6 +4161,11 @@ export function PoolBuilder({
       if (!splineDrawing.isActive) {
         setSplineDrawing(prev => ({ ...prev, isActive: true }));
       }
+      
+      // Apply symmetry snapping to coordinates for spline drawing
+      const snapped = getSymmetrySnappedPosition(x, y);
+      x = snapped.x;
+      y = snapped.y;
       
       // During active drawing, DON'T open the point editor - just add/close points
       // The point editor is only available AFTER the pool is completed
@@ -4346,8 +4468,17 @@ export function PoolBuilder({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    let x = e.clientX - rect.left;
+    let y = e.clientY - rect.top;
+
+    // Apply symmetry snapping during spline drawing
+    if (activeTool === 'draw-pool' && splineDrawing.isActive) {
+      const snapped = getSymmetrySnappedPosition(x, y);
+      x = snapped.x;
+      y = snapped.y;
+      setCursorPos({ x, y });
+      return;
+    }
 
     // Handle perimeter anchor mode dragging - update position as mouse moves
     if (perimeterAnchorMode.isActive && !perimeterAnchorMode.isFixed) {
