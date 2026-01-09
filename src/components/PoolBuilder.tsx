@@ -444,6 +444,13 @@ export function PoolBuilder({
   } | null>(null);
   const [showPoolTypeDialog, setShowPoolTypeDialog] = useState(false);
   
+  // Deck dialog state (for asking about deck around new water body outside existing deck)
+  const [showDeckDialog, setShowDeckDialog] = useState(false);
+  const [pendingDeckData, setPendingDeckData] = useState<{
+    poolId: string;
+    deckPoints: HardscapePoint[];
+  } | null>(null);
+  
   // Perimeter anchor mode - for positioning spa/tanning ledge connection point
   type PerimeterAnchorMode = {
     isActive: boolean;
@@ -723,6 +730,43 @@ export function PoolBuilder({
     return null;
   }, [points, hardscapePoints, additionalPools, isPointInPolygon, deckOffset]);
   
+  // Generate deck points for portions of a new pool that extend OUTSIDE existing deck/water areas
+  // Returns null if no portion extends outside, otherwise returns deck points only for outside area
+  const generateDeckForOutsideArea = useCallback((newPoolPoints: Point[], deckDistanceFeet: number = 3): HardscapePoint[] | null => {
+    if (newPoolPoints.length < 3) return null;
+    
+    // Generate potential deck around the new pool
+    const potentialDeck = generateHardscapeFromPool(newPoolPoints, deckDistanceFeet);
+    if (potentialDeck.length < 3) return null;
+    
+    // Check if any point of the potential deck is outside existing hardscape
+    let hasOutsidePoints = false;
+    for (const deckPt of potentialDeck) {
+      const insideMainDeck = hardscapePoints.length >= 3 && isPointInPolygon(deckPt.x, deckPt.y, hardscapePoints);
+      const insideMainPool = points.length >= 3 && isPointInPolygon(deckPt.x, deckPt.y, points);
+      
+      // Check if inside any additional pool's deck or water
+      let insideOtherPool = false;
+      for (const pool of additionalPools) {
+        if (pool.points.length >= 3 && isPointInPolygon(deckPt.x, deckPt.y, pool.points)) {
+          insideOtherPool = true;
+          break;
+        }
+      }
+      
+      if (!insideMainDeck && !insideMainPool && !insideOtherPool) {
+        hasOutsidePoints = true;
+        break;
+      }
+    }
+    
+    if (!hasOutsidePoints) return null;
+    
+    // Return the full potential deck - the clipping during render will handle overlaps
+    // The hardscape rendering already clips out water areas using evenodd
+    return potentialDeck;
+  }, [hardscapePoints, points, additionalPools, isPointInPolygon]);
+  
   // Calculate perimeter position from a point (0-1 along pool perimeter)
   const getPerimeterPositionFromPoint = useCallback((x: number, y: number): number => {
     if (points.length < 2) return 0;
@@ -817,16 +861,53 @@ export function PoolBuilder({
     return { x: points[0].x, y: points[0].y, angle: 0 };
   }, [points]);
   
+  // Check for outside deck and prompt user
+  const checkAndPromptForOutsideDeck = useCallback((poolId: string, poolPoints: Point[]) => {
+    const outsideDeck = generateDeckForOutsideArea(poolPoints, 3); // 3ft default
+    if (outsideDeck) {
+      setPendingDeckData({ poolId, deckPoints: outsideDeck });
+      setShowDeckDialog(true);
+    }
+  }, [generateDeckForOutsideArea]);
+  
+  // Handle deck dialog confirmation
+  const handleDeckConfirmation = useCallback((addDeck: boolean) => {
+    if (addDeck && pendingDeckData) {
+      // Expand existing hardscape to include new deck area
+      // Merge the new deck points with existing hardscape by extending bounds
+      const allDeckPoints = [...hardscapePoints, ...pendingDeckData.deckPoints];
+      const minX = Math.min(...allDeckPoints.map(p => p.x));
+      const maxX = Math.max(...allDeckPoints.map(p => p.x));
+      const minY = Math.min(...allDeckPoints.map(p => p.y));
+      const maxY = Math.max(...allDeckPoints.map(p => p.y));
+      
+      // Create expanded rectangular deck that encompasses all areas
+      const expandedDeck: HardscapePoint[] = [
+        { x: minX, y: minY, id: 'h1' },
+        { x: maxX, y: minY, id: 'h2' },
+        { x: maxX, y: maxY, id: 'h3' },
+        { x: minX, y: maxY, id: 'h4' },
+      ];
+      
+      setHardscapePoints(expandedDeck);
+    }
+    setPendingDeckData(null);
+    setShowDeckDialog(false);
+  }, [pendingDeckData, hardscapePoints]);
+  
   // Handle pool type selection from dialog
   const handlePoolTypeSelection = useCallback((featureType: 'regular' | 'spillover-spa' | 'tanning-ledge') => {
     if (!pendingPoolData) return;
     
     if (featureType === 'regular') {
       // Regular pool - add directly without perimeter snapping
+      const newPoolId = Date.now().toString();
+      const newPoolPoints = pendingPoolData.points;
+      
       setAdditionalPools(prev => [...prev, {
-        id: Date.now().toString(),
+        id: newPoolId,
         type: 'pool',
-        points: pendingPoolData.points,
+        points: newPoolPoints,
         shape: 'freeform',
         featureType: 'regular',
         intersectsWith: pendingPoolData.intersectsWith,
@@ -836,6 +917,9 @@ export function PoolBuilder({
       setShowPoolTypeDialog(false);
       setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
       setActiveTool(null);
+      
+      // Check if pool extends outside existing deck and prompt for deck
+      checkAndPromptForOutsideDeck(newPoolId, newPoolPoints);
     } else {
       // Spillover spa or tanning ledge - enter perimeter anchor mode
       // Calculate initial position based on where the drawn shape was
@@ -856,7 +940,7 @@ export function PoolBuilder({
       setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
       setActiveTool(null);
     }
-  }, [pendingPoolData, getPerimeterPositionFromPoint]);
+  }, [pendingPoolData, getPerimeterPositionFromPoint, checkAndPromptForOutsideDeck]);
   
   // Handle perimeter anchor click to fix position and start drawing
   const handlePerimeterAnchorClick = useCallback(() => {
@@ -887,8 +971,10 @@ export function PoolBuilder({
   const completePerimeterAnchoredPool = useCallback((drawnPoints: Point[]) => {
     if (!perimeterAnchorMode.isActive || !perimeterAnchorMode.featureType) return;
     
+    const newPoolId = Date.now().toString();
+    
     setAdditionalPools(prev => [...prev, {
-      id: Date.now().toString(),
+      id: newPoolId,
       type: perimeterAnchorMode.featureType === 'tanning-ledge' ? 'spa' : 'pool',
       points: drawnPoints,
       shape: 'freeform',
@@ -908,7 +994,10 @@ export function PoolBuilder({
     });
     setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
     setActiveTool(null);
-  }, [perimeterAnchorMode]);
+    
+    // Check if pool extends outside existing deck and prompt for deck
+    checkAndPromptForOutsideDeck(newPoolId, drawnPoints);
+  }, [perimeterAnchorMode, checkAndPromptForOutsideDeck]);
   
   // Update additional pool perimeter position (for drag along perimeter)
   const updateAdditionalPoolPerimeterPosition = useCallback((poolId: string, newPosition: number) => {
@@ -5097,8 +5186,9 @@ export function PoolBuilder({
                       setShowPoolTypeDialog(true);
                     } else {
                       // No intersection, add as regular pool
+                      const newPoolId = Date.now().toString();
                       setAdditionalPools(prev => [...prev, {
-                        id: Date.now().toString(),
+                        id: newPoolId,
                         type: 'pool',
                         points: newPoolPoints,
                         shape: 'freeform',
@@ -5111,6 +5201,9 @@ export function PoolBuilder({
                         currentCurveType: 'linear' 
                       });
                       setActiveTool(null);
+                      
+                      // Check if pool extends outside existing deck and prompt for deck
+                      checkAndPromptForOutsideDeck(newPoolId, newPoolPoints);
                     }
                   }
                 }}
@@ -5380,6 +5473,31 @@ export function PoolBuilder({
               }}
             >
               Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Deck Confirmation Dialog - Shows when new water body extends outside existing deck */}
+      <Dialog open={showDeckDialog} onOpenChange={setShowDeckDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">Add deck around this water body?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground mb-4">
+            Part of this water body extends outside the existing deck area. Would you like to add a deck around the outside portions? (3ft from perimeter by default)
+          </p>
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => handleDeckConfirmation(false)}
+            >
+              No Deck
+            </Button>
+            <Button
+              onClick={() => handleDeckConfirmation(true)}
+            >
+              Add Deck
             </Button>
           </div>
         </DialogContent>
