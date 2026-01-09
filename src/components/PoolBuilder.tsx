@@ -398,6 +398,11 @@ export function PoolBuilder({
   });
   
   // Multi-pool support
+  interface MergePoint {
+    poolPointIndex: number; // Index on the additional pool where merge starts/ends
+    mainPoolPosition: number; // 0-1 position on main pool perimeter
+    id: string;
+  }
   interface PoolShape {
     id: string;
     type: 'pool' | 'spa';
@@ -407,6 +412,8 @@ export function PoolBuilder({
     intersectsWith?: string; // ID of the pool it intersects with (main pool = 'main')
     perimeterPosition?: number; // 0-1 position along main pool perimeter (for snapped features)
     isPerimeterSnapped?: boolean; // Whether this pool snaps to main pool perimeter
+    mergePoints?: MergePoint[]; // Points where this pool merges with main pool (for integrated features)
+    isMerged?: boolean; // Whether water bodies are merged (coping removed at intersection)
   }
   const [additionalPools, setAdditionalPools] = useState<PoolShape[]>([]);
   const [selectedAdditionalPool, setSelectedAdditionalPool] = useState<string | null>(null);
@@ -481,6 +488,161 @@ export function PoolBuilder({
     const gamma = ((a1.y - a2.y) * (b2.x - a1.x) + (a2.x - a1.x) * (b2.y - a1.y)) / det;
     return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
   };
+  
+  // Get line intersection point
+  const getLineIntersection = (a1: Point, a2: Point, b1: Point, b2: Point): Point | null => {
+    const det = (a2.x - a1.x) * (b2.y - b1.y) - (b2.x - b1.x) * (a2.y - a1.y);
+    if (Math.abs(det) < 0.0001) return null;
+    const lambda = ((b2.y - b1.y) * (b2.x - a1.x) + (b1.x - b2.x) * (b2.y - a1.y)) / det;
+    const gamma = ((a1.y - a2.y) * (b2.x - a1.x) + (a2.x - a1.x) * (b2.y - a1.y)) / det;
+    if (lambda >= 0 && lambda <= 1 && gamma >= 0 && gamma <= 1) {
+      return {
+        x: a1.x + lambda * (a2.x - a1.x),
+        y: a1.y + lambda * (a2.y - a1.y),
+        id: `intersection-${Date.now()}`
+      };
+    }
+    return null;
+  };
+  
+  // Find intersection points between two polygons and compute merged water body
+  const computeMergedWaterBody = useCallback((mainPoolPoints: Point[], spaPoints: Point[]): {
+    mergedPolygon: Point[];
+    mergePoints: { mainIndex: number; spaIndex: number; point: Point }[];
+    spaEdgesOutsideMain: { startIdx: number; endIdx: number }[]; // Edges of spa outside main pool (need coping)
+  } | null => {
+    if (mainPoolPoints.length < 3 || spaPoints.length < 3) return null;
+    
+    const intersections: { mainSegIdx: number; spaSegIdx: number; point: Point; mainT: number; spaT: number }[] = [];
+    
+    // Find all intersection points between the two polygons
+    for (let i = 0; i < mainPoolPoints.length; i++) {
+      const m1 = mainPoolPoints[i];
+      const m2 = mainPoolPoints[(i + 1) % mainPoolPoints.length];
+      
+      for (let j = 0; j < spaPoints.length; j++) {
+        const s1 = spaPoints[j];
+        const s2 = spaPoints[(j + 1) % spaPoints.length];
+        
+        const det = (m2.x - m1.x) * (s2.y - s1.y) - (s2.x - s1.x) * (m2.y - m1.y);
+        if (Math.abs(det) < 0.0001) continue;
+        
+        const mainT = ((s2.y - s1.y) * (s2.x - m1.x) + (s1.x - s2.x) * (s2.y - m1.y)) / det;
+        const spaT = ((m1.y - m2.y) * (s2.x - m1.x) + (m2.x - m1.x) * (s2.y - m1.y)) / det;
+        
+        if (mainT > 0.001 && mainT < 0.999 && spaT > 0.001 && spaT < 0.999) {
+          intersections.push({
+            mainSegIdx: i,
+            spaSegIdx: j,
+            point: {
+              x: m1.x + mainT * (m2.x - m1.x),
+              y: m1.y + mainT * (m2.y - m1.y),
+              id: `merge-${i}-${j}`
+            },
+            mainT,
+            spaT
+          });
+        }
+      }
+    }
+    
+    if (intersections.length < 2) return null; // Need at least 2 intersection points to merge
+    
+    // Sort intersections by spa segment index, then by spaT
+    intersections.sort((a, b) => {
+      if (a.spaSegIdx !== b.spaSegIdx) return a.spaSegIdx - b.spaSegIdx;
+      return a.spaT - b.spaT;
+    });
+    
+    // Determine which spa edges are outside the main pool (need coping)
+    const spaEdgesOutsideMain: { startIdx: number; endIdx: number }[] = [];
+    for (let i = 0; i < spaPoints.length; i++) {
+      const midX = (spaPoints[i].x + spaPoints[(i + 1) % spaPoints.length].x) / 2;
+      const midY = (spaPoints[i].y + spaPoints[(i + 1) % spaPoints.length].y) / 2;
+      if (!isPointInPolygon(midX, midY, mainPoolPoints)) {
+        spaEdgesOutsideMain.push({ startIdx: i, endIdx: (i + 1) % spaPoints.length });
+      }
+    }
+    
+    // Build merged polygon by traversing both polygons
+    const mergedPolygon: Point[] = [];
+    const mergePoints: { mainIndex: number; spaIndex: number; point: Point }[] = [];
+    
+    // Start from first main pool point that's outside the spa
+    let startIdx = 0;
+    for (let i = 0; i < mainPoolPoints.length; i++) {
+      if (!isPointInPolygon(mainPoolPoints[i].x, mainPoolPoints[i].y, spaPoints)) {
+        startIdx = i;
+        break;
+      }
+    }
+    
+    let currentPoly: 'main' | 'spa' = 'main';
+    let currentIdx = startIdx;
+    const visited = new Set<string>();
+    let safety = 0;
+    const maxIterations = mainPoolPoints.length + spaPoints.length + intersections.length * 2;
+    
+    while (safety++ < maxIterations) {
+      const key = `${currentPoly}-${currentIdx}`;
+      if (visited.has(key) && mergedPolygon.length > 2) break;
+      visited.add(key);
+      
+      if (currentPoly === 'main') {
+        const pt = mainPoolPoints[currentIdx];
+        if (!isPointInPolygon(pt.x, pt.y, spaPoints)) {
+          mergedPolygon.push({ ...pt, id: `merged-main-${currentIdx}` });
+        }
+        
+        // Check for intersection on this segment
+        const nextIdx = (currentIdx + 1) % mainPoolPoints.length;
+        const segmentIntersections = intersections.filter(i => i.mainSegIdx === currentIdx);
+        
+        if (segmentIntersections.length > 0) {
+          // Sort by mainT and take the first one
+          segmentIntersections.sort((a, b) => a.mainT - b.mainT);
+          const intersection = segmentIntersections[0];
+          mergedPolygon.push({ ...intersection.point });
+          mergePoints.push({ mainIndex: currentIdx, spaIndex: intersection.spaSegIdx, point: intersection.point });
+          
+          // Switch to spa polygon, continue from intersection point going along spa edges outside main
+          currentPoly = 'spa';
+          currentIdx = (intersection.spaSegIdx + 1) % spaPoints.length;
+        } else {
+          currentIdx = nextIdx;
+        }
+      } else {
+        const pt = spaPoints[currentIdx];
+        if (!isPointInPolygon(pt.x, pt.y, mainPoolPoints)) {
+          mergedPolygon.push({ ...pt, id: `merged-spa-${currentIdx}` });
+        }
+        
+        // Check for intersection on this segment
+        const nextIdx = (currentIdx + 1) % spaPoints.length;
+        const segmentIntersections = intersections.filter(i => i.spaSegIdx === currentIdx);
+        
+        if (segmentIntersections.length > 0) {
+          segmentIntersections.sort((a, b) => a.spaT - b.spaT);
+          const intersection = segmentIntersections[0];
+          mergedPolygon.push({ ...intersection.point });
+          mergePoints.push({ mainIndex: intersection.mainSegIdx, spaIndex: currentIdx, point: intersection.point });
+          
+          // Switch back to main polygon
+          currentPoly = 'main';
+          currentIdx = (intersection.mainSegIdx + 1) % mainPoolPoints.length;
+        } else {
+          currentIdx = nextIdx;
+        }
+      }
+      
+      // Check if we've returned to start
+      if (currentPoly === 'main' && currentIdx === startIdx && mergedPolygon.length > 2) {
+        break;
+      }
+    }
+    
+    return { mergedPolygon, mergePoints, spaEdgesOutsideMain };
+  }, [isPointInPolygon]);
   
   // Check if new pool intersects with any existing pool's DECK (not the pool itself)
   const checkDeckIntersection = useCallback((newPoolPoints: Point[]): string | null => {
@@ -673,6 +835,7 @@ export function PoolBuilder({
       intersectsWith: 'main',
       perimeterPosition: perimeterAnchorMode.perimeterPosition,
       isPerimeterSnapped: true,
+      isMerged: true, // Default to merged water bodies (no coping at intersection)
     }]);
     
     // Reset perimeter anchor mode
@@ -1315,9 +1478,78 @@ export function PoolBuilder({
         ctx.closePath();
       }
 
-      // Draw coping border with individual paver bricks
+      // Draw coping border - skip edges that are inside merged integrated pools
       const copingTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.coping, zoomLevel) : null;
-      if (copingTexture) {
+      
+      // Find which main pool edges are inside merged integrated pools
+      const mergedPools = additionalPools.filter(p => 
+        (p.featureType === 'spillover-spa' || p.featureType === 'tanning-ledge') && 
+        p.isMerged !== false && 
+        p.points.length >= 3
+      );
+      
+      // Check each main pool edge
+      const mainEdgesInMergedPools: boolean[] = [];
+      for (let i = 0; i < points.length; i++) {
+        const p1 = points[i];
+        const p2 = points[(i + 1) % points.length];
+        const midX = (p1.x + p2.x) / 2;
+        const midY = (p1.y + p2.y) / 2;
+        
+        let isInsideMerged = false;
+        for (const pool of mergedPools) {
+          if (isPointInPolygon(midX, midY, pool.points)) {
+            isInsideMerged = true;
+            break;
+          }
+        }
+        mainEdgesInMergedPools.push(isInsideMerged);
+      }
+      
+      const hasMergedEdges = mainEdgesInMergedPools.some(e => e);
+      
+      if (hasMergedEdges) {
+        // Draw coping only on edges NOT inside merged pools
+        ctx.save();
+        for (let i = 0; i < points.length; i++) {
+          if (!mainEdgesInMergedPools[i]) {
+            const p1 = points[i];
+            const p2 = points[(i + 1) % points.length];
+            
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            
+            if (poolShape === 'freeform' && p1.curveType) {
+              drawPoolSegment(ctx, p1, p2);
+            } else if (poolShape !== 'rectangle') {
+              const p0 = points[(i - 1 + points.length) % points.length];
+              const p3 = points[(i + 2) % points.length];
+              const cp1x = p1.x + (p2.x - p0.x) / 6;
+              const cp1y = p1.y + (p2.y - p0.y) / 6;
+              const cp2x = p2.x - (p3.x - p1.x) / 6;
+              const cp2y = p2.y - (p3.y - p1.y) / 6;
+              ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+            } else {
+              ctx.lineTo(p2.x, p2.y);
+            }
+            
+            if (copingTexture) {
+              ctx.lineWidth = paverSizeInPixels;
+              const copingPattern = ctx.createPattern(copingTexture, 'repeat');
+              if (copingPattern) {
+                ctx.strokeStyle = copingPattern;
+                ctx.stroke();
+              }
+            } else {
+              ctx.lineWidth = copingThickness * 2;
+              ctx.strokeStyle = '#8B7355';
+              ctx.stroke();
+            }
+          }
+        }
+        ctx.restore();
+      } else if (copingTexture) {
+        // No merged edges - draw full coping
         ctx.save();
         ctx.lineWidth = copingThickness * 2;
         ctx.strokeStyle = 'transparent';
@@ -2806,7 +3038,21 @@ export function PoolBuilder({
       }
 
       // Draw pool body + coping + liner texture
-      // For integrated features, draw coping only on edges facing deck (outside main pool)
+      // For integrated features (merged), draw coping only on edges facing deck (outside main pool)
+      
+      // Compute which edges are outside the main pool (need coping) vs inside (no coping - water merge)
+      const edgesOutsideMainPool: boolean[] = [];
+      if (isIntegrated && pool.isMerged !== false) {
+        for (let i = 0; i < pool.points.length; i++) {
+          const p1 = pool.points[i];
+          const p2 = pool.points[(i + 1) % pool.points.length];
+          const midX = (p1.x + p2.x) / 2;
+          const midY = (p1.y + p2.y) / 2;
+          // Edge is outside main pool if its midpoint is NOT inside main pool
+          edgesOutsideMainPool.push(!isPointInPolygon(midX, midY, points));
+        }
+      }
+      
       ctx.save();
       ctx.beginPath();
 
@@ -2838,38 +3084,101 @@ export function PoolBuilder({
         ctx.closePath();
       }
 
-      // Draw coping for ALL water bodies (including integrated features)
-      // The coping should wrap around the perimeter facing the deck
+      // Draw coping - for integrated merged features, only on deck-facing edges
       const copingTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.coping, zoomLevel) : null;
-      if (copingTexture) {
+      
+      if (isIntegrated && pool.isMerged !== false && edgesOutsideMainPool.length > 0) {
+        // Draw coping only on edges that are OUTSIDE main pool (deck-facing)
         ctx.save();
-        ctx.lineWidth = paverSizeInPixels;
-
-        const copingPattern = ctx.createPattern(copingTexture, 'repeat');
-        if (copingPattern) {
-          ctx.strokeStyle = copingPattern;
-          ctx.stroke();
+        for (let i = 0; i < pool.points.length; i++) {
+          if (edgesOutsideMainPool[i]) {
+            const p1 = pool.points[i];
+            const p2 = pool.points[(i + 1) % pool.points.length];
+            
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            
+            // Draw segment with curve type if applicable
+            if (pool.shape === 'freeform' && p1.curveType) {
+              drawPoolSegment(ctx, p1, p2);
+            } else {
+              ctx.lineTo(p2.x, p2.y);
+            }
+            
+            if (copingTexture) {
+              ctx.lineWidth = paverSizeInPixels;
+              const copingPattern = ctx.createPattern(copingTexture, 'repeat');
+              if (copingPattern) {
+                ctx.strokeStyle = copingPattern;
+                ctx.stroke();
+              }
+            } else {
+              ctx.lineWidth = copingThickness * 2;
+              ctx.strokeStyle = '#8B7355';
+              ctx.stroke();
+            }
+          }
         }
-
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.lineWidth = paverSizeInPixels + 2;
-        ctx.globalCompositeOperation = 'destination-over';
-        ctx.stroke();
-        ctx.globalCompositeOperation = 'source-over';
         ctx.restore();
       } else {
-        ctx.lineWidth = copingThickness * 2;
-        ctx.strokeStyle = '#8B7355';
-        ctx.stroke();
+        // Draw full coping for non-merged or separate pools
+        if (copingTexture) {
+          ctx.save();
+          ctx.lineWidth = paverSizeInPixels;
+
+          const copingPattern = ctx.createPattern(copingTexture, 'repeat');
+          if (copingPattern) {
+            ctx.strokeStyle = copingPattern;
+            ctx.stroke();
+          }
+
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+          ctx.lineWidth = paverSizeInPixels + 2;
+          ctx.globalCompositeOperation = 'destination-over';
+          ctx.stroke();
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.restore();
+        } else {
+          ctx.lineWidth = copingThickness * 2;
+          ctx.strokeStyle = '#8B7355';
+          ctx.stroke();
+        }
       }
       
-      // If selected, add highlight
+      // If selected, add highlight on all edges
       if (isSelected) {
         ctx.strokeStyle = '#FFD700';
         ctx.lineWidth = 3;
         ctx.stroke();
       }
+      
+      // Draw merge point indicators for integrated features (editable)
+      if (isIntegrated && pool.isMerged !== false && isSelected) {
+        for (let i = 0; i < pool.points.length; i++) {
+          const isOutside = edgesOutsideMainPool[i];
+          const wasOutside = edgesOutsideMainPool[(i - 1 + pool.points.length) % pool.points.length];
+          
+          // Transition points (where coping starts/ends) are merge points
+          if (isOutside !== wasOutside) {
+            const pt = pool.points[i];
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 8, 0, 2 * Math.PI);
+            ctx.fillStyle = '#FF6B6B';
+            ctx.fill();
+            ctx.strokeStyle = '#CC0000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Label
+            ctx.fillStyle = '#CC0000';
+            ctx.font = 'bold 10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('⟷', pt.x, pt.y - 15);
+          }
+        }
+      }
 
+      // Fill water with pool texture
       ctx.save();
       ctx.clip();
 
