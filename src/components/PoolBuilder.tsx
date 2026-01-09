@@ -29,6 +29,7 @@ interface Point {
   x: number;
   y: number;
   id: string;
+  curveType?: 'linear' | 'curve' | 'arc' | 'freeform';
 }
 interface RoofPoint {
   x: number;
@@ -381,14 +382,14 @@ export function PoolBuilder({
   
   // Spline drawing state for custom pool shapes
   interface SplinePoint extends Point {
-    curveType: 'linear' | 'curve' | 'arc';
+    curveType: 'linear' | 'curve' | 'arc' | 'freeform';
     handleIn?: { x: number; y: number };
     handleOut?: { x: number; y: number };
   }
   const [splineDrawing, setSplineDrawing] = useState<{
     isActive: boolean;
     points: SplinePoint[];
-    currentCurveType: 'linear' | 'curve' | 'arc';
+    currentCurveType: 'linear' | 'curve' | 'arc' | 'freeform';
   }>({
     isActive: false,
     points: [],
@@ -2151,47 +2152,147 @@ export function PoolBuilder({
     ctx.textBaseline = 'middle';
     ctx.fillText('N', arrowX, arrowY - arrowSize / 1.5);
 
+    // Helper function to draw curved segments based on curve type
+    const drawCurvedSegment = (
+      ctx: CanvasRenderingContext2D,
+      p1: { x: number; y: number },
+      p2: { x: number; y: number },
+      curveType: 'linear' | 'curve' | 'arc' | 'freeform',
+      isPreview = false
+    ) => {
+      if (curveType === 'linear') {
+        ctx.lineTo(p2.x, p2.y);
+      } else if (curveType === 'curve') {
+        // Smooth bezier curve
+        const midX = (p1.x + p2.x) / 2;
+        const midY = (p1.y + p2.y) / 2;
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const perpX = -dy * 0.25;
+        const perpY = dx * 0.25;
+        ctx.quadraticCurveTo(midX + perpX, midY + perpY, p2.x, p2.y);
+      } else if (curveType === 'arc') {
+        // Circular arc
+        const midX = (p1.x + p2.x) / 2;
+        const midY = (p1.y + p2.y) / 2;
+        const dist = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const perpX = -dy * 0.35;
+        const perpY = dx * 0.35;
+        ctx.quadraticCurveTo(midX + perpX, midY + perpY, p2.x, p2.y);
+      } else if (curveType === 'freeform') {
+        // Natural freeform with slight wobble
+        const midX = (p1.x + p2.x) / 2;
+        const midY = (p1.y + p2.y) / 2;
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const perpX = -dy * 0.15;
+        const perpY = dx * 0.15;
+        const cp1x = p1.x + dx * 0.3 + perpX * 0.5;
+        const cp1y = p1.y + dy * 0.3 + perpY * 0.5;
+        const cp2x = p1.x + dx * 0.7 - perpX * 0.3;
+        const cp2y = p1.y + dy * 0.7 - perpY * 0.3;
+        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+      }
+    };
+
     // Draw spline drawing preview when in draw mode
     if (splineDrawing.isActive && splineDrawing.points.length > 0) {
       ctx.save();
-      ctx.strokeStyle = 'hsl(var(--primary))';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);
       
-      // Draw lines between spline points
-      ctx.beginPath();
-      splineDrawing.points.forEach((sp, i) => {
-        if (i === 0) {
-          ctx.moveTo(sp.x, sp.y);
-        } else {
-          ctx.lineTo(sp.x, sp.y);
+      // Draw preview of how the completed pool would look (filled shape preview)
+      if (splineDrawing.points.length >= 3) {
+        ctx.beginPath();
+        ctx.moveTo(splineDrawing.points[0].x, splineDrawing.points[0].y);
+        for (let i = 1; i < splineDrawing.points.length; i++) {
+          const prev = splineDrawing.points[i - 1];
+          const curr = splineDrawing.points[i];
+          drawCurvedSegment(ctx, prev, curr, curr.curveType);
         }
-      });
-      // Draw line to cursor
-      ctx.lineTo(cursorPos.x, cursorPos.y);
+        // Preview closing line to first point
+        const lastPoint = splineDrawing.points[splineDrawing.points.length - 1];
+        const firstPoint = splineDrawing.points[0];
+        drawCurvedSegment(ctx, lastPoint, firstPoint, splineDrawing.currentCurveType);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(46, 134, 171, 0.15)';
+        ctx.fill();
+      }
+      
+      // Draw wall segments with curve visualization
+      ctx.strokeStyle = 'hsl(var(--primary))';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(splineDrawing.points[0].x, splineDrawing.points[0].y);
+      for (let i = 1; i < splineDrawing.points.length; i++) {
+        const prev = splineDrawing.points[i - 1];
+        const curr = splineDrawing.points[i];
+        drawCurvedSegment(ctx, prev, curr, curr.curveType);
+      }
+      ctx.stroke();
+      
+      // Draw preview line to cursor with current curve type
+      ctx.setLineDash([5, 5]);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const lastPoint = splineDrawing.points[splineDrawing.points.length - 1];
+      ctx.moveTo(lastPoint.x, lastPoint.y);
+      drawCurvedSegment(ctx, lastPoint, cursorPos, splineDrawing.currentCurveType);
       ctx.stroke();
       ctx.setLineDash([]);
+      
+      // Draw curve type indicator on each segment
+      for (let i = 1; i < splineDrawing.points.length; i++) {
+        const prev = splineDrawing.points[i - 1];
+        const curr = splineDrawing.points[i];
+        const midX = (prev.x + curr.x) / 2;
+        const midY = (prev.y + curr.y) / 2;
+        
+        // Small curve type badge
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.beginPath();
+        ctx.arc(midX, midY, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 8px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const label = curr.curveType === 'linear' ? 'L' : curr.curveType === 'curve' ? 'C' : curr.curveType === 'arc' ? 'A' : 'F';
+        ctx.fillText(label, midX, midY);
+      }
       
       // Draw spline points
       splineDrawing.points.forEach((sp, i) => {
         const isFirst = i === 0;
         ctx.beginPath();
-        ctx.arc(sp.x, sp.y, isFirst ? 8 : 6, 0, 2 * Math.PI);
+        ctx.arc(sp.x, sp.y, isFirst ? 10 : 7, 0, 2 * Math.PI);
         ctx.fillStyle = isFirst ? 'hsl(var(--primary))' : '#ffffff';
         ctx.fill();
         ctx.strokeStyle = 'hsl(var(--primary))';
         ctx.lineWidth = 2;
         ctx.stroke();
         
+        // Point number label
+        ctx.fillStyle = isFirst ? '#fff' : 'hsl(var(--primary))';
+        ctx.font = 'bold 10px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText((i + 1).toString(), sp.x, sp.y);
+        
         // Show close indicator on first point when hovering near it
         if (isFirst && splineDrawing.points.length >= 3) {
           const distToFirst = Math.sqrt(Math.pow(cursorPos.x - sp.x, 2) + Math.pow(cursorPos.y - sp.y, 2));
           if (distToFirst < 15) {
             ctx.beginPath();
-            ctx.arc(sp.x, sp.y, 12, 0, 2 * Math.PI);
-            ctx.strokeStyle = 'hsl(var(--primary))';
+            ctx.arc(sp.x, sp.y, 14, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#22C55E';
             ctx.lineWidth = 3;
             ctx.stroke();
+            
+            // "Close" label
+            ctx.fillStyle = '#22C55E';
+            ctx.font = 'bold 10px Arial';
+            ctx.fillText('Close', sp.x, sp.y - 22);
           }
         }
       });
@@ -2463,27 +2564,8 @@ export function PoolBuilder({
         setSplineDrawing(prev => ({ ...prev, isActive: true }));
       }
       
-      // Check if clicking on existing spline point to open editor
-      for (let i = 0; i < splineDrawing.points.length; i++) {
-        const sp = splineDrawing.points[i];
-        const dist = Math.sqrt(Math.pow(x - sp.x, 2) + Math.pow(y - sp.y, 2));
-        if (dist < 12) {
-          // Get screen position for the popup
-          const canvas = canvasRef.current;
-          if (canvas) {
-            const rect = canvas.getBoundingClientRect();
-            setSelectedSplinePoint({
-              point: sp,
-              index: i,
-              screenPosition: {
-                x: rect.left + sp.x * zoomLevel,
-                y: rect.top + sp.y * zoomLevel,
-              },
-            });
-          }
-          return;
-        }
-      }
+      // During active drawing, DON'T open the point editor - just add/close points
+      // The point editor is only available AFTER the pool is completed
       
       const newSplinePoint = {
         x,
@@ -2497,16 +2579,22 @@ export function PoolBuilder({
         const firstPoint = splineDrawing.points[0];
         const distToFirst = Math.sqrt(Math.pow(x - firstPoint.x, 2) + Math.pow(y - firstPoint.y, 2));
         if (distToFirst < 15) {
-          // Close the shape and finish
+          // Close the shape and finish - store the spline data for later editing
           const newPoolPoints = splineDrawing.points.map((sp, i) => ({
             x: sp.x,
             y: sp.y,
             id: (i + 1).toString(),
+            curveType: sp.curveType, // Preserve curve type for post-editing
           }));
           setPoints(newPoolPoints);
           setPoolShape('freeform');
           setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
-          setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
+          // Keep the spline points data for post-completion editing
+          setSplineDrawing({ 
+            isActive: false, 
+            points: splineDrawing.points, // Keep points for editing after completion
+            currentCurveType: 'linear' 
+          });
           setActiveTool(null);
           return;
         }
@@ -2517,6 +2605,36 @@ export function PoolBuilder({
         points: [...prev.points, newSplinePoint],
       }));
       return;
+    }
+    
+    // Allow editing pool points AFTER drawing is complete (when not in draw mode)
+    // Check if clicking on a pool control point for curve editing
+    if (activeTool === 'select' && !splineDrawing.isActive && points.length > 0) {
+      for (let i = 0; i < points.length; i++) {
+        const pt = points[i];
+        const dist = Math.sqrt(Math.pow(x - pt.x, 2) + Math.pow(y - pt.y, 2));
+        if (dist < 12) {
+          // Found a point - check if it has curve data from splineDrawing
+          const splinePoint = splineDrawing.points.find(sp => 
+            Math.abs(sp.x - pt.x) < 5 && Math.abs(sp.y - pt.y) < 5
+          );
+          if (splinePoint) {
+            const canvas = canvasRef.current;
+            if (canvas) {
+              const rect = canvas.getBoundingClientRect();
+              setSelectedSplinePoint({
+                point: splinePoint,
+                index: i,
+                screenPosition: {
+                  x: rect.left + pt.x * zoomLevel,
+                  y: rect.top + pt.y * zoomLevel,
+                },
+              });
+            }
+            return;
+          }
+        }
+      }
     }
 
     // If in add mode, add a new point at the snapped location

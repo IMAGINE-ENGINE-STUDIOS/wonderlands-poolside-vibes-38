@@ -13,7 +13,7 @@ interface Point {
 }
 
 interface SplinePoint extends Point {
-  curveType: 'linear' | 'curve' | 'arc';
+  curveType: 'linear' | 'curve' | 'arc' | 'freeform';
   handleIn?: { x: number; y: number };
   handleOut?: { x: number; y: number };
 }
@@ -31,12 +31,12 @@ interface ShapePanelProps {
   splineDrawing?: {
     isActive: boolean;
     points: SplinePoint[];
-    currentCurveType: 'linear' | 'curve' | 'arc';
+    currentCurveType: 'linear' | 'curve' | 'arc' | 'freeform';
   };
   onSplineDrawingChange?: (data: { 
     isActive: boolean; 
     points: SplinePoint[]; 
-    currentCurveType: 'linear' | 'curve' | 'arc';
+    currentCurveType: 'linear' | 'curve' | 'arc' | 'freeform';
   }) => void;
   onFinishSpline?: () => void;
   onCancelSpline?: () => void;
@@ -100,7 +100,7 @@ export function ShapePanel({
   const currentCurveType = splineDrawing?.currentCurveType || 'linear';
   const splinePoints = splineDrawing?.points || [];
 
-  const handleCurveTypeChange = (type: 'linear' | 'curve' | 'arc') => {
+  const handleCurveTypeChange = (type: 'linear' | 'curve' | 'arc' | 'freeform') => {
     if (onSplineDrawingChange && splineDrawing) {
       onSplineDrawingChange({
         ...splineDrawing,
@@ -246,7 +246,7 @@ export function ShapePanel({
           {/* Curve Type Selector */}
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Next segment type:</Label>
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-4 gap-1.5">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -312,6 +312,29 @@ export function ShapePanel({
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Circular arc segment</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => handleCurveTypeChange('freeform')}
+                      className={`
+                        flex flex-col items-center gap-1 p-2 rounded-md border transition-all
+                        ${currentCurveType === 'freeform' 
+                          ? 'border-primary bg-primary/10 text-primary' 
+                          : 'border-border/50 text-muted-foreground hover:border-primary/30 hover:text-foreground'
+                        }
+                      `}
+                    >
+                      <PenTool className="w-4 h-4" />
+                      <span className="text-[10px] font-medium">Free</span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Natural freeform curve</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
