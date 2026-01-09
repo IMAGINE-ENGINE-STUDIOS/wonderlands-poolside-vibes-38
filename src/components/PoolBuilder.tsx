@@ -405,8 +405,12 @@ export function PoolBuilder({
     shape: 'rectangle' | 'kidney' | 'freeform';
     featureType?: 'regular' | 'spillover-spa' | 'tanning-ledge'; // Type when overlapping
     intersectsWith?: string; // ID of the pool it intersects with (main pool = 'main')
+    perimeterPosition?: number; // 0-1 position along main pool perimeter (for snapped features)
+    isPerimeterSnapped?: boolean; // Whether this pool snaps to main pool perimeter
   }
   const [additionalPools, setAdditionalPools] = useState<PoolShape[]>([]);
+  const [selectedAdditionalPool, setSelectedAdditionalPool] = useState<string | null>(null);
+  const [draggingAdditionalPool, setDraggingAdditionalPool] = useState(false);
   
   // Pool type dialog state (for when new pool intersects existing)
   const [pendingPoolData, setPendingPoolData] = useState<{
@@ -475,9 +479,110 @@ export function PoolBuilder({
     return null;
   }, [points, additionalPools, doPolygonsIntersect]);
   
+  // Calculate perimeter position from a point (0-1 along pool perimeter)
+  const getPerimeterPositionFromPoint = useCallback((x: number, y: number): number => {
+    if (points.length < 2) return 0;
+    
+    let totalLength = 0;
+    const segmentLengths: number[] = [];
+    
+    for (let i = 0; i < points.length; i++) {
+      const p1 = points[i];
+      const p2 = points[(i + 1) % points.length];
+      const len = Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
+      segmentLengths.push(len);
+      totalLength += len;
+    }
+    
+    let minDist = Infinity;
+    let closestPosition = 0;
+    let accumulated = 0;
+    
+    for (let i = 0; i < points.length; i++) {
+      const p1 = points[i];
+      const p2 = points[(i + 1) % points.length];
+      const segmentLength = segmentLengths[i];
+      
+      const segmentDx = p2.x - p1.x;
+      const segmentDy = p2.y - p1.y;
+      const lengthSq = segmentDx ** 2 + segmentDy ** 2;
+      
+      if (lengthSq === 0) {
+        accumulated += segmentLength;
+        continue;
+      }
+      
+      const t = Math.max(0, Math.min(1,
+        ((x - p1.x) * segmentDx + (y - p1.y) * segmentDy) / lengthSq
+      ));
+      
+      const projX = p1.x + t * segmentDx;
+      const projY = p1.y + t * segmentDy;
+      const dist = Math.sqrt((x - projX) ** 2 + (y - projY) ** 2);
+      
+      if (dist < minDist) {
+        minDist = dist;
+        closestPosition = (accumulated + t * segmentLength) / totalLength;
+      }
+      
+      accumulated += segmentLength;
+    }
+    
+    return Math.max(0, Math.min(1, closestPosition));
+  }, [points]);
+  
+  // Get position on perimeter from 0-1 value
+  const getPositionFromPerimeter = useCallback((perimeterPos: number): { x: number; y: number; angle: number } => {
+    if (points.length < 2) return { x: 0, y: 0, angle: 0 };
+    
+    let totalLength = 0;
+    const segmentLengths: number[] = [];
+    
+    for (let i = 0; i < points.length; i++) {
+      const p1 = points[i];
+      const p2 = points[(i + 1) % points.length];
+      const len = Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
+      segmentLengths.push(len);
+      totalLength += len;
+    }
+    
+    const targetDistance = perimeterPos * totalLength;
+    let accumulated = 0;
+    
+    for (let i = 0; i < points.length; i++) {
+      const segmentLength = segmentLengths[i];
+      
+      if (accumulated + segmentLength >= targetDistance) {
+        const p1 = points[i];
+        const p2 = points[(i + 1) % points.length];
+        const t = (targetDistance - accumulated) / segmentLength;
+        
+        const x = p1.x + t * (p2.x - p1.x);
+        const y = p1.y + t * (p2.y - p1.y);
+        
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const angle = Math.atan2(dy, dx);
+        
+        return { x, y, angle };
+      }
+      
+      accumulated += segmentLength;
+    }
+    
+    return { x: points[0].x, y: points[0].y, angle: 0 };
+  }, [points]);
+  
   // Handle pool type selection from dialog
   const handlePoolTypeSelection = useCallback((featureType: 'regular' | 'spillover-spa' | 'tanning-ledge') => {
     if (!pendingPoolData) return;
+    
+    const isIntegrated = featureType === 'spillover-spa' || featureType === 'tanning-ledge';
+    
+    // Calculate center of pending pool to find perimeter snap position
+    const centerX = pendingPoolData.points.reduce((sum, p) => sum + p.x, 0) / pendingPoolData.points.length;
+    const centerY = pendingPoolData.points.reduce((sum, p) => sum + p.y, 0) / pendingPoolData.points.length;
+    const perimeterPos = isIntegrated ? getPerimeterPositionFromPoint(centerX, centerY) : undefined;
     
     setAdditionalPools(prev => [...prev, {
       id: Date.now().toString(),
@@ -486,13 +591,50 @@ export function PoolBuilder({
       shape: 'freeform',
       featureType,
       intersectsWith: pendingPoolData.intersectsWith,
+      perimeterPosition: perimeterPos,
+      isPerimeterSnapped: isIntegrated,
     }]);
     
     setPendingPoolData(null);
     setShowPoolTypeDialog(false);
     setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
     setActiveTool(null);
-  }, [pendingPoolData]);
+  }, [pendingPoolData, getPerimeterPositionFromPoint]);
+  
+  // Update additional pool perimeter position (for drag along perimeter)
+  const updateAdditionalPoolPerimeterPosition = useCallback((poolId: string, newPosition: number) => {
+    setAdditionalPools(prev => prev.map(pool => {
+      if (pool.id !== poolId || !pool.isPerimeterSnapped) return pool;
+      
+      const oldPos = getPositionFromPerimeter(pool.perimeterPosition || 0);
+      const newPos = getPositionFromPerimeter(newPosition);
+      
+      // Calculate offset to move all points
+      const offsetX = newPos.x - oldPos.x;
+      const offsetY = newPos.y - oldPos.y;
+      
+      return {
+        ...pool,
+        perimeterPosition: newPosition,
+        points: pool.points.map(p => ({
+          ...p,
+          x: p.x + offsetX,
+          y: p.y + offsetY,
+        })),
+      };
+    }));
+  }, [getPositionFromPerimeter]);
+  
+  // Update additional pool point position
+  const updateAdditionalPoolPoint = useCallback((poolId: string, pointId: string, x: number, y: number) => {
+    setAdditionalPools(prev => prev.map(pool => {
+      if (pool.id !== poolId) return pool;
+      return {
+        ...pool,
+        points: pool.points.map(p => p.id === pointId ? { ...p, x, y } : p),
+      };
+    }));
+  }, []);
   
   // Spline point editor state
   const [selectedSplinePoint, setSelectedSplinePoint] = useState<{
@@ -2437,60 +2579,65 @@ export function PoolBuilder({
     // Draw additional pools/spas (rendered with the same look as the main pool)
     additionalPools.forEach(pool => {
       if (pool.points.length < 3) return;
+      
+      const isIntegrated = pool.featureType === 'spillover-spa' || pool.featureType === 'tanning-ledge';
+      const isSelected = selectedAdditionalPool === pool.id;
 
-      // Draw deck for this pool using the same paver texture
-      const poolHardscapePoints = generateHardscapeFromPool(pool.points, deckOffset);
-      if (paverTexture && poolHardscapePoints.length >= 3) {
-        const img = paverTexture;
+      // Only draw deck for regular pools (not integrated features)
+      if (!isIntegrated) {
+        const poolHardscapePoints = generateHardscapeFromPool(pool.points, deckOffset);
+        if (paverTexture && poolHardscapePoints.length >= 3) {
+          const img = paverTexture;
 
-        ctx.save();
-        ctx.beginPath();
-        if (smoothCorners) {
-          for (let i = 0; i < poolHardscapePoints.length; i++) {
-            const p0 = poolHardscapePoints[(i - 1 + poolHardscapePoints.length) % poolHardscapePoints.length];
-            const p1 = poolHardscapePoints[i];
-            const p2 = poolHardscapePoints[(i + 1) % poolHardscapePoints.length];
-            const p3 = poolHardscapePoints[(i + 2) % poolHardscapePoints.length];
-            if (i === 0) ctx.moveTo(p1.x, p1.y);
+          ctx.save();
+          ctx.beginPath();
+          if (smoothCorners) {
+            for (let i = 0; i < poolHardscapePoints.length; i++) {
+              const p0 = poolHardscapePoints[(i - 1 + poolHardscapePoints.length) % poolHardscapePoints.length];
+              const p1 = poolHardscapePoints[i];
+              const p2 = poolHardscapePoints[(i + 1) % poolHardscapePoints.length];
+              const p3 = poolHardscapePoints[(i + 2) % poolHardscapePoints.length];
+              if (i === 0) ctx.moveTo(p1.x, p1.y);
 
-            const tension = 0.3;
-            const cp1x = p1.x + (p2.x - p0.x) * tension;
-            const cp1y = p1.y + (p2.y - p0.y) * tension;
-            const cp2x = p2.x - (p3.x - p1.x) * tension;
-            const cp2y = p2.y - (p3.y - p1.y) * tension;
-            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+              const tension = 0.3;
+              const cp1x = p1.x + (p2.x - p0.x) * tension;
+              const cp1y = p1.y + (p2.y - p0.y) * tension;
+              const cp2x = p2.x - (p3.x - p1.x) * tension;
+              const cp2y = p2.y - (p3.y - p1.y) * tension;
+              ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+            }
+          } else {
+            ctx.moveTo(poolHardscapePoints[0].x, poolHardscapePoints[0].y);
+            for (let i = 1; i < poolHardscapePoints.length; i++) {
+              ctx.lineTo(poolHardscapePoints[i].x, poolHardscapePoints[i].y);
+            }
           }
-        } else {
-          ctx.moveTo(poolHardscapePoints[0].x, poolHardscapePoints[0].y);
-          for (let i = 1; i < poolHardscapePoints.length; i++) {
-            ctx.lineTo(poolHardscapePoints[i].x, poolHardscapePoints[i].y);
+          ctx.closePath();
+          ctx.clip();
+
+          const hsMinX = Math.min(...poolHardscapePoints.map(p => p.x));
+          const hsMaxX = Math.max(...poolHardscapePoints.map(p => p.x));
+          const hsMinY = Math.min(...poolHardscapePoints.map(p => p.y));
+          const hsMaxY = Math.max(...poolHardscapePoints.map(p => p.y));
+          const numPaversX = Math.ceil((hsMaxX - hsMinX) / paverSizeInPixels) + 1;
+          const numPaversY = Math.ceil((hsMaxY - hsMinY) / paverSizeInPixels) + 1;
+
+          for (let i = 0; i < numPaversX; i++) {
+            for (let j = 0; j < numPaversY; j++) {
+              const x = hsMinX + i * paverSizeInPixels;
+              const y = hsMinY + j * paverSizeInPixels;
+              ctx.drawImage(img, x, y, paverSizeInPixels, paverSizeInPixels);
+
+              ctx.strokeStyle = 'rgba(100, 80, 60, 0.2)';
+              ctx.lineWidth = 1;
+              ctx.strokeRect(x, y, paverSizeInPixels, paverSizeInPixels);
+            }
           }
+          ctx.restore();
         }
-        ctx.closePath();
-        ctx.clip();
-
-        const hsMinX = Math.min(...poolHardscapePoints.map(p => p.x));
-        const hsMaxX = Math.max(...poolHardscapePoints.map(p => p.x));
-        const hsMinY = Math.min(...poolHardscapePoints.map(p => p.y));
-        const hsMaxY = Math.max(...poolHardscapePoints.map(p => p.y));
-        const numPaversX = Math.ceil((hsMaxX - hsMinX) / paverSizeInPixels) + 1;
-        const numPaversY = Math.ceil((hsMaxY - hsMinY) / paverSizeInPixels) + 1;
-
-        for (let i = 0; i < numPaversX; i++) {
-          for (let j = 0; j < numPaversY; j++) {
-            const x = hsMinX + i * paverSizeInPixels;
-            const y = hsMinY + j * paverSizeInPixels;
-            ctx.drawImage(img, x, y, paverSizeInPixels, paverSizeInPixels);
-
-            ctx.strokeStyle = 'rgba(100, 80, 60, 0.2)';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x, y, paverSizeInPixels, paverSizeInPixels);
-          }
-        }
-        ctx.restore();
       }
 
-      // Draw pool body + coping + liner texture
+      // Draw pool body + coping (skip coping for integrated features) + liner texture
       ctx.save();
       ctx.beginPath();
 
@@ -2522,26 +2669,34 @@ export function PoolBuilder({
         ctx.closePath();
       }
 
-      const copingTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.coping, zoomLevel) : null;
-      if (copingTexture) {
-        ctx.save();
-        ctx.lineWidth = paverSizeInPixels;
+      // Only draw coping for non-integrated features
+      if (!isIntegrated) {
+        const copingTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.coping, zoomLevel) : null;
+        if (copingTexture) {
+          ctx.save();
+          ctx.lineWidth = paverSizeInPixels;
 
-        const copingPattern = ctx.createPattern(copingTexture, 'repeat');
-        if (copingPattern) {
-          ctx.strokeStyle = copingPattern;
+          const copingPattern = ctx.createPattern(copingTexture, 'repeat');
+          if (copingPattern) {
+            ctx.strokeStyle = copingPattern;
+            ctx.stroke();
+          }
+
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+          ctx.lineWidth = paverSizeInPixels + 2;
+          ctx.globalCompositeOperation = 'destination-over';
+          ctx.stroke();
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.restore();
+        } else {
+          ctx.lineWidth = copingThickness * 2;
+          ctx.strokeStyle = '#8B7355';
           ctx.stroke();
         }
-
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.lineWidth = paverSizeInPixels + 2;
-        ctx.globalCompositeOperation = 'destination-over';
-        ctx.stroke();
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.restore();
       } else {
-        ctx.lineWidth = copingThickness * 2;
-        ctx.strokeStyle = '#8B7355';
+        // For integrated features, draw a thin highlight border to show the edge
+        ctx.strokeStyle = isSelected ? '#FFD700' : 'rgba(91, 197, 217, 0.5)';
+        ctx.lineWidth = isSelected ? 3 : 1;
         ctx.stroke();
       }
 
@@ -2572,10 +2727,57 @@ export function PoolBuilder({
 
       ctx.restore();
       ctx.restore();
+      
+      // Draw anchor points for additional pools (like main pool)
+      pool.points.forEach(point => {
+        const size = 10;
+        const isPointSelected = isSelected;
+        ctx.fillStyle = isPointSelected ? '#10B981' : '#ffffff';
+        ctx.strokeStyle = isPointSelected ? '#059669' : '#10B981';
+        ctx.lineWidth = 2;
+        ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
+        ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
+      });
+      
+      // Draw feature type label for integrated features
+      if (isIntegrated) {
+        const centerX = pool.points.reduce((sum, p) => sum + p.x, 0) / pool.points.length;
+        const centerY = pool.points.reduce((sum, p) => sum + p.y, 0) / pool.points.length;
+        const label = pool.featureType === 'spillover-spa' ? 'Spillover Spa' : 'Tanning Ledge';
+        
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.font = 'bold 11px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const metrics = ctx.measureText(label);
+        const padding = 4;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.fillRect(centerX - metrics.width / 2 - padding, centerY - 8, metrics.width + padding * 2, 16);
+        ctx.fillStyle = pool.featureType === 'spillover-spa' ? '#2E86AB' : '#10B981';
+        ctx.fillText(label, centerX, centerY);
+        
+        // Draw perimeter drag handle for snapped features
+        if (pool.isPerimeterSnapped && pool.perimeterPosition !== undefined) {
+          const perimPos = getPositionFromPerimeter(pool.perimeterPosition);
+          ctx.beginPath();
+          ctx.arc(perimPos.x, perimPos.y, 8, 0, 2 * Math.PI);
+          ctx.fillStyle = isSelected ? '#FFD700' : '#3B82F6';
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          
+          // Drag indicator
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 10px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('⟷', perimPos.x, perimPos.y + 1);
+        }
+      }
     });
     
     ctx.restore();
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, splineDrawing, additionalPools]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, splineDrawing, additionalPools, selectedAdditionalPool, getPositionFromPerimeter]);
 
   // Memoize perimeter and area calculations
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
@@ -2687,6 +2889,32 @@ export function PoolBuilder({
       }
     }
 
+    // Check if clicked on additional pool point or perimeter drag handle
+    for (const pool of additionalPools) {
+      // Check perimeter drag handle for snapped features
+      if (pool.isPerimeterSnapped && pool.perimeterPosition !== undefined) {
+        const perimPos = getPositionFromPerimeter(pool.perimeterPosition);
+        if (Math.sqrt(Math.pow(perimPos.x - x, 2) + Math.pow(perimPos.y - y, 2)) < 12) {
+          setSelectedAdditionalPool(pool.id);
+          setDraggingAdditionalPool(true);
+          setSelectedPoint(null);
+          setSelectedFeature(null);
+          setSelectedHardscapePoint(null);
+          return;
+        }
+      }
+      
+      // Check pool points
+      const clickedPoolPoint = pool.points.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
+      if (clickedPoolPoint) {
+        setSelectedAdditionalPool(pool.id);
+        setSelectedPoint(null);
+        setSelectedFeature(null);
+        setSelectedHardscapePoint(null);
+        return;
+      }
+    }
+
     // Check if clicked on hardscape point
     const clickedHardscapePoint = hardscapePoints.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
     if (clickedHardscapePoint) {
@@ -2695,6 +2923,7 @@ export function PoolBuilder({
       setSelectedFeature(null);
       setSelectedRoofPoint(null);
       setSelectedDepthPoint(null);
+      setSelectedAdditionalPool(null);
       return;
     }
 
