@@ -1389,15 +1389,17 @@ export function PoolBuilder({
     return Math.max(0, hardscapeAreaSqFt - poolAreaSqFt);
   }, [hardscapePoints, scale, points]);
 
-  // Get symmetry-snapped position for a point
+  // Get symmetry-snapped position for a point (snaps to axis lines AND mirrored positions of existing points)
   const getSymmetrySnappedPosition = useCallback((x: number, y: number): { 
     x: number; 
     y: number; 
     snappedVertical: boolean; 
-    snappedHorizontal: boolean 
+    snappedHorizontal: boolean;
+    snappedToMirror: boolean;
+    mirroredFromPoint?: { x: number; y: number };
   } => {
     if (!symmetryMode.enabled) {
-      return { x, y, snappedVertical: false, snappedHorizontal: false };
+      return { x, y, snappedVertical: false, snappedHorizontal: false, snappedToMirror: false };
     }
     
     const centerX = canvasSize.width / 2;
@@ -1408,23 +1410,71 @@ export function PoolBuilder({
     let snappedY = y;
     let snappedVertical = false;
     let snappedHorizontal = false;
+    let snappedToMirror = false;
+    let mirroredFromPoint: { x: number; y: number } | undefined;
     
-    // Snap to vertical axis (center line)
-    if ((symmetryMode.axes === 'vertical' || symmetryMode.axes === 'both') && 
-        Math.abs(x - centerX) < snapDist) {
-      snappedX = centerX;
-      snappedVertical = true;
+    // First, check for mirrored positions of existing spline points
+    if (splineDrawing.points.length > 0) {
+      for (const pt of splineDrawing.points) {
+        // Calculate mirrored positions
+        const mirrorV = { x: 2 * centerX - pt.x, y: pt.y }; // Mirror across vertical axis
+        const mirrorH = { x: pt.x, y: 2 * centerY - pt.y }; // Mirror across horizontal axis
+        const mirrorBoth = { x: 2 * centerX - pt.x, y: 2 * centerY - pt.y }; // Mirror across both
+        
+        // Check snap to vertical mirror
+        if ((symmetryMode.axes === 'vertical' || symmetryMode.axes === 'both')) {
+          const distV = Math.sqrt(Math.pow(x - mirrorV.x, 2) + Math.pow(y - mirrorV.y, 2));
+          if (distV < snapDist) {
+            snappedX = mirrorV.x;
+            snappedY = mirrorV.y;
+            snappedToMirror = true;
+            mirroredFromPoint = { x: pt.x, y: pt.y };
+          }
+        }
+        
+        // Check snap to horizontal mirror
+        if ((symmetryMode.axes === 'horizontal' || symmetryMode.axes === 'both')) {
+          const distH = Math.sqrt(Math.pow(x - mirrorH.x, 2) + Math.pow(y - mirrorH.y, 2));
+          if (distH < snapDist) {
+            snappedX = mirrorH.x;
+            snappedY = mirrorH.y;
+            snappedToMirror = true;
+            mirroredFromPoint = { x: pt.x, y: pt.y };
+          }
+        }
+        
+        // Check snap to diagonal mirror (both axes)
+        if (symmetryMode.axes === 'both') {
+          const distBoth = Math.sqrt(Math.pow(x - mirrorBoth.x, 2) + Math.pow(y - mirrorBoth.y, 2));
+          if (distBoth < snapDist) {
+            snappedX = mirrorBoth.x;
+            snappedY = mirrorBoth.y;
+            snappedToMirror = true;
+            mirroredFromPoint = { x: pt.x, y: pt.y };
+          }
+        }
+      }
     }
     
-    // Snap to horizontal axis (center line)
-    if ((symmetryMode.axes === 'horizontal' || symmetryMode.axes === 'both') && 
-        Math.abs(y - centerY) < snapDist) {
-      snappedY = centerY;
-      snappedHorizontal = true;
+    // If not snapped to a mirror point, check axis lines
+    if (!snappedToMirror) {
+      // Snap to vertical axis (center line)
+      if ((symmetryMode.axes === 'vertical' || symmetryMode.axes === 'both') && 
+          Math.abs(x - centerX) < snapDist) {
+        snappedX = centerX;
+        snappedVertical = true;
+      }
+      
+      // Snap to horizontal axis (center line)
+      if ((symmetryMode.axes === 'horizontal' || symmetryMode.axes === 'both') && 
+          Math.abs(y - centerY) < snapDist) {
+        snappedY = centerY;
+        snappedHorizontal = true;
+      }
     }
     
-    return { x: snappedX, y: snappedY, snappedVertical, snappedHorizontal };
-  }, [symmetryMode.enabled, symmetryMode.axes, symmetryMode.snapDistance, canvasSize.width, canvasSize.height]);
+    return { x: snappedX, y: snappedY, snappedVertical, snappedHorizontal, snappedToMirror, mirroredFromPoint };
+  }, [symmetryMode.enabled, symmetryMode.axes, symmetryMode.snapDistance, canvasSize.width, canvasSize.height, splineDrawing.points]);
 
   // Find nearest point on pool perimeter
   const findNearestWallPoint = (x: number, y: number) => {
@@ -3067,36 +3117,123 @@ export function PoolBuilder({
         ctx.stroke();
       }
       
-      // Draw snap indicators when cursor is near symmetry lines
+      // Draw mirrored ghost points for existing spline points
+      if (splineDrawing.points.length > 0) {
+        ctx.setLineDash([]);
+        
+        for (const pt of splineDrawing.points) {
+          // Calculate mirrored positions
+          const mirrorV = { x: 2 * centerX - pt.x, y: pt.y };
+          const mirrorH = { x: pt.x, y: 2 * centerY - pt.y };
+          const mirrorBoth = { x: 2 * centerX - pt.x, y: 2 * centerY - pt.y };
+          
+          // Draw vertical mirror ghost (if not on axis)
+          if ((symmetryMode.axes === 'vertical' || symmetryMode.axes === 'both') && 
+              Math.abs(pt.x - centerX) > 5) {
+            // Ghost point
+            ctx.beginPath();
+            ctx.arc(mirrorV.x, mirrorV.y, 6, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 100, 100, 0.5)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([3, 3]);
+            ctx.stroke();
+            
+            // Connection line to original
+            ctx.beginPath();
+            ctx.moveTo(pt.x, pt.y);
+            ctx.lineTo(mirrorV.x, mirrorV.y);
+            ctx.strokeStyle = 'rgba(255, 100, 100, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+          
+          // Draw horizontal mirror ghost (if not on axis)
+          if ((symmetryMode.axes === 'horizontal' || symmetryMode.axes === 'both') && 
+              Math.abs(pt.y - centerY) > 5) {
+            ctx.beginPath();
+            ctx.arc(mirrorH.x, mirrorH.y, 6, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(100, 100, 255, 0.5)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([3, 3]);
+            ctx.stroke();
+            
+            // Connection line
+            ctx.beginPath();
+            ctx.moveTo(pt.x, pt.y);
+            ctx.lineTo(mirrorH.x, mirrorH.y);
+            ctx.strokeStyle = 'rgba(100, 100, 255, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+          
+          // Draw diagonal mirror ghost (both axes)
+          if (symmetryMode.axes === 'both' && 
+              Math.abs(pt.x - centerX) > 5 && Math.abs(pt.y - centerY) > 5) {
+            ctx.beginPath();
+            ctx.arc(mirrorBoth.x, mirrorBoth.y, 6, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(180, 100, 255, 0.5)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([3, 3]);
+            ctx.stroke();
+          }
+        }
+        ctx.setLineDash([]);
+      }
+      
+      // Draw snap indicators when cursor is near symmetry lines or mirror points
       const snappedPos = getSymmetrySnappedPosition(cursorPos.x, cursorPos.y);
-      if (snappedPos.snappedVertical || snappedPos.snappedHorizontal) {
+      if (snappedPos.snappedVertical || snappedPos.snappedHorizontal || snappedPos.snappedToMirror) {
         ctx.setLineDash([]);
         
         // Highlight snap point
         ctx.beginPath();
         ctx.arc(snappedPos.x, snappedPos.y, 8, 0, Math.PI * 2);
-        ctx.strokeStyle = snappedPos.snappedVertical && snappedPos.snappedHorizontal 
-          ? 'rgba(255, 200, 50, 0.9)' 
-          : snappedPos.snappedVertical 
-            ? 'rgba(255, 100, 100, 0.9)' 
-            : 'rgba(100, 100, 255, 0.9)';
+        
+        let snapColor = 'rgba(255, 200, 50, 0.9)';
+        let snapLabel = 'SNAP';
+        
+        if (snappedPos.snappedToMirror) {
+          snapColor = 'rgba(0, 255, 150, 0.9)';
+          snapLabel = 'MIRROR';
+          
+          // Draw line from mirrored source point
+          if (snappedPos.mirroredFromPoint) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(snappedPos.mirroredFromPoint.x, snappedPos.mirroredFromPoint.y);
+            ctx.lineTo(snappedPos.x, snappedPos.y);
+            ctx.strokeStyle = 'rgba(0, 255, 150, 0.4)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.stroke();
+            ctx.restore();
+          }
+        } else if (snappedPos.snappedVertical && snappedPos.snappedHorizontal) {
+          snapColor = 'rgba(255, 200, 50, 0.9)';
+          snapLabel = 'CENTER';
+        } else if (snappedPos.snappedVertical) {
+          snapColor = 'rgba(255, 100, 100, 0.9)';
+          snapLabel = 'V-AXIS';
+        } else if (snappedPos.snappedHorizontal) {
+          snapColor = 'rgba(100, 100, 255, 0.9)';
+          snapLabel = 'H-AXIS';
+        }
+        
+        ctx.strokeStyle = snapColor;
         ctx.lineWidth = 2;
         ctx.stroke();
         
+        // Filled center for mirror snaps
+        if (snappedPos.snappedToMirror) {
+          ctx.fillStyle = 'rgba(0, 255, 150, 0.3)';
+          ctx.fill();
+        }
+        
         // Snap label
-        ctx.fillStyle = snappedPos.snappedVertical && snappedPos.snappedHorizontal 
-          ? 'rgba(255, 200, 50, 0.9)' 
-          : snappedPos.snappedVertical 
-            ? 'rgba(255, 100, 100, 0.9)' 
-            : 'rgba(100, 100, 255, 0.9)';
+        ctx.fillStyle = snapColor;
         ctx.font = 'bold 9px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
-        const snapLabel = snappedPos.snappedVertical && snappedPos.snappedHorizontal 
-          ? 'CENTER' 
-          : snappedPos.snappedVertical 
-            ? 'V-AXIS' 
-            : 'H-AXIS';
         ctx.fillText(snapLabel, snappedPos.x, snappedPos.y - 12);
       }
       
