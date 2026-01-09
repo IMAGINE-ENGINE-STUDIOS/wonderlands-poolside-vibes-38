@@ -13,7 +13,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower2, Droplets, Box, PenTool, Shapes } from 'lucide-react';
+import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower2, Droplets, Box, PenTool, Shapes, MousePointer2 } from 'lucide-react';
+import { ShapePanel } from './poolBuilder/ShapePanel';
 import { ShapeRepository } from './ShapeRepository';
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import poolTextureSapphire from '@/assets/pool-texture-sapphire.jpg';
@@ -376,6 +377,22 @@ export function PoolBuilder({
   const [activeTab, setActiveTab] = useState('pool');
   const [showFenceEditor, setShowFenceEditor] = useState(false);
   const [customTextures, setCustomTextures] = useState<TextureConfig[]>([]);
+  
+  // Spline drawing state for custom pool shapes
+  interface SplinePoint extends Point {
+    curveType: 'linear' | 'curve' | 'arc';
+    handleIn?: { x: number; y: number };
+    handleOut?: { x: number; y: number };
+  }
+  const [splineDrawing, setSplineDrawing] = useState<{
+    isActive: boolean;
+    points: SplinePoint[];
+    currentCurveType: 'linear' | 'curve' | 'arc';
+  }>({
+    isActive: false,
+    points: [],
+    currentCurveType: 'linear',
+  });
 
   // Pricing constants
   const PAVER_COST_PER_SQFT = 15;
@@ -2116,8 +2133,56 @@ export function PoolBuilder({
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('N', arrowX, arrowY - arrowSize / 1.5);
+
+    // Draw spline drawing preview when in draw mode
+    if (splineDrawing.isActive && splineDrawing.points.length > 0) {
+      ctx.save();
+      ctx.strokeStyle = 'hsl(var(--primary))';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      
+      // Draw lines between spline points
+      ctx.beginPath();
+      splineDrawing.points.forEach((sp, i) => {
+        if (i === 0) {
+          ctx.moveTo(sp.x, sp.y);
+        } else {
+          ctx.lineTo(sp.x, sp.y);
+        }
+      });
+      // Draw line to cursor
+      ctx.lineTo(cursorPos.x, cursorPos.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // Draw spline points
+      splineDrawing.points.forEach((sp, i) => {
+        const isFirst = i === 0;
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, isFirst ? 8 : 6, 0, 2 * Math.PI);
+        ctx.fillStyle = isFirst ? 'hsl(var(--primary))' : '#ffffff';
+        ctx.fill();
+        ctx.strokeStyle = 'hsl(var(--primary))';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Show close indicator on first point when hovering near it
+        if (isFirst && splineDrawing.points.length >= 3) {
+          const distToFirst = Math.sqrt(Math.pow(cursorPos.x - sp.x, 2) + Math.pow(cursorPos.y - sp.y, 2));
+          if (distToFirst < 15) {
+            ctx.beginPath();
+            ctx.arc(sp.x, sp.y, 12, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'hsl(var(--primary))';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+          }
+        }
+      });
+      ctx.restore();
+    }
+    
     ctx.restore();
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, splineDrawing]);
 
   // Memoize perimeter and area calculations
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
@@ -2341,6 +2406,42 @@ export function PoolBuilder({
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+
+    // If in spline drawing mode (draw-pool), add spline points
+    if (activeTool === 'draw-pool' && splineDrawing.isActive) {
+      const newSplinePoint = {
+        x,
+        y,
+        id: Date.now().toString(),
+        curveType: splineDrawing.currentCurveType,
+      };
+      
+      // Check if clicking near first point to close the shape
+      if (splineDrawing.points.length >= 3) {
+        const firstPoint = splineDrawing.points[0];
+        const distToFirst = Math.sqrt(Math.pow(x - firstPoint.x, 2) + Math.pow(y - firstPoint.y, 2));
+        if (distToFirst < 15) {
+          // Close the shape and finish
+          const newPoolPoints = splineDrawing.points.map((sp, i) => ({
+            x: sp.x,
+            y: sp.y,
+            id: (i + 1).toString(),
+          }));
+          setPoints(newPoolPoints);
+          setPoolShape('freeform');
+          setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+          setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
+          setActiveTool(null);
+          return;
+        }
+      }
+      
+      setSplineDrawing(prev => ({
+        ...prev,
+        points: [...prev.points, newSplinePoint],
+      }));
+      return;
+    }
 
     // If in add mode, add a new point at the snapped location
     if (activeTool === 'add' && snapPoint) {
@@ -3026,117 +3127,51 @@ export function PoolBuilder({
             </TabsContent>
 
             {/* Shape Tab - Pool shape controls */}
-            <TabsContent value="shape" className="mt-0 p-3 space-y-3">
-              <div className="space-y-3">
-                {/* Preset Shapes */}
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Preset Shapes</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <Button 
-                      size="sm" 
-                      variant={poolShape === 'rectangle' ? 'default' : 'outline'} 
-                      onClick={() => {
-                        setPoolShape('rectangle');
-                        const newPoolPoints = getShapePoints('rectangle');
-                        setPoints(newPoolPoints);
-                        setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
-                        setFeatures([]);
-                      }} 
-                      className="h-12 flex-col gap-1"
-                    >
-                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="3" y="5" width="18" height="14" rx="1" />
-                      </svg>
-                      <span className="text-[10px]">Rectangle</span>
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant={poolShape === 'kidney' ? 'default' : 'outline'} 
-                      onClick={() => {
-                        setPoolShape('kidney');
-                        const newPoolPoints = getShapePoints('kidney');
-                        setPoints(newPoolPoints);
-                        setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
-                        setFeatures([]);
-                      }} 
-                      className="h-12 flex-col gap-1"
-                    >
-                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M4 12c0-4 3-7 8-7s8 3 8 7-3 7-8 7c-3 0-5-1-6-3-1 2-3 3-6 3" />
-                      </svg>
-                      <span className="text-[10px]">Kidney</span>
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant={poolShape === 'freeform' ? 'default' : 'outline'} 
-                      onClick={() => {
-                        setPoolShape('freeform');
-                        const newPoolPoints = getShapePoints('freeform');
-                        setPoints(newPoolPoints);
-                        setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
-                        setFeatures([]);
-                      }} 
-                      className="h-12 flex-col gap-1"
-                    >
-                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M3 12c2-4 5-6 9-5s7 4 9 8c-3 2-6 3-9 2s-6-3-9-5z" />
-                      </svg>
-                      <span className="text-[10px]">Freeform</span>
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Corner Style */}
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Corner Style</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button 
-                      size="sm" 
-                      onClick={() => setSmoothCorners(false)} 
-                      variant={!smoothCorners ? "default" : "outline"} 
-                      className="h-10 flex-col gap-0.5"
-                    >
-                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M4 4h16v16H4z" strokeLinejoin="miter" />
-                      </svg>
-                      <span className="text-[10px]">Sharp Corners</span>
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      onClick={() => setSmoothCorners(true)} 
-                      variant={smoothCorners ? "default" : "outline"} 
-                      className="h-10 flex-col gap-0.5"
-                    >
-                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M4 4h16v16H4z" strokeLinejoin="round" rx="4" />
-                      </svg>
-                      <span className="text-[10px]">Smooth Curves</span>
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Custom Drawing */}
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Custom Shape</Label>
-                  <Button 
-                    size="sm" 
-                    onClick={() => setActiveTool(activeTool === 'draw-pool' ? null : 'draw-pool')} 
-                    variant={activeTool === 'draw-pool' ? "default" : "outline"} 
-                    className="w-full h-10"
-                  >
-                    <PenTool className="h-4 w-4 mr-2" />
-                    {activeTool === 'draw-pool' ? 'Drawing... (click to cancel)' : 'Draw Custom Pool Shape'}
-                  </Button>
-                </div>
-                
-                {/* Drawing mode instructions */}
-                {activeTool === 'draw-pool' && (
-                  <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 text-xs">
-                    <p className="font-medium text-primary">✏️ Drawing Pool Shape</p>
-                    <p className="text-muted-foreground mt-1">Click to add points. Double-click or press Enter to finish.</p>
-                  </div>
-                )}
-              </div>
+            <TabsContent value="shape" className="mt-0 p-3">
+              <ShapePanel
+                poolShape={poolShape}
+                setPoolShape={setPoolShape}
+                points={points}
+                setPoints={setPoints}
+                activeTool={activeTool}
+                setActiveTool={setActiveTool}
+                onShapeSelect={(shape) => {
+                  setPoolShape(shape);
+                  const newPoolPoints = getShapePoints(shape);
+                  setPoints(newPoolPoints);
+                  setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+                  setFeatures([]);
+                }}
+                isDrawing={isDrawing}
+                drawingPoints={drawingPoints}
+                splineDrawing={splineDrawing}
+                onSplineDrawingChange={setSplineDrawing}
+                onFinishSpline={() => {
+                  if (splineDrawing.points.length >= 3) {
+                    // Convert spline points to pool points
+                    const newPoolPoints = splineDrawing.points.map((sp, i) => ({
+                      x: sp.x,
+                      y: sp.y,
+                      id: (i + 1).toString(),
+                    }));
+                    setPoints(newPoolPoints);
+                    setPoolShape('freeform');
+                    setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+                    setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
+                    setActiveTool(null);
+                  }
+                }}
+                onCancelSpline={() => {
+                  setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
+                  setActiveTool(null);
+                }}
+                poolDimensions={points.length > 0 ? {
+                  width: (Math.max(...points.map(p => p.x)) - Math.min(...points.map(p => p.x))) / scale,
+                  length: (Math.max(...points.map(p => p.y)) - Math.min(...points.map(p => p.y))) / scale,
+                  area: poolArea,
+                  perimeter: poolPerimeter,
+                } : undefined}
+              />
             </TabsContent>
 
             {/* Depth Tab */}
