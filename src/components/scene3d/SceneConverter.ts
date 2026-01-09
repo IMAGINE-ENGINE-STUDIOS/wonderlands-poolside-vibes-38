@@ -1,6 +1,6 @@
 // Utilities to convert different data formats to Scene3D
 
-import { Scene3D, TextureConfig, Point, DepthPoint, HardscapePoint } from './types';
+import { Scene3D, TextureConfig, Point, DepthPoint, HardscapePoint, AdditionalPool } from './types';
 import { generateCurvedPoolPoints } from '@/utils/curveUtils';
 import { poolModelShapes, getPoolModelShape } from '@/data/poolModelShapes';
 
@@ -493,6 +493,38 @@ export function productToScene(
     ];
   }
 
+  // Convert additionalPools from 2D to 3D format
+  let additionalPools3D: AdditionalPool[] = [];
+  if (selectedExtras.additionalPools && Array.isArray(selectedExtras.additionalPools)) {
+    const scale = selectedExtras.poolBuilderData?.scale || 10;
+    const pixelsToFeet = 1 / scale;
+    
+    additionalPools3D = selectedExtras.additionalPools.map((pool: any) => ({
+      id: pool.id,
+      type: pool.type,
+      points: pool.points.map((pt: any, idx: number) => ({
+        x: pt.x * pixelsToFeet,
+        y: pt.y * pixelsToFeet,
+        id: `${pool.id}-p${idx + 1}`
+      })),
+      shape: pool.shape || 'freeform',
+      featureType: pool.featureType,
+      isMerged: pool.isMerged ?? (pool.featureType === 'spillover-spa' || pool.featureType === 'tanning-ledge'),
+      depth: pool.featureType === 'tanning-ledge' ? 1 : (pool.featureType === 'spillover-spa' ? 3.5 : deepEndDepth),
+      finish: {
+        url: linerTextureUrl,
+        name: selectedExtras.finish || 'Default',
+        roughness: 0.2,
+        metalness: 0.1
+      }
+    }));
+    
+    console.log('🎨 Converted additionalPools to 3D:', {
+      count: additionalPools3D.length,
+      pools: additionalPools3D.map(p => ({ id: p.id, type: p.type, featureType: p.featureType, pointCount: p.points.length }))
+    });
+  }
+
   const scene: Scene3D = {
     pool: {
       points: poolPoints,
@@ -540,6 +572,7 @@ export function productToScene(
         offset: [0, 0]
       }
     },
+    additionalPools: additionalPools3D, // Include all converted additional pools
     features: [],
     stairs: [],
     annotations: [],
