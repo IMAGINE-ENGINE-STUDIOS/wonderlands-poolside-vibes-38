@@ -1200,44 +1200,36 @@ const WonderlandsStudio = () => {
                 {/* Large Product Media Gallery */}
                 <Card>
                   <CardContent className="p-3 sm:p-6">
-                     {/* View Mode Carousel - Product Image / 2D Designer / 3D Viewer */}
+                     {/* View Mode - Product Image only, Design Studio button for 2D/3D */}
                     {(selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && (
                       <div className="flex justify-between items-center mb-4">
                         <div className="inline-flex rounded-lg border border-border p-1 bg-muted/50 gap-1">
                           <Button
-                            variant={viewMode === 'product-image' ? "secondary" : "ghost"}
+                            variant="secondary"
                             size="sm"
-                            onClick={() => setViewMode('product-image')}
                             className="h-8 text-xs gap-1.5"
                           >
                             <Camera className="h-3.5 w-3.5" />
                             Product Image
                           </Button>
                           <Button
-                            variant={viewMode === '2d-designer' ? "secondary" : "ghost"}
-                            size="sm"
-                            onClick={() => setViewMode('2d-designer')}
-                            className="h-8 text-xs gap-1.5"
-                          >
-                            <Layers className="h-3.5 w-3.5" />
-                            2D Designer
-                          </Button>
-                          <Button
-                            variant={viewMode === '3d-viewer' ? "secondary" : "ghost"}
+                            variant="ghost"
                             size="sm"
                             onClick={() => {
-                              setViewMode('3d-viewer');
-                              if (customPoolShape && customPoolShape.length > 0) {
-                                toast({
-                                  title: "Custom Shape Loaded",
-                                  description: `Your custom pool design with ${customPoolShape.length} points is now in 3D!`,
-                                });
-                              }
+                              const params = new URLSearchParams({
+                                model: selectedProduct.model || selectedProduct.name || '',
+                                price: selectedProduct.price.toString(),
+                                category: selectedProduct.category,
+                                type: selectedProduct.type || 'pool',
+                                ...(selectedProduct.dimensions && { dimensions: selectedProduct.dimensions }),
+                                ...(selectedProduct.depth && { depth: selectedProduct.depth }),
+                              });
+                              window.open(`/design-studio?${params.toString()}`, '_blank');
                             }}
                             className="h-8 text-xs gap-1.5"
                           >
-                            <Box className="h-3.5 w-3.5" />
-                            3D Viewer
+                            <Layers className="h-3.5 w-3.5" />
+                            Open Design Studio
                           </Button>
                         </div>
                         
@@ -1254,7 +1246,7 @@ const WonderlandsStudio = () => {
                     )}
                     
                     <div className="relative rounded-lg sm:rounded-xl bg-background min-h-[400px] sm:min-h-[700px] flex flex-col">
-                      {viewMode === 'product-image' && (selectedProduct.media || selectedProduct.image) ? (
+                      {(selectedProduct.media || selectedProduct.image) ? (
                         <div className="w-full h-full flex items-center justify-center">
                           <ProductMediaGallery 
                             media={selectedProduct.media || selectedProduct.image || ''} 
@@ -1262,125 +1254,6 @@ const WonderlandsStudio = () => {
                             className="w-full h-full"
                           />
                         </div>
-                      ) : viewMode === '2d-designer' && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') ? (
-                        <PoolBuilder
-                          initialDimensions={selectedProduct.dimensions}
-                          initialDepth={selectedProduct.depth}
-                          onPoolDataChange={(data) => {
-                            console.log('Pool builder data changed:', data);
-                            setPoolBuilderData(data);
-                            setCustomPoolShape(data.points);
-                            
-                            // Sync pool builder features with extras menu
-                            const jetCount = data.features?.filter((f: any) => f.type === 'jet').length || 0;
-                            const hasStairs = data.features?.some((f: any) => f.type === 'stairs') || false;
-                            const lightCount = data.features?.filter((f: any) => f.type === 'light').length || 0;
-                            
-                            // Store both custom shape AND depth profile for 3D viewer, and sync features
-                            setSelectedExtras((prev: any) => ({
-                              ...prev,
-                              customPoolShape: data.points,
-                              depthProfile: data.depthPoints,
-                              poolBuilderData: data,
-                              // Sync jet count from 2D designer
-                              jets: jetCount > 0,
-                              jetQuantity: jetCount,
-                              // Track other features from 2D designer
-                              poolBuilderFeatures: {
-                                jets: jetCount,
-                                stairs: hasStairs,
-                                lights: lightCount,
-                                totalFeaturesCost: data.breakdown?.featuresCost || 0,
-                                deckArea: data.deckArea || 0
-                              }
-                            }));
-                            
-                            // Auto-update paver surface area from deck area
-                            if (data.deckArea && data.deckArea > 0) {
-                              const deckAreaStr = Math.round(data.deckArea).toString();
-                              setPaverSurfaceArea(deckAreaStr);
-                              setSelectedExtras((prev: any) => ({
-                                ...prev,
-                                paverSurfaceArea: deckAreaStr,
-                              }));
-                            }
-                          }}
-                        />
-                      ) : viewMode === '3d-viewer' && (selectedProduct.type === 'pool' || selectedProduct.type === 'spa' || selectedProduct.type === 'tanning-ledge') && paverTypes.length > 0 && finishOptions.length > 0 ? (
-                        <div className="w-full h-[400px] sm:h-[700px]" key={`3d-viewer-${selectedProduct.model || selectedProduct.name}`}>
-                          <UnifiedPoolVisualizer
-                            scene={productToScene(
-                              selectedProduct,
-                              { ...selectedExtras, customPoolShape },
-                              paverTypes,
-                              finishOptions
-                            )}
-                            textureLibrary={{
-                              finishes: [
-                              // Pool Finishes (Crystite Crystal collection)
-                              ...poolFinishesData.map(f => ({
-                                url: f.image,
-                                name: f.name,
-                                roughness: 0.2,
-                                metalness: 0.1
-                              })),
-                              // Premium Liners (for waterline)
-                              ...poolLinersData.map(l => ({
-                                url: l.image,
-                                name: l.name,
-                                roughness: 0.3,
-                                metalness: 0.2
-                              })),
-                              // Pool Tiles (for waterline borders)
-                              ...poolTilesData.map(t => ({
-                                url: t.image,
-                                name: t.name,
-                                roughness: 0.1,
-                                metalness: 0.3
-                              }))
-                            ],
-                            pavers: paverTypes.map(p => ({
-                              url: p.image,
-                              name: p.name,
-                              roughness: 0.8,
-                              metalness: 0.0
-                            })),
-                            coping: paverTypes.map(p => ({
-                              url: p.image,
-                              name: p.name,
-                              roughness: 0.6,
-                              metalness: 0.0
-                            })),
-                            waterlines: [
-                              // Ballad as first option (default)
-                              { url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png', name: 'Ballad', roughness: 0.1, metalness: 0.3 },
-                              // Glass Tiles
-                              ...poolLinersData.filter(l => l.type === 'Glass').map(l => ({
-                                url: l.image,
-                                name: l.name,
-                                roughness: 0.1,
-                                metalness: 0.3
-                              })),
-                              // Porcelain Tiles
-                              ...poolLinersData.filter(l => l.type === 'Porcelain').map(l => ({
-                                url: l.image,
-                                name: l.name,
-                                roughness: 0.2,
-                                metalness: 0.1
-                              }))
-                            ]
-                          }}
-                          onSceneChange={(updatedScene) => {
-                            // Handle scene updates if needed
-                          }}
-                          />
-                        </div>
-                      ) : (selectedProduct.media || selectedProduct.image) ? (
-                        <ProductMediaGallery 
-                          media={selectedProduct.media || selectedProduct.image || ''} 
-                          productName={selectedProduct.model || selectedProduct.name || 'Product'}
-                          className="w-full h-full"
-                        />
                       ) : (
                         <div className="flex items-center justify-center h-full">
                           <Package className="h-16 w-16 text-muted-foreground" />
