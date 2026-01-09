@@ -411,6 +411,10 @@ export function PoolBuilder({
   const [additionalPools, setAdditionalPools] = useState<PoolShape[]>([]);
   const [selectedAdditionalPool, setSelectedAdditionalPool] = useState<string | null>(null);
   const [draggingAdditionalPool, setDraggingAdditionalPool] = useState(false);
+  const [draggingAdditionalPoolPoint, setDraggingAdditionalPoolPoint] = useState<{
+    poolId: string;
+    pointId: string;
+  } | null>(null);
   
   // Pool type dialog state (for when new pool intersects deck)
   const [pendingPoolData, setPendingPoolData] = useState<{
@@ -2720,9 +2724,16 @@ export function PoolBuilder({
         }
         ctx.closePath();
         
-        // For integrated features, clip OUT the main pool's water area (don't draw deck over pool)
+        // Clip out water areas - both main pool and the spa/tanning's own water
+        // First, clip out the spa/tanning's own water area
+        ctx.moveTo(pool.points[0].x, pool.points[0].y);
+        for (let i = 1; i < pool.points.length; i++) {
+          ctx.lineTo(pool.points[i].x, pool.points[i].y);
+        }
+        ctx.closePath();
+        
+        // For integrated features, also clip OUT the main pool's water area
         if (isIntegrated && points.length >= 3) {
-          // Use evenodd fill rule to cut out main pool water area
           ctx.moveTo(points[0].x, points[0].y);
           for (let i = 1; i < points.length; i++) {
             ctx.lineTo(points[i].x, points[i].y);
@@ -2854,6 +2865,38 @@ export function PoolBuilder({
         ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
         ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
       });
+      
+      // Draw measurements for additional pool edges (like main pool)
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+      ctx.lineWidth = 1;
+      ctx.font = '11px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for (let i = 0; i < pool.points.length; i++) {
+        const current = pool.points[i];
+        const next = pool.points[(i + 1) % pool.points.length];
+        const midX = (current.x + next.x) / 2;
+        const midY = (current.y + next.y) / 2;
+        const distance = Math.sqrt(Math.pow(next.x - current.x, 2) + Math.pow(next.y - current.y, 2)) / scale;
+
+        // Only show if segment is long enough
+        if (distance > 2) {
+          const angle = Math.atan2(next.y - current.y, next.x - current.x);
+          const offset = -15; // Inside the pool
+          const offsetX = Math.cos(angle + Math.PI / 2) * offset;
+          const offsetY = Math.sin(angle + Math.PI / 2) * offset;
+
+          // Draw dimension label with background
+          const label = `${distance.toFixed(1)}'`;
+          const metrics = ctx.measureText(label);
+          const padding = 3;
+          ctx.fillStyle = isIntegrated ? 'rgba(46, 134, 171, 0.85)' : 'rgba(255, 255, 255, 0.85)';
+          ctx.fillRect(midX + offsetX - metrics.width / 2 - padding, midY + offsetY - 7, metrics.width + padding * 2, 14);
+          ctx.fillStyle = isIntegrated ? '#ffffff' : 'rgba(0, 0, 0, 0.8)';
+          ctx.fillText(label, midX + offsetX, midY + offsetY);
+        }
+      }
       
       // Draw feature type label for integrated features
       if (isIntegrated) {
@@ -3462,6 +3505,18 @@ export function PoolBuilder({
       }
     }
 
+    // Check for additional pool point drag (but not if we opened SplinePointEditor)
+    if (!selectedSplinePoint) {
+      for (const pool of additionalPools) {
+        const clickedPoolPoint = pool.points.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
+        if (clickedPoolPoint) {
+          setDraggingAdditionalPoolPoint({ poolId: pool.id, pointId: clickedPoolPoint.id });
+          setSelectedAdditionalPool(pool.id);
+          return;
+        }
+      }
+    }
+
     // Check for hardscape point drag
     const clickedHardscapePoint = hardscapePoints.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
     if (clickedHardscapePoint) {
@@ -3681,6 +3736,11 @@ export function PoolBuilder({
         x: boundedX,
         y: boundedY
       } : p));
+    } else if (draggingAdditionalPoolPoint) {
+      // Drag additional pool point
+      const boundedX = Math.max(0, Math.min(canvasSize.width, snappedX));
+      const boundedY = Math.max(0, Math.min(canvasSize.height, y));
+      updateAdditionalPoolPoint(draggingAdditionalPoolPoint.poolId, draggingAdditionalPoolPoint.pointId, boundedX, boundedY);
     } else {
       // Update hover state
       const hoveredPointFound = points.find(p => Math.abs(p.x - x) < 10 && Math.abs(p.y - y) < 10);
@@ -3694,6 +3754,7 @@ export function PoolBuilder({
     setIsDraggingRoof(false);
     setIsDraggingDepth(false);
     setIsDraggingFence(false);
+    setDraggingAdditionalPoolPoint(null);
   };
   const addPoint = () => {
     const newId = (Math.max(...points.map(p => parseInt(p.id))) + 1).toString();
