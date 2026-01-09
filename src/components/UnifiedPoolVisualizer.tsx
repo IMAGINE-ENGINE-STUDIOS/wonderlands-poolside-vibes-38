@@ -282,7 +282,7 @@ export function UnifiedPoolVisualizer({
   const [enablePoolSplineEdit, setEnablePoolSplineEdit] = useState(false);
   const [enableDeckSplineEdit, setEnableDeckSplineEdit] = useState(false);
   const [enableFloorDepthSplineEdit, setEnableFloorDepthSplineEdit] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [poolTransformMode, setPoolTransformMode] = useState(false);
   const [transformStepSize, setTransformStepSize] = useState(1); // Default 1 ft
   const [showMeasurements, setShowMeasurements] = useState(false);
@@ -659,100 +659,10 @@ export function UnifiedPoolVisualizer({
     });
   };
 
-  const toggleFullscreen = async () => {
-    // For mobile, toggle fullscreen and rotate screen to landscape
-    if (isMobile) {
-      if (!isFullscreen) {
-        // Entering fullscreen - lock to landscape
-        try {
-          const orientation = screen.orientation as any;
-          if (orientation && orientation.lock) {
-            await orientation.lock('landscape');
-          }
-          
-          // Also try native fullscreen API if available
-          if (canvasContainerRef.current) {
-            const elem = canvasContainerRef.current as any;
-            const requestFullscreen = elem.requestFullscreen || 
-                                      elem.webkitRequestFullscreen || 
-                                      elem.mozRequestFullScreen || 
-                                      elem.msRequestFullscreen;
-            
-            if (requestFullscreen) {
-              try {
-                await requestFullscreen.call(elem);
-              } catch (err) {
-                console.log('Fullscreen API not available, using CSS fallback');
-              }
-            }
-          }
-        } catch (err) {
-          console.log('Screen orientation lock not available, using CSS fallback');
-        }
-        
-        setIsFullscreen(true);
-      } else {
-        // Exiting fullscreen - unlock orientation
-        try {
-          const orientation = screen.orientation as any;
-          if (orientation && orientation.unlock) {
-            orientation.unlock();
-          }
-          
-          // Exit native fullscreen if active
-          if (document.fullscreenElement) {
-            const exitFullscreen = (document as any).exitFullscreen || 
-                                  (document as any).webkitExitFullscreen || 
-                                  (document as any).mozCancelFullScreen || 
-                                  (document as any).msExitFullscreen;
-            
-            if (exitFullscreen) {
-              await exitFullscreen.call(document);
-            }
-          }
-        } catch (err) {
-          console.log('Screen orientation unlock not needed');
-        }
-        
-        setIsFullscreen(false);
-      }
-      return;
-    }
-    
-    // For desktop, use Fullscreen API
-    if (!canvasContainerRef.current) return;
-    
-    const elem = canvasContainerRef.current as any;
-    
-    if (!isFullscreen) {
-      const requestFullscreen = elem.requestFullscreen || 
-                                elem.webkitRequestFullscreen || 
-                                elem.mozRequestFullScreen || 
-                                elem.msRequestFullscreen;
-      
-      if (requestFullscreen) {
-        requestFullscreen.call(elem);
-      }
-    } else {
-      const exitFullscreen = (document as any).exitFullscreen || 
-                            (document as any).webkitExitFullscreen || 
-                            (document as any).mozCancelFullScreen || 
-                            (document as any).msExitFullscreen;
-      
-      if (exitFullscreen) {
-        exitFullscreen.call(document);
-      }
-    }
+  const toggleFullscreen = () => {
+    // Simple CSS-based fullscreen toggle for all devices
+    setIsFullscreen(!isFullscreen);
   };
-
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
 
   const handlePoolPositionChange = (axis: 'x' | 'y' | 'z', delta: number) => {
     const currentPos = scene.pool.position;
@@ -846,11 +756,11 @@ export function UnifiedPoolVisualizer({
       <div 
         ref={canvasContainerRef} 
         className={`flex-1 relative h-full w-full min-h-0 ${
-          isFullscreen && isMobile 
+          isFullscreen 
             ? 'fixed inset-0 z-[99999] bg-background' 
             : ''
         }`}
-        style={{ minHeight: 'calc(100vh - 150px)' }}
+        style={{ minHeight: isFullscreen ? '100vh' : 'calc(100vh - 150px)' }}
       >
         {/* Fullscreen Toggle Button */}
         <button
