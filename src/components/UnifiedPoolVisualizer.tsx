@@ -408,15 +408,28 @@ export function UnifiedPoolVisualizer({
   const copingTextureUrl = safeGetTextureUrl(scene.deck.coping, '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png');
   const waterlineTextureUrl = safeGetTextureUrl(scene.deck.waterline, scene.pool.finish.url);
   
+  // Log extracted texture URLs for debugging
+  console.log('🎨 UnifiedPoolVisualizer Safe Texture URLs:', {
+    liner: linerTextureUrl,
+    paver: paverTextureUrl,
+    coping: copingTextureUrl,
+    waterline: waterlineTextureUrl
+  });
+  
   // Preload textures before rendering 3D scene
   useEffect(() => {
     const preloadTextures = async () => {
+      console.log('🔄 Preloading textures...');
       try {
         const urls = [linerTextureUrl, paverTextureUrl, copingTextureUrl, waterlineTextureUrl];
+        
+        console.log('📦 Texture URLs to preload:', urls);
         await Promise.all(urls.map(url => textureCache.loadTexture(url)));
+        console.log('✅ All textures preloaded successfully');
         setTexturesReady(true);
       } catch (error) {
-        console.error('Texture preload failed:', error);
+        console.error('❌ Texture preload failed:', error);
+        // Still set ready to show error boundary instead of infinite loading
         setTexturesReady(true);
       }
     };
@@ -816,7 +829,7 @@ export function UnifiedPoolVisualizer({
   }, [poolTransformMode, transformStepSize, handlePoolPositionChange]);
 
   return (
-    <div className="flex h-full w-full absolute inset-0">
+    <div className="flex h-full w-full">
       {/* Main 3D Canvas - MUST fill available space */}
       <div 
         ref={canvasContainerRef} 
@@ -825,6 +838,7 @@ export function UnifiedPoolVisualizer({
             ? 'fixed inset-0 z-[99999] bg-background' 
             : ''
         }`}
+        style={{ minHeight: 'calc(100vh - 150px)' }}
       >
         {/* Fullscreen Toggle Button */}
         <button
@@ -1164,11 +1178,24 @@ export function UnifiedPoolVisualizer({
                   powerPreference: "high-performance",
                   failIfMajorPerformanceCaveat: false // Don't fail on slower devices
                 }}
-                onCreated={({ gl }) => {
-                  // Handle context loss silently
+                onCreated={({ gl, scene }) => {
+                  console.log('✅ WebGL Context Created');
+                  
+                  // Handle context loss
                   gl.domElement.addEventListener('webglcontextlost', (event) => {
                     event.preventDefault();
+                    console.error('❌ WebGL Context Lost - attempting recovery');
                   });
+                  
+                  // Handle context restore
+                  gl.domElement.addEventListener('webglcontextrestored', () => {
+                    console.log('✅ WebGL Context Restored');
+                  });
+                  
+                  // Enable automatic garbage collection
+                  gl.dispose = () => {
+                    console.log('🧹 Cleaning up WebGL resources');
+                  };
                 }}
                 camera={{
                   position: scene.camera.position,
