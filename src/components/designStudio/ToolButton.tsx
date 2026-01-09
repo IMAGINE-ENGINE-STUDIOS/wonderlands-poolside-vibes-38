@@ -1,0 +1,44 @@
+import React from 'react';
+import { cn } from '@/lib/utils';
+import * as LucideIcons from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import type { ToolDefinition } from './featureTypes';
+
+interface ToolButtonProps {
+  tool: ToolDefinition;
+  isActive: boolean;
+  onClick: () => void;
+}
+
+export function ToolButton({ tool, isActive, onClick }: ToolButtonProps) {
+  // Dynamically get the icon component
+  const IconComponent = (LucideIcons as any)[tool.icon] || LucideIcons.Circle;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant={isActive ? 'secondary' : 'ghost'}
+          size="sm"
+          onClick={onClick}
+          className={cn(
+            'flex flex-col items-center justify-center h-14 w-14 gap-0.5 p-1',
+            isActive && 'bg-secondary ring-1 ring-primary/50'
+          )}
+        >
+          <IconComponent className="h-5 w-5" />
+          <span className="text-[10px] leading-tight text-center truncate w-full">
+            {tool.name}
+          </span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">
+        <p className="font-medium">{tool.name}</p>
+        {tool.description && (
+          <p className="text-xs text-muted-foreground">{tool.description}</p>
+        )}
+      </TooltipContent>
+    </Tooltip>
+  );
+}

@@ -2,8 +2,8 @@ import * as React from "react";
 const { useState, useEffect, useMemo, useCallback } = React;
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Layers, Box, Maximize2, Minimize2, Save, Download, Share2 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Layers, Box, Maximize2, Minimize2 } from "lucide-react";
 import { PoolBuilder } from "@/components/PoolBuilder";
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
@@ -14,7 +14,9 @@ import { tanningLedges } from "@/data/poolData";
 import { paverTypes } from "@/data/paverData";
 import { poolFinishes as poolFinishesData, poolLiners as poolLinersData, poolTiles as poolTilesData } from "@/data/consolidatedProducts";
 import { useToast } from "@/hooks/use-toast";
-
+import { CategoryToolbar } from "@/components/designStudio/CategoryToolbar";
+import { SubToolbar } from "@/components/designStudio/SubToolbar";
+import type { DesignCategory, ToolDefinition } from "@/components/designStudio/featureTypes";
 interface Product {
   model?: string;
   name?: string;
@@ -42,6 +44,8 @@ const DesignStudio = () => {
   
   const [activeView, setActiveView] = useState<'2d' | '3d'>('2d');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<DesignCategory>('pool');
+  const [activeTool, setActiveTool] = useState<string | null>(null);
   const [customPoolShape, setCustomPoolShape] = useState<any[] | null>(null);
   const [poolBuilderData, setPoolBuilderData] = useState<{
     points: any[];
@@ -69,6 +73,15 @@ const DesignStudio = () => {
     poolBuilderData: null,
     poolBuilderFeatures: null,
   });
+
+  // Handle tool selection
+  const handleToolSelect = useCallback((tool: ToolDefinition) => {
+    setActiveTool(tool.id);
+    toast({
+      title: tool.name,
+      description: tool.description || `${tool.name} tool selected`,
+    });
+  }, [toast]);
 
   // Get product from URL params
   const selectedProduct = useMemo<Product | null>(() => {
@@ -258,6 +271,21 @@ const DesignStudio = () => {
           </Button>
         </div>
       </header>
+
+      {/* Category Toolbar - only show in 2D view */}
+      {activeView === '2d' && (
+        <>
+          <CategoryToolbar 
+            activeCategory={activeCategory} 
+            onCategoryChange={setActiveCategory} 
+          />
+          <SubToolbar 
+            category={activeCategory} 
+            activeTool={activeTool} 
+            onToolSelect={handleToolSelect} 
+          />
+        </>
+      )}
 
       {/* Main Content */}
       <main className="flex-1 relative overflow-hidden">
