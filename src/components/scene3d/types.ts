@@ -110,6 +110,18 @@ export interface PoolLightConfig {
   angle?: number;            // Light direction angle in degrees (-45 to 45, 0 = straight)
 }
 
+// Additional pool/water body for spas, tanning ledges, separate pools
+export interface AdditionalPool {
+  id: string;
+  type: 'pool' | 'spa';
+  points: Point[];
+  shape: 'rectangle' | 'kidney' | 'freeform';
+  featureType?: 'regular' | 'spillover-spa' | 'tanning-ledge';
+  isMerged?: boolean; // Whether water bodies are merged (no coping at intersection)
+  depth?: number;
+  finish?: TextureConfig;
+}
+
 export interface Scene3D {
   pool: {
     points: Point[];
@@ -136,6 +148,7 @@ export interface Scene3D {
     copingWidth?: number;
     deckElevation?: number;
   };
+  additionalPools?: AdditionalPool[]; // Additional water bodies (spas, tanning ledges, separate pools)
   poolLights?: PoolLightConfig[];
   features: PoolFeature[];
   stairs: PoolStair[];

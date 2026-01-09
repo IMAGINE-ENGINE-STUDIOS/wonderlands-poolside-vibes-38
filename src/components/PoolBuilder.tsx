@@ -106,6 +106,18 @@ interface PoolBuilderProps {
     deckArea: number;
     totalCost: number;
     scale: number; // pixels per foot for 3D conversion
+    hardscapePoints?: HardscapePoint[]; // Deck/patio shape points
+    additionalPools?: Array<{
+      id: string;
+      type: 'pool' | 'spa';
+      points: Point[];
+      shape: 'rectangle' | 'kidney' | 'freeform';
+      featureType?: 'regular' | 'spillover-spa' | 'tanning-ledge';
+      intersectsWith?: string;
+      perimeterPosition?: number;
+      isPerimeterSnapped?: boolean;
+      isMerged?: boolean;
+    }>;
     breakdown: {
       poolCost: number;
       deckCost: number;
@@ -3406,12 +3418,14 @@ export function PoolBuilder({
         perimeter: poolPerimeter,
         area: poolArea,
         deckArea: calculateHardscapeArea(),
+        hardscapePoints, // Include deck/hardscape points
+        additionalPools, // CRITICAL: Include all additional pools (spas, tanning ledges, separate pools)
         totalCost: cost.total,
         breakdown: cost
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [points, depthPoints, features, poolPerimeter, poolArea]);
+  }, [points, depthPoints, features, poolPerimeter, poolArea, hardscapePoints, additionalPools]);
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;

@@ -830,14 +830,15 @@ export function UnifiedPoolVisualizer({
 
   return (
     <div className="flex h-full w-full">
-      {/* Main 3D Canvas */}
+      {/* Main 3D Canvas - MUST fill available space */}
       <div 
         ref={canvasContainerRef} 
-        className={`flex-1 relative ${
+        className={`flex-1 relative h-full w-full min-h-0 ${
           isFullscreen && isMobile 
             ? 'fixed inset-0 z-[99999] bg-background' 
             : ''
         }`}
+        style={{ minHeight: 'calc(100vh - 150px)' }}
       >
         {/* Fullscreen Toggle Button */}
         <button

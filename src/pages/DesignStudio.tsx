@@ -54,6 +54,9 @@ const DesignStudio = () => {
     area: number;
     deckArea?: number;
     depthPoints?: any[];
+    hardscapePoints?: any[];
+    additionalPools?: any[];
+    scale?: number;
     totalCost?: number;
     breakdown?: {
       poolCost: number;
@@ -193,6 +196,8 @@ const DesignStudio = () => {
       customPoolShape: data.points,
       depthProfile: data.depthPoints,
       poolBuilderData: data,
+      additionalPools: data.additionalPools || [], // CRITICAL: Preserve additional pools
+      hardscapePoints: data.hardscapePoints || [],
       jets: jetCount > 0,
       jetQuantity: jetCount,
       poolBuilderFeatures: {
