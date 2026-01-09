@@ -2408,7 +2408,11 @@ export function PoolBuilder({
     const y = e.clientY - rect.top;
 
     // If in spline drawing mode (draw-pool), add spline points
-    if (activeTool === 'draw-pool' && splineDrawing.isActive) {
+    if (activeTool === 'draw-pool') {
+      // Ensure splineDrawing is active
+      if (!splineDrawing.isActive) {
+        setSplineDrawing(prev => ({ ...prev, isActive: true }));
+      }
       const newSplinePoint = {
         x,
         y,
@@ -3424,7 +3428,7 @@ export function PoolBuilder({
           transition: 'transform 0.2s'
         }}>
             <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} onClick={handleCanvasClick} onMouseDown={handleCanvasMouseDown} onMouseMove={handleCanvasMouseMove} onMouseUp={handleCanvasMouseUp} onMouseLeave={handleCanvasMouseUp} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchEnd} className="border-2 border-border rounded-lg shadow-2xl bg-gradient-to-br from-background to-muted/10" style={{
-            cursor: fenceAddMode ? 'crosshair' : pendingFeature === 'jet' ? 'crosshair' : activeTool === 'add' ? 'crosshair' : 'default',
+            cursor: activeTool === 'draw-pool' ? 'crosshair' : fenceAddMode ? 'crosshair' : pendingFeature === 'jet' ? 'crosshair' : activeTool === 'add' ? 'crosshair' : 'default',
             pointerEvents: 'auto'
           }} />
           </div>
