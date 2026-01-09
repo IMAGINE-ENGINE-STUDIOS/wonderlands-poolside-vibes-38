@@ -2942,46 +2942,53 @@ export function PoolBuilder({
               </TabsList>
             )}
 
-            {/* Pool Design Tab */}
-            <TabsContent value="pool" className="mt-0 p-2 space-y-2">
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => setSmoothCorners(!smoothCorners)} variant={smoothCorners ? "default" : "outline"} className="h-7 text-[10px]">
-                    <svg className="h-3 w-3 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M3 3h18v18H3z" strokeLinejoin={smoothCorners ? "round" : "miter"} />
-                    </svg>
-                    {smoothCorners ? 'Smooth' : 'Squared'}
-                  </Button>
-                  
-                  <Button 
-                    size="sm" 
-                    onClick={() => setActiveTool(activeTool === 'draw-pool' ? null : 'draw-pool')} 
-                    variant={activeTool === 'draw-pool' ? "default" : "outline"} 
-                    className="h-7 text-[10px]"
-                    title="Draw custom pool shape"
-                  >
-                    <PenTool className="h-3 w-3 mr-1" />
-                    Draw Pool
-                  </Button>
-                  
-                  <Button 
-                    size="sm" 
-                    onClick={() => setActiveTool(activeTool === 'draw-deck' ? null : 'draw-deck')} 
-                    variant={activeTool === 'draw-deck' ? "default" : "outline"} 
-                    className="h-7 text-[10px]"
-                    title="Draw custom deck shape"
-                  >
-                    <PenTool className="h-3 w-3 mr-1" />
-                    Draw Deck
-                  </Button>
+            {/* Pool Design Tab - Deck controls */}
+            <TabsContent value="pool" className="mt-0 p-3 space-y-3">
+              <div className="space-y-3">
+                {/* Deck Configuration */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Deck Configuration</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] text-muted-foreground">Deck Width</Label>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          type="number" 
+                          value={deckOffset} 
+                          onChange={e => {
+                            const newOffset = Math.max(3, parseFloat(e.target.value) || 3);
+                            setDeckOffset(newOffset);
+                            setHardscapePoints(generateHardscapeFromPool(points, newOffset));
+                          }} 
+                          className="h-8 text-xs" 
+                          min="3" 
+                          step="0.5" 
+                        />
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">ft</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] text-muted-foreground">Draw Custom</Label>
+                      <Button 
+                        size="sm" 
+                        onClick={() => setActiveTool(activeTool === 'draw-deck' ? null : 'draw-deck')} 
+                        variant={activeTool === 'draw-deck' ? "default" : "outline"} 
+                        className="w-full h-8 text-xs"
+                      >
+                        <PenTool className="h-3.5 w-3.5 mr-1.5" />
+                        {activeTool === 'draw-deck' ? 'Drawing...' : 'Draw Deck'}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                
-                <div className="flex gap-2">
+
+                {/* Shape Repository */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Load Saved Designs</Label>
                   <ShapeRepository
                     currentPoolPoints={points}
                     currentDeckPoints={hardscapePoints}
                     onLoadPoolShape={(newPoints) => {
-                      // Center the loaded shape on canvas
                       const centerX = canvasSize.width / 2;
                       const centerY = canvasSize.height / 2;
                       const centeredPoints = newPoints.map((p, i) => ({
@@ -3008,57 +3015,127 @@ export function PoolBuilder({
                   />
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  <Label className="text-xs whitespace-nowrap" title="Measured from coping edge outward">Deck Size:</Label>
-                  <Input type="number" value={deckOffset} onChange={e => {
-                const newOffset = Math.max(3, parseFloat(e.target.value) || 3);
-                setDeckOffset(newOffset);
-                setHardscapePoints(generateHardscapeFromPool(points, newOffset));
-              }} className="h-7 w-20 text-xs" min="3" step="0.5" title="Distance from coping edge to deck edge" />
-                  <span className="text-xs text-muted-foreground">ft from coping</span>
-                </div>
-                
                 {/* Drawing mode instructions */}
-                {(activeTool === 'draw-pool' || activeTool === 'draw-deck') && (
-                  <div className="bg-primary/10 border border-primary/30 rounded p-2 text-xs">
-                    <p className="font-medium">Drawing Mode: {activeTool === 'draw-pool' ? 'Pool' : 'Deck'}</p>
-                    <p className="text-muted-foreground">Click to add points. Double-click or press Enter to finish.</p>
+                {activeTool === 'draw-deck' && (
+                  <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 text-xs">
+                    <p className="font-medium text-primary">✏️ Drawing Deck Shape</p>
+                    <p className="text-muted-foreground mt-1">Click to add points. Double-click or press Enter to finish.</p>
                   </div>
                 )}
-                
               </div>
             </TabsContent>
 
-            {/* Shape Tab */}
-            <TabsContent value="shape" className="mt-0 p-2 space-y-2">
-              <div className="grid grid-cols-3 gap-2">
-                <Button size="sm" variant={poolShape === 'rectangle' ? 'default' : 'outline'} onClick={() => {
-              setPoolShape('rectangle');
-              const newPoolPoints = getShapePoints('rectangle');
-              setPoints(newPoolPoints);
-              setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
-              setFeatures([]);
-            }} className="h-8 text-xs">
-                  Rectangle
-                </Button>
-                <Button size="sm" variant={poolShape === 'kidney' ? 'default' : 'outline'} onClick={() => {
-              setPoolShape('kidney');
-              const newPoolPoints = getShapePoints('kidney');
-              setPoints(newPoolPoints);
-              setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
-              setFeatures([]);
-            }} className="h-8 text-xs">
-                  Kidney
-                </Button>
-                <Button size="sm" variant={poolShape === 'freeform' ? 'default' : 'outline'} onClick={() => {
-              setPoolShape('freeform');
-              const newPoolPoints = getShapePoints('freeform');
-              setPoints(newPoolPoints);
-              setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
-              setFeatures([]);
-            }} className="h-8 text-xs">
-                  Freeform
-                </Button>
+            {/* Shape Tab - Pool shape controls */}
+            <TabsContent value="shape" className="mt-0 p-3 space-y-3">
+              <div className="space-y-3">
+                {/* Preset Shapes */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Preset Shapes</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button 
+                      size="sm" 
+                      variant={poolShape === 'rectangle' ? 'default' : 'outline'} 
+                      onClick={() => {
+                        setPoolShape('rectangle');
+                        const newPoolPoints = getShapePoints('rectangle');
+                        setPoints(newPoolPoints);
+                        setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+                        setFeatures([]);
+                      }} 
+                      className="h-12 flex-col gap-1"
+                    >
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="5" width="18" height="14" rx="1" />
+                      </svg>
+                      <span className="text-[10px]">Rectangle</span>
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant={poolShape === 'kidney' ? 'default' : 'outline'} 
+                      onClick={() => {
+                        setPoolShape('kidney');
+                        const newPoolPoints = getShapePoints('kidney');
+                        setPoints(newPoolPoints);
+                        setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+                        setFeatures([]);
+                      }} 
+                      className="h-12 flex-col gap-1"
+                    >
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M4 12c0-4 3-7 8-7s8 3 8 7-3 7-8 7c-3 0-5-1-6-3-1 2-3 3-6 3" />
+                      </svg>
+                      <span className="text-[10px]">Kidney</span>
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant={poolShape === 'freeform' ? 'default' : 'outline'} 
+                      onClick={() => {
+                        setPoolShape('freeform');
+                        const newPoolPoints = getShapePoints('freeform');
+                        setPoints(newPoolPoints);
+                        setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+                        setFeatures([]);
+                      }} 
+                      className="h-12 flex-col gap-1"
+                    >
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 12c2-4 5-6 9-5s7 4 9 8c-3 2-6 3-9 2s-6-3-9-5z" />
+                      </svg>
+                      <span className="text-[10px]">Freeform</span>
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Corner Style */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Corner Style</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      size="sm" 
+                      onClick={() => setSmoothCorners(false)} 
+                      variant={!smoothCorners ? "default" : "outline"} 
+                      className="h-10 flex-col gap-0.5"
+                    >
+                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M4 4h16v16H4z" strokeLinejoin="miter" />
+                      </svg>
+                      <span className="text-[10px]">Sharp Corners</span>
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      onClick={() => setSmoothCorners(true)} 
+                      variant={smoothCorners ? "default" : "outline"} 
+                      className="h-10 flex-col gap-0.5"
+                    >
+                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M4 4h16v16H4z" strokeLinejoin="round" rx="4" />
+                      </svg>
+                      <span className="text-[10px]">Smooth Curves</span>
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Custom Drawing */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Custom Shape</Label>
+                  <Button 
+                    size="sm" 
+                    onClick={() => setActiveTool(activeTool === 'draw-pool' ? null : 'draw-pool')} 
+                    variant={activeTool === 'draw-pool' ? "default" : "outline"} 
+                    className="w-full h-10"
+                  >
+                    <PenTool className="h-4 w-4 mr-2" />
+                    {activeTool === 'draw-pool' ? 'Drawing... (click to cancel)' : 'Draw Custom Pool Shape'}
+                  </Button>
+                </div>
+                
+                {/* Drawing mode instructions */}
+                {activeTool === 'draw-pool' && (
+                  <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 text-xs">
+                    <p className="font-medium text-primary">✏️ Drawing Pool Shape</p>
+                    <p className="text-muted-foreground mt-1">Click to add points. Double-click or press Enter to finish.</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
 
