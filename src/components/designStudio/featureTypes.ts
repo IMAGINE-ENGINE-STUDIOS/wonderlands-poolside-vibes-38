@@ -27,22 +27,18 @@ export interface ToolDefinition {
 
 // Swimming Pool Tools - organized by workflow
 export const poolTools: ToolDefinition[] = [
-  // Pool structure
-  { id: 'pool-shape', name: 'Pool Shape', icon: 'Square', category: 'pool', description: 'Draw pool outline' },
-  { id: 'pool-deck', name: 'Decking', icon: 'Grid3X3', category: 'pool', description: 'Add pool deck' },
+  // Pool structure - these activate panels, not add features
+  { id: 'pool-shape', name: 'Shape', icon: 'Shapes', category: 'pool', description: 'Edit pool shape' },
+  { id: 'pool-deck', name: 'Deck', icon: 'Grid3X3', category: 'pool', description: 'Edit deck area' },
+  { id: 'pool-depth', name: 'Depth', icon: 'Layers', category: 'pool', description: 'Edit depth profile' },
+  { id: 'pool-materials', name: 'Materials', icon: 'Palette', category: 'pool', description: 'Choose finishes & pavers' },
+  // Separator - these add features
   { id: 'pool-stairs', name: 'Stairs', icon: 'ArrowDownToLine', featureType: 'stairs', category: 'pool', description: 'Add pool stairs' },
-  // Seating & Walls
-  { id: 'pool-seat', name: 'Pool Seat', icon: 'Sofa', featureType: 'pool-seat', category: 'pool', description: 'Add bench seating', isNew: true },
-  { id: 'pool-wall', name: 'Raised Wall', icon: 'RectangleVertical', featureType: 'pool-wall', category: 'pool', description: 'Add raised wall/spillover', isNew: true },
-  // Lighting & Jets
-  { id: 'pool-light', name: 'Pool Light', icon: 'Lightbulb', featureType: 'light', category: 'pool', description: 'Add underwater light' },
-  { id: 'pool-jet', name: 'Water Jet', icon: 'Droplets', featureType: 'jet', category: 'pool', description: 'Add water jet' },
-  // Recreation
-  { id: 'diving-board', name: 'Diving Board', icon: 'ArrowUpFromLine', featureType: 'diving-board', category: 'pool', description: 'Add diving board', isNew: true },
-  { id: 'pool-slide', name: 'Slide', icon: 'TrendingDown', featureType: 'slide', category: 'pool', description: 'Add water slide' },
-  // Accessories
-  { id: 'pool-accessory', name: 'Accessory', icon: 'CircleDot', featureType: 'pool-accessory', category: 'pool', description: 'Add pool accessory', isNew: true },
-  { id: 'pool-cover', name: 'Pool Cover', icon: 'Shield', featureType: 'pool-cover', category: 'pool', description: 'Add pool cover' },
+  { id: 'pool-seat', name: 'Seat', icon: 'Sofa', featureType: 'pool-seat', category: 'pool', description: 'Add bench seating', isNew: true },
+  { id: 'pool-wall', name: 'Wall', icon: 'RectangleVertical', featureType: 'pool-wall', category: 'pool', description: 'Add raised wall', isNew: true },
+  { id: 'pool-light', name: 'Light', icon: 'Lightbulb', featureType: 'light', category: 'pool', description: 'Add underwater light' },
+  { id: 'pool-jet', name: 'Jet', icon: 'Droplets', featureType: 'jet', category: 'pool', description: 'Add water jet' },
+  { id: 'diving-board', name: 'Diving', icon: 'ArrowUpFromLine', featureType: 'diving-board', category: 'pool', description: 'Add diving board', isNew: true },
 ];
 
 // Landscape Tools - organized by element type
