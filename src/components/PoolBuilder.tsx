@@ -5126,6 +5126,44 @@ export function PoolBuilder({
                 canComplete={true}
                 isEditMode={true}
                 pointLabel={`Point ${selectedSplinePoint.index + 1}`}
+                onAddPoint={() => {
+                  // Add a new point after the selected one
+                  const currentIndex = selectedSplinePoint.index;
+                  if (selectedSplinePoint.poolId) {
+                    // Additional pool
+                    const pool = additionalPools.find(p => p.id === selectedSplinePoint.poolId);
+                    if (pool) {
+                      const nextIndex = (currentIndex + 1) % pool.points.length;
+                      const currentPt = pool.points[currentIndex];
+                      const nextPt = pool.points[nextIndex];
+                      const midX = (currentPt.x + nextPt.x) / 2;
+                      const midY = (currentPt.y + nextPt.y) / 2;
+                      const newPoint = { x: midX, y: midY, id: Date.now().toString(), curveType: currentPt.curveType || 'linear' as const };
+                      
+                      setAdditionalPools(prev => prev.map(p => {
+                        if (p.id !== selectedSplinePoint.poolId) return p;
+                        const newPoints = [...p.points];
+                        newPoints.splice(currentIndex + 1, 0, newPoint);
+                        return { ...p, points: newPoints };
+                      }));
+                    }
+                  } else {
+                    // Main pool
+                    const nextIndex = (currentIndex + 1) % points.length;
+                    const currentPt = points[currentIndex];
+                    const nextPt = points[nextIndex];
+                    const midX = (currentPt.x + nextPt.x) / 2;
+                    const midY = (currentPt.y + nextPt.y) / 2;
+                    const newPoint = { x: midX, y: midY, id: Date.now().toString(), curveType: currentPt.curveType || 'linear' as const };
+                    
+                    setPoints(prev => {
+                      const newPoints = [...prev];
+                      newPoints.splice(currentIndex + 1, 0, newPoint);
+                      return newPoints;
+                    });
+                  }
+                  setSelectedSplinePoint(null);
+                }}
                 onDeletePoint={() => {
                   const pointId = selectedSplinePoint.point.id;
                   if (selectedSplinePoint.poolId) {

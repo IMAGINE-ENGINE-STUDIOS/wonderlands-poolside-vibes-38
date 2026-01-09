@@ -12,7 +12,9 @@ interface SplineDrawingToolbarProps {
   // Edit mode props (when editing existing point)
   isEditMode?: boolean;
   onDeletePoint?: () => void;
+  onAddPoint?: () => void;
   canDelete?: boolean;
+  canAddPoint?: boolean;
   pointLabel?: string;
 }
 
@@ -25,7 +27,9 @@ export function SplineDrawingToolbar({
   canComplete,
   isEditMode = false,
   onDeletePoint,
+  onAddPoint,
   canDelete = true,
+  canAddPoint = true,
   pointLabel,
 }: SplineDrawingToolbarProps) {
   const curveTypes = [
@@ -78,9 +82,35 @@ export function SplineDrawingToolbar({
       
       <div className="w-px h-5 bg-border mx-0.5" />
       
-      {/* Point count (drawing mode) or Delete button (edit mode) */}
+      {/* Point count (drawing mode) or Delete/Add buttons (edit mode) */}
       {isEditMode ? (
         <>
+          {/* Add Point after this one */}
+          {onAddPoint && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={onAddPoint}
+                    disabled={!canAddPoint}
+                    className={`
+                      w-7 h-7 flex items-center justify-center rounded transition-all
+                      ${canAddPoint 
+                        ? 'text-green-600 hover:bg-green-500/10' 
+                        : 'text-muted-foreground/30 cursor-not-allowed'
+                      }
+                    `}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Add point after this one
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          
           {/* Delete Point */}
           {onDeletePoint && (
             <TooltipProvider>
