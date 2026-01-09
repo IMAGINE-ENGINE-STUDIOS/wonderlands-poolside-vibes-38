@@ -22,7 +22,6 @@ import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import poolTextureSapphire from '@/assets/pool-texture-sapphire.jpg';
 import { paverTypes } from '@/data/paverData';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { loadAllTextureLODs, getTextureForLOD, getLODLevel, type TextureLODSet } from '@/utils/textureLOD';
 import { UnifiedPoolVisualizer } from './UnifiedPoolVisualizer';
 import { poolBuilderToScene, buildTextureLibrary } from './scene3d/PoolBuilderConverter';
 import { TextureBuilder, type TextureConfig } from './TextureBuilder';
@@ -150,8 +149,10 @@ export function PoolBuilder({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // LOD texture system - stores all quality levels
-  const textureLODsRef = useRef<TextureLODSet | null>(null);
+  // Simple texture refs for 2D canvas drawing
+  const paverTextureRef = useRef<HTMLImageElement | null>(null);
+  const copingTextureRef = useRef<HTMLImageElement | null>(null);
+  const linerTextureRef = useRef<HTMLImageElement | null>(null);
   const getShapePoints = (shape: 'rectangle' | 'kidney' | 'freeform'): Point[] => {
     const centerX = canvasSize.width / 2;
     const centerY = canvasSize.height / 2;
@@ -1369,7 +1370,7 @@ export function PoolBuilder({
     image: '/textures/finishes/athens-pearl-white-g3.jpg'
   }];
 
-  // Load textures with LOD system
+  // Load textures simply - single load per texture, cached by browser
   useEffect(() => {
     const selectedPaver = paverTypes.find(p => p.id === selectedPaverId);
     const selectedCoping = paverTypes.find(p => p.id === selectedCopingId);
@@ -1378,15 +1379,29 @@ export function PoolBuilder({
     const copingImage = selectedCoping?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
     const finishImage = selectedFinish?.image || aquamarineFinish;
 
-    // Load all textures with LOD levels
+    // Simple texture loading - browser handles caching
+    let loaded = 0;
+    const checkLoaded = () => {
+      loaded++;
+      if (loaded >= 3) setTexturesLoaded(true);
+    };
+
+    const paverImg = new Image();
+    paverImg.onload = () => { paverTextureRef.current = paverImg; checkLoaded(); };
+    paverImg.onerror = checkLoaded;
+    paverImg.src = paverImage;
+
+    const copingImg = new Image();
+    copingImg.onload = () => { copingTextureRef.current = copingImg; checkLoaded(); };
+    copingImg.onerror = checkLoaded;
+    copingImg.src = copingImage;
+
+    const linerImg = new Image();
+    linerImg.onload = () => { linerTextureRef.current = linerImg; checkLoaded(); };
+    linerImg.onerror = checkLoaded;
+    linerImg.src = finishImage;
+
     setTexturesLoaded(false);
-    loadAllTextureLODs(paverImage, copingImage, finishImage).then(lodSet => {
-      textureLODsRef.current = lodSet;
-      setTexturesLoaded(true);
-    }).catch(error => {
-      console.error('Failed to load texture LODs:', error);
-      setTexturesLoaded(false);
-    });
   }, [selectedPaverId, selectedCopingId, selectedFinishId]);
 
   // Update canvas size to maximize screen space
@@ -1641,8 +1656,7 @@ export function PoolBuilder({
     const paverSizeInPixels = paverSizeInFeet * effectiveScale;
 
     // Draw hardscape deck area with editable corners (squared or smooth)
-    // Get appropriate LOD texture based on zoom level
-    const paverTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.paver, zoomLevel) : null;
+    const paverTexture = paverTextureRef.current;
     if (paverTexture && hardscapePoints.length >= 3) {
       const img = paverTexture;
 
@@ -1820,7 +1834,7 @@ export function PoolBuilder({
       }
 
       // Draw coping border - skip edges that are inside merged integrated pools
-      const copingTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.coping, zoomLevel) : null;
+      const copingTexture = copingTextureRef.current;
 
       // Find which main pool edges are inside merged integrated pools
       const mergedPools = additionalPools.filter(p => (p.featureType === 'spillover-spa' || p.featureType === 'tanning-ledge') && p.isMerged !== false && p.points.length >= 3);
@@ -1951,7 +1965,7 @@ export function PoolBuilder({
         }
       } else {
         // Fallback while loading
-        const linerTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
+        const linerTexture = linerTextureRef.current;
         if (linerTexture) {
           const pattern = ctx.createPattern(linerTexture, 'repeat');
           if (pattern) {
@@ -3676,7 +3690,7 @@ export function PoolBuilder({
       }
 
       // Draw coping - for integrated merged features, only on deck-facing edges (excluding spillover edges)
-      const copingTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.coping, zoomLevel) : null;
+      const copingTexture = copingTextureRef.current;
       const spilloverEdges = pool.spilloverEdges || [];
       if (isIntegrated && pool.isMerged !== false && edgesOutsideMainPool.length > 0) {
         // Draw coping only on edges that are OUTSIDE main pool AND not spillover edges
@@ -3880,7 +3894,7 @@ export function PoolBuilder({
           ctx.fill();
         }
       } else {
-        const linerTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
+        const linerTexture = linerTextureRef.current;
         if (linerTexture) {
           const pattern = ctx.createPattern(linerTexture, 'repeat');
           if (pattern) {
