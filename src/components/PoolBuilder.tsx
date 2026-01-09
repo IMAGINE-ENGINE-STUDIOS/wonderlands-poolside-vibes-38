@@ -117,6 +117,7 @@ interface PoolBuilderProps {
       perimeterPosition?: number;
       isPerimeterSnapped?: boolean;
       isMerged?: boolean;
+      spilloverEdges?: number[]; // Edge indices where water spills over (no coping)
     }>;
     breakdown: {
       poolCost: number;
@@ -426,6 +427,7 @@ export function PoolBuilder({
     isPerimeterSnapped?: boolean; // Whether this pool snaps to main pool perimeter
     mergePoints?: MergePoint[]; // Points where this pool merges with main pool (for integrated features)
     isMerged?: boolean; // Whether water bodies are merged (coping removed at intersection)
+    spilloverEdges?: number[]; // Edge indices that are spillover (water flows over, no coping)
   }
   const [additionalPools, setAdditionalPools] = useState<PoolShape[]>([]);
   const [selectedAdditionalPool, setSelectedAdditionalPool] = useState<string | null>(null);
@@ -2964,9 +2966,9 @@ export function PoolBuilder({
         const img = paverTexture;
 
         ctx.save();
-        ctx.beginPath();
         
-        // Build the deck path
+        // STEP 1: Draw deck with paver pattern
+        ctx.beginPath();
         if (smoothCorners) {
           for (let i = 0; i < poolHardscapePoints.length; i++) {
             const p0 = poolHardscapePoints[(i - 1 + poolHardscapePoints.length) % poolHardscapePoints.length];
@@ -2989,45 +2991,9 @@ export function PoolBuilder({
           }
         }
         ctx.closePath();
-        
-        // Clip out this pool's own water area (always)
-        ctx.moveTo(pool.points[0].x, pool.points[0].y);
-        for (let i = 1; i < pool.points.length; i++) {
-          ctx.lineTo(pool.points[i].x, pool.points[i].y);
-        }
-        ctx.closePath();
-        
-        // Always clip out main pool water area for ALL additional pools
-        if (points.length >= 3) {
-          ctx.moveTo(points[0].x, points[0].y);
-          for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i].x, points[i].y);
-          }
-          ctx.closePath();
-        }
-        
-        // For separate pools, also clip out main pool's deck area to avoid overlap
-        if (isSeparatePool && hardscapePoints.length >= 3) {
-          ctx.moveTo(hardscapePoints[0].x, hardscapePoints[0].y);
-          for (let i = 1; i < hardscapePoints.length; i++) {
-            ctx.lineTo(hardscapePoints[i].x, hardscapePoints[i].y);
-          }
-          ctx.closePath();
-        }
-        
-        // Clip out all OTHER additional pools' water areas (to prevent overlaps)
-        additionalPools.forEach((otherPool, otherIndex) => {
-          if (otherIndex !== poolIndex && otherPool.points.length >= 3) {
-            ctx.moveTo(otherPool.points[0].x, otherPool.points[0].y);
-            for (let i = 1; i < otherPool.points.length; i++) {
-              ctx.lineTo(otherPool.points[i].x, otherPool.points[i].y);
-            }
-            ctx.closePath();
-          }
-        });
-        
-        ctx.clip('evenodd');
+        ctx.clip();
 
+        // Draw paver tiles
         const hsMinX = Math.min(...poolHardscapePoints.map(p => p.x));
         const hsMaxX = Math.max(...poolHardscapePoints.map(p => p.x));
         const hsMinY = Math.min(...poolHardscapePoints.map(p => p.y));
@@ -3046,6 +3012,57 @@ export function PoolBuilder({
             ctx.strokeRect(x, y, paverSizeInPixels, paverSizeInPixels);
           }
         }
+        
+        // STEP 2: Cut out ALL water areas using composite operation
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0,0,0,1)';
+        
+        // Cut out this pool's water area
+        ctx.beginPath();
+        ctx.moveTo(pool.points[0].x, pool.points[0].y);
+        for (let i = 1; i < pool.points.length; i++) {
+          if (pool.shape === 'freeform' && pool.points[i-1].curveType) {
+            drawPoolSegment(ctx, pool.points[i - 1], pool.points[i]);
+          } else {
+            ctx.lineTo(pool.points[i].x, pool.points[i].y);
+          }
+        }
+        ctx.closePath();
+        ctx.fill();
+        
+        // Cut out main pool water area
+        if (points.length >= 3) {
+          ctx.beginPath();
+          ctx.moveTo(points[0].x, points[0].y);
+          for (let i = 1; i < points.length; i++) {
+            if (poolShape === 'freeform' && points[i-1].curveType) {
+              drawPoolSegment(ctx, points[i - 1], points[i]);
+            } else {
+              ctx.lineTo(points[i].x, points[i].y);
+            }
+          }
+          ctx.closePath();
+          ctx.fill();
+        }
+        
+        // Cut out all other additional pools' water areas
+        additionalPools.forEach((otherPool, otherIndex) => {
+          if (otherIndex !== poolIndex && otherPool.points.length >= 3) {
+            ctx.beginPath();
+            ctx.moveTo(otherPool.points[0].x, otherPool.points[0].y);
+            for (let i = 1; i < otherPool.points.length; i++) {
+              if (otherPool.shape === 'freeform' && otherPool.points[i-1].curveType) {
+                drawPoolSegment(ctx, otherPool.points[i - 1], otherPool.points[i]);
+              } else {
+                ctx.lineTo(otherPool.points[i].x, otherPool.points[i].y);
+              }
+            }
+            ctx.closePath();
+            ctx.fill();
+          }
+        });
+        
+        ctx.globalCompositeOperation = 'source-over';
         ctx.restore();
       }
 
@@ -3096,14 +3113,16 @@ export function PoolBuilder({
         ctx.closePath();
       }
 
-      // Draw coping - for integrated merged features, only on deck-facing edges
+      // Draw coping - for integrated merged features, only on deck-facing edges (excluding spillover edges)
       const copingTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.coping, zoomLevel) : null;
+      const spilloverEdges = pool.spilloverEdges || [];
       
       if (isIntegrated && pool.isMerged !== false && edgesOutsideMainPool.length > 0) {
-        // Draw coping only on edges that are OUTSIDE main pool (deck-facing)
+        // Draw coping only on edges that are OUTSIDE main pool AND not spillover edges
         ctx.save();
         for (let i = 0; i < pool.points.length; i++) {
-          if (edgesOutsideMainPool[i]) {
+          const isSpillover = spilloverEdges.includes(i);
+          if (edgesOutsideMainPool[i] && !isSpillover) {
             const p1 = pool.points[i];
             const p2 = pool.points[(i + 1) % pool.points.length];
             
@@ -3130,10 +3149,40 @@ export function PoolBuilder({
               ctx.stroke();
             }
           }
+          
+          // Draw spillover edge indicator (water-fall effect)
+          if (isSpillover && edgesOutsideMainPool[i]) {
+            const p1 = pool.points[i];
+            const p2 = pool.points[(i + 1) % pool.points.length];
+            
+            // Create water-fall gradient
+            const gradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+            gradient.addColorStop(0, 'rgba(100, 200, 255, 0.8)');
+            gradient.addColorStop(0.5, 'rgba(70, 180, 240, 0.9)');
+            gradient.addColorStop(1, 'rgba(100, 200, 255, 0.8)');
+            
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            if (pool.shape === 'freeform' && p1.curveType) {
+              drawPoolSegment(ctx, p1, p2);
+            } else {
+              ctx.lineTo(p2.x, p2.y);
+            }
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = gradient;
+            ctx.stroke();
+            
+            // Add ripple effect lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 4]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
         }
         ctx.restore();
       } else {
-        // Draw full coping for non-merged or separate pools
+        // Draw full coping for non-merged or separate pools (excluding spillover edges)
         if (copingTexture) {
           ctx.save();
           ctx.lineWidth = paverSizeInPixels;
@@ -3159,9 +3208,53 @@ export function PoolBuilder({
       
       // If selected, add highlight on all edges
       if (isSelected) {
+        ctx.beginPath();
+        ctx.moveTo(pool.points[0].x, pool.points[0].y);
+        for (let i = 1; i < pool.points.length; i++) {
+          if (pool.shape === 'freeform' && pool.points[i-1].curveType) {
+            drawPoolSegment(ctx, pool.points[i - 1], pool.points[i]);
+          } else {
+            ctx.lineTo(pool.points[i].x, pool.points[i].y);
+          }
+        }
+        ctx.closePath();
         ctx.strokeStyle = '#FFD700';
         ctx.lineWidth = 3;
         ctx.stroke();
+      }
+      
+      // Draw spillover edge click indicators when spa is selected
+      if (isSelected && pool.featureType === 'spillover-spa') {
+        for (let i = 0; i < pool.points.length; i++) {
+          if (edgesOutsideMainPool[i]) {
+            const p1 = pool.points[i];
+            const p2 = pool.points[(i + 1) % pool.points.length];
+            const midX = (p1.x + p2.x) / 2;
+            const midY = (p1.y + p2.y) / 2;
+            const isSpillover = spilloverEdges.includes(i);
+            
+            // Draw clickable spillover toggle button
+            ctx.beginPath();
+            ctx.arc(midX, midY, 12, 0, 2 * Math.PI);
+            ctx.fillStyle = isSpillover ? 'rgba(70, 180, 240, 0.9)' : 'rgba(255, 255, 255, 0.9)';
+            ctx.fill();
+            ctx.strokeStyle = isSpillover ? '#2E86AB' : '#666666';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Icon
+            ctx.fillStyle = isSpillover ? '#ffffff' : '#666666';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(isSpillover ? '💧' : '+', midX, midY);
+            
+            // Label
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.font = '9px Arial';
+            ctx.fillText(isSpillover ? 'Spillover' : 'Add Spillover', midX, midY + 20);
+          }
+        }
       }
       
       // Draw merge point indicators for integrated features (editable)
@@ -3190,8 +3283,37 @@ export function PoolBuilder({
         }
       }
 
-      // Fill water with pool texture
+      // Fill water with pool texture - MUST rebuild path before clipping
       ctx.save();
+      
+      // Rebuild the pool shape path for water fill
+      ctx.beginPath();
+      if (pool.shape === 'rectangle') {
+        ctx.moveTo(pool.points[0].x, pool.points[0].y);
+        for (let i = 1; i < pool.points.length; i++) {
+          ctx.lineTo(pool.points[i].x, pool.points[i].y);
+        }
+      } else if (pool.shape === 'freeform' && pool.points.some(p => p.curveType)) {
+        ctx.moveTo(pool.points[0].x, pool.points[0].y);
+        for (let i = 1; i < pool.points.length; i++) {
+          drawPoolSegment(ctx, pool.points[i - 1], pool.points[i]);
+        }
+        drawPoolSegment(ctx, pool.points[pool.points.length - 1], pool.points[0]);
+      } else {
+        for (let i = 0; i < pool.points.length; i++) {
+          const p0 = pool.points[(i - 1 + pool.points.length) % pool.points.length];
+          const p1 = pool.points[i];
+          const p2 = pool.points[(i + 1) % pool.points.length];
+          const p3 = pool.points[(i + 2) % pool.points.length];
+          if (i === 0) ctx.moveTo(p1.x, p1.y);
+          const cp1x = p1.x + (p2.x - p0.x) / 6;
+          const cp1y = p1.y + (p2.y - p0.y) / 6;
+          const cp2x = p2.x - (p3.x - p1.x) / 6;
+          const cp2y = p2.y - (p3.y - p1.y) / 6;
+          ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+        }
+      }
+      ctx.closePath();
       ctx.clip();
 
       const poolTextureImg = new Image();
@@ -3494,6 +3616,47 @@ export function PoolBuilder({
         if (clickedRoofPoint) {
           setSelectedRoofPoint(clickedRoofPoint.id);
           return;
+        }
+      }
+    }
+
+    // Check if clicked on spillover edge toggle button for selected spa
+    if (selectedAdditionalPool) {
+      const selectedPool = additionalPools.find(p => p.id === selectedAdditionalPool);
+      if (selectedPool && selectedPool.featureType === 'spillover-spa') {
+        // Compute which edges are outside main pool
+        const edgesOutsideMainPool: boolean[] = [];
+        for (let i = 0; i < selectedPool.points.length; i++) {
+          const p1 = selectedPool.points[i];
+          const p2 = selectedPool.points[(i + 1) % selectedPool.points.length];
+          const midX = (p1.x + p2.x) / 2;
+          const midY = (p1.y + p2.y) / 2;
+          edgesOutsideMainPool.push(!isPointInPolygon(midX, midY, points));
+        }
+        
+        // Check if clicked on any spillover toggle button
+        for (let i = 0; i < selectedPool.points.length; i++) {
+          if (edgesOutsideMainPool[i]) {
+            const p1 = selectedPool.points[i];
+            const p2 = selectedPool.points[(i + 1) % selectedPool.points.length];
+            const midX = (p1.x + p2.x) / 2;
+            const midY = (p1.y + p2.y) / 2;
+            
+            if (Math.sqrt(Math.pow(midX - x, 2) + Math.pow(midY - y, 2)) < 15) {
+              // Toggle spillover edge
+              const currentSpilloverEdges = selectedPool.spilloverEdges || [];
+              const newSpilloverEdges = currentSpilloverEdges.includes(i)
+                ? currentSpilloverEdges.filter(e => e !== i)
+                : [...currentSpilloverEdges, i];
+              
+              setAdditionalPools(pools => pools.map(p => 
+                p.id === selectedPool.id
+                  ? { ...p, spilloverEdges: newSpilloverEdges }
+                  : p
+              ));
+              return;
+            }
+          }
         }
       }
     }
