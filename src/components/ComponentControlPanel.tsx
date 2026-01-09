@@ -64,18 +64,20 @@ export function ComponentControlPanel({
   };
 
   const handleTextureChange = (texture: TextureConfig) => {
+    // Instantly apply texture change - no delays
     const updated = { ...scene };
     
     if (selectedComponent === 'pool') {
-      updated.pool.finish = texture;
+      updated.pool.finish = { ...texture };
     } else if (selectedComponent === 'deck') {
-      updated.deck.paver = texture;
+      updated.deck.paver = { ...texture };
     } else if (selectedComponent === 'coping') {
-      updated.deck.coping = texture;
+      updated.deck.coping = { ...texture };
     } else if (selectedComponent === 'waterline') {
-      updated.deck.waterline = texture;
+      updated.deck.waterline = { ...texture };
     }
     
+    // Trigger immediate re-render
     onSceneChange(updated);
   };
 
@@ -139,7 +141,7 @@ export function ComponentControlPanel({
   const availableTextures = getAvailableTextures();
 
   return (
-    <div className="fixed left-4 top-1/2 -translate-y-1/2 w-80 bg-background/98 backdrop-blur-md border border-border rounded-xl shadow-2xl z-40 animate-in slide-in-from-left duration-300">
+    <div className="fixed left-4 top-1/2 -translate-y-1/2 w-80 bg-background/98 backdrop-blur-md border border-border rounded-xl shadow-2xl z-[9999] animate-in slide-in-from-left duration-300 pointer-events-auto">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
         <div className="flex items-center gap-2">
