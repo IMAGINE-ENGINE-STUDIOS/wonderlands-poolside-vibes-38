@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { PenTool, Plus, Upload, Square, Circle, Spline, CornerDownRight, Check, X, Edit3, Ruler, Trash2 } from 'lucide-react';
+import { PenTool, Plus, Upload, Square, Circle, Spline, CornerDownRight, Check, X, Edit3, Ruler, Trash2, Waves, Droplets } from 'lucide-react';
 
 interface Point {
   x: number;
@@ -41,6 +41,8 @@ interface ShapePanelProps {
   onFinishSpline?: () => void;
   onCancelSpline?: () => void;
   poolDimensions?: { width: number; length: number; area: number; perimeter: number };
+  onAddNewPool?: (type: 'pool' | 'spa') => void;
+  poolCount?: number;
 }
 
 const presetShapes = [
@@ -88,6 +90,8 @@ export function ShapePanel({
   onFinishSpline,
   onCancelSpline,
   poolDimensions,
+  onAddNewPool,
+  poolCount = 1,
 }: ShapePanelProps) {
   const [showCadDialog, setShowCadDialog] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -382,6 +386,34 @@ export function ShapePanel({
             <Edit3 className="w-3 h-3 mr-1" />
             Edit Control Points
           </Button>
+        </div>
+      )}
+
+      {/* Add New Pool/Spa Section */}
+      {!isSplineActive && onAddNewPool && (
+        <div className="space-y-2">
+          <Label className="text-xs font-medium text-muted-foreground">Add to Scene</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => onAddNewPool('pool')}
+              className="group flex flex-col items-center gap-1.5 p-3 rounded-lg border border-dashed border-border/60 hover:border-primary/50 hover:bg-primary/5 transition-all"
+            >
+              <Waves className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">+ Pool</span>
+            </button>
+            <button
+              onClick={() => onAddNewPool('spa')}
+              className="group flex flex-col items-center gap-1.5 p-3 rounded-lg border border-dashed border-border/60 hover:border-primary/50 hover:bg-primary/5 transition-all"
+            >
+              <Droplets className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground">+ Spa</span>
+            </button>
+          </div>
+          {poolCount > 1 && (
+            <p className="text-[10px] text-muted-foreground text-center">
+              {poolCount} water features in scene
+            </p>
+          )}
         </div>
       )}
     </div>

@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower2, Droplets, Box, PenTool, Shapes, MousePointer2 } from 'lucide-react';
 import { ShapePanel } from './poolBuilder/ShapePanel';
+import { SplinePointEditor } from './poolBuilder/SplinePointEditor';
 import { ShapeRepository } from './ShapeRepository';
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import poolTextureSapphire from '@/assets/pool-texture-sapphire.jpg';
@@ -393,6 +394,22 @@ export function PoolBuilder({
     points: [],
     currentCurveType: 'linear',
   });
+  
+  // Multi-pool support
+  interface PoolShape {
+    id: string;
+    type: 'pool' | 'spa';
+    points: Point[];
+    shape: 'rectangle' | 'kidney' | 'freeform';
+  }
+  const [additionalPools, setAdditionalPools] = useState<PoolShape[]>([]);
+  
+  // Spline point editor state
+  const [selectedSplinePoint, setSelectedSplinePoint] = useState<{
+    point: SplinePoint;
+    index: number;
+    screenPosition: { x: number; y: number };
+  } | null>(null);
 
   // Pricing constants
   const PAVER_COST_PER_SQFT = 15;
@@ -2181,8 +2198,40 @@ export function PoolBuilder({
       ctx.restore();
     }
     
+    // Draw additional pools/spas
+    additionalPools.forEach(pool => {
+      if (pool.points.length < 3) return;
+      
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(pool.points[0].x, pool.points[0].y);
+      for (let i = 1; i < pool.points.length; i++) {
+        ctx.lineTo(pool.points[i].x, pool.points[i].y);
+      }
+      ctx.closePath();
+      
+      // Fill with pool color
+      ctx.fillStyle = pool.type === 'spa' ? '#7EC8E3' : '#5BC5D9';
+      ctx.fill();
+      
+      // Draw coping
+      ctx.strokeStyle = '#8B7355';
+      ctx.lineWidth = 8;
+      ctx.stroke();
+      
+      // Label
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      const centerX = pool.points.reduce((sum, p) => sum + p.x, 0) / pool.points.length;
+      const centerY = pool.points.reduce((sum, p) => sum + p.y, 0) / pool.points.length;
+      ctx.fillText(pool.type === 'spa' ? 'SPA' : 'POOL', centerX, centerY);
+      
+      ctx.restore();
+    });
+    
     ctx.restore();
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, splineDrawing]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, splineDrawing, additionalPools]);
 
   // Memoize perimeter and area calculations
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
@@ -2407,12 +2456,35 @@ export function PoolBuilder({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // If in spline drawing mode (draw-pool), add spline points
+    // If in spline drawing mode (draw-pool), handle spline point interactions
     if (activeTool === 'draw-pool') {
       // Ensure splineDrawing is active
       if (!splineDrawing.isActive) {
         setSplineDrawing(prev => ({ ...prev, isActive: true }));
       }
+      
+      // Check if clicking on existing spline point to open editor
+      for (let i = 0; i < splineDrawing.points.length; i++) {
+        const sp = splineDrawing.points[i];
+        const dist = Math.sqrt(Math.pow(x - sp.x, 2) + Math.pow(y - sp.y, 2));
+        if (dist < 12) {
+          // Get screen position for the popup
+          const canvas = canvasRef.current;
+          if (canvas) {
+            const rect = canvas.getBoundingClientRect();
+            setSelectedSplinePoint({
+              point: sp,
+              index: i,
+              screenPosition: {
+                x: rect.left + sp.x * zoomLevel,
+                y: rect.top + sp.y * zoomLevel,
+              },
+            });
+          }
+          return;
+        }
+      }
+      
       const newSplinePoint = {
         x,
         y,
@@ -3175,6 +3247,24 @@ export function PoolBuilder({
                   area: poolArea,
                   perimeter: poolPerimeter,
                 } : undefined}
+                onAddNewPool={(type) => {
+                  // Add new pool/spa to scene without erasing existing
+                  const offsetX = 150 + additionalPools.length * 50;
+                  const offsetY = 100 + additionalPools.length * 30;
+                  const newPoolPoints = [
+                    { x: canvasSize.width / 2 + offsetX, y: canvasSize.height / 2 + offsetY - 50, id: 'np1' },
+                    { x: canvasSize.width / 2 + offsetX + (type === 'spa' ? 60 : 100), y: canvasSize.height / 2 + offsetY - 50, id: 'np2' },
+                    { x: canvasSize.width / 2 + offsetX + (type === 'spa' ? 60 : 100), y: canvasSize.height / 2 + offsetY + (type === 'spa' ? 60 : 100), id: 'np3' },
+                    { x: canvasSize.width / 2 + offsetX, y: canvasSize.height / 2 + offsetY + (type === 'spa' ? 60 : 100), id: 'np4' },
+                  ];
+                  setAdditionalPools(prev => [...prev, {
+                    id: Date.now().toString(),
+                    type,
+                    points: newPoolPoints,
+                    shape: 'rectangle',
+                  }]);
+                }}
+                poolCount={1 + additionalPools.length}
               />
             </TabsContent>
 
@@ -3432,6 +3522,31 @@ export function PoolBuilder({
             pointerEvents: 'auto'
           }} />
           </div>
+          
+          {/* Spline Point Editor Popup */}
+          {selectedSplinePoint && (
+            <SplinePointEditor
+              point={selectedSplinePoint.point}
+              pointIndex={selectedSplinePoint.index}
+              position={selectedSplinePoint.screenPosition}
+              onCurveTypeChange={(pointId, curveType) => {
+                setSplineDrawing(prev => ({
+                  ...prev,
+                  points: prev.points.map(p => 
+                    p.id === pointId ? { ...p, curveType } : p
+                  ),
+                }));
+              }}
+              onDeletePoint={(pointId) => {
+                setSplineDrawing(prev => ({
+                  ...prev,
+                  points: prev.points.filter(p => p.id !== pointId),
+                }));
+                setSelectedSplinePoint(null);
+              }}
+              onClose={() => setSelectedSplinePoint(null)}
+            />
+          )}
         </div>
 
 
