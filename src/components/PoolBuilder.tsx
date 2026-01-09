@@ -2686,10 +2686,11 @@ export function PoolBuilder({
     }
     
     // Draw additional pools/spas (rendered with the same look as the main pool)
-    additionalPools.forEach(pool => {
+    additionalPools.forEach((pool, poolIndex) => {
       if (pool.points.length < 3) return;
       
       const isIntegrated = pool.featureType === 'spillover-spa' || pool.featureType === 'tanning-ledge';
+      const isSeparatePool = pool.featureType === 'regular' || !pool.featureType;
       const isSelected = selectedAdditionalPool === pool.id;
 
       // Draw deck - for regular pools full deck, for integrated features 3ft extension outside main deck
@@ -2724,21 +2725,44 @@ export function PoolBuilder({
         }
         ctx.closePath();
         
-        // Clip out water areas - both main pool and the spa/tanning's own water
-        // First, clip out the spa/tanning's own water area
+        // Clip out this pool's own water area
         ctx.moveTo(pool.points[0].x, pool.points[0].y);
         for (let i = 1; i < pool.points.length; i++) {
           ctx.lineTo(pool.points[i].x, pool.points[i].y);
         }
         ctx.closePath();
         
-        // For integrated features, also clip OUT the main pool's water area
-        if (isIntegrated && points.length >= 3) {
+        // For ALL additional pools, clip out main pool water, coping area (water + coping offset)
+        if (points.length >= 3) {
+          // Clip out main pool water area
           ctx.moveTo(points[0].x, points[0].y);
           for (let i = 1; i < points.length; i++) {
             ctx.lineTo(points[i].x, points[i].y);
           }
           ctx.closePath();
+          
+          // For separate pools, also clip out main pool's deck area to avoid overlap
+          if (isSeparatePool && hardscapePoints.length >= 3) {
+            ctx.moveTo(hardscapePoints[0].x, hardscapePoints[0].y);
+            for (let i = 1; i < hardscapePoints.length; i++) {
+              ctx.lineTo(hardscapePoints[i].x, hardscapePoints[i].y);
+            }
+            ctx.closePath();
+          }
+        }
+        
+        // For separate pools, also clip out other additional pools' water and deck areas
+        if (isSeparatePool) {
+          additionalPools.forEach((otherPool, otherIndex) => {
+            if (otherIndex !== poolIndex && otherPool.points.length >= 3) {
+              // Clip out other pool's water
+              ctx.moveTo(otherPool.points[0].x, otherPool.points[0].y);
+              for (let i = 1; i < otherPool.points.length; i++) {
+                ctx.lineTo(otherPool.points[i].x, otherPool.points[i].y);
+              }
+              ctx.closePath();
+            }
+          });
         }
         
         ctx.clip('evenodd');
@@ -4443,47 +4467,55 @@ export function PoolBuilder({
           }} />
           </div>
           
-          {/* Spline Point Editor Popup */}
-          {selectedSplinePoint && (
-            <SplinePointEditor
-              point={selectedSplinePoint.point}
-              pointIndex={selectedSplinePoint.index}
-              position={selectedSplinePoint.screenPosition}
-              onCurveTypeChange={(pointId, curveType) => {
-                if (selectedSplinePoint.poolId) {
-                  // Additional pool point
-                  updateAdditionalPoolPointCurveType(selectedSplinePoint.poolId, pointId, curveType);
-                  // Update the selectedSplinePoint to reflect the change
-                  setSelectedSplinePoint(prev => prev ? {
-                    ...prev,
-                    point: { ...prev.point, curveType }
-                  } : null);
-                } else {
-                  // Main pool point - update points state directly
-                  setPoints(prev => prev.map(p => 
-                    p.id === pointId ? { ...p, curveType } : p
-                  ));
-                  // Update the selectedSplinePoint to reflect the change
-                  setSelectedSplinePoint(prev => prev ? {
-                    ...prev,
-                    point: { ...prev.point, curveType }
-                  } : null);
+          {/* Spline Point Editor Toolbar - replaces popup when point is selected */}
+          {selectedSplinePoint && !splineDrawing.isActive && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
+              <SplineDrawingToolbar
+                currentCurveType={selectedSplinePoint.point.curveType}
+                pointCount={selectedSplinePoint.poolId 
+                  ? (additionalPools.find(p => p.id === selectedSplinePoint.poolId)?.points.length || 0)
+                  : points.length
                 }
-              }}
-              onDeletePoint={(pointId) => {
-                if (selectedSplinePoint.poolId) {
-                  // Additional pool point
-                  deleteAdditionalPoolPoint(selectedSplinePoint.poolId, pointId);
-                } else {
-                  // Main pool point - check minimum points
-                  if (points.length > 3) {
-                    setPoints(prev => prev.filter(p => p.id !== pointId));
+                onCurveTypeChange={(curveType) => {
+                  const pointId = selectedSplinePoint.point.id;
+                  if (selectedSplinePoint.poolId) {
+                    updateAdditionalPoolPointCurveType(selectedSplinePoint.poolId, pointId, curveType);
+                    setSelectedSplinePoint(prev => prev ? {
+                      ...prev,
+                      point: { ...prev.point, curveType }
+                    } : null);
+                  } else {
+                    setPoints(prev => prev.map(p => 
+                      p.id === pointId ? { ...p, curveType } : p
+                    ));
+                    setSelectedSplinePoint(prev => prev ? {
+                      ...prev,
+                      point: { ...prev.point, curveType }
+                    } : null);
                   }
+                }}
+                onCancel={() => setSelectedSplinePoint(null)}
+                onComplete={() => setSelectedSplinePoint(null)}
+                canComplete={true}
+                isEditMode={true}
+                pointLabel={`Point ${selectedSplinePoint.index + 1}`}
+                onDeletePoint={() => {
+                  const pointId = selectedSplinePoint.point.id;
+                  if (selectedSplinePoint.poolId) {
+                    deleteAdditionalPoolPoint(selectedSplinePoint.poolId, pointId);
+                  } else {
+                    if (points.length > 3) {
+                      setPoints(prev => prev.filter(p => p.id !== pointId));
+                    }
+                  }
+                  setSelectedSplinePoint(null);
+                }}
+                canDelete={selectedSplinePoint.poolId 
+                  ? (additionalPools.find(p => p.id === selectedSplinePoint.poolId)?.points.length || 0) > 3
+                  : points.length > 3
                 }
-                setSelectedSplinePoint(null);
-              }}
-              onClose={() => setSelectedSplinePoint(null)}
-            />
+              />
+            </div>
           )}
           
           {/* Spline Drawing Toolbar - Floating in canvas */}
