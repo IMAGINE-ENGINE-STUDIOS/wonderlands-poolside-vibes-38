@@ -361,7 +361,7 @@ const DesignStudio = () => {
             />
           </div>
         ) : (
-          <div className="w-full h-full">
+          <div className="absolute inset-0 w-full h-full">
             <UnifiedPoolVisualizer
               scene={productToScene(
                 selectedProduct,
@@ -370,52 +370,26 @@ const DesignStudio = () => {
                 finishOptions
               )}
               textureLibrary={{
-                finishes: [
-                  ...poolFinishesData.map(f => ({
-                    url: f.image,
-                    name: f.name,
-                    roughness: 0.2,
-                    metalness: 0.1
-                  })),
-                  ...poolLinersData.map(l => ({
-                    url: l.image,
-                    name: l.name,
-                    roughness: 0.3,
-                    metalness: 0.2
-                  })),
-                  ...poolTilesData.map(t => ({
-                    url: t.image,
-                    name: t.name,
-                    roughness: 0.1,
-                    metalness: 0.3
-                  }))
-                ],
-                pavers: paverTypes.map(p => ({
+                finishes: poolFinishesData.slice(0, 10).map(f => ({
+                  url: f.image,
+                  name: f.name,
+                  roughness: 0.2,
+                  metalness: 0.1
+                })),
+                pavers: paverTypes.slice(0, 8).map(p => ({
                   url: p.image,
                   name: p.name,
                   roughness: 0.8,
                   metalness: 0.0
                 })),
-                coping: paverTypes.map(p => ({
+                coping: paverTypes.slice(0, 8).map(p => ({
                   url: p.image,
                   name: p.name,
                   roughness: 0.6,
                   metalness: 0.0
                 })),
                 waterlines: [
-                  { url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png', name: 'Ballad', roughness: 0.1, metalness: 0.3 },
-                  ...poolLinersData.filter(l => l.type === 'Glass').map(l => ({
-                    url: l.image,
-                    name: l.name,
-                    roughness: 0.1,
-                    metalness: 0.3
-                  })),
-                  ...poolLinersData.filter(l => l.type === 'Porcelain').map(l => ({
-                    url: l.image,
-                    name: l.name,
-                    roughness: 0.2,
-                    metalness: 0.1
-                  }))
+                  { url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png', name: 'Ballad', roughness: 0.1, metalness: 0.3 }
                 ]
               }}
               onSceneChange={(updatedScene) => {
