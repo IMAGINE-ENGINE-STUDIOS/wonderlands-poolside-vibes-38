@@ -4001,6 +4001,27 @@ export function PoolBuilder({
     // Allow editing pool points AFTER drawing is complete (when not in draw mode)
     // Check if clicking on a pool control point for curve editing
     if (activeTool === 'select' && !splineDrawing.isActive) {
+      // If a spline point is already selected, clicking it again should start dragging it
+      // (important for newly inserted anchors that start coincident with an existing point)
+      if (selectedSplinePoint) {
+        const distToSelected = Math.sqrt(
+          Math.pow(x - selectedSplinePoint.point.x, 2) + Math.pow(y - selectedSplinePoint.point.y, 2)
+        );
+        if (distToSelected < 12) {
+          if (selectedSplinePoint.poolId) {
+            setDraggingAdditionalPoolPoint({
+              poolId: selectedSplinePoint.poolId,
+              pointId: selectedSplinePoint.point.id,
+            });
+            setSelectedAdditionalPool(selectedSplinePoint.poolId);
+          } else {
+            setSelectedPoint(selectedSplinePoint.point.id);
+            setIsDragging(true);
+          }
+          return;
+        }
+      }
+
       // Check main pool points
       if (points.length > 0) {
         for (let i = 0; i < points.length; i++) {
@@ -5127,77 +5148,66 @@ export function PoolBuilder({
                 isEditMode={true}
                 pointLabel={`Point ${selectedSplinePoint.index + 1}`}
                 onAddPoint={() => {
-                  // Add a new point after the selected one - keep it selected for dragging
+                  // Add a new point after the selected one WITHOUT changing the shape immediately.
+                  // We insert the new anchor coincident with the currently-selected point.
+                  // The outline only changes once the user drags the new anchor.
                   const currentIndex = selectedSplinePoint.index;
                   const newPointId = Date.now().toString();
                   const newPointIndex = currentIndex + 1;
-                  
+
                   if (selectedSplinePoint.poolId) {
                     // Additional pool
                     const pool = additionalPools.find(p => p.id === selectedSplinePoint.poolId);
-                    if (pool) {
-                      const nextIndex = (currentIndex + 1) % pool.points.length;
-                      const currentPt = pool.points[currentIndex];
-                      const nextPt = pool.points[nextIndex];
-                      const midX = (currentPt.x + nextPt.x) / 2;
-                      const midY = (currentPt.y + nextPt.y) / 2;
-                      const newPoint = { x: midX, y: midY, id: newPointId, curveType: 'linear' as const };
-                      
-                      setAdditionalPools(prev => prev.map(p => {
-                        if (p.id !== selectedSplinePoint.poolId) return p;
-                        const newPoints = [...p.points];
-                        newPoints.splice(currentIndex + 1, 0, newPoint);
-                        return { ...p, points: newPoints };
-                      }));
-                      
-                      // Select the new point for dragging
-                      setDraggingAdditionalPoolPoint({ poolId: selectedSplinePoint.poolId, pointId: newPointId });
-                      setSelectedAdditionalPool(selectedSplinePoint.poolId);
-                      
-                      // Update selectedSplinePoint to the new point
-                      const canvas = canvasRef.current;
-                      if (canvas) {
-                        const rect = canvas.getBoundingClientRect();
-                        setSelectedSplinePoint({
-                          point: { x: midX, y: midY, id: newPointId, curveType: 'linear' },
-                          index: newPointIndex,
-                          screenPosition: {
-                            x: rect.left + midX * zoomLevel,
-                            y: rect.top + midY * zoomLevel,
-                          },
-                          poolId: selectedSplinePoint.poolId,
-                        });
-                      }
+                    if (!pool) return;
+
+                    const currentPt = pool.points[currentIndex];
+                    const newPoint = { x: currentPt.x, y: currentPt.y, id: newPointId, curveType: 'linear' as const };
+
+                    setAdditionalPools(prev => prev.map(p => {
+                      if (p.id !== selectedSplinePoint.poolId) return p;
+                      const newPoints = [...p.points];
+                      newPoints.splice(currentIndex + 1, 0, newPoint);
+                      return { ...p, points: newPoints };
+                    }));
+
+                    setSelectedAdditionalPool(selectedSplinePoint.poolId);
+
+                    const canvas = canvasRef.current;
+                    if (canvas) {
+                      const rect = canvas.getBoundingClientRect();
+                      setSelectedSplinePoint({
+                        point: { x: currentPt.x, y: currentPt.y, id: newPointId, curveType: 'linear' },
+                        index: newPointIndex,
+                        screenPosition: {
+                          x: rect.left + currentPt.x * zoomLevel,
+                          y: rect.top + currentPt.y * zoomLevel,
+                        },
+                        poolId: selectedSplinePoint.poolId,
+                      });
                     }
                   } else {
                     // Main pool
-                    const nextIndex = (currentIndex + 1) % points.length;
                     const currentPt = points[currentIndex];
-                    const nextPt = points[nextIndex];
-                    const midX = (currentPt.x + nextPt.x) / 2;
-                    const midY = (currentPt.y + nextPt.y) / 2;
-                    const newPoint = { x: midX, y: midY, id: newPointId, curveType: 'linear' as const };
-                    
+                    const newPoint = { x: currentPt.x, y: currentPt.y, id: newPointId, curveType: 'linear' as const };
+
                     setPoints(prev => {
                       const newPoints = [...prev];
                       newPoints.splice(currentIndex + 1, 0, newPoint);
                       return newPoints;
                     });
-                    
-                    // Select the new point for dragging
+
+                    // Keep it selected (but do NOT start dragging until the user clicks+drags)
                     setSelectedPoint(newPointId);
-                    setIsDragging(true);
-                    
-                    // Update selectedSplinePoint to the new point
+
                     const canvas = canvasRef.current;
                     if (canvas) {
                       const rect = canvas.getBoundingClientRect();
                       setSelectedSplinePoint({
-                        point: { x: midX, y: midY, id: newPointId, curveType: 'linear' },
+                        point: { x: currentPt.x, y: currentPt.y, id: newPointId, curveType: 'linear' },
                         index: newPointIndex,
                         screenPosition: {
-                          x: rect.left + midX * zoomLevel,
-                          y: rect.top + midY * zoomLevel,
+                          x: rect.left + currentPt.x * zoomLevel,
+                          y: rect.top + currentPt.y * zoomLevel,
                         },
                       });
                     }
