@@ -282,7 +282,7 @@ export function UnifiedPoolVisualizer({
   const [enablePoolSplineEdit, setEnablePoolSplineEdit] = useState(false);
   const [enableDeckSplineEdit, setEnableDeckSplineEdit] = useState(false);
   const [enableFloorDepthSplineEdit, setEnableFloorDepthSplineEdit] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(true);
   const [poolTransformMode, setPoolTransformMode] = useState(false);
   const [transformStepSize, setTransformStepSize] = useState(1); // Default 1 ft
   const [showMeasurements, setShowMeasurements] = useState(false);
@@ -1213,7 +1213,7 @@ export function UnifiedPoolVisualizer({
                   position: scene.camera.position,
                   fov: 50
                 }}
-                frameloop={isWalkthroughMode ? "always" : "demand"} // Always render during walkthrough for smooth movement
+                frameloop="always" // Always render for immediate texture updates
               >
           {/* Force re-render when scene changes in demand mode */}
           <SceneInvalidator scene={scene} />
