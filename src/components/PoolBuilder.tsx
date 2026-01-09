@@ -717,11 +717,35 @@ export function PoolBuilder({
     }));
   }, []);
   
-  // Spline point editor state
+  // Update curve type for additional pool point
+  const updateAdditionalPoolPointCurveType = useCallback((poolId: string, pointId: string, curveType: 'linear' | 'curve' | 'arc' | 'freeform') => {
+    setAdditionalPools(prev => prev.map(pool => {
+      if (pool.id !== poolId) return pool;
+      return {
+        ...pool,
+        points: pool.points.map(p => p.id === pointId ? { ...p, curveType } : p),
+      };
+    }));
+  }, []);
+  
+  // Delete point from additional pool
+  const deleteAdditionalPoolPoint = useCallback((poolId: string, pointId: string) => {
+    setAdditionalPools(prev => prev.map(pool => {
+      if (pool.id !== poolId) return pool;
+      if (pool.points.length <= 3) return pool; // Minimum 3 points
+      return {
+        ...pool,
+        points: pool.points.filter(p => p.id !== pointId),
+      };
+    }));
+  }, []);
+  
+  // Spline point editor state (for main pool and additional pools)
   const [selectedSplinePoint, setSelectedSplinePoint] = useState<{
     point: SplinePoint;
     index: number;
     screenPosition: { x: number; y: number };
+    poolId?: string; // If set, this is an additional pool point
   } | null>(null);
 
   // Pricing constants
@@ -2664,58 +2688,69 @@ export function PoolBuilder({
       const isIntegrated = pool.featureType === 'spillover-spa' || pool.featureType === 'tanning-ledge';
       const isSelected = selectedAdditionalPool === pool.id;
 
-      // Only draw deck for regular pools (not integrated features)
-      if (!isIntegrated) {
-        const poolHardscapePoints = generateHardscapeFromPool(pool.points, deckOffset);
-        if (paverTexture && poolHardscapePoints.length >= 3) {
-          const img = paverTexture;
+      // Draw deck - for regular pools full deck, for integrated features 3ft extension outside main deck
+      const poolHardscapePoints = generateHardscapeFromPool(pool.points, isIntegrated ? 3 : deckOffset);
+      if (paverTexture && poolHardscapePoints.length >= 3) {
+        const img = paverTexture;
 
-          ctx.save();
-          ctx.beginPath();
-          if (smoothCorners) {
-            for (let i = 0; i < poolHardscapePoints.length; i++) {
-              const p0 = poolHardscapePoints[(i - 1 + poolHardscapePoints.length) % poolHardscapePoints.length];
-              const p1 = poolHardscapePoints[i];
-              const p2 = poolHardscapePoints[(i + 1) % poolHardscapePoints.length];
-              const p3 = poolHardscapePoints[(i + 2) % poolHardscapePoints.length];
-              if (i === 0) ctx.moveTo(p1.x, p1.y);
+        ctx.save();
+        ctx.beginPath();
+        
+        // Build the deck path
+        if (smoothCorners) {
+          for (let i = 0; i < poolHardscapePoints.length; i++) {
+            const p0 = poolHardscapePoints[(i - 1 + poolHardscapePoints.length) % poolHardscapePoints.length];
+            const p1 = poolHardscapePoints[i];
+            const p2 = poolHardscapePoints[(i + 1) % poolHardscapePoints.length];
+            const p3 = poolHardscapePoints[(i + 2) % poolHardscapePoints.length];
+            if (i === 0) ctx.moveTo(p1.x, p1.y);
 
-              const tension = 0.3;
-              const cp1x = p1.x + (p2.x - p0.x) * tension;
-              const cp1y = p1.y + (p2.y - p0.y) * tension;
-              const cp2x = p2.x - (p3.x - p1.x) * tension;
-              const cp2y = p2.y - (p3.y - p1.y) * tension;
-              ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
-            }
-          } else {
-            ctx.moveTo(poolHardscapePoints[0].x, poolHardscapePoints[0].y);
-            for (let i = 1; i < poolHardscapePoints.length; i++) {
-              ctx.lineTo(poolHardscapePoints[i].x, poolHardscapePoints[i].y);
-            }
+            const tension = 0.3;
+            const cp1x = p1.x + (p2.x - p0.x) * tension;
+            const cp1y = p1.y + (p2.y - p0.y) * tension;
+            const cp2x = p2.x - (p3.x - p1.x) * tension;
+            const cp2y = p2.y - (p3.y - p1.y) * tension;
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+          }
+        } else {
+          ctx.moveTo(poolHardscapePoints[0].x, poolHardscapePoints[0].y);
+          for (let i = 1; i < poolHardscapePoints.length; i++) {
+            ctx.lineTo(poolHardscapePoints[i].x, poolHardscapePoints[i].y);
+          }
+        }
+        ctx.closePath();
+        
+        // For integrated features, clip OUT the main pool's water area (don't draw deck over pool)
+        if (isIntegrated && points.length >= 3) {
+          // Use evenodd fill rule to cut out main pool water area
+          ctx.moveTo(points[0].x, points[0].y);
+          for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
           }
           ctx.closePath();
-          ctx.clip();
-
-          const hsMinX = Math.min(...poolHardscapePoints.map(p => p.x));
-          const hsMaxX = Math.max(...poolHardscapePoints.map(p => p.x));
-          const hsMinY = Math.min(...poolHardscapePoints.map(p => p.y));
-          const hsMaxY = Math.max(...poolHardscapePoints.map(p => p.y));
-          const numPaversX = Math.ceil((hsMaxX - hsMinX) / paverSizeInPixels) + 1;
-          const numPaversY = Math.ceil((hsMaxY - hsMinY) / paverSizeInPixels) + 1;
-
-          for (let i = 0; i < numPaversX; i++) {
-            for (let j = 0; j < numPaversY; j++) {
-              const x = hsMinX + i * paverSizeInPixels;
-              const y = hsMinY + j * paverSizeInPixels;
-              ctx.drawImage(img, x, y, paverSizeInPixels, paverSizeInPixels);
-
-              ctx.strokeStyle = 'rgba(100, 80, 60, 0.2)';
-              ctx.lineWidth = 1;
-              ctx.strokeRect(x, y, paverSizeInPixels, paverSizeInPixels);
-            }
-          }
-          ctx.restore();
         }
+        
+        ctx.clip('evenodd');
+
+        const hsMinX = Math.min(...poolHardscapePoints.map(p => p.x));
+        const hsMaxX = Math.max(...poolHardscapePoints.map(p => p.x));
+        const hsMinY = Math.min(...poolHardscapePoints.map(p => p.y));
+        const hsMaxY = Math.max(...poolHardscapePoints.map(p => p.y));
+        const numPaversX = Math.ceil((hsMaxX - hsMinX) / paverSizeInPixels) + 1;
+        const numPaversY = Math.ceil((hsMaxY - hsMinY) / paverSizeInPixels) + 1;
+
+        for (let i = 0; i < numPaversX; i++) {
+          for (let j = 0; j < numPaversY; j++) {
+            const x = hsMinX + i * paverSizeInPixels;
+            const y = hsMinY + j * paverSizeInPixels;
+            ctx.drawImage(img, x, y, paverSizeInPixels, paverSizeInPixels);
+
+            ctx.strokeStyle = 'rgba(100, 80, 60, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, paverSizeInPixels, paverSizeInPixels);
+          }
+        }
+        ctx.restore();
       }
 
       // Draw pool body + coping (skip coping for integrated features) + liner texture
@@ -3216,12 +3251,13 @@ export function PoolBuilder({
         const firstPoint = splineDrawing.points[0];
         const distToFirst = Math.sqrt(Math.pow(x - firstPoint.x, 2) + Math.pow(y - firstPoint.y, 2));
         if (distToFirst < 15) {
-          // Close the shape
+          // Close the shape - update first point's curveType to current selection for closing segment
           const newPoolPoints = splineDrawing.points.map((sp, i) => ({
             x: sp.x,
             y: sp.y,
             id: (i + 1).toString(),
-            curveType: sp.curveType,
+            // First point defines closing segment curve - use current curve type
+            curveType: i === 0 ? splineDrawing.currentCurveType : sp.curveType,
           }));
           
           // Check if we're in perimeter anchor mode (drawing spa/tanning ledge)
@@ -3270,16 +3306,20 @@ export function PoolBuilder({
     
     // Allow editing pool points AFTER drawing is complete (when not in draw mode)
     // Check if clicking on a pool control point for curve editing
-    if (activeTool === 'select' && !splineDrawing.isActive && points.length > 0) {
-      for (let i = 0; i < points.length; i++) {
-        const pt = points[i];
-        const dist = Math.sqrt(Math.pow(x - pt.x, 2) + Math.pow(y - pt.y, 2));
-        if (dist < 12) {
-          // Found a point - check if it has curve data from splineDrawing
-          const splinePoint = splineDrawing.points.find(sp => 
-            Math.abs(sp.x - pt.x) < 5 && Math.abs(sp.y - pt.y) < 5
-          );
-          if (splinePoint) {
+    if (activeTool === 'select' && !splineDrawing.isActive) {
+      // Check main pool points
+      if (points.length > 0) {
+        for (let i = 0; i < points.length; i++) {
+          const pt = points[i];
+          const dist = Math.sqrt(Math.pow(x - pt.x, 2) + Math.pow(y - pt.y, 2));
+          if (dist < 12) {
+            // Found a point - create spline point data from it
+            const splinePoint: SplinePoint = {
+              x: pt.x,
+              y: pt.y,
+              id: pt.id,
+              curveType: pt.curveType || 'linear',
+            };
             const canvas = canvasRef.current;
             if (canvas) {
               const rect = canvas.getBoundingClientRect();
@@ -3290,6 +3330,36 @@ export function PoolBuilder({
                   x: rect.left + pt.x * zoomLevel,
                   y: rect.top + pt.y * zoomLevel,
                 },
+              });
+            }
+            return;
+          }
+        }
+      }
+      
+      // Check additional pool points (spas, tanning ledges, new pools)
+      for (const pool of additionalPools) {
+        for (let i = 0; i < pool.points.length; i++) {
+          const pt = pool.points[i];
+          const dist = Math.sqrt(Math.pow(x - pt.x, 2) + Math.pow(y - pt.y, 2));
+          if (dist < 12) {
+            const splinePoint: SplinePoint = {
+              x: pt.x,
+              y: pt.y,
+              id: pt.id,
+              curveType: pt.curveType || 'linear',
+            };
+            const canvas = canvasRef.current;
+            if (canvas) {
+              const rect = canvas.getBoundingClientRect();
+              setSelectedSplinePoint({
+                point: splinePoint,
+                index: i,
+                screenPosition: {
+                  x: rect.left + pt.x * zoomLevel,
+                  y: rect.top + pt.y * zoomLevel,
+                },
+                poolId: pool.id,
               });
             }
             return;
@@ -4319,18 +4389,36 @@ export function PoolBuilder({
               pointIndex={selectedSplinePoint.index}
               position={selectedSplinePoint.screenPosition}
               onCurveTypeChange={(pointId, curveType) => {
-                setSplineDrawing(prev => ({
-                  ...prev,
-                  points: prev.points.map(p => 
+                if (selectedSplinePoint.poolId) {
+                  // Additional pool point
+                  updateAdditionalPoolPointCurveType(selectedSplinePoint.poolId, pointId, curveType);
+                  // Update the selectedSplinePoint to reflect the change
+                  setSelectedSplinePoint(prev => prev ? {
+                    ...prev,
+                    point: { ...prev.point, curveType }
+                  } : null);
+                } else {
+                  // Main pool point - update points state directly
+                  setPoints(prev => prev.map(p => 
                     p.id === pointId ? { ...p, curveType } : p
-                  ),
-                }));
+                  ));
+                  // Update the selectedSplinePoint to reflect the change
+                  setSelectedSplinePoint(prev => prev ? {
+                    ...prev,
+                    point: { ...prev.point, curveType }
+                  } : null);
+                }
               }}
               onDeletePoint={(pointId) => {
-                setSplineDrawing(prev => ({
-                  ...prev,
-                  points: prev.points.filter(p => p.id !== pointId),
-                }));
+                if (selectedSplinePoint.poolId) {
+                  // Additional pool point
+                  deleteAdditionalPoolPoint(selectedSplinePoint.poolId, pointId);
+                } else {
+                  // Main pool point - check minimum points
+                  if (points.length > 3) {
+                    setPoints(prev => prev.filter(p => p.id !== pointId));
+                  }
+                }
                 setSelectedSplinePoint(null);
               }}
               onClose={() => setSelectedSplinePoint(null)}
@@ -4352,11 +4440,13 @@ export function PoolBuilder({
                 }}
                 onComplete={() => {
                   if (splineDrawing.points.length >= 3) {
+                    // Update first point's curveType to current selection for closing segment
                     const newPoolPoints = splineDrawing.points.map((sp, i) => ({
                       x: sp.x,
                       y: sp.y,
                       id: (i + 1).toString(),
-                      curveType: sp.curveType,
+                      // First point defines closing segment curve - use current curve type
+                      curveType: i === 0 ? splineDrawing.currentCurveType : sp.curveType,
                     }));
                     
                     // Check if we're in perimeter anchor mode (drawing spa/tanning ledge)
