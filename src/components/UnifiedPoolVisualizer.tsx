@@ -73,6 +73,37 @@ function CameraController({
   return null;
 }
 
+// Force re-render when scene state changes (for frameloop="demand")
+function SceneInvalidator({ scene, isNightMode, sunPosition }: { 
+  scene: Scene3D; 
+  isNightMode: boolean;
+  sunPosition: [number, number, number];
+}) {
+  const { invalidate } = useThree();
+  
+  useEffect(() => {
+    // Force immediate re-render when any relevant state changes
+    invalidate();
+  }, [
+    scene.pool.finish?.url,
+    scene.pool.finish?.scale,
+    scene.deck.paver?.url,
+    scene.deck.paver?.scale,
+    scene.deck.coping?.url,
+    scene.deck.coping?.scale,
+    scene.deck.waterline?.url,
+    scene.deck.waterline?.scale,
+    scene.deck.copingWidth,
+    scene.deck.copingHeight,
+    scene.deck.deckElevation,
+    isNightMode,
+    sunPosition,
+    invalidate
+  ]);
+  
+  return null;
+}
+
 // Smooth zoom controller for component selection
 function SelectionZoomController({
   selectedComponent,
@@ -1198,6 +1229,9 @@ export function UnifiedPoolVisualizer({
                 }}
                 frameloop={isWalkthroughMode ? "always" : "demand"} // Always render during walkthrough for smooth movement
               >
+          {/* Force re-render on state changes */}
+          <SceneInvalidator scene={scene} isNightMode={isNightMode} sunPosition={sunPosition} />
+          
           {/* Dynamic Sky with Clouds - Day/Night modes */}
           {!isNightMode ? (
             <Sky 
