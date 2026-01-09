@@ -5127,8 +5127,11 @@ export function PoolBuilder({
                 isEditMode={true}
                 pointLabel={`Point ${selectedSplinePoint.index + 1}`}
                 onAddPoint={() => {
-                  // Add a new point after the selected one
+                  // Add a new point after the selected one - keep it selected for dragging
                   const currentIndex = selectedSplinePoint.index;
+                  const newPointId = Date.now().toString();
+                  const newPointIndex = currentIndex + 1;
+                  
                   if (selectedSplinePoint.poolId) {
                     // Additional pool
                     const pool = additionalPools.find(p => p.id === selectedSplinePoint.poolId);
@@ -5138,7 +5141,7 @@ export function PoolBuilder({
                       const nextPt = pool.points[nextIndex];
                       const midX = (currentPt.x + nextPt.x) / 2;
                       const midY = (currentPt.y + nextPt.y) / 2;
-                      const newPoint = { x: midX, y: midY, id: Date.now().toString(), curveType: currentPt.curveType || 'linear' as const };
+                      const newPoint = { x: midX, y: midY, id: newPointId, curveType: 'linear' as const };
                       
                       setAdditionalPools(prev => prev.map(p => {
                         if (p.id !== selectedSplinePoint.poolId) return p;
@@ -5146,6 +5149,25 @@ export function PoolBuilder({
                         newPoints.splice(currentIndex + 1, 0, newPoint);
                         return { ...p, points: newPoints };
                       }));
+                      
+                      // Select the new point for dragging
+                      setDraggingAdditionalPoolPoint({ poolId: selectedSplinePoint.poolId, pointId: newPointId });
+                      setSelectedAdditionalPool(selectedSplinePoint.poolId);
+                      
+                      // Update selectedSplinePoint to the new point
+                      const canvas = canvasRef.current;
+                      if (canvas) {
+                        const rect = canvas.getBoundingClientRect();
+                        setSelectedSplinePoint({
+                          point: { x: midX, y: midY, id: newPointId, curveType: 'linear' },
+                          index: newPointIndex,
+                          screenPosition: {
+                            x: rect.left + midX * zoomLevel,
+                            y: rect.top + midY * zoomLevel,
+                          },
+                          poolId: selectedSplinePoint.poolId,
+                        });
+                      }
                     }
                   } else {
                     // Main pool
@@ -5154,15 +5176,32 @@ export function PoolBuilder({
                     const nextPt = points[nextIndex];
                     const midX = (currentPt.x + nextPt.x) / 2;
                     const midY = (currentPt.y + nextPt.y) / 2;
-                    const newPoint = { x: midX, y: midY, id: Date.now().toString(), curveType: currentPt.curveType || 'linear' as const };
+                    const newPoint = { x: midX, y: midY, id: newPointId, curveType: 'linear' as const };
                     
                     setPoints(prev => {
                       const newPoints = [...prev];
                       newPoints.splice(currentIndex + 1, 0, newPoint);
                       return newPoints;
                     });
+                    
+                    // Select the new point for dragging
+                    setSelectedPoint(newPointId);
+                    setIsDragging(true);
+                    
+                    // Update selectedSplinePoint to the new point
+                    const canvas = canvasRef.current;
+                    if (canvas) {
+                      const rect = canvas.getBoundingClientRect();
+                      setSelectedSplinePoint({
+                        point: { x: midX, y: midY, id: newPointId, curveType: 'linear' },
+                        index: newPointIndex,
+                        screenPosition: {
+                          x: rect.left + midX * zoomLevel,
+                          y: rect.top + midY * zoomLevel,
+                        },
+                      });
+                    }
                   }
-                  setSelectedSplinePoint(null);
                 }}
                 onDeletePoint={() => {
                   const pointId = selectedSplinePoint.point.id;
