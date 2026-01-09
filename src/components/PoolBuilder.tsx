@@ -4665,38 +4665,6 @@ export function PoolBuilder({
             {showControls ? 'Hide Controls' : 'Show Controls'}
           </Button>
         </div>
-
-        
-        <div className="flex items-center gap-4 ml-auto">
-          <div className="flex items-center gap-1 text-xs">
-            <Ruler className="h-3 w-3" />
-            <span className="font-bold">{calculatePerimeter()}</span>
-            <span className="text-muted-foreground">ft</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs">
-            <span className="font-bold">{calculateArea()}</span>
-            <span className="text-muted-foreground">sq ft pool</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs">
-            <span className="font-bold">{points.length}</span>
-            <span className="text-muted-foreground">corners</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs">
-            <span className="font-bold">{features.length}</span>
-            <span className="text-muted-foreground">features</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs">
-            <span className="font-bold">{calculateHardscapeArea().toFixed(1)}</span>
-            <span className="text-muted-foreground">sq ft deck</span>
-          </div>
-          <div className="h-5 w-px bg-border" />
-          <div className="flex items-center gap-1 text-xs font-semibold text-primary">
-            <span className="text-muted-foreground">Total:</span>
-            <span className="text-lg">${projectCost.total.toLocaleString('en-US', {
-              maximumFractionDigits: 0
-            })}</span>
-          </div>
-        </div>
       </div>
 
       {/* Collapsible Controls Panel - Only show tabs if not externally controlled */}

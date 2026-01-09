@@ -292,7 +292,15 @@ const DesignStudio = () => {
           <SubToolbar 
             category={activeCategory} 
             activeTool={activeTool} 
-            onToolSelect={handleToolSelect} 
+            onToolSelect={handleToolSelect}
+            stats={poolBuilderData ? {
+              perimeter: poolBuilderData.perimeter,
+              area: poolBuilderData.area,
+              corners: poolBuilderData.points?.length || 0,
+              features: poolBuilderData.features?.length || 0,
+              deckArea: poolBuilderData.deckArea || 0,
+              totalCost: poolBuilderData.breakdown?.total || poolBuilderData.totalCost || 0,
+            } : null}
           />
         </>
       )}
