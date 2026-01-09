@@ -1,5 +1,10 @@
 import * as React from "react";
-const { useState, useEffect, useMemo, useCallback } = React;
+const {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback
+} = React;
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,12 +41,12 @@ const finishOptions = poolFinishesData.map(finish => ({
   collection: finish.collection || 'Standard',
   description: finish.description
 }));
-
 const DesignStudio = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { toast } = useToast();
-  
+  const {
+    toast
+  } = useToast();
   const [activeView, setActiveView] = useState<'2d' | '3d'>('2d');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<DesignCategory>('pool');
@@ -66,7 +71,6 @@ const DesignStudio = () => {
       total: number;
     };
   } | null>(null);
-  
   const [selectedExtras, setSelectedExtras] = useState<any>({
     finish: '',
     paverOption: '',
@@ -74,7 +78,7 @@ const DesignStudio = () => {
     customPoolShape: null,
     depthProfile: null,
     poolBuilderData: null,
-    poolBuilderFeatures: null,
+    poolBuilderFeatures: null
   });
 
   // Handle tool selection from toolbar
@@ -82,7 +86,7 @@ const DesignStudio = () => {
     setActiveTool(tool.id);
     toast({
       title: tool.name,
-      description: tool.description || `${tool.name} tool selected`,
+      description: tool.description || `${tool.name} tool selected`
     });
   }, [toast]);
 
@@ -99,7 +103,6 @@ const DesignStudio = () => {
     const dimensions = searchParams.get('dimensions');
     const depth = searchParams.get('depth');
     const type = searchParams.get('type') as 'pool' | 'spa' | 'tanning-ledge' | null;
-    
     if (!model || !price) {
       // Default to first pool if no params
       const defaultPool = pools[0] || gilmerPools[0];
@@ -110,43 +113,49 @@ const DesignStudio = () => {
           category: defaultPool.category,
           dimensions: defaultPool.dimensions,
           depth: defaultPool.depth,
-          type: 'pool' as const,
+          type: 'pool' as const
         };
       }
       return null;
     }
-    
+
     // Try to find matching product
     let foundProduct: Product | null = null;
-    
+
     // Check pools
     const poolMatch = [...pools, ...gilmerPools].find(p => p.model === model);
     if (poolMatch) {
-      foundProduct = { ...poolMatch, type: 'pool' as const };
+      foundProduct = {
+        ...poolMatch,
+        type: 'pool' as const
+      };
     }
-    
+
     // Check spas
     if (!foundProduct) {
       const spaMatch = [...spas, ...gilmerSpas].find(s => s.model === model);
       if (spaMatch) {
-        foundProduct = { ...spaMatch, type: 'spa' as const };
+        foundProduct = {
+          ...spaMatch,
+          type: 'spa' as const
+        };
       }
     }
-    
+
     // Check tanning ledges
     if (!foundProduct) {
       const ledgeMatch = tanningLedges.find(t => t.name === model);
       if (ledgeMatch) {
-        foundProduct = { 
-          model: ledgeMatch.name, 
+        foundProduct = {
+          model: ledgeMatch.name,
           name: ledgeMatch.name,
-          price: ledgeMatch.price, 
+          price: ledgeMatch.price,
           category: 'Tanning Ledge',
-          type: 'tanning-ledge' as const 
+          type: 'tanning-ledge' as const
         };
       }
     }
-    
+
     // Fallback to URL params
     if (!foundProduct) {
       foundProduct = {
@@ -155,10 +164,9 @@ const DesignStudio = () => {
         category: category || 'Pool',
         dimensions: dimensions || undefined,
         depth: depth || undefined,
-        type: type || 'pool',
+        type: type || 'pool'
       };
     }
-    
     return foundProduct;
   }, [searchParams]);
 
@@ -172,7 +180,6 @@ const DesignStudio = () => {
       setIsFullscreen(false);
     }
   }, []);
-
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -186,17 +193,16 @@ const DesignStudio = () => {
     console.log('Pool builder data changed:', data);
     setPoolBuilderData(data);
     setCustomPoolShape(data.points);
-    
     const jetCount = data.features?.filter((f: any) => f.type === 'jet').length || 0;
     const hasStairs = data.features?.some((f: any) => f.type === 'stairs') || false;
     const lightCount = data.features?.filter((f: any) => f.type === 'light').length || 0;
-    
     setSelectedExtras((prev: any) => ({
       ...prev,
       customPoolShape: data.points,
       depthProfile: data.depthPoints,
       poolBuilderData: data,
-      additionalPools: data.additionalPools || [], // CRITICAL: Preserve additional pools
+      additionalPools: data.additionalPools || [],
+      // CRITICAL: Preserve additional pools
       hardscapePoints: data.hardscapePoints || [],
       jets: jetCount > 0,
       jetQuantity: jetCount,
@@ -221,14 +227,12 @@ const DesignStudio = () => {
     if (customPoolShape && customPoolShape.length > 0) {
       toast({
         title: "Custom Shape Loaded",
-        description: `Your custom pool design with ${customPoolShape.length} points is now in 3D!`,
+        description: `Your custom pool design with ${customPoolShape.length} points is now in 3D!`
       });
     }
   }, [customPoolShape, toast]);
-
   if (!selectedProduct) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+    return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">No product selected</p>
           <Button onClick={() => navigate('/wonderlands-studio')}>
@@ -236,26 +240,13 @@ const DesignStudio = () => {
             Back to Studio
           </Button>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
+  return <div className="min-h-screen bg-background flex flex-col">
       {/* Category Toolbar with integrated header elements */}
-      {activeView === '2d' ? (
-        <>
-          <CategoryToolbar 
-            activeCategory={activeCategory} 
-            onCategoryChange={setActiveCategory}
-            headerLeft={
-              <div className="flex items-center gap-4">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => navigate(-1)}
-                  className="gap-2"
-                >
+      {activeView === '2d' ? <>
+          <CategoryToolbar activeCategory={activeCategory} onCategoryChange={setActiveCategory} headerLeft={<div className="flex items-center gap-4">
+                <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
                   <ArrowLeft className="w-4 h-4" />
                   Back
                 </Button>
@@ -264,14 +255,10 @@ const DesignStudio = () => {
                   <h1 className="text-sm font-semibold">{selectedProduct.model || selectedProduct.name}</h1>
                   <p className="text-xs text-muted-foreground">{selectedProduct.dimensions}</p>
                 </div>
-              </div>
-            }
-            headerRight={
-              <div className="flex items-center gap-2">
-                <Tabs value={activeView} onValueChange={(v) => {
-                  if (v === '3d') handleSwitch3D();
-                  else setActiveView(v as '2d' | '3d');
-                }}>
+              </div>} headerRight={<div className="flex items-center gap-2">
+                <Tabs value={activeView} onValueChange={v => {
+          if (v === '3d') handleSwitch3D();else setActiveView(v as '2d' | '3d');
+        }}>
                   <TabsList className="h-9">
                     <TabsTrigger value="2d" className="gap-1.5 text-xs px-3">
                       <Layers className="h-3.5 w-3.5" />
@@ -289,32 +276,18 @@ const DesignStudio = () => {
                 <Button variant="ghost" size="icon" onClick={toggleFullscreen} title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}>
                   {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                 </Button>
-              </div>
-            }
-          />
-          <SubToolbar 
-            category={activeCategory} 
-            activeTool={activeTool} 
-            onToolSelect={handleToolSelect}
-            stats={poolBuilderData ? {
-              perimeter: poolBuilderData.perimeter,
-              area: poolBuilderData.area,
-              corners: poolBuilderData.points?.length || 0,
-              features: poolBuilderData.features?.length || 0,
-              deckArea: poolBuilderData.deckArea || 0,
-              totalCost: poolBuilderData.breakdown?.total || poolBuilderData.totalCost || 0,
-            } : null}
-          />
-        </>
-      ) : (
-        <header className="h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 shrink-0 z-50">
+              </div>} />
+          <SubToolbar category={activeCategory} activeTool={activeTool} onToolSelect={handleToolSelect} stats={poolBuilderData ? {
+        perimeter: poolBuilderData.perimeter,
+        area: poolBuilderData.area,
+        corners: poolBuilderData.points?.length || 0,
+        features: poolBuilderData.features?.length || 0,
+        deckArea: poolBuilderData.deckArea || 0,
+        totalCost: poolBuilderData.breakdown?.total || poolBuilderData.totalCost || 0
+      } : null} />
+        </> : <header className="h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 shrink-0 z-50">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => navigate(-1)}
-              className="gap-2"
-            >
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
               <ArrowLeft className="w-4 h-4" />
               Back
             </Button>
@@ -326,10 +299,9 @@ const DesignStudio = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            <Tabs value={activeView} onValueChange={(v) => {
-              if (v === '3d') handleSwitch3D();
-              else setActiveView(v as '2d' | '3d');
-            }}>
+            <Tabs value={activeView} onValueChange={v => {
+          if (v === '3d') handleSwitch3D();else setActiveView(v as '2d' | '3d');
+        }}>
               <TabsList className="h-9">
                 <TabsTrigger value="2d" className="gap-1.5 text-xs px-3">
                   <Layers className="h-3.5 w-3.5" />
@@ -344,94 +316,68 @@ const DesignStudio = () => {
             
             <div className="h-6 w-px bg-border" />
             
-            <Button variant="ghost" size="icon" onClick={toggleFullscreen} title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}>
-              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-            </Button>
+            
           </div>
-        </header>
-      )}
+        </header>}
 
       {/* Main Content */}
       <main className="flex-1 relative overflow-hidden">
-        {activeView === '2d' ? (
-          <div className="w-full h-full">
-            <PoolBuilder
-              initialDimensions={selectedProduct.dimensions}
-              initialDepth={selectedProduct.depth}
-              externalTool={activeTool}
-              externalTab={activeCategory}
-              hideInternalTabs={true}
-              onToolUsed={handleToolUsed}
-              onPoolDataChange={handlePoolDataChange}
-            />
-          </div>
-        ) : (
-          <div className="w-full h-full">
-            <UnifiedPoolVisualizer
-              scene={productToScene(
-                selectedProduct,
-                { ...selectedExtras, customPoolShape },
-                paverTypes,
-                finishOptions
-              )}
-              textureLibrary={{
-                finishes: [
-                  ...poolFinishesData.map(f => ({
-                    url: f.image,
-                    name: f.name,
-                    roughness: 0.2,
-                    metalness: 0.1
-                  })),
-                  ...poolLinersData.map(l => ({
-                    url: l.image,
-                    name: l.name,
-                    roughness: 0.3,
-                    metalness: 0.2
-                  })),
-                  ...poolTilesData.map(t => ({
-                    url: t.image,
-                    name: t.name,
-                    roughness: 0.1,
-                    metalness: 0.3
-                  }))
-                ],
-                pavers: paverTypes.map(p => ({
-                  url: p.image,
-                  name: p.name,
-                  roughness: 0.8,
-                  metalness: 0.0
-                })),
-                coping: paverTypes.map(p => ({
-                  url: p.image,
-                  name: p.name,
-                  roughness: 0.6,
-                  metalness: 0.0
-                })),
-                waterlines: [
-                  { url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png', name: 'Ballad', roughness: 0.1, metalness: 0.3 },
-                  ...poolLinersData.filter(l => l.type === 'Glass').map(l => ({
-                    url: l.image,
-                    name: l.name,
-                    roughness: 0.1,
-                    metalness: 0.3
-                  })),
-                  ...poolLinersData.filter(l => l.type === 'Porcelain').map(l => ({
-                    url: l.image,
-                    name: l.name,
-                    roughness: 0.2,
-                    metalness: 0.1
-                  }))
-                ]
-              }}
-              onSceneChange={(updatedScene) => {
-                // Handle scene updates if needed
-              }}
-            />
-          </div>
-        )}
+        {activeView === '2d' ? <div className="w-full h-full">
+            <PoolBuilder initialDimensions={selectedProduct.dimensions} initialDepth={selectedProduct.depth} externalTool={activeTool} externalTab={activeCategory} hideInternalTabs={true} onToolUsed={handleToolUsed} onPoolDataChange={handlePoolDataChange} />
+          </div> : <div className="w-full h-full">
+            <UnifiedPoolVisualizer scene={productToScene(selectedProduct, {
+          ...selectedExtras,
+          customPoolShape
+        }, paverTypes, finishOptions)} textureLibrary={{
+          finishes: [...poolFinishesData.map(f => ({
+            url: f.image,
+            name: f.name,
+            roughness: 0.2,
+            metalness: 0.1
+          })), ...poolLinersData.map(l => ({
+            url: l.image,
+            name: l.name,
+            roughness: 0.3,
+            metalness: 0.2
+          })), ...poolTilesData.map(t => ({
+            url: t.image,
+            name: t.name,
+            roughness: 0.1,
+            metalness: 0.3
+          }))],
+          pavers: paverTypes.map(p => ({
+            url: p.image,
+            name: p.name,
+            roughness: 0.8,
+            metalness: 0.0
+          })),
+          coping: paverTypes.map(p => ({
+            url: p.image,
+            name: p.name,
+            roughness: 0.6,
+            metalness: 0.0
+          })),
+          waterlines: [{
+            url: '/lovable-uploads/37536046-70f5-46b8-8422-84097ccdec08.png',
+            name: 'Ballad',
+            roughness: 0.1,
+            metalness: 0.3
+          }, ...poolLinersData.filter(l => l.type === 'Glass').map(l => ({
+            url: l.image,
+            name: l.name,
+            roughness: 0.1,
+            metalness: 0.3
+          })), ...poolLinersData.filter(l => l.type === 'Porcelain').map(l => ({
+            url: l.image,
+            name: l.name,
+            roughness: 0.2,
+            metalness: 0.1
+          }))]
+        }} onSceneChange={updatedScene => {
+          // Handle scene updates if needed
+        }} />
+          </div>}
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default DesignStudio;
