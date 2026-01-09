@@ -1389,7 +1389,7 @@ export function PoolBuilder({
     return Math.max(0, hardscapeAreaSqFt - poolAreaSqFt);
   }, [hardscapePoints, scale, points]);
 
-  // Get symmetry-snapped position for a point (snaps to axis lines AND mirrored positions of existing points)
+  // Get symmetry-snapped position for a point (snaps to axis lines, mirrored positions, AND matching segment lengths)
   const getSymmetrySnappedPosition = useCallback((x: number, y: number): { 
     x: number; 
     y: number; 
@@ -1397,9 +1397,21 @@ export function PoolBuilder({
     snappedHorizontal: boolean;
     snappedToMirror: boolean;
     mirroredFromPoint?: { x: number; y: number };
+    snappedToLengthMatch: boolean;
+    matchedLength?: number;
+    matchedSegmentIndex?: number;
+    snappedToSymmetric: boolean;
+    symmetricSegmentInfo?: { startPoint: { x: number; y: number }; endPoint: { x: number; y: number }; };
   } => {
     if (!symmetryMode.enabled) {
-      return { x, y, snappedVertical: false, snappedHorizontal: false, snappedToMirror: false };
+      return { 
+        x, y, 
+        snappedVertical: false, 
+        snappedHorizontal: false, 
+        snappedToMirror: false,
+        snappedToLengthMatch: false,
+        snappedToSymmetric: false,
+      };
     }
     
     const centerX = canvasSize.width / 2;
@@ -1412,8 +1424,109 @@ export function PoolBuilder({
     let snappedHorizontal = false;
     let snappedToMirror = false;
     let mirroredFromPoint: { x: number; y: number } | undefined;
+    let snappedToLengthMatch = false;
+    let matchedLength: number | undefined;
+    let matchedSegmentIndex: number | undefined;
+    let snappedToSymmetric = false;
+    let symmetricSegmentInfo: { startPoint: { x: number; y: number }; endPoint: { x: number; y: number }; } | undefined;
     
-    // First, check for mirrored positions of existing spline points
+    // === NEW: Check for segment length matching and symmetric segment snapping ===
+    if (splineDrawing.points.length >= 2) {
+      const lastPt = splineDrawing.points[splineDrawing.points.length - 1];
+      const currentAngle = Math.atan2(y - lastPt.y, x - lastPt.x);
+      const currentLength = Math.sqrt(Math.pow(x - lastPt.x, 2) + Math.pow(y - lastPt.y, 2));
+      
+      // Check each existing segment for length and symmetry matching
+      for (let i = 1; i < splineDrawing.points.length; i++) {
+        const segStart = splineDrawing.points[i - 1];
+        const segEnd = splineDrawing.points[i];
+        const segLength = Math.sqrt(Math.pow(segEnd.x - segStart.x, 2) + Math.pow(segEnd.y - segStart.y, 2));
+        const segAngle = Math.atan2(segEnd.y - segStart.y, segEnd.x - segStart.x);
+        
+        // Calculate mirrored angle across vertical axis (negate x component)
+        const mirroredAngleV = Math.PI - segAngle;
+        // Calculate mirrored angle across horizontal axis (negate y component)
+        const mirroredAngleH = -segAngle;
+        
+        // Check for symmetric segment (same length + mirrored angle)
+        const angleTolerance = 0.15; // ~8.5 degrees
+        const lengthTolerance = snapDist;
+        
+        // Check if current segment would be symmetric (mirrored) to this existing segment
+        const isSymmetricV = (symmetryMode.axes === 'vertical' || symmetryMode.axes === 'both') &&
+          Math.abs(segLength - currentLength) < lengthTolerance &&
+          Math.abs(normalizeAngle(currentAngle - mirroredAngleV)) < angleTolerance;
+          
+        const isSymmetricH = (symmetryMode.axes === 'horizontal' || symmetryMode.axes === 'both') &&
+          Math.abs(segLength - currentLength) < lengthTolerance &&
+          Math.abs(normalizeAngle(currentAngle - mirroredAngleH)) < angleTolerance;
+        
+        if (isSymmetricV || isSymmetricH) {
+          // Snap to exact symmetric position
+          const targetAngle = isSymmetricV ? mirroredAngleV : mirroredAngleH;
+          snappedX = lastPt.x + segLength * Math.cos(targetAngle);
+          snappedY = lastPt.y + segLength * Math.sin(targetAngle);
+          snappedToSymmetric = true;
+          matchedLength = segLength;
+          matchedSegmentIndex = i;
+          symmetricSegmentInfo = { startPoint: segStart, endPoint: segEnd };
+          break;
+        }
+        
+        // Check for length-only matching (snap to same length in current direction)
+        if (Math.abs(currentLength - segLength) < lengthTolerance * 2) {
+          // Calculate snap point at the exact matched length in the current direction
+          const snapPosX = lastPt.x + segLength * Math.cos(currentAngle);
+          const snapPosY = lastPt.y + segLength * Math.sin(currentAngle);
+          const distToSnap = Math.sqrt(Math.pow(x - snapPosX, 2) + Math.pow(y - snapPosY, 2));
+          
+          if (distToSnap < snapDist * 1.5) {
+            snappedX = snapPosX;
+            snappedY = snapPosY;
+            snappedToLengthMatch = true;
+            matchedLength = segLength;
+            matchedSegmentIndex = i;
+            symmetricSegmentInfo = { startPoint: segStart, endPoint: segEnd };
+          }
+        }
+      }
+    }
+    
+    // Helper to normalize angle to -PI to PI range
+    function normalizeAngle(angle: number): number {
+      while (angle > Math.PI) angle -= 2 * Math.PI;
+      while (angle < -Math.PI) angle += 2 * Math.PI;
+      return angle;
+    }
+    
+    // If already snapped to symmetric/length, skip other snaps
+    if (snappedToSymmetric) {
+      return { 
+        x: snappedX, y: snappedY, 
+        snappedVertical: false, snappedHorizontal: false, 
+        snappedToMirror: false,
+        snappedToLengthMatch: false,
+        snappedToSymmetric: true,
+        matchedLength,
+        matchedSegmentIndex,
+        symmetricSegmentInfo
+      };
+    }
+    
+    if (snappedToLengthMatch) {
+      return { 
+        x: snappedX, y: snappedY, 
+        snappedVertical: false, snappedHorizontal: false, 
+        snappedToMirror: false,
+        snappedToLengthMatch: true,
+        matchedLength,
+        matchedSegmentIndex,
+        snappedToSymmetric: false,
+        symmetricSegmentInfo
+      };
+    }
+    
+    // Check for mirrored positions of existing spline points
     if (splineDrawing.points.length > 0) {
       for (const pt of splineDrawing.points) {
         // Calculate mirrored positions
@@ -1473,7 +1586,13 @@ export function PoolBuilder({
       }
     }
     
-    return { x: snappedX, y: snappedY, snappedVertical, snappedHorizontal, snappedToMirror, mirroredFromPoint };
+    return { 
+      x: snappedX, y: snappedY, 
+      snappedVertical, snappedHorizontal, 
+      snappedToMirror, mirroredFromPoint,
+      snappedToLengthMatch: false,
+      snappedToSymmetric: false,
+    };
   }, [symmetryMode.enabled, symmetryMode.axes, symmetryMode.snapDistance, canvasSize.width, canvasSize.height, splineDrawing.points]);
 
   // Find nearest point on pool perimeter
@@ -3180,9 +3299,52 @@ export function PoolBuilder({
         ctx.setLineDash([]);
       }
       
-      // Draw snap indicators when cursor is near symmetry lines or mirror points
+      // Draw snap indicators when cursor is near symmetry lines, mirror points, or matching lengths
       const snappedPos = getSymmetrySnappedPosition(cursorPos.x, cursorPos.y);
-      if (snappedPos.snappedVertical || snappedPos.snappedHorizontal || snappedPos.snappedToMirror) {
+      
+      // Draw length-match radius guide when we have points and cursor is near a matching length
+      if (splineDrawing.points.length >= 2 && (snappedPos.snappedToLengthMatch || snappedPos.snappedToSymmetric)) {
+        const lastPt = splineDrawing.points[splineDrawing.points.length - 1];
+        
+        // Draw radius arc showing matching length
+        if (snappedPos.matchedLength) {
+          ctx.beginPath();
+          ctx.arc(lastPt.x, lastPt.y, snappedPos.matchedLength, 0, Math.PI * 2);
+          ctx.strokeStyle = snappedPos.snappedToSymmetric 
+            ? 'rgba(0, 255, 100, 0.25)' 
+            : 'rgba(255, 165, 0, 0.25)';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([8, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        
+        // Highlight the matched existing segment
+        if (snappedPos.symmetricSegmentInfo) {
+          const { startPoint, endPoint } = snappedPos.symmetricSegmentInfo;
+          ctx.beginPath();
+          ctx.moveTo(startPoint.x, startPoint.y);
+          ctx.lineTo(endPoint.x, endPoint.y);
+          ctx.strokeStyle = snappedPos.snappedToSymmetric 
+            ? 'rgba(0, 255, 100, 0.8)' 
+            : 'rgba(255, 165, 0, 0.8)';
+          ctx.lineWidth = 4;
+          ctx.stroke();
+          
+          // Draw segment midpoint marker
+          const midX = (startPoint.x + endPoint.x) / 2;
+          const midY = (startPoint.y + endPoint.y) / 2;
+          ctx.beginPath();
+          ctx.arc(midX, midY, 5, 0, Math.PI * 2);
+          ctx.fillStyle = snappedPos.snappedToSymmetric 
+            ? 'rgba(0, 255, 100, 0.6)' 
+            : 'rgba(255, 165, 0, 0.6)';
+          ctx.fill();
+        }
+      }
+      
+      if (snappedPos.snappedVertical || snappedPos.snappedHorizontal || snappedPos.snappedToMirror || 
+          snappedPos.snappedToLengthMatch || snappedPos.snappedToSymmetric) {
         ctx.setLineDash([]);
         
         // Highlight snap point
@@ -3192,7 +3354,43 @@ export function PoolBuilder({
         let snapColor = 'rgba(255, 200, 50, 0.9)';
         let snapLabel = 'SNAP';
         
-        if (snappedPos.snappedToMirror) {
+        if (snappedPos.snappedToSymmetric) {
+          snapColor = 'rgba(0, 255, 100, 0.95)';
+          const lengthFt = snappedPos.matchedLength ? (snappedPos.matchedLength / scale).toFixed(1) : '?';
+          snapLabel = `SYMMETRIC ${lengthFt}'`;
+          
+          // Draw connection line from snap point to last point
+          if (splineDrawing.points.length > 0) {
+            const lastPt = splineDrawing.points[splineDrawing.points.length - 1];
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(lastPt.x, lastPt.y);
+            ctx.lineTo(snappedPos.x, snappedPos.y);
+            ctx.strokeStyle = 'rgba(0, 255, 100, 0.5)';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([6, 4]);
+            ctx.stroke();
+            ctx.restore();
+          }
+        } else if (snappedPos.snappedToLengthMatch) {
+          snapColor = 'rgba(255, 165, 0, 0.95)';
+          const lengthFt = snappedPos.matchedLength ? (snappedPos.matchedLength / scale).toFixed(1) : '?';
+          snapLabel = `LENGTH ${lengthFt}'`;
+          
+          // Draw connection line from snap point to last point
+          if (splineDrawing.points.length > 0) {
+            const lastPt = splineDrawing.points[splineDrawing.points.length - 1];
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(lastPt.x, lastPt.y);
+            ctx.lineTo(snappedPos.x, snappedPos.y);
+            ctx.strokeStyle = 'rgba(255, 165, 0, 0.5)';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([6, 4]);
+            ctx.stroke();
+            ctx.restore();
+          }
+        } else if (snappedPos.snappedToMirror) {
           snapColor = 'rgba(0, 255, 150, 0.9)';
           snapLabel = 'MIRROR';
           
@@ -3223,9 +3421,13 @@ export function PoolBuilder({
         ctx.lineWidth = 2;
         ctx.stroke();
         
-        // Filled center for mirror snaps
-        if (snappedPos.snappedToMirror) {
-          ctx.fillStyle = 'rgba(0, 255, 150, 0.3)';
+        // Filled center for special snaps
+        if (snappedPos.snappedToMirror || snappedPos.snappedToSymmetric || snappedPos.snappedToLengthMatch) {
+          ctx.fillStyle = snappedPos.snappedToSymmetric 
+            ? 'rgba(0, 255, 100, 0.4)' 
+            : snappedPos.snappedToLengthMatch 
+              ? 'rgba(255, 165, 0, 0.4)' 
+              : 'rgba(0, 255, 150, 0.3)';
           ctx.fill();
         }
         
