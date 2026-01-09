@@ -39,12 +39,12 @@ interface RoofPoint {
 }
 interface PoolFeature {
   type: 'stairs' | 'light' | 'jet' | 'tree' | 'fountain' | 'grass' | 'home' | 'shrub' | 'umbrella' | 'fence' | 'pathway'
-    // New pool features
-    | 'pool-seat' | 'pool-wall' | 'diving-board' | 'slide' | 'pool-cover' | 'pool-accessory'
-    // New landscape features
-    | 'rock' | 'boulder' | 'hedge-row' | 'plant-row' | 'landscape-light' | 'edging' | 'grass-region'
-    // New water features
-    | 'pond' | 'stream' | 'waterfall' | 'jumping-jet' | 'sprinkler' | 'water-curtain';
+  // New pool features
+  | 'pool-seat' | 'pool-wall' | 'diving-board' | 'slide' | 'pool-cover' | 'pool-accessory'
+  // New landscape features
+  | 'rock' | 'boulder' | 'hedge-row' | 'plant-row' | 'landscape-light' | 'edging' | 'grass-region'
+  // New water features
+  | 'pond' | 'stream' | 'waterfall' | 'jumping-jet' | 'sprinkler' | 'water-curtain';
   x: number;
   y: number;
   id: string;
@@ -393,12 +393,18 @@ export function PoolBuilder({
   const [activeTab, setActiveTab] = useState('pool');
   const [showFenceEditor, setShowFenceEditor] = useState(false);
   const [customTextures, setCustomTextures] = useState<TextureConfig[]>([]);
-  
+
   // Spline drawing state for custom pool shapes
   interface SplinePoint extends Point {
     curveType: 'linear' | 'curve' | 'arc' | 'freeform';
-    handleIn?: { x: number; y: number };
-    handleOut?: { x: number; y: number };
+    handleIn?: {
+      x: number;
+      y: number;
+    };
+    handleOut?: {
+      x: number;
+      y: number;
+    };
   }
   const [splineDrawing, setSplineDrawing] = useState<{
     isActive: boolean;
@@ -407,9 +413,9 @@ export function PoolBuilder({
   }>({
     isActive: false,
     points: [],
-    currentCurveType: 'linear',
+    currentCurveType: 'linear'
   });
-  
+
   // Symmetry mode for spline drawing
   const [symmetryMode, setSymmetryMode] = useState<{
     enabled: boolean;
@@ -418,9 +424,9 @@ export function PoolBuilder({
   }>({
     enabled: true,
     axes: 'both',
-    snapDistance: 15,
+    snapDistance: 15
   });
-  
+
   // Multi-pool support
   interface MergePoint {
     poolPointIndex: number; // Index on the additional pool where merge starts/ends
@@ -447,21 +453,21 @@ export function PoolBuilder({
     poolId: string;
     pointId: string;
   } | null>(null);
-  
+
   // Pool type dialog state (for when new pool intersects deck)
   const [pendingPoolData, setPendingPoolData] = useState<{
     points: Point[];
     intersectsWith: string;
   } | null>(null);
   const [showPoolTypeDialog, setShowPoolTypeDialog] = useState(false);
-  
+
   // Deck dialog state (for asking about deck around new water body outside existing deck)
   const [showDeckDialog, setShowDeckDialog] = useState(false);
   const [pendingDeckData, setPendingDeckData] = useState<{
     poolId: string;
     deckPoints: HardscapePoint[];
   } | null>(null);
-  
+
   // Perimeter anchor mode - for positioning spa/tanning ledge connection point
   type PerimeterAnchorMode = {
     isActive: boolean;
@@ -473,22 +479,24 @@ export function PoolBuilder({
     isActive: false,
     featureType: null,
     perimeterPosition: 0.25,
-    isFixed: false,
+    isFixed: false
   });
-  
+
   // Check if a point is inside a polygon
   const isPointInPolygon = useCallback((x: number, y: number, polygon: Point[]): boolean => {
     let inside = false;
     for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-      const xi = polygon[i].x, yi = polygon[i].y;
-      const xj = polygon[j].x, yj = polygon[j].y;
-      if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
+      const xi = polygon[i].x,
+        yi = polygon[i].y;
+      const xj = polygon[j].x,
+        yj = polygon[j].y;
+      if (yi > y !== yj > y && x < (xj - xi) * (y - yi) / (yj - yi) + xi) {
         inside = !inside;
       }
     }
     return inside;
   }, []);
-  
+
   // Check if two polygons intersect (overlap)
   const doPolygonsIntersect = useCallback((poly1: Point[], poly2: Point[]): boolean => {
     // Check if any point of poly1 is inside poly2
@@ -511,16 +519,16 @@ export function PoolBuilder({
     }
     return false;
   }, [isPointInPolygon]);
-  
+
   // Line segment intersection check
   const doLinesIntersect = (a1: Point, a2: Point, b1: Point, b2: Point): boolean => {
     const det = (a2.x - a1.x) * (b2.y - b1.y) - (b2.x - b1.x) * (a2.y - a1.y);
     if (det === 0) return false;
     const lambda = ((b2.y - b1.y) * (b2.x - a1.x) + (b1.x - b2.x) * (b2.y - a1.y)) / det;
     const gamma = ((a1.y - a2.y) * (b2.x - a1.x) + (a2.x - a1.x) * (b2.y - a1.y)) / det;
-    return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+    return 0 < lambda && lambda < 1 && 0 < gamma && gamma < 1;
   };
-  
+
   // Get line intersection point
   const getLineIntersection = (a1: Point, a2: Point, b1: Point, b2: Point): Point | null => {
     const det = (a2.x - a1.x) * (b2.y - b1.y) - (b2.x - b1.x) * (a2.y - a1.y);
@@ -536,32 +544,40 @@ export function PoolBuilder({
     }
     return null;
   };
-  
+
   // Find intersection points between two polygons and compute merged water body
   const computeMergedWaterBody = useCallback((mainPoolPoints: Point[], spaPoints: Point[]): {
     mergedPolygon: Point[];
-    mergePoints: { mainIndex: number; spaIndex: number; point: Point }[];
-    spaEdgesOutsideMain: { startIdx: number; endIdx: number }[]; // Edges of spa outside main pool (need coping)
+    mergePoints: {
+      mainIndex: number;
+      spaIndex: number;
+      point: Point;
+    }[];
+    spaEdgesOutsideMain: {
+      startIdx: number;
+      endIdx: number;
+    }[]; // Edges of spa outside main pool (need coping)
   } | null => {
     if (mainPoolPoints.length < 3 || spaPoints.length < 3) return null;
-    
-    const intersections: { mainSegIdx: number; spaSegIdx: number; point: Point; mainT: number; spaT: number }[] = [];
-    
+    const intersections: {
+      mainSegIdx: number;
+      spaSegIdx: number;
+      point: Point;
+      mainT: number;
+      spaT: number;
+    }[] = [];
+
     // Find all intersection points between the two polygons
     for (let i = 0; i < mainPoolPoints.length; i++) {
       const m1 = mainPoolPoints[i];
       const m2 = mainPoolPoints[(i + 1) % mainPoolPoints.length];
-      
       for (let j = 0; j < spaPoints.length; j++) {
         const s1 = spaPoints[j];
         const s2 = spaPoints[(j + 1) % spaPoints.length];
-        
         const det = (m2.x - m1.x) * (s2.y - s1.y) - (s2.x - s1.x) * (m2.y - m1.y);
         if (Math.abs(det) < 0.0001) continue;
-        
         const mainT = ((s2.y - s1.y) * (s2.x - m1.x) + (s1.x - s2.x) * (s2.y - m1.y)) / det;
         const spaT = ((m1.y - m2.y) * (s2.x - m1.x) + (m2.x - m1.x) * (s2.y - m1.y)) / det;
-        
         if (mainT > 0.001 && mainT < 0.999 && spaT > 0.001 && spaT < 0.999) {
           intersections.push({
             mainSegIdx: i,
@@ -577,29 +593,38 @@ export function PoolBuilder({
         }
       }
     }
-    
     if (intersections.length < 2) return null; // Need at least 2 intersection points to merge
-    
+
     // Sort intersections by spa segment index, then by spaT
     intersections.sort((a, b) => {
       if (a.spaSegIdx !== b.spaSegIdx) return a.spaSegIdx - b.spaSegIdx;
       return a.spaT - b.spaT;
     });
-    
+
     // Determine which spa edges are outside the main pool (need coping)
-    const spaEdgesOutsideMain: { startIdx: number; endIdx: number }[] = [];
+    const spaEdgesOutsideMain: {
+      startIdx: number;
+      endIdx: number;
+    }[] = [];
     for (let i = 0; i < spaPoints.length; i++) {
       const midX = (spaPoints[i].x + spaPoints[(i + 1) % spaPoints.length].x) / 2;
       const midY = (spaPoints[i].y + spaPoints[(i + 1) % spaPoints.length].y) / 2;
       if (!isPointInPolygon(midX, midY, mainPoolPoints)) {
-        spaEdgesOutsideMain.push({ startIdx: i, endIdx: (i + 1) % spaPoints.length });
+        spaEdgesOutsideMain.push({
+          startIdx: i,
+          endIdx: (i + 1) % spaPoints.length
+        });
       }
     }
-    
+
     // Build merged polygon by traversing both polygons
     const mergedPolygon: Point[] = [];
-    const mergePoints: { mainIndex: number; spaIndex: number; point: Point }[] = [];
-    
+    const mergePoints: {
+      mainIndex: number;
+      spaIndex: number;
+      point: Point;
+    }[] = [];
+
     // Start from first main pool point that's outside the spa
     let startIdx = 0;
     for (let i = 0; i < mainPoolPoints.length; i++) {
@@ -608,35 +633,40 @@ export function PoolBuilder({
         break;
       }
     }
-    
     let currentPoly: 'main' | 'spa' = 'main';
     let currentIdx = startIdx;
     const visited = new Set<string>();
     let safety = 0;
     const maxIterations = mainPoolPoints.length + spaPoints.length + intersections.length * 2;
-    
     while (safety++ < maxIterations) {
       const key = `${currentPoly}-${currentIdx}`;
       if (visited.has(key) && mergedPolygon.length > 2) break;
       visited.add(key);
-      
       if (currentPoly === 'main') {
         const pt = mainPoolPoints[currentIdx];
         if (!isPointInPolygon(pt.x, pt.y, spaPoints)) {
-          mergedPolygon.push({ ...pt, id: `merged-main-${currentIdx}` });
+          mergedPolygon.push({
+            ...pt,
+            id: `merged-main-${currentIdx}`
+          });
         }
-        
+
         // Check for intersection on this segment
         const nextIdx = (currentIdx + 1) % mainPoolPoints.length;
         const segmentIntersections = intersections.filter(i => i.mainSegIdx === currentIdx);
-        
         if (segmentIntersections.length > 0) {
           // Sort by mainT and take the first one
           segmentIntersections.sort((a, b) => a.mainT - b.mainT);
           const intersection = segmentIntersections[0];
-          mergedPolygon.push({ ...intersection.point });
-          mergePoints.push({ mainIndex: currentIdx, spaIndex: intersection.spaSegIdx, point: intersection.point });
-          
+          mergedPolygon.push({
+            ...intersection.point
+          });
+          mergePoints.push({
+            mainIndex: currentIdx,
+            spaIndex: intersection.spaSegIdx,
+            point: intersection.point
+          });
+
           // Switch to spa polygon, continue from intersection point going along spa edges outside main
           currentPoly = 'spa';
           currentIdx = (intersection.spaSegIdx + 1) % spaPoints.length;
@@ -646,19 +676,27 @@ export function PoolBuilder({
       } else {
         const pt = spaPoints[currentIdx];
         if (!isPointInPolygon(pt.x, pt.y, mainPoolPoints)) {
-          mergedPolygon.push({ ...pt, id: `merged-spa-${currentIdx}` });
+          mergedPolygon.push({
+            ...pt,
+            id: `merged-spa-${currentIdx}`
+          });
         }
-        
+
         // Check for intersection on this segment
         const nextIdx = (currentIdx + 1) % spaPoints.length;
         const segmentIntersections = intersections.filter(i => i.spaSegIdx === currentIdx);
-        
         if (segmentIntersections.length > 0) {
           segmentIntersections.sort((a, b) => a.spaT - b.spaT);
           const intersection = segmentIntersections[0];
-          mergedPolygon.push({ ...intersection.point });
-          mergePoints.push({ mainIndex: intersection.mainSegIdx, spaIndex: currentIdx, point: intersection.point });
-          
+          mergedPolygon.push({
+            ...intersection.point
+          });
+          mergePoints.push({
+            mainIndex: intersection.mainSegIdx,
+            spaIndex: currentIdx,
+            point: intersection.point
+          });
+
           // Switch back to main polygon
           currentPoly = 'main';
           currentIdx = (intersection.mainSegIdx + 1) % mainPoolPoints.length;
@@ -666,28 +704,31 @@ export function PoolBuilder({
           currentIdx = nextIdx;
         }
       }
-      
+
       // Check if we've returned to start
       if (currentPoly === 'main' && currentIdx === startIdx && mergedPolygon.length > 2) {
         break;
       }
     }
-    
-    return { mergedPolygon, mergePoints, spaEdgesOutsideMain };
+    return {
+      mergedPolygon,
+      mergePoints,
+      spaEdgesOutsideMain
+    };
   }, [isPointInPolygon]);
-  
+
   // Check if new pool intersects with any existing pool's WATER, COPING, or DECK
   const checkPoolAreaIntersection = useCallback((newPoolPoints: Point[]): string | null => {
     // Check main pool's water mesh (interior)
     if (points.length >= 3 && doPolygonsIntersect(newPoolPoints, points)) {
       return 'main';
     }
-    
+
     // Check main pool's deck/hardscape (includes coping area)
     if (hardscapePoints.length >= 3 && doPolygonsIntersect(newPoolPoints, hardscapePoints)) {
       return 'main';
     }
-    
+
     // Check additional pools' water and deck areas
     for (const pool of additionalPools) {
       if (pool.points.length >= 3) {
@@ -706,22 +747,22 @@ export function PoolBuilder({
     }
     return null;
   }, [points, hardscapePoints, additionalPools, doPolygonsIntersect, deckOffset]);
-  
+
   // Legacy alias for backward compatibility
   const checkDeckIntersection = checkPoolAreaIntersection;
-  
+
   // Check if a single click point is on any existing pool's water, coping, or deck area
   const checkClickedOnPoolArea = useCallback((x: number, y: number): string | null => {
     // Check if point is inside main pool water mesh
     if (points.length >= 3 && isPointInPolygon(x, y, points)) {
       return 'main';
     }
-    
+
     // Check if point is inside main pool's deck/hardscape (includes coping)
     if (hardscapePoints.length >= 3 && isPointInPolygon(x, y, hardscapePoints)) {
       return 'main';
     }
-    
+
     // Check additional pools' water and deck areas
     for (const pool of additionalPools) {
       if (pool.points.length >= 3) {
@@ -740,22 +781,22 @@ export function PoolBuilder({
     }
     return null;
   }, [points, hardscapePoints, additionalPools, isPointInPolygon, deckOffset]);
-  
+
   // Generate deck points for portions of a new pool that extend OUTSIDE existing deck/water areas
   // Returns null if no portion extends outside, otherwise returns deck points only for outside area
   const generateDeckForOutsideArea = useCallback((newPoolPoints: Point[], deckDistanceFeet: number = 3): HardscapePoint[] | null => {
     if (newPoolPoints.length < 3) return null;
-    
+
     // Generate potential deck around the new pool
     const potentialDeck = generateHardscapeFromPool(newPoolPoints, deckDistanceFeet);
     if (potentialDeck.length < 3) return null;
-    
+
     // Check if any point of the potential deck is outside existing hardscape
     let hasOutsidePoints = false;
     for (const deckPt of potentialDeck) {
       const insideMainDeck = hardscapePoints.length >= 3 && isPointInPolygon(deckPt.x, deckPt.y, hardscapePoints);
       const insideMainPool = points.length >= 3 && isPointInPolygon(deckPt.x, deckPt.y, points);
-      
+
       // Check if inside any additional pool's deck or water
       let insideOtherPool = false;
       for (const pool of additionalPools) {
@@ -764,27 +805,23 @@ export function PoolBuilder({
           break;
         }
       }
-      
       if (!insideMainDeck && !insideMainPool && !insideOtherPool) {
         hasOutsidePoints = true;
         break;
       }
     }
-    
     if (!hasOutsidePoints) return null;
-    
+
     // Return the full potential deck - the clipping during render will handle overlaps
     // The hardscape rendering already clips out water areas using evenodd
     return potentialDeck;
   }, [hardscapePoints, points, additionalPools, isPointInPolygon]);
-  
+
   // Calculate perimeter position from a point (0-1 along pool perimeter)
   const getPerimeterPositionFromPoint = useCallback((x: number, y: number): number => {
     if (points.length < 2) return 0;
-    
     let totalLength = 0;
     const segmentLengths: number[] = [];
-    
     for (let i = 0; i < points.length; i++) {
       const p1 = points[i];
       const p2 = points[(i + 1) % points.length];
@@ -792,51 +829,46 @@ export function PoolBuilder({
       segmentLengths.push(len);
       totalLength += len;
     }
-    
     let minDist = Infinity;
     let closestPosition = 0;
     let accumulated = 0;
-    
     for (let i = 0; i < points.length; i++) {
       const p1 = points[i];
       const p2 = points[(i + 1) % points.length];
       const segmentLength = segmentLengths[i];
-      
       const segmentDx = p2.x - p1.x;
       const segmentDy = p2.y - p1.y;
       const lengthSq = segmentDx ** 2 + segmentDy ** 2;
-      
       if (lengthSq === 0) {
         accumulated += segmentLength;
         continue;
       }
-      
-      const t = Math.max(0, Math.min(1,
-        ((x - p1.x) * segmentDx + (y - p1.y) * segmentDy) / lengthSq
-      ));
-      
+      const t = Math.max(0, Math.min(1, ((x - p1.x) * segmentDx + (y - p1.y) * segmentDy) / lengthSq));
       const projX = p1.x + t * segmentDx;
       const projY = p1.y + t * segmentDy;
       const dist = Math.sqrt((x - projX) ** 2 + (y - projY) ** 2);
-      
       if (dist < minDist) {
         minDist = dist;
         closestPosition = (accumulated + t * segmentLength) / totalLength;
       }
-      
       accumulated += segmentLength;
     }
-    
     return Math.max(0, Math.min(1, closestPosition));
   }, [points]);
-  
+
   // Get position on perimeter from 0-1 value
-  const getPositionFromPerimeter = useCallback((perimeterPos: number): { x: number; y: number; angle: number } => {
-    if (points.length < 2) return { x: 0, y: 0, angle: 0 };
-    
+  const getPositionFromPerimeter = useCallback((perimeterPos: number): {
+    x: number;
+    y: number;
+    angle: number;
+  } => {
+    if (points.length < 2) return {
+      x: 0,
+      y: 0,
+      angle: 0
+    };
     let totalLength = 0;
     const segmentLengths: number[] = [];
-    
     for (let i = 0; i < points.length; i++) {
       const p1 = points[i];
       const p2 = points[(i + 1) % points.length];
@@ -844,43 +876,46 @@ export function PoolBuilder({
       segmentLengths.push(len);
       totalLength += len;
     }
-    
     const targetDistance = perimeterPos * totalLength;
     let accumulated = 0;
-    
     for (let i = 0; i < points.length; i++) {
       const segmentLength = segmentLengths[i];
-      
       if (accumulated + segmentLength >= targetDistance) {
         const p1 = points[i];
         const p2 = points[(i + 1) % points.length];
         const t = (targetDistance - accumulated) / segmentLength;
-        
         const x = p1.x + t * (p2.x - p1.x);
         const y = p1.y + t * (p2.y - p1.y);
-        
         const dx = p2.x - p1.x;
         const dy = p2.y - p1.y;
         const angle = Math.atan2(dy, dx);
-        
-        return { x, y, angle };
+        return {
+          x,
+          y,
+          angle
+        };
       }
-      
       accumulated += segmentLength;
     }
-    
-    return { x: points[0].x, y: points[0].y, angle: 0 };
+    return {
+      x: points[0].x,
+      y: points[0].y,
+      angle: 0
+    };
   }, [points]);
-  
+
   // Check for outside deck and prompt user
   const checkAndPromptForOutsideDeck = useCallback((poolId: string, poolPoints: Point[]) => {
     const outsideDeck = generateDeckForOutsideArea(poolPoints, 3); // 3ft default
     if (outsideDeck) {
-      setPendingDeckData({ poolId, deckPoints: outsideDeck });
+      setPendingDeckData({
+        poolId,
+        deckPoints: outsideDeck
+      });
       setShowDeckDialog(true);
     }
   }, [generateDeckForOutsideArea]);
-  
+
   // Handle deck dialog confirmation
   const handleDeckConfirmation = useCallback((addDeck: boolean) => {
     if (addDeck && pendingDeckData) {
@@ -891,44 +926,55 @@ export function PoolBuilder({
       const maxX = Math.max(...allDeckPoints.map(p => p.x));
       const minY = Math.min(...allDeckPoints.map(p => p.y));
       const maxY = Math.max(...allDeckPoints.map(p => p.y));
-      
+
       // Create expanded rectangular deck that encompasses all areas
-      const expandedDeck: HardscapePoint[] = [
-        { x: minX, y: minY, id: 'h1' },
-        { x: maxX, y: minY, id: 'h2' },
-        { x: maxX, y: maxY, id: 'h3' },
-        { x: minX, y: maxY, id: 'h4' },
-      ];
-      
+      const expandedDeck: HardscapePoint[] = [{
+        x: minX,
+        y: minY,
+        id: 'h1'
+      }, {
+        x: maxX,
+        y: minY,
+        id: 'h2'
+      }, {
+        x: maxX,
+        y: maxY,
+        id: 'h3'
+      }, {
+        x: minX,
+        y: maxY,
+        id: 'h4'
+      }];
       setHardscapePoints(expandedDeck);
     }
     setPendingDeckData(null);
     setShowDeckDialog(false);
   }, [pendingDeckData, hardscapePoints]);
-  
+
   // Handle pool type selection from dialog
   const handlePoolTypeSelection = useCallback((featureType: 'regular' | 'spillover-spa' | 'tanning-ledge') => {
     if (!pendingPoolData) return;
-    
     if (featureType === 'regular') {
       // Regular pool - add directly without perimeter snapping
       const newPoolId = Date.now().toString();
       const newPoolPoints = pendingPoolData.points;
-      
       setAdditionalPools(prev => [...prev, {
         id: newPoolId,
         type: 'pool',
         points: newPoolPoints,
         shape: 'freeform',
         featureType: 'regular',
-        intersectsWith: pendingPoolData.intersectsWith,
+        intersectsWith: pendingPoolData.intersectsWith
       }]);
-      
       setPendingPoolData(null);
       setShowPoolTypeDialog(false);
-      setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
+      setSplineDrawing({
+        isActive: false,
+        points: [],
+        currentCurveType: 'linear'
+      });
       setActiveTool(null);
-      
+
       // Check if pool extends outside existing deck and prompt for deck
       checkAndPromptForOutsideDeck(newPoolId, newPoolPoints);
     } else {
@@ -937,53 +983,54 @@ export function PoolBuilder({
       const centerX = pendingPoolData.points.reduce((sum, p) => sum + p.x, 0) / pendingPoolData.points.length;
       const centerY = pendingPoolData.points.reduce((sum, p) => sum + p.y, 0) / pendingPoolData.points.length;
       const initialPerimeterPos = getPerimeterPositionFromPoint(centerX, centerY);
-      
       setPerimeterAnchorMode({
         isActive: true,
         featureType,
         perimeterPosition: initialPerimeterPos,
-        isFixed: false,
+        isFixed: false
       });
-      
       setPendingPoolData(null);
       setShowPoolTypeDialog(false);
       // Clear the previous spline drawing - user will draw new shape from anchor
-      setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
+      setSplineDrawing({
+        isActive: false,
+        points: [],
+        currentCurveType: 'linear'
+      });
       setActiveTool(null);
     }
   }, [pendingPoolData, getPerimeterPositionFromPoint, checkAndPromptForOutsideDeck]);
-  
+
   // Handle perimeter anchor click to fix position and start drawing
   const handlePerimeterAnchorClick = useCallback(() => {
     if (!perimeterAnchorMode.isActive || !perimeterAnchorMode.featureType) return;
-    
     const anchorPos = getPositionFromPerimeter(perimeterAnchorMode.perimeterPosition);
-    
+
     // Fix the anchor position
-    setPerimeterAnchorMode(prev => ({ ...prev, isFixed: true }));
-    
+    setPerimeterAnchorMode(prev => ({
+      ...prev,
+      isFixed: true
+    }));
+
     // Start spline drawing from the anchor point
     const startPoint: SplinePoint = {
       x: anchorPos.x,
       y: anchorPos.y,
       id: '1',
-      curveType: 'linear',
+      curveType: 'linear'
     };
-    
     setSplineDrawing({
       isActive: true,
       points: [startPoint],
-      currentCurveType: 'curve',
+      currentCurveType: 'curve'
     });
     setActiveTool('draw-pool');
   }, [perimeterAnchorMode, getPositionFromPerimeter]);
-  
+
   // Complete the perimeter-anchored pool drawing
   const completePerimeterAnchoredPool = useCallback((drawnPoints: Point[]) => {
     if (!perimeterAnchorMode.isActive || !perimeterAnchorMode.featureType) return;
-    
     const newPoolId = Date.now().toString();
-    
     setAdditionalPools(prev => [...prev, {
       id: newPoolId,
       type: perimeterAnchorMode.featureType === 'tanning-ledge' ? 'spa' : 'pool',
@@ -993,69 +1040,78 @@ export function PoolBuilder({
       intersectsWith: 'main',
       perimeterPosition: perimeterAnchorMode.perimeterPosition,
       isPerimeterSnapped: true,
-      isMerged: true, // Default to merged water bodies (no coping at intersection)
+      isMerged: true // Default to merged water bodies (no coping at intersection)
     }]);
-    
+
     // Reset perimeter anchor mode
     setPerimeterAnchorMode({
       isActive: false,
       featureType: null,
       perimeterPosition: 0.25,
-      isFixed: false,
+      isFixed: false
     });
-    setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
+    setSplineDrawing({
+      isActive: false,
+      points: [],
+      currentCurveType: 'linear'
+    });
     setActiveTool(null);
-    
+
     // Check if pool extends outside existing deck and prompt for deck
     checkAndPromptForOutsideDeck(newPoolId, drawnPoints);
   }, [perimeterAnchorMode, checkAndPromptForOutsideDeck]);
-  
+
   // Update additional pool perimeter position (for drag along perimeter)
   const updateAdditionalPoolPerimeterPosition = useCallback((poolId: string, newPosition: number) => {
     setAdditionalPools(prev => prev.map(pool => {
       if (pool.id !== poolId || !pool.isPerimeterSnapped) return pool;
-      
       const oldPos = getPositionFromPerimeter(pool.perimeterPosition || 0);
       const newPos = getPositionFromPerimeter(newPosition);
-      
+
       // Calculate offset to move all points
       const offsetX = newPos.x - oldPos.x;
       const offsetY = newPos.y - oldPos.y;
-      
       return {
         ...pool,
         perimeterPosition: newPosition,
         points: pool.points.map(p => ({
           ...p,
           x: p.x + offsetX,
-          y: p.y + offsetY,
-        })),
+          y: p.y + offsetY
+        }))
       };
     }));
   }, [getPositionFromPerimeter]);
-  
+
   // Update additional pool point position
   const updateAdditionalPoolPoint = useCallback((poolId: string, pointId: string, x: number, y: number) => {
     setAdditionalPools(prev => prev.map(pool => {
       if (pool.id !== poolId) return pool;
       return {
         ...pool,
-        points: pool.points.map(p => p.id === pointId ? { ...p, x, y } : p),
+        points: pool.points.map(p => p.id === pointId ? {
+          ...p,
+          x,
+          y
+        } : p)
       };
     }));
   }, []);
-  
+
   // Update curve type for additional pool point
   const updateAdditionalPoolPointCurveType = useCallback((poolId: string, pointId: string, curveType: 'linear' | 'curve' | 'arc' | 'freeform') => {
     setAdditionalPools(prev => prev.map(pool => {
       if (pool.id !== poolId) return pool;
       return {
         ...pool,
-        points: pool.points.map(p => p.id === pointId ? { ...p, curveType } : p),
+        points: pool.points.map(p => p.id === pointId ? {
+          ...p,
+          curveType
+        } : p)
       };
     }));
   }, []);
-  
+
   // Delete point from additional pool
   const deleteAdditionalPoolPoint = useCallback((poolId: string, pointId: string) => {
     setAdditionalPools(prev => prev.map(pool => {
@@ -1063,16 +1119,19 @@ export function PoolBuilder({
       if (pool.points.length <= 3) return pool; // Minimum 3 points
       return {
         ...pool,
-        points: pool.points.filter(p => p.id !== pointId),
+        points: pool.points.filter(p => p.id !== pointId)
       };
     }));
   }, []);
-  
+
   // Spline point editor state (for main pool and additional pools)
   const [selectedSplinePoint, setSelectedSplinePoint] = useState<{
     point: SplinePoint;
     index: number;
-    screenPosition: { x: number; y: number };
+    screenPosition: {
+      x: number;
+      y: number;
+    };
     poolId?: string; // If set, this is an additional pool point
   } | null>(null);
 
@@ -1112,7 +1171,7 @@ export function PoolBuilder({
     'waterfall': 12000,
     'jumping-jet': 1200,
     'sprinkler': 150,
-    'water-curtain': 5500,
+    'water-curtain': 5500
   };
 
   // Sync external tab with internal activeTab
@@ -1129,7 +1188,7 @@ export function PoolBuilder({
         'shape': 'shape',
         'depth': 'depth',
         'landscape': 'features',
-        'water-features': 'features',
+        'water-features': 'features'
       };
       const mappedTab = tabMap[externalTab] || 'pool';
       setActiveTab(mappedTab);
@@ -1389,173 +1448,85 @@ export function PoolBuilder({
     return Math.max(0, hardscapeAreaSqFt - poolAreaSqFt);
   }, [hardscapePoints, scale, points]);
 
-  // Get symmetry-snapped position for a point (snaps to axis lines, mirrored positions, AND matching segment lengths)
-  const getSymmetrySnappedPosition = useCallback((x: number, y: number): { 
-    x: number; 
-    y: number; 
-    snappedVertical: boolean; 
+  // Get symmetry-snapped position for a point (snaps to axis lines AND mirrored positions of existing points)
+  const getSymmetrySnappedPosition = useCallback((x: number, y: number): {
+    x: number;
+    y: number;
+    snappedVertical: boolean;
     snappedHorizontal: boolean;
     snappedToMirror: boolean;
-    mirroredFromPoint?: { x: number; y: number };
-    snappedToLengthMatch: boolean;
-    matchedLength?: number;
-    matchedSegmentIndex?: number;
-    snappedToSymmetric: boolean;
-    symmetricSegmentInfo?: { startPoint: { x: number; y: number }; endPoint: { x: number; y: number }; };
+    mirroredFromPoint?: {
+      x: number;
+      y: number;
+    };
   } => {
     if (!symmetryMode.enabled) {
-      return { 
-        x, y, 
-        snappedVertical: false, 
-        snappedHorizontal: false, 
-        snappedToMirror: false,
-        snappedToLengthMatch: false,
-        snappedToSymmetric: false,
+      return {
+        x,
+        y,
+        snappedVertical: false,
+        snappedHorizontal: false,
+        snappedToMirror: false
       };
     }
-    
     const centerX = canvasSize.width / 2;
     const centerY = canvasSize.height / 2;
     const snapDist = symmetryMode.snapDistance;
-    
     let snappedX = x;
     let snappedY = y;
     let snappedVertical = false;
     let snappedHorizontal = false;
     let snappedToMirror = false;
-    let mirroredFromPoint: { x: number; y: number } | undefined;
-    let snappedToLengthMatch = false;
-    let matchedLength: number | undefined;
-    let matchedSegmentIndex: number | undefined;
-    let snappedToSymmetric = false;
-    let symmetricSegmentInfo: { startPoint: { x: number; y: number }; endPoint: { x: number; y: number }; } | undefined;
-    
-    // === NEW: Check for segment length matching and symmetric segment snapping ===
-    if (splineDrawing.points.length >= 2) {
-      const lastPt = splineDrawing.points[splineDrawing.points.length - 1];
-      const currentAngle = Math.atan2(y - lastPt.y, x - lastPt.x);
-      const currentLength = Math.sqrt(Math.pow(x - lastPt.x, 2) + Math.pow(y - lastPt.y, 2));
-      
-      // Check each existing segment for length and symmetry matching
-      for (let i = 1; i < splineDrawing.points.length; i++) {
-        const segStart = splineDrawing.points[i - 1];
-        const segEnd = splineDrawing.points[i];
-        const segLength = Math.sqrt(Math.pow(segEnd.x - segStart.x, 2) + Math.pow(segEnd.y - segStart.y, 2));
-        const segAngle = Math.atan2(segEnd.y - segStart.y, segEnd.x - segStart.x);
-        
-        // Calculate mirrored angle across vertical axis (negate x component)
-        const mirroredAngleV = Math.PI - segAngle;
-        // Calculate mirrored angle across horizontal axis (negate y component)
-        const mirroredAngleH = -segAngle;
-        
-        // Check for symmetric segment (same length + mirrored angle)
-        const angleTolerance = 0.15; // ~8.5 degrees
-        const lengthTolerance = snapDist;
-        
-        // Check if current segment would be symmetric (mirrored) to this existing segment
-        const isSymmetricV = (symmetryMode.axes === 'vertical' || symmetryMode.axes === 'both') &&
-          Math.abs(segLength - currentLength) < lengthTolerance &&
-          Math.abs(normalizeAngle(currentAngle - mirroredAngleV)) < angleTolerance;
-          
-        const isSymmetricH = (symmetryMode.axes === 'horizontal' || symmetryMode.axes === 'both') &&
-          Math.abs(segLength - currentLength) < lengthTolerance &&
-          Math.abs(normalizeAngle(currentAngle - mirroredAngleH)) < angleTolerance;
-        
-        if (isSymmetricV || isSymmetricH) {
-          // Snap to exact symmetric position
-          const targetAngle = isSymmetricV ? mirroredAngleV : mirroredAngleH;
-          snappedX = lastPt.x + segLength * Math.cos(targetAngle);
-          snappedY = lastPt.y + segLength * Math.sin(targetAngle);
-          snappedToSymmetric = true;
-          matchedLength = segLength;
-          matchedSegmentIndex = i;
-          symmetricSegmentInfo = { startPoint: segStart, endPoint: segEnd };
-          break;
-        }
-        
-        // Check for length-only matching (snap to same length in current direction)
-        if (Math.abs(currentLength - segLength) < lengthTolerance * 2) {
-          // Calculate snap point at the exact matched length in the current direction
-          const snapPosX = lastPt.x + segLength * Math.cos(currentAngle);
-          const snapPosY = lastPt.y + segLength * Math.sin(currentAngle);
-          const distToSnap = Math.sqrt(Math.pow(x - snapPosX, 2) + Math.pow(y - snapPosY, 2));
-          
-          if (distToSnap < snapDist * 1.5) {
-            snappedX = snapPosX;
-            snappedY = snapPosY;
-            snappedToLengthMatch = true;
-            matchedLength = segLength;
-            matchedSegmentIndex = i;
-            symmetricSegmentInfo = { startPoint: segStart, endPoint: segEnd };
-          }
-        }
-      }
-    }
-    
-    // Helper to normalize angle to -PI to PI range
-    function normalizeAngle(angle: number): number {
-      while (angle > Math.PI) angle -= 2 * Math.PI;
-      while (angle < -Math.PI) angle += 2 * Math.PI;
-      return angle;
-    }
-    
-    // If already snapped to symmetric/length, skip other snaps
-    if (snappedToSymmetric) {
-      return { 
-        x: snappedX, y: snappedY, 
-        snappedVertical: false, snappedHorizontal: false, 
-        snappedToMirror: false,
-        snappedToLengthMatch: false,
-        snappedToSymmetric: true,
-        matchedLength,
-        matchedSegmentIndex,
-        symmetricSegmentInfo
-      };
-    }
-    
-    if (snappedToLengthMatch) {
-      return { 
-        x: snappedX, y: snappedY, 
-        snappedVertical: false, snappedHorizontal: false, 
-        snappedToMirror: false,
-        snappedToLengthMatch: true,
-        matchedLength,
-        matchedSegmentIndex,
-        snappedToSymmetric: false,
-        symmetricSegmentInfo
-      };
-    }
-    
-    // Check for mirrored positions of existing spline points
+    let mirroredFromPoint: {
+      x: number;
+      y: number;
+    } | undefined;
+
+    // First, check for mirrored positions of existing spline points
     if (splineDrawing.points.length > 0) {
       for (const pt of splineDrawing.points) {
         // Calculate mirrored positions
-        const mirrorV = { x: 2 * centerX - pt.x, y: pt.y }; // Mirror across vertical axis
-        const mirrorH = { x: pt.x, y: 2 * centerY - pt.y }; // Mirror across horizontal axis
-        const mirrorBoth = { x: 2 * centerX - pt.x, y: 2 * centerY - pt.y }; // Mirror across both
-        
+        const mirrorV = {
+          x: 2 * centerX - pt.x,
+          y: pt.y
+        }; // Mirror across vertical axis
+        const mirrorH = {
+          x: pt.x,
+          y: 2 * centerY - pt.y
+        }; // Mirror across horizontal axis
+        const mirrorBoth = {
+          x: 2 * centerX - pt.x,
+          y: 2 * centerY - pt.y
+        }; // Mirror across both
+
         // Check snap to vertical mirror
-        if ((symmetryMode.axes === 'vertical' || symmetryMode.axes === 'both')) {
+        if (symmetryMode.axes === 'vertical' || symmetryMode.axes === 'both') {
           const distV = Math.sqrt(Math.pow(x - mirrorV.x, 2) + Math.pow(y - mirrorV.y, 2));
           if (distV < snapDist) {
             snappedX = mirrorV.x;
             snappedY = mirrorV.y;
             snappedToMirror = true;
-            mirroredFromPoint = { x: pt.x, y: pt.y };
+            mirroredFromPoint = {
+              x: pt.x,
+              y: pt.y
+            };
           }
         }
-        
+
         // Check snap to horizontal mirror
-        if ((symmetryMode.axes === 'horizontal' || symmetryMode.axes === 'both')) {
+        if (symmetryMode.axes === 'horizontal' || symmetryMode.axes === 'both') {
           const distH = Math.sqrt(Math.pow(x - mirrorH.x, 2) + Math.pow(y - mirrorH.y, 2));
           if (distH < snapDist) {
             snappedX = mirrorH.x;
             snappedY = mirrorH.y;
             snappedToMirror = true;
-            mirroredFromPoint = { x: pt.x, y: pt.y };
+            mirroredFromPoint = {
+              x: pt.x,
+              y: pt.y
+            };
           }
         }
-        
+
         // Check snap to diagonal mirror (both axes)
         if (symmetryMode.axes === 'both') {
           const distBoth = Math.sqrt(Math.pow(x - mirrorBoth.x, 2) + Math.pow(y - mirrorBoth.y, 2));
@@ -1563,35 +1534,36 @@ export function PoolBuilder({
             snappedX = mirrorBoth.x;
             snappedY = mirrorBoth.y;
             snappedToMirror = true;
-            mirroredFromPoint = { x: pt.x, y: pt.y };
+            mirroredFromPoint = {
+              x: pt.x,
+              y: pt.y
+            };
           }
         }
       }
     }
-    
+
     // If not snapped to a mirror point, check axis lines
     if (!snappedToMirror) {
       // Snap to vertical axis (center line)
-      if ((symmetryMode.axes === 'vertical' || symmetryMode.axes === 'both') && 
-          Math.abs(x - centerX) < snapDist) {
+      if ((symmetryMode.axes === 'vertical' || symmetryMode.axes === 'both') && Math.abs(x - centerX) < snapDist) {
         snappedX = centerX;
         snappedVertical = true;
       }
-      
+
       // Snap to horizontal axis (center line)
-      if ((symmetryMode.axes === 'horizontal' || symmetryMode.axes === 'both') && 
-          Math.abs(y - centerY) < snapDist) {
+      if ((symmetryMode.axes === 'horizontal' || symmetryMode.axes === 'both') && Math.abs(y - centerY) < snapDist) {
         snappedY = centerY;
         snappedHorizontal = true;
       }
     }
-    
-    return { 
-      x: snappedX, y: snappedY, 
-      snappedVertical, snappedHorizontal, 
-      snappedToMirror, mirroredFromPoint,
-      snappedToLengthMatch: false,
-      snappedToSymmetric: false,
+    return {
+      x: snappedX,
+      y: snappedY,
+      snappedVertical,
+      snappedHorizontal,
+      snappedToMirror,
+      mirroredFromPoint
     };
   }, [symmetryMode.enabled, symmetryMode.axes, symmetryMode.snapDistance, canvasSize.width, canvasSize.height, splineDrawing.points]);
 
@@ -1704,7 +1676,7 @@ export function PoolBuilder({
         }
       }
       ctx.closePath();
-      
+
       // Clip out main pool water area
       if (points.length >= 3) {
         ctx.moveTo(points[0].x, points[0].y);
@@ -1713,7 +1685,7 @@ export function PoolBuilder({
         }
         ctx.closePath();
       }
-      
+
       // Clip out all additional pools' water areas (prevent deck on water)
       additionalPools.forEach(pool => {
         if (pool.points.length >= 3) {
@@ -1724,7 +1696,6 @@ export function PoolBuilder({
           ctx.closePath();
         }
       });
-      
       ctx.clip('evenodd');
 
       // Find hardscape bounds
@@ -1768,11 +1739,14 @@ export function PoolBuilder({
     }
 
     // Helper function to draw curved pool segments based on curve type (used by final render)
-    const drawPoolSegment = (
-      ctx: CanvasRenderingContext2D,
-      p1: { x: number; y: number },
-      p2: { x: number; y: number; curveType?: 'linear' | 'curve' | 'arc' | 'freeform' }
-    ) => {
+    const drawPoolSegment = (ctx: CanvasRenderingContext2D, p1: {
+      x: number;
+      y: number;
+    }, p2: {
+      x: number;
+      y: number;
+      curveType?: 'linear' | 'curve' | 'arc' | 'freeform';
+    }) => {
       const curveType = p2.curveType || 'linear';
       if (curveType === 'linear') {
         ctx.lineTo(p2.x, p2.y);
@@ -1847,14 +1821,10 @@ export function PoolBuilder({
 
       // Draw coping border - skip edges that are inside merged integrated pools
       const copingTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.coping, zoomLevel) : null;
-      
+
       // Find which main pool edges are inside merged integrated pools
-      const mergedPools = additionalPools.filter(p => 
-        (p.featureType === 'spillover-spa' || p.featureType === 'tanning-ledge') && 
-        p.isMerged !== false && 
-        p.points.length >= 3
-      );
-      
+      const mergedPools = additionalPools.filter(p => (p.featureType === 'spillover-spa' || p.featureType === 'tanning-ledge') && p.isMerged !== false && p.points.length >= 3);
+
       // Check each main pool edge
       const mainEdgesInMergedPools: boolean[] = [];
       for (let i = 0; i < points.length; i++) {
@@ -1862,7 +1832,6 @@ export function PoolBuilder({
         const p2 = points[(i + 1) % points.length];
         const midX = (p1.x + p2.x) / 2;
         const midY = (p1.y + p2.y) / 2;
-        
         let isInsideMerged = false;
         for (const pool of mergedPools) {
           if (isPointInPolygon(midX, midY, pool.points)) {
@@ -1872,9 +1841,7 @@ export function PoolBuilder({
         }
         mainEdgesInMergedPools.push(isInsideMerged);
       }
-      
       const hasMergedEdges = mainEdgesInMergedPools.some(e => e);
-      
       if (hasMergedEdges) {
         // Draw coping only on edges NOT inside merged pools
         ctx.save();
@@ -1882,10 +1849,8 @@ export function PoolBuilder({
           if (!mainEdgesInMergedPools[i]) {
             const p1 = points[i];
             const p2 = points[(i + 1) % points.length];
-            
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
-            
             if (poolShape === 'freeform' && p1.curveType) {
               drawPoolSegment(ctx, p1, p2);
             } else if (poolShape !== 'rectangle') {
@@ -1899,7 +1864,6 @@ export function PoolBuilder({
             } else {
               ctx.lineTo(p2.x, p2.y);
             }
-            
             if (copingTexture) {
               ctx.lineWidth = paverSizeInPixels;
               const copingPattern = ctx.createPattern(copingTexture, 'repeat');
@@ -3159,13 +3123,13 @@ export function PoolBuilder({
     ctx.fillText('N', arrowX, arrowY - arrowSize / 1.5);
 
     // Helper function to draw curved segments based on curve type
-    const drawCurvedSegment = (
-      ctx: CanvasRenderingContext2D,
-      p1: { x: number; y: number },
-      p2: { x: number; y: number },
-      curveType: 'linear' | 'curve' | 'arc' | 'freeform',
-      isPreview = false
-    ) => {
+    const drawCurvedSegment = (ctx: CanvasRenderingContext2D, p1: {
+      x: number;
+      y: number;
+    }, p2: {
+      x: number;
+      y: number;
+    }, curveType: 'linear' | 'curve' | 'arc' | 'freeform', isPreview = false) => {
       if (curveType === 'linear') {
         ctx.lineTo(p2.x, p2.y);
       } else if (curveType === 'curve') {
@@ -3208,10 +3172,9 @@ export function PoolBuilder({
       ctx.save();
       ctx.setLineDash([10, 6]);
       ctx.lineWidth = 1;
-      
       const centerX = canvasSize.width / 2;
       const centerY = canvasSize.height / 2;
-      
+
       // Vertical symmetry line (for left-right symmetry)
       if (symmetryMode.axes === 'vertical' || symmetryMode.axes === 'both') {
         ctx.strokeStyle = 'rgba(255, 100, 100, 0.4)';
@@ -3219,14 +3182,14 @@ export function PoolBuilder({
         ctx.moveTo(centerX, 0);
         ctx.lineTo(centerX, canvasSize.height);
         ctx.stroke();
-        
+
         // Draw center marker
         ctx.fillStyle = 'rgba(255, 100, 100, 0.6)';
         ctx.beginPath();
         ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
         ctx.fill();
       }
-      
+
       // Horizontal symmetry line (for top-bottom symmetry)
       if (symmetryMode.axes === 'horizontal' || symmetryMode.axes === 'both') {
         ctx.strokeStyle = 'rgba(100, 100, 255, 0.4)';
@@ -3235,20 +3198,27 @@ export function PoolBuilder({
         ctx.lineTo(canvasSize.width, centerY);
         ctx.stroke();
       }
-      
+
       // Draw mirrored ghost points for existing spline points
       if (splineDrawing.points.length > 0) {
         ctx.setLineDash([]);
-        
         for (const pt of splineDrawing.points) {
           // Calculate mirrored positions
-          const mirrorV = { x: 2 * centerX - pt.x, y: pt.y };
-          const mirrorH = { x: pt.x, y: 2 * centerY - pt.y };
-          const mirrorBoth = { x: 2 * centerX - pt.x, y: 2 * centerY - pt.y };
-          
+          const mirrorV = {
+            x: 2 * centerX - pt.x,
+            y: pt.y
+          };
+          const mirrorH = {
+            x: pt.x,
+            y: 2 * centerY - pt.y
+          };
+          const mirrorBoth = {
+            x: 2 * centerX - pt.x,
+            y: 2 * centerY - pt.y
+          };
+
           // Draw vertical mirror ghost (if not on axis)
-          if ((symmetryMode.axes === 'vertical' || symmetryMode.axes === 'both') && 
-              Math.abs(pt.x - centerX) > 5) {
+          if ((symmetryMode.axes === 'vertical' || symmetryMode.axes === 'both') && Math.abs(pt.x - centerX) > 5) {
             // Ghost point
             ctx.beginPath();
             ctx.arc(mirrorV.x, mirrorV.y, 6, 0, Math.PI * 2);
@@ -3256,7 +3226,7 @@ export function PoolBuilder({
             ctx.lineWidth = 1.5;
             ctx.setLineDash([3, 3]);
             ctx.stroke();
-            
+
             // Connection line to original
             ctx.beginPath();
             ctx.moveTo(pt.x, pt.y);
@@ -3265,17 +3235,16 @@ export function PoolBuilder({
             ctx.lineWidth = 1;
             ctx.stroke();
           }
-          
+
           // Draw horizontal mirror ghost (if not on axis)
-          if ((symmetryMode.axes === 'horizontal' || symmetryMode.axes === 'both') && 
-              Math.abs(pt.y - centerY) > 5) {
+          if ((symmetryMode.axes === 'horizontal' || symmetryMode.axes === 'both') && Math.abs(pt.y - centerY) > 5) {
             ctx.beginPath();
             ctx.arc(mirrorH.x, mirrorH.y, 6, 0, Math.PI * 2);
             ctx.strokeStyle = 'rgba(100, 100, 255, 0.5)';
             ctx.lineWidth = 1.5;
             ctx.setLineDash([3, 3]);
             ctx.stroke();
-            
+
             // Connection line
             ctx.beginPath();
             ctx.moveTo(pt.x, pt.y);
@@ -3284,10 +3253,9 @@ export function PoolBuilder({
             ctx.lineWidth = 1;
             ctx.stroke();
           }
-          
+
           // Draw diagonal mirror ghost (both axes)
-          if (symmetryMode.axes === 'both' && 
-              Math.abs(pt.x - centerX) > 5 && Math.abs(pt.y - centerY) > 5) {
+          if (symmetryMode.axes === 'both' && Math.abs(pt.x - centerX) > 5 && Math.abs(pt.y - centerY) > 5) {
             ctx.beginPath();
             ctx.arc(mirrorBoth.x, mirrorBoth.y, 6, 0, Math.PI * 2);
             ctx.strokeStyle = 'rgba(180, 100, 255, 0.5)';
@@ -3298,102 +3266,21 @@ export function PoolBuilder({
         }
         ctx.setLineDash([]);
       }
-      
-      // Draw snap indicators when cursor is near symmetry lines, mirror points, or matching lengths
+
+      // Draw snap indicators when cursor is near symmetry lines or mirror points
       const snappedPos = getSymmetrySnappedPosition(cursorPos.x, cursorPos.y);
-      
-      // Draw length-match radius guide when we have points and cursor is near a matching length
-      if (splineDrawing.points.length >= 2 && (snappedPos.snappedToLengthMatch || snappedPos.snappedToSymmetric)) {
-        const lastPt = splineDrawing.points[splineDrawing.points.length - 1];
-        
-        // Draw radius arc showing matching length
-        if (snappedPos.matchedLength) {
-          ctx.beginPath();
-          ctx.arc(lastPt.x, lastPt.y, snappedPos.matchedLength, 0, Math.PI * 2);
-          ctx.strokeStyle = snappedPos.snappedToSymmetric 
-            ? 'rgba(0, 255, 100, 0.25)' 
-            : 'rgba(255, 165, 0, 0.25)';
-          ctx.lineWidth = 2;
-          ctx.setLineDash([8, 4]);
-          ctx.stroke();
-          ctx.setLineDash([]);
-        }
-        
-        // Highlight the matched existing segment
-        if (snappedPos.symmetricSegmentInfo) {
-          const { startPoint, endPoint } = snappedPos.symmetricSegmentInfo;
-          ctx.beginPath();
-          ctx.moveTo(startPoint.x, startPoint.y);
-          ctx.lineTo(endPoint.x, endPoint.y);
-          ctx.strokeStyle = snappedPos.snappedToSymmetric 
-            ? 'rgba(0, 255, 100, 0.8)' 
-            : 'rgba(255, 165, 0, 0.8)';
-          ctx.lineWidth = 4;
-          ctx.stroke();
-          
-          // Draw segment midpoint marker
-          const midX = (startPoint.x + endPoint.x) / 2;
-          const midY = (startPoint.y + endPoint.y) / 2;
-          ctx.beginPath();
-          ctx.arc(midX, midY, 5, 0, Math.PI * 2);
-          ctx.fillStyle = snappedPos.snappedToSymmetric 
-            ? 'rgba(0, 255, 100, 0.6)' 
-            : 'rgba(255, 165, 0, 0.6)';
-          ctx.fill();
-        }
-      }
-      
-      if (snappedPos.snappedVertical || snappedPos.snappedHorizontal || snappedPos.snappedToMirror || 
-          snappedPos.snappedToLengthMatch || snappedPos.snappedToSymmetric) {
+      if (snappedPos.snappedVertical || snappedPos.snappedHorizontal || snappedPos.snappedToMirror) {
         ctx.setLineDash([]);
-        
+
         // Highlight snap point
         ctx.beginPath();
         ctx.arc(snappedPos.x, snappedPos.y, 8, 0, Math.PI * 2);
-        
         let snapColor = 'rgba(255, 200, 50, 0.9)';
         let snapLabel = 'SNAP';
-        
-        if (snappedPos.snappedToSymmetric) {
-          snapColor = 'rgba(0, 255, 100, 0.95)';
-          const lengthFt = snappedPos.matchedLength ? (snappedPos.matchedLength / scale).toFixed(1) : '?';
-          snapLabel = `SYMMETRIC ${lengthFt}'`;
-          
-          // Draw connection line from snap point to last point
-          if (splineDrawing.points.length > 0) {
-            const lastPt = splineDrawing.points[splineDrawing.points.length - 1];
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(lastPt.x, lastPt.y);
-            ctx.lineTo(snappedPos.x, snappedPos.y);
-            ctx.strokeStyle = 'rgba(0, 255, 100, 0.5)';
-            ctx.lineWidth = 3;
-            ctx.setLineDash([6, 4]);
-            ctx.stroke();
-            ctx.restore();
-          }
-        } else if (snappedPos.snappedToLengthMatch) {
-          snapColor = 'rgba(255, 165, 0, 0.95)';
-          const lengthFt = snappedPos.matchedLength ? (snappedPos.matchedLength / scale).toFixed(1) : '?';
-          snapLabel = `LENGTH ${lengthFt}'`;
-          
-          // Draw connection line from snap point to last point
-          if (splineDrawing.points.length > 0) {
-            const lastPt = splineDrawing.points[splineDrawing.points.length - 1];
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(lastPt.x, lastPt.y);
-            ctx.lineTo(snappedPos.x, snappedPos.y);
-            ctx.strokeStyle = 'rgba(255, 165, 0, 0.5)';
-            ctx.lineWidth = 3;
-            ctx.setLineDash([6, 4]);
-            ctx.stroke();
-            ctx.restore();
-          }
-        } else if (snappedPos.snappedToMirror) {
+        if (snappedPos.snappedToMirror) {
           snapColor = 'rgba(0, 255, 150, 0.9)';
           snapLabel = 'MIRROR';
-          
+
           // Draw line from mirrored source point
           if (snappedPos.mirroredFromPoint) {
             ctx.save();
@@ -3416,21 +3303,16 @@ export function PoolBuilder({
           snapColor = 'rgba(100, 100, 255, 0.9)';
           snapLabel = 'H-AXIS';
         }
-        
         ctx.strokeStyle = snapColor;
         ctx.lineWidth = 2;
         ctx.stroke();
-        
-        // Filled center for special snaps
-        if (snappedPos.snappedToMirror || snappedPos.snappedToSymmetric || snappedPos.snappedToLengthMatch) {
-          ctx.fillStyle = snappedPos.snappedToSymmetric 
-            ? 'rgba(0, 255, 100, 0.4)' 
-            : snappedPos.snappedToLengthMatch 
-              ? 'rgba(255, 165, 0, 0.4)' 
-              : 'rgba(0, 255, 150, 0.3)';
+
+        // Filled center for mirror snaps
+        if (snappedPos.snappedToMirror) {
+          ctx.fillStyle = 'rgba(0, 255, 150, 0.3)';
           ctx.fill();
         }
-        
+
         // Snap label
         ctx.fillStyle = snapColor;
         ctx.font = 'bold 9px Arial';
@@ -3438,14 +3320,13 @@ export function PoolBuilder({
         ctx.textBaseline = 'bottom';
         ctx.fillText(snapLabel, snappedPos.x, snappedPos.y - 12);
       }
-      
       ctx.restore();
     }
 
     // Draw spline drawing preview when in draw mode
     if (splineDrawing.isActive && splineDrawing.points.length > 0) {
       ctx.save();
-      
+
       // Draw preview of how the completed pool would look (filled shape preview)
       if (splineDrawing.points.length >= 3) {
         ctx.beginPath();
@@ -3463,7 +3344,7 @@ export function PoolBuilder({
         ctx.fillStyle = 'rgba(46, 134, 171, 0.15)';
         ctx.fill();
       }
-      
+
       // Draw wall segments with curve visualization
       ctx.strokeStyle = 'hsl(var(--primary))';
       ctx.lineWidth = 3;
@@ -3475,7 +3356,7 @@ export function PoolBuilder({
         drawCurvedSegment(ctx, prev, curr, curr.curveType);
       }
       ctx.stroke();
-      
+
       // Always draw the closing line from last point back to first point (perimeter trace)
       if (splineDrawing.points.length >= 2) {
         ctx.setLineDash([8, 4]);
@@ -3489,7 +3370,7 @@ export function PoolBuilder({
         ctx.stroke();
         ctx.setLineDash([]);
       }
-      
+
       // Draw preview line to cursor with current curve type
       ctx.setLineDash([5, 5]);
       ctx.strokeStyle = 'hsl(var(--primary))';
@@ -3500,26 +3381,26 @@ export function PoolBuilder({
       drawCurvedSegment(ctx, lastPoint, cursorPos, splineDrawing.currentCurveType);
       ctx.stroke();
       ctx.setLineDash([]);
-      
+
       // Draw distance measurements and curve type indicator on each segment
       for (let i = 1; i < splineDrawing.points.length; i++) {
         const prev = splineDrawing.points[i - 1];
         const curr = splineDrawing.points[i];
         const midX = (prev.x + curr.x) / 2;
         const midY = (prev.y + curr.y) / 2;
-        
+
         // Calculate linear distance in feet
         const distPx = Math.sqrt(Math.pow(curr.x - prev.x, 2) + Math.pow(curr.y - prev.y, 2));
         const distFeet = (distPx / scale).toFixed(1);
-        
+
         // Calculate angle for text rotation
         const angle = Math.atan2(curr.y - prev.y, curr.x - prev.x);
-        
+
         // Offset label perpendicular to the line
         const offsetDist = 20;
         const perpX = Math.cos(angle + Math.PI / 2) * offsetDist;
         const perpY = Math.sin(angle + Math.PI / 2) * offsetDist;
-        
+
         // Draw distance label background
         ctx.save();
         ctx.translate(midX + perpX, midY + perpY);
@@ -3529,14 +3410,14 @@ export function PoolBuilder({
           textAngle += Math.PI;
         }
         ctx.rotate(textAngle);
-        
+
         // Draw background pill
         ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
         const textWidth = ctx.measureText(distFeet + ' ft').width + 12;
         ctx.beginPath();
         ctx.roundRect(-textWidth / 2, -10, textWidth, 20, 4);
         ctx.fill();
-        
+
         // Draw distance text
         ctx.fillStyle = '#00D4FF';
         ctx.font = 'bold 11px Arial';
@@ -3544,7 +3425,7 @@ export function PoolBuilder({
         ctx.textBaseline = 'middle';
         ctx.fillText(distFeet + ' ft', 0, 0);
         ctx.restore();
-        
+
         // Small curve type badge (positioned on the line)
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         ctx.beginPath();
@@ -3557,23 +3438,22 @@ export function PoolBuilder({
         const label = curr.curveType === 'linear' ? 'L' : curr.curveType === 'curve' ? 'C' : curr.curveType === 'arc' ? 'A' : 'F';
         ctx.fillText(label, midX, midY);
       }
-      
+
       // Draw distance from last point to cursor (live measurement)
       if (splineDrawing.points.length >= 1) {
         const lastPt = splineDrawing.points[splineDrawing.points.length - 1];
         const distToCursorPx = Math.sqrt(Math.pow(cursorPos.x - lastPt.x, 2) + Math.pow(cursorPos.y - lastPt.y, 2));
         const distToCursorFeet = (distToCursorPx / scale).toFixed(1);
-        
-        if (distToCursorPx > 10) { // Only show if cursor is not too close
+        if (distToCursorPx > 10) {
+          // Only show if cursor is not too close
           const midX = (lastPt.x + cursorPos.x) / 2;
           const midY = (lastPt.y + cursorPos.y) / 2;
           const angle = Math.atan2(cursorPos.y - lastPt.y, cursorPos.x - lastPt.x);
-          
+
           // Offset perpendicular to line
           const offsetDist = 25;
           const perpX = Math.cos(angle + Math.PI / 2) * offsetDist;
           const perpY = Math.sin(angle + Math.PI / 2) * offsetDist;
-          
           ctx.save();
           ctx.translate(midX + perpX, midY + perpY);
           let textAngle = angle;
@@ -3581,14 +3461,14 @@ export function PoolBuilder({
             textAngle += Math.PI;
           }
           ctx.rotate(textAngle);
-          
+
           // Draw background pill for cursor distance
           ctx.fillStyle = 'rgba(34, 197, 94, 0.9)';
           const textWidth = ctx.measureText(distToCursorFeet + ' ft').width + 14;
           ctx.beginPath();
           ctx.roundRect(-textWidth / 2, -11, textWidth, 22, 5);
           ctx.fill();
-          
+
           // Draw distance text
           ctx.fillStyle = '#fff';
           ctx.font = 'bold 12px Arial';
@@ -3598,22 +3478,19 @@ export function PoolBuilder({
           ctx.restore();
         }
       }
-      
+
       // Draw closing segment distance (from last to first)
       if (splineDrawing.points.length >= 2) {
         const lastPt = splineDrawing.points[splineDrawing.points.length - 1];
         const firstPt = splineDrawing.points[0];
         const closingDistPx = Math.sqrt(Math.pow(firstPt.x - lastPt.x, 2) + Math.pow(firstPt.y - lastPt.y, 2));
         const closingDistFeet = (closingDistPx / scale).toFixed(1);
-        
         const midX = (lastPt.x + firstPt.x) / 2;
         const midY = (lastPt.y + firstPt.y) / 2;
         const angle = Math.atan2(firstPt.y - lastPt.y, firstPt.x - lastPt.x);
-        
         const offsetDist = 20;
         const perpX = Math.cos(angle + Math.PI / 2) * offsetDist;
         const perpY = Math.sin(angle + Math.PI / 2) * offsetDist;
-        
         ctx.save();
         ctx.translate(midX + perpX, midY + perpY);
         let textAngle = angle;
@@ -3621,14 +3498,14 @@ export function PoolBuilder({
           textAngle += Math.PI;
         }
         ctx.rotate(textAngle);
-        
+
         // Draw background pill (dimmed for closing segment)
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         const textWidth = ctx.measureText(closingDistFeet + ' ft').width + 12;
         ctx.beginPath();
         ctx.roundRect(-textWidth / 2, -10, textWidth, 20, 4);
         ctx.fill();
-        
+
         // Draw distance text (dimmed)
         ctx.fillStyle = 'rgba(0, 212, 255, 0.7)';
         ctx.font = 'bold 10px Arial';
@@ -3637,7 +3514,7 @@ export function PoolBuilder({
         ctx.fillText(closingDistFeet + ' ft', 0, 0);
         ctx.restore();
       }
-      
+
       // Draw spline points
       splineDrawing.points.forEach((sp, i) => {
         const isFirst = i === 0;
@@ -3648,14 +3525,14 @@ export function PoolBuilder({
         ctx.strokeStyle = 'hsl(var(--primary))';
         ctx.lineWidth = 2;
         ctx.stroke();
-        
+
         // Point number label
         ctx.fillStyle = isFirst ? '#fff' : 'hsl(var(--primary))';
         ctx.font = 'bold 10px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText((i + 1).toString(), sp.x, sp.y);
-        
+
         // Show close indicator on first point when hovering near it
         if (isFirst && splineDrawing.points.length >= 3) {
           const distToFirst = Math.sqrt(Math.pow(cursorPos.x - sp.x, 2) + Math.pow(cursorPos.y - sp.y, 2));
@@ -3665,7 +3542,7 @@ export function PoolBuilder({
             ctx.strokeStyle = '#22C55E';
             ctx.lineWidth = 3;
             ctx.stroke();
-            
+
             // "Close" label
             ctx.fillStyle = '#22C55E';
             ctx.font = 'bold 10px Arial';
@@ -3675,11 +3552,10 @@ export function PoolBuilder({
       });
       ctx.restore();
     }
-    
+
     // Draw additional pools/spas (rendered with the same look as the main pool)
     additionalPools.forEach((pool, poolIndex) => {
       if (pool.points.length < 3) return;
-      
       const isIntegrated = pool.featureType === 'spillover-spa' || pool.featureType === 'tanning-ledge';
       const isSeparatePool = pool.featureType === 'regular' || !pool.featureType;
       const isSelected = selectedAdditionalPool === pool.id;
@@ -3690,19 +3566,18 @@ export function PoolBuilder({
         const poolHardscapePoints = generateHardscapeFromPool(pool.points, deckOffset);
         if (paverTexture && poolHardscapePoints.length >= 3) {
           const img = paverTexture;
-
           ctx.save();
-          
+
           // Build deck path with water cutouts using evenodd
           ctx.beginPath();
-          
+
           // Outer deck boundary (clockwise)
           ctx.moveTo(poolHardscapePoints[0].x, poolHardscapePoints[0].y);
           for (let i = 1; i < poolHardscapePoints.length; i++) {
             ctx.lineTo(poolHardscapePoints[i].x, poolHardscapePoints[i].y);
           }
           ctx.closePath();
-          
+
           // Cut out this pool's water area (counter-clockwise by reversing)
           const reversedPoints = [...pool.points].reverse();
           ctx.moveTo(reversedPoints[0].x, reversedPoints[0].y);
@@ -3710,7 +3585,7 @@ export function PoolBuilder({
             ctx.lineTo(reversedPoints[i].x, reversedPoints[i].y);
           }
           ctx.closePath();
-          
+
           // Cut out main pool water area
           if (points.length >= 3) {
             const reversedMain = [...points].reverse();
@@ -3720,7 +3595,7 @@ export function PoolBuilder({
             }
             ctx.closePath();
           }
-          
+
           // Cut out all other additional pools' water areas
           additionalPools.forEach((otherPool, otherIndex) => {
             if (otherIndex !== poolIndex && otherPool.points.length >= 3) {
@@ -3732,7 +3607,6 @@ export function PoolBuilder({
               ctx.closePath();
             }
           });
-          
           ctx.clip('evenodd');
 
           // Draw paver tiles
@@ -3742,26 +3616,23 @@ export function PoolBuilder({
           const hsMaxY = Math.max(...poolHardscapePoints.map(p => p.y));
           const numPaversX = Math.ceil((hsMaxX - hsMinX) / paverSizeInPixels) + 1;
           const numPaversY = Math.ceil((hsMaxY - hsMinY) / paverSizeInPixels) + 1;
-
           for (let i = 0; i < numPaversX; i++) {
             for (let j = 0; j < numPaversY; j++) {
               const x = hsMinX + i * paverSizeInPixels;
               const y = hsMinY + j * paverSizeInPixels;
               ctx.drawImage(img, x, y, paverSizeInPixels, paverSizeInPixels);
-
               ctx.strokeStyle = 'rgba(100, 80, 60, 0.2)';
               ctx.lineWidth = 1;
               ctx.strokeRect(x, y, paverSizeInPixels, paverSizeInPixels);
             }
           }
-          
           ctx.restore();
         }
       }
 
       // Draw pool body + coping + liner texture
       // For integrated features (merged), draw coping only on edges facing deck (outside main pool)
-      
+
       // Compute which edges are outside the main pool (need coping) vs inside (no coping - water merge)
       const edgesOutsideMainPool: boolean[] = [];
       if (isIntegrated && pool.isMerged !== false) {
@@ -3774,10 +3645,8 @@ export function PoolBuilder({
           edgesOutsideMainPool.push(!isPointInPolygon(midX, midY, points));
         }
       }
-      
       ctx.save();
       ctx.beginPath();
-
       if (pool.shape === 'rectangle') {
         ctx.moveTo(pool.points[0].x, pool.points[0].y);
         for (let i = 1; i < pool.points.length; i++) {
@@ -3809,7 +3678,6 @@ export function PoolBuilder({
       // Draw coping - for integrated merged features, only on deck-facing edges (excluding spillover edges)
       const copingTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.coping, zoomLevel) : null;
       const spilloverEdges = pool.spilloverEdges || [];
-      
       if (isIntegrated && pool.isMerged !== false && edgesOutsideMainPool.length > 0) {
         // Draw coping only on edges that are OUTSIDE main pool AND not spillover edges
         ctx.save();
@@ -3818,17 +3686,15 @@ export function PoolBuilder({
           if (edgesOutsideMainPool[i] && !isSpillover) {
             const p1 = pool.points[i];
             const p2 = pool.points[(i + 1) % pool.points.length];
-            
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
-            
+
             // Draw segment with curve type if applicable
             if (pool.shape === 'freeform' && p1.curveType) {
               drawPoolSegment(ctx, p1, p2);
             } else {
               ctx.lineTo(p2.x, p2.y);
             }
-            
             if (copingTexture) {
               ctx.lineWidth = paverSizeInPixels;
               const copingPattern = ctx.createPattern(copingTexture, 'repeat');
@@ -3842,18 +3708,17 @@ export function PoolBuilder({
               ctx.stroke();
             }
           }
-          
+
           // Draw spillover edge indicator (water-fall effect)
           if (isSpillover && edgesOutsideMainPool[i]) {
             const p1 = pool.points[i];
             const p2 = pool.points[(i + 1) % pool.points.length];
-            
+
             // Create water-fall gradient
             const gradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
             gradient.addColorStop(0, 'rgba(100, 200, 255, 0.8)');
             gradient.addColorStop(0.5, 'rgba(70, 180, 240, 0.9)');
             gradient.addColorStop(1, 'rgba(100, 200, 255, 0.8)');
-            
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             if (pool.shape === 'freeform' && p1.curveType) {
@@ -3864,7 +3729,7 @@ export function PoolBuilder({
             ctx.lineWidth = 8;
             ctx.strokeStyle = gradient;
             ctx.stroke();
-            
+
             // Add ripple effect lines
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
             ctx.lineWidth = 2;
@@ -3879,13 +3744,11 @@ export function PoolBuilder({
         if (copingTexture) {
           ctx.save();
           ctx.lineWidth = paverSizeInPixels;
-
           const copingPattern = ctx.createPattern(copingTexture, 'repeat');
           if (copingPattern) {
             ctx.strokeStyle = copingPattern;
             ctx.stroke();
           }
-
           ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
           ctx.lineWidth = paverSizeInPixels + 2;
           ctx.globalCompositeOperation = 'destination-over';
@@ -3898,13 +3761,13 @@ export function PoolBuilder({
           ctx.stroke();
         }
       }
-      
+
       // If selected, add highlight on all edges
       if (isSelected) {
         ctx.beginPath();
         ctx.moveTo(pool.points[0].x, pool.points[0].y);
         for (let i = 1; i < pool.points.length; i++) {
-          if (pool.shape === 'freeform' && pool.points[i-1].curveType) {
+          if (pool.shape === 'freeform' && pool.points[i - 1].curveType) {
             drawPoolSegment(ctx, pool.points[i - 1], pool.points[i]);
           } else {
             ctx.lineTo(pool.points[i].x, pool.points[i].y);
@@ -3915,7 +3778,7 @@ export function PoolBuilder({
         ctx.lineWidth = 3;
         ctx.stroke();
       }
-      
+
       // Draw spillover edge click indicators when spa is selected
       if (isSelected && pool.featureType === 'spillover-spa') {
         for (let i = 0; i < pool.points.length; i++) {
@@ -3925,7 +3788,7 @@ export function PoolBuilder({
             const midX = (p1.x + p2.x) / 2;
             const midY = (p1.y + p2.y) / 2;
             const isSpillover = spilloverEdges.includes(i);
-            
+
             // Draw clickable spillover toggle button
             ctx.beginPath();
             ctx.arc(midX, midY, 12, 0, 2 * Math.PI);
@@ -3934,14 +3797,14 @@ export function PoolBuilder({
             ctx.strokeStyle = isSpillover ? '#2E86AB' : '#666666';
             ctx.lineWidth = 2;
             ctx.stroke();
-            
+
             // Icon
             ctx.fillStyle = isSpillover ? '#ffffff' : '#666666';
             ctx.font = 'bold 12px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(isSpillover ? '💧' : '+', midX, midY);
-            
+
             // Label
             ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
             ctx.font = '9px Arial';
@@ -3949,13 +3812,13 @@ export function PoolBuilder({
           }
         }
       }
-      
+
       // Draw merge point indicators for integrated features (editable)
       if (isIntegrated && pool.isMerged !== false && isSelected) {
         for (let i = 0; i < pool.points.length; i++) {
           const isOutside = edgesOutsideMainPool[i];
           const wasOutside = edgesOutsideMainPool[(i - 1 + pool.points.length) % pool.points.length];
-          
+
           // Transition points (where coping starts/ends) are merge points
           if (isOutside !== wasOutside) {
             const pt = pool.points[i];
@@ -3966,7 +3829,7 @@ export function PoolBuilder({
             ctx.strokeStyle = '#CC0000';
             ctx.lineWidth = 2;
             ctx.stroke();
-            
+
             // Label
             ctx.fillStyle = '#CC0000';
             ctx.font = 'bold 10px Arial';
@@ -3978,7 +3841,7 @@ export function PoolBuilder({
 
       // Fill water with pool texture - MUST rebuild path before clipping
       ctx.save();
-      
+
       // Rebuild the pool shape path for water fill
       ctx.beginPath();
       if (pool.shape === 'rectangle') {
@@ -4008,7 +3871,6 @@ export function PoolBuilder({
       }
       ctx.closePath();
       ctx.clip();
-
       const poolTextureImg = new Image();
       poolTextureImg.src = poolTextureSapphire;
       if (poolTextureImg.complete) {
@@ -4030,10 +3892,9 @@ export function PoolBuilder({
           ctx.fill();
         }
       }
+      ctx.restore();
+      ctx.restore();
 
-      ctx.restore();
-      ctx.restore();
-      
       // Draw anchor points for additional pools (like main pool)
       pool.points.forEach(point => {
         const size = 10;
@@ -4044,7 +3905,7 @@ export function PoolBuilder({
         ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
         ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
       });
-      
+
       // Draw measurements for additional pool edges (like main pool)
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
       ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
@@ -4076,13 +3937,12 @@ export function PoolBuilder({
           ctx.fillText(label, midX + offsetX, midY + offsetY);
         }
       }
-      
+
       // Draw feature type label for integrated features
       if (isIntegrated) {
         const centerX = pool.points.reduce((sum, p) => sum + p.x, 0) / pool.points.length;
         const centerY = pool.points.reduce((sum, p) => sum + p.y, 0) / pool.points.length;
         const label = pool.featureType === 'spillover-spa' ? 'Spillover Spa' : 'Tanning Ledge';
-        
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         ctx.font = 'bold 11px Arial';
         ctx.textAlign = 'center';
@@ -4093,7 +3953,7 @@ export function PoolBuilder({
         ctx.fillRect(centerX - metrics.width / 2 - padding, centerY - 8, metrics.width + padding * 2, 16);
         ctx.fillStyle = pool.featureType === 'spillover-spa' ? '#2E86AB' : '#10B981';
         ctx.fillText(label, centerX, centerY);
-        
+
         // Draw perimeter drag handle for snapped features
         if (pool.isPerimeterSnapped && pool.perimeterPosition !== undefined) {
           const perimPos = getPositionFromPerimeter(pool.perimeterPosition);
@@ -4104,7 +3964,7 @@ export function PoolBuilder({
           ctx.strokeStyle = '#ffffff';
           ctx.lineWidth = 2;
           ctx.stroke();
-          
+
           // Drag indicator
           ctx.fillStyle = '#ffffff';
           ctx.font = 'bold 10px Arial';
@@ -4113,27 +3973,22 @@ export function PoolBuilder({
         }
       }
     });
-    
+
     // Draw perimeter anchor mode - red gradient draggable line on coping
     if (perimeterAnchorMode.isActive && points.length >= 3) {
       const anchorPos = getPositionFromPerimeter(perimeterAnchorMode.perimeterPosition);
       const lineLength = 30; // Length of the anchor line in pixels
-      
+
       // Calculate perpendicular direction (inward from wall)
       const perpX = Math.cos(anchorPos.angle + Math.PI / 2);
       const perpY = Math.sin(anchorPos.angle + Math.PI / 2);
-      
+
       // Create red gradient
-      const gradient = ctx.createLinearGradient(
-        anchorPos.x - perpX * lineLength / 2,
-        anchorPos.y - perpY * lineLength / 2,
-        anchorPos.x + perpX * lineLength / 2,
-        anchorPos.y + perpY * lineLength / 2
-      );
+      const gradient = ctx.createLinearGradient(anchorPos.x - perpX * lineLength / 2, anchorPos.y - perpY * lineLength / 2, anchorPos.x + perpX * lineLength / 2, anchorPos.y + perpY * lineLength / 2);
       gradient.addColorStop(0, '#FF4444');
       gradient.addColorStop(0.5, '#FF0000');
       gradient.addColorStop(1, '#AA0000');
-      
+
       // Draw the anchor line across the coping
       ctx.save();
       ctx.strokeStyle = gradient;
@@ -4143,7 +3998,7 @@ export function PoolBuilder({
       ctx.moveTo(anchorPos.x - perpX * lineLength / 2, anchorPos.y - perpY * lineLength / 2);
       ctx.lineTo(anchorPos.x + perpX * lineLength / 2, anchorPos.y + perpY * lineLength / 2);
       ctx.stroke();
-      
+
       // Pulsing glow effect when not fixed
       if (!perimeterAnchorMode.isFixed) {
         ctx.shadowColor = '#FF0000';
@@ -4151,7 +4006,7 @@ export function PoolBuilder({
         ctx.stroke();
         ctx.shadowBlur = 0;
       }
-      
+
       // Draw center dot
       ctx.beginPath();
       ctx.arc(anchorPos.x, anchorPos.y, perimeterAnchorMode.isFixed ? 6 : 8, 0, 2 * Math.PI);
@@ -4160,11 +4015,9 @@ export function PoolBuilder({
       ctx.strokeStyle = perimeterAnchorMode.isFixed ? '#008800' : '#FF0000';
       ctx.lineWidth = 2;
       ctx.stroke();
-      
+
       // Instruction label
-      const label = perimeterAnchorMode.isFixed 
-        ? `Draw ${perimeterAnchorMode.featureType === 'spillover-spa' ? 'Spa' : 'Tanning Ledge'} shape`
-        : `Drag to position, click to fix`;
+      const label = perimeterAnchorMode.isFixed ? `Draw ${perimeterAnchorMode.featureType === 'spillover-spa' ? 'Spa' : 'Tanning Ledge'} shape` : `Drag to position, click to fix`;
       ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
       ctx.font = 'bold 12px Arial';
       ctx.textAlign = 'center';
@@ -4173,7 +4026,7 @@ export function PoolBuilder({
       ctx.fillRect(anchorPos.x - metrics.width / 2 - 6, anchorPos.y - 35, metrics.width + 12, 20);
       ctx.fillStyle = perimeterAnchorMode.isFixed ? '#008800' : '#CC0000';
       ctx.fillText(label, anchorPos.x, anchorPos.y - 22);
-      
+
       // Feature type badge
       const typeBadge = perimeterAnchorMode.featureType === 'spillover-spa' ? '🌊 Spa' : '☀️ Ledge';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
@@ -4181,10 +4034,8 @@ export function PoolBuilder({
       ctx.fillRect(anchorPos.x - badgeMetrics.width / 2 - 4, anchorPos.y + 15, badgeMetrics.width + 8, 18);
       ctx.fillStyle = '#333';
       ctx.fillText(typeBadge, anchorPos.x, anchorPos.y + 27);
-      
       ctx.restore();
     }
-    
     ctx.restore();
   }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, splineDrawing, additionalPools, selectedAdditionalPool, getPositionFromPerimeter, perimeterAnchorMode]);
 
@@ -4228,13 +4079,16 @@ export function PoolBuilder({
       onPoolDataChange({
         points,
         depthPoints,
-        scale, // CRITICAL: Export scale so 3D viewer can convert correctly
+        scale,
+        // CRITICAL: Export scale so 3D viewer can convert correctly
         features,
         perimeter: poolPerimeter,
         area: poolArea,
         deckArea: calculateHardscapeArea(),
-        hardscapePoints, // Include deck/hardscape points
-        additionalPools, // CRITICAL: Include all additional pools (spas, tanning ledges, separate pools)
+        hardscapePoints,
+        // Include deck/hardscape points
+        additionalPools,
+        // CRITICAL: Include all additional pools (spas, tanning ledges, separate pools)
         totalCost: cost.total,
         breakdown: cost
       });
@@ -4260,7 +4114,6 @@ export function PoolBuilder({
       // Check if clicking on/near the anchor point
       const anchorPos = getPositionFromPerimeter(perimeterAnchorMode.perimeterPosition);
       const distToAnchor = Math.sqrt(Math.pow(anchorPos.x - x, 2) + Math.pow(anchorPos.y - y, 2));
-      
       if (distToAnchor < 25) {
         // Fix the anchor and start drawing
         handlePerimeterAnchorClick();
@@ -4326,7 +4179,7 @@ export function PoolBuilder({
           const midY = (p1.y + p2.y) / 2;
           edgesOutsideMainPool.push(!isPointInPolygon(midX, midY, points));
         }
-        
+
         // Check if clicked on any spillover toggle button
         for (let i = 0; i < selectedPool.points.length; i++) {
           if (edgesOutsideMainPool[i]) {
@@ -4334,19 +4187,14 @@ export function PoolBuilder({
             const p2 = selectedPool.points[(i + 1) % selectedPool.points.length];
             const midX = (p1.x + p2.x) / 2;
             const midY = (p1.y + p2.y) / 2;
-            
             if (Math.sqrt(Math.pow(midX - x, 2) + Math.pow(midY - y, 2)) < 15) {
               // Toggle spillover edge
               const currentSpilloverEdges = selectedPool.spilloverEdges || [];
-              const newSpilloverEdges = currentSpilloverEdges.includes(i)
-                ? currentSpilloverEdges.filter(e => e !== i)
-                : [...currentSpilloverEdges, i];
-              
-              setAdditionalPools(pools => pools.map(p => 
-                p.id === selectedPool.id
-                  ? { ...p, spilloverEdges: newSpilloverEdges }
-                  : p
-              ));
+              const newSpilloverEdges = currentSpilloverEdges.includes(i) ? currentSpilloverEdges.filter(e => e !== i) : [...currentSpilloverEdges, i];
+              setAdditionalPools(pools => pools.map(p => p.id === selectedPool.id ? {
+                ...p,
+                spilloverEdges: newSpilloverEdges
+              } : p));
               return;
             }
           }
@@ -4368,7 +4216,7 @@ export function PoolBuilder({
           return;
         }
       }
-      
+
       // Check pool points
       const clickedPoolPoint = pool.points.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
       if (clickedPoolPoint) {
@@ -4498,24 +4346,27 @@ export function PoolBuilder({
     if (activeTool === 'draw-pool') {
       // Ensure splineDrawing is active
       if (!splineDrawing.isActive) {
-        setSplineDrawing(prev => ({ ...prev, isActive: true }));
+        setSplineDrawing(prev => ({
+          ...prev,
+          isActive: true
+        }));
       }
-      
+
       // Apply symmetry snapping to coordinates for spline drawing
       const snapped = getSymmetrySnappedPosition(x, y);
       x = snapped.x;
       y = snapped.y;
-      
+
       // During active drawing, DON'T open the point editor - just add/close points
       // The point editor is only available AFTER the pool is completed
-      
+
       const newSplinePoint = {
         x,
         y,
         id: Date.now().toString(),
-        curveType: splineDrawing.currentCurveType,
+        curveType: splineDrawing.currentCurveType
       };
-      
+
       // Check if this is the FIRST point and it's on an existing pool area
       // Show the dialog immediately so user knows they're creating an integrated feature
       if (splineDrawing.points.length === 0 && !perimeterAnchorMode.isActive) {
@@ -4524,15 +4375,20 @@ export function PoolBuilder({
           // Show dialog immediately when starting to draw on an existing pool
           // Store the first point and show dialog
           setPendingPoolData({
-            points: [{ x, y, id: '1', curveType: splineDrawing.currentCurveType }],
-            intersectsWith: clickedPoolId,
+            points: [{
+              x,
+              y,
+              id: '1',
+              curveType: splineDrawing.currentCurveType
+            }],
+            intersectsWith: clickedPoolId
           });
           setShowPoolTypeDialog(true);
           // Don't add the point yet - wait for dialog selection
           return;
         }
       }
-      
+
       // Check if clicking near first point to close the shape
       if (splineDrawing.points.length >= 3) {
         const firstPoint = splineDrawing.points[0];
@@ -4544,23 +4400,21 @@ export function PoolBuilder({
             y: sp.y,
             id: (i + 1).toString(),
             // First point defines closing segment curve - use current curve type
-            curveType: i === 0 ? splineDrawing.currentCurveType : sp.curveType,
+            curveType: i === 0 ? splineDrawing.currentCurveType : sp.curveType
           }));
-          
+
           // Check if we're in perimeter anchor mode (drawing spa/tanning ledge)
           if (perimeterAnchorMode.isActive && perimeterAnchorMode.isFixed) {
             // Complete the perimeter-anchored pool
             completePerimeterAnchoredPool(newPoolPoints);
             return;
           }
-          
           const intersectingPoolId = checkDeckIntersection(newPoolPoints);
-          
           if (intersectingPoolId) {
             // Show dialog to ask user what type of pool feature this is
             setPendingPoolData({
               points: newPoolPoints,
-              intersectsWith: intersectingPoolId,
+              intersectsWith: intersectingPoolId
             });
             setShowPoolTypeDialog(true);
           } else {
@@ -4570,41 +4424,37 @@ export function PoolBuilder({
               type: 'pool',
               points: newPoolPoints,
               shape: 'freeform',
-              featureType: 'regular',
+              featureType: 'regular'
             }]);
-            
-            setSplineDrawing({ 
-              isActive: false, 
+            setSplineDrawing({
+              isActive: false,
               points: [],
-              currentCurveType: 'linear' 
+              currentCurveType: 'linear'
             });
             setActiveTool(null);
           }
           return;
         }
       }
-      
       setSplineDrawing(prev => ({
         ...prev,
-        points: [...prev.points, newSplinePoint],
+        points: [...prev.points, newSplinePoint]
       }));
       return;
     }
-    
+
     // Allow editing pool points AFTER drawing is complete (when not in draw mode)
     // Check if clicking on a pool control point for curve editing
     if (activeTool === 'select' && !splineDrawing.isActive) {
       // If a spline point is already selected, clicking it again should start dragging it
       // (important for newly inserted anchors that start coincident with an existing point)
       if (selectedSplinePoint) {
-        const distToSelected = Math.sqrt(
-          Math.pow(x - selectedSplinePoint.point.x, 2) + Math.pow(y - selectedSplinePoint.point.y, 2)
-        );
+        const distToSelected = Math.sqrt(Math.pow(x - selectedSplinePoint.point.x, 2) + Math.pow(y - selectedSplinePoint.point.y, 2));
         if (distToSelected < 12) {
           if (selectedSplinePoint.poolId) {
             setDraggingAdditionalPoolPoint({
               poolId: selectedSplinePoint.poolId,
-              pointId: selectedSplinePoint.point.id,
+              pointId: selectedSplinePoint.point.id
             });
             setSelectedAdditionalPool(selectedSplinePoint.poolId);
           } else {
@@ -4626,7 +4476,7 @@ export function PoolBuilder({
               x: pt.x,
               y: pt.y,
               id: pt.id,
-              curveType: pt.curveType || 'linear',
+              curveType: pt.curveType || 'linear'
             };
             const canvas = canvasRef.current;
             if (canvas) {
@@ -4636,15 +4486,15 @@ export function PoolBuilder({
                 index: i,
                 screenPosition: {
                   x: rect.left + pt.x * zoomLevel,
-                  y: rect.top + pt.y * zoomLevel,
-                },
+                  y: rect.top + pt.y * zoomLevel
+                }
               });
             }
             return;
           }
         }
       }
-      
+
       // Check additional pool points (spas, tanning ledges, new pools)
       for (const pool of additionalPools) {
         for (let i = 0; i < pool.points.length; i++) {
@@ -4655,7 +4505,7 @@ export function PoolBuilder({
               x: pt.x,
               y: pt.y,
               id: pt.id,
-              curveType: pt.curveType || 'linear',
+              curveType: pt.curveType || 'linear'
             };
             const canvas = canvasRef.current;
             if (canvas) {
@@ -4665,9 +4515,9 @@ export function PoolBuilder({
                 index: i,
                 screenPosition: {
                   x: rect.left + pt.x * zoomLevel,
-                  y: rect.top + pt.y * zoomLevel,
+                  y: rect.top + pt.y * zoomLevel
                 },
-                poolId: pool.id,
+                poolId: pool.id
               });
             }
             return;
@@ -4775,7 +4625,10 @@ export function PoolBuilder({
       for (const pool of additionalPools) {
         const clickedPoolPoint = pool.points.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
         if (clickedPoolPoint) {
-          setDraggingAdditionalPoolPoint({ poolId: pool.id, pointId: clickedPoolPoint.id });
+          setDraggingAdditionalPoolPoint({
+            poolId: pool.id,
+            pointId: clickedPoolPoint.id
+          });
           setSelectedAdditionalPool(pool.id);
           return;
         }
@@ -4815,7 +4668,10 @@ export function PoolBuilder({
       const snapped = getSymmetrySnappedPosition(x, y);
       x = snapped.x;
       y = snapped.y;
-      setCursorPos({ x, y });
+      setCursorPos({
+        x,
+        y
+      });
       return;
     }
 
@@ -4824,7 +4680,7 @@ export function PoolBuilder({
       const newPerimeterPos = getPerimeterPositionFromPoint(x, y);
       setPerimeterAnchorMode(prev => ({
         ...prev,
-        perimeterPosition: newPerimeterPos,
+        perimeterPosition: newPerimeterPos
       }));
       return;
     }
@@ -5051,19 +4907,12 @@ export function PoolBuilder({
       return;
     }
     let newFeature: PoolFeature;
-    
+
     // Open area placement features (landscape, decorative)
-    const openAreaFeatures: PoolFeature['type'][] = [
-      'tree', 'fountain', 'grass', 'home', 'shrub', 'umbrella', 'fence', 'pathway',
-      'rock', 'boulder', 'hedge-row', 'plant-row', 'landscape-light', 'edging', 'grass-region',
-      'pond', 'stream', 'waterfall', 'sprinkler', 'water-curtain'
-    ];
-    
+    const openAreaFeatures: PoolFeature['type'][] = ['tree', 'fountain', 'grass', 'home', 'shrub', 'umbrella', 'fence', 'pathway', 'rock', 'boulder', 'hedge-row', 'plant-row', 'landscape-light', 'edging', 'grass-region', 'pond', 'stream', 'waterfall', 'sprinkler', 'water-curtain'];
+
     // Wall-mounted features (snap to pool perimeter)
-    const wallMountedFeatures: PoolFeature['type'][] = [
-      'light', 'pool-seat', 'pool-wall', 'stairs', 'diving-board', 'slide', 'pool-accessory', 'pool-cover'
-    ];
-    
+    const wallMountedFeatures: PoolFeature['type'][] = ['light', 'pool-seat', 'pool-wall', 'stairs', 'diving-board', 'slide', 'pool-accessory', 'pool-cover'];
     if (openAreaFeatures.includes(type)) {
       // Place in open area with slight randomization
       newFeature = {
@@ -5075,8 +4924,8 @@ export function PoolBuilder({
         radius: type === 'grass' || type === 'grass-region' ? 80 : type === 'pond' ? 60 : undefined,
         width: type === 'home' ? 200 : type === 'hedge-row' ? 100 : type === 'water-curtain' ? 80 : undefined,
         height: type === 'home' ? 150 : undefined,
-        rockSize: (type === 'rock' || type === 'boulder') ? (type === 'boulder' ? 'large' : 'medium') : undefined,
-        lightColor: type === 'landscape-light' ? '#fffacd' : undefined,
+        rockSize: type === 'rock' || type === 'boulder' ? type === 'boulder' ? 'large' : 'medium' : undefined,
+        lightColor: type === 'landscape-light' ? '#fffacd' : undefined
       };
     } else if (type === 'light') {
       // Lights snap to walls and point inward
@@ -5101,8 +4950,9 @@ export function PoolBuilder({
         angle: wallPoint.angle + Math.PI / 2,
         wallSegment: wallPoint.segment,
         wallPosition: wallPoint.position,
-        seatWidth: 6 * scale, // 6ft wide seat
-        seatDepth: 2 * scale, // 2ft deep
+        seatWidth: 6 * scale,
+        // 6ft wide seat
+        seatDepth: 2 * scale // 2ft deep
       };
     } else if (type === 'pool-wall') {
       // Raised walls snap to pool perimeter
@@ -5115,8 +4965,9 @@ export function PoolBuilder({
         angle: wallPoint.angle + Math.PI / 2,
         wallSegment: wallPoint.segment,
         wallPosition: wallPoint.position,
-        width: 8 * scale, // 8ft wide
-        wallHeight: 3, // 3ft tall
+        width: 8 * scale,
+        // 8ft wide
+        wallHeight: 3 // 3ft tall
       };
     } else if (type === 'diving-board') {
       // Diving boards at deep end
@@ -5129,7 +4980,7 @@ export function PoolBuilder({
         angle: wallPoint.angle + Math.PI / 2,
         wallSegment: wallPoint.segment,
         wallPosition: wallPoint.position,
-        length: 10 * scale, // 10ft board
+        length: 10 * scale // 10ft board
       };
     } else {
       // Default: Stairs and other wall-mounted features
@@ -5153,15 +5004,14 @@ export function PoolBuilder({
   // Handle external tool selection from DesignStudio toolbar
   useEffect(() => {
     if (!externalTool) return;
-    
+
     // Panel-switching tools (these switch tabs, not add features)
     const panelTools: Record<string, string> = {
       'pool-shape': 'shape',
       'pool-deck': 'pool',
       'pool-depth': 'depth',
-      'pool-materials': 'materials',
+      'pool-materials': 'materials'
     };
-    
     if (panelTools[externalTool]) {
       setActiveTab(panelTools[externalTool]);
       if (externalTool === 'pool-shape') {
@@ -5171,7 +5021,7 @@ export function PoolBuilder({
       }
       return;
     }
-    
+
     // Map toolbar tool IDs to feature types
     const toolToFeatureMap: Record<string, PoolFeature['type']> = {
       'pool-stairs': 'stairs',
@@ -5201,15 +5051,13 @@ export function PoolBuilder({
       'waterfall': 'waterfall',
       'jumping-jet': 'jumping-jet',
       'sprinkler': 'sprinkler',
-      'water-curtain': 'water-curtain',
+      'water-curtain': 'water-curtain'
     };
-    
     const featureType = toolToFeatureMap[externalTool];
     if (featureType) {
       addFeature(featureType);
     }
   }, [externalTool]);
-
   const addStairStep = () => {
     if (!selectedFeature) return;
     setFeatures(prev => prev.map(f => f.id === selectedFeature && f.type === 'stairs' ? {
@@ -5258,8 +5106,7 @@ export function PoolBuilder({
       {showControls && <div className="border-b bg-background/95 backdrop-blur">
           <Tabs value={activeTab} defaultValue="pool" className="w-full" onValueChange={setActiveTab}>
             {/* Only show tab list if not hidden by external control */}
-            {!hideInternalTabs && (
-              <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto">
+            {!hideInternalTabs && <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto">
                 <TabsTrigger value="pool" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
                   Pool Design
                 </TabsTrigger>
@@ -5278,8 +5125,7 @@ export function PoolBuilder({
                 <TabsTrigger value="depth" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
                   Depth
                 </TabsTrigger>
-              </TabsList>
-            )}
+              </TabsList>}
 
             {/* Pool Design Tab - Deck controls */}
             <TabsContent value="pool" className="mt-0 p-3 space-y-3">
@@ -5291,29 +5137,17 @@ export function PoolBuilder({
                     <div className="space-y-1.5">
                       <Label className="text-[10px] text-muted-foreground">Deck Width</Label>
                       <div className="flex items-center gap-2">
-                        <Input 
-                          type="number" 
-                          value={deckOffset} 
-                          onChange={e => {
-                            const newOffset = Math.max(3, parseFloat(e.target.value) || 3);
-                            setDeckOffset(newOffset);
-                            setHardscapePoints(generateHardscapeFromPool(points, newOffset));
-                          }} 
-                          className="h-8 text-xs" 
-                          min="3" 
-                          step="0.5" 
-                        />
+                        <Input type="number" value={deckOffset} onChange={e => {
+                      const newOffset = Math.max(3, parseFloat(e.target.value) || 3);
+                      setDeckOffset(newOffset);
+                      setHardscapePoints(generateHardscapeFromPool(points, newOffset));
+                    }} className="h-8 text-xs" min="3" step="0.5" />
                         <span className="text-xs text-muted-foreground whitespace-nowrap">ft</span>
                       </div>
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-[10px] text-muted-foreground">Draw Custom</Label>
-                      <Button 
-                        size="sm" 
-                        onClick={() => setActiveTool(activeTool === 'draw-deck' ? null : 'draw-deck')} 
-                        variant={activeTool === 'draw-deck' ? "default" : "outline"} 
-                        className="w-full h-8 text-xs"
-                      >
+                      <Button size="sm" onClick={() => setActiveTool(activeTool === 'draw-deck' ? null : 'draw-deck')} variant={activeTool === 'draw-deck' ? "default" : "outline"} className="w-full h-8 text-xs">
                         <PenTool className="h-3.5 w-3.5 mr-1.5" />
                         {activeTool === 'draw-deck' ? 'Drawing...' : 'Draw Deck'}
                       </Button>
@@ -5324,110 +5158,104 @@ export function PoolBuilder({
                 {/* Shape Repository */}
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">Load Saved Designs</Label>
-                  <ShapeRepository
-                    currentPoolPoints={points}
-                    currentDeckPoints={hardscapePoints}
-                    onLoadPoolShape={(newPoints) => {
-                      const centerX = canvasSize.width / 2;
-                      const centerY = canvasSize.height / 2;
-                      const centeredPoints = newPoints.map((p, i) => ({
-                        ...p,
-                        x: p.x + centerX,
-                        y: p.y + centerY,
-                        id: `${i + 1}`
-                      }));
-                      setPoints(centeredPoints);
-                      setHardscapePoints(generateHardscapeFromPool(centeredPoints, deckOffset));
-                    }}
-                    onLoadDeckShape={(newPoints) => {
-                      const centerX = canvasSize.width / 2;
-                      const centerY = canvasSize.height / 2;
-                      const centeredPoints = newPoints.map((p, i) => ({
-                        ...p,
-                        x: p.x + centerX,
-                        y: p.y + centerY,
-                        id: `h${i + 1}`
-                      }));
-                      setHardscapePoints(centeredPoints);
-                    }}
-                    scale={scale}
-                  />
+                  <ShapeRepository currentPoolPoints={points} currentDeckPoints={hardscapePoints} onLoadPoolShape={newPoints => {
+                const centerX = canvasSize.width / 2;
+                const centerY = canvasSize.height / 2;
+                const centeredPoints = newPoints.map((p, i) => ({
+                  ...p,
+                  x: p.x + centerX,
+                  y: p.y + centerY,
+                  id: `${i + 1}`
+                }));
+                setPoints(centeredPoints);
+                setHardscapePoints(generateHardscapeFromPool(centeredPoints, deckOffset));
+              }} onLoadDeckShape={newPoints => {
+                const centerX = canvasSize.width / 2;
+                const centerY = canvasSize.height / 2;
+                const centeredPoints = newPoints.map((p, i) => ({
+                  ...p,
+                  x: p.x + centerX,
+                  y: p.y + centerY,
+                  id: `h${i + 1}`
+                }));
+                setHardscapePoints(centeredPoints);
+              }} scale={scale} />
                 </div>
                 
                 {/* Drawing mode instructions */}
-                {activeTool === 'draw-deck' && (
-                  <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 text-xs">
+                {activeTool === 'draw-deck' && <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 text-xs">
                     <p className="font-medium text-primary">✏️ Drawing Deck Shape</p>
                     <p className="text-muted-foreground mt-1">Click to add points. Double-click or press Enter to finish.</p>
-                  </div>
-                )}
+                  </div>}
               </div>
             </TabsContent>
 
             {/* Shape Tab - Pool shape controls */}
             <TabsContent value="shape" className="mt-0 p-3">
-              <ShapePanel
-                poolShape={poolShape}
-                setPoolShape={setPoolShape}
-                points={points}
-                setPoints={setPoints}
-                activeTool={activeTool}
-                setActiveTool={setActiveTool}
-                onShapeSelect={(shape) => {
-                  setPoolShape(shape);
-                  const newPoolPoints = getShapePoints(shape);
-                  setPoints(newPoolPoints);
-                  setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
-                  setFeatures([]);
-                }}
-                isDrawing={isDrawing}
-                drawingPoints={drawingPoints}
-                splineDrawing={splineDrawing}
-                onSplineDrawingChange={setSplineDrawing}
-                onFinishSpline={() => {
-                  if (splineDrawing.points.length >= 3) {
-                    // Convert spline points to pool points
-                    const newPoolPoints = splineDrawing.points.map((sp, i) => ({
-                      x: sp.x,
-                      y: sp.y,
-                      id: (i + 1).toString(),
-                    }));
-                    setPoints(newPoolPoints);
-                    setPoolShape('freeform');
-                    setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
-                    setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
-                    setActiveTool(null);
-                  }
-                }}
-                onCancelSpline={() => {
-                  setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
-                  setActiveTool(null);
-                }}
-                poolDimensions={points.length > 0 ? {
-                  width: (Math.max(...points.map(p => p.x)) - Math.min(...points.map(p => p.x))) / scale,
-                  length: (Math.max(...points.map(p => p.y)) - Math.min(...points.map(p => p.y))) / scale,
-                  area: poolArea,
-                  perimeter: poolPerimeter,
-                } : undefined}
-                onAddNewPool={(type) => {
-                  // Add new pool/spa to scene without erasing existing
-                  const offsetX = 150 + additionalPools.length * 50;
-                  const offsetY = 100 + additionalPools.length * 30;
-                  const newPoolPoints = [
-                    { x: canvasSize.width / 2 + offsetX, y: canvasSize.height / 2 + offsetY - 50, id: 'np1' },
-                    { x: canvasSize.width / 2 + offsetX + (type === 'spa' ? 60 : 100), y: canvasSize.height / 2 + offsetY - 50, id: 'np2' },
-                    { x: canvasSize.width / 2 + offsetX + (type === 'spa' ? 60 : 100), y: canvasSize.height / 2 + offsetY + (type === 'spa' ? 60 : 100), id: 'np3' },
-                    { x: canvasSize.width / 2 + offsetX, y: canvasSize.height / 2 + offsetY + (type === 'spa' ? 60 : 100), id: 'np4' },
-                  ];
-                  setAdditionalPools(prev => [...prev, {
-                    id: Date.now().toString(),
-                    type,
-                    points: newPoolPoints,
-                    shape: 'rectangle',
-                  }]);
-                }}
-                poolCount={1 + additionalPools.length}
-              />
+              <ShapePanel poolShape={poolShape} setPoolShape={setPoolShape} points={points} setPoints={setPoints} activeTool={activeTool} setActiveTool={setActiveTool} onShapeSelect={shape => {
+            setPoolShape(shape);
+            const newPoolPoints = getShapePoints(shape);
+            setPoints(newPoolPoints);
+            setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+            setFeatures([]);
+          }} isDrawing={isDrawing} drawingPoints={drawingPoints} splineDrawing={splineDrawing} onSplineDrawingChange={setSplineDrawing} onFinishSpline={() => {
+            if (splineDrawing.points.length >= 3) {
+              // Convert spline points to pool points
+              const newPoolPoints = splineDrawing.points.map((sp, i) => ({
+                x: sp.x,
+                y: sp.y,
+                id: (i + 1).toString()
+              }));
+              setPoints(newPoolPoints);
+              setPoolShape('freeform');
+              setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+              setSplineDrawing({
+                isActive: false,
+                points: [],
+                currentCurveType: 'linear'
+              });
+              setActiveTool(null);
+            }
+          }} onCancelSpline={() => {
+            setSplineDrawing({
+              isActive: false,
+              points: [],
+              currentCurveType: 'linear'
+            });
+            setActiveTool(null);
+          }} poolDimensions={points.length > 0 ? {
+            width: (Math.max(...points.map(p => p.x)) - Math.min(...points.map(p => p.x))) / scale,
+            length: (Math.max(...points.map(p => p.y)) - Math.min(...points.map(p => p.y))) / scale,
+            area: poolArea,
+            perimeter: poolPerimeter
+          } : undefined} onAddNewPool={type => {
+            // Add new pool/spa to scene without erasing existing
+            const offsetX = 150 + additionalPools.length * 50;
+            const offsetY = 100 + additionalPools.length * 30;
+            const newPoolPoints = [{
+              x: canvasSize.width / 2 + offsetX,
+              y: canvasSize.height / 2 + offsetY - 50,
+              id: 'np1'
+            }, {
+              x: canvasSize.width / 2 + offsetX + (type === 'spa' ? 60 : 100),
+              y: canvasSize.height / 2 + offsetY - 50,
+              id: 'np2'
+            }, {
+              x: canvasSize.width / 2 + offsetX + (type === 'spa' ? 60 : 100),
+              y: canvasSize.height / 2 + offsetY + (type === 'spa' ? 60 : 100),
+              id: 'np3'
+            }, {
+              x: canvasSize.width / 2 + offsetX,
+              y: canvasSize.height / 2 + offsetY + (type === 'spa' ? 60 : 100),
+              id: 'np4'
+            }];
+            setAdditionalPools(prev => [...prev, {
+              id: Date.now().toString(),
+              type,
+              points: newPoolPoints,
+              shape: 'rectangle'
+            }]);
+          }} poolCount={1 + additionalPools.length} />
             </TabsContent>
 
             {/* Depth Tab */}
@@ -5508,53 +5336,7 @@ export function PoolBuilder({
                   </div>
                 </div>
 
-                {selectedDepthPoint && <div className="p-3 bg-muted/50 rounded-lg space-y-2">
-                    <Label className="text-xs font-medium">Depth Point Editor</Label>
-                    {depthPoints.filter(dp => dp.id === selectedDepthPoint).map(dp => <div key={dp.id} className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Label className="text-xs flex-1">Position: {(dp.position * 100).toFixed(0)}%</Label>
-                          <Input type="number" value={(dp.position * 100).toFixed(0)} onChange={e => {
-                    const newPos = Math.max(0, Math.min(100, parseFloat(e.target.value))) / 100;
-                    setDepthPoints(prev => prev.map(d => d.id === dp.id ? {
-                      ...d,
-                      position: newPos
-                    } : d));
-                  }} className="h-7 w-20" min="0" max="100" step="1" />
-                        </div>
-                         <div className="flex items-center gap-2">
-                           <Label className="text-xs flex-1">Depth: {dp.depth.toFixed(1)}'</Label>
-                           <Input type="number" value={dp.depth.toFixed(1)} onChange={e => {
-                    const newDepth = Math.max(1, Math.min(9, parseFloat(e.target.value)));
-                    setDepthPoints(prev => prev.map(d => d.id === dp.id ? {
-                      ...d,
-                      depth: newDepth
-                    } : d));
-                  }} className="h-7 w-20" min="1" max="9" step="0.5" />
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" onClick={() => {
-                    const maxId = Math.max(...depthPoints.map(d => parseInt(d.id.replace('d', ''))));
-                    setDepthPoints([...depthPoints, {
-                      id: `d${maxId + 1}`,
-                      position: 0.5,
-                      depth: 5
-                    }]);
-                  }} variant="outline" className="flex-1">
-                            <Plus className="h-4 w-4 mr-1" />
-                            Add Point
-                          </Button>
-                          <Button size="sm" onClick={() => {
-                    if (depthPoints.length > 2) {
-                      setDepthPoints(prev => prev.filter(d => d.id !== selectedDepthPoint));
-                      setSelectedDepthPoint(null);
-                    }
-                  }} variant="outline" disabled={depthPoints.length <= 2} className="flex-1">
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Remove
-                          </Button>
-                        </div>
-                      </div>)}
-                  </div>}
+                {selectedDepthPoint}
               </div>
             </TabsContent>
 
@@ -5686,188 +5468,186 @@ export function PoolBuilder({
           </div>
           
           {/* Spline Point Editor Toolbar - replaces popup when point is selected */}
-          {selectedSplinePoint && !splineDrawing.isActive && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
-              <SplineDrawingToolbar
-                currentCurveType={selectedSplinePoint.point.curveType}
-                pointCount={selectedSplinePoint.poolId 
-                  ? (additionalPools.find(p => p.id === selectedSplinePoint.poolId)?.points.length || 0)
-                  : points.length
+          {selectedSplinePoint && !splineDrawing.isActive && <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
+              <SplineDrawingToolbar currentCurveType={selectedSplinePoint.point.curveType} pointCount={selectedSplinePoint.poolId ? additionalPools.find(p => p.id === selectedSplinePoint.poolId)?.points.length || 0 : points.length} onCurveTypeChange={curveType => {
+            const pointId = selectedSplinePoint.point.id;
+            if (selectedSplinePoint.poolId) {
+              updateAdditionalPoolPointCurveType(selectedSplinePoint.poolId, pointId, curveType);
+              setSelectedSplinePoint(prev => prev ? {
+                ...prev,
+                point: {
+                  ...prev.point,
+                  curveType
                 }
-                onCurveTypeChange={(curveType) => {
-                  const pointId = selectedSplinePoint.point.id;
-                  if (selectedSplinePoint.poolId) {
-                    updateAdditionalPoolPointCurveType(selectedSplinePoint.poolId, pointId, curveType);
-                    setSelectedSplinePoint(prev => prev ? {
-                      ...prev,
-                      point: { ...prev.point, curveType }
-                    } : null);
-                  } else {
-                    setPoints(prev => prev.map(p => 
-                      p.id === pointId ? { ...p, curveType } : p
-                    ));
-                    setSelectedSplinePoint(prev => prev ? {
-                      ...prev,
-                      point: { ...prev.point, curveType }
-                    } : null);
-                  }
-                }}
-                onCancel={() => setSelectedSplinePoint(null)}
-                onComplete={() => setSelectedSplinePoint(null)}
-                canComplete={true}
-                isEditMode={true}
-                pointLabel={`Point ${selectedSplinePoint.index + 1}`}
-                onAddPoint={() => {
-                  // Add a new point after the selected one WITHOUT changing the shape immediately.
-                  // We insert the new anchor coincident with the currently-selected point.
-                  // The outline only changes once the user drags the new anchor.
-                  const currentIndex = selectedSplinePoint.index;
-                  const newPointId = Date.now().toString();
-                  const newPointIndex = currentIndex + 1;
-
-                  if (selectedSplinePoint.poolId) {
-                    // Additional pool
-                    const pool = additionalPools.find(p => p.id === selectedSplinePoint.poolId);
-                    if (!pool) return;
-
-                    const currentPt = pool.points[currentIndex];
-                    const newPoint = { x: currentPt.x, y: currentPt.y, id: newPointId, curveType: 'linear' as const };
-
-                    setAdditionalPools(prev => prev.map(p => {
-                      if (p.id !== selectedSplinePoint.poolId) return p;
-                      const newPoints = [...p.points];
-                      newPoints.splice(currentIndex + 1, 0, newPoint);
-                      return { ...p, points: newPoints };
-                    }));
-
-                    setSelectedAdditionalPool(selectedSplinePoint.poolId);
-
-                    const canvas = canvasRef.current;
-                    if (canvas) {
-                      const rect = canvas.getBoundingClientRect();
-                      setSelectedSplinePoint({
-                        point: { x: currentPt.x, y: currentPt.y, id: newPointId, curveType: 'linear' },
-                        index: newPointIndex,
-                        screenPosition: {
-                          x: rect.left + currentPt.x * zoomLevel,
-                          y: rect.top + currentPt.y * zoomLevel,
-                        },
-                        poolId: selectedSplinePoint.poolId,
-                      });
-                    }
-                  } else {
-                    // Main pool
-                    const currentPt = points[currentIndex];
-                    const newPoint = { x: currentPt.x, y: currentPt.y, id: newPointId, curveType: 'linear' as const };
-
-                    setPoints(prev => {
-                      const newPoints = [...prev];
-                      newPoints.splice(currentIndex + 1, 0, newPoint);
-                      return newPoints;
-                    });
-
-                    // Keep it selected (but do NOT start dragging until the user clicks+drags)
-                    setSelectedPoint(newPointId);
-
-                    const canvas = canvasRef.current;
-                    if (canvas) {
-                      const rect = canvas.getBoundingClientRect();
-                      setSelectedSplinePoint({
-                        point: { x: currentPt.x, y: currentPt.y, id: newPointId, curveType: 'linear' },
-                        index: newPointIndex,
-                        screenPosition: {
-                          x: rect.left + currentPt.x * zoomLevel,
-                          y: rect.top + currentPt.y * zoomLevel,
-                        },
-                      });
-                    }
-                  }
-                }}
-                onDeletePoint={() => {
-                  const pointId = selectedSplinePoint.point.id;
-                  if (selectedSplinePoint.poolId) {
-                    deleteAdditionalPoolPoint(selectedSplinePoint.poolId, pointId);
-                  } else {
-                    if (points.length > 3) {
-                      setPoints(prev => prev.filter(p => p.id !== pointId));
-                    }
-                  }
-                  setSelectedSplinePoint(null);
-                }}
-                canDelete={selectedSplinePoint.poolId 
-                  ? (additionalPools.find(p => p.id === selectedSplinePoint.poolId)?.points.length || 0) > 3
-                  : points.length > 3
+              } : null);
+            } else {
+              setPoints(prev => prev.map(p => p.id === pointId ? {
+                ...p,
+                curveType
+              } : p));
+              setSelectedSplinePoint(prev => prev ? {
+                ...prev,
+                point: {
+                  ...prev.point,
+                  curveType
                 }
-              />
-            </div>
-          )}
+              } : null);
+            }
+          }} onCancel={() => setSelectedSplinePoint(null)} onComplete={() => setSelectedSplinePoint(null)} canComplete={true} isEditMode={true} pointLabel={`Point ${selectedSplinePoint.index + 1}`} onAddPoint={() => {
+            // Add a new point after the selected one WITHOUT changing the shape immediately.
+            // We insert the new anchor coincident with the currently-selected point.
+            // The outline only changes once the user drags the new anchor.
+            const currentIndex = selectedSplinePoint.index;
+            const newPointId = Date.now().toString();
+            const newPointIndex = currentIndex + 1;
+            if (selectedSplinePoint.poolId) {
+              // Additional pool
+              const pool = additionalPools.find(p => p.id === selectedSplinePoint.poolId);
+              if (!pool) return;
+              const currentPt = pool.points[currentIndex];
+              const newPoint = {
+                x: currentPt.x,
+                y: currentPt.y,
+                id: newPointId,
+                curveType: 'linear' as const
+              };
+              setAdditionalPools(prev => prev.map(p => {
+                if (p.id !== selectedSplinePoint.poolId) return p;
+                const newPoints = [...p.points];
+                newPoints.splice(currentIndex + 1, 0, newPoint);
+                return {
+                  ...p,
+                  points: newPoints
+                };
+              }));
+              setSelectedAdditionalPool(selectedSplinePoint.poolId);
+              const canvas = canvasRef.current;
+              if (canvas) {
+                const rect = canvas.getBoundingClientRect();
+                setSelectedSplinePoint({
+                  point: {
+                    x: currentPt.x,
+                    y: currentPt.y,
+                    id: newPointId,
+                    curveType: 'linear'
+                  },
+                  index: newPointIndex,
+                  screenPosition: {
+                    x: rect.left + currentPt.x * zoomLevel,
+                    y: rect.top + currentPt.y * zoomLevel
+                  },
+                  poolId: selectedSplinePoint.poolId
+                });
+              }
+            } else {
+              // Main pool
+              const currentPt = points[currentIndex];
+              const newPoint = {
+                x: currentPt.x,
+                y: currentPt.y,
+                id: newPointId,
+                curveType: 'linear' as const
+              };
+              setPoints(prev => {
+                const newPoints = [...prev];
+                newPoints.splice(currentIndex + 1, 0, newPoint);
+                return newPoints;
+              });
+
+              // Keep it selected (but do NOT start dragging until the user clicks+drags)
+              setSelectedPoint(newPointId);
+              const canvas = canvasRef.current;
+              if (canvas) {
+                const rect = canvas.getBoundingClientRect();
+                setSelectedSplinePoint({
+                  point: {
+                    x: currentPt.x,
+                    y: currentPt.y,
+                    id: newPointId,
+                    curveType: 'linear'
+                  },
+                  index: newPointIndex,
+                  screenPosition: {
+                    x: rect.left + currentPt.x * zoomLevel,
+                    y: rect.top + currentPt.y * zoomLevel
+                  }
+                });
+              }
+            }
+          }} onDeletePoint={() => {
+            const pointId = selectedSplinePoint.point.id;
+            if (selectedSplinePoint.poolId) {
+              deleteAdditionalPoolPoint(selectedSplinePoint.poolId, pointId);
+            } else {
+              if (points.length > 3) {
+                setPoints(prev => prev.filter(p => p.id !== pointId));
+              }
+            }
+            setSelectedSplinePoint(null);
+          }} canDelete={selectedSplinePoint.poolId ? (additionalPools.find(p => p.id === selectedSplinePoint.poolId)?.points.length || 0) > 3 : points.length > 3} />
+            </div>}
           
           {/* Spline Drawing Toolbar - Floating in canvas */}
-          {splineDrawing.isActive && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
-              <SplineDrawingToolbar
-                currentCurveType={splineDrawing.currentCurveType}
-                pointCount={splineDrawing.points.length}
-                onCurveTypeChange={(type) => {
-                  setSplineDrawing(prev => ({ ...prev, currentCurveType: type }));
-                }}
-                onCancel={() => {
-                  setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
-                  setActiveTool(null);
-                }}
-                onComplete={() => {
-                  if (splineDrawing.points.length >= 3) {
-                    // Update first point's curveType to current selection for closing segment
-                    const newPoolPoints = splineDrawing.points.map((sp, i) => ({
-                      x: sp.x,
-                      y: sp.y,
-                      id: (i + 1).toString(),
-                      // First point defines closing segment curve - use current curve type
-                      curveType: i === 0 ? splineDrawing.currentCurveType : sp.curveType,
-                    }));
-                    
-                    // Check if we're in perimeter anchor mode (drawing spa/tanning ledge)
-                    if (perimeterAnchorMode.isActive && perimeterAnchorMode.isFixed) {
-                      completePerimeterAnchoredPool(newPoolPoints);
-                      return;
-                    }
-                    
-                    const intersectingPoolId = checkDeckIntersection(newPoolPoints);
-                    
-                    if (intersectingPoolId) {
-                      // Show dialog to ask user what type of pool feature this is
-                      setPendingPoolData({
-                        points: newPoolPoints,
-                        intersectsWith: intersectingPoolId,
-                      });
-                      setShowPoolTypeDialog(true);
-                    } else {
-                      // No intersection, add as regular pool
-                      const newPoolId = Date.now().toString();
-                      setAdditionalPools(prev => [...prev, {
-                        id: newPoolId,
-                        type: 'pool',
-                        points: newPoolPoints,
-                        shape: 'freeform',
-                        featureType: 'regular',
-                      }]);
-                      
-                      setSplineDrawing({ 
-                        isActive: false, 
-                        points: [],
-                        currentCurveType: 'linear' 
-                      });
-                      setActiveTool(null);
-                      
-                      // Check if pool extends outside existing deck and prompt for deck
-                      checkAndPromptForOutsideDeck(newPoolId, newPoolPoints);
-                    }
-                  }
-                }}
-                canComplete={splineDrawing.points.length >= 3}
-              />
-            </div>
-          )}
+          {splineDrawing.isActive && <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
+              <SplineDrawingToolbar currentCurveType={splineDrawing.currentCurveType} pointCount={splineDrawing.points.length} onCurveTypeChange={type => {
+            setSplineDrawing(prev => ({
+              ...prev,
+              currentCurveType: type
+            }));
+          }} onCancel={() => {
+            setSplineDrawing({
+              isActive: false,
+              points: [],
+              currentCurveType: 'linear'
+            });
+            setActiveTool(null);
+          }} onComplete={() => {
+            if (splineDrawing.points.length >= 3) {
+              // Update first point's curveType to current selection for closing segment
+              const newPoolPoints = splineDrawing.points.map((sp, i) => ({
+                x: sp.x,
+                y: sp.y,
+                id: (i + 1).toString(),
+                // First point defines closing segment curve - use current curve type
+                curveType: i === 0 ? splineDrawing.currentCurveType : sp.curveType
+              }));
+
+              // Check if we're in perimeter anchor mode (drawing spa/tanning ledge)
+              if (perimeterAnchorMode.isActive && perimeterAnchorMode.isFixed) {
+                completePerimeterAnchoredPool(newPoolPoints);
+                return;
+              }
+              const intersectingPoolId = checkDeckIntersection(newPoolPoints);
+              if (intersectingPoolId) {
+                // Show dialog to ask user what type of pool feature this is
+                setPendingPoolData({
+                  points: newPoolPoints,
+                  intersectsWith: intersectingPoolId
+                });
+                setShowPoolTypeDialog(true);
+              } else {
+                // No intersection, add as regular pool
+                const newPoolId = Date.now().toString();
+                setAdditionalPools(prev => [...prev, {
+                  id: newPoolId,
+                  type: 'pool',
+                  points: newPoolPoints,
+                  shape: 'freeform',
+                  featureType: 'regular'
+                }]);
+                setSplineDrawing({
+                  isActive: false,
+                  points: [],
+                  currentCurveType: 'linear'
+                });
+                setActiveTool(null);
+
+                // Check if pool extends outside existing deck and prompt for deck
+                checkAndPromptForOutsideDeck(newPoolId, newPoolPoints);
+              }
+            }
+          }} canComplete={splineDrawing.points.length >= 3} />
+            </div>}
         </div>
 
 
@@ -6076,11 +5856,7 @@ export function PoolBuilder({
             This new shape overlaps with an existing pool. Please select the type of feature you're creating:
           </p>
           <div className="grid gap-3">
-            <Button
-              variant="outline"
-              className="h-auto py-4 flex flex-col items-start gap-1 text-left"
-              onClick={() => handlePoolTypeSelection('spillover-spa')}
-            >
+            <Button variant="outline" className="h-auto py-4 flex flex-col items-start gap-1 text-left" onClick={() => handlePoolTypeSelection('spillover-spa')}>
               <span className="font-semibold flex items-center gap-2">
                 <Waves className="h-4 w-4" />
                 Spillover Spa
@@ -6090,11 +5866,7 @@ export function PoolBuilder({
               </span>
             </Button>
             
-            <Button
-              variant="outline"
-              className="h-auto py-4 flex flex-col items-start gap-1 text-left"
-              onClick={() => handlePoolTypeSelection('tanning-ledge')}
-            >
+            <Button variant="outline" className="h-auto py-4 flex flex-col items-start gap-1 text-left" onClick={() => handlePoolTypeSelection('tanning-ledge')}>
               <span className="font-semibold flex items-center gap-2">
                 <Droplets className="h-4 w-4" />
                 Tanning Ledge / Baja Shelf
@@ -6104,11 +5876,7 @@ export function PoolBuilder({
               </span>
             </Button>
             
-            <Button
-              variant="outline"
-              className="h-auto py-4 flex flex-col items-start gap-1 text-left"
-              onClick={() => handlePoolTypeSelection('regular')}
-            >
+            <Button variant="outline" className="h-auto py-4 flex flex-col items-start gap-1 text-left" onClick={() => handlePoolTypeSelection('regular')}>
               <span className="font-semibold flex items-center gap-2">
                 <Box className="h-4 w-4" />
                 Separate Pool (Keep Both)
@@ -6120,15 +5888,16 @@ export function PoolBuilder({
           </div>
           
           <div className="flex justify-end mt-4">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setShowPoolTypeDialog(false);
-                setPendingPoolData(null);
-                setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
-                setActiveTool(null);
-              }}
-            >
+            <Button variant="ghost" onClick={() => {
+            setShowPoolTypeDialog(false);
+            setPendingPoolData(null);
+            setSplineDrawing({
+              isActive: false,
+              points: [],
+              currentCurveType: 'linear'
+            });
+            setActiveTool(null);
+          }}>
               Cancel
             </Button>
           </div>
@@ -6145,15 +5914,10 @@ export function PoolBuilder({
             Part of this water body extends outside the existing deck area. Would you like to add a deck around the outside portions? (3ft from perimeter by default)
           </p>
           <div className="flex gap-3 justify-end">
-            <Button
-              variant="outline"
-              onClick={() => handleDeckConfirmation(false)}
-            >
+            <Button variant="outline" onClick={() => handleDeckConfirmation(false)}>
               No Deck
             </Button>
-            <Button
-              onClick={() => handleDeckConfirmation(true)}
-            >
+            <Button onClick={() => handleDeckConfirmation(true)}>
               Add Deck
             </Button>
           </div>
