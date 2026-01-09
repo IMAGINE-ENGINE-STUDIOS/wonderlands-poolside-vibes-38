@@ -273,9 +273,7 @@ const DesignStudio = () => {
                 
                 <div className="h-6 w-px bg-border" />
                 
-                <Button variant="ghost" size="icon" onClick={toggleFullscreen} title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}>
-                  {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                </Button>
+                
               </div>} />
           <SubToolbar category={activeCategory} activeTool={activeTool} onToolSelect={handleToolSelect} stats={poolBuilderData ? {
         perimeter: poolBuilderData.perimeter,
