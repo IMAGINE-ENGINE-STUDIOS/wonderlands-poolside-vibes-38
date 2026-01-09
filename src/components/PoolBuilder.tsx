@@ -2626,20 +2626,25 @@ export function PoolBuilder({
         const firstPoint = splineDrawing.points[0];
         const distToFirst = Math.sqrt(Math.pow(x - firstPoint.x, 2) + Math.pow(y - firstPoint.y, 2));
         if (distToFirst < 15) {
-          // Close the shape and finish - store the spline data for later editing
+          // Close the shape and finish - add to additionalPools to preserve existing pools/deck
           const newPoolPoints = splineDrawing.points.map((sp, i) => ({
             x: sp.x,
             y: sp.y,
             id: (i + 1).toString(),
-            curveType: sp.curveType, // Preserve curve type for post-editing
+            curveType: sp.curveType,
           }));
-          setPoints(newPoolPoints);
-          setPoolShape('freeform');
-          setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
-          // Keep the spline points data for post-completion editing
+          
+          // Add as new pool instead of replacing existing
+          setAdditionalPools(prev => [...prev, {
+            id: Date.now().toString(),
+            type: 'pool',
+            points: newPoolPoints,
+            shape: 'freeform',
+          }]);
+          
           setSplineDrawing({ 
             isActive: false, 
-            points: splineDrawing.points, // Keep points for editing after completion
+            points: [],
             currentCurveType: 'linear' 
           });
           setActiveTool(null);
@@ -3734,12 +3739,18 @@ export function PoolBuilder({
                       id: (i + 1).toString(),
                       curveType: sp.curveType,
                     }));
-                    setPoints(newPoolPoints);
-                    setPoolShape('freeform');
-                    setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+                    
+                    // Add as new pool instead of replacing existing
+                    setAdditionalPools(prev => [...prev, {
+                      id: Date.now().toString(),
+                      type: 'pool',
+                      points: newPoolPoints,
+                      shape: 'freeform',
+                    }]);
+                    
                     setSplineDrawing({ 
                       isActive: false, 
-                      points: splineDrawing.points,
+                      points: [],
                       currentCurveType: 'linear' 
                     });
                     setActiveTool(null);
