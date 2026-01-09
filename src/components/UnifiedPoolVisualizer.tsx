@@ -27,7 +27,7 @@ import { TerrainEditor, TerrainAsset, AssetLibraryItem } from './scene3d/Terrain
 import { TerrainAssetsRenderer } from './scene3d/TerrainAssetsRenderer';
 import { Button } from './ui/button';
 import { Maximize2, Minimize2, Move, Undo2, Redo2, ChevronLeft, ChevronRight, RotateCcw, Ruler, Grid3x3, Waves, Sun, Moon, PersonStanding, Edit3, ArrowUpDown } from 'lucide-react';
-import { useUndoRedo } from '@/hooks/useUndoRedo';
+import { useSceneHistory, SceneSnapshot } from '@/hooks/useSceneHistory';
 import { Checkbox } from './ui/checkbox';
 import * as THREE from 'three';
 import { Scene3DErrorBoundary } from './scene3d/Scene3DErrorBoundary';
@@ -181,7 +181,72 @@ export function UnifiedPoolVisualizer({
     timestamp: new Date().toISOString()
   });
   
-  const { state: scene, set: setScene, undo, redo, canUndo, canRedo, reset } = useUndoRedo<Scene3D>(validatedScene);
+  // Create initial snapshot for scene history
+  const initialSnapshot: SceneSnapshot = useMemo(() => ({
+    scene: validatedScene,
+    terrainAssets: [],
+    poolStairs: [],
+    poolChairs: [],
+    contourSeating: [],
+    poolLights: validatedScene.poolLights || createDefaultPoolLights(false),
+    assets3D: [],
+  }), []);
+  
+  const {
+    snapshot,
+    pushSnapshot,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    resetHistory,
+    historyLength,
+    futureLength,
+  } = useSceneHistory(initialSnapshot);
+  
+  // Extract state from snapshot
+  const scene = snapshot.scene;
+  const terrainAssets = snapshot.terrainAssets;
+  const poolStairs = snapshot.poolStairs;
+  const poolChairs = snapshot.poolChairs;
+  const contourSeating = snapshot.contourSeating;
+  const poolLights = snapshot.poolLights;
+  const assets3D = snapshot.assets3D;
+  
+  // Setters that push to history
+  const setScene = useCallback((newScene: Scene3D) => {
+    pushSnapshot({ scene: newScene });
+  }, [pushSnapshot]);
+  
+  const setTerrainAssets = useCallback((updater: TerrainAsset[] | ((prev: TerrainAsset[]) => TerrainAsset[])) => {
+    const newAssets = typeof updater === 'function' ? updater(snapshot.terrainAssets) : updater;
+    pushSnapshot({ terrainAssets: newAssets });
+  }, [pushSnapshot, snapshot.terrainAssets]);
+  
+  const setPoolStairs = useCallback((updater: PoolStairConfig[] | ((prev: PoolStairConfig[]) => PoolStairConfig[])) => {
+    const newStairs = typeof updater === 'function' ? updater(snapshot.poolStairs) : updater;
+    pushSnapshot({ poolStairs: newStairs });
+  }, [pushSnapshot, snapshot.poolStairs]);
+  
+  const setPoolChairs = useCallback((updater: PoolChairConfig[] | ((prev: PoolChairConfig[]) => PoolChairConfig[])) => {
+    const newChairs = typeof updater === 'function' ? updater(snapshot.poolChairs) : updater;
+    pushSnapshot({ poolChairs: newChairs });
+  }, [pushSnapshot, snapshot.poolChairs]);
+  
+  const setContourSeating = useCallback((updater: ContourSeatingConfig[] | ((prev: ContourSeatingConfig[]) => ContourSeatingConfig[])) => {
+    const newSeating = typeof updater === 'function' ? updater(snapshot.contourSeating) : updater;
+    pushSnapshot({ contourSeating: newSeating });
+  }, [pushSnapshot, snapshot.contourSeating]);
+  
+  const setPoolLights = useCallback((updater: PoolLightConfig[] | ((prev: PoolLightConfig[]) => PoolLightConfig[])) => {
+    const newLights = typeof updater === 'function' ? updater(snapshot.poolLights) : updater;
+    pushSnapshot({ poolLights: newLights });
+  }, [pushSnapshot, snapshot.poolLights]);
+  
+  const setAssets3D = useCallback((updater: any[] | ((prev: any[]) => any[])) => {
+    const newAssets = typeof updater === 'function' ? updater(snapshot.assets3D) : updater;
+    pushSnapshot({ assets3D: newAssets });
+  }, [pushSnapshot, snapshot.assets3D]);
   
   // Texture preloading state
   const [texturesReady, setTexturesReady] = useState(false);
@@ -189,8 +254,9 @@ export function UnifiedPoolVisualizer({
   // Recovery handler for error boundary
   const handleSceneRecover = useCallback((recoveredScene: Scene3D) => {
     console.log('🛡️ Applying recovered scene with fallback textures');
-    reset(recoveredScene);
-  }, [reset]);
+    resetHistory({ ...snapshot, scene: recoveredScene });
+  }, [resetHistory, snapshot]);
+  
   const [selectedObject, setSelectedObject] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedComponent, setSelectedComponent] = useState<'pool' | 'deck' | 'coping' | 'waterline' | null>(null);
@@ -209,7 +275,6 @@ export function UnifiedPoolVisualizer({
   const [transformStepSize, setTransformStepSize] = useState(1); // Default 1 ft
   const [showMeasurements, setShowMeasurements] = useState(false);
   
-  const [assets3D, setAssets3D] = useState<any[]>([]);
   const [showGrid, setShowGrid] = useState(false); // Hidden by default
   const [showRulers, setShowRulers] = useState(false);
   const [showWireframe, setShowWireframe] = useState(false); // Hidden by default
@@ -220,24 +285,15 @@ export function UnifiedPoolVisualizer({
   const [isNightMode, setIsNightMode] = useState(false);
   const [sunAngle, setSunAngle] = useState(90); // Noon by default
   
-  // Pool lights state
-  const [poolLights, setPoolLights] = useState<PoolLightConfig[]>(() => 
-    scene.poolLights || createDefaultPoolLights(false)
-  );
   const [selectedLightId, setSelectedLightId] = useState<string | null>(null);
   
-  // Pool assets state (stairs, chairs, contour seating)
-  const [poolStairs, setPoolStairs] = useState<PoolStairConfig[]>([]);
-  const [poolChairs, setPoolChairs] = useState<PoolChairConfig[]>([]);
-  const [contourSeating, setContourSeating] = useState<ContourSeatingConfig[]>([]);
   const [selectedPoolAssetId, setSelectedPoolAssetId] = useState<string | null>(null);
   const [showPoolAssetManager, setShowPoolAssetManager] = useState(false);
   
   // Walkthrough mode state
   const [isWalkthroughMode, setIsWalkthroughMode] = useState(false);
   
-  // Terrain editor state
-  const [terrainAssets, setTerrainAssets] = useState<TerrainAsset[]>([]);
+  // Asset library state (not tracked in history)
   const [assetLibrary, setAssetLibrary] = useState<AssetLibraryItem[]>([]);
   
   // Spline edit mode - locks camera when editing splines
@@ -302,8 +358,16 @@ export function UnifiedPoolVisualizer({
 
   // Sync with initial scene updates
   useEffect(() => {
-    reset(initialScene);
-  }, [initialScene, reset]);
+    resetHistory({
+      scene: validateScene(initialScene),
+      terrainAssets: [],
+      poolStairs: [],
+      poolChairs: [],
+      contourSeating: [],
+      poolLights: initialScene.poolLights || createDefaultPoolLights(false),
+      assets3D: [],
+    });
+  }, [initialScene]);
   
   // Sync pool lights with night mode
   useEffect(() => {
@@ -681,7 +745,7 @@ export function UnifiedPoolVisualizer({
   const handlePoolPositionChange = (axis: 'x' | 'y' | 'z', delta: number) => {
     const currentPos = scene.pool.position;
     const step = transformStepSize;
-    const newPosition: [number, number, number] = [...currentPos];
+    const newPosition: [number, number, number] = [currentPos[0], currentPos[1], currentPos[2]];
     
     if (axis === 'x') newPosition[0] += delta * step;
     if (axis === 'y') newPosition[1] += delta * step;
@@ -700,7 +764,8 @@ export function UnifiedPoolVisualizer({
     const numValue = parseFloat(value);
     if (isNaN(numValue)) return;
     
-    const newPosition: [number, number, number] = [...scene.pool.position];
+    const pos = scene.pool.position;
+    const newPosition: [number, number, number] = [pos[0], pos[1], pos[2]];
     if (axis === 'x') newPosition[0] = numValue;
     if (axis === 'y') newPosition[1] = numValue;
     if (axis === 'z') newPosition[2] = numValue;
@@ -788,18 +853,28 @@ export function UnifiedPoolVisualizer({
           <button
             onClick={undo}
             disabled={!canUndo}
-            className="bg-background/80 hover:bg-background p-1.5 md:p-2 rounded-lg shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Undo (Ctrl+Z)"
+            className="bg-background/80 hover:bg-background p-1.5 md:p-2 rounded-lg shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative"
+            title={`Undo (Ctrl+Z)${historyLength > 0 ? ` - ${historyLength} change${historyLength > 1 ? 's' : ''} in history` : ''}`}
           >
             <Undo2 className="w-4 h-4 md:w-5 md:h-5" />
+            {historyLength > 0 && (
+              <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold min-w-[16px] h-4 flex items-center justify-center rounded-full px-1">
+                {historyLength}
+              </span>
+            )}
           </button>
           <button
             onClick={redo}
             disabled={!canRedo}
-            className="bg-background/80 hover:bg-background p-1.5 md:p-2 rounded-lg shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Redo (Ctrl+Y)"
+            className="bg-background/80 hover:bg-background p-1.5 md:p-2 rounded-lg shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative"
+            title={`Redo (Ctrl+Y)${futureLength > 0 ? ` - ${futureLength} change${futureLength > 1 ? 's' : ''} available` : ''}`}
           >
             <Redo2 className="w-4 h-4 md:w-5 md:h-5" />
+            {futureLength > 0 && (
+              <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold min-w-[16px] h-4 flex items-center justify-center rounded-full px-1">
+                {futureLength}
+              </span>
+            )}
           </button>
           <button
             onClick={() => {
