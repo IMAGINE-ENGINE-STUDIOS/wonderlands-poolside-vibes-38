@@ -2626,19 +2626,24 @@ export function PoolBuilder({
         const firstPoint = splineDrawing.points[0];
         const distToFirst = Math.sqrt(Math.pow(x - firstPoint.x, 2) + Math.pow(y - firstPoint.y, 2));
         if (distToFirst < 15) {
-          // Close the shape and finish - store the spline data for later editing
+          // Close the shape and add as additional pool (preserve existing pools)
           const newPoolPoints = splineDrawing.points.map((sp, i) => ({
             x: sp.x,
             y: sp.y,
             id: (i + 1).toString(),
             curveType: sp.curveType,
           }));
-          setPoints(newPoolPoints);
-          setPoolShape('freeform');
-          setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+          
+          setAdditionalPools(prev => [...prev, {
+            id: Date.now().toString(),
+            type: 'pool',
+            points: newPoolPoints,
+            shape: 'freeform',
+          }]);
+          
           setSplineDrawing({ 
             isActive: false, 
-            points: splineDrawing.points,
+            points: [],
             currentCurveType: 'linear' 
           });
           setActiveTool(null);
@@ -3733,12 +3738,17 @@ export function PoolBuilder({
                       id: (i + 1).toString(),
                       curveType: sp.curveType,
                     }));
-                    setPoints(newPoolPoints);
-                    setPoolShape('freeform');
-                    setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+                    
+                    setAdditionalPools(prev => [...prev, {
+                      id: Date.now().toString(),
+                      type: 'pool',
+                      points: newPoolPoints,
+                      shape: 'freeform',
+                    }]);
+                    
                     setSplineDrawing({ 
                       isActive: false, 
-                      points: splineDrawing.points,
+                      points: [],
                       currentCurveType: 'linear' 
                     });
                     setActiveTool(null);
