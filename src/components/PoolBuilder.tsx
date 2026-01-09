@@ -403,8 +403,96 @@ export function PoolBuilder({
     type: 'pool' | 'spa';
     points: Point[];
     shape: 'rectangle' | 'kidney' | 'freeform';
+    featureType?: 'regular' | 'spillover-spa' | 'tanning-ledge'; // Type when overlapping
+    intersectsWith?: string; // ID of the pool it intersects with (main pool = 'main')
   }
   const [additionalPools, setAdditionalPools] = useState<PoolShape[]>([]);
+  
+  // Pool type dialog state (for when new pool intersects existing)
+  const [pendingPoolData, setPendingPoolData] = useState<{
+    points: Point[];
+    intersectsWith: string;
+  } | null>(null);
+  const [showPoolTypeDialog, setShowPoolTypeDialog] = useState(false);
+  
+  // Check if a point is inside a polygon
+  const isPointInPolygon = useCallback((x: number, y: number, polygon: Point[]): boolean => {
+    let inside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const xi = polygon[i].x, yi = polygon[i].y;
+      const xj = polygon[j].x, yj = polygon[j].y;
+      if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
+        inside = !inside;
+      }
+    }
+    return inside;
+  }, []);
+  
+  // Check if two polygons intersect (overlap)
+  const doPolygonsIntersect = useCallback((poly1: Point[], poly2: Point[]): boolean => {
+    // Check if any point of poly1 is inside poly2
+    for (const p of poly1) {
+      if (isPointInPolygon(p.x, p.y, poly2)) return true;
+    }
+    // Check if any point of poly2 is inside poly1
+    for (const p of poly2) {
+      if (isPointInPolygon(p.x, p.y, poly1)) return true;
+    }
+    // Check if edges intersect
+    for (let i = 0; i < poly1.length; i++) {
+      const a1 = poly1[i];
+      const a2 = poly1[(i + 1) % poly1.length];
+      for (let j = 0; j < poly2.length; j++) {
+        const b1 = poly2[j];
+        const b2 = poly2[(j + 1) % poly2.length];
+        if (doLinesIntersect(a1, a2, b1, b2)) return true;
+      }
+    }
+    return false;
+  }, [isPointInPolygon]);
+  
+  // Line segment intersection check
+  const doLinesIntersect = (a1: Point, a2: Point, b1: Point, b2: Point): boolean => {
+    const det = (a2.x - a1.x) * (b2.y - b1.y) - (b2.x - b1.x) * (a2.y - a1.y);
+    if (det === 0) return false;
+    const lambda = ((b2.y - b1.y) * (b2.x - a1.x) + (b1.x - b2.x) * (b2.y - a1.y)) / det;
+    const gamma = ((a1.y - a2.y) * (b2.x - a1.x) + (a2.x - a1.x) * (b2.y - a1.y)) / det;
+    return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+  };
+  
+  // Check if new pool intersects with any existing pool
+  const checkPoolIntersection = useCallback((newPoolPoints: Point[]): string | null => {
+    // Check main pool
+    if (points.length >= 3 && doPolygonsIntersect(newPoolPoints, points)) {
+      return 'main';
+    }
+    // Check additional pools
+    for (const pool of additionalPools) {
+      if (pool.points.length >= 3 && doPolygonsIntersect(newPoolPoints, pool.points)) {
+        return pool.id;
+      }
+    }
+    return null;
+  }, [points, additionalPools, doPolygonsIntersect]);
+  
+  // Handle pool type selection from dialog
+  const handlePoolTypeSelection = useCallback((featureType: 'regular' | 'spillover-spa' | 'tanning-ledge') => {
+    if (!pendingPoolData) return;
+    
+    setAdditionalPools(prev => [...prev, {
+      id: Date.now().toString(),
+      type: featureType === 'tanning-ledge' ? 'spa' : 'pool',
+      points: pendingPoolData.points,
+      shape: 'freeform',
+      featureType,
+      intersectsWith: pendingPoolData.intersectsWith,
+    }]);
+    
+    setPendingPoolData(null);
+    setShowPoolTypeDialog(false);
+    setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
+    setActiveTool(null);
+  }, [pendingPoolData]);
   
   // Spline point editor state
   const [selectedSplinePoint, setSelectedSplinePoint] = useState<{
@@ -2734,7 +2822,7 @@ export function PoolBuilder({
         const firstPoint = splineDrawing.points[0];
         const distToFirst = Math.sqrt(Math.pow(x - firstPoint.x, 2) + Math.pow(y - firstPoint.y, 2));
         if (distToFirst < 15) {
-          // Close the shape and add as additional pool (preserve existing pools)
+          // Close the shape and check for intersection with existing pools
           const newPoolPoints = splineDrawing.points.map((sp, i) => ({
             x: sp.x,
             y: sp.y,
@@ -2742,19 +2830,32 @@ export function PoolBuilder({
             curveType: sp.curveType,
           }));
           
-          setAdditionalPools(prev => [...prev, {
-            id: Date.now().toString(),
-            type: 'pool',
-            points: newPoolPoints,
-            shape: 'freeform',
-          }]);
+          const intersectingPoolId = checkPoolIntersection(newPoolPoints);
           
-          setSplineDrawing({ 
-            isActive: false, 
-            points: [],
-            currentCurveType: 'linear' 
-          });
-          setActiveTool(null);
+          if (intersectingPoolId) {
+            // Show dialog to ask user what type of pool feature this is
+            setPendingPoolData({
+              points: newPoolPoints,
+              intersectsWith: intersectingPoolId,
+            });
+            setShowPoolTypeDialog(true);
+          } else {
+            // No intersection, add as regular pool
+            setAdditionalPools(prev => [...prev, {
+              id: Date.now().toString(),
+              type: 'pool',
+              points: newPoolPoints,
+              shape: 'freeform',
+              featureType: 'regular',
+            }]);
+            
+            setSplineDrawing({ 
+              isActive: false, 
+              points: [],
+              currentCurveType: 'linear' 
+            });
+            setActiveTool(null);
+          }
           return;
         }
       }
@@ -3847,19 +3948,32 @@ export function PoolBuilder({
                       curveType: sp.curveType,
                     }));
                     
-                    setAdditionalPools(prev => [...prev, {
-                      id: Date.now().toString(),
-                      type: 'pool',
-                      points: newPoolPoints,
-                      shape: 'freeform',
-                    }]);
+                    const intersectingPoolId = checkPoolIntersection(newPoolPoints);
                     
-                    setSplineDrawing({ 
-                      isActive: false, 
-                      points: [],
-                      currentCurveType: 'linear' 
-                    });
-                    setActiveTool(null);
+                    if (intersectingPoolId) {
+                      // Show dialog to ask user what type of pool feature this is
+                      setPendingPoolData({
+                        points: newPoolPoints,
+                        intersectsWith: intersectingPoolId,
+                      });
+                      setShowPoolTypeDialog(true);
+                    } else {
+                      // No intersection, add as regular pool
+                      setAdditionalPools(prev => [...prev, {
+                        id: Date.now().toString(),
+                        type: 'pool',
+                        points: newPoolPoints,
+                        shape: 'freeform',
+                        featureType: 'regular',
+                      }]);
+                      
+                      setSplineDrawing({ 
+                        isActive: false, 
+                        points: [],
+                        currentCurveType: 'linear' 
+                      });
+                      setActiveTool(null);
+                    }
                   }
                 }}
                 canComplete={splineDrawing.points.length >= 3}
@@ -4063,5 +4177,74 @@ export function PoolBuilder({
           </div>)}
 
       </div>
+      
+      {/* Pool Type Selection Dialog - Shows when new pool intersects existing */}
+      <Dialog open={showPoolTypeDialog} onOpenChange={setShowPoolTypeDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">What type of pool feature is this?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground mb-4">
+            This new shape overlaps with an existing pool. Please select the type of feature you're creating:
+          </p>
+          <div className="grid gap-3">
+            <Button
+              variant="outline"
+              className="h-auto py-4 flex flex-col items-start gap-1 text-left"
+              onClick={() => handlePoolTypeSelection('spillover-spa')}
+            >
+              <span className="font-semibold flex items-center gap-2">
+                <Waves className="h-4 w-4" />
+                Spillover Spa
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Water flows over the edge into the main pool. Coping will be trimmed at water intersection.
+              </span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-auto py-4 flex flex-col items-start gap-1 text-left"
+              onClick={() => handlePoolTypeSelection('tanning-ledge')}
+            >
+              <span className="font-semibold flex items-center gap-2">
+                <Droplets className="h-4 w-4" />
+                Tanning Ledge / Baja Shelf
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Shallow area integrated with the pool. No coping at the intersection.
+              </span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              className="h-auto py-4 flex flex-col items-start gap-1 text-left"
+              onClick={() => handlePoolTypeSelection('regular')}
+            >
+              <span className="font-semibold flex items-center gap-2">
+                <Box className="h-4 w-4" />
+                Separate Pool (Keep Both)
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Two independent pools that happen to overlap. Full coping on both.
+              </span>
+            </Button>
+          </div>
+          
+          <div className="flex justify-end mt-4">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setShowPoolTypeDialog(false);
+                setPendingPoolData(null);
+                setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
+                setActiveTool(null);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>;
 }
