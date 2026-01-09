@@ -213,6 +213,11 @@ const DesignStudio = () => {
   // Handle switching to 3D view
   const handleSwitch3D = useCallback(() => {
     setActiveView('3d');
+    // Auto-enter fullscreen when switching to 3D Viewer
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen?.();
+      setIsFullscreen(true);
+    }
     if (customPoolShape && customPoolShape.length > 0) {
       toast({
         title: "Custom Shape Loaded",
