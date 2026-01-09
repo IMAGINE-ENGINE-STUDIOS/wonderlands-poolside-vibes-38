@@ -73,6 +73,18 @@ function CameraController({
   return null;
 }
 
+// Component to force re-render when scene changes (needed for demand frameloop)
+function SceneInvalidator({ scene }: { scene: Scene3D }) {
+  const { invalidate } = useThree();
+  
+  useEffect(() => {
+    // Invalidate frame when scene changes to trigger re-render
+    invalidate();
+  }, [scene, invalidate]);
+  
+  return null;
+}
+
 // Smooth zoom controller for component selection
 function SelectionZoomController({
   selectedComponent,
@@ -1203,6 +1215,9 @@ export function UnifiedPoolVisualizer({
                 }}
                 frameloop={isWalkthroughMode ? "always" : "demand"} // Always render during walkthrough for smooth movement
               >
+          {/* Force re-render when scene changes in demand mode */}
+          <SceneInvalidator scene={scene} />
+          
           {/* Dynamic Sky with Clouds - Day/Night modes */}
           {!isNightMode ? (
             <Sky 
