@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { PenTool, Plus, Upload, Square, Circle, Spline, CornerDownRight, Check, X, Edit3, Ruler, Trash2, Waves, Droplets } from 'lucide-react';
+import { PenTool, Plus, Upload, Square, Check, Edit3, Ruler, Trash2, Waves, Droplets } from 'lucide-react';
 
 interface Point {
   x: number;
@@ -228,148 +228,20 @@ export function ShapePanel({
           </div>
         </button>
       ) : (
-        /* Spline Drawing Mode UI */
-        <div className="space-y-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
-          {/* Mode Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center animate-pulse">
-                <PenTool className="w-3 h-3 text-primary" />
-              </div>
-              <span className="text-sm font-medium text-primary">Drawing Mode</span>
+        /* Spline Drawing Mode - Minimal UI (toolbar is in canvas) */
+        <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center animate-pulse">
+              <PenTool className="w-2.5 h-2.5 text-primary" />
             </div>
-            <Badge variant="secondary" className="text-xs">
-              {splinePoints.length} points
+            <span className="text-xs font-medium text-primary">Drawing...</span>
+            <Badge variant="secondary" className="text-[10px] ml-auto">
+              {splinePoints.length} pts
             </Badge>
           </div>
-
-          {/* Curve Type Selector */}
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Next segment type:</Label>
-            <div className="grid grid-cols-4 gap-1.5">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => handleCurveTypeChange('linear')}
-                      className={`
-                        flex flex-col items-center gap-1 p-2 rounded-md border transition-all
-                        ${currentCurveType === 'linear' 
-                          ? 'border-primary bg-primary/10 text-primary' 
-                          : 'border-border/50 text-muted-foreground hover:border-primary/30 hover:text-foreground'
-                        }
-                      `}
-                    >
-                      <CornerDownRight className="w-4 h-4" />
-                      <span className="text-[10px] font-medium">Straight</span>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Straight line segment</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => handleCurveTypeChange('curve')}
-                      className={`
-                        flex flex-col items-center gap-1 p-2 rounded-md border transition-all
-                        ${currentCurveType === 'curve' 
-                          ? 'border-primary bg-primary/10 text-primary' 
-                          : 'border-border/50 text-muted-foreground hover:border-primary/30 hover:text-foreground'
-                        }
-                      `}
-                    >
-                      <Spline className="w-4 h-4" />
-                      <span className="text-[10px] font-medium">Curve</span>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Smooth bezier curve</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => handleCurveTypeChange('arc')}
-                      className={`
-                        flex flex-col items-center gap-1 p-2 rounded-md border transition-all
-                        ${currentCurveType === 'arc' 
-                          ? 'border-primary bg-primary/10 text-primary' 
-                          : 'border-border/50 text-muted-foreground hover:border-primary/30 hover:text-foreground'
-                        }
-                      `}
-                    >
-                      <Circle className="w-4 h-4" />
-                      <span className="text-[10px] font-medium">Arc</span>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Circular arc segment</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => handleCurveTypeChange('freeform')}
-                      className={`
-                        flex flex-col items-center gap-1 p-2 rounded-md border transition-all
-                        ${currentCurveType === 'freeform' 
-                          ? 'border-primary bg-primary/10 text-primary' 
-                          : 'border-border/50 text-muted-foreground hover:border-primary/30 hover:text-foreground'
-                        }
-                      `}
-                    >
-                      <PenTool className="w-4 h-4" />
-                      <span className="text-[10px] font-medium">Free</span>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Natural freeform curve</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-
-          {/* Instructions */}
-          <div className="text-xs text-muted-foreground space-y-1 bg-background/50 rounded-md p-2">
-            <p>• Click on canvas to add points</p>
-            <p>• Connect last point to first to finish</p>
-            <p>• Press <kbd className="px-1 py-0.5 bg-muted rounded text-[10px]">Enter</kbd> to complete</p>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="ghost"
-              className="flex-1 h-8"
-              onClick={cancelDrawMode}
-            >
-              <X className="w-3.5 h-3.5 mr-1" />
-              Cancel
-            </Button>
-            {splinePoints.length >= 3 && (
-              <Button
-                size="sm"
-                className="flex-1 h-8"
-                onClick={onFinishSpline}
-              >
-                <Check className="w-3.5 h-3.5 mr-1" />
-                Complete
-              </Button>
-            )}
-          </div>
+          <p className="text-[10px] text-muted-foreground mt-2">
+            Click canvas to add points. Close shape by clicking first point.
+          </p>
         </div>
       )}
 

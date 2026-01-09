@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower2, Droplets, Box, PenTool, Shapes, MousePointer2 } from 'lucide-react';
 import { ShapePanel } from './poolBuilder/ShapePanel';
 import { SplinePointEditor } from './poolBuilder/SplinePointEditor';
+import { SplineDrawingToolbar } from './poolBuilder/SplineDrawingToolbar';
 import { ShapeRepository } from './ShapeRepository';
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import poolTextureSapphire from '@/assets/pool-texture-sapphire.jpg';
@@ -876,7 +877,45 @@ export function PoolBuilder({
       ctx.stroke();
     }
 
-    // Draw pool shape - straight lines for rectangle, curves for others
+    // Helper function to draw curved pool segments based on curve type (used by final render)
+    const drawPoolSegment = (
+      ctx: CanvasRenderingContext2D,
+      p1: { x: number; y: number },
+      p2: { x: number; y: number; curveType?: 'linear' | 'curve' | 'arc' | 'freeform' }
+    ) => {
+      const curveType = p2.curveType || 'linear';
+      if (curveType === 'linear') {
+        ctx.lineTo(p2.x, p2.y);
+      } else if (curveType === 'curve') {
+        const midX = (p1.x + p2.x) / 2;
+        const midY = (p1.y + p2.y) / 2;
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const perpX = -dy * 0.25;
+        const perpY = dx * 0.25;
+        ctx.quadraticCurveTo(midX + perpX, midY + perpY, p2.x, p2.y);
+      } else if (curveType === 'arc') {
+        const midX = (p1.x + p2.x) / 2;
+        const midY = (p1.y + p2.y) / 2;
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const perpX = -dy * 0.35;
+        const perpY = dx * 0.35;
+        ctx.quadraticCurveTo(midX + perpX, midY + perpY, p2.x, p2.y);
+      } else if (curveType === 'freeform') {
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const perpX = -dy * 0.15;
+        const perpY = dx * 0.15;
+        const cp1x = p1.x + dx * 0.3 + perpX * 0.5;
+        const cp1y = p1.y + dy * 0.3 + perpY * 0.5;
+        const cp2x = p1.x + dx * 0.7 - perpX * 0.3;
+        const cp2y = p1.y + dy * 0.7 - perpY * 0.3;
+        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+      }
+    };
+
+    // Draw pool shape - use per-point curveType for freeform, straight for rectangle
     if (points.length > 2) {
       ctx.save();
 
@@ -889,8 +928,16 @@ export function PoolBuilder({
           ctx.lineTo(points[i].x, points[i].y);
         }
         ctx.closePath();
+      } else if (poolShape === 'freeform' && points.some(p => p.curveType)) {
+        // Custom drawn pool - use individual curveTypes
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          drawPoolSegment(ctx, points[i - 1], points[i]);
+        }
+        // Close with first point's curveType (defines the closing segment)
+        drawPoolSegment(ctx, points[points.length - 1], points[0]);
       } else {
-        // Draw with smooth curves for kidney and freeform
+        // Default smooth curves for kidney and legacy freeform
         for (let i = 0; i < points.length; i++) {
           const p0 = points[(i - 1 + points.length) % points.length];
           const p1 = points[i];
@@ -3664,6 +3711,43 @@ export function PoolBuilder({
               }}
               onClose={() => setSelectedSplinePoint(null)}
             />
+          )}
+          
+          {/* Spline Drawing Toolbar - Floating in canvas */}
+          {splineDrawing.isActive && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
+              <SplineDrawingToolbar
+                currentCurveType={splineDrawing.currentCurveType}
+                pointCount={splineDrawing.points.length}
+                onCurveTypeChange={(type) => {
+                  setSplineDrawing(prev => ({ ...prev, currentCurveType: type }));
+                }}
+                onCancel={() => {
+                  setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
+                  setActiveTool(null);
+                }}
+                onComplete={() => {
+                  if (splineDrawing.points.length >= 3) {
+                    const newPoolPoints = splineDrawing.points.map((sp, i) => ({
+                      x: sp.x,
+                      y: sp.y,
+                      id: (i + 1).toString(),
+                      curveType: sp.curveType,
+                    }));
+                    setPoints(newPoolPoints);
+                    setPoolShape('freeform');
+                    setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+                    setSplineDrawing({ 
+                      isActive: false, 
+                      points: splineDrawing.points,
+                      currentCurveType: 'linear' 
+                    });
+                    setActiveTool(null);
+                  }
+                }}
+                canComplete={splineDrawing.points.length >= 3}
+              />
+            </div>
           )}
         </div>
 
