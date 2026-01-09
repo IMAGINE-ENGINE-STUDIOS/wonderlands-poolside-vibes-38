@@ -1,18 +1,18 @@
 import * as React from 'react';
-import { CornerDownRight, Spline, Circle, X, Trash2 } from 'lucide-react';
+import { CornerDownRight, Spline, Circle, X, Trash2, PenTool } from 'lucide-react';
 
 interface SplinePoint {
   x: number;
   y: number;
   id: string;
-  curveType: 'linear' | 'curve' | 'arc';
+  curveType: 'linear' | 'curve' | 'arc' | 'freeform';
 }
 
 interface SplinePointEditorProps {
   point: SplinePoint;
   pointIndex: number;
   position: { x: number; y: number };
-  onCurveTypeChange: (pointId: string, curveType: 'linear' | 'curve' | 'arc') => void;
+  onCurveTypeChange: (pointId: string, curveType: 'linear' | 'curve' | 'arc' | 'freeform') => void;
   onDeletePoint: (pointId: string) => void;
   onClose: () => void;
 }
@@ -29,6 +29,7 @@ export function SplinePointEditor({
     { id: 'linear', label: 'Straight', icon: CornerDownRight, description: 'Sharp corner' },
     { id: 'curve', label: 'Curve', icon: Spline, description: 'Smooth bezier' },
     { id: 'arc', label: 'Arc', icon: Circle, description: 'Circular arc' },
+    { id: 'freeform', label: 'Freeform', icon: PenTool, description: 'Natural curve' },
   ] as const;
 
   return (
