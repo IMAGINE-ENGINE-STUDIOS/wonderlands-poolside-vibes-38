@@ -2346,35 +2346,143 @@ export function PoolBuilder({
       ctx.restore();
     }
     
-    // Draw additional pools/spas
+    // Draw additional pools/spas (rendered with the same look as the main pool)
     additionalPools.forEach(pool => {
       if (pool.points.length < 3) return;
-      
+
+      // Draw deck for this pool using the same paver texture
+      const poolHardscapePoints = generateHardscapeFromPool(pool.points, deckOffset);
+      if (paverTexture && poolHardscapePoints.length >= 3) {
+        const img = paverTexture;
+
+        ctx.save();
+        ctx.beginPath();
+        if (smoothCorners) {
+          for (let i = 0; i < poolHardscapePoints.length; i++) {
+            const p0 = poolHardscapePoints[(i - 1 + poolHardscapePoints.length) % poolHardscapePoints.length];
+            const p1 = poolHardscapePoints[i];
+            const p2 = poolHardscapePoints[(i + 1) % poolHardscapePoints.length];
+            const p3 = poolHardscapePoints[(i + 2) % poolHardscapePoints.length];
+            if (i === 0) ctx.moveTo(p1.x, p1.y);
+
+            const tension = 0.3;
+            const cp1x = p1.x + (p2.x - p0.x) * tension;
+            const cp1y = p1.y + (p2.y - p0.y) * tension;
+            const cp2x = p2.x - (p3.x - p1.x) * tension;
+            const cp2y = p2.y - (p3.y - p1.y) * tension;
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+          }
+        } else {
+          ctx.moveTo(poolHardscapePoints[0].x, poolHardscapePoints[0].y);
+          for (let i = 1; i < poolHardscapePoints.length; i++) {
+            ctx.lineTo(poolHardscapePoints[i].x, poolHardscapePoints[i].y);
+          }
+        }
+        ctx.closePath();
+        ctx.clip();
+
+        const hsMinX = Math.min(...poolHardscapePoints.map(p => p.x));
+        const hsMaxX = Math.max(...poolHardscapePoints.map(p => p.x));
+        const hsMinY = Math.min(...poolHardscapePoints.map(p => p.y));
+        const hsMaxY = Math.max(...poolHardscapePoints.map(p => p.y));
+        const numPaversX = Math.ceil((hsMaxX - hsMinX) / paverSizeInPixels) + 1;
+        const numPaversY = Math.ceil((hsMaxY - hsMinY) / paverSizeInPixels) + 1;
+
+        for (let i = 0; i < numPaversX; i++) {
+          for (let j = 0; j < numPaversY; j++) {
+            const x = hsMinX + i * paverSizeInPixels;
+            const y = hsMinY + j * paverSizeInPixels;
+            ctx.drawImage(img, x, y, paverSizeInPixels, paverSizeInPixels);
+
+            ctx.strokeStyle = 'rgba(100, 80, 60, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, paverSizeInPixels, paverSizeInPixels);
+          }
+        }
+        ctx.restore();
+      }
+
+      // Draw pool body + coping + liner texture
       ctx.save();
       ctx.beginPath();
-      ctx.moveTo(pool.points[0].x, pool.points[0].y);
-      for (let i = 1; i < pool.points.length; i++) {
-        ctx.lineTo(pool.points[i].x, pool.points[i].y);
+
+      if (pool.shape === 'rectangle') {
+        ctx.moveTo(pool.points[0].x, pool.points[0].y);
+        for (let i = 1; i < pool.points.length; i++) {
+          ctx.lineTo(pool.points[i].x, pool.points[i].y);
+        }
+        ctx.closePath();
+      } else if (pool.shape === 'freeform' && pool.points.some(p => p.curveType)) {
+        ctx.moveTo(pool.points[0].x, pool.points[0].y);
+        for (let i = 1; i < pool.points.length; i++) {
+          drawPoolSegment(ctx, pool.points[i - 1], pool.points[i]);
+        }
+        drawPoolSegment(ctx, pool.points[pool.points.length - 1], pool.points[0]);
+      } else {
+        for (let i = 0; i < pool.points.length; i++) {
+          const p0 = pool.points[(i - 1 + pool.points.length) % pool.points.length];
+          const p1 = pool.points[i];
+          const p2 = pool.points[(i + 1) % pool.points.length];
+          const p3 = pool.points[(i + 2) % pool.points.length];
+          if (i === 0) ctx.moveTo(p1.x, p1.y);
+          const cp1x = p1.x + (p2.x - p0.x) / 6;
+          const cp1y = p1.y + (p2.y - p0.y) / 6;
+          const cp2x = p2.x - (p3.x - p1.x) / 6;
+          const cp2y = p2.y - (p3.y - p1.y) / 6;
+          ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+        }
+        ctx.closePath();
       }
-      ctx.closePath();
-      
-      // Fill with pool color
-      ctx.fillStyle = pool.type === 'spa' ? '#7EC8E3' : '#5BC5D9';
-      ctx.fill();
-      
-      // Draw coping
-      ctx.strokeStyle = '#8B7355';
-      ctx.lineWidth = 8;
-      ctx.stroke();
-      
-      // Label
-      ctx.fillStyle = 'rgba(0,0,0,0.6)';
-      ctx.font = 'bold 12px Arial';
-      ctx.textAlign = 'center';
-      const centerX = pool.points.reduce((sum, p) => sum + p.x, 0) / pool.points.length;
-      const centerY = pool.points.reduce((sum, p) => sum + p.y, 0) / pool.points.length;
-      ctx.fillText(pool.type === 'spa' ? 'SPA' : 'POOL', centerX, centerY);
-      
+
+      const copingTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.coping, zoomLevel) : null;
+      if (copingTexture) {
+        ctx.save();
+        ctx.lineWidth = paverSizeInPixels;
+
+        const copingPattern = ctx.createPattern(copingTexture, 'repeat');
+        if (copingPattern) {
+          ctx.strokeStyle = copingPattern;
+          ctx.stroke();
+        }
+
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.lineWidth = paverSizeInPixels + 2;
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.stroke();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.restore();
+      } else {
+        ctx.lineWidth = copingThickness * 2;
+        ctx.strokeStyle = '#8B7355';
+        ctx.stroke();
+      }
+
+      ctx.save();
+      ctx.clip();
+
+      const poolTextureImg = new Image();
+      poolTextureImg.src = poolTextureSapphire;
+      if (poolTextureImg.complete) {
+        const pattern = ctx.createPattern(poolTextureImg, 'repeat');
+        if (pattern) {
+          ctx.fillStyle = pattern;
+          ctx.fill();
+        }
+      } else {
+        const linerTexture = textureLODsRef.current ? getTextureForLOD(textureLODsRef.current.liner, zoomLevel) : null;
+        if (linerTexture) {
+          const pattern = ctx.createPattern(linerTexture, 'repeat');
+          if (pattern) {
+            ctx.fillStyle = pattern;
+            ctx.fill();
+          }
+        } else {
+          ctx.fillStyle = '#5BC5D9';
+          ctx.fill();
+        }
+      }
+
+      ctx.restore();
       ctx.restore();
     });
     
