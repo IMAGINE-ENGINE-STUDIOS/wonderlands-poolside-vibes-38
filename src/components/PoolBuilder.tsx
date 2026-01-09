@@ -34,7 +34,13 @@ interface RoofPoint {
   id: string;
 }
 interface PoolFeature {
-  type: 'stairs' | 'light' | 'jet' | 'tree' | 'fountain' | 'grass' | 'home' | 'shrub' | 'umbrella' | 'fence' | 'pathway';
+  type: 'stairs' | 'light' | 'jet' | 'tree' | 'fountain' | 'grass' | 'home' | 'shrub' | 'umbrella' | 'fence' | 'pathway'
+    // New pool features
+    | 'pool-seat' | 'pool-wall' | 'diving-board' | 'slide' | 'pool-cover' | 'pool-accessory'
+    // New landscape features
+    | 'rock' | 'boulder' | 'hedge-row' | 'plant-row' | 'landscape-light' | 'edging' | 'grass-region'
+    // New water features
+    | 'pond' | 'stream' | 'waterfall' | 'jumping-jet' | 'sprinkler' | 'water-curtain';
   x: number;
   y: number;
   id: string;
@@ -44,12 +50,20 @@ interface PoolFeature {
   wallPosition?: number;
   width?: number;
   height?: number;
+  length?: number;
   treeType?: 'palm' | 'oak' | 'pine' | 'willow' | 'maple' | 'cypress';
   shrubType?: 'round' | 'flowering' | 'hedge';
   pathwayType?: 'straight' | 'curved' | 'circular';
   radius?: number;
   roofPoints?: RoofPoint[];
   color?: string;
+  // New feature properties
+  seatWidth?: number;
+  seatDepth?: number;
+  wallHeight?: number;
+  rockSize?: 'small' | 'medium' | 'large';
+  lightColor?: string;
+  lightIntensity?: number;
 }
 interface DepthPoint {
   position: number; // 0-1 along pool length
@@ -75,6 +89,8 @@ interface FenceDoor {
 interface PoolBuilderProps {
   initialDimensions?: string; // e.g., "16' × 40'"
   initialDepth?: string; // e.g., "3'9\" - 8'6\""
+  externalTool?: string | null; // Tool ID from external toolbar
+  onToolUsed?: () => void; // Callback when tool is used
   onPoolDataChange?: (data: {
     points: Point[];
     depthPoints: DepthPoint[];
@@ -106,6 +122,8 @@ const shadeColor = (color: string, percent: number) => {
 export function PoolBuilder({
   initialDimensions,
   initialDepth,
+  externalTool,
+  onToolUsed,
   onPoolDataChange
 }: PoolBuilderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -358,7 +376,7 @@ export function PoolBuilder({
   // Pricing constants
   const PAVER_COST_PER_SQFT = 15;
   const POOL_COST_PER_SQFT = 190;
-  const FEATURE_COSTS = {
+  const FEATURE_COSTS: Record<PoolFeature['type'], number> = {
     stairs: 2500,
     light: 450,
     jet: 850,
@@ -369,8 +387,31 @@ export function PoolBuilder({
     shrub: 75,
     umbrella: 400,
     fence: 150,
-    pathway: 0
+    pathway: 0,
+    // New pool features
+    'pool-seat': 3500,
+    'pool-wall': 5000,
+    'diving-board': 2500,
+    'slide': 8000,
+    'pool-cover': 4500,
+    'pool-accessory': 500,
+    // New landscape features
+    'rock': 250,
+    'boulder': 800,
+    'hedge-row': 450,
+    'plant-row': 300,
+    'landscape-light': 350,
+    'edging': 200,
+    'grass-region': 0,
+    // New water features
+    'pond': 6000,
+    'stream': 8000,
+    'waterfall': 12000,
+    'jumping-jet': 1200,
+    'sprinkler': 150,
+    'water-curtain': 5500,
   };
+
 
   // Helper function to parse dimension string like "11' x 20'" or "8'6\" x 14'" or "15'6\" x 38'"
   const parseDimensionValue = (dimStr: string): number => {
@@ -2609,23 +2650,38 @@ export function PoolBuilder({
       setSelectedPoint(null);
     }
   };
-  const addFeature = (type: 'stairs' | 'light' | 'jet' | 'tree' | 'fountain' | 'grass' | 'home' | 'shrub' | 'umbrella' | 'fence' | 'pathway') => {
-    if (type === 'jet') {
+  const addFeature = (type: PoolFeature['type']) => {
+    if (type === 'jet' || type === 'jumping-jet') {
       setPendingFeature('jet');
       return;
     }
     let newFeature: PoolFeature;
-    if (type === 'tree' || type === 'fountain' || type === 'grass' || type === 'home' || type === 'shrub' || type === 'umbrella' || type === 'fence' || type === 'pathway') {
-      // Place in open area
+    
+    // Open area placement features (landscape, decorative)
+    const openAreaFeatures: PoolFeature['type'][] = [
+      'tree', 'fountain', 'grass', 'home', 'shrub', 'umbrella', 'fence', 'pathway',
+      'rock', 'boulder', 'hedge-row', 'plant-row', 'landscape-light', 'edging', 'grass-region',
+      'pond', 'stream', 'waterfall', 'sprinkler', 'water-curtain'
+    ];
+    
+    // Wall-mounted features (snap to pool perimeter)
+    const wallMountedFeatures: PoolFeature['type'][] = [
+      'light', 'pool-seat', 'pool-wall', 'stairs', 'diving-board', 'slide', 'pool-accessory', 'pool-cover'
+    ];
+    
+    if (openAreaFeatures.includes(type)) {
+      // Place in open area with slight randomization
       newFeature = {
         type,
         x: canvasSize.width / 2 + Math.random() * 100 - 50,
         y: canvasSize.height / 2 + Math.random() * 100 - 50,
         id: Date.now().toString(),
         treeType: type === 'tree' ? 'oak' : undefined,
-        radius: type === 'grass' ? 80 : undefined,
-        width: type === 'home' ? 200 : undefined,
-        height: type === 'home' ? 150 : undefined
+        radius: type === 'grass' || type === 'grass-region' ? 80 : type === 'pond' ? 60 : undefined,
+        width: type === 'home' ? 200 : type === 'hedge-row' ? 100 : type === 'water-curtain' ? 80 : undefined,
+        height: type === 'home' ? 150 : undefined,
+        rockSize: (type === 'rock' || type === 'boulder') ? (type === 'boulder' ? 'large' : 'medium') : undefined,
+        lightColor: type === 'landscape-light' ? '#fffacd' : undefined,
       };
     } else if (type === 'light') {
       // Lights snap to walls and point inward
@@ -2636,12 +2692,52 @@ export function PoolBuilder({
         y: wallPoint.y,
         id: Date.now().toString(),
         angle: wallPoint.angle + Math.PI / 2,
-        // Point inward
         wallSegment: wallPoint.segment,
         wallPosition: wallPoint.position
       };
+    } else if (type === 'pool-seat') {
+      // Pool seats snap to walls
+      const wallPoint = findNearestWallPoint(canvasSize.width / 2, canvasSize.height / 2);
+      newFeature = {
+        type,
+        x: wallPoint.x,
+        y: wallPoint.y,
+        id: Date.now().toString(),
+        angle: wallPoint.angle + Math.PI / 2,
+        wallSegment: wallPoint.segment,
+        wallPosition: wallPoint.position,
+        seatWidth: 6 * scale, // 6ft wide seat
+        seatDepth: 2 * scale, // 2ft deep
+      };
+    } else if (type === 'pool-wall') {
+      // Raised walls snap to pool perimeter
+      const wallPoint = findNearestWallPoint(canvasSize.width / 2, canvasSize.height / 2);
+      newFeature = {
+        type,
+        x: wallPoint.x,
+        y: wallPoint.y,
+        id: Date.now().toString(),
+        angle: wallPoint.angle + Math.PI / 2,
+        wallSegment: wallPoint.segment,
+        wallPosition: wallPoint.position,
+        width: 8 * scale, // 8ft wide
+        wallHeight: 3, // 3ft tall
+      };
+    } else if (type === 'diving-board') {
+      // Diving boards at deep end
+      const wallPoint = findNearestWallPoint(canvasSize.width / 2, canvasSize.height / 2 - 100);
+      newFeature = {
+        type,
+        x: wallPoint.x,
+        y: wallPoint.y,
+        id: Date.now().toString(),
+        angle: wallPoint.angle + Math.PI / 2,
+        wallSegment: wallPoint.segment,
+        wallPosition: wallPoint.position,
+        length: 10 * scale, // 10ft board
+      };
     } else {
-      // Stairs snap to walls
+      // Default: Stairs and other wall-mounted features
       const wallPoint = findNearestWallPoint(canvasSize.width / 2, canvasSize.height / 2);
       newFeature = {
         type,
@@ -2656,7 +2752,57 @@ export function PoolBuilder({
     }
     setFeatures([...features, newFeature]);
     setSelectedFeature(newFeature.id);
+    onToolUsed?.();
   };
+
+  // Handle external tool selection from DesignStudio toolbar
+  useEffect(() => {
+    if (!externalTool) return;
+    
+    // Map toolbar tool IDs to feature types
+    const toolToFeatureMap: Record<string, PoolFeature['type'] | 'draw-pool' | 'draw-deck' | null> = {
+      'pool-shape': 'draw-pool',
+      'pool-deck': 'draw-deck',
+      'pool-stairs': 'stairs',
+      'pool-seat': 'pool-seat',
+      'pool-wall': 'pool-wall',
+      'pool-light': 'light',
+      'pool-jet': 'jet',
+      'diving-board': 'diving-board',
+      'pool-slide': 'slide',
+      'pool-accessory': 'pool-accessory',
+      'pool-cover': 'pool-cover',
+      // Landscape
+      'grass-region': 'grass-region',
+      'pathway': 'pathway',
+      'edging': 'edging',
+      'tree': 'tree',
+      'shrub': 'shrub',
+      'hedge-row': 'hedge-row',
+      'plant-row': 'plant-row',
+      'rock': 'rock',
+      'boulder': 'boulder',
+      'landscape-light': 'landscape-light',
+      // Water features
+      'fountain': 'fountain',
+      'pond': 'pond',
+      'stream': 'stream',
+      'waterfall': 'waterfall',
+      'jumping-jet': 'jumping-jet',
+      'sprinkler': 'sprinkler',
+      'water-curtain': 'water-curtain',
+    };
+    
+    const featureType = toolToFeatureMap[externalTool];
+    if (featureType === 'draw-pool') {
+      setActiveTool('draw-pool');
+    } else if (featureType === 'draw-deck') {
+      setActiveTool('draw-deck');
+    } else if (featureType) {
+      addFeature(featureType);
+    }
+  }, [externalTool]);
+
   const addStairStep = () => {
     if (!selectedFeature) return;
     setFeatures(prev => prev.map(f => f.id === selectedFeature && f.type === 'stairs' ? {

@@ -74,7 +74,7 @@ const DesignStudio = () => {
     poolBuilderFeatures: null,
   });
 
-  // Handle tool selection
+  // Handle tool selection from toolbar
   const handleToolSelect = useCallback((tool: ToolDefinition) => {
     setActiveTool(tool.id);
     toast({
@@ -82,6 +82,11 @@ const DesignStudio = () => {
       description: tool.description || `${tool.name} tool selected`,
     });
   }, [toast]);
+
+  // Clear tool after it's been used
+  const handleToolUsed = useCallback(() => {
+    // Keep tool active for repeated use, user can switch manually
+  }, []);
 
   // Get product from URL params
   const selectedProduct = useMemo<Product | null>(() => {
@@ -294,6 +299,8 @@ const DesignStudio = () => {
             <PoolBuilder
               initialDimensions={selectedProduct.dimensions}
               initialDepth={selectedProduct.depth}
+              externalTool={activeTool}
+              onToolUsed={handleToolUsed}
               onPoolDataChange={handlePoolDataChange}
             />
           </div>
