@@ -2960,110 +2960,79 @@ export function PoolBuilder({
       const isSeparatePool = pool.featureType === 'regular' || !pool.featureType;
       const isSelected = selectedAdditionalPool === pool.id;
 
-      // Draw deck - for regular pools full deck, for integrated features 3ft extension outside main deck
-      const poolHardscapePoints = generateHardscapeFromPool(pool.points, isIntegrated ? 3 : deckOffset);
-      if (paverTexture && poolHardscapePoints.length >= 3) {
-        const img = paverTexture;
+      // Draw deck ONLY for separate/regular pools (not for integrated features like spas/tanning ledges)
+      // Integrated features share the main pool's deck
+      if (isSeparatePool) {
+        const poolHardscapePoints = generateHardscapeFromPool(pool.points, deckOffset);
+        if (paverTexture && poolHardscapePoints.length >= 3) {
+          const img = paverTexture;
 
-        ctx.save();
-        
-        // STEP 1: Draw deck with paver pattern
-        ctx.beginPath();
-        if (smoothCorners) {
-          for (let i = 0; i < poolHardscapePoints.length; i++) {
-            const p0 = poolHardscapePoints[(i - 1 + poolHardscapePoints.length) % poolHardscapePoints.length];
-            const p1 = poolHardscapePoints[i];
-            const p2 = poolHardscapePoints[(i + 1) % poolHardscapePoints.length];
-            const p3 = poolHardscapePoints[(i + 2) % poolHardscapePoints.length];
-            if (i === 0) ctx.moveTo(p1.x, p1.y);
-
-            const tension = 0.3;
-            const cp1x = p1.x + (p2.x - p0.x) * tension;
-            const cp1y = p1.y + (p2.y - p0.y) * tension;
-            const cp2x = p2.x - (p3.x - p1.x) * tension;
-            const cp2y = p2.y - (p3.y - p1.y) * tension;
-            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
-          }
-        } else {
+          ctx.save();
+          
+          // Build deck path with water cutouts using evenodd
+          ctx.beginPath();
+          
+          // Outer deck boundary (clockwise)
           ctx.moveTo(poolHardscapePoints[0].x, poolHardscapePoints[0].y);
           for (let i = 1; i < poolHardscapePoints.length; i++) {
             ctx.lineTo(poolHardscapePoints[i].x, poolHardscapePoints[i].y);
           }
-        }
-        ctx.closePath();
-        ctx.clip();
-
-        // Draw paver tiles
-        const hsMinX = Math.min(...poolHardscapePoints.map(p => p.x));
-        const hsMaxX = Math.max(...poolHardscapePoints.map(p => p.x));
-        const hsMinY = Math.min(...poolHardscapePoints.map(p => p.y));
-        const hsMaxY = Math.max(...poolHardscapePoints.map(p => p.y));
-        const numPaversX = Math.ceil((hsMaxX - hsMinX) / paverSizeInPixels) + 1;
-        const numPaversY = Math.ceil((hsMaxY - hsMinY) / paverSizeInPixels) + 1;
-
-        for (let i = 0; i < numPaversX; i++) {
-          for (let j = 0; j < numPaversY; j++) {
-            const x = hsMinX + i * paverSizeInPixels;
-            const y = hsMinY + j * paverSizeInPixels;
-            ctx.drawImage(img, x, y, paverSizeInPixels, paverSizeInPixels);
-
-            ctx.strokeStyle = 'rgba(100, 80, 60, 0.2)';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x, y, paverSizeInPixels, paverSizeInPixels);
-          }
-        }
-        
-        // STEP 2: Cut out ALL water areas using composite operation
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.fillStyle = 'rgba(0,0,0,1)';
-        
-        // Cut out this pool's water area
-        ctx.beginPath();
-        ctx.moveTo(pool.points[0].x, pool.points[0].y);
-        for (let i = 1; i < pool.points.length; i++) {
-          if (pool.shape === 'freeform' && pool.points[i-1].curveType) {
-            drawPoolSegment(ctx, pool.points[i - 1], pool.points[i]);
-          } else {
-            ctx.lineTo(pool.points[i].x, pool.points[i].y);
-          }
-        }
-        ctx.closePath();
-        ctx.fill();
-        
-        // Cut out main pool water area
-        if (points.length >= 3) {
-          ctx.beginPath();
-          ctx.moveTo(points[0].x, points[0].y);
-          for (let i = 1; i < points.length; i++) {
-            if (poolShape === 'freeform' && points[i-1].curveType) {
-              drawPoolSegment(ctx, points[i - 1], points[i]);
-            } else {
-              ctx.lineTo(points[i].x, points[i].y);
-            }
+          ctx.closePath();
+          
+          // Cut out this pool's water area (counter-clockwise by reversing)
+          const reversedPoints = [...pool.points].reverse();
+          ctx.moveTo(reversedPoints[0].x, reversedPoints[0].y);
+          for (let i = 1; i < reversedPoints.length; i++) {
+            ctx.lineTo(reversedPoints[i].x, reversedPoints[i].y);
           }
           ctx.closePath();
-          ctx.fill();
-        }
-        
-        // Cut out all other additional pools' water areas
-        additionalPools.forEach((otherPool, otherIndex) => {
-          if (otherIndex !== poolIndex && otherPool.points.length >= 3) {
-            ctx.beginPath();
-            ctx.moveTo(otherPool.points[0].x, otherPool.points[0].y);
-            for (let i = 1; i < otherPool.points.length; i++) {
-              if (otherPool.shape === 'freeform' && otherPool.points[i-1].curveType) {
-                drawPoolSegment(ctx, otherPool.points[i - 1], otherPool.points[i]);
-              } else {
-                ctx.lineTo(otherPool.points[i].x, otherPool.points[i].y);
-              }
+          
+          // Cut out main pool water area
+          if (points.length >= 3) {
+            const reversedMain = [...points].reverse();
+            ctx.moveTo(reversedMain[0].x, reversedMain[0].y);
+            for (let i = 1; i < reversedMain.length; i++) {
+              ctx.lineTo(reversedMain[i].x, reversedMain[i].y);
             }
             ctx.closePath();
-            ctx.fill();
           }
-        });
-        
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.restore();
+          
+          // Cut out all other additional pools' water areas
+          additionalPools.forEach((otherPool, otherIndex) => {
+            if (otherIndex !== poolIndex && otherPool.points.length >= 3) {
+              const reversedOther = [...otherPool.points].reverse();
+              ctx.moveTo(reversedOther[0].x, reversedOther[0].y);
+              for (let i = 1; i < reversedOther.length; i++) {
+                ctx.lineTo(reversedOther[i].x, reversedOther[i].y);
+              }
+              ctx.closePath();
+            }
+          });
+          
+          ctx.clip('evenodd');
+
+          // Draw paver tiles
+          const hsMinX = Math.min(...poolHardscapePoints.map(p => p.x));
+          const hsMaxX = Math.max(...poolHardscapePoints.map(p => p.x));
+          const hsMinY = Math.min(...poolHardscapePoints.map(p => p.y));
+          const hsMaxY = Math.max(...poolHardscapePoints.map(p => p.y));
+          const numPaversX = Math.ceil((hsMaxX - hsMinX) / paverSizeInPixels) + 1;
+          const numPaversY = Math.ceil((hsMaxY - hsMinY) / paverSizeInPixels) + 1;
+
+          for (let i = 0; i < numPaversX; i++) {
+            for (let j = 0; j < numPaversY; j++) {
+              const x = hsMinX + i * paverSizeInPixels;
+              const y = hsMinY + j * paverSizeInPixels;
+              ctx.drawImage(img, x, y, paverSizeInPixels, paverSizeInPixels);
+
+              ctx.strokeStyle = 'rgba(100, 80, 60, 0.2)';
+              ctx.lineWidth = 1;
+              ctx.strokeRect(x, y, paverSizeInPixels, paverSizeInPixels);
+            }
+          }
+          
+          ctx.restore();
+        }
       }
 
       // Draw pool body + coping + liner texture
