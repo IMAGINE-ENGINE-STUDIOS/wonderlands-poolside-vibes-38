@@ -412,12 +412,26 @@ export function PoolBuilder({
   const [selectedAdditionalPool, setSelectedAdditionalPool] = useState<string | null>(null);
   const [draggingAdditionalPool, setDraggingAdditionalPool] = useState(false);
   
-  // Pool type dialog state (for when new pool intersects existing)
+  // Pool type dialog state (for when new pool intersects deck)
   const [pendingPoolData, setPendingPoolData] = useState<{
     points: Point[];
     intersectsWith: string;
   } | null>(null);
   const [showPoolTypeDialog, setShowPoolTypeDialog] = useState(false);
+  
+  // Perimeter anchor mode - for positioning spa/tanning ledge connection point
+  type PerimeterAnchorMode = {
+    isActive: boolean;
+    featureType: 'spillover-spa' | 'tanning-ledge' | null;
+    perimeterPosition: number; // 0-1 along pool perimeter
+    isFixed: boolean; // true when user has clicked to fix position
+  };
+  const [perimeterAnchorMode, setPerimeterAnchorMode] = useState<PerimeterAnchorMode>({
+    isActive: false,
+    featureType: null,
+    perimeterPosition: 0.25,
+    isFixed: false,
+  });
   
   // Check if a point is inside a polygon
   const isPointInPolygon = useCallback((x: number, y: number, polygon: Point[]): boolean => {
@@ -464,20 +478,23 @@ export function PoolBuilder({
     return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
   };
   
-  // Check if new pool intersects with any existing pool
-  const checkPoolIntersection = useCallback((newPoolPoints: Point[]): string | null => {
-    // Check main pool
-    if (points.length >= 3 && doPolygonsIntersect(newPoolPoints, points)) {
+  // Check if new pool intersects with any existing pool's DECK (not the pool itself)
+  const checkDeckIntersection = useCallback((newPoolPoints: Point[]): string | null => {
+    // Check main pool's deck/hardscape
+    if (hardscapePoints.length >= 3 && doPolygonsIntersect(newPoolPoints, hardscapePoints)) {
       return 'main';
     }
-    // Check additional pools
+    // Check additional pools' decks
     for (const pool of additionalPools) {
-      if (pool.points.length >= 3 && doPolygonsIntersect(newPoolPoints, pool.points)) {
-        return pool.id;
+      if (pool.points.length >= 3 && !pool.isPerimeterSnapped) {
+        const poolDeck = generateHardscapeFromPool(pool.points, deckOffset);
+        if (poolDeck.length >= 3 && doPolygonsIntersect(newPoolPoints, poolDeck)) {
+          return pool.id;
+        }
       }
     }
     return null;
-  }, [points, additionalPools, doPolygonsIntersect]);
+  }, [hardscapePoints, additionalPools, doPolygonsIntersect, deckOffset]);
   
   // Calculate perimeter position from a point (0-1 along pool perimeter)
   const getPerimeterPositionFromPoint = useCallback((x: number, y: number): number => {
@@ -577,29 +594,93 @@ export function PoolBuilder({
   const handlePoolTypeSelection = useCallback((featureType: 'regular' | 'spillover-spa' | 'tanning-ledge') => {
     if (!pendingPoolData) return;
     
-    const isIntegrated = featureType === 'spillover-spa' || featureType === 'tanning-ledge';
+    if (featureType === 'regular') {
+      // Regular pool - add directly without perimeter snapping
+      setAdditionalPools(prev => [...prev, {
+        id: Date.now().toString(),
+        type: 'pool',
+        points: pendingPoolData.points,
+        shape: 'freeform',
+        featureType: 'regular',
+        intersectsWith: pendingPoolData.intersectsWith,
+      }]);
+      
+      setPendingPoolData(null);
+      setShowPoolTypeDialog(false);
+      setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
+      setActiveTool(null);
+    } else {
+      // Spillover spa or tanning ledge - enter perimeter anchor mode
+      // Calculate initial position based on where the drawn shape was
+      const centerX = pendingPoolData.points.reduce((sum, p) => sum + p.x, 0) / pendingPoolData.points.length;
+      const centerY = pendingPoolData.points.reduce((sum, p) => sum + p.y, 0) / pendingPoolData.points.length;
+      const initialPerimeterPos = getPerimeterPositionFromPoint(centerX, centerY);
+      
+      setPerimeterAnchorMode({
+        isActive: true,
+        featureType,
+        perimeterPosition: initialPerimeterPos,
+        isFixed: false,
+      });
+      
+      setPendingPoolData(null);
+      setShowPoolTypeDialog(false);
+      // Clear the previous spline drawing - user will draw new shape from anchor
+      setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
+      setActiveTool(null);
+    }
+  }, [pendingPoolData, getPerimeterPositionFromPoint]);
+  
+  // Handle perimeter anchor click to fix position and start drawing
+  const handlePerimeterAnchorClick = useCallback(() => {
+    if (!perimeterAnchorMode.isActive || !perimeterAnchorMode.featureType) return;
     
-    // Calculate center of pending pool to find perimeter snap position
-    const centerX = pendingPoolData.points.reduce((sum, p) => sum + p.x, 0) / pendingPoolData.points.length;
-    const centerY = pendingPoolData.points.reduce((sum, p) => sum + p.y, 0) / pendingPoolData.points.length;
-    const perimeterPos = isIntegrated ? getPerimeterPositionFromPoint(centerX, centerY) : undefined;
+    const anchorPos = getPositionFromPerimeter(perimeterAnchorMode.perimeterPosition);
+    
+    // Fix the anchor position
+    setPerimeterAnchorMode(prev => ({ ...prev, isFixed: true }));
+    
+    // Start spline drawing from the anchor point
+    const startPoint: SplinePoint = {
+      x: anchorPos.x,
+      y: anchorPos.y,
+      id: '1',
+      curveType: 'linear',
+    };
+    
+    setSplineDrawing({
+      isActive: true,
+      points: [startPoint],
+      currentCurveType: 'curve',
+    });
+    setActiveTool('draw-pool');
+  }, [perimeterAnchorMode, getPositionFromPerimeter]);
+  
+  // Complete the perimeter-anchored pool drawing
+  const completePerimeterAnchoredPool = useCallback((drawnPoints: Point[]) => {
+    if (!perimeterAnchorMode.isActive || !perimeterAnchorMode.featureType) return;
     
     setAdditionalPools(prev => [...prev, {
       id: Date.now().toString(),
-      type: featureType === 'tanning-ledge' ? 'spa' : 'pool',
-      points: pendingPoolData.points,
+      type: perimeterAnchorMode.featureType === 'tanning-ledge' ? 'spa' : 'pool',
+      points: drawnPoints,
       shape: 'freeform',
-      featureType,
-      intersectsWith: pendingPoolData.intersectsWith,
-      perimeterPosition: perimeterPos,
-      isPerimeterSnapped: isIntegrated,
+      featureType: perimeterAnchorMode.featureType,
+      intersectsWith: 'main',
+      perimeterPosition: perimeterAnchorMode.perimeterPosition,
+      isPerimeterSnapped: true,
     }]);
     
-    setPendingPoolData(null);
-    setShowPoolTypeDialog(false);
+    // Reset perimeter anchor mode
+    setPerimeterAnchorMode({
+      isActive: false,
+      featureType: null,
+      perimeterPosition: 0.25,
+      isFixed: false,
+    });
     setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
     setActiveTool(null);
-  }, [pendingPoolData, getPerimeterPositionFromPoint]);
+  }, [perimeterAnchorMode]);
   
   // Update additional pool perimeter position (for drag along perimeter)
   const updateAdditionalPoolPerimeterPosition = useCallback((poolId: string, newPosition: number) => {
@@ -2776,8 +2857,79 @@ export function PoolBuilder({
       }
     });
     
+    // Draw perimeter anchor mode - red gradient draggable line on coping
+    if (perimeterAnchorMode.isActive && points.length >= 3) {
+      const anchorPos = getPositionFromPerimeter(perimeterAnchorMode.perimeterPosition);
+      const lineLength = 30; // Length of the anchor line in pixels
+      
+      // Calculate perpendicular direction (inward from wall)
+      const perpX = Math.cos(anchorPos.angle + Math.PI / 2);
+      const perpY = Math.sin(anchorPos.angle + Math.PI / 2);
+      
+      // Create red gradient
+      const gradient = ctx.createLinearGradient(
+        anchorPos.x - perpX * lineLength / 2,
+        anchorPos.y - perpY * lineLength / 2,
+        anchorPos.x + perpX * lineLength / 2,
+        anchorPos.y + perpY * lineLength / 2
+      );
+      gradient.addColorStop(0, '#FF4444');
+      gradient.addColorStop(0.5, '#FF0000');
+      gradient.addColorStop(1, '#AA0000');
+      
+      // Draw the anchor line across the coping
+      ctx.save();
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = perimeterAnchorMode.isFixed ? 8 : 6;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(anchorPos.x - perpX * lineLength / 2, anchorPos.y - perpY * lineLength / 2);
+      ctx.lineTo(anchorPos.x + perpX * lineLength / 2, anchorPos.y + perpY * lineLength / 2);
+      ctx.stroke();
+      
+      // Pulsing glow effect when not fixed
+      if (!perimeterAnchorMode.isFixed) {
+        ctx.shadowColor = '#FF0000';
+        ctx.shadowBlur = 15;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+      
+      // Draw center dot
+      ctx.beginPath();
+      ctx.arc(anchorPos.x, anchorPos.y, perimeterAnchorMode.isFixed ? 6 : 8, 0, 2 * Math.PI);
+      ctx.fillStyle = perimeterAnchorMode.isFixed ? '#00FF00' : '#FFFFFF';
+      ctx.fill();
+      ctx.strokeStyle = perimeterAnchorMode.isFixed ? '#008800' : '#FF0000';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // Instruction label
+      const label = perimeterAnchorMode.isFixed 
+        ? `Draw ${perimeterAnchorMode.featureType === 'spillover-spa' ? 'Spa' : 'Tanning Ledge'} shape`
+        : `Drag to position, click to fix`;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      const metrics = ctx.measureText(label);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.fillRect(anchorPos.x - metrics.width / 2 - 6, anchorPos.y - 35, metrics.width + 12, 20);
+      ctx.fillStyle = perimeterAnchorMode.isFixed ? '#008800' : '#CC0000';
+      ctx.fillText(label, anchorPos.x, anchorPos.y - 22);
+      
+      // Feature type badge
+      const typeBadge = perimeterAnchorMode.featureType === 'spillover-spa' ? '🌊 Spa' : '☀️ Ledge';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      const badgeMetrics = ctx.measureText(typeBadge);
+      ctx.fillRect(anchorPos.x - badgeMetrics.width / 2 - 4, anchorPos.y + 15, badgeMetrics.width + 8, 18);
+      ctx.fillStyle = '#333';
+      ctx.fillText(typeBadge, anchorPos.x, anchorPos.y + 27);
+      
+      ctx.restore();
+    }
+    
     ctx.restore();
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, splineDrawing, additionalPools, selectedAdditionalPool, getPositionFromPerimeter]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, splineDrawing, additionalPools, selectedAdditionalPool, getPositionFromPerimeter, perimeterAnchorMode]);
 
   // Memoize perimeter and area calculations
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
@@ -2842,6 +2994,19 @@ export function PoolBuilder({
       const snapPixels = snapSize / 12 * scale; // Convert inches to pixels
       x = Math.round(x / snapPixels) * snapPixels;
       y = Math.round(y / snapPixels) * snapPixels;
+    }
+
+    // Handle perimeter anchor mode - click to fix position or drag to move
+    if (perimeterAnchorMode.isActive && !perimeterAnchorMode.isFixed) {
+      // Check if clicking on/near the anchor point
+      const anchorPos = getPositionFromPerimeter(perimeterAnchorMode.perimeterPosition);
+      const distToAnchor = Math.sqrt(Math.pow(anchorPos.x - x, 2) + Math.pow(anchorPos.y - y, 2));
+      
+      if (distToAnchor < 25) {
+        // Fix the anchor and start drawing
+        handlePerimeterAnchorClick();
+        return;
+      }
     }
 
     // Add fence point when in fence add mode
@@ -3051,7 +3216,7 @@ export function PoolBuilder({
         const firstPoint = splineDrawing.points[0];
         const distToFirst = Math.sqrt(Math.pow(x - firstPoint.x, 2) + Math.pow(y - firstPoint.y, 2));
         if (distToFirst < 15) {
-          // Close the shape and check for intersection with existing pools
+          // Close the shape
           const newPoolPoints = splineDrawing.points.map((sp, i) => ({
             x: sp.x,
             y: sp.y,
@@ -3059,7 +3224,14 @@ export function PoolBuilder({
             curveType: sp.curveType,
           }));
           
-          const intersectingPoolId = checkPoolIntersection(newPoolPoints);
+          // Check if we're in perimeter anchor mode (drawing spa/tanning ledge)
+          if (perimeterAnchorMode.isActive && perimeterAnchorMode.isFixed) {
+            // Complete the perimeter-anchored pool
+            completePerimeterAnchoredPool(newPoolPoints);
+            return;
+          }
+          
+          const intersectingPoolId = checkDeckIntersection(newPoolPoints);
           
           if (intersectingPoolId) {
             // Show dialog to ask user what type of pool feature this is
@@ -3247,6 +3419,16 @@ export function PoolBuilder({
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+
+    // Handle perimeter anchor mode dragging - update position as mouse moves
+    if (perimeterAnchorMode.isActive && !perimeterAnchorMode.isFixed) {
+      const newPerimeterPos = getPerimeterPositionFromPoint(x, y);
+      setPerimeterAnchorMode(prev => ({
+        ...prev,
+        perimeterPosition: newPerimeterPos,
+      }));
+      return;
+    }
 
     // If in add mode, calculate snap point on pool perimeter
     if (activeTool === 'add') {
@@ -4177,7 +4359,13 @@ export function PoolBuilder({
                       curveType: sp.curveType,
                     }));
                     
-                    const intersectingPoolId = checkPoolIntersection(newPoolPoints);
+                    // Check if we're in perimeter anchor mode (drawing spa/tanning ledge)
+                    if (perimeterAnchorMode.isActive && perimeterAnchorMode.isFixed) {
+                      completePerimeterAnchoredPool(newPoolPoints);
+                      return;
+                    }
+                    
+                    const intersectingPoolId = checkDeckIntersection(newPoolPoints);
                     
                     if (intersectingPoolId) {
                       // Show dialog to ask user what type of pool feature this is
