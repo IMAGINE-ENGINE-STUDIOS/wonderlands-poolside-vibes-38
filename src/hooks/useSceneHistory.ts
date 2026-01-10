@@ -32,11 +32,14 @@ export function useSceneHistory(initialSnapshot: SceneSnapshot) {
 
   const isInternalUpdate = useRef(false);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const pendingBaseSnapshot = useRef<SceneSnapshot | null>(null);
 
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
 
   // Push a new snapshot to history
+  // IMPORTANT: Update `present` immediately for responsive UI, but debounce adding to `past`
+  // to avoid flooding history during slider drags.
   const pushSnapshot = useCallback((newSnapshot: Partial<SceneSnapshot>) => {
     if (isInternalUpdate.current) return;
 
@@ -45,30 +48,46 @@ export function useSceneHistory(initialSnapshot: SceneSnapshot) {
       clearTimeout(debounceTimer.current);
     }
 
-    // Debounce rapid changes
+    // Apply change immediately (so Canvas + UI update instantly)
+    setHistory((current) => {
+      const mergedSnapshot: SceneSnapshot = {
+        ...current.present,
+        ...newSnapshot,
+      };
+
+      // Validate scene if it's being updated
+      if (newSnapshot.scene) {
+        mergedSnapshot.scene = validateScene(newSnapshot.scene);
+      }
+
+      // Check if anything actually changed
+      const hasChanges = JSON.stringify(mergedSnapshot) !== JSON.stringify(current.present);
+      if (!hasChanges) return current;
+
+      // Capture base snapshot for this burst (only once)
+      if (!pendingBaseSnapshot.current) {
+        pendingBaseSnapshot.current = current.present;
+      }
+
+      return {
+        ...current,
+        present: mergedSnapshot,
+        future: [], // Clear future on new change
+      };
+    });
+
+    // Debounce committing the base snapshot to history (groups rapid changes into one undo step)
     debounceTimer.current = setTimeout(() => {
       setHistory((current) => {
-        const mergedSnapshot: SceneSnapshot = {
-          ...current.present,
-          ...newSnapshot,
-        };
+        const base = pendingBaseSnapshot.current;
+        pendingBaseSnapshot.current = null;
+        if (!base) return current;
 
-        // Validate scene if it's being updated
-        if (newSnapshot.scene) {
-          mergedSnapshot.scene = validateScene(newSnapshot.scene);
-        }
-
-        // Check if anything actually changed
-        const hasChanges = JSON.stringify(mergedSnapshot) !== JSON.stringify(current.present);
-        if (!hasChanges) return current;
-
-        // Limit history size
-        const newPast = [...current.past, current.present].slice(-MAX_HISTORY_SIZE);
-
+        const newPast = [...current.past, base].slice(-MAX_HISTORY_SIZE);
         return {
           past: newPast,
-          present: mergedSnapshot,
-          future: [], // Clear future on new change
+          present: current.present,
+          future: [],
         };
       });
     }, 100);
