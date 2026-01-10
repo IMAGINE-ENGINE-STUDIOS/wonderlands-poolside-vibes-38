@@ -54,7 +54,7 @@ export const CopingGeometry = ({
         console.error('CopingGeometry: Failed to load texture:', error);
         setTexture(null);
       });
-  }, [surfaceTextureUrl, textureOffset[0], textureOffset[1], textureScale]);
+  }, [surfaceTextureUrl, textureOffset, textureScale]);
   
   // Post-commit invalidation: ensures render happens AFTER React commits the texture
   useTextureInvalidation(texture?.uuid);

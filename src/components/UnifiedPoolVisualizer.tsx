@@ -99,13 +99,12 @@ function SceneInvalidator({ scene, isNightMode, sunPosition }: {
       cancelAnimationFrame(rafIdRef.current);
     }
     
-    // Burst render: schedule 5 frames to ensure texture is fully loaded and displayed
-    // (increased from 3 to account for async texture loading)
+    // Burst render: schedule 3 frames to ensure texture is fully displayed
     let frameCount = 0;
     const burstRender = () => {
       invalidate();
       frameCount++;
-      if (frameCount < 5) {
+      if (frameCount < 3) {
         rafIdRef.current = requestAnimationFrame(burstRender);
       }
     };
@@ -121,20 +120,16 @@ function SceneInvalidator({ scene, isNightMode, sunPosition }: {
   }, [
     scene.pool.finish?.url,
     scene.pool.finish?.scale,
-    scene.pool.finish?.offset?.[0],
-    scene.pool.finish?.offset?.[1],
+    scene.pool.finish?.offset,
     scene.deck.paver?.url,
     scene.deck.paver?.scale,
-    scene.deck.paver?.offset?.[0],
-    scene.deck.paver?.offset?.[1],
+    scene.deck.paver?.offset,
     scene.deck.coping?.url,
     scene.deck.coping?.scale,
-    scene.deck.coping?.offset?.[0],
-    scene.deck.coping?.offset?.[1],
+    scene.deck.coping?.offset,
     scene.deck.waterline?.url,
     scene.deck.waterline?.scale,
-    scene.deck.waterline?.offset?.[0],
-    scene.deck.waterline?.offset?.[1],
+    scene.deck.waterline?.offset,
     scene.deck.copingWidth,
     scene.deck.copingHeight,
     scene.deck.deckElevation,
