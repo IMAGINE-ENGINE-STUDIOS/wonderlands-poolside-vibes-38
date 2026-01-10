@@ -8,11 +8,15 @@ import { Separator } from './ui/separator';
 import { Checkbox } from './ui/checkbox';
 import { PoolLightControls } from './scene3d/PoolLightControls';
 
+// Component order for auto-advance after texture selection
+const COMPONENT_ORDER: Array<'pool' | 'deck' | 'coping' | 'waterline'> = ['pool', 'coping', 'waterline', 'deck'];
+
 interface ComponentControlPanelProps {
   selectedComponent: 'pool' | 'deck' | 'coping' | 'waterline' | null;
   scene: Scene3D;
   onClose: () => void;
   onSceneChange: (scene: Scene3D) => void;
+  onSelectComponent?: (component: 'pool' | 'deck' | 'coping' | 'waterline' | null) => void;
   textureLibrary: {
     finishes: TextureConfig[];
     pavers: TextureConfig[];
@@ -40,6 +44,7 @@ export function ComponentControlPanel({
   scene,
   onClose,
   onSceneChange,
+  onSelectComponent,
   textureLibrary,
   poolCategory = 'deluxe',
   poolModel = '',
@@ -70,7 +75,7 @@ export function ComponentControlPanel({
     // Fade out the texture grid
     setIsTextureGridVisible(false);
     
-    // Apply texture change and fade back in after animation
+    // Apply texture change and advance to next component after animation
     setTimeout(() => {
       const updated = { ...scene };
       
@@ -86,6 +91,14 @@ export function ComponentControlPanel({
       
       // Trigger scene update
       onSceneChange(updated);
+      
+      // Auto-advance to next component
+      if (selectedComponent && onSelectComponent) {
+        const currentIndex = COMPONENT_ORDER.indexOf(selectedComponent);
+        const nextIndex = (currentIndex + 1) % COMPONENT_ORDER.length;
+        const nextComponent = COMPONENT_ORDER[nextIndex];
+        onSelectComponent(nextComponent);
+      }
       
       // Fade back in
       setTimeout(() => {
