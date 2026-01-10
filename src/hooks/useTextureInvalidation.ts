@@ -28,10 +28,10 @@ export function useTextureInvalidation(textureUuid: string | undefined | null) {
     // Immediately invalidate after commit
     invalidate();
 
-    // Schedule 2 more frames to ensure GPU texture upload completes
+    // Schedule 4 more frames to ensure GPU texture upload completes
     const scheduleNextFrame = () => {
       frameCountRef.current++;
-      if (frameCountRef.current < 3) {
+      if (frameCountRef.current < 5) {
         rafIdRef.current = requestAnimationFrame(() => {
           invalidate();
           scheduleNextFrame();
