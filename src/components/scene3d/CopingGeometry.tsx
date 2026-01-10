@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { useMemo, useEffect, useState } from 'react';
+import { useThree } from '@react-three/fiber';
 import { generateOffsetCurve } from '@/utils/curveUtils';
 import { textureCache } from '@/utils/textureCache';
 
@@ -24,6 +25,7 @@ export const CopingGeometry = ({
 }: CopingGeometryProps) => {
   
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  const { invalidate } = useThree();
   
   // Use the provided coping texture URL
   const surfaceTextureUrl = textureUrl;
@@ -46,12 +48,13 @@ export const CopingGeometry = ({
         loadedTexture.wrapT = THREE.RepeatWrapping;
         loadedTexture.needsUpdate = true;
         setTexture(loadedTexture);
+        invalidate(); // Force immediate re-render
       })
       .catch((error) => {
         console.error('CopingGeometry: Failed to load texture:', error);
         setTexture(null);
       });
-  }, [surfaceTextureUrl, textureOffset, textureScale]);
+  }, [surfaceTextureUrl, textureOffset, textureScale, invalidate]);
   
   const geometry = useMemo(() => {
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
