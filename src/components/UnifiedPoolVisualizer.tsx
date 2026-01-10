@@ -74,25 +74,62 @@ function CameraController({
 }
 
 // Force re-render when scene state changes (for frameloop="demand")
+// Uses burst rendering to guarantee texture updates are visible
 function SceneInvalidator({ scene, isNightMode, sunPosition }: { 
   scene: Scene3D; 
   isNightMode: boolean;
   sunPosition: [number, number, number];
 }) {
   const { invalidate } = useThree();
+  const isFirstRender = useRef(true);
+  const rafIdRef = useRef<number | null>(null);
   
   useEffect(() => {
-    // Force immediate re-render when any relevant state changes
+    // Always invalidate immediately
     invalidate();
+    
+    // Skip burst on first render - textures aren't loaded yet
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    
+    // Cancel any pending animation frames
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+    }
+    
+    // Burst render: schedule 3 frames to ensure texture is fully displayed
+    let frameCount = 0;
+    const burstRender = () => {
+      invalidate();
+      frameCount++;
+      if (frameCount < 3) {
+        rafIdRef.current = requestAnimationFrame(burstRender);
+      }
+    };
+    
+    rafIdRef.current = requestAnimationFrame(burstRender);
+    
+    return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+    };
   }, [
     scene.pool.finish?.url,
     scene.pool.finish?.scale,
+    scene.pool.finish?.offset,
     scene.deck.paver?.url,
     scene.deck.paver?.scale,
+    scene.deck.paver?.offset,
     scene.deck.coping?.url,
     scene.deck.coping?.scale,
+    scene.deck.coping?.offset,
     scene.deck.waterline?.url,
     scene.deck.waterline?.scale,
+    scene.deck.waterline?.offset,
     scene.deck.copingWidth,
     scene.deck.copingHeight,
     scene.deck.deckElevation,

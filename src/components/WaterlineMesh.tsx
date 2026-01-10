@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import * as THREE from 'three';
 import { useThree } from '@react-three/fiber';
 import { textureCache, disposeTexture } from '@/utils/textureCache';
+import { useTextureInvalidation } from '@/hooks/useTextureInvalidation';
 
 interface Point {
   x: number;
@@ -32,7 +33,6 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
 }) => {
   const [waterlineTexture, setWaterlineTexture] = useState<THREE.Texture | null>(null);
   const [pulseIntensity, setPulseIntensity] = useState(0);
-  const { invalidate } = useThree();
 
   useEffect(() => {
     if (!waterlineTextureUrl || waterlineTextureUrl === '' || waterlineTextureUrl === 'undefined' || waterlineTextureUrl === 'null') {
@@ -49,13 +49,16 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
         texture.userData.textureUrl = waterlineTextureUrl;
         texture.needsUpdate = true;
         setWaterlineTexture(texture);
-        invalidate(); // Force immediate re-render
+        // Don't call invalidate here - useTextureInvalidation handles post-commit invalidation
       })
       .catch(err => {
         console.error('Failed to load waterline texture');
         setWaterlineTexture(null);
       });
-  }, [waterlineTextureUrl, poolPoints, waterlineWidth, waterlineTextureOffset, invalidate]);
+  }, [waterlineTextureUrl, poolPoints, waterlineWidth, waterlineTextureOffset]);
+
+  // Post-commit invalidation: ensures render happens AFTER React commits the texture
+  useTextureInvalidation(waterlineTexture?.uuid);
 
   // Pulsing red effect when selected (8 second cycle)
   useEffect(() => {

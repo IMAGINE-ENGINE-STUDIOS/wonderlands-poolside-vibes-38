@@ -4,6 +4,7 @@ import { PerspectiveCamera, Grid, useTexture, TransformControls, OrbitControls }
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { textureCache, disposeTexture } from '@/utils/textureCache';
+import { useTextureInvalidation } from '@/hooks/useTextureInvalidation';
 import { WaterlineMesh } from './WaterlineMesh';
 import WaterSurface from './WaterSurface';
 import { PoolStairs } from './PoolStairs';
@@ -165,8 +166,6 @@ const PoolMesh: React.FC<{
     return { width, length, depth: maxDepth };
   }, [points, depthPoints, providedDimensions]);
 
-  const { invalidate } = useThree();
-
   useEffect(() => {
     if (linerTextureUrl && linerTextureUrl !== '' && linerTextureUrl !== 'undefined') {
       // 1ft x 1ft base scale
@@ -181,14 +180,17 @@ const PoolMesh: React.FC<{
           texture.wrapT = THREE.RepeatWrapping;
           texture.needsUpdate = true;
           setLinerTexture(texture);
-          invalidate(); // Force immediate re-render
+          // Don't call invalidate here - useTextureInvalidation handles post-commit invalidation
         })
         .catch(err => {
           console.error('Failed to load liner texture');
           setLinerTexture(null);
         });
     }
-  }, [linerTextureUrl, linerTextureScale, linerTextureOffset, invalidate]);
+  }, [linerTextureUrl, linerTextureScale, linerTextureOffset]);
+
+  // Post-commit invalidation: ensures render happens AFTER React commits the texture
+  useTextureInvalidation(linerTexture?.uuid);
 
   // Dispose of previous texture after new one is loaded
   useEffect(() => {
@@ -519,6 +521,7 @@ const PoolMesh: React.FC<{
     <>
       {/* Pool floor - positioned at world origin, vertices have depth baked in */}
       <mesh 
+        key={`floor-${linerTexture?.uuid || 'no-texture'}`}
         geometry={geometry} 
         position={[0, 0, 0]}
         onClick={(e) => {
@@ -591,8 +594,6 @@ const FenceMesh: React.FC<{
     return length;
   }, [fencePoints]);
 
-  const { invalidate } = useThree();
-
   useEffect(() => {
     if (fenceTextureUrl && fenceTextureUrl !== '' && fenceTextureUrl !== 'undefined') {
       // Fence texture should fit sections of 6ft tall x 12ft long
@@ -602,7 +603,7 @@ const FenceMesh: React.FC<{
       textureCache.loadTexture(fenceTextureUrl, { x: repeatX, y: repeatY })
         .then(texture => {
           setFenceTexture(texture);
-          invalidate(); // Force immediate re-render
+          // Don't call invalidate here - useTextureInvalidation handles post-commit invalidation
         })
         .catch(err => {
           console.error('Failed to load fence texture, using default');
@@ -615,7 +616,10 @@ const FenceMesh: React.FC<{
         disposeTexture(fenceTexture);
       }
     };
-  }, [fenceTextureUrl, fenceLength, invalidate]);
+  }, [fenceTextureUrl, fenceLength]);
+
+  // Post-commit invalidation: ensures render happens AFTER React commits the texture
+  useTextureInvalidation(fenceTexture?.uuid);
 
   const geometry = useMemo(() => {
     if (fencePoints.length < 2) return null;
