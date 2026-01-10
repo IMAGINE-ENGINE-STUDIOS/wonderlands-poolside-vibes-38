@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { useMemo, useEffect, useState } from 'react';
+import { useThree } from '@react-three/fiber';
 import { generateOffsetCurve } from '@/utils/curveUtils';
 
 interface DeckGeometryProps {
@@ -27,6 +28,7 @@ export const DeckGeometry = ({
 }: DeckGeometryProps) => {
   
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  const { invalidate } = useThree();
   
   useEffect(() => {
     if (!textureUrl) {
@@ -42,6 +44,7 @@ export const DeckGeometry = ({
         loadedTexture.repeat.set(textureScale, textureScale);
         loadedTexture.offset.set(textureOffset[0], textureOffset[1]);
         setTexture(loadedTexture);
+        invalidate(); // Force immediate re-render
       },
       undefined,
       (error) => {
@@ -49,7 +52,7 @@ export const DeckGeometry = ({
         setTexture(null);
       }
     );
-  }, [textureUrl, textureScale, textureOffset]);
+  }, [textureUrl, textureScale, textureOffset, invalidate]);
   
   const geometry = useMemo(() => {
     if (!poolPoints || poolPoints.length < 3) return new THREE.BufferGeometry();
