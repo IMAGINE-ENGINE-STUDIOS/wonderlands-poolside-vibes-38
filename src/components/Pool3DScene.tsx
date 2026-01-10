@@ -187,7 +187,7 @@ const PoolMesh: React.FC<{
           setLinerTexture(null);
         });
     }
-  }, [linerTextureUrl, linerTextureScale, linerTextureOffset]);
+  }, [linerTextureUrl, linerTextureScale, linerTextureOffset?.[0], linerTextureOffset?.[1]]);
 
   // Post-commit invalidation: ensures render happens AFTER React commits the texture
   useTextureInvalidation(linerTexture?.uuid);

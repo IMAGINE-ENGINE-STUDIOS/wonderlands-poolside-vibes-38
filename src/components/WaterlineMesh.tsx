@@ -55,7 +55,7 @@ export const WaterlineMesh: React.FC<WaterlineMeshProps> = ({
         console.error('Failed to load waterline texture');
         setWaterlineTexture(null);
       });
-  }, [waterlineTextureUrl, poolPoints, waterlineWidth, waterlineTextureOffset]);
+  }, [waterlineTextureUrl, poolPoints, waterlineWidth, waterlineTextureOffset?.[0], waterlineTextureOffset?.[1]]);
 
   // Post-commit invalidation: ensures render happens AFTER React commits the texture
   useTextureInvalidation(waterlineTexture?.uuid);
