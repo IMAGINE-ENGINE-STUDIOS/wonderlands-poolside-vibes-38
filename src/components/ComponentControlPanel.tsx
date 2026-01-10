@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -55,6 +55,9 @@ export function ComponentControlPanel({
   onSelectLight,
   isNightMode = false
 }: ComponentControlPanelProps) {
+  // Animation state for texture panel fade effect
+  const [isTextureGridVisible, setIsTextureGridVisible] = useState(true);
+
   if (!selectedComponent) return null;
 
   // Get ALL finishes regardless of pool type - show complete selection
@@ -64,21 +67,31 @@ export function ComponentControlPanel({
   };
 
   const handleTextureChange = (texture: TextureConfig) => {
-    // Instantly apply texture change - no delays
-    const updated = { ...scene };
+    // Fade out the texture grid
+    setIsTextureGridVisible(false);
     
-    if (selectedComponent === 'pool') {
-      updated.pool.finish = { ...texture };
-    } else if (selectedComponent === 'deck') {
-      updated.deck.paver = { ...texture };
-    } else if (selectedComponent === 'coping') {
-      updated.deck.coping = { ...texture };
-    } else if (selectedComponent === 'waterline') {
-      updated.deck.waterline = { ...texture };
-    }
-    
-    // Trigger immediate re-render
-    onSceneChange(updated);
+    // Apply texture change and fade back in after animation
+    setTimeout(() => {
+      const updated = { ...scene };
+      
+      if (selectedComponent === 'pool') {
+        updated.pool.finish = { ...texture };
+      } else if (selectedComponent === 'deck') {
+        updated.deck.paver = { ...texture };
+      } else if (selectedComponent === 'coping') {
+        updated.deck.coping = { ...texture };
+      } else if (selectedComponent === 'waterline') {
+        updated.deck.waterline = { ...texture };
+      }
+      
+      // Trigger scene update
+      onSceneChange(updated);
+      
+      // Fade back in
+      setTimeout(() => {
+        setIsTextureGridVisible(true);
+      }, 50);
+    }, 200); // Wait for fade-out to complete
   };
 
   const handleTextureScaleChange = (scale: number) => {
@@ -199,19 +212,26 @@ export function ComponentControlPanel({
 
         <Separator />
 
-        {/* Texture Grid */}
-        <div className="space-y-3">
+        {/* Texture Grid with fade animation */}
+        <div 
+          className={`space-y-3 transition-all duration-200 ${
+            isTextureGridVisible 
+              ? 'opacity-100 transform translate-y-0' 
+              : 'opacity-0 transform translate-y-2'
+          }`}
+        >
           <Label className="text-sm font-semibold">Available Textures</Label>
           <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1">
             {availableTextures.map((texture) => (
               <button
                 key={texture.url}
                 onClick={() => handleTextureChange(texture)}
+                disabled={!isTextureGridVisible}
                 className={`relative group rounded-lg overflow-hidden border-2 transition-all ${
                   currentTexture?.url === texture.url
                     ? 'border-primary ring-2 ring-primary/20'
                     : 'border-border hover:border-primary/50'
-                }`}
+                } ${!isTextureGridVisible ? 'pointer-events-none' : ''}`}
                 title={texture.name}
               >
                 <img
