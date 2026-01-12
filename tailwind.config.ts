@@ -125,6 +125,26 @@ export default {
 					'0%': { backgroundPosition: '0% 50%' },
 					'50%': { backgroundPosition: '100% 50%' },
 					'100%': { backgroundPosition: '0% 50%' }
+				},
+				'fly-to-top': {
+					'0%': { 
+						bottom: '1rem',
+						left: '50%',
+						transform: 'translateX(-50%) scale(1)',
+						opacity: '1'
+					},
+					'50%': {
+						bottom: '50%',
+						left: '75%',
+						transform: 'translateX(-50%) scale(0.8)',
+						opacity: '0.8'
+					},
+					'100%': {
+						bottom: 'calc(100% - 4rem)',
+						left: 'calc(100% - 12rem)',
+						transform: 'translateX(-50%) scale(0.6)',
+						opacity: '0'
+					}
 				}
 			},
 			animation: {
@@ -136,7 +156,8 @@ export default {
 				'wiggle': 'wiggle 2s ease-in-out infinite',
 				'fade-in-up': 'fade-in-up 0.8s ease-out',
 				'scale-in': 'scale-in 0.6s ease-out',
-				'gradient-shift': 'gradient-shift 3s ease-in-out infinite'
+				'gradient-shift': 'gradient-shift 3s ease-in-out infinite',
+				'fly-to-top': 'fly-to-top 0.6s ease-in-out forwards'
 			}
 		}
 	},

@@ -755,30 +755,55 @@ const AdvancedSearch = () => {
             </div>
           )}
 
-          {/* AI-suggested Products */}
+          {/* AI-suggested Products - Pool Product Card Style with Carousel */}
           {aiResponse?.products && aiResponse.products.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {aiResponse.products.slice(0, 6).map((product) => (
-                <div
-                  key={product.id}
-                  className="flex items-center gap-2 p-2 rounded-lg border border-border bg-background hover:border-primary/50 hover:bg-primary/10 cursor-pointer transition-all shadow-sm"
-                  onClick={() => {
-                    const params = new URLSearchParams({
-                      model: product.name,
-                      price: product.price.toString(),
-                      category: product.category,
-                    });
-                    navigate(`/wonderlands-studio?${params.toString()}`);
-                    clearResponse();
-                    setSearchQuery('');
-                  }}
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">{product.name}</p>
-                    <p className="text-xs text-muted-foreground">${product.price.toLocaleString()}</p>
-                  </div>
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground font-medium px-1">Suggested Products</p>
+              <ScrollArea className="w-full">
+                <div className="flex gap-2 pb-2">
+                  {aiResponse.products.slice(0, 6).map((product) => (
+                    <Card
+                      key={product.id}
+                      className="flex-shrink-0 w-36 cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all overflow-hidden group"
+                      onClick={() => {
+                        const params = new URLSearchParams({
+                          model: product.name,
+                          price: product.price.toString(),
+                          category: product.category,
+                        });
+                        navigate(`/wonderlands-studio?${params.toString()}`);
+                        setShowResults(false);
+                        setSearchQuery('');
+                        // Trigger studio guidance after navigation
+                        setTimeout(() => {
+                          setStudioGuidance(product.name, product.category);
+                        }, 500);
+                      }}
+                    >
+                      {/* Product Image */}
+                      {product.image && (
+                        <div className="relative h-20 overflow-hidden bg-gradient-to-br from-primary/10 to-teal/10">
+                          <img 
+                            src={product.image} 
+                            alt={product.name}
+                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                          />
+                          <Badge className="absolute top-1 left-1 text-[10px] capitalize px-1.5 py-0.5">
+                            {product.category}
+                          </Badge>
+                        </div>
+                      )}
+                      {/* Product Info */}
+                      <div className="p-2">
+                        <p className="text-xs font-medium truncate">{product.name}</p>
+                        <p className="text-sm font-bold text-primary">
+                          ${product.price.toLocaleString()}
+                        </p>
+                      </div>
+                    </Card>
+                  ))}
                 </div>
-              ))}
+              </ScrollArea>
             </div>
           )}
         </div>
