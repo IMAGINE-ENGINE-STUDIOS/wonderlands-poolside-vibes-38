@@ -43,14 +43,12 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch all product data from database
-    const [poolsRes, productsRes, paversRes] = await Promise.all([
-      supabase.from("pools").select("*").eq("is_active", true).order("price"),
+    // Fetch spas, saunas, gates from database (these are accurate)
+    const [productsRes, paversRes] = await Promise.all([
       supabase.from("products").select("*").eq("is_active", true).order("price"),
       supabase.from("pavers").select("*").eq("is_active", true),
     ]);
 
-    const pools = poolsRes.data || [];
     const products = productsRes.data || [];
     const pavers = paversRes.data || [];
 
@@ -59,10 +57,70 @@ serve(async (req) => {
     const saunas = products.filter((p: any) => p.category === "SAUNAS");
     const gates = products.filter((p: any) => p.category === "GATES");
 
-    // Build comprehensive product lists
-    const poolList = pools.map((p: any) => 
-      `${p.model}: $${p.price?.toLocaleString()} (${p.dimensions || 'N/A'}, depth ${p.depth || 'N/A'})`
-    ).join('\n');
+    // CORRECT PUBLIC POOL PRICING - From PoolCatalog.tsx (the source of truth displayed to customers)
+    const poolList = `COMPACT POOLS:
+St. Lucia - $59,640 (12′ × 24′, depth 3′ 6″ – 5′)
+Enchantment 9.17 - $57,970 (9′ 5″ × 16′ 10″, depth 3′ 6″ – 4′ 6″)
+Palladium 12 - $63,470 (12′ × 24′, depth 3′ 6″ – 5′)
+Palladium 14 - $81,950 (14′ × 28′, depth 3′ 6″ – 5′ 6″)
+I30 - $60,060 (12′ 3″ × 31′ 6″, depth 3′ 6″ – 5′)
+
+STANDARD POOLS:
+Picasso - $73,610 (15′ 9″ × 35′, depth 3′ 6″ – 5′ 6″)
+Monaco - $67,870 (12′ × 27′, depth 3′ 6″ – 5′ 6″)
+D36 - $81,840 (14′ × 36′, depth 3′ 6″ – 6′)
+
+DELUXE POOLS:
+Tuscan 14.27 - $98,340 (13′ 9″ × 26′ 10″, depth 3′ 7″ – 6′ 2″)
+Valencia - $85,653 (14′ 6″ × 28′, depth 3′ 7″ – 5′ 10″)
+Vista Isle - $87,000 (12′ × 28′ 6″, depth 3′ 6″ – 5′ 10″)
+
+PREMIUM POOLS:
+Corinthian 12 - $92,940 (12′ × 25′, depth 3′ 6″ – 5′ 5″)
+Corinthian 12 BME - $97,340 (12′ × 25′, depth 3′ 6″ – 5′ 5″)
+Corinthian 14 - $113,950 (14′ × 30′, depth 3′ 6″ – 6′)
+Corinthian 14 BME - $118,350 (14′ × 30′, depth 3′ 6″ – 6′)
+Olympia 12 - $93,930 (12′ × 26′, depth 3′ 6″ – 5′ 6″)
+Olympia 14 - $116,040 (14′ × 30′, depth 3′ 6″ – 6′)
+Bay Isle - $98,440 (14′ 6″ × 30′, depth 3′ – 6′ 6″)
+Laguna - $100,860 (14′ × 30′, depth 3′ 6″ – 6′)
+Laguna Deluxe - $114,830 (14′ × 30′, depth 4′ – 6′)
+Claremont - $101,740 (14′ × 33′, depth 3′ 6″ – 5′ 4″)
+Axiom 14 - $106,250 (14′ × 30′, depth 4′ 6″ – 6′)
+Providence 14 - $115,160 (14′ × 30′, depth 3′ 6″ – 6′ 1″)
+Genesis - $133,860 (16′ × 40′ 2″, depth 3′ 9″ – 8′ 6″)
+Tuscan 14.40 - $133,320 (13′ 9″ × 39′ 11″, depth 3′ 7″ – 6′ 2″)
+
+GLIMMERGLASS POOLS:
+Serafina - $55,034 (8′ 6″ × 14′, depth 3′ 6″ – 4′)
+Coral Cove - $58,400 (9′ 6″ × 16′, depth 3′ 6″ – 4′)
+Retreat - $57,630 (10′ 3″ × 18′ 5″, depth 3′ 6″ – 4′ 4″)
+Regal Plunge - $63,350 (10′ × 16′, depth 4′ – 5′ 5″)
+Regal - $71,600 (10′ × 20′, depth 3′ 6″ – 5′ 4″)
+Caribbean - $70,566 (11′ × 20′, depth 3′ 6″ – 5′)
+Neptune - $74,706 (11′ × 23′, depth 3′ 6″ – 5′ 6″)
+Islander - $71,600 (12′ × 24′, depth 3′ 6″ – 5′ 6″)
+Emerald - $74,706 (12′ × 25′, depth 3′ 6″ – 5′ 7″)
+Roman - $82,600 (11′ × 27′, depth 3′ 6″ – 6′ 2″)
+Superior - $82,600 (12′ × 25′ 8″, depth 3′ 6″ – 5′ 6″)
+Capri - $79,881 (12′ × 28′, depth 3′ 6″ – 4′ 6″)
+Costa Brava - $79,881 (12′ × 29′, depth 3′ 6″ – 6′)
+Majestic - $78,530 (13′ × 25′ 6″, depth 3′ 6″ – 6′)
+Gold Coast w/ built-in Spa - $104,600 (14′ × 28′, depth 3′ 6″ – 5′ 8″)
+Atlantis - $104,600 (14′ × 32′, depth 3′ 6″ – 6′)
+Extreme 27 w/ built-in Spa & Splash Deck - $93,600 (12′ 6″ × 27′, depth 3′ 6″ – 5′ 11″)
+Tortola - $95,800 (14′ × 30′, depth 3′ 6″ – 6′)
+Silver Shore - $82,050 (15′ × 28′, depth 3′ 6″ – 6′)
+Mystic - $106,800 (15′ × 32′, depth 3′ 6″ – 6′)
+Aloha - $106,800 (15′ × 34′, depth 3′ 6″ – 6′)
+Bellagio - $106,800 (15′ × 34′, depth 3′ 6″ – 6′ 6″)
+Extreme 38 w/ built-in Spa & Splash Deck - $126,600 (15′ 6″ × 38′, depth 3′ 6″ – 7′)
+Ponce XL - $113,400 (15′ 6″ × 32′, depth 3′ 6″ – 6′)
+Newport - $106,800 (16′ × 35′, depth 3′ 6″ – 6′)
+Serenade w/ built-in Spa - $136,306 (16′ × 38′, depth 6′)
+Beachcomber - $136,306 (16′ × 40′, depth 8′)
+Vision - $136,306 (16′ × 41′, depth 6′ 6″)
+Grand Cayman - $136,306 (16′ × 42′, depth 8′)`;
 
     const spaList = spas.map((s: any) => 
       `${s.name}: $${s.price?.toLocaleString()}`
@@ -104,7 +162,7 @@ CRITICAL FORMATTING RULES:
 4. Format product lists as: Product Name - $X,XXX (details)
 5. End with ONE short follow-up question
 
-COMPLETE POOL CATALOG (${pools.length} models):
+COMPLETE POOL CATALOG (50+ models with correct public pricing):
 ${poolList}
 
 SPAS (${spas.length} models):
