@@ -6,7 +6,6 @@ export const DEFAULT_PAVER_PRICE_PER_SQFT = 20;
 // Screen enclosure pricing tiers
 export const SCREEN_ENCLOSURE_PRICING = {
   standard: 27,
-  deluxe: 30,
   premium: 33,
 } as const;
 
@@ -62,7 +61,7 @@ export function getPaverByName(paverName: string): PaverType | undefined {
  */
 export function calculateScreenEnclosureCost(
   area: number,
-  quality: 'standard' | 'deluxe' | 'premium' = 'standard'
+  quality: 'standard' | 'premium' = 'standard'
 ): number {
   const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[quality] ?? SCREEN_ENCLOSURE_PRICING.standard;
   return area * pricePerSqFt;

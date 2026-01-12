@@ -9,8 +9,8 @@ interface ScreenEnclosureAddonProps {
   onToggle: (selected: boolean) => void;
   area: number;
   onAreaChange: (area: number) => void;
-  quality: 'standard' | 'deluxe' | 'premium';
-  onQualityChange: (quality: 'standard' | 'deluxe' | 'premium') => void;
+  quality: 'standard' | 'premium';
+  onQualityChange: (quality: 'standard' | 'premium') => void;
   calculatePrice: () => number;
 }
 
@@ -52,10 +52,9 @@ const ScreenEnclosureAddon = ({
             <select
               className="w-full border rounded-md bg-background px-3 py-2 text-sm"
               value={quality}
-              onChange={(e) => onQualityChange(e.target.value as 'standard' | 'deluxe' | 'premium')}
+              onChange={(e) => onQualityChange(e.target.value as 'standard' | 'premium')}
             >
               <option value="standard">Standard ($27/sq ft)</option>
-              <option value="deluxe">Deluxe ($27/sq ft)</option>
               <option value="premium">Premium ($33/sq ft)</option>
             </select>
           </div>

@@ -210,7 +210,6 @@ const AdvancedSearch = () => {
     // Screen Enclosures
     const screenData = [
       { id: 'standard-screen', name: 'Standard Screen Enclosure', category: 'Screen Enclosure', price: 27, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'standard'] },
-      { id: 'deluxe-screen', name: 'Deluxe Screen Enclosure', category: 'Screen Enclosure', price: 27, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'deluxe'] },
       { id: 'premium-screen', name: 'Premium Screen Enclosure', category: 'Screen Enclosure', price: 33, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'premium'] }
     ];
 

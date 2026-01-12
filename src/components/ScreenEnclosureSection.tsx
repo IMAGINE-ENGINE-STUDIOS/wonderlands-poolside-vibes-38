@@ -1,5 +1,4 @@
 import { useState } from "react";
-import screenEnclosureDeluxe from "@/assets/screen-enclosure-deluxe.jpeg";
 import screenEnclosurePremium from "@/assets/screen-enclosure-premium.jpeg";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +11,7 @@ import SurveyQuoteTool from "./SurveyQuoteTool";
 import { useShoppingCart } from "./ShoppingCartProvider";
 interface ScreenEnclosureOption {
   name: string;
-  type: 'standard' | 'deluxe' | 'premium';
+  type: 'standard' | 'premium';
   pricePerSqFt: number;
   image: string;
   description: string;
@@ -25,13 +24,6 @@ const screenEnclosureOptions: ScreenEnclosureOption[] = [{
   image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
   description: "Basic aluminum frame screen enclosure with standard mesh screening",
   features: ["Aluminum Frame", "Standard Screen Mesh", "Basic Hardware", "5-Year Warranty"]
-}, {
-  name: "Deluxe Screen Enclosure",
-  type: "deluxe",
-  pricePerSqFt: 27,
-  image: screenEnclosureDeluxe,
-  description: "Enhanced aluminum frame with premium mesh and improved durability",
-  features: ["Premium Aluminum Frame", "Enhanced Screen Mesh", "Upgraded Hardware", "Pet Screen Option", "10-Year Warranty"]
 }, {
   name: "Premium Screen Enclosure",
   type: "premium",
@@ -89,7 +81,7 @@ const ScreenEnclosureSection = () => {
             {screenEnclosureOptions.map((enclosure, index) => <Card key={enclosure.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer" onClick={() => handleEnclosureClick(enclosure)}>
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between mb-3">
-                    <Badge className={`${enclosure.type === 'premium' ? 'bg-gradient-to-r from-coral to-orange' : enclosure.type === 'deluxe' ? 'bg-gradient-to-r from-primary to-teal' : 'bg-gradient-to-r from-secondary to-accent'} text-white capitalize font-medium px-3 py-1`}>
+                    <Badge className={`${enclosure.type === 'premium' ? 'bg-gradient-to-r from-coral to-orange' : 'bg-gradient-to-r from-secondary to-accent'} text-white capitalize font-medium px-3 py-1`}>
                       {enclosure.type}
                     </Badge>
                     
@@ -203,7 +195,7 @@ const ScreenEnclosureSection = () => {
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <Badge className={`${selectedEnclosure.type === 'premium' ? 'bg-gradient-to-r from-coral to-orange' : selectedEnclosure.type === 'deluxe' ? 'bg-gradient-to-r from-primary to-teal' : 'bg-gradient-to-r from-secondary to-accent'} text-white`}>
+                  <Badge className={`${selectedEnclosure.type === 'premium' ? 'bg-gradient-to-r from-coral to-orange' : 'bg-gradient-to-r from-secondary to-accent'} text-white`}>
                     {selectedEnclosure.type}
                   </Badge>
                   
