@@ -755,16 +755,16 @@ const AdvancedSearch = () => {
             </div>
           )}
 
-          {/* AI-suggested Products - Pool Product Card Style with Carousel */}
+          {/* AI-suggested Products - Pool Product Card Style with Tech Sheet */}
           {aiResponse?.products && aiResponse.products.length > 0 && (
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground font-medium px-1">Suggested Products</p>
               <ScrollArea className="w-full">
-                <div className="flex gap-2 pb-2">
+                <div className="flex gap-3 pb-2">
                   {aiResponse.products.slice(0, 6).map((product) => (
                     <Card
                       key={product.id}
-                      className="flex-shrink-0 w-36 cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all overflow-hidden group"
+                      className="flex-shrink-0 w-44 cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all overflow-hidden group"
                       onClick={() => {
                         const params = new URLSearchParams({
                           model: product.name,
@@ -774,7 +774,6 @@ const AdvancedSearch = () => {
                         navigate(`/wonderlands-studio?${params.toString()}`);
                         setShowResults(false);
                         setSearchQuery('');
-                        // Trigger studio guidance after navigation
                         setTimeout(() => {
                           setStudioGuidance(product.name, product.category);
                         }, 500);
@@ -782,23 +781,38 @@ const AdvancedSearch = () => {
                     >
                       {/* Product Image */}
                       {product.image && (
-                        <div className="relative h-20 overflow-hidden bg-gradient-to-br from-primary/10 to-teal/10">
+                        <div className="relative h-24 overflow-hidden bg-gradient-to-br from-primary/10 to-teal/10">
                           <img 
                             src={product.image} 
                             alt={product.name}
                             className="w-full h-full object-cover transition-transform group-hover:scale-105"
                           />
-                          <Badge className="absolute top-1 left-1 text-[10px] capitalize px-1.5 py-0.5">
+                          <Badge className="absolute top-1 left-1 text-[10px] capitalize px-1.5 py-0.5 bg-background/80 backdrop-blur-sm">
                             {product.category}
                           </Badge>
                         </div>
                       )}
                       {/* Product Info */}
-                      <div className="p-2">
-                        <p className="text-xs font-medium truncate">{product.name}</p>
-                        <p className="text-sm font-bold text-primary">
+                      <div className="p-2 space-y-1">
+                        <p className="text-sm font-semibold truncate">{product.name}</p>
+                        <p className="text-base font-bold text-primary">
                           ${product.price.toLocaleString()}
                         </p>
+                        {/* Mini Tech Sheet */}
+                        {product.dimensions && (
+                          <div className="border-t border-border pt-1 mt-1 space-y-0.5">
+                            <div className="flex justify-between text-[10px] text-muted-foreground">
+                              <span>Size</span>
+                              <span className="font-medium text-foreground">{product.dimensions}</span>
+                            </div>
+                            {product.depth && (
+                              <div className="flex justify-between text-[10px] text-muted-foreground">
+                                <span>Depth</span>
+                                <span className="font-medium text-foreground">{product.depth}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </Card>
                   ))}
