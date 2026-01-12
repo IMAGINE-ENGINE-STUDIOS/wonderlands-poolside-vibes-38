@@ -175,20 +175,57 @@ GOOD RESPONSE (short, lets cards show details):
 POOLS:
 ${poolList}
 
-SPAS: ${spaList || 'Moonlight Spillover Spa $20,000, Tranquility Spa $20,000, Pacifica Spa $18,000'}
+GILMER SPAS:
+- Moonlight Spillover: $26,000 (8'x8'x3'3", dealer $21,000)
+- Pacifica Spa: $24,000 (7'6"x7'6"x3', dealer $19,000)
+- Pearl Spillover: $24,000 (7'6"x7'6"x3', dealer $19,000)
+- Tranquility Spa: $28,000 (9'x9'x3'8", dealer $22,500)
 
-SAUNAS: ${saunaList || 'Barrel Sauna 4-Person $15,000, Barrel Sauna 6-Person $18,000'}
+PREMIUM SPAS (for sauna packages):
+- Mystic: $24,000 (7' x 7' x 34")
+- Serenity: $22,000 (6' x 6' x 32")
+- Tranquility: $20,000 (5' x 5' x 30")
+
+SAUNAS:
+- Barrel Sauna 4-Person: $18,000 (4 persons, 6kW heater, 8ft L x 6ft Dia)
+- Barrel Sauna 6-Person: $21,600 (6 persons, 8kW heater, 10ft L x 7ft Dia)
+- Traditional Indoor Sauna 4-Person: $22,800 (4 persons, 6kW heater, 7ft x 6ft x 7ft H)
+- Infrared Sauna 2-Person: $30,000 (2 persons, Infrared heater, 5ft x 4ft x 6.5ft H)
 
 PAVERS:
 ${paverList}
 
 GATES: ${gateList}
 
+DRIVEWAY GATES (Prague Style, includes installation):
+- 12ft x 6ft: $7,820
+- 14ft x 6ft: $6,785
+- 16ft x 6ft: $8,050
+- 18ft x 6ft: $8,970
+- Automatic Gate Opener: +$2,300
+
+TANNING LEDGES:
+- Genesis: $26,400 (8' x 12', depth 6" to 12")
+- Hermosa: $28,800 (6' x 10', depth 6" to 10")
+- Rectangle: $30,000 (8' x 14', depth 8" to 12")
+- Semicircle: $27,600 (7' x 9', depth 6" to 10")
+
 === PRICING ===
-- Screen Enclosures: Standard $27/sqft, Premium $33/sqft
+- Screen Enclosures: Standard $15/sqft, Premium $28/sqft
 - Lanais: Standard $60/sqft, Deluxe $80/sqft, Premium $100/sqft
 - Pool Covers: Automatic $25,000-$32,000, Safety $1,800, Solar $800
-- Fencing: Aluminum $45/linear ft, Premium $65/linear ft
+- Patio Fencing: 36" Aluminum $40/linear ft, 46" Aluminum $50/linear ft, 56" Aluminum $60/linear ft
+- Pool Heaters: Heat Pump Standard $3,500, Heat Pump Premium $4,500, Pentair MasterTemp 125 $2,300, Pentair UltraTemp 90 $5,175
+- Pool Finishes: Crystite Crystal +$3,500, Mini Pebbles +$4,200
+- Pool Liners: Glass/Porcelain/Italian Stone $20/sqft installed, $15/sheet material
+- Pool Tiles: Mountain/Carnegie/Panama $15,000 each
+
+=== CONFIGURATION FLOW ===
+When a customer asks about a product:
+1. Answer their question with the matching product and price
+2. Ask if they want to add extras one-by-one (spa, heater, deck pavers, screen enclosure)
+3. After configuration, provide a full quote breakdown
+4. NEVER offer unrelated products - stay focused on what the customer asked for
 
 === WONDERLANDS STUDIO ===
 Our 3D configurator where customers customize their pool with:
