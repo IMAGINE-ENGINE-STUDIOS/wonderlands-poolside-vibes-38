@@ -5,6 +5,7 @@ interface AIResponse {
   followUpQuestion?: string;
   needsTextInput?: boolean;
   showCalculator?: 'pavers' | 'screen' | 'fence' | 'lanai' | 'pool' | null;
+  isStudioGuide?: boolean;
   options?: Array<{
     label: string;
     type: 'yes' | 'no' | 'option';
@@ -22,6 +23,7 @@ export function useInlineAISearch() {
   const [isLoading, setIsLoading] = useState(false);
   const [aiResponse, setAIResponse] = useState<AIResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [navigatedProduct, setNavigatedProduct] = useState<{ name: string; category: string } | null>(null);
 
   const askAI = useCallback(async (query: string) => {
     if (!query.trim()) return;
@@ -106,19 +108,29 @@ export function useInlineAISearch() {
   const clearResponse = useCallback(() => {
     setAIResponse(null);
     setError(null);
+    setNavigatedProduct(null);
   }, []);
 
   const answerFollowUp = useCallback(async (answer: string, originalQuery: string) => {
     await askAI(`${originalQuery}. My answer: ${answer}`);
   }, [askAI]);
 
+  // Set studio guidance when user navigates to a product
+  const setStudioGuidance = useCallback((productName: string, category: string) => {
+    setNavigatedProduct({ name: productName, category });
+    // Ask AI for studio guidance
+    askAI(`User just selected ${productName} (${category}) and is now in Wonderlands Studio. Give them a brief welcome and explain how to customize their selection.`);
+  }, [askAI]);
+
   return {
     isLoading,
     aiResponse,
     error,
+    navigatedProduct,
     askAI,
     clearResponse,
     answerFollowUp,
+    setStudioGuidance,
   };
 }
 

@@ -68,7 +68,7 @@ const AdvancedSearch = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { openChat } = useAIAssistant();
-  const { isLoading: aiLoading, aiResponse, askAI, clearResponse, answerFollowUp } = useInlineAISearch();
+  const { isLoading: aiLoading, aiResponse, askAI, clearResponse, answerFollowUp, setStudioGuidance } = useInlineAISearch();
   
   // Voice input hook
   const {
@@ -457,6 +457,11 @@ const AdvancedSearch = () => {
     navigate(`/wonderlands-studio?${params.toString()}`);
     setShowResults(false);
     setSearchQuery('');
+    
+    // Trigger studio guidance from Sarah - search persists and provides help
+    setTimeout(() => {
+      setStudioGuidance(result.name, result.category);
+    }, 500);
   };
 
   const handleSectionClick = (sectionId: string) => {
