@@ -3,7 +3,9 @@ import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProjectTypeProvider } from "@/contexts/ProjectTypeContext";
 import { ShoppingCartProvider } from "@/components/ShoppingCartProvider";
+import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import RightNavigation from "@/components/RightNavigation";
+import { AIAssistantChat } from "@/components/ai/AIAssistantChat";
 
 // Eager load critical components
 import Index from "./pages/Index";
@@ -46,7 +48,9 @@ const App = () => {
     <AuthProvider>
       <ProjectTypeProvider>
         <ShoppingCartProvider>
-          <RightNavigation />
+          <AIAssistantProvider>
+            <RightNavigation />
+            <AIAssistantChat />
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -118,6 +122,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
+          </AIAssistantProvider>
         </ShoppingCartProvider>
       </ProjectTypeProvider>
     </AuthProvider>

@@ -1,18 +1,20 @@
 import * as React from 'react';
 const { useState, useEffect, useRef } = React;
-import { Search } from 'lucide-react';
+import { Search, Bot } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { useNavigate } from 'react-router-dom';
+import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import { allProducts, getProductsByCategory } from '@/data/consolidatedProducts';
 import { poolLiners, poolTiles, tanningLedges } from '@/data/poolData';
 import { paverTypes, copingTypes } from '@/data/paverData';
 import { saunas } from '@/data/saunaData';
 import { drivewayGates } from '@/data/drivewayGates';
 import { gilmerPools } from '@/data/gilmerPools';
-
 // Import banner images for sections
 import saunaBanner from "@/assets/banners/sauna-banner.jpg";
 import spaBanner from "@/assets/banners/spa-banner.jpg";
@@ -58,6 +60,17 @@ const AdvancedSearch = () => {
   const [isFocused, setIsFocused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { openChat } = useAIAssistant();
+
+  const handleAskAI = () => {
+    if (searchQuery.trim()) {
+      openChat(`I'm looking for: ${searchQuery}`);
+    } else {
+      openChat();
+    }
+    setIsFocused(false);
+    setShowSectionMenu(false);
+  };
 
   // COMPREHENSIVE PRODUCT DATABASE - All products from all data sources
   const getAllProductData = () => {
@@ -450,16 +463,35 @@ const AdvancedSearch = () => {
       }`} 
       ref={containerRef}
     >
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-        <Input
-          type="text"
-          placeholder="Search pools, spas, covers, heaters, tiles, pavers... or try '16 x 40'"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          className="pl-10 pr-4 py-3 w-full border-2 border-primary/20 rounded-lg focus:border-primary transition-colors bg-background/80 backdrop-blur-sm"
-        />
+      <div className="relative flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            type="text"
+            placeholder="Search pools, spas, covers, heaters, tiles, pavers... or try '16 x 40'"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            className="pl-10 pr-4 py-3 w-full border-2 border-primary/20 rounded-lg focus:border-primary transition-colors bg-background/80 backdrop-blur-sm"
+          />
+        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                onClick={handleAskAI}
+                className="px-4 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg"
+              >
+                <Bot className="h-4 w-4 mr-2" />
+                Ask AI
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Get AI-powered help finding products</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Section Quick Navigation Menu */}
