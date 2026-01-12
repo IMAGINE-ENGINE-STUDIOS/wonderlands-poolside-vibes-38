@@ -53,7 +53,7 @@ async function sendEmail(
     }
 
     const resend = new Resend(resendApiKey);
-    const from = Deno.env.get("RESEND_FROM") || "Wonderlands World <onboarding@resend.dev>";
+    const from = "Wonderlands World <noreply@wonderlandsworld.com>";
 
     const { data, error } = await resend.emails.send({
       from,

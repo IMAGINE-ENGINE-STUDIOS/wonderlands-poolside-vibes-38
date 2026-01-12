@@ -49,7 +49,7 @@ async function sendEmail(
 
     const resend = new Resend(resendApiKey);
     const response = await resend.emails.send({
-      from: "Wonderlands World <onboarding@resend.dev>",
+      from: "Wonderlands World <noreply@wonderlandsworld.com>",
       to: [to],
       subject: subject,
       html: htmlContent || `<p>${body}</p>`,

@@ -48,7 +48,7 @@ async function sendEmail(email: string, name: string, subject: string, message: 
   `;
 
   return await resend.emails.send({
-    from: "Notifications <onboarding@resend.dev>",
+    from: "Wonderlands World <noreply@wonderlandsworld.com>",
     to: [email],
     subject: subject || "Notification",
     html,
