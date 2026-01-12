@@ -1,6 +1,6 @@
 import * as React from 'react';
 const { useState, useEffect, useRef } = React;
-import { Search, Bot } from 'lucide-react';
+import { Search, Bot, Mic, MicOff, Sparkles, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -9,12 +9,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { useNavigate } from 'react-router-dom';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
+import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { allProducts, getProductsByCategory } from '@/data/consolidatedProducts';
 import { poolLiners, poolTiles, tanningLedges } from '@/data/poolData';
 import { paverTypes, copingTypes } from '@/data/paverData';
 import { saunas } from '@/data/saunaData';
 import { drivewayGates } from '@/data/drivewayGates';
 import { gilmerPools } from '@/data/gilmerPools';
+import { cn } from '@/lib/utils';
+
 // Import banner images for sections
 import saunaBanner from "@/assets/banners/sauna-banner.jpg";
 import spaBanner from "@/assets/banners/spa-banner.jpg";
@@ -59,17 +62,61 @@ const AdvancedSearch = () => {
   const [showSectionMenu, setShowSectionMenu] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { openChat } = useAIAssistant();
+  
+  // Voice input hook
+  const {
+    isListening,
+    transcript,
+    interimTranscript,
+    isSupported: voiceSupported,
+    startListening,
+    stopListening,
+    resetTranscript,
+  } = useVoiceInput();
+
+  // Handle voice transcript - update search query as user speaks
+  useEffect(() => {
+    if (transcript && !isListening) {
+      setSearchQuery(prev => prev + transcript);
+      resetTranscript();
+    }
+  }, [transcript, isListening, resetTranscript]);
+
+  // Show interim transcript while speaking
+  useEffect(() => {
+    if (interimTranscript && isListening) {
+      // Show what user is saying in real-time
+    }
+  }, [interimTranscript, isListening]);
 
   const handleAskAI = () => {
-    if (searchQuery.trim()) {
-      openChat(`I'm looking for: ${searchQuery}`);
+    const query = searchQuery.trim() || interimTranscript;
+    if (query) {
+      openChat(`I'm looking for: ${query}`);
     } else {
       openChat();
     }
     setIsFocused(false);
     setShowSectionMenu(false);
+    setSearchQuery('');
+  };
+
+  const toggleVoice = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+      inputRef.current?.focus();
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setShowResults(false);
+    inputRef.current?.focus();
   };
 
   // COMPREHENSIVE PRODUCT DATABASE - All products from all data sources
@@ -458,33 +505,95 @@ const AdvancedSearch = () => {
 
   return (
     <div 
-      className={`relative w-full max-w-md mx-auto transition-transform duration-300 ${
+      className={`relative w-full max-w-lg mx-auto transition-transform duration-300 ${
         shouldShowSectionMenu ? '-translate-y-48 sm:-translate-y-16' : ''
       }`} 
       ref={containerRef}
     >
-      <div className="relative flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            type="text"
-            placeholder="Search pools, spas, covers, heaters, tiles, pavers... or try '16 x 40'"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onFocus={() => setIsFocused(true)}
-            className="pl-10 pr-4 py-3 w-full border-2 border-primary/20 rounded-lg focus:border-primary transition-colors bg-background/80 backdrop-blur-sm"
-          />
+      {/* Voice listening indicator */}
+      {isListening && (
+        <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex items-center gap-2 text-sm text-red-500 animate-pulse">
+          <span className="w-2 h-2 bg-red-500 rounded-full" />
+          Listening... {interimTranscript && <span className="text-muted-foreground">"{interimTranscript}"</span>}
         </div>
+      )}
+      
+      <div className={cn(
+        "relative flex items-center gap-1 p-1.5 rounded-xl border-2 transition-all duration-300 bg-background/90 backdrop-blur-sm",
+        isListening ? "border-red-500 shadow-lg shadow-red-500/20" : "border-primary/20 focus-within:border-primary"
+      )}>
+        {/* Search Icon */}
+        <div className="pl-2">
+          <Search className="h-4 w-4 text-muted-foreground" />
+        </div>
+        
+        {/* Input Field */}
+        <Input
+          ref={inputRef}
+          type="text"
+          placeholder={isListening ? "Speak now..." : "Search or ask AI anything about pools, spas, pavers..."}
+          value={isListening ? (searchQuery + interimTranscript) : searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && searchQuery.trim()) {
+              handleAskAI();
+            }
+          }}
+          className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-2"
+        />
+        
+        {/* Clear Button */}
+        {searchQuery && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={clearSearch}
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+        
+        {/* Voice Input Button */}
+        {voiceSupported && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleVoice}
+                  className={cn(
+                    "h-9 w-9 rounded-lg transition-all",
+                    isListening 
+                      ? "bg-red-500 text-white hover:bg-red-600 animate-pulse" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{isListening ? "Stop listening" : "Voice search"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+        
+        {/* AI Assistant Button */}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 type="button"
                 onClick={handleAskAI}
-                className="px-4 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg"
+                className="h-9 px-3 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-md"
               >
-                <Bot className="h-4 w-4 mr-2" />
-                Ask AI
+                <Sparkles className="h-4 w-4 sm:mr-1.5" />
+                <span className="hidden sm:inline text-sm font-medium">Ask AI</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
