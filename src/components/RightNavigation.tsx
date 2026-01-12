@@ -4,16 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ShoppingCart, Home, Waves, Sparkles, Palette, Droplets, Shield, Grid3X3, Mountain, Settings } from "lucide-react";
+import { ShoppingCart, Home, Waves, Sparkles, Palette, Droplets, Shield, Grid3X3, Mountain, Settings, Bot } from "lucide-react";
 import { useShoppingCart } from "./ShoppingCartProvider";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAIAssistant } from "@/contexts/AIAssistantContext";
 import MiniCart from "./MiniCart";
 
 const RightNavigation = () => {
   const [activeSection, setActiveSection] = useState("hero");
   const { getCartCount, setIsCartOpen } = useShoppingCart();
   const { user } = useAuth();
+  const { openChat } = useAIAssistant();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -114,6 +116,23 @@ const RightNavigation = () => {
           </Tooltip>
         ) : (
           <>
+            {/* AI Assistant Button - Always visible */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={() => openChat()}
+                  className="relative rounded-full w-11 h-11 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 shadow-lg transition-all duration-300 hover:scale-105"
+                >
+                  <Bot className="h-5 w-5 text-white" />
+                  <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p className="font-medium">AI Assistant</p>
+                <p className="text-xs text-muted-foreground">Ask me anything about products</p>
+              </TooltipContent>
+            </Tooltip>
+
             {/* Admin Dashboard Button - Only show to logged in users */}
             {user && (
               <Tooltip>
