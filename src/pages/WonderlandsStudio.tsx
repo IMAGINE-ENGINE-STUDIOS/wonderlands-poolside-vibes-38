@@ -46,6 +46,7 @@ import { getProductFeatures, getDefaultExtras, calculateFeaturePrice, type Produ
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
+import { FloatingAISearch } from '@/components/search/FloatingAISearch';
 
 
 interface Product {
@@ -400,6 +401,7 @@ const WonderlandsStudio = () => {
   const [viewMode, setViewMode] = useState<'product-image' | '2d-designer' | '3d-viewer'>('product-image');
   const [customPoolShape, setCustomPoolShape] = useState<any[] | null>(null);
   const [showPricePanel, setShowPricePanel] = useState(false);
+  const [aiSearchDocked, setAiSearchDocked] = useState(false);
   
   // Ref to store extras data synchronously for the quote modal (avoids race condition)
   const extrasDataRef = useRef<{ extrasBreakdown: Array<{ name: string; price: number; image: string }>; extrasTotal: number }>({
@@ -1091,9 +1093,16 @@ const WonderlandsStudio = () => {
               <ProjectTypeToggle showPriceNote={false} />
             </div>
             
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input placeholder="Search products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 w-48 md:w-64" />
+            {/* AI Search - Docked position */}
+            <div className="w-48 md:w-80">
+              {aiSearchDocked ? (
+                <FloatingAISearch isInStudio={true} />
+              ) : (
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input placeholder="Search products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 w-full" />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -2692,6 +2701,14 @@ const WonderlandsStudio = () => {
       extrasTotal: extrasDataRef.current.extrasTotal,
       deliveryTime: selectedExtras.concreteConstruction ? '8-12 weeks+' : '6 weeks'
     }} />
+    
+    {/* Floating AI Search - appears at bottom, then docks to header */}
+    {!aiSearchDocked && (
+      <FloatingAISearch 
+        isInStudio={true} 
+        onDocked={() => setAiSearchDocked(true)} 
+      />
+    )}
     </div>;
 };
 export default WonderlandsStudio;
