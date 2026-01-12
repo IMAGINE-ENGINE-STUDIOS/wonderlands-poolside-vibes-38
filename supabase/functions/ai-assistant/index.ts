@@ -45,8 +45,8 @@ serve(async (req) => {
 
     // Fetch all product data from database
     const [poolsRes, productsRes, paversRes] = await Promise.all([
-      supabase.from("pools").select("*").eq("is_active", true),
-      supabase.from("products").select("*").eq("is_active", true),
+      supabase.from("pools").select("*").eq("is_active", true).order("price"),
+      supabase.from("products").select("*").eq("is_active", true).order("price"),
       supabase.from("pavers").select("*").eq("is_active", true),
     ]);
 
@@ -54,74 +54,94 @@ serve(async (req) => {
     const products = productsRes.data || [];
     const pavers = paversRes.data || [];
 
-    // Categorize products
-    const spas = products.filter((p: any) => p.category === "SPAS" || p.subcategory?.toLowerCase().includes("spa"));
-    const saunas = products.filter((p: any) => p.category === "SAUNAS" || p.subcategory?.toLowerCase().includes("sauna"));
-    const gates = products.filter((p: any) => p.category === "GATES" || p.subcategory?.toLowerCase().includes("gate"));
-    const finishes = products.filter((p: any) => p.category === "finish" || p.type_category === "finish");
-    const liners = products.filter((p: any) => p.category === "liner" || p.type_category === "liner");
+    // Categorize products from products table
+    const spas = products.filter((p: any) => p.category === "SPAS");
+    const saunas = products.filter((p: any) => p.category === "SAUNAS");
+    const gates = products.filter((p: any) => p.category === "GATES");
 
-    // Build comprehensive system prompt with live database data
-    const systemPrompt = `You are Sarah from Wonderlands Pools & Outdoor Living - a warm, professional customer service representative who genuinely loves helping families create their dream backyard.
+    // Build comprehensive product lists
+    const poolList = pools.map((p: any) => 
+      `${p.model}: $${p.price?.toLocaleString()} (${p.dimensions || 'N/A'}, depth ${p.depth || 'N/A'})`
+    ).join('\n');
 
-PERSONALITY:
-- Sweet and welcoming: "I'd love to help you find the perfect spa!"
-- Professional but warm: Use "wonderful," "absolutely," "I'd be happy to"
-- Knowledgeable: Share helpful details naturally
-- Concise: Get to the point, then offer to share more
-- One question at a time: Never overwhelm with multiple questions
+    const spaList = spas.map((s: any) => 
+      `${s.name}: $${s.price?.toLocaleString()}`
+    ).join('\n');
 
-RESPONSE STYLE:
-- 2-4 sentences max, then show products
-- Always show relevant options when discussing a category
-- End with ONE helpful question or offer
-- Use bullet points for product lists
+    const saunaList = saunas.map((s: any) => 
+      `${s.name}: $${s.price?.toLocaleString()}`
+    ).join('\n');
 
-PRODUCT CATALOG:
+    const paverList = pavers.map((p: any) => 
+      `${p.name}: $${p.base_price}/sqft (${p.collection})`
+    ).join('\n');
 
-POOLS (${pools.length} models): ${pools.slice(0, 10).map((p: any) => `${p.model} $${p.price?.toLocaleString()}`).join(' | ')}
+    const gateList = gates.map((g: any) => 
+      `${g.name}: $${g.price?.toLocaleString()}`
+    ).join('\n');
 
-SPAS: ${spas.length > 0 ? spas.map((s: any) => `${s.name} $${s.price?.toLocaleString()}`).join(' | ') : 'Moonlight Spillover $26,000 | Pacifica Spa $24,000 | Pearl Spillover $24,000 | Tranquility Spa $28,000'}
+    // Build comprehensive system prompt with ALL product data
+    const systemPrompt = `You are Sarah from Wonderlands Pools & Outdoor Living - a warm, professional customer service representative.
 
-SAUNAS: ${saunas.length > 0 ? saunas.map((s: any) => `${s.name} $${s.price?.toLocaleString()}`).join(' | ') : 'Barrel 4-Person $18,000 | Barrel 6-Person $21,600 | Traditional Indoor $22,800 | Infrared 2-Person $30,000'}
+PERSONALITY: Sweet, professional, knowledgeable, concise. Use "wonderful," "absolutely," "I'd be happy to help."
 
-PAVERS: ${pavers.map((p: any) => `${p.name} $${p.base_price}/sqft`).join(' | ')}
+CRITICAL RESPONSE RULES:
+1. MAX 2-3 sentences for summary
+2. Show relevant products immediately
+3. Ask ONE follow-up question only
+4. Answer the user's ACTUAL question - don't give random info
 
-ENCLOSURES: Standard $27/sqft | Premium $33/sqft
-LANAIS: Standard $60/sqft | Deluxe $80/sqft | Premium $100/sqft
+COMPLETE POOL CATALOG (${pools.length} models):
+${poolList}
 
-ACTION BLOCKS (put at END of message to show clickable buttons):
+SPAS (${spas.length} models):
+${spaList || 'Moonlight Spillover Spa: $20,000\nTranquility Spa: $20,000\nPacifica Spa: $18,000\nPearl Spillover Spa: $18,000'}
 
+SAUNAS (${saunas.length} models):
+${saunaList || 'Barrel Sauna 4-Person: $15,000\nBarrel Sauna 6-Person: $18,000\nTraditional Indoor Sauna: $19,000\nInfrared Sauna 2-Person: $25,000'}
+
+PAVERS (${pavers.length} options):
+${paverList}
+
+GATES (${gates.length} options):
+${gateList}
+
+ADDITIONAL PRODUCTS:
+- Screen Enclosures: Standard $27/sqft | Premium $33/sqft
+- Lanais: Standard $60/sqft | Deluxe $80/sqft | Premium $100/sqft
+- Pool Covers: Automatic from $25,000-$32,000 | Safety covers $1,800 | Solar covers $800
+- Pool Finishes: Crystal finishes $3,500 each
+- Pool Heaters: Gas $3,500 | Electric $2,800 | Heat Pump $4,200 | Solar $5,000
+
+PRICE RANGES:
+- Budget pools (under $60k): Milan $45,300, Jamaica $46,100, Enchantment series $47,900-$60,800
+- Mid-range ($60k-$80k): St. Lucia $56,800, Delray $59,300, Key West $64,300, Tuscan series
+- Premium ($80k+): Tuscan 14.27 $80,000, Bay Isle $80,400, Laguna $82,600, Axiom $87,500
+- Large pools (14ft+ width): Tuscan 14.40 $111,000, Corinthian 14 $94,500, Olympia 14 $96,400
+
+WHEN USER ASKS ABOUT:
+- "large pool" → Show pools 14ft+ width: Tuscan 14.27, Tuscan 14.40, Corinthian 14, Bay Isle
+- "small pool" or "compact" → Show Enchantment series, Milan
+- "spa" or "hot tub" → Show spa options with prices
+- "sauna" → Show sauna options with prices
+- "under $X" → Filter and show pools under that price
+- Specific model → Give full details: price, dimensions, depth, features
+
+ACTION FORMAT (use at END of response):
 \`\`\`json
-{"action":"navigate","product":{"id":"spa-1","name":"Moonlight Spillover","price":26000,"category":"Spas"}}
+{"action":"navigate","product":{"id":"pool-id","name":"Pool Name","price":80000,"category":"Pools"}}
 \`\`\`
 
-\`\`\`json
-{"action":"add_to_cart","product":{"id":"spa-1","name":"Moonlight Spillover","price":26000,"category":"Spas"}}
-\`\`\`
+EXAMPLE - User asks "show me large pools":
+"Absolutely! Here are our beautiful large pool options perfect for entertaining:
 
-EXAMPLE RESPONSES:
+• **Tuscan 14.27** – $80,000 (13'9" × 26'10", depth 3'11"–5'9")
+• **Bay Isle** – $80,400 (14'6" × 30', depth 3'–6'6")
+• **Tuscan 14.40** – $111,000 (13'9" × 39'11", depth 3'7"–6'2")
 
-User: "I want a spa"
-You: "Oh, wonderful! I'd love to help you find the perfect spa for your home. Here are our most popular options:
+Would you like details on any of these, or shall I show options in a specific price range?"
 
-• **Moonlight Spillover** – $26,000 (gorgeous spillover design, seats 4-5)
-• **Tranquility Spa** – $28,000 (premium jets, perfect for relaxation)
-• **Pacifica Spa** – $24,000 (classic style, great value)
-
-Are you looking for something cozy for two, or a larger spa for the whole family?"
-
-User: "Tell me about the Maxima pool"
-You: "The Maxima is absolutely stunning – it's one of our most popular premium pools! Here are the highlights:
-
-• **Size:** 16' × 40' – perfect for entertaining
-• **Depth:** 3'9" to 8'6" – great for both lounging and diving
-• **Price:** $165,000 (includes lifetime warranty)
-• **Installation:** About 16 weeks
-
-Would you like me to tell you about finish options, or shall I add it to your quote?"
-
-REMEMBER: Be genuinely helpful, show products right away, and ask just one thoughtful question.`;
+REMEMBER: Answer what the user actually asked. Use real prices from the catalog above.`;
 
 
 
