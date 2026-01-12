@@ -99,9 +99,10 @@ const AdvancedSearch = () => {
     } else {
       openChat();
     }
+    // Keep search results visible - don't clear
     setIsFocused(false);
     setShowSectionMenu(false);
-    setSearchQuery('');
+    // Don't clear searchQuery so results stay visible
   };
 
   const toggleVoice = () => {
@@ -493,12 +494,16 @@ const AdvancedSearch = () => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setShowSectionMenu(false);
         setIsFocused(false);
+        // Only hide results if clicking outside AND there's no active search
+        if (!searchQuery) {
+          setShowResults(false);
+        }
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [searchQuery]);
 
   // Show section menu when focused and no search query
   const shouldShowSectionMenu = isFocused && !searchQuery && !showResults;
