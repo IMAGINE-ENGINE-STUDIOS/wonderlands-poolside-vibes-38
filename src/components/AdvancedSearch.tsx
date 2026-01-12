@@ -1,6 +1,6 @@
 import * as React from 'react';
 const { useState, useEffect, useRef } = React;
-import { Search, Bot, Mic, MicOff, Sparkles, X } from 'lucide-react';
+import { Search, Bot, Mic, MicOff, Sparkles, X, Loader2, Check, XIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/comp
 import { useNavigate } from 'react-router-dom';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
+import { useInlineAISearch } from '@/hooks/useInlineAISearch';
 import { allProducts, getProductsByCategory } from '@/data/consolidatedProducts';
 import { poolLiners, poolTiles, tanningLedges } from '@/data/poolData';
 import { paverTypes, copingTypes } from '@/data/paverData';
@@ -56,6 +57,7 @@ interface SearchResult {
 
 const AdvancedSearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [lastQuery, setLastQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -65,6 +67,7 @@ const AdvancedSearch = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { openChat } = useAIAssistant();
+  const { isLoading: aiLoading, aiResponse, askAI, clearResponse, answerFollowUp } = useInlineAISearch();
   
   // Voice input hook
   const {
@@ -92,17 +95,23 @@ const AdvancedSearch = () => {
     }
   }, [interimTranscript, isListening]);
 
-  const handleAskAI = () => {
+  const handleAskAI = async () => {
     const query = searchQuery.trim() || interimTranscript;
     if (query) {
-      openChat(`I'm looking for: ${query}`);
-    } else {
-      openChat();
+      setLastQuery(query);
+      await askAI(`I'm looking for: ${query}`);
     }
-    // Keep search results visible - don't clear
     setIsFocused(false);
     setShowSectionMenu(false);
-    // Don't clear searchQuery so results stay visible
+  };
+
+  const handleFollowUpAnswer = async (answer: string) => {
+    await answerFollowUp(answer, lastQuery);
+  };
+
+  const handleOpenFullChat = () => {
+    openChat(lastQuery ? `I'm looking for: ${lastQuery}` : undefined);
+    clearResponse();
   };
 
   const toggleVoice = () => {
@@ -117,6 +126,7 @@ const AdvancedSearch = () => {
   const clearSearch = () => {
     setSearchQuery('');
     setShowResults(false);
+    clearResponse();
     inputRef.current?.focus();
   };
 
@@ -595,10 +605,17 @@ const AdvancedSearch = () => {
               <Button
                 type="button"
                 onClick={handleAskAI}
+                disabled={aiLoading}
                 className="h-9 px-3 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-md"
               >
-                <Sparkles className="h-4 w-4 sm:mr-1.5" />
-                <span className="hidden sm:inline text-sm font-medium">Ask AI</span>
+                {aiLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 sm:mr-1.5" />
+                    <span className="hidden sm:inline text-sm font-medium">Ask AI</span>
+                  </>
+                )}
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -607,6 +624,87 @@ const AdvancedSearch = () => {
           </Tooltip>
         </TooltipProvider>
       </div>
+
+      {/* AI Response Summary - Shows below search bar */}
+      {(aiLoading || aiResponse) && (
+        <div className="mt-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          {/* Summary Line */}
+          <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20">
+            {aiLoading ? (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Sarah is thinking...</span>
+              </div>
+            ) : aiResponse && (
+              <>
+                <Sparkles className="h-4 w-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-foreground flex-1">{aiResponse.summary}</p>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleOpenFullChat}
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                >
+                  <Bot className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+          </div>
+
+          {/* Follow-up Question with Options */}
+          {aiResponse?.followUpQuestion && aiResponse?.options && (
+            <div className="px-3 py-2 rounded-lg bg-muted/50 border border-border">
+              <p className="text-sm text-muted-foreground mb-2">{aiResponse.followUpQuestion}</p>
+              <div className="flex flex-wrap gap-2">
+                {aiResponse.options.map((option, idx) => (
+                  <Button
+                    key={idx}
+                    size="sm"
+                    variant={option.type === 'yes' ? 'default' : option.type === 'no' ? 'destructive' : 'outline'}
+                    className={cn(
+                      "h-7 text-xs px-3",
+                      option.type === 'yes' && "bg-green-600 hover:bg-green-700 text-white",
+                      option.type === 'no' && "bg-red-600 hover:bg-red-700 text-white"
+                    )}
+                    onClick={() => handleFollowUpAnswer(option.label)}
+                  >
+                    {option.type === 'yes' && <Check className="h-3 w-3 mr-1" />}
+                    {option.type === 'no' && <XIcon className="h-3 w-3 mr-1" />}
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* AI-suggested Products */}
+          {aiResponse?.products && aiResponse.products.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {aiResponse.products.slice(0, 6).map((product) => (
+                <div
+                  key={product.id}
+                  className="flex items-center gap-2 p-2 rounded-lg border border-border hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all"
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      model: product.name,
+                      price: product.price.toString(),
+                      category: product.category,
+                    });
+                    navigate(`/wonderlands-studio?${params.toString()}`);
+                    clearResponse();
+                    setSearchQuery('');
+                  }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{product.name}</p>
+                    <p className="text-xs text-muted-foreground">${product.price.toLocaleString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Section Quick Navigation Menu */}
       {shouldShowSectionMenu && (
