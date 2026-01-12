@@ -72,9 +72,21 @@ serve(async (req) => {
       `${s.name}: $${s.price?.toLocaleString()}`
     ).join('\n');
 
-    const paverList = pavers.map((p: any) => 
-      `${p.name}: $${p.base_price}/sqft (${p.collection})`
-    ).join('\n');
+    // Use correct paver pricing from paverData.ts (not database)
+    const paverList = `APPIAN COLLECTION - $20/sqft:
+Appian Adobe, Appian Amaretto, Appian Harvest Blend, Appian Knightsbridge, Appian Napoli, Appian Rio, Appian Slate, Appian Titanium, Appian Charco
+
+CATALINA GRANA COLLECTION - $27/sqft:
+Catalina Grana Amaretto, Catalina Grana Napoli, Catalina Grana Rio, Catalina Grana Scandina Gray, Catalina Grana Slate, Catalina Grana Titanium
+
+CATALINA COLLECTION - $20/sqft:
+Catalina Napoli, Catalina Slate, Catalina Titanium
+
+CORALINA PORCELAIN - $25/sqft:
+Coralina Blanco (24x24 matte porcelain)
+
+PREMIUM TRAVERTINE - $50/sqft:
+Travertine Light, Travertine Dark, Travertine Misty, Travertine Steel, Travertine Pearly, Travertine Silver, Travertine Rustic, Travertine Classic, Travertine Tumbled, Travertine Honed`;
 
     const gateList = gates.map((g: any) => 
       `${g.name}: $${g.price?.toLocaleString()}`
@@ -101,7 +113,7 @@ ${spaList || 'Moonlight Spillover Spa - $20,000\nTranquility Spa - $20,000\nPaci
 SAUNAS (${saunas.length} models):
 ${saunaList || 'Barrel Sauna 4-Person - $15,000\nBarrel Sauna 6-Person - $18,000\nTraditional Indoor Sauna - $19,000\nInfrared Sauna 2-Person - $25,000'}
 
-PAVERS (${pavers.length} options, price per sqft):
+PAVERS (Correct pricing by collection):
 ${paverList}
 
 GATES (${gates.length} options):
