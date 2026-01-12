@@ -627,9 +627,9 @@ const AdvancedSearch = () => {
 
       {/* AI Response Summary - Shows below search bar */}
       {(aiLoading || aiResponse) && (
-        <div className="mt-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="mt-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 bg-background/95 backdrop-blur-md rounded-xl p-3 border border-border shadow-lg">
           {/* Summary Line */}
-          <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20">
+          <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30">
             {aiLoading ? (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -653,7 +653,7 @@ const AdvancedSearch = () => {
 
           {/* Follow-up Question with Options */}
           {aiResponse?.followUpQuestion && aiResponse?.options && (
-            <div className="px-3 py-2 rounded-lg bg-muted/50 border border-border">
+            <div className="px-3 py-2 rounded-lg bg-muted border border-border">
               <p className="text-sm text-muted-foreground mb-2">{aiResponse.followUpQuestion}</p>
               <div className="flex flex-wrap gap-2">
                 {aiResponse.options.map((option, idx) => (
@@ -683,7 +683,7 @@ const AdvancedSearch = () => {
               {aiResponse.products.slice(0, 6).map((product) => (
                 <div
                   key={product.id}
-                  className="flex items-center gap-2 p-2 rounded-lg border border-border hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all"
+                  className="flex items-center gap-2 p-2 rounded-lg border border-border bg-background hover:border-primary/50 hover:bg-primary/10 cursor-pointer transition-all shadow-sm"
                   onClick={() => {
                     const params = new URLSearchParams({
                       model: product.name,
