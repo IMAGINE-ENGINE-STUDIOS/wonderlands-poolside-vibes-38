@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { findProductInfo } from '@/data/poolProductLookup';
 
 interface AIResponse {
   summary: string;
@@ -16,6 +17,8 @@ interface AIResponse {
     price: number;
     category: string;
     image?: string;
+    dimensions?: string;
+    depth?: string;
   }>;
 }
 
@@ -140,7 +143,7 @@ function parseAIResponse(text: string): AIResponse {
   let needsTextInput = false;
   let showCalculator: 'pavers' | 'screen' | 'fence' | 'lanai' | 'pool' | null = null;
   const options: Array<{ label: string; type: 'yes' | 'no' | 'option' }> = [];
-  const products: Array<{ id: string; name: string; price: number; category: string; image?: string }> = [];
+  const products: Array<{ id: string; name: string; price: number; category: string; image?: string; dimensions?: string; depth?: string }> = [];
 
   // Clean markdown formatting
   let cleanText = text
@@ -227,11 +230,17 @@ function parseAIResponse(text: string): AIResponse {
         category = 'Gate';
       }
       
+      // Look up product info for dimensions and image
+      const productInfo = findProductInfo(name);
+      
       products.push({
         id: name.toLowerCase().replace(/\s+/g, '-'),
-        name,
-        price,
-        category,
+        name: productInfo?.name || name,
+        price: productInfo?.price || price,
+        category: productInfo?.category || category,
+        image: productInfo?.image,
+        dimensions: productInfo?.dimensions,
+        depth: productInfo?.depth,
       });
     }
   }
