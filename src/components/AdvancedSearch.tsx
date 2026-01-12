@@ -1,6 +1,6 @@
 import * as React from 'react';
 const { useState, useEffect, useRef } = React;
-import { Search, Bot, Mic, MicOff, Sparkles, X, Loader2, Check, XIcon } from 'lucide-react';
+import { Search, Bot, Mic, MicOff, Sparkles, X, Loader2, Check, XIcon, Calculator } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useInlineAISearch } from '@/hooks/useInlineAISearch';
+import { InlineCalculator } from '@/components/search/InlineCalculator';
 import { allProducts, getProductsByCategory } from '@/data/consolidatedProducts';
 import { poolLiners, poolTiles, tanningLedges } from '@/data/poolData';
 import { paverTypes, copingTypes } from '@/data/paverData';
@@ -535,18 +536,27 @@ const AdvancedSearch = () => {
       
       <div className={cn(
         "relative flex items-center gap-1 p-1.5 rounded-xl border-2 transition-all duration-300 bg-background/90 backdrop-blur-sm",
-        isListening ? "border-red-500 shadow-lg shadow-red-500/20" : "border-primary/20 focus-within:border-primary"
+        isListening ? "border-red-500 shadow-lg shadow-red-500/20" : 
+        aiResponse?.needsTextInput ? "border-green-500 shadow-lg shadow-green-500/20" : 
+        "border-primary/20 focus-within:border-primary"
       )}>
-        {/* Search Icon */}
+        {/* Search Icon - turns green when text input needed */}
         <div className="pl-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
+          <Search className={cn(
+            "h-4 w-4 transition-colors",
+            aiResponse?.needsTextInput ? "text-green-500" : "text-muted-foreground"
+          )} />
         </div>
         
         {/* Input Field */}
         <Input
           ref={inputRef}
           type="text"
-          placeholder={isListening ? "Speak now..." : "Search or ask AI anything about pools, spas, pavers..."}
+          placeholder={
+            isListening ? "Speak now..." : 
+            aiResponse?.needsTextInput ? "Type your answer..." :
+            "Search or ask AI anything about pools, spas, pavers..."
+          }
           value={isListening ? (searchQuery + interimTranscript) : searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
@@ -555,7 +565,10 @@ const AdvancedSearch = () => {
               handleAskAI();
             }
           }}
-          className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-2"
+          className={cn(
+            "flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-2",
+            aiResponse?.needsTextInput && "placeholder:text-green-500/70"
+          )}
         />
         
         {/* Clear Button */}
@@ -674,6 +687,66 @@ const AdvancedSearch = () => {
                   </Button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Text Input Prompt */}
+          {aiResponse?.needsTextInput && aiResponse?.followUpQuestion && !aiResponse?.options && (
+            <div className="px-3 py-2 rounded-lg bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30">
+              <p className="text-sm text-foreground mb-2">{aiResponse.followUpQuestion}</p>
+              <p className="text-xs text-green-600">Type your answer above and press Enter</p>
+            </div>
+          )}
+
+          {/* Calculator - Shows when AI detects calculation needed */}
+          {aiResponse?.showCalculator && (
+            <InlineCalculator 
+              type={aiResponse.showCalculator} 
+              onResult={(result) => {
+                console.log('Calculator result:', result);
+              }} 
+            />
+          )}
+
+          {/* Quick Calculator Buttons */}
+          {!aiResponse?.showCalculator && aiResponse && (
+            <div className="flex flex-wrap gap-1">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-6 text-xs px-2 gap-1"
+                onClick={() => handleFollowUpAnswer("I need to calculate paver area")}
+              >
+                <Calculator className="h-3 w-3" />
+                Pavers
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-6 text-xs px-2 gap-1"
+                onClick={() => handleFollowUpAnswer("I need to calculate screen enclosure cost")}
+              >
+                <Calculator className="h-3 w-3" />
+                Screen
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-6 text-xs px-2 gap-1"
+                onClick={() => handleFollowUpAnswer("I need to calculate fence cost")}
+              >
+                <Calculator className="h-3 w-3" />
+                Fence
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-6 text-xs px-2 gap-1"
+                onClick={() => handleFollowUpAnswer("I need to calculate lanai cost")}
+              >
+                <Calculator className="h-3 w-3" />
+                Lanai
+              </Button>
             </div>
           )}
 
