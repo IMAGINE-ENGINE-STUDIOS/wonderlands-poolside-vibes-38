@@ -235,7 +235,6 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       pricePerUnit: 27, // Base rate (Wonder Cage)
       options: [
         { name: 'standard', price: 27 },
-        { name: 'deluxe', price: 27 },
         { name: 'premium', price: 33 }
       ]
     },
@@ -332,7 +331,6 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       pricePerUnit: 27,
       options: [
         { name: 'standard', price: 27 },
-        { name: 'deluxe', price: 27 },
         { name: 'premium', price: 33 }
       ]
     }
@@ -460,7 +458,6 @@ export const PRODUCT_FEATURES: Record<ProductType, FeatureConfig[]> = {
       icon: 'Star',
       options: [
         { name: 'Standard ($27/sq ft)', price: 27 },
-        { name: 'Deluxe ($27/sq ft)', price: 27 },
         { name: 'Premium ($33/sq ft)', price: 33 }
       ]
     },

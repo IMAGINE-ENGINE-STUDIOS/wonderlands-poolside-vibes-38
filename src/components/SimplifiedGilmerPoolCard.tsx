@@ -273,7 +273,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
     }
     if (options.tiles) extrasArray.push({ name: `Tiles: ${options.tileOption}`, price: tileOptions.find(t => t.name === options.tileOption)?.price || 0 });
     if (options.screenEnclosure && options.screenEnclosureArea > 0) {
-      const quality = (options.screenEnclosureQuality as 'standard' | 'deluxe' | 'premium') || 'standard';
+      const quality = (options.screenEnclosureQuality as 'standard' | 'premium') || 'standard';
       const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[quality] || SCREEN_ENCLOSURE_PRICING.standard;
       extrasArray.push({ name: `Screen Enclosure: ${screenEnclosureQualities.find(q => q.key === options.screenEnclosureQuality)?.name} (${options.screenEnclosureArea} sq ft)`, price: options.screenEnclosureArea * pricePerSqFt });
     }

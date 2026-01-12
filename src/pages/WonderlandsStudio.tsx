@@ -915,11 +915,11 @@ const WonderlandsStudio = () => {
 
     // Add screen enclosure if area provided (using centralized pricing)
     if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureArea > 0) {
-      const quality = (selectedExtras.screenEnclosureQuality as 'standard' | 'deluxe' | 'premium') || 'standard';
+      const quality = (selectedExtras.screenEnclosureQuality as 'standard' | 'premium') || 'standard';
       const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[quality] || SCREEN_ENCLOSURE_PRICING.standard;
       const enclosurePrice = selectedExtras.screenEnclosureArea * pricePerSqFt;
       extrasBreakdown.push({
-        name: `Screen Enclosure - ${quality === 'standard' ? 'Wonder Cage' : quality === 'deluxe' ? 'Deluxe' : 'Premium'} (${selectedExtras.screenEnclosureArea} sq ft)`,
+        name: `Screen Enclosure - ${quality === 'standard' ? 'Wonder Cage' : 'Premium'} (${selectedExtras.screenEnclosureArea} sq ft)`,
         price: enclosurePrice,
         image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png'
       });
