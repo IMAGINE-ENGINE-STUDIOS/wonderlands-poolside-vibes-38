@@ -13,6 +13,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 // Lazy load non-critical route components
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const TwilioPOC = lazy(() => import("./pages/TwilioPOC"));
 const EcommerceTemplate = lazy(() => import("./pages/EcommerceTemplate"));
 const AuthPage = lazy(() => import("./components/AuthPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
@@ -119,6 +120,7 @@ const App = () => {
             <Route path="/contractor-profile/:id" element={<ContractorProfile />} />
             <Route path="/contractor-login" element={<ContractorLogin />} />
             <Route path="/design-studio" element={<DesignStudio />} />
+            <Route path="/twilio-poc" element={<TwilioPOC />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
