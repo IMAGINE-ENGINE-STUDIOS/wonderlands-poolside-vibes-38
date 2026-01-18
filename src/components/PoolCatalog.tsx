@@ -274,7 +274,7 @@ const pools: Pool[] = [
   model: "Delray",
   price: 52938,
   category: 'standard',
-  image: "/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.png",
+  image: "/lovable-uploads/f549e4e8-647d-4b21-8d48-441f83955c73.png",
   dimensions: "12′ × 24′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 16,
