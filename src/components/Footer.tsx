@@ -1,5 +1,4 @@
-import { MapPin, Phone, Mail, Clock, Facebook, Instagram, Star } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { MapPin, Phone, Mail, Clock, Star } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router-dom";
 import { OptimizedImage } from "./OptimizedImage";

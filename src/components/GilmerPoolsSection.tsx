@@ -2,10 +2,9 @@ import * as React from "react";
 const { useState } = React;
 import { gilmerPools } from "@/data/gilmerPools";
 import SimplifiedGilmerPoolCard from "./SimplifiedGilmerPoolCard";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Waves, Shield, Clock, ChevronLeft, ChevronRight, Sparkles, Droplets, Cpu, Sun } from "lucide-react";
+import { Waves, Shield, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 const GilmerPoolsSection = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const poolsPerPage = 9; // 3x3 grid

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Grid3X3, DollarSign, ShoppingCart, Calculator, Home, Zap, Star } from "lucide-react";
+import { DollarSign, ShoppingCart, Calculator, Home, Zap, Star } from "lucide-react";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { useShoppingCart } from "./ShoppingCartProvider";
 interface ScreenEnclosureOption {
@@ -78,7 +78,7 @@ const ScreenEnclosureSection = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {screenEnclosureOptions.map((enclosure, index) => <Card key={enclosure.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer" onClick={() => handleEnclosureClick(enclosure)}>
+            {screenEnclosureOptions.map((enclosure) => <Card key={enclosure.name} className="group hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border-2 hover:border-primary/30 overflow-hidden cursor-pointer" onClick={() => handleEnclosureClick(enclosure)}>
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between mb-3">
                     <Badge className={`${enclosure.type === 'premium' ? 'bg-gradient-to-r from-coral to-orange' : 'bg-gradient-to-r from-secondary to-accent'} text-white capitalize font-medium px-3 py-1`}>
