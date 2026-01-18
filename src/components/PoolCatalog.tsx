@@ -172,7 +172,7 @@ const pools: Pool[] = [
   carbonFiber: false
 }, {
   model: "Milan",
-  price: 59830,
+  price: 40425,
   category: 'standard',
   image: "/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png",
   dimensions: "10′ × 16′",
@@ -185,7 +185,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Jamaica",
-  price: 60710,
+  price: 41125,
   category: 'standard',
   image: "/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png",
   dimensions: "10′ × 20′",
@@ -198,7 +198,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Aruba",
-  price: 66430,
+  price: 45763,
   category: 'standard',
   image: "/lovable-uploads/ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5.png",
   dimensions: "11′ × 22′",
@@ -211,7 +211,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Pleasant Cove",
-  price: 66430,
+  price: 45763,
   category: 'standard',
   image: "/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.png",
   dimensions: "11′ × 22′",
@@ -226,7 +226,7 @@ const pools: Pool[] = [
 // Popular Compact Series - Enchantment - Latham (+$10K Out-of-State)
 {
   model: "Enchantment 9.17",
-  price: 62690,
+  price: 42788,
   category: 'compact',
   image: enchantment917Image,
   dimensions: "9′ 1″ × 17′ 5″",
@@ -239,7 +239,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Enchantment 9.21",
-  price: 69840,
+  price: 48563,
   category: 'compact',
   image: enchantment921Image,
   dimensions: "9′ 1″ × 20′ 7″",
@@ -252,7 +252,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Enchantment 9.24",
-  price: 76880,
+  price: 54250,
   category: 'compact',
   image: enchantment924Image,
   dimensions: "9′ 1″ × 23′ 10″",
@@ -267,7 +267,7 @@ const pools: Pool[] = [
 // Tuscan Series - Latham (+$10K Out-of-State)
 {
   model: "Tuscan 11.20",
-  price: 75373,
+  price: 50488,
   category: 'deluxe',
   image: tuscan1120Image,
   dimensions: "11′ 1″ × 20′ 3″",
@@ -280,7 +280,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Tuscan 13.24",
-  price: 90157,
+  price: 61950,
   category: 'deluxe',
   image: tuscan1324Image,
   dimensions: "12′ 10″ × 23′ 7″",
@@ -293,7 +293,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Tuscan 14.27",
-  price: 102400,
+  price: 71400,
   category: 'deluxe',
   image: tuscan1427Image,
   dimensions: "13′ 9″ × 26′ 10″",
@@ -306,7 +306,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Tuscan 14.30",
-  price: 111871,
+  price: 78750,
   category: 'deluxe',
   image: tuscan1430Image,
   dimensions: "13′ 9″ × 30′ 1″",
@@ -319,7 +319,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Tuscan 14.40",
-  price: 138205,
+  price: 99050,
   category: 'deluxe',
   image: tuscan1440Image,
   dimensions: "13′ 9″ × 39′ 11″",
@@ -334,7 +334,7 @@ const pools: Pool[] = [
 // Premium Series - Latham (+$10K Out-of-State)
 {
   model: "St. Lucia",
-  price: 75604,
+  price: 50663,
   category: 'deluxe',
   image: "/lovable-uploads/03b6750e-bed3-41df-abcb-6657d36cfa62.png",
   dimensions: "12′ × 24′",
@@ -347,7 +347,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Delray",
-  price: 78492,
+  price: 52938,
   category: 'deluxe',
   image: "/lovable-uploads/f549e4e8-647d-4b21-8d48-441f83955c73.png",
   dimensions: "12′ × 25′",
@@ -360,7 +360,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Java",
-  price: 79300,
+  price: 53550,
   category: 'deluxe',
   image: "/lovable-uploads/bca99a48-ba6b-42d0-96d0-bf5ecfc2e4fd.png",
   dimensions: "12′ × 27′",
@@ -373,7 +373,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Bermuda",
-  price: 81033,
+  price: 54863,
   category: 'deluxe',
   image: "/lovable-uploads/311a7002-2a40-4c59-a143-9f0236ece5d4.png",
   dimensions: "12′ × 26′",
@@ -386,7 +386,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Key West",
-  price: 84267,
+  price: 57400,
   category: 'deluxe',
   image: "/lovable-uploads/4e43c832-af03-4cf4-9104-0117e5f3321c.png",
   dimensions: "12′ × 25′ 7″",
@@ -399,7 +399,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Valencia",
-  price: 85653,
+  price: 58450,
   category: 'deluxe',
   image: "/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.png",
   dimensions: "14′ 6″ × 28′",
@@ -412,7 +412,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Vista Isle",
-  price: 87000,
+  price: 62475,
   category: 'premium',
   image: "/lovable-uploads/6a41df5e-d6f6-4e49-aa1a-b457ac1902a0.png",
   dimensions: "12′ × 28′ 6″",
@@ -427,7 +427,7 @@ const pools: Pool[] = [
 // Corinthian Series - Latham (+$10K Out-of-State)
 {
   model: "Corinthian 12",
-  price: 92940,
+  price: 67288,
   category: 'premium',
   image: "/lovable-uploads/221a9844-ee7c-4fe3-b421-a9fe99bccabf.png",
   dimensions: "12′ × 25′",
@@ -440,7 +440,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Corinthian 12 BME",
-  price: 97340,
+  price: 70788,
   category: 'premium',
   image: "/lovable-uploads/86678699-3f2c-4863-8a81-d8c63721e03c.png",
   dimensions: "12′ × 25′",
@@ -453,7 +453,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Corinthian 14",
-  price: 113950,
+  price: 84350,
   category: 'premium',
   image: "/lovable-uploads/3ae37221-0f97-48df-addd-632c423868e2.png",
   dimensions: "14′ × 30′",
@@ -466,7 +466,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Corinthian 14 BME",
-  price: 118350,
+  price: 87850,
   category: 'premium',
   image: "/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.png",
   dimensions: "14′ × 30′",
@@ -481,7 +481,7 @@ const pools: Pool[] = [
 // Olympia Series - Latham (+$10K Out-of-State)
 {
   model: "Olympia 12",
-  price: 93930,
+  price: 68075,
   category: 'premium',
   image: "/lovable-uploads/0aa90de6-b1eb-43a4-91ec-10c05388c900.png",
   dimensions: "12′ × 26′",
@@ -494,7 +494,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Olympia 14",
-  price: 116040,
+  price: 86013,
   category: 'premium',
   image: "/lovable-uploads/d707c6e1-8471-404f-9312-bd6773152617.png",
   dimensions: "14′ × 30′",
@@ -509,7 +509,7 @@ const pools: Pool[] = [
 // Large Premium Series - Latham (+$10K Out-of-State)
 {
   model: "Bay Isle",
-  price: 98440,
+  price: 71750,
   category: 'premium',
   image: "/lovable-uploads/a91d91f2-51f8-470c-9894-4a1cf8b1f2c0.png",
   dimensions: "14′ 6″ × 30′",
@@ -522,7 +522,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Laguna",
-  price: 100860,
+  price: 73763,
   category: 'premium',
   image: "/lovable-uploads/ee464b25-683d-4367-a208-2159c2bd13f3.png",
   dimensions: "14′ × 30′",
@@ -535,7 +535,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Claremont",
-  price: 101740,
+  price: 74463,
   category: 'premium',
   image: "/lovable-uploads/6b7b34a3-03f7-4179-b34a-3458dc881efd.png",
   dimensions: "14′ × 33′",
@@ -548,7 +548,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Axiom 14",
-  price: 106250,
+  price: 78138,
   category: 'premium',
   image: "/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png",
   dimensions: "14′ × 30′",
@@ -561,7 +561,7 @@ const pools: Pool[] = [
   carbonFiber: true
 }, {
   model: "Laguna Deluxe",
-  price: 114830,
+  price: 85050,
   category: 'premium',
   image: "/lovable-uploads/46d142d3-b106-406d-9867-9bf7b63fd469.png",
   dimensions: "14′ × 30′",
@@ -573,28 +573,54 @@ const pools: Pool[] = [
   saltSystem: true,
   carbonFiber: true
 }, {
-  model: "Providence 14",
-  price: 115160,
+  model: "Coronado",
+  price: 76475,
   category: 'premium',
   image: "/lovable-uploads/3929943c-2e46-426f-b155-3d79c96d7eb4.png",
   dimensions: "14′ × 30′",
   depth: "3′ 6″ – 6′ 1″",
   installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
-  features: ["Salt system included in final price", "Providence Design", "Premium Construction"],
+  features: ["Salt system included in final price", "Coronado Design", "Premium Construction"],
   heater: false,
   saltSystem: true,
   carbonFiber: true
 }, {
-  model: "Genesis",
-  price: 133860,
+  model: "Olympia 16",
+  price: 90650,
   category: 'premium',
   image: "/lovable-uploads/2a611c90-6445-41af-aa15-7d223e357e64.png",
   dimensions: "16′ × 40′ 2″",
   depth: "3′ 9″ – 8′ 6″",
   installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
-  features: ["Salt system included in final price", "Freeform Design", "Large Swimming Area"],
+  features: ["Salt system included in final price", "Largest Size", "Deep Swimming Area"],
+  heater: false,
+  saltSystem: true,
+  carbonFiber: true
+}, {
+  model: "Astoria 12",
+  price: 79524,
+  category: 'premium',
+  image: astoriaImage,
+  dimensions: "12′ × 28′",
+  depth: "3′ 6″ – 5′ 6″",
+  installationTimeWeeks: 16,
+  warrantyYears: "Lifetime",
+  features: ["Salt system included in final price", "Astoria Design", "Premium Construction"],
+  heater: false,
+  saltSystem: true,
+  carbonFiber: true
+}, {
+  model: "Astoria 14",
+  price: 94938,
+  category: 'premium',
+  image: astoriaImage,
+  dimensions: "14′ × 35′",
+  depth: "3′ 6″ – 6′ 6″",
+  installationTimeWeeks: 16,
+  warrantyYears: "Lifetime",
+  features: ["Salt system included in final price", "Astoria Design", "Larger Size"],
   heater: false,
   saltSystem: true,
   carbonFiber: true
@@ -604,48 +630,92 @@ const pools: Pool[] = [
 // Spa models
 const spas: Spa[] = [{
   model: "Mystic",
-  price: 29150,
+  price: 17045,
   category: 'premium',
   image: "/lovable-uploads/3bdd9802-26f9-47ab-8498-e0e66344685c.png",
   dimensions: "8′ × 8′",
   depth: "3′ 6″",
-  features: ["Spillover Option", "LED Lighting", "Premium Jets", "Heater Ready"],
+  features: ["LED Lighting", "Premium Jets", "Heater Ready"],
+  spilloverFeature: false,
+  installationTimeWeeks: 16,
+  warrantyYears: "Lifetime"
+}, {
+  model: "Mystic Spillover",
+  price: 18638,
+  category: 'premium',
+  image: "/lovable-uploads/3bdd9802-26f9-47ab-8498-e0e66344685c.png",
+  dimensions: "8′ × 8′",
+  depth: "3′ 6″",
+  features: ["Spillover Feature", "LED Lighting", "Premium Jets", "Heater Ready"],
   spilloverFeature: true,
   installationTimeWeeks: 16,
   warrantyYears: "Lifetime"
 }, {
   model: "Regal",
-  price: 26950,
+  price: 16363,
   category: 'deluxe',
   image: "/lovable-uploads/31da0c59-77d4-4fa1-838b-cb525acd404b.png",
   dimensions: "7′ × 7′",
   depth: "3′ 2″",
-  features: ["Spillover Option", "Therapeutic Jets", "Easy Controls", "Energy Efficient"],
+  features: ["Therapeutic Jets", "Easy Controls", "Energy Efficient"],
+  spilloverFeature: false,
+  installationTimeWeeks: 16,
+  warrantyYears: "Lifetime"
+}, {
+  model: "Regal Spillover",
+  price: 17850,
+  category: 'deluxe',
+  image: "/lovable-uploads/31da0c59-77d4-4fa1-838b-cb525acd404b.png",
+  dimensions: "7′ × 7′",
+  depth: "3′ 2″",
+  features: ["Spillover Feature", "Therapeutic Jets", "Easy Controls", "Energy Efficient"],
   spilloverFeature: true,
   installationTimeWeeks: 16,
   warrantyYears: "Lifetime"
 }, {
   model: "Royal",
-  price: 26400,
+  price: 16363,
   category: 'standard',
   image: "/lovable-uploads/62676335-6a09-4389-9a8a-cba74d583c53.png",
   dimensions: "6′ × 8′",
   depth: "3′",
-  features: ["Spillover Option", "Modern Design", "Durable Construction", "Low Maintenance"],
+  features: ["Modern Design", "Durable Construction", "Low Maintenance"],
+  spilloverFeature: false,
+  installationTimeWeeks: 16,
+  warrantyYears: "Lifetime"
+}, {
+  model: "Royal Spillover",
+  price: 17850,
+  category: 'standard',
+  image: "/lovable-uploads/62676335-6a09-4389-9a8a-cba74d583c53.png",
+  dimensions: "6′ × 8′",
+  depth: "3′",
+  features: ["Spillover Feature", "Modern Design", "Durable Construction", "Low Maintenance"],
   spilloverFeature: true,
   installationTimeWeeks: 16,
-  warrantyYears: "10 Years"
+  warrantyYears: "Lifetime"
 }, {
-  model: "Shafta",
-  price: 26400,
+  model: "Shasta",
+  price: 13213,
   category: 'standard',
   image: "/lovable-uploads/1a143a47-5e78-46a8-8172-426b7644bea8.png",
   dimensions: "7′ diameter",
   depth: "3′",
-  features: ["Spillover Option", "Circular Design", "Compact Footprint", "Easy Entry"],
+  features: ["Circular Design", "Compact Footprint", "Easy Entry"],
+  spilloverFeature: false,
+  installationTimeWeeks: 16,
+  warrantyYears: "Lifetime"
+}, {
+  model: "Shasta Spillover",
+  price: 14788,
+  category: 'standard',
+  image: "/lovable-uploads/1a143a47-5e78-46a8-8172-426b7644bea8.png",
+  dimensions: "7′ diameter",
+  depth: "3′",
+  features: ["Spillover Feature", "Circular Design", "Compact Footprint", "Easy Entry"],
   spilloverFeature: true,
   installationTimeWeeks: 16,
-  warrantyYears: "10 Years"
+  warrantyYears: "Lifetime"
 }];
 const getSpaTypeColor = (category: string) => {
   switch (category) {
