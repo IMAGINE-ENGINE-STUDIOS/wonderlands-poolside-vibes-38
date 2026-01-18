@@ -232,7 +232,7 @@ const pools: Pool[] = [
   model: "Bermuda",
   price: 54863,
   category: 'standard',
-  image: "/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.png",
+      image: "/lovable-uploads/bermuda-pool.png",
   dimensions: "12′ × 24′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 16,
