@@ -246,7 +246,7 @@ const handler = async (req: Request): Promise<Response> => {
                             Let's make your dream backyard a reality!
                           </p>
                           
-                          <a href="https://calendly.com/wonderlandsworld" style="display: inline-block; background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%); color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 8px; margin-bottom: 12px;">
+                          <a href="https://calendly.com/wonderlandsworlds/30min" style="display: inline-block; background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%); color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 8px; margin-bottom: 12px;">
                             📅 Schedule a Consultation
                           </a>
                           
