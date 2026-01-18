@@ -183,8 +183,8 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
 
   // Gilmer Glass Tanning Ledge options (different from Latham)
   const gilmerTanningLedgeOptions = [
-    { name: 'Leisure', price: 18000 },
-    { name: 'Leeward', price: 20000 }
+    { name: 'Paradise', price: 15750 },
+    { name: 'Leeward', price: 12352 }
   ];
 
   const toggleExtra = (extra: keyof GilmerExtras) => {
