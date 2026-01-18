@@ -252,20 +252,11 @@ export const poolTiles = [
   }
 ];
 
-// Tanning ledge options (prices increased 20%)
+// Tanning ledge options
 export const tanningLedges = [
   {
-    name: "Genesis",
-    price: 26400, // was 22000, +20%
-    image: "/lovable-uploads/2af253b1-b9be-487f-a998-476d396772c4.png",
-    description: "Curved elegance with flowing lines for ultimate relaxation",
-    dimensions: "8′ × 12′",
-    depth: "6″ to 12″",
-    features: ["Curved Design", "Built-in Seating", "Non-slip Surface", "Perfect for Lounging"]
-  },
-  {
-    name: "Hermosa", 
-    price: 28800, // was 24000, +20%
+    name: "Hermosa Tanning Ledge",
+    price: 12513,
     image: "/lovable-uploads/8228c334-6fd7-4b29-afae-98628493480d.png",
     description: "Sophisticated curved ledge with premium comfort features",
     dimensions: "6′ × 10′",
@@ -273,21 +264,12 @@ export const tanningLedges = [
     features: ["Ergonomic Curve", "Heat Retention", "Easy Entry", "Stylish Profile"]
   },
   {
-    name: "Rectangle",
-    price: 30000, // was 25000, +20%
+    name: "Rectangle Tanning Ledge",
+    price: 18550,
     image: "/lovable-uploads/c6bebb1e-d2ed-4591-b81d-0af558ed3e52.png",
     description: "Clean modern lines with maximum lounging space",
     dimensions: "8′ × 14′",
     depth: "8″ to 12″",
     features: ["Modern Design", "Spacious Layout", "Even Depth", "Contemporary Style"]
-  },
-  {
-    name: "Semicircle",
-    price: 27600, // was 23000, +20%
-    image: "/lovable-uploads/b5ea8cde-c5d3-437c-ac83-5ab628dd25f3.png",
-    description: "Classic half-circle design for intimate relaxation",
-    dimensions: "7′ × 9′",
-    depth: "6″ to 10″",
-    features: ["Classic Shape", "Intimate Setting", "Smooth Transition", "Timeless Appeal"]
   }
 ];
