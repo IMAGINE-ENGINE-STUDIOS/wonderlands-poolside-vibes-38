@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import TanningLedgeProductCard from "./TanningLedgeProductCard";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 import { tanningLedges } from "@/data/poolData";
 

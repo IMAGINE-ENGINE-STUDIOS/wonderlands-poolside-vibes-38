@@ -1,7 +1,7 @@
 import * as React from "react";
 const { useState, useEffect } = React;
 import { Button } from "@/components/ui/button";
-import { Shield, User, LogOut, Briefcase, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { OptimizedImage } from "./OptimizedImage";
@@ -9,11 +9,7 @@ import AdminLogin from "./AdminLogin";
 const Header = () => {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const {
-    user,
-    profile,
-    signOut
-  } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
   const isContentEditor = location.pathname === '/content-editor';
 
@@ -25,10 +21,7 @@ const Header = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
-  const handleAdminAccess = () => {
-    setShowAdminLogin(true);
-  };
-  const handleLoginSuccess = (adminSession: any) => {
+  const handleLoginSuccess = () => {
     // Session is already stored securely in AdminLogin component
     // Just redirect to dashboard
     window.location.href = '/admin';
