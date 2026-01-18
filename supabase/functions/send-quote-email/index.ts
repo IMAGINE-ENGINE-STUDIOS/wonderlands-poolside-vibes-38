@@ -54,7 +54,7 @@ const handler = async (req: Request): Promise<Response> => {
     const logoUrl = "https://wonderlands-poolside-vibes-38.lovable.app/images/wonderlands-logo.png";
 
     const emailResponse = await resend.emails.send({
-      from: "Wonderlands World <onboarding@resend.dev>",
+      from: "Wonderlands World <sales@wonderlandsworld.com>",
       to: [customerEmail],
       subject: `🌴 Exclusive Offer - Bermuda Pool + Barrel Sauna | Wonderlands World`,
       html: `
