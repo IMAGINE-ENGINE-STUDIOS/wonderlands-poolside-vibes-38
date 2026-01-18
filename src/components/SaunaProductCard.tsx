@@ -182,7 +182,7 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
         
         <div className="relative flex flex-col flex-1">
           <CardHeader className="p-0 relative overflow-hidden">
-            <div className="relative h-72 overflow-hidden">
+            <div className="relative aspect-[4/3] overflow-hidden">
               <OptimizedImage
                 src={sauna.image}
                 alt={sauna.name}
