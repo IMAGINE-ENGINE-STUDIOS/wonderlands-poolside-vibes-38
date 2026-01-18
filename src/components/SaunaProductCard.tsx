@@ -189,9 +189,8 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                 sizeConfig="hero"
               />
-              {/* Overlay gradients */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 via-transparent to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              {/* Overlay gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
               
               {/* Category badge */}
               <div className="absolute top-4 left-4 z-10">
@@ -213,27 +212,27 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
                   )}
                 </div>
               </div>
-              
-              {/* Bottom info overlay */}
-              <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
-                <h3 className="text-2xl md:text-3xl font-bold mb-2 text-white drop-shadow-lg">
-                  {sauna.name}
-                </h3>
-                <div className="flex items-center gap-4 text-white/90 text-sm">
-                  <div className="flex items-center gap-1.5">
-                    <Users className="h-4 w-4" />
-                    <span>{sauna.capacity}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Zap className="h-4 w-4" />
-                    <span>{sauna.heaterPower}</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </CardHeader>
 
           <CardContent className="p-4 space-y-4 relative z-10 flex-1 flex flex-col">
+            {/* Title and specs - moved from image overlay */}
+            <div>
+              <h3 className="text-xl font-bold mb-2 bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                {sauna.name}
+              </h3>
+              <div className="flex items-center gap-4 text-muted-foreground text-sm">
+                <div className="flex items-center gap-1.5">
+                  <Users className="h-4 w-4 text-amber-600" />
+                  <span>{sauna.capacity}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Zap className="h-4 w-4 text-orange-600" />
+                  <span>{sauna.heaterPower}</span>
+                </div>
+              </div>
+            </div>
+
             {/* Description */}
             <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
               {sauna.description}
@@ -257,18 +256,18 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
               </div>
             </div>
 
-            {/* Features showcase */}
-            <div className="space-y-3">
+            {/* Features showcase - fixed height for consistency */}
+            <div className="space-y-3 flex-1">
               <div className="flex items-center gap-2">
                 <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-300 to-transparent" />
                 <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide">Premium Features</p>
                 <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-300 to-transparent" />
               </div>
               <div className="grid grid-cols-2 gap-2">
-                {sauna.features.slice(0, 6).map((feature, index) => (
+                {sauna.features.slice(0, 4).map((feature, index) => (
                   <div key={index} className="flex items-start gap-2 p-2 rounded-md bg-muted/30 hover:bg-muted/50 transition-colors">
                     <Flame className="h-3.5 w-3.5 text-amber-600 mt-0.5 flex-shrink-0" />
-                    <span className="text-xs text-foreground/80 leading-tight">{feature}</span>
+                    <span className="text-xs text-foreground/80 leading-tight line-clamp-2">{feature}</span>
                   </div>
                 ))}
               </div>
