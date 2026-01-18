@@ -48,202 +48,242 @@ const handler = async (req: Request): Promise<Response> => {
         `).join('')
       : '';
 
-    const defaultPoolImage = "https://images.unsplash.com/photo-1572331165267-854da2b021aa?w=800&h=400&fit=crop";
+    // Bermuda pool image - using absolute URL for email compatibility
+    const bermudaPoolImage = "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/bermuda-pool.png";
+    const barrelSaunaImage = "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/barrel-sauna.webp";
+    const logoUrl = "https://wonderlands-poolside-vibes-38.lovable.app/images/wonderlands-logo.png";
 
     const emailResponse = await resend.emails.send({
       from: "Wonderlands World <onboarding@resend.dev>",
       to: [customerEmail],
-      subject: `🏊 Your Dream Pool Quote - ${poolModel} | Wonderlands World`,
+      subject: `🌴 Exclusive Offer - Bermuda Pool + Barrel Sauna | Wonderlands World`,
       html: `
         <!DOCTYPE html>
         <html lang="en">
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Your Pool Quote</title>
+            <title>Exclusive Pool & Sauna Offer</title>
           </head>
-          <body style="margin: 0; padding: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); min-height: 100vh;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); padding: 40px 20px;">
+          <body style="margin: 0; padding: 0; background-color: #f3f4f6;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 20px 10px;">
               <tr>
                 <td align="center">
-                  <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                  <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
                     
                     <!-- Header with Logo -->
                     <tr>
-                      <td style="background: linear-gradient(135deg, #0d9488 0%, #0891b2 50%, #6366f1 100%); padding: 30px; text-align: center;">
-                        <img src="https://i.ibb.co/7NqFqHW/wonderlands-logo.png" alt="Wonderlands World" style="height: 60px; margin-bottom: 15px;" onerror="this.style.display='none'">
-                        <h1 style="color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 28px; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                          ✨ Your Dream Pool Awaits ✨
-                        </h1>
-                        <p style="color: rgba(255,255,255,0.9); font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; margin: 10px 0 0 0;">
-                          Wonderlands World - Premium Pool Solutions
+                      <td style="background: #ffffff; padding: 30px 30px 20px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+                        <img src="${logoUrl}" alt="Wonderlands World" style="height: 80px; margin-bottom: 10px;">
+                        <p style="color: #6b7280; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0;">
+                          Premium Pool & Outdoor Living Solutions
                         </p>
-                      </td>
-                    </tr>
-                    
-                    <!-- Pool Image Section -->
-                    <tr>
-                      <td style="padding: 0;">
-                        <div style="position: relative;">
-                          <img src="${poolImage || defaultPoolImage}" alt="${poolModel}" style="width: 100%; height: 280px; object-fit: cover; display: block;">
-                          <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 30px 20px 20px;">
-                            <h2 style="color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 24px; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                              ${poolModel}
-                            </h2>
-                          </div>
-                        </div>
                       </td>
                     </tr>
                     
                     <!-- Greeting -->
                     <tr>
                       <td style="padding: 30px 30px 20px;">
-                        <h2 style="color: #1f2937; font-family: 'Segoe UI', Arial, sans-serif; font-size: 22px; margin: 0 0 15px;">
-                          Hello ${customerName}! 👋
-                        </h2>
-                        <p style="color: #6b7280; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; line-height: 1.6; margin: 0;">
-                          Thank you for choosing Wonderlands World! We're thrilled to present your personalized pool configuration. Here's everything you need to know about your dream backyard oasis:
+                        <p style="color: #374151; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; line-height: 1.7; margin: 0 0 20px;">
+                          Hello ${customerName},
+                        </p>
+                        <p style="color: #374151; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; line-height: 1.7; margin: 0 0 20px;">
+                          <strong>What if your backyard felt like a luxury resort</strong>—designed around your lifestyle, built to last, and delivered without stress?
+                        </p>
+                        <p style="color: #374151; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; line-height: 1.7; margin: 0 0 20px;">
+                          At Wonderlands World, we design and build custom pools, patios, and outdoor living experiences across Florida—combining premium craftsmanship, smart layouts, and resort-level finishes.
+                        </p>
+                        
+                        <!-- Features List -->
+                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 20px 0;">
+                          <tr>
+                            <td style="padding: 8px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; color: #374151;">
+                              ✔️ Fiberglass & concrete pools
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; color: #374151;">
+                              ✔️ Outdoor kitchens, pergolas, and decks
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; color: #374151;">
+                              ✔️ Full design-to-build management
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 15px; color: #374151;">
+                              ✔️ Transparent pricing and timelines
+                            </td>
+                          </tr>
+                        </table>
+                        
+                        <p style="color: #1f2937; font-family: 'Georgia', serif; font-size: 18px; font-style: italic; line-height: 1.6; margin: 25px 0; text-align: center;">
+                          We don't sell pools.<br>
+                          <strong>We build experiences.</strong>
                         </p>
                       </td>
                     </tr>
                     
-                    <!-- Quote Details -->
+                    <!-- Exclusive Offer Banner -->
                     <tr>
-                      <td style="padding: 0 30px 30px;">
-                        <div style="background: linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%); border-radius: 16px; padding: 25px; border: 1px solid #99f6e4;">
-                          <h3 style="color: #0d9488; font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; margin: 0 0 20px; display: flex; align-items: center;">
-                            📋 Your Configuration Details
+                      <td style="padding: 0 30px;">
+                        <div style="background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%); border-radius: 12px; padding: 20px; text-align: center;">
+                          <p style="color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 8px;">
+                            ⭐ Limited Time Exclusive Offer ⭐
+                          </p>
+                          <h2 style="color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 22px; font-weight: 700; margin: 0;">
+                            Bermuda Pool + 4-Person Barrel Sauna
+                          </h2>
+                        </div>
+                      </td>
+                    </tr>
+                    
+                    <!-- Bermuda Pool Section -->
+                    <tr>
+                      <td style="padding: 25px 30px 15px;">
+                        <h3 style="color: #0d9488; font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; margin: 0 0 15px;">
+                          🏊 Bermuda Fiberglass Pool
+                        </h3>
+                        <img src="${bermudaPoolImage}" alt="Bermuda Pool" style="width: 100%; height: 220px; object-fit: cover; border-radius: 12px; display: block;">
+                        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 15px;">
+                          <tr>
+                            <td style="padding: 6px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #6b7280;">
+                              <strong style="color: #374151;">Dimensions:</strong> 12′ × 24′
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 6px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #6b7280;">
+                              <strong style="color: #374151;">Depth:</strong> 3′ 6″ – 5′ 6″
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 6px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #6b7280;">
+                              <strong style="color: #374151;">Warranty:</strong> Lifetime Structural
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 6px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #6b7280;">
+                              <strong style="color: #374151;">Features:</strong> Salt system included, Classic Shape
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    
+                    <!-- Barrel Sauna Section -->
+                    <tr>
+                      <td style="padding: 15px 30px 25px;">
+                        <h3 style="color: #0d9488; font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; margin: 0 0 15px;">
+                          🧖 4-Person Barrel Sauna
+                        </h3>
+                        <img src="${barrelSaunaImage}" alt="4-Person Barrel Sauna" style="width: 100%; height: 220px; object-fit: cover; border-radius: 12px; display: block;">
+                        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 15px;">
+                          <tr>
+                            <td style="padding: 6px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #6b7280;">
+                              <strong style="color: #374151;">Capacity:</strong> 4 People
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 6px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #6b7280;">
+                              <strong style="color: #374151;">Material:</strong> Premium Cedar Wood
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 6px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #6b7280;">
+                              <strong style="color: #374151;">Features:</strong> Electric heater, LED lighting, Tempered glass door
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    
+                    ${selectedOptions && selectedOptions.length > 0 ? `
+                    <!-- Selected Options -->
+                    <tr>
+                      <td style="padding: 0 30px 25px;">
+                        <div style="background: #f9fafb; border-radius: 12px; padding: 20px; border: 1px solid #e5e7eb;">
+                          <h3 style="color: #374151; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; margin: 0 0 15px;">
+                            📋 Your Selected Options
                           </h3>
-                          
-                          <table width="100%" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                            <tr style="background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%);">
-                              <th style="padding: 14px 16px; text-align: left; font-family: 'Segoe UI', Arial, sans-serif; color: #ffffff; font-size: 14px;">Item</th>
-                              <th style="padding: 14px 16px; text-align: right; font-family: 'Segoe UI', Arial, sans-serif; color: #ffffff; font-size: 14px;">Price</th>
-                            </tr>
-                            <tr>
-                              <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; font-family: 'Segoe UI', Arial, sans-serif; color: #374151; font-weight: 600;">
-                                🏊 ${poolModel} (Base)
-                              </td>
-                              <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; font-family: 'Segoe UI', Arial, sans-serif; color: #059669; font-weight: 600; text-align: right;">
-                                Included
-                              </td>
+                          <table width="100%" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 8px; overflow: hidden;">
+                            <tr style="background: #0d9488;">
+                              <th style="padding: 12px 16px; text-align: left; font-family: 'Segoe UI', Arial, sans-serif; color: #ffffff; font-size: 13px;">Item</th>
+                              <th style="padding: 12px 16px; text-align: right; font-family: 'Segoe UI', Arial, sans-serif; color: #ffffff; font-size: 13px;">Price</th>
                             </tr>
                             ${optionsHtml}
                           </table>
                         </div>
                       </td>
                     </tr>
+                    ` : ''}
                     
                     <!-- Total Price -->
                     <tr>
-                      <td style="padding: 0 30px 30px;">
-                        <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); border-radius: 16px; padding: 25px; text-align: center; box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);">
-                          <p style="color: rgba(255,255,255,0.9); font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">
-                            Your Total Investment
+                      <td style="padding: 0 30px 25px;">
+                        <div style="background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%); border-radius: 12px; padding: 20px; text-align: center;">
+                          <p style="color: rgba(255,255,255,0.9); font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; margin: 0 0 5px; text-transform: uppercase; letter-spacing: 1px;">
+                            Exclusive Package Price
                           </p>
-                          <p style="color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 42px; font-weight: 700; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                          <p style="color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 36px; font-weight: 700; margin: 0;">
                             $${totalAmount.toLocaleString()}
                           </p>
-                          <p style="color: rgba(255,255,255,0.8); font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; margin: 10px 0 0;">
+                          <p style="color: rgba(255,255,255,0.8); font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; margin: 8px 0 0;">
                             *Financing options available
                           </p>
                         </div>
                       </td>
                     </tr>
                     
-                    <!-- Call to Action Buttons -->
+                    <!-- Call to Action -->
                     <tr>
-                      <td style="padding: 0 30px 30px;">
-                        <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 16px; padding: 25px; border: 2px solid #f59e0b; text-align: center;">
-                          <h3 style="color: #92400e; font-family: 'Segoe UI', Arial, sans-serif; font-size: 20px; margin: 0 0 8px;">
+                      <td style="padding: 0 30px 25px;">
+                        <div style="background: #fef3c7; border-radius: 12px; padding: 25px; border: 1px solid #fcd34d; text-align: center;">
+                          <h3 style="color: #92400e; font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; margin: 0 0 8px;">
                             🚀 Ready to Get Started?
                           </h3>
                           <p style="color: #a16207; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0 0 20px;">
-                            Let's make your dream pool a reality!
+                            Let's make your dream backyard a reality!
                           </p>
                           
-                          <table width="100%" cellpadding="0" cellspacing="0">
-                            <tr>
-                              <td style="padding: 0 5px 10px;">
-                                <a href="https://calendly.com/wonderlandsworld" style="display: block; background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%); color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 16px 24px; border-radius: 12px; text-align: center; box-shadow: 0 4px 14px 0 rgba(13, 148, 136, 0.4);">
-                                  📅 Schedule a Meeting
-                                </a>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td style="padding: 0 5px;">
-                                <a href="sms:+12392570637" style="display: block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 16px 24px; border-radius: 12px; text-align: center; box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.4);">
-                                  💬 Text Us: (239) 257-0637
-                                </a>
-                              </td>
-                            </tr>
-                          </table>
+                          <a href="https://calendly.com/wonderlandsworld" style="display: inline-block; background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%); color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 8px; margin-bottom: 12px;">
+                            📅 Schedule a Consultation
+                          </a>
                           
-                          <p style="color: #78716c; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; margin: 20px 0 0;">
-                            Or call us directly at <a href="tel:+12392570637" style="color: #0d9488; font-weight: 600; text-decoration: none;">(239) 257-0637</a>
+                          <p style="color: #6b7280; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 15px 0 0;">
+                            Or text/call us: <a href="tel:+12392570637" style="color: #0d9488; font-weight: 600; text-decoration: none;">(239) 257-0637</a>
                           </p>
                         </div>
                       </td>
                     </tr>
                     
-                    <!-- Why Choose Us -->
-                    <tr>
-                      <td style="padding: 0 30px 30px;">
-                        <h3 style="color: #1f2937; font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; margin: 0 0 20px; text-align: center;">
-                          ⭐ Why Choose Wonderlands World?
-                        </h3>
-                        <table width="100%" cellpadding="0" cellspacing="0">
-                          <tr>
-                            <td width="33%" style="padding: 10px; text-align: center;">
-                              <div style="background: #f0fdfa; border-radius: 12px; padding: 20px;">
-                                <p style="font-size: 32px; margin: 0 0 10px;">🏆</p>
-                                <p style="color: #0d9488; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 600; margin: 0;">Premium Quality</p>
-                              </div>
-                            </td>
-                            <td width="33%" style="padding: 10px; text-align: center;">
-                              <div style="background: #ede9fe; border-radius: 12px; padding: 20px;">
-                                <p style="font-size: 32px; margin: 0 0 10px;">⚡</p>
-                                <p style="color: #7c3aed; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 600; margin: 0;">Fast Installation</p>
-                              </div>
-                            </td>
-                            <td width="33%" style="padding: 10px; text-align: center;">
-                              <div style="background: #fef3c7; border-radius: 12px; padding: 20px;">
-                                <p style="font-size: 32px; margin: 0 0 10px;">🛡️</p>
-                                <p style="color: #d97706; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 600; margin: 0;">Lifetime Warranty</p>
-                              </div>
-                            </td>
-                          </tr>
-                        </table>
-                      </td>
-                    </tr>
-                    
                     <!-- Footer -->
                     <tr>
-                      <td style="background: linear-gradient(135deg, #1f2937 0%, #374151 100%); padding: 30px; text-align: center;">
-                        <img src="https://i.ibb.co/7NqFqHW/wonderlands-logo.png" alt="Wonderlands World" style="height: 40px; margin-bottom: 15px; opacity: 0.9;" onerror="this.style.display='none'">
-                        <p style="color: rgba(255,255,255,0.7); font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0 0 10px;">
-                          Wonderlands World - Premium Pool & Outdoor Living Solutions
+                      <td style="background: #1f2937; padding: 25px 30px; text-align: center;">
+                        <img src="${logoUrl}" alt="Wonderlands World" style="height: 50px; margin-bottom: 15px; opacity: 0.9;">
+                        <p style="color: rgba(255,255,255,0.6); font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; margin: 0 0 10px;">
+                          Wonderlands World Experience LLC
                         </p>
                         <p style="color: rgba(255,255,255,0.5); font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; margin: 0 0 15px;">
-                          This quote is valid for 30 days from the date of issue.
+                          This offer is valid for 30 days.
                         </p>
                         <table cellpadding="0" cellspacing="0" style="margin: 0 auto;">
                           <tr>
-                            <td style="padding: 0 10px;">
-                              <a href="https://wonderlandsworld.com" style="color: #0d9488; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; text-decoration: none;">🌐 Website</a>
+                            <td style="padding: 0 8px;">
+                              <a href="https://wonderlandsworld.com" style="color: #0d9488; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; text-decoration: none;">Website</a>
                             </td>
-                            <td style="padding: 0 10px; color: rgba(255,255,255,0.3);">|</td>
-                            <td style="padding: 0 10px;">
-                              <a href="tel:+12392570637" style="color: #0d9488; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; text-decoration: none;">📞 Call Us</a>
+                            <td style="color: rgba(255,255,255,0.3);">|</td>
+                            <td style="padding: 0 8px;">
+                              <a href="tel:+12392570637" style="color: #0d9488; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; text-decoration: none;">Call Us</a>
                             </td>
-                            <td style="padding: 0 10px; color: rgba(255,255,255,0.3);">|</td>
-                            <td style="padding: 0 10px;">
-                              <a href="mailto:info@wonderlandsworld.com" style="color: #0d9488; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; text-decoration: none;">✉️ Email</a>
+                            <td style="color: rgba(255,255,255,0.3);">|</td>
+                            <td style="padding: 0 8px;">
+                              <a href="mailto:info@wonderlandsworld.com" style="color: #0d9488; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; text-decoration: none;">Email</a>
                             </td>
                           </tr>
                         </table>
-                        <p style="color: rgba(255,255,255,0.4); font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; margin: 20px 0 0;">
-                          © ${new Date().getFullYear()} Wonderlands World. All rights reserved.
+                        <p style="color: rgba(255,255,255,0.4); font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; margin: 15px 0 0;">
+                          © ${new Date().getFullYear()} Wonderlands World Experience LLC. All rights reserved.
                         </p>
                       </td>
                     </tr>
