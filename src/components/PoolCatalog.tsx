@@ -635,6 +635,20 @@ const pools: Pool[] = [
   heater: false,
   saltSystem: true,
   carbonFiber: true
+},
+{
+  model: "Synergy",
+  price: 92300,
+  category: 'premium',
+  image: "/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.png",
+  dimensions: "16′ × 36′",
+  depth: "3′ 6″ – 6′",
+  installationTimeWeeks: 16,
+  warrantyYears: "Lifetime",
+  features: ["Salt system included", "Cutting-edge Design", "Ultimate Features", "Premium Construction"],
+  heater: false,
+  saltSystem: true,
+  carbonFiber: true
 }
 ];
 
