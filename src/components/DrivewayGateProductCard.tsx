@@ -57,7 +57,7 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
 
   return (
     <>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group">
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group h-full flex flex-col">
         <div className="relative overflow-hidden aspect-[4/3]">
           <img
             src={gate.image}
@@ -70,18 +70,18 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
           </Badge>
         </div>
         
-        <CardContent className="p-6">
+        <CardContent className="p-4 flex-1">
           <div className="space-y-2">
-            <h3 className="text-xl font-semibold">{gate.model}</h3>
+            <h3 className="text-lg font-semibold line-clamp-1">{gate.model}</h3>
             <p className="text-sm text-muted-foreground font-medium">
               {gate.baseDimensions}
             </p>
-            <p className="text-sm line-clamp-2">{gate.description}</p>
-            <div className="flex items-baseline gap-2 pt-2">
-              <span className="text-2xl font-bold text-primary">
+            <p className="text-xs text-muted-foreground line-clamp-2">{gate.description}</p>
+            <div className="flex flex-wrap items-baseline gap-1 pt-2">
+              <span className="text-xl font-bold text-primary">
                 ${(gate.basePrice * priceMultiplier).toLocaleString()}
               </span>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 incl. installation
               </span>
               {projectType === 'commercial' && (
@@ -89,35 +89,38 @@ const DrivewayGateProductCard = ({ gate }: { gate: DrivewayGateProps }) => {
               )}
             </div>
             {gate.deliveryTime && (
-              <p className="text-sm font-medium text-green-600">
+              <p className="text-xs font-medium text-green-600">
                 {gate.deliveryTime}
               </p>
             )}
           </div>
         </CardContent>
 
-        <CardFooter className="p-6 pt-0 gap-2 flex-col">
+        <CardFooter className="p-4 pt-0 flex flex-col gap-2 mt-auto">
           <div className="flex gap-2 w-full">
             <Button
               variant="outline"
-              className="flex-1"
+              size="sm"
+              className="flex-1 text-xs"
               onClick={() => setShowDetails(true)}
             >
               View Details
             </Button>
             <Button
-              className="flex-1"
+              size="sm"
+              className="flex-1 text-xs"
               onClick={() => setShowDetails(true)}
             >
-              Configure & Order
+              Configure
             </Button>
           </div>
           <Button
-            className="w-full gap-2 instant-quote-btn transition-all duration-300"
+            size="sm"
+            className="w-full gap-2 instant-quote-btn transition-all duration-300 text-xs"
             onClick={() => setShowQuoteTool(true)}
           >
-            <FileText className="h-4 w-4" />
-            Create Instant Quote
+            <FileText className="h-3 w-3" />
+            Instant Quote
           </Button>
         </CardFooter>
       </Card>
