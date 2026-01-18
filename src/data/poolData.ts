@@ -271,5 +271,25 @@ export const tanningLedges = [
     dimensions: "8′ × 14′",
     depth: "8″ to 12″",
     features: ["Modern Design", "Spacious Layout", "Even Depth", "Contemporary Style"]
+  },
+  {
+    name: "Paradise Tanning Ledge",
+    price: 15750,
+    image: "/lovable-uploads/8228c334-6fd7-4b29-afae-98628493480d.png",
+    description: "Premium Glimmerglass tanning ledge with paradise comfort",
+    dimensions: "7′ × 12′",
+    depth: "6″ to 10″",
+    brand: "Glimmerglass",
+    features: ["Premium Comfort", "Beach Entry", "UV Resistant", "Easy Maintenance"]
+  },
+  {
+    name: "Leeward Tanning Ledge",
+    price: 12352,
+    image: "/lovable-uploads/c6bebb1e-d2ed-4591-b81d-0af558ed3e52.png",
+    description: "Compact Glimmerglass tanning ledge with leeward design",
+    dimensions: "6′ × 10′",
+    depth: "6″ to 8″",
+    brand: "Glimmerglass",
+    features: ["Compact Design", "Ergonomic Shape", "UV Resistant", "Easy Entry"]
   }
 ];

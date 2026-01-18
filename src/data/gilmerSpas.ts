@@ -23,9 +23,9 @@ export interface GilmerSpa {
 
 export const gilmerSpas: GilmerSpa[] = [
   {
-    model: "Moonlight Spillover",
-    dealerPrice: 6500,
-    price: 26000,
+    model: "Moondance Spillover",
+    dealerPrice: 5000,
+    price: 17500,
     category: "spillover",
     image: gilmerMoonlight,
     dimensions: "8'x8'x3'3\"",
@@ -39,9 +39,9 @@ export const gilmerSpas: GilmerSpa[] = [
     features: ["Spillover Design", "Fiberglass Construction", "Lifetime Structural Warranty"]
   },
   {
-    model: "Pacifica Spa",
-    dealerPrice: 6000,
-    price: 24000,
+    model: "Pacifica",
+    dealerPrice: 4500,
+    price: 15750,
     category: "standard",
     image: gilmerPacifica,
     dimensions: "7'6\"x7'6\"x3'",
@@ -55,8 +55,8 @@ export const gilmerSpas: GilmerSpa[] = [
   },
   {
     model: "Pearl Spillover",
-    dealerPrice: 6000,
-    price: 24000,
+    dealerPrice: 4500,
+    price: 15750,
     category: "spillover",
     image: gilmerPearl,
     dimensions: "7'6\"x7'6\"x3'",
@@ -70,9 +70,9 @@ export const gilmerSpas: GilmerSpa[] = [
     features: ["Spillover Design", "Fiberglass Construction", "Lifetime Structural Warranty"]
   },
   {
-    model: "Tranquility Spa",
-    dealerPrice: 7000,
-    price: 28000,
+    model: "Tranquility",
+    dealerPrice: 5000,
+    price: 17500,
     category: "deluxe",
     image: gilmerTranquility,
     dimensions: "9'x9'x3'8\"",
