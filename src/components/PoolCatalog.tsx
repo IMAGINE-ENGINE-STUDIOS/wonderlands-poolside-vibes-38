@@ -344,7 +344,7 @@ const pools: Pool[] = [
   model: "Key West",
   price: 57400,
   category: 'standard',
-  image: "/lovable-uploads/ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5.png",
+  image: "/lovable-uploads/4e43c832-af03-4cf4-9104-0117e5f3321c.png",
   dimensions: "13′ × 26′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 16,
