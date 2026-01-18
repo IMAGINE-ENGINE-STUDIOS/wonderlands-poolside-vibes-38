@@ -176,11 +176,11 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
 
   return (
     <>
-      <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-background via-background to-amber-50/20 dark:to-amber-950/10 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-500">
+      <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-background via-background to-amber-50/20 dark:to-amber-950/10 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-500 h-full flex flex-col">
         {/* Animated gradient border effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         
-        <div className="relative">
+        <div className="relative flex flex-col flex-1">
           <CardHeader className="p-0 relative overflow-hidden">
             <div className="relative h-72 overflow-hidden">
               <OptimizedImage
@@ -233,9 +233,9 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
             </div>
           </CardHeader>
 
-          <CardContent className="p-6 space-y-5 relative z-10">
+          <CardContent className="p-4 space-y-4 relative z-10 flex-1 flex flex-col">
             {/* Description */}
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
               {sauna.description}
             </p>
 
@@ -274,17 +274,18 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
               </div>
             </div>
 
-            {/* Additional Features Toggle */}
-            <div className="pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={() => setShowDetails(!showDetails)}
-              className="w-full flex items-center justify-between"
-            >
-              <span className="text-sm font-semibold">Additional Features</span>
-              {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </Button>
-          </div>
+            {/* Additional Features Toggle - pushed to bottom of content */}
+            <div className="pt-3 border-t mt-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDetails(!showDetails)}
+                className="w-full flex items-center justify-between"
+              >
+                <span className="text-xs font-semibold">Additional Features</span>
+                {showDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
+            </div>
 
           {/* Additional Features Options */}
           {showDetails && (
@@ -546,10 +547,11 @@ const SaunaProductCard = ({ sauna }: SaunaProductCardProps) => {
           )}
           </CardContent>
 
-          <CardFooter className="p-6 pt-0 flex gap-2">
+          <CardFooter className="p-4 pt-0 flex gap-2 mt-auto">
             <Button
               onClick={() => setShowQuote(true)}
               className="flex-1 instant-quote-btn transition-all duration-300"
+              size="sm"
             >
               Get Instant Quote
             </Button>
