@@ -1088,10 +1088,7 @@ const WonderlandsStudio = () => {
               </h1>
             </div>
             
-            {/* Project Type Toggle */}
-            <div className="w-48 md:w-64">
-              <ProjectTypeToggle showPriceNote={false} />
-            </div>
+            {/* Project Type Toggle - Hidden (commercial mode disabled) */}
             
             {/* AI Search - Docked position */}
             <div className="w-48 md:w-80">

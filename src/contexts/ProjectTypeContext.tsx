@@ -13,30 +13,16 @@ const ProjectTypeContext = createContext<ProjectTypeContextType | undefined>(und
 const STORAGE_KEY = 'project-type';
 
 export function ProjectTypeProvider({ children }: { children: ReactNode }) {
-  const [projectType, setProjectTypeState] = useState<ProjectType>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === 'commercial' || stored === 'residential') {
-        return stored;
-      }
-    }
-    return 'residential';
-  });
+  // Commercial mode disabled - always use residential
+  const projectType: ProjectType = 'residential';
 
-  const priceMultiplier = projectType === 'commercial' ? 3 : 1;
+  // Always use residential pricing (multiplier = 1)
+  const priceMultiplier = 1;
 
-  const setProjectType = (type: ProjectType) => {
-    setProjectTypeState(type);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, type);
-    }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const setProjectType = (_type: ProjectType) => {
+    // Commercial mode disabled - do nothing
   };
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, projectType);
-    }
-  }, [projectType]);
 
   return (
     <ProjectTypeContext.Provider value={{ projectType, setProjectType, priceMultiplier }}>
