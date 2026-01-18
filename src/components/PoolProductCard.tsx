@@ -1561,7 +1561,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                   </div>
                 )}
 
-                {/* Pool Tiles - HIDDEN FOR NOW
+                {/* Pool Tiles */}
                 <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                   <Checkbox checked={extras.tiles} onCheckedChange={() => toggleExtra("tiles")} />
                   <div className="flex items-center space-x-1">
@@ -1639,7 +1639,6 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                     </Carousel>
                   </div>
                 )}
-                END POOL TILES HIDDEN */}
               </div>
             </div>
 
