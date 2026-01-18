@@ -527,7 +527,7 @@ const pools: Pool[] = [
   model: "Laguna Deluxe",
   price: 85050,
   category: 'deluxe',
-  image: "/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png",
+  image: "/lovable-uploads/laguna-deluxe-pool.png",
   dimensions: "14′ × 35′",
   depth: "3′ 6″ – 6′",
   installationTimeWeeks: 16,
