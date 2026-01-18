@@ -188,7 +188,7 @@ const pools: Pool[] = [
 // Small Pools - Latham
 {
   model: "Milan",
-  price: 40425,
+  price: 62659,
   category: 'compact',
   image: "/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png",
   dimensions: "10′ × 16′",
@@ -202,7 +202,7 @@ const pools: Pool[] = [
 },
 {
   model: "Jamaica",
-  price: 41125,
+  price: 63744,
   category: 'compact',
   image: "/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png",
   dimensions: "10′ × 20′",
@@ -216,7 +216,7 @@ const pools: Pool[] = [
 },
 {
   model: "Aruba",
-  price: 45763,
+  price: 70933,
   category: 'compact',
   image: "/lovable-uploads/ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5.png",
   dimensions: "11′ × 22′",
@@ -286,7 +286,7 @@ const pools: Pool[] = [
 },
 {
   model: "Enchantment 9.17",
-  price: 42788,
+  price: 66321,
   category: 'compact',
   image: enchantment917Image,
   dimensions: "9′ 1″ × 17′ 5″",
@@ -300,7 +300,7 @@ const pools: Pool[] = [
 },
 {
   model: "Enchantment 9.21",
-  price: 48563,
+  price: 75273,
   category: 'compact',
   image: enchantment921Image,
   dimensions: "9′ 1″ × 20′ 7″",
@@ -370,7 +370,7 @@ const pools: Pool[] = [
 },
 {
   model: "Pleasant Cove",
-  price: 45763,
+  price: 70933,
   category: 'compact',
   image: "/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.png",
   dimensions: "11′ × 22′",
