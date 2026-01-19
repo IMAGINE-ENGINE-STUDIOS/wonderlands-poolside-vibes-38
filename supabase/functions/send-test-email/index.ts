@@ -98,7 +98,7 @@ serve(async (req: Request) => {
 
     // Send email
     const emailResponse = await resend.emails.send({
-      from: "Wonderlands Pools <onboarding@resend.dev>",
+      from: "Wonderlands Pools <sales@wonderlandsworld.com>",
       to: [email],
       subject: subject,
       html: htmlContent,
