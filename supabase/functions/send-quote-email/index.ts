@@ -48,10 +48,14 @@ const handler = async (req: Request): Promise<Response> => {
         `).join('')
       : '';
 
-    // Bermuda pool image - using absolute URL for email compatibility
+    // Product images - using absolute URLs for email compatibility
     const bermudaPoolImage = "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/bermuda-pool.png";
-    const barrelSaunaImage = "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/barrel-sauna.webp";
+    // Use PNG version of sauna for better email client compatibility
+    const barrelSaunaImage = "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png";
     const logoUrl = "https://wonderlands-poolside-vibes-38.lovable.app/images/wonderlands-logo.png";
+    
+    // Barrel sauna price
+    const barrelSaunaPrice = 18000;
 
     const emailResponse = await resend.emails.send({
       from: "Wonderlands World <sales@wonderlandsworld.com>",
@@ -192,6 +196,11 @@ const handler = async (req: Request): Promise<Response> => {
                           <tr>
                             <td style="padding: 6px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #6b7280;">
                               <strong style="color: #374151;">Features:</strong> Electric heater, LED lighting, Tempered glass door
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 6px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #6b7280;">
+                              <strong style="color: #374151;">Price:</strong> <span style="color: #059669; font-weight: 600;">$${barrelSaunaPrice.toLocaleString()}</span>
                             </td>
                           </tr>
                         </table>
