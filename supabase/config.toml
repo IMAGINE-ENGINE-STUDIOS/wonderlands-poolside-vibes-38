@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.test-all-channels]
 verify_jwt = false
+
+[functions.send-test-email]
+verify_jwt = false
