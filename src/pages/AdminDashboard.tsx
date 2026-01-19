@@ -247,7 +247,7 @@ const AdminDashboard = () => {
                 <NavItem icon={FileText} label="Invoice Tool" active={activeSection === "invoice-tool"} onClick={() => setActiveSection("invoice-tool")} />
                 <NavItem icon={ShoppingCart} label="Orders" active={activeSection === "orders"} onClick={() => setActiveSection("orders")} />
                 
-                <div className="text-xs font-bold text-blue-400 uppercase tracking-widest px-3 py-2 mt-4 font-mono border-l-2 border-blue-500/50">
+                <div className="text-xs font-bold text-blue-200 uppercase tracking-widest px-3 py-2 mt-4 font-mono border-l-2 border-blue-400/50">
                   ⬢ MANAGEMENT
                 </div>
                 <NavItem icon={Users} label="Users" active={activeSection === "users"} onClick={() => setActiveSection("users")} />
