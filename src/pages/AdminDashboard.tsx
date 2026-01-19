@@ -1,19 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Eye, Edit, Trash2, Plus, Download, Filter, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import DeliveryApiManager from '@/components/DeliveryApiManager';
-import AdminContentEditor from '@/components/AdminContentEditor';
 import RealApiManager from '@/components/RealApiManager';
-import RealTimeContentEditor from '@/components/RealTimeContentEditor';
 import LathamPoolsData from '@/components/LathamPoolsData';
 import StandardizedProductManager from '@/components/StandardizedProductManager';
 import AdminUserManagement from '@/components/AdminUserManagement';
@@ -22,7 +18,6 @@ import AdminOrdersManager from '@/components/AdminOrdersManager';
 import AdminDashboardMetrics from '@/components/AdminDashboardMetrics';
 import AdminReferralsManager from '@/components/AdminReferralsManager';
 import AdminClientManager from '@/components/AdminClientManager';
-import { DragDropEditor } from '@/components/DragDropEditor';
 import ApiKeyManager from '@/components/ApiKeyManager';
 import SampleDataSetup from '@/components/SampleDataSetup';
 import SetupDemoUsers from '@/components/SetupDemoUsers';
@@ -69,15 +64,17 @@ const NavItem = ({
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const {
-    user,
-    profile,
-    signOut
-  } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  
+  // Real database metrics
+  const [dbMetrics, setDbMetrics] = useState({
+    totalRevenue: 0,
+    averageOrderValue: 0,
+    totalProducts: 0,
+    activePools: 0
+  });
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -86,59 +83,57 @@ const AdminDashboard = () => {
     }
   }, [user, navigate]);
 
-  // Sample orders data
-  const [orders, setOrders] = useState([{
-    id: 'ORD001',
-    customerId: 'john.consumer@example.com',
-    products: [{
-      name: 'Hayward Super Pump VS',
-      quantity: 1
-    }],
-    total: 1299,
-    status: 'completed',
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-  }, {
-    id: 'ORD002',
-    customerId: 'john.consumer@example.com',
-    products: [{
-      name: 'Polaris 360 Pool Cleaner',
-      quantity: 2
-    }],
-    total: 798,
-    status: 'processing',
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-  }, {
-    id: 'ORD003',
-    customerId: 'john.consumer@example.com',
-    products: [{
-      name: 'Pentair FNS Plus Sand Filter',
-      quantity: 1
-    }],
-    total: 850,
-    status: 'pending',
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-  }]);
-
   // Role-based access control
   const isMainAdmin = profile?.role === 'main_admin' && profile?.email === 'rikicot@hotmail.com';
   const isSupplier = profile?.role === 'supplier';
   const isInstaller = profile?.role === 'installer';
   const isContractorOrSupplier = isSupplier || isInstaller;
 
-  // Calculate metrics from database
-  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
-  const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
-  const completedOrders = orders.filter(order => order.status === 'completed').length;
-  const pendingOrders = orders.filter(order => order.status === 'pending').length;
+  // Fetch real metrics from database
+  const fetchDatabaseMetrics = useCallback(async () => {
+    try {
+      const [ordersRes, productsRes, poolsRes] = await Promise.all([
+        supabase.from('product_orders').select('total_amount'),
+        supabase.from('products').select('id', { count: 'exact', head: true }),
+        supabase.from('pools').select('id', { count: 'exact', head: true }).eq('is_active', true)
+      ]);
+
+      const orders = ordersRes.data || [];
+      const totalRevenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+      const avgValue = orders.length > 0 ? totalRevenue / orders.length : 0;
+
+      setDbMetrics({
+        totalRevenue,
+        averageOrderValue: avgValue,
+        totalProducts: productsRes.count || 0,
+        activePools: poolsRes.count || 0
+      });
+    } catch (error) {
+      console.error('Error fetching metrics:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDatabaseMetrics();
+  }, [fetchDatabaseMetrics]);
+
   const refreshData = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await fetchDatabaseMetrics();
       toast({
         title: "Success",
-        description: "Dashboard data refreshed"
+        description: "Dashboard data refreshed from database"
       });
-    }, 1000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to refresh data",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   const handleLogout = async () => {
     await signOut();
@@ -517,81 +512,7 @@ const AdminDashboard = () => {
                   </CardContent>
                 </Card>
 
-                {/* Legacy Delivery Services & Logistics Settings */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5 text-primary" />
-                        Delivery Services
-                      </CardTitle>
-                      <CardDescription>
-                        Manage delivery integrations and logistics
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {[{
-                    name: 'Uber Direct',
-                    status: 'Active',
-                    deliveries: 45,
-                    avgCost: 12.50
-                  }, {
-                    name: 'DoorDash Drive',
-                    status: 'Active',
-                    deliveries: 32,
-                    avgCost: 15.00
-                  }, {
-                    name: 'Home Depot Delivery',
-                    status: 'Connected',
-                    deliveries: 18,
-                    avgCost: 25.00
-                  }, {
-                    name: 'Lowes Delivery',
-                    status: 'Disconnected',
-                    deliveries: 0,
-                    avgCost: 0
-                  }].map(service => <div key={service.name} className="p-3 border rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <p className="font-medium">{service.name}</p>
-                            <Badge variant={service.status === 'Active' ? 'default' : service.status === 'Connected' ? 'secondary' : 'destructive'}>
-                              {service.status}
-                            </Badge>
-                          </div>
-                          <div className="flex justify-between text-sm text-muted-foreground">
-                            <span>{service.deliveries} deliveries</span>
-                            <span>Avg. ${service.avgCost}</span>
-                          </div>
-                        </div>)}
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Logistics Settings</CardTitle>
-                      <CardDescription>Configure delivery zones and pricing</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-3">
-                        <div>
-                          <label className="text-sm font-medium">Default Delivery Radius (miles)</label>
-                          <Input type="number" defaultValue="25" className="mt-1" />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">Base Delivery Fee</label>
-                          <Input type="number" defaultValue="15.00" step="0.01" className="mt-1" />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">Per Mile Rate</label>
-                          <Input type="number" defaultValue="1.50" step="0.01" className="mt-1" />
-                        </div>
-                      </div>
-                      <Button className="w-full">
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Update Pricing
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
+                {/* Logistics settings are now managed through DeliveryApiManager above */}
               </div>
             </div>}
 
@@ -665,11 +586,11 @@ const AdminDashboard = () => {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-primary">${totalRevenue.toLocaleString()}</div>
+                      <div className="text-3xl font-bold text-primary">${dbMetrics.totalRevenue.toLocaleString()}</div>
                       <p className="text-sm text-muted-foreground">Total Revenue</p>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">${averageOrderValue.toFixed(2)}</div>
+                      <div className="text-2xl font-bold text-blue-600">${dbMetrics.averageOrderValue.toFixed(2)}</div>
                       <p className="text-sm text-muted-foreground">Average Order Value</p>
                     </div>
                   </div>
@@ -689,11 +610,11 @@ const AdminDashboard = () => {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Total Products</span>
-                      <span className="font-bold">Loading...</span>
+                      <span className="font-bold">{dbMetrics.totalProducts}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Active Pools</span>
-                      <span className="font-bold">Loading...</span>
+                      <span className="font-bold">{dbMetrics.activePools}</span>
                     </div>
                   </div>
                 </CardContent>
