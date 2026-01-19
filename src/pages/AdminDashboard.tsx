@@ -218,9 +218,9 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      <div className="flex min-h-[calc(100vh-70px)] relative">
+      <div className="flex flex-1 relative">
         {/* Command Sidebar */}
-        <div className="w-64 border-r border-cyan-500/20 bg-black/60 backdrop-blur-xl p-4 space-y-2 overflow-y-auto sticky top-[70px] h-[calc(100vh-70px)] hidden lg:block neon-border-cyan">
+        <div className="w-64 border-r border-cyan-500/20 bg-black/60 backdrop-blur-xl p-4 space-y-2 overflow-y-auto sticky top-[70px] h-[calc(100vh-70px)] min-h-0 hidden lg:block neon-border-cyan flex-shrink-0">
           <div className="space-y-1">
             {/* For contractors and suppliers: limited navigation */}
             {isContractorOrSupplier && <>
