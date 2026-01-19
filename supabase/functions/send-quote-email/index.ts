@@ -167,12 +167,20 @@ const handler = async (req: Request): Promise<Response> => {
                               <strong style="color: #374151;">Warranty:</strong> Lifetime Structural
                             </td>
                           </tr>
-                          <tr>
-                            <td style="padding: 6px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #6b7280;">
-                              <strong style="color: #374151;">Features:</strong> Salt system included, Classic Shape
-                            </td>
-                          </tr>
                         </table>
+                        <div style="background: #ecfdf5; border-radius: 8px; padding: 15px; margin-top: 15px; border: 1px solid #a7f3d0;">
+                          <p style="color: #065f46; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 600; margin: 0 0 10px;">
+                            ✅ This Offer Includes:
+                          </p>
+                          <ul style="margin: 0; padding-left: 20px; color: #374151; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px;">
+                            <li style="margin-bottom: 6px;">Equipment Included</li>
+                            <li style="margin-bottom: 6px;">Salt System</li>
+                            <li style="margin-bottom: 6px;">3D Render to Visualize Your Patio</li>
+                            <li style="margin-bottom: 6px;">5 Feet of Pavers Around Pool Area</li>
+                            <li style="margin-bottom: 6px;">2 LED Lightings</li>
+                            <li style="margin-bottom: 6px;">Installed in 3 Months After Permits Approved</li>
+                          </ul>
+                        </div>
                       </td>
                     </tr>
                     
