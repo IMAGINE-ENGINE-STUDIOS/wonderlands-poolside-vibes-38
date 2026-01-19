@@ -298,7 +298,7 @@ export const StandardizedProductManager = () => {
           <Badge variant="secondary" className="text-sm bg-cyan-500/20 text-cyan-300 border-cyan-500/50 font-mono">
             {filteredProducts.length} TOTAL
           </Badge>
-          <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/50 font-mono">
+          <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-100 border-blue-400/50 font-mono">
             {products.filter(p => p.source === 'pools_table').length} POOLS
           </Badge>
           <Badge variant="outline" className="text-xs bg-purple-500/20 text-purple-300 border-purple-500/50 font-mono">

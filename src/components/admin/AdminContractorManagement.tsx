@@ -239,9 +239,9 @@ const AdminContractorManagement = () => {
             <p className="text-sm text-muted-foreground">Approved</p>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-blue-500/10 to-transparent border-blue-500/30">
+        <Card className="bg-gradient-to-br from-blue-500/10 to-transparent border-blue-400/30">
           <CardContent className="pt-4">
-            <div className="text-3xl font-bold text-blue-400">{stats.signed}</div>
+            <div className="text-3xl font-bold text-blue-100">{stats.signed}</div>
             <p className="text-sm text-muted-foreground">Agreements Signed</p>
           </CardContent>
         </Card>

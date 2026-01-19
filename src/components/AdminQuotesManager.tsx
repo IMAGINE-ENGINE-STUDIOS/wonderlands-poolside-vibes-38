@@ -160,10 +160,10 @@ const AdminQuotesManager = () => {
           <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full blur-2xl"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-mono text-blue-400 uppercase tracking-wider">Value</span>
-              <DollarSign className="h-5 w-5 text-blue-400" />
+              <span className="text-xs font-mono text-blue-200 uppercase tracking-wider">Value</span>
+              <DollarSign className="h-5 w-5 text-blue-200" />
             </div>
-            <div className="text-2xl font-bold text-blue-300 neon-glow-blue">${totalQuoteValue.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-blue-100 neon-glow-blue">${totalQuoteValue.toLocaleString()}</div>
             <div className="h-1 w-full bg-blue-900/30 rounded-full mt-2 overflow-hidden">
               <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 data-stream"></div>
             </div>

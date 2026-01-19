@@ -206,11 +206,11 @@ export default function AutomationStatusManager() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-blue-500/20">
-                <Play className="h-5 w-5 text-blue-400" />
+                <Play className="h-5 w-5 text-blue-200" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-blue-300">{stats.inProgress}</p>
-                <p className="text-xs text-blue-400/60">In Progress</p>
+                <p className="text-2xl font-bold text-blue-100">{stats.inProgress}</p>
+                <p className="text-xs text-blue-300/80">In Progress</p>
               </div>
             </div>
           </CardContent>

@@ -261,7 +261,7 @@ const SalesRepManager = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <Building2 className="h-8 w-8 text-blue-500" />
+              <Building2 className="h-8 w-8 text-blue-200" />
               <div>
                 <p className="text-2xl font-bold">{salesReps.reduce((sum, r) => sum + (r.client_count || 0), 0)}</p>
                 <p className="text-sm text-muted-foreground">Total Assigned Clients</p>

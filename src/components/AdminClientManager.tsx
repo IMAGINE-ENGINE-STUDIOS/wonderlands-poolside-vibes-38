@@ -698,10 +698,10 @@ const AdminClientManager = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-400/60 font-mono">NEW THIS MONTH</p>
-                <p className="text-3xl font-bold text-blue-300 neon-glow-blue font-mono">{newThisMonth}</p>
+                <p className="text-sm text-blue-300/80 font-mono">NEW THIS MONTH</p>
+                <p className="text-3xl font-bold text-blue-100 neon-glow-blue font-mono">{newThisMonth}</p>
               </div>
-              <TrendingUp className="h-10 w-10 text-blue-400" />
+              <TrendingUp className="h-10 w-10 text-blue-200" />
             </div>
           </CardContent>
         </Card>

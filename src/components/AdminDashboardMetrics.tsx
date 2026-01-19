@@ -182,10 +182,10 @@ const AdminDashboardMetrics = () => {
         <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full blur-2xl"></div>
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono text-blue-400 tracking-wider uppercase">Orders</span>
-            <ShoppingCart className="h-5 w-5 text-blue-400" />
+            <span className="text-xs font-mono text-blue-200 tracking-wider uppercase">Orders</span>
+            <ShoppingCart className="h-5 w-5 text-blue-200" />
           </div>
-          <div className="text-3xl font-bold neon-glow-blue text-blue-300 mb-1">
+          <div className="text-3xl font-bold neon-glow-blue text-blue-100 mb-1">
             {metrics.totalOrders}
           </div>
           <div className="flex items-center gap-2">
@@ -193,7 +193,7 @@ const AdminDashboardMetrics = () => {
               <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 data-stream"></div>
             </div>
           </div>
-          <p className="text-xs text-blue-400/60 mt-2 font-mono">
+          <p className="text-xs text-blue-300/80 mt-2 font-mono">
             {metrics.completedOrders} DONE / {metrics.pendingOrders} QUEUE
           </p>
         </div>
