@@ -57,6 +57,10 @@ const handler = async (req: Request): Promise<Response> => {
     
     // Barrel sauna price
     const barrelSaunaPrice = 18000;
+    
+    // Default package price (Bermuda Pool + Barrel Sauna + Inclusions)
+    const defaultPackagePrice = 72863;
+    const finalTotal = totalAmount || defaultPackagePrice;
 
     const emailResponse = await resend.emails.send({
       from: "Wonderlands World <sales@wonderlandsworld.com>",
@@ -244,7 +248,7 @@ const handler = async (req: Request): Promise<Response> => {
                             Exclusive Package Price
                           </p>
                           <p style="color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 36px; font-weight: 700; margin: 0;">
-                            $${totalAmount.toLocaleString()}
+                            $${finalTotal.toLocaleString()}
                           </p>
                           <p style="color: rgba(255,255,255,0.8); font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; margin: 8px 0 0;">
                             *Financing options available
