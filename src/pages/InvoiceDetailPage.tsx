@@ -5,11 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Printer, Send, Edit2, Save, X, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Printer, Send, Edit2, Save, X, Plus, Trash2, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const DEFAULT_PAYMENT_TERMS = `20% due same day of signing the contract . 35% due same day after permits are approved and when the excavator arrives to the house . 40% before concrete machine arrives and same day after excavations are completed . 10% due same day when the last inspection is approved It will be fully explained in the contract.`;
+const EDIT_PASSCODE = "WONDERMAGIC";
+
 interface LineItem {
   description: string;
   quantity: number;
@@ -41,6 +50,7 @@ interface Invoice {
   sent_at: string | null;
   remaining_payments?: number;
 }
+
 const InvoiceDetailPage = () => {
   const { invoiceId } = useParams<{
     invoiceId: string;
@@ -50,6 +60,9 @@ const InvoiceDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [editedInvoice, setEditedInvoice] = useState<Invoice | null>(null);
+  const [showPasscodeDialog, setShowPasscodeDialog] = useState(false);
+  const [passcodeInput, setPasscodeInput] = useState("");
+  const [passcodeError, setPasscodeError] = useState(false);
   const { toast } = useToast();
   useEffect(() => {
     if (invoiceId) {
@@ -153,9 +166,37 @@ const InvoiceDetailPage = () => {
       });
     }
   };
+  const handlePasscodeSubmit = () => {
+    if (passcodeInput.toUpperCase() === EDIT_PASSCODE) {
+      setShowPasscodeDialog(false);
+      setPasscodeInput("");
+      setPasscodeError(false);
+      setEditMode(true);
+    } else {
+      setPasscodeError(true);
+    }
+  };
+
+  const handleEditClick = () => {
+    setShowPasscodeDialog(true);
+    setPasscodeInput("");
+    setPasscodeError(false);
+  };
+
   const handleSave = async () => {
     if (!editedInvoice) return;
     try {
+      // Recalculate subtotal from line items
+      const calculatedSubtotal = editedInvoice.line_items.reduce((sum, item) => {
+        return sum + (item.total || item.quantity * item.unit_price || 0);
+      }, 0);
+
+      // Calculate tax amount based on rate
+      const calculatedTaxAmount = (calculatedSubtotal - (editedInvoice.discount_amount || 0)) * (editedInvoice.tax_rate || 0) / 100;
+
+      // Calculate total amount
+      const calculatedTotal = calculatedSubtotal - (editedInvoice.discount_amount || 0) + calculatedTaxAmount;
+
       const { error } = await supabase
         .from("invoices")
         .update({
@@ -167,13 +208,14 @@ const InvoiceDetailPage = () => {
           customer_phone: editedInvoice.customer_phone,
           customer_address: editedInvoice.customer_address,
           line_items: JSON.parse(JSON.stringify(editedInvoice.line_items)),
-          subtotal: editedInvoice.subtotal,
+          subtotal: editedInvoice.subtotal || calculatedSubtotal,
           tax_rate: editedInvoice.tax_rate,
-          tax_amount: editedInvoice.tax_amount,
+          tax_amount: editedInvoice.tax_amount || calculatedTaxAmount,
           discount_amount: editedInvoice.discount_amount,
-          total_amount: editedInvoice.total_amount,
+          total_amount: editedInvoice.total_amount || calculatedTotal,
           payment_terms: editedInvoice.payment_terms,
           notes: editedInvoice.notes,
+          remaining_payments: editedInvoice.remaining_payments || null,
         })
         .eq("id", invoiceId);
       if (error) throw error;
@@ -184,6 +226,7 @@ const InvoiceDetailPage = () => {
       setEditMode(false);
       fetchInvoice();
     } catch (error: any) {
+      console.error("Invoice save error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to update invoice",
@@ -276,8 +319,8 @@ const InvoiceDetailPage = () => {
         <div className="flex gap-2">
           {!editMode && (
             <>
-              <Button onClick={() => setEditMode(true)} variant="outline">
-                <Edit2 className="h-4 w-4 mr-2" />
+              <Button onClick={handleEditClick} variant="outline">
+                <Lock className="h-4 w-4 mr-2" />
                 Edit
               </Button>
               <Button onClick={handleSendEmail} variant="outline">
@@ -310,6 +353,49 @@ const InvoiceDetailPage = () => {
           )}
         </div>
       </div>
+
+      {/* Passcode Dialog */}
+      <Dialog open={showPasscodeDialog} onOpenChange={setShowPasscodeDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="h-5 w-5" />
+              Enter Passcode to Edit
+            </DialogTitle>
+            <DialogDescription>
+              Please enter the authorized passcode to make changes to this invoice.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Input
+              type="password"
+              placeholder="Enter passcode..."
+              value={passcodeInput}
+              onChange={(e) => {
+                setPasscodeInput(e.target.value);
+                setPasscodeError(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handlePasscodeSubmit();
+                }
+              }}
+              className={passcodeError ? "border-red-500" : ""}
+            />
+            {passcodeError && (
+              <p className="text-sm text-red-500">Incorrect passcode. Please try again.</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowPasscodeDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handlePasscodeSubmit}>
+                Unlock
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Card className="print:shadow-none" data-invoice-content>
         <CardContent className="p-0">
