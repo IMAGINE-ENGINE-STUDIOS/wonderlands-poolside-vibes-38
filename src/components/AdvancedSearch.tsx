@@ -616,35 +616,11 @@ const AdvancedSearch = () => {
           </TooltipProvider>
         )}
         
-        {/* AI Assistant Button */}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                onClick={handleAskAI}
-                disabled={aiLoading}
-                className="h-9 px-3 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-md"
-              >
-                {aiLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4 sm:mr-1.5" />
-                    <span className="hidden sm:inline text-sm font-medium">Ask AI</span>
-                  </>
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Get AI-powered help finding products</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {/* AI Assistant Button - Hidden for now */}
       </div>
 
-      {/* AI Response Summary - Shows below search bar */}
-      {(aiLoading || aiResponse) && (
+      {/* AI Response Summary - Hidden for now */}
+      {false && (aiLoading || aiResponse) && (
         <div className="mt-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 bg-background/95 backdrop-blur-md rounded-xl p-3 border border-border shadow-lg">
           {/* Summary Line */}
           <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30">
