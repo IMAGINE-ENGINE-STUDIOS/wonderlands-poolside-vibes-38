@@ -1218,25 +1218,7 @@ const WonderlandsStudio = () => {
                             <Camera className="h-3.5 w-3.5" />
                             Product Image
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              const params = new URLSearchParams({
-                                model: selectedProduct.model || selectedProduct.name || '',
-                                price: selectedProduct.price.toString(),
-                                category: selectedProduct.category,
-                                type: selectedProduct.type || 'pool',
-                                ...(selectedProduct.dimensions && { dimensions: selectedProduct.dimensions }),
-                                ...(selectedProduct.depth && { depth: selectedProduct.depth }),
-                              });
-                              window.open(`/design-studio?${params.toString()}`, '_blank');
-                            }}
-                            className="h-8 text-xs gap-1.5"
-                          >
-                            <Layers className="h-3.5 w-3.5" />
-                            Open Design Studio
-                          </Button>
+                          {/* Design Studio access hidden */}
                         </div>
                         
                         <Button
@@ -2699,13 +2681,7 @@ const WonderlandsStudio = () => {
       deliveryTime: selectedExtras.concreteConstruction ? '8-12 weeks+' : '6 weeks'
     }} />
     
-    {/* Floating AI Search - appears at bottom, then docks to header */}
-    {!aiSearchDocked && (
-      <FloatingAISearch 
-        isInStudio={true} 
-        onDocked={() => setAiSearchDocked(true)} 
-      />
-    )}
+    {/* Floating AI Search - Hidden for now */}
     </div>;
 };
 export default WonderlandsStudio;

@@ -116,22 +116,7 @@ const RightNavigation = () => {
           </Tooltip>
         ) : (
           <>
-            {/* AI Assistant Button - Always visible */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={() => openChat()}
-                  className="relative rounded-full w-11 h-11 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 shadow-lg transition-all duration-300 hover:scale-105"
-                >
-                  <Bot className="h-5 w-5 text-white" />
-                  <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                <p className="font-medium">AI Assistant</p>
-                <p className="text-xs text-muted-foreground">Ask me anything about products</p>
-              </TooltipContent>
-            </Tooltip>
+            {/* AI Assistant Button - Hidden for now */}
 
             {/* Admin Dashboard Button - Only show to logged in users */}
             {user && (
