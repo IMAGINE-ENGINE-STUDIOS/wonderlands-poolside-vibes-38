@@ -48,8 +48,18 @@ interface Invoice {
   terms_conditions: string | null;
   created_at: string;
   sent_at: string | null;
-  remaining_payments?: number;
 }
+
+// Helper function to calculate totals from line items
+const calculateTotals = (lineItems: LineItem[], discountAmount: number, taxRate: number) => {
+  const subtotal = lineItems.reduce((sum, item) => {
+    return sum + (item.total || item.quantity * item.unit_price || 0);
+  }, 0);
+  const taxableAmount = Math.max(0, subtotal - discountAmount);
+  const taxAmount = taxableAmount * taxRate / 100;
+  const total = subtotal - discountAmount + taxAmount;
+  return { subtotal, taxAmount, total };
+};
 
 const InvoiceDetailPage = () => {
   const { invoiceId } = useParams<{
@@ -186,16 +196,12 @@ const InvoiceDetailPage = () => {
   const handleSave = async () => {
     if (!editedInvoice) return;
     try {
-      // Recalculate subtotal from line items
-      const calculatedSubtotal = editedInvoice.line_items.reduce((sum, item) => {
-        return sum + (item.total || item.quantity * item.unit_price || 0);
-      }, 0);
-
-      // Calculate tax amount based on rate
-      const calculatedTaxAmount = (calculatedSubtotal - (editedInvoice.discount_amount || 0)) * (editedInvoice.tax_rate || 0) / 100;
-
-      // Calculate total amount
-      const calculatedTotal = calculatedSubtotal - (editedInvoice.discount_amount || 0) + calculatedTaxAmount;
+      // Always recalculate from line items - never use manually entered values
+      const { subtotal, taxAmount, total } = calculateTotals(
+        editedInvoice.line_items,
+        editedInvoice.discount_amount || 0,
+        editedInvoice.tax_rate || 0
+      );
 
       const { error } = await supabase
         .from("invoices")
@@ -208,14 +214,13 @@ const InvoiceDetailPage = () => {
           customer_phone: editedInvoice.customer_phone,
           customer_address: editedInvoice.customer_address,
           line_items: JSON.parse(JSON.stringify(editedInvoice.line_items)),
-          subtotal: editedInvoice.subtotal || calculatedSubtotal,
-          tax_rate: editedInvoice.tax_rate,
-          tax_amount: editedInvoice.tax_amount || calculatedTaxAmount,
-          discount_amount: editedInvoice.discount_amount,
-          total_amount: editedInvoice.total_amount || calculatedTotal,
+          subtotal: subtotal,
+          tax_rate: editedInvoice.tax_rate || 0,
+          tax_amount: taxAmount,
+          discount_amount: editedInvoice.discount_amount || 0,
+          total_amount: total,
           payment_terms: editedInvoice.payment_terms,
           notes: editedInvoice.notes,
-          remaining_payments: editedInvoice.remaining_payments || null,
         })
         .eq("id", invoiceId);
       if (error) throw error;
@@ -632,108 +637,73 @@ const InvoiceDetailPage = () => {
             <div className="flex justify-end mb-8">
               <div className="w-80">
                 {editMode ? (
-                  <>
-                    <div className="flex justify-between py-2 border-b items-center">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <Input
-                        type="number"
-                        value={editedInvoice?.subtotal || 0}
-                        onChange={(e) =>
-                          setEditedInvoice((prev) =>
-                            prev ? { ...prev, subtotal: parseFloat(e.target.value) || 0 } : null
-                          )
-                        }
-                        className="w-32 text-right"
-                      />
-                    </div>
-                    <div className="flex justify-between py-2 border-b items-center bg-green-50">
-                      <span className="text-green-700 font-semibold">Discount</span>
-                      <Input
-                        type="number"
-                        value={editedInvoice?.discount_amount || 0}
-                        onChange={(e) =>
-                          setEditedInvoice((prev) =>
-                            prev ? { ...prev, discount_amount: parseFloat(e.target.value) || 0 } : null
-                          )
-                        }
-                        className="w-32 text-right"
-                      />
-                    </div>
-                    <div className="flex justify-between py-2 border-b items-center bg-blue-50">
-                      <span className="text-blue-700 font-semibold">Remaining Payments</span>
-                      <Input
-                        type="number"
-                        value={editedInvoice?.remaining_payments || 0}
-                        onChange={(e) =>
-                          setEditedInvoice((prev) =>
-                            prev ? { ...prev, remaining_payments: parseFloat(e.target.value) || 0 } : null
-                          )
-                        }
-                        className="w-32 text-right"
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="flex justify-between py-2 border-b items-center">
-                      <span className="text-muted-foreground">Tax Rate (%)</span>
-                      <Input
-                        type="number"
-                        value={editedInvoice?.tax_rate || 0}
-                        onChange={(e) =>
-                          setEditedInvoice((prev) =>
-                            prev ? { ...prev, tax_rate: parseFloat(e.target.value) || 0 } : null
-                          )
-                        }
-                        className="w-32 text-right"
-                      />
-                    </div>
-                    <div className="flex justify-between py-2 border-b items-center">
-                      <span className="text-muted-foreground">Tax Amount</span>
-                      <Input
-                        type="number"
-                        value={editedInvoice?.tax_amount || 0}
-                        onChange={(e) =>
-                          setEditedInvoice((prev) =>
-                            prev ? { ...prev, tax_amount: parseFloat(e.target.value) || 0 } : null
-                          )
-                        }
-                        className="w-32 text-right"
-                      />
-                    </div>
-                    <div className="flex justify-between py-3 bg-gradient-to-r from-primary/10 to-coral/10 px-4 rounded-lg mt-2 items-center">
-                      <span className="text-lg font-bold">Total Due</span>
-                      <Input
-                        type="number"
-                        value={editedInvoice?.total_amount || 0}
-                        onChange={(e) =>
-                          setEditedInvoice((prev) =>
-                            prev ? { ...prev, total_amount: parseFloat(e.target.value) || 0 } : null
-                          )
-                        }
-                        className="w-40 text-right text-xl font-bold"
-                      />
-                    </div>
-                  </>
+                  (() => {
+                    // Calculate live totals from line items
+                    const liveCalc = calculateTotals(
+                      editedInvoice?.line_items || [],
+                      editedInvoice?.discount_amount || 0,
+                      editedInvoice?.tax_rate || 0
+                    );
+                    return (
+                      <>
+                        <div className="flex justify-between py-2 border-b items-center">
+                          <span className="text-muted-foreground">Subtotal</span>
+                          <span className="font-semibold text-lg">${liveCalc.subtotal.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between py-2 border-b items-center bg-green-50">
+                          <span className="text-green-700 font-semibold">Discount ($)</span>
+                          <Input
+                            type="number"
+                            value={editedInvoice?.discount_amount || 0}
+                            onChange={(e) =>
+                              setEditedInvoice((prev) =>
+                                prev ? { ...prev, discount_amount: parseFloat(e.target.value) || 0 } : null
+                              )
+                            }
+                            className="w-32 text-right"
+                            min="0"
+                          />
+                        </div>
+                        <div className="flex justify-between py-2 border-b items-center">
+                          <span className="text-muted-foreground">Tax Rate (%)</span>
+                          <Input
+                            type="number"
+                            value={editedInvoice?.tax_rate || 0}
+                            onChange={(e) =>
+                              setEditedInvoice((prev) =>
+                                prev ? { ...prev, tax_rate: parseFloat(e.target.value) || 0 } : null
+                              )
+                            }
+                            className="w-32 text-right"
+                            min="0"
+                            step="0.1"
+                          />
+                        </div>
+                        {liveCalc.taxAmount > 0 && (
+                          <div className="flex justify-between py-2 border-b items-center">
+                            <span className="text-muted-foreground">Tax Amount</span>
+                            <span className="font-semibold">${liveCalc.taxAmount.toLocaleString()}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between py-3 bg-gradient-to-r from-primary/10 to-coral/10 px-4 rounded-lg mt-2 items-center">
+                          <span className="text-lg font-bold">Total Due</span>
+                          <span className="text-2xl font-bold text-primary">${liveCalc.total.toLocaleString()}</span>
+                        </div>
+                      </>
+                    );
+                  })()
                 ) : (
                   <>
                     <div className="flex justify-between py-2 border-b">
                       <span className="text-muted-foreground">Subtotal</span>
                       <span className="font-semibold">${invoice.subtotal.toLocaleString()}</span>
                     </div>
-                    {invoice.subtotal > invoice.total_amount && (
+                    {invoice.discount_amount > 0 && (
                       <div className="flex justify-between py-2 border-b bg-green-50">
-                        <span className="text-green-700 font-semibold">
-                          Discount ({(((invoice.subtotal - invoice.total_amount) / invoice.subtotal) * 100).toFixed(1)}%
-                          OFF)
-                        </span>
+                        <span className="text-green-700 font-semibold">Discount</span>
                         <span className="font-bold text-green-600">
-                          -${(invoice.subtotal - invoice.total_amount).toLocaleString()}
+                          -${invoice.discount_amount.toLocaleString()}
                         </span>
-                      </div>
-                    )}
-                    {invoice.remaining_payments && invoice.remaining_payments > 0 && (
-                      <div className="flex justify-between py-2 border-b bg-blue-50">
-                        <span className="text-blue-700 font-semibold">Remaining Payments</span>
-                        <span className="font-bold text-blue-600">${invoice.remaining_payments.toLocaleString()}</span>
                       </div>
                     )}
                     {invoice.tax_amount > 0 && (
