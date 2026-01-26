@@ -107,6 +107,9 @@ const AdminClientManager = () => {
   }>>([]);
   const [newActivity, setNewActivity] = useState({ type: 'note', description: '' });
   const [clientAutomationStatus, setClientAutomationStatus] = useState<Record<string, boolean>>({});
+  const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
+  const [bulkAssignRepId, setBulkAssignRepId] = useState<string>('');
+  const [isBulkAssigning, setIsBulkAssigning] = useState(false);
   const { toast } = useToast();
   const { isLoading: automationLoading, triggerAutomationForClient, triggerAutomationForMultiple, triggerAutomationForAll } = useTriggerAutomation();
 
@@ -352,6 +355,60 @@ const AdminClientManager = () => {
         description: "Failed to assign sales rep",
         variant: "destructive",
       });
+    }
+  };
+
+  const bulkAssignSalesRep = async () => {
+    if (selectedClients.size === 0) return;
+    
+    setIsBulkAssigning(true);
+    try {
+      const clientIds = Array.from(selectedClients);
+      const newRepId = bulkAssignRepId === 'unassign' ? null : bulkAssignRepId || null;
+      
+      // Batch update all selected clients
+      const { error } = await supabase
+        .from('clients')
+        .update({ assigned_sales_rep_id: newRepId })
+        .in('id', clientIds);
+
+      if (error) throw error;
+
+      // Log activity for each client
+      const activityLogs = clientIds.map(clientId => ({
+        client_id: clientId,
+        activity_type: 'assignment',
+        description: newRepId 
+          ? `Assigned to ${salesReps.find(r => r.id === newRepId)?.first_name || 'sales rep'} ${salesReps.find(r => r.id === newRepId)?.last_name || ''} (bulk action)`
+          : 'Unassigned from sales rep (bulk action)'
+      }));
+
+      await supabase.from('client_activities').insert(activityLogs);
+
+      // Update local state
+      setClients(prev => prev.map(client => 
+        clientIds.includes(client.id) 
+          ? { ...client, assigned_sales_rep_id: newRepId || undefined }
+          : client
+      ));
+
+      toast({
+        title: "Success",
+        description: `${clientIds.length} clients ${newRepId ? 'assigned' : 'unassigned'} successfully`,
+      });
+
+      setSelectedClients(new Set());
+      setIsBulkAssignDialogOpen(false);
+      setBulkAssignRepId('');
+    } catch (error) {
+      console.error('Error bulk assigning:', error);
+      toast({
+        title: "Error",
+        description: "Failed to bulk assign clients",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBulkAssigning(false);
     }
   };
 
@@ -663,7 +720,7 @@ const AdminClientManager = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 bg-slate-950 min-h-screen p-6 -m-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
             <Card key={i} className="animate-pulse holographic-panel">
@@ -679,7 +736,7 @@ const AdminClientManager = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-slate-950 min-h-screen p-6 -m-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="holographic-panel neon-border-cyan">
@@ -852,6 +909,68 @@ const AdminClientManager = () => {
                 </div>
               </DialogContent>
             </Dialog>
+
+            {/* Bulk Assign Button - appears when clients are selected */}
+            {selectedClients.size > 0 && (
+              <Dialog open={isBulkAssignDialogOpen} onOpenChange={setIsBulkAssignDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    className="holographic-panel neon-border-cyan text-cyan-300 hover:bg-cyan-500/20 font-mono"
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    Bulk Assign ({selectedClients.size})
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="holographic-panel neon-border-cyan">
+                  <DialogHeader>
+                    <DialogTitle className="text-cyan-300 font-mono neon-glow-cyan">⬡ BULK ASSIGN CLIENTS ⬡</DialogTitle>
+                    <DialogDescription className="text-cyan-400/60 font-mono">
+                      Assign {selectedClients.size} selected clients to a sales representative
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-cyan-300 font-mono">Select Sales Representative</Label>
+                      <Select value={bulkAssignRepId} onValueChange={setBulkAssignRepId}>
+                        <SelectTrigger className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono">
+                          <SelectValue placeholder="Choose a sales rep..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unassign">
+                            <span className="text-red-400">✕ Unassign (remove assignment)</span>
+                          </SelectItem>
+                          {salesReps.map((rep) => (
+                            <SelectItem key={rep.id} value={rep.id}>
+                              {rep.first_name} {rep.last_name} ({rep.email})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex justify-end gap-2 pt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsBulkAssignDialogOpen(false);
+                          setBulkAssignRepId('');
+                        }}
+                        className="holographic-panel border-cyan-500/30 text-cyan-300 font-mono"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={bulkAssignSalesRep}
+                        disabled={!bulkAssignRepId || isBulkAssigning}
+                        className="bg-cyan-600 hover:bg-cyan-700 text-white neon-border-cyan font-mono"
+                      >
+                        {isBulkAssigning ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Users className="h-4 w-4 mr-2" />}
+                        {bulkAssignRepId === 'unassign' ? 'Unassign' : 'Assign'} {selectedClients.size} Clients
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
 
             {/* Automation Bulk Actions */}
             {selectedClients.size > 0 && (
