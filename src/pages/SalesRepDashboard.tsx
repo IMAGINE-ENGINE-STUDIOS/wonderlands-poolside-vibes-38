@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Users, FileText, LogOut, Phone, Mail, MapPin, DollarSign, Calendar, Zap, History, Loader2 } from 'lucide-react';
+import { Users, FileText, LogOut, Phone, Mail, MapPin, DollarSign, Calendar, Zap, History, Loader2, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SurveyQuoteTool from '@/components/SurveyQuoteTool';
 import { useTriggerAutomation } from '@/hooks/useTriggerAutomation';
 
@@ -61,6 +62,17 @@ const SalesRepDashboard = () => {
   const [communicationLogs, setCommunicationLogs] = useState<CommunicationLog[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [triggeringClientId, setTriggeringClientId] = useState<string | null>(null);
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+
+  const PIPELINE_STAGES = [
+    { value: 'new', label: 'New', icon: '🆕' },
+    { value: 'contacted', label: 'Contacted', icon: '📞' },
+    { value: 'qualified', label: 'Qualified', icon: '✅' },
+    { value: 'proposal_sent', label: 'Proposal Sent', icon: '📄' },
+    { value: 'negotiating', label: 'Negotiating', icon: '🤝' },
+    { value: 'won', label: 'Won', icon: '🏆' },
+    { value: 'lost', label: 'Lost', icon: '❌' },
+  ];
 
   useEffect(() => {
     if (!user) {
@@ -159,6 +171,40 @@ const SalesRepDashboard = () => {
       });
     }
     setTriggeringClientId(null);
+  };
+
+  const handleStatusChange = async (clientId: string, newStatus: string) => {
+    setUpdatingStatusId(clientId);
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', clientId);
+
+      if (error) throw error;
+
+      // Update local state
+      setClients(prev => prev.map(c => 
+        c.id === clientId ? { ...c, status: newStatus } : c
+      ));
+
+      toast({
+        title: "Status Updated",
+        description: `Client moved to "${newStatus.replace('_', ' ')}" stage`,
+      });
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update client status",
+        variant: "destructive"
+      });
+    } finally {
+      setUpdatingStatusId(null);
+    }
   };
 
   const getAutomationBadge = (clientId: string) => {
@@ -341,13 +387,41 @@ const SalesRepDashboard = () => {
                     className="holographic-panel border-cyan-500/20 p-4 rounded-lg hover:border-cyan-500/40 transition-all"
                   >
                     <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-3 flex-wrap">
                         <h3 className="text-lg font-semibold text-cyan-300 font-mono">
                           {client.first_name} {client.last_name}
                         </h3>
-                        <Badge className={`${getStatusColor(client.status)} font-mono text-xs`}>
-                          {client.status.replace('_', ' ').toUpperCase()}
-                        </Badge>
+                        {/* Status Selector */}
+                        <Select
+                          value={client.status}
+                          onValueChange={(value) => handleStatusChange(client.id, value)}
+                          disabled={updatingStatusId === client.id}
+                        >
+                          <SelectTrigger className={`w-[160px] h-8 text-xs font-mono ${getStatusColor(client.status)} border bg-transparent`}>
+                            {updatingStatusId === client.id ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <SelectValue />
+                            )}
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-900 border-cyan-500/30">
+                            {PIPELINE_STAGES.map((stage) => (
+                              <SelectItem 
+                                key={stage.value} 
+                                value={stage.value}
+                                className="font-mono text-xs text-cyan-300 hover:bg-cyan-500/20 focus:bg-cyan-500/20"
+                              >
+                                <span className="flex items-center gap-2">
+                                  <span>{stage.icon}</span>
+                                  <span>{stage.label}</span>
+                                  {client.status === stage.value && (
+                                    <CheckCircle2 className="h-3 w-3 text-green-400 ml-1" />
+                                  )}
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         {getAutomationBadge(client.id)}
                       </div>
                       <div className="flex items-center gap-2">
