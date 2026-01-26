@@ -1,84 +1,116 @@
 
-# Promotions Management System Implementation Plan
+
+# Implementation Plan: Add Promotions Tab with Dark Theme
 
 ## Overview
-This plan outlines the implementation of a new **Promotions** section in the Admin Dashboard where you can manage product promotions (like "Bermuda Pool + Sauna"). Active promotions will automatically be displayed to Sales Representatives in their dashboard so they stay informed about current company offers.
+This plan will add the missing **Promotions** navigation tab to the Admin Dashboard and ensure the entire Client Management section (and all admin sections) maintains a consistent dark theme matching the "Command Center" aesthetic.
 
-## Architecture
-
-### Database Design
-A new `promotions` table will be created with the following structure:
-
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| name | TEXT | Promotion name (e.g., "Bermuda Pool + Barrel Sauna") |
-| description | TEXT | Detailed description of the offer |
-| bundle_price | NUMERIC | Total bundle price (e.g., 72863) |
-| original_price | NUMERIC | Original combined price before discount |
-| included_items | JSONB | Array of items included in the bundle |
-| start_date | TIMESTAMP | When the promotion becomes active |
-| end_date | TIMESTAMP | When the promotion expires (nullable for ongoing) |
-| is_active | BOOLEAN | Manual toggle to enable/disable |
-| image_url | TEXT | Optional promotional image |
-| highlight_text | TEXT | Short tagline (e.g., "Save $5,000!") |
-| terms_conditions | TEXT | Fine print / terms |
-| created_at | TIMESTAMP | Creation timestamp |
-| updated_at | TIMESTAMP | Last update timestamp |
-
-### RLS Policies
-- **SELECT**: Public read access (so Sales Reps can view active promotions)
-- **INSERT/UPDATE/DELETE**: Restricted to authenticated admin users only
+## Issues Identified
+1. **Missing Promotions Tab**: The navigation sidebar has no "Promotions" item despite the plan being approved
+2. **Light Background on Cards**: The Card components inside AdminClientManager are using holographic-panel styling but the base shadcn Card component has light backgrounds that bleed through
+3. **Missing Database Table**: The `promotions` table does not exist yet
 
 ---
 
-## Implementation Steps
+## Step 1: Database Migration
 
-### Step 1: Database Migration
-Create the `promotions` table with all required columns and insert the existing "Bermuda Pool + Barrel Sauna" promotion as seed data:
-- Bundle price: $72,863
-- Includes: Pool, 4-Person Barrel Sauna ($18,000), Salt System, 3D Patio Render, 5ft Pavers, 2 LED Lights
-- 3-month installation timeline
+Create the `promotions` table with all required columns:
 
-### Step 2: Admin Promotions Manager Component
+```text
+Table: promotions
+- id: UUID (primary key)
+- name: TEXT (e.g., "Bermuda Pool + Barrel Sauna")
+- description: TEXT
+- bundle_price: NUMERIC
+- original_price: NUMERIC (nullable)
+- included_items: JSONB (array of items)
+- start_date: TIMESTAMP (nullable)
+- end_date: TIMESTAMP (nullable)
+- is_active: BOOLEAN (default: true)
+- image_url: TEXT (nullable)
+- highlight_text: TEXT (nullable)
+- terms_conditions: TEXT (nullable)
+- created_at/updated_at: TIMESTAMP
+```
+
+**RLS Policies:**
+- SELECT: Public read access for sales reps
+- INSERT/UPDATE/DELETE: Authenticated admins only
+
+**Seed Data:** Insert the Bermuda Pool + Barrel Sauna bundle ($72,863)
+
+---
+
+## Step 2: Create AdminPromotionsManager Component
+
 Create `src/components/admin/AdminPromotionsManager.tsx` with:
 
+**Summary Cards:**
+- Total Promotions count
+- Active Promotions count  
+- Expired Promotions count
+
 **Features:**
-- View all promotions in a styled table/card layout
-- Create new promotions with a dialog form
+- View all promotions in a dark-themed table/card layout
+- Create new promotions via dialog form
 - Edit existing promotions
 - Toggle active/inactive status with one click
-- Delete promotions with confirmation
-- Visual indicators for active vs inactive promotions
-- Date range display (start/end dates)
+- Delete promotions with confirmation dialog
 
-**UI Elements:**
-- Summary cards showing: Total Promotions, Active Promotions, Expired Promotions
-- Filterable list view matching the command center aesthetic
-- Form fields for all promotion properties
-- JSON editor for included_items or structured input fields
+**Styling:**
+- Matches existing command center holographic aesthetic
+- Dark background (`bg-[#0a0a0f]`)
+- Neon cyan/blue glows and borders
+- Monospace fonts throughout
 
-### Step 3: Admin Dashboard Integration
-Update `src/pages/AdminDashboard.tsx`:
-- Add "Promotions" navigation item under the "MANAGEMENT" section with a `Gift` or `Tag` icon
-- Add the conditional render for the Promotions section
-- Import and display the `AdminPromotionsManager` component
+---
 
-### Step 4: Sales Rep Dashboard - Active Promotions Display
-Update `src/pages/SalesRepDashboard.tsx` to:
-- Fetch active promotions on dashboard load
-- Display a new "ACTIVE PROMOTIONS" card section above the client list
-- Show promotion cards with:
-  - Promotion name and highlight text
-  - Bundle price and savings
-  - Included items as a bulleted list
-  - Start/end date if applicable
-  - "Use in Quote" button (future enhancement)
+## Step 3: Update AdminDashboard Navigation
 
-**UI Design:**
-- Collapsible section with count badge
-- Eye-catching gradient cards for each active promotion
-- Matches existing holographic/neon aesthetic
+Modify `src/pages/AdminDashboard.tsx`:
+
+**Add to sidebar (after Referrals in MANAGEMENT section):**
+```typescript
+<NavItem 
+  icon={Tag} 
+  label="Promotions" 
+  active={activeSection === "promotions"} 
+  onClick={() => setActiveSection("promotions")} 
+/>
+```
+
+**Add section render:**
+```typescript
+{activeSection === "promotions" && (
+  <div className="animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+    <AdminPromotionsManager />
+  </div>
+)}
+```
+
+---
+
+## Step 4: Fix Dark Theme on Client Management
+
+The Card components in AdminClientManager need their internal backgrounds fixed. Update the `holographic-panel` class usage to ensure:
+
+- Card backgrounds are truly dark (not the default light shadcn theme)
+- Table headers and rows have dark backgrounds
+- All text maintains proper contrast (cyan/blue on dark)
+
+**Specific fixes needed:**
+- Add explicit background colors to table header: `bg-black/40`
+- Add dark backgrounds to table rows: `bg-black/20`
+- Ensure inputs/selects have dark backgrounds
+
+---
+
+## Step 5: Sales Rep Dashboard Integration (Future)
+
+After the admin side is complete, update `src/pages/SalesRepDashboard.tsx` to:
+- Fetch active promotions on load
+- Display "ACTIVE PROMOTIONS" section with promotion cards
+- Show bundle prices and included items
 
 ---
 
@@ -86,17 +118,16 @@ Update `src/pages/SalesRepDashboard.tsx` to:
 
 | File | Action | Description |
 |------|--------|-------------|
-| `supabase/migrations/[timestamp]_create_promotions.sql` | CREATE | Database table + RLS + seed data |
+| `supabase/migrations/[timestamp]_create_promotions.sql` | CREATE | Database table + RLS policies + seed data |
 | `src/components/admin/AdminPromotionsManager.tsx` | CREATE | Full CRUD management component |
-| `src/pages/AdminDashboard.tsx` | MODIFY | Add nav item + section render |
-| `src/pages/SalesRepDashboard.tsx` | MODIFY | Add active promotions display |
-| `src/integrations/supabase/types.ts` | AUTO-UPDATE | Types will regenerate automatically |
+| `src/pages/AdminDashboard.tsx` | MODIFY | Add navigation item + section render + import Tag icon |
+| `src/components/AdminClientManager.tsx` | MODIFY | Fix table/card dark backgrounds |
 
 ---
 
-## Technical Details
+## Technical Notes
 
-### Promotion Interface (TypeScript)
+### Promotion TypeScript Interface
 ```typescript
 interface Promotion {
   id: string;
@@ -104,10 +135,7 @@ interface Promotion {
   description: string;
   bundle_price: number;
   original_price?: number;
-  included_items: Array<{
-    name: string;
-    value?: string;
-  }>;
+  included_items: Array<{ name: string; value?: string }>;
   start_date?: string;
   end_date?: string;
   is_active: boolean;
@@ -119,7 +147,7 @@ interface Promotion {
 }
 ```
 
-### Fetching Active Promotions (Sales Rep)
+### Active Promotions Query
 ```typescript
 const fetchActivePromotions = async () => {
   const now = new Date().toISOString();
@@ -129,71 +157,7 @@ const fetchActivePromotions = async () => {
     .eq('is_active', true)
     .or(`end_date.is.null,end_date.gt.${now}`)
     .order('created_at', { ascending: false });
-  setActivePromotions(data || []);
+  return data || [];
 };
 ```
 
-### Seed Data for Bermuda Bundle
-```json
-{
-  "name": "Bermuda Pool + 4-Person Barrel Sauna",
-  "description": "Complete backyard transformation package",
-  "bundle_price": 72863,
-  "included_items": [
-    { "name": "Bermuda Pool" },
-    { "name": "4-Person Barrel Sauna", "value": "$18,000" },
-    { "name": "Salt System" },
-    { "name": "3D Patio Render" },
-    { "name": "5 Feet of Pavers" },
-    { "name": "2 LED Lights" }
-  ],
-  "highlight_text": "3-Month Installation",
-  "is_active": true
-}
-```
-
----
-
-## Visual Flow
-
-**Admin Dashboard:**
-```text
-MANAGEMENT section
-├── Users
-├── Sales Reps
-├── Clients
-├── Contractors
-├── Referrals
-├── [NEW] Promotions  <-- Gift/Tag icon
-└── API Manager
-```
-
-**Sales Rep Dashboard:**
-```text
-┌─────────────────────────────────────────────┐
-│ SALES REP PORTAL                            │
-├─────────────────────────────────────────────┤
-│ [Stats Cards: Total, Qualified, etc.]       │
-├─────────────────────────────────────────────┤
-│ 🎁 ACTIVE PROMOTIONS (2)            [Hide]  │
-│ ┌─────────────────────────────────────────┐ │
-│ │ Bermuda Pool + Barrel Sauna             │ │
-│ │ $72,863 | 3-Month Installation          │ │
-│ │ • Bermuda Pool                          │ │
-│ │ • 4-Person Barrel Sauna                 │ │
-│ │ • Salt System, Pavers, LEDs             │ │
-│ └─────────────────────────────────────────┘ │
-├─────────────────────────────────────────────┤
-│ YOUR ASSIGNED CLIENTS                       │
-│ [Client cards...]                           │
-└─────────────────────────────────────────────┘
-```
-
----
-
-## Benefits
-1. **Centralized Promotion Management** - Create and manage all promotions from one place
-2. **Real-time Sales Rep Updates** - Sales reps always see current active promotions
-3. **Consistent Pricing** - Bundle prices are stored centrally, reducing errors
-4. **Quick Toggle** - Instantly activate/deactivate promotions as needed
-5. **Historical Tracking** - Keep records of past promotions
