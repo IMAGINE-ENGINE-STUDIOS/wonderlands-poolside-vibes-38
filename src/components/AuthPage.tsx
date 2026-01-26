@@ -12,7 +12,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import PasswordResetModal from '@/components/PasswordResetModal';
 
 const AuthPage = () => {
-  const { signIn, signUp, signInWithGoogle, signInWithMicrosoft, user, loading } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithMicrosoft, user, profile, loading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -22,12 +22,19 @@ const AuthPage = () => {
   // Get the intended destination from location state, default to admin dashboard
   const from = location.state?.from?.pathname || '/admin';
 
-  // Redirect if already logged in - go to intended destination
+  // Redirect if already logged in - sales reps go to their dashboard, others to intended destination
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && profile) {
+      if ((profile.role as string) === 'sales_rep') {
+        navigate('/sales-rep', { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
+    } else if (!loading && user && !profile) {
+      // User exists but profile not loaded yet - wait
       navigate(from, { replace: true });
     }
-  }, [user, loading, navigate, from]);
+  }, [user, profile, loading, navigate, from]);
 
   const [signInData, setSignInData] = useState({
     email: '',

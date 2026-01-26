@@ -26,6 +26,7 @@ const InvoiceDetailPage = lazy(() => import("./pages/InvoiceDetailPage"));
 const QuotationTool = lazy(() => import("./pages/QuotationTool"));
 const PoolCalculatorPage = lazy(() => import("./pages/PoolCalculatorPage"));
 const SalesRepRegister = lazy(() => import("./pages/SalesRepRegister"));
+const SalesRepLogin = lazy(() => import("./pages/SalesRepLogin"));
 const SalesRepDashboard = lazy(() => import("./pages/SalesRepDashboard"));
 const ContractorRegistration = lazy(() => import("./pages/ContractorRegistration"));
 const ContractorProfile = lazy(() => import("./pages/ContractorProfile"));
@@ -109,6 +110,7 @@ const App = () => {
             <Route path="/pool-calculator" element={<PoolCalculatorPage />} />
             <Route path="/wonderlands-studio" element={<WonderlandsStudio />} />
             <Route path="/sales-rep-register" element={<SalesRepRegister />} />
+            <Route path="/sales-rep-login" element={<SalesRepLogin />} />
             <Route 
               path="/sales-rep" 
               element={
