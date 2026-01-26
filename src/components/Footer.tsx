@@ -80,6 +80,13 @@ Installed by Licensed GC  Tech Terra Corp #CGC1537275                  
                   Join Our Sales Team
                 </span>
               </Link>
+              {/* Sales Rep Login */}
+              <Link to="/sales-rep-login" className="flex items-center gap-2 group">
+                <div className="w-1.5 h-1.5 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full"></div>
+                <span className="text-sm text-blue-500 hover:text-indigo-600 transition-colors font-medium">
+                  Sales Rep Login
+                </span>
+              </Link>
               {/* Contractor Registration */}
               <Link to="/contractor-registration" className="flex items-center gap-2 group">
                 <div className="w-1.5 h-1.5 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full"></div>
