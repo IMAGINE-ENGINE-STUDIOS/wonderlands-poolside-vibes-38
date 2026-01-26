@@ -1886,6 +1886,57 @@ export type Database = {
         }
         Relationships: []
       }
+      promotions: {
+        Row: {
+          bundle_price: number
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          highlight_text: string | null
+          id: string
+          image_url: string | null
+          included_items: Json | null
+          is_active: boolean | null
+          name: string
+          original_price: number | null
+          start_date: string | null
+          terms_conditions: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bundle_price: number
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          highlight_text?: string | null
+          id?: string
+          image_url?: string | null
+          included_items?: Json | null
+          is_active?: boolean | null
+          name: string
+          original_price?: number | null
+          start_date?: string | null
+          terms_conditions?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bundle_price?: number
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          highlight_text?: string | null
+          id?: string
+          image_url?: string | null
+          included_items?: Json | null
+          is_active?: boolean | null
+          name?: string
+          original_price?: number | null
+          start_date?: string | null
+          terms_conditions?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       proposal_attachments: {
         Row: {
           created_at: string

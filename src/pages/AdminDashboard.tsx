@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare } from 'lucide-react';
+import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,7 @@ import AutomationTemplatesManager from '@/components/admin/AutomationTemplatesMa
 import AutomationSequencesManager from '@/components/admin/AutomationSequencesManager';
 import AutomationStatusManager from '@/components/admin/AutomationStatusManager';
 import { TwilioTestPanel } from '@/components/admin/TwilioTestPanel';
+import AdminPromotionsManager from '@/components/admin/AdminPromotionsManager';
 
 // Navigation Item Component
 const NavItem = ({
@@ -246,6 +247,7 @@ const AdminDashboard = () => {
                   ⬢ MANAGEMENT
                 </div>
                 <NavItem icon={Users} label="Users" active={activeSection === "users"} onClick={() => setActiveSection("users")} />
+                <NavItem icon={Tag} label="Promotions" active={activeSection === "promotions"} onClick={() => setActiveSection("promotions")} />
                 <NavItem icon={Users} label="Sales Reps" active={activeSection === "sales-reps"} onClick={() => setActiveSection("sales-reps")} />
                 <NavItem icon={Users} label="Clients" active={activeSection === "clients"} onClick={() => setActiveSection("clients")} />
                 <NavItem icon={Building2} label="Contractors" active={activeSection === "contractors"} onClick={() => setActiveSection("contractors")} />
@@ -389,6 +391,11 @@ const AdminDashboard = () => {
                 <SalesRepManager />
               </CardContent>
             </Card>
+          </div>}
+
+          {/* Promotions Tab */}
+          {activeSection === "promotions" && <div className="animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+            <AdminPromotionsManager />
           </div>}
 
           {/* Clients Tab */}
