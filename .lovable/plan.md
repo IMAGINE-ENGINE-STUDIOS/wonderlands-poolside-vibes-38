@@ -1,41 +1,31 @@
 
 
-# Implementation Plan: Add Promotions Tab with Dark Theme
+# Implementation Plan: Add Promotions Tab to Admin Dashboard
 
 ## Overview
-This plan will add the missing **Promotions** navigation tab to the Admin Dashboard and ensure the entire Client Management section (and all admin sections) maintains a consistent dark theme matching the "Command Center" aesthetic.
-
-## Issues Identified
-1. **Missing Promotions Tab**: The navigation sidebar has no "Promotions" item despite the plan being approved
-2. **Light Background on Cards**: The Card components inside AdminClientManager are using holographic-panel styling but the base shadcn Card component has light backgrounds that bleed through
-3. **Missing Database Table**: The `promotions` table does not exist yet
+Add a **Promotions** navigation tab to the Admin Dashboard under the **MANAGEMENT** section, positioned between "Users" and "Sales Reps". This will allow you to manage company promotions (like the Bermuda Pool + Barrel Sauna bundle). Active promotions will automatically display to Sales Representatives so they stay informed.
 
 ---
 
-## Step 1: Database Migration
+## Step 1: Create Database Table
 
-Create the `promotions` table with all required columns:
+Create the `promotions` table with full CRUD support:
 
-```text
-Table: promotions
-- id: UUID (primary key)
-- name: TEXT (e.g., "Bermuda Pool + Barrel Sauna")
-- description: TEXT
-- bundle_price: NUMERIC
-- original_price: NUMERIC (nullable)
-- included_items: JSONB (array of items)
-- start_date: TIMESTAMP (nullable)
-- end_date: TIMESTAMP (nullable)
-- is_active: BOOLEAN (default: true)
-- image_url: TEXT (nullable)
-- highlight_text: TEXT (nullable)
-- terms_conditions: TEXT (nullable)
-- created_at/updated_at: TIMESTAMP
-```
-
-**RLS Policies:**
-- SELECT: Public read access for sales reps
-- INSERT/UPDATE/DELETE: Authenticated admins only
+| Column | Type | Description |
+|--------|------|-------------|
+| id | UUID | Primary key |
+| name | TEXT | Promotion name |
+| description | TEXT | Detailed description |
+| bundle_price | NUMERIC | Total bundle price |
+| original_price | NUMERIC | Original price (for showing savings) |
+| included_items | JSONB | Array of items in the bundle |
+| start_date | TIMESTAMP | When promotion starts |
+| end_date | TIMESTAMP | When promotion expires |
+| is_active | BOOLEAN | Toggle on/off |
+| highlight_text | TEXT | Short tagline |
+| image_url | TEXT | Optional image |
+| created_at | TIMESTAMP | Auto-generated |
+| updated_at | TIMESTAMP | Auto-updated |
 
 **Seed Data:** Insert the Bermuda Pool + Barrel Sauna bundle ($72,863)
 
@@ -46,40 +36,97 @@ Table: promotions
 Create `src/components/admin/AdminPromotionsManager.tsx` with:
 
 **Summary Cards:**
-- Total Promotions count
-- Active Promotions count  
-- Expired Promotions count
+- Total Promotions
+- Active Promotions  
+- Expired Promotions
 
 **Features:**
-- View all promotions in a dark-themed table/card layout
-- Create new promotions via dialog form
+- View all promotions in dark-themed table
+- Create new promotions via dialog
 - Edit existing promotions
-- Toggle active/inactive status with one click
-- Delete promotions with confirmation dialog
+- One-click toggle active/inactive
+- Delete with confirmation
 
 **Styling:**
-- Matches existing command center holographic aesthetic
 - Dark background (`bg-[#0a0a0f]`)
-- Neon cyan/blue glows and borders
+- Cyan/blue neon glows matching command center aesthetic
 - Monospace fonts throughout
 
 ---
 
-## Step 3: Update AdminDashboard Navigation
+## Step 3: Update Admin Dashboard Navigation
 
 Modify `src/pages/AdminDashboard.tsx`:
 
-**Add to sidebar (after Referrals in MANAGEMENT section):**
-```typescript
-<NavItem 
-  icon={Tag} 
-  label="Promotions" 
-  active={activeSection === "promotions"} 
-  onClick={() => setActiveSection("promotions")} 
-/>
+**Add navigation item in MANAGEMENT section (after Users, before Sales Reps):**
+
+Current order:
+```text
+MANAGEMENT
+├── Users
+├── Sales Reps    ← Promotions goes BEFORE this
+├── Clients
+├── Contractors
+├── Referrals
+└── API Manager
 ```
 
-**Add section render:**
+New order:
+```text
+MANAGEMENT
+├── Users
+├── Promotions    ← NEW (Tag icon)
+├── Sales Reps
+├── Clients
+├── Contractors
+├── Referrals
+└── API Manager
+```
+
+**Add section render with dark background wrapper**
+
+---
+
+## Step 4: Sales Rep Dashboard Integration
+
+Update `src/pages/SalesRepDashboard.tsx` to:
+- Fetch active promotions on load
+- Display "ACTIVE PROMOTIONS" section
+- Show promotion cards with bundle details
+- Match holographic aesthetic
+
+---
+
+## File Changes Summary
+
+| File | Action |
+|------|--------|
+| `supabase/migrations/xxx_create_promotions.sql` | CREATE - Database table + RLS + seed data |
+| `src/components/admin/AdminPromotionsManager.tsx` | CREATE - Full CRUD management component |
+| `src/pages/AdminDashboard.tsx` | MODIFY - Add nav item + import Tag icon + section render |
+| `src/pages/SalesRepDashboard.tsx` | MODIFY - Display active promotions |
+
+---
+
+## Technical Details
+
+### Navigation Change in AdminDashboard.tsx
+
+Add `Tag` to imports and insert new NavItem between Users and Sales Reps:
+
+```typescript
+// Line 248-249 current:
+<NavItem icon={Users} label="Users" ... />
+<NavItem icon={Users} label="Sales Reps" ... />
+
+// Will become:
+<NavItem icon={Users} label="Users" ... />
+<NavItem icon={Tag} label="Promotions" active={activeSection === "promotions"} onClick={() => setActiveSection("promotions")} />
+<NavItem icon={Users} label="Sales Reps" ... />
+```
+
+### Promotions Section Render
+
 ```typescript
 {activeSection === "promotions" && (
   <div className="animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
@@ -88,76 +135,14 @@ Modify `src/pages/AdminDashboard.tsx`:
 )}
 ```
 
----
+### Active Promotions Query (for Sales Reps)
 
-## Step 4: Fix Dark Theme on Client Management
-
-The Card components in AdminClientManager need their internal backgrounds fixed. Update the `holographic-panel` class usage to ensure:
-
-- Card backgrounds are truly dark (not the default light shadcn theme)
-- Table headers and rows have dark backgrounds
-- All text maintains proper contrast (cyan/blue on dark)
-
-**Specific fixes needed:**
-- Add explicit background colors to table header: `bg-black/40`
-- Add dark backgrounds to table rows: `bg-black/20`
-- Ensure inputs/selects have dark backgrounds
-
----
-
-## Step 5: Sales Rep Dashboard Integration (Future)
-
-After the admin side is complete, update `src/pages/SalesRepDashboard.tsx` to:
-- Fetch active promotions on load
-- Display "ACTIVE PROMOTIONS" section with promotion cards
-- Show bundle prices and included items
-
----
-
-## File Changes Summary
-
-| File | Action | Description |
-|------|--------|-------------|
-| `supabase/migrations/[timestamp]_create_promotions.sql` | CREATE | Database table + RLS policies + seed data |
-| `src/components/admin/AdminPromotionsManager.tsx` | CREATE | Full CRUD management component |
-| `src/pages/AdminDashboard.tsx` | MODIFY | Add navigation item + section render + import Tag icon |
-| `src/components/AdminClientManager.tsx` | MODIFY | Fix table/card dark backgrounds |
-
----
-
-## Technical Notes
-
-### Promotion TypeScript Interface
 ```typescript
-interface Promotion {
-  id: string;
-  name: string;
-  description: string;
-  bundle_price: number;
-  original_price?: number;
-  included_items: Array<{ name: string; value?: string }>;
-  start_date?: string;
-  end_date?: string;
-  is_active: boolean;
-  image_url?: string;
-  highlight_text?: string;
-  terms_conditions?: string;
-  created_at: string;
-  updated_at: string;
-}
-```
-
-### Active Promotions Query
-```typescript
-const fetchActivePromotions = async () => {
-  const now = new Date().toISOString();
-  const { data } = await supabase
-    .from('promotions')
-    .select('*')
-    .eq('is_active', true)
-    .or(`end_date.is.null,end_date.gt.${now}`)
-    .order('created_at', { ascending: false });
-  return data || [];
-};
+const { data } = await supabase
+  .from('promotions')
+  .select('*')
+  .eq('is_active', true)
+  .or(`end_date.is.null,end_date.gt.${now}`)
+  .order('created_at', { ascending: false });
 ```
 
