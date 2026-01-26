@@ -392,7 +392,7 @@ const AdminDashboard = () => {
           </div>}
 
           {/* Clients Tab */}
-          {activeSection === "clients" && <div className="space-y-6 animate-fade-in">
+          {activeSection === "clients" && <div className="animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
             <AdminClientManager />
           </div>}
 
