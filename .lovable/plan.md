@@ -1,97 +1,199 @@
 
-
-# Bulk Client Assignment to Sales Representatives
+# Promotions Management System Implementation Plan
 
 ## Overview
+This plan outlines the implementation of a new **Promotions** section in the Admin Dashboard where you can manage product promotions (like "Bermuda Pool + Sauna"). Active promotions will automatically be displayed to Sales Representatives in their dashboard so they stay informed about current company offers.
 
-Add a "Bulk Assign" feature to the Admin Client Manager that allows assigning multiple selected clients to a sales representative at once. This will appear alongside the existing "Automate Selected" button when clients are selected.
+## Architecture
 
-## Implementation Details
+### Database Design
+A new `promotions` table will be created with the following structure:
 
-### 1. Add State for Bulk Assignment Dialog
+| Column | Type | Description |
+|--------|------|-------------|
+| id | UUID | Primary key |
+| name | TEXT | Promotion name (e.g., "Bermuda Pool + Barrel Sauna") |
+| description | TEXT | Detailed description of the offer |
+| bundle_price | NUMERIC | Total bundle price (e.g., 72863) |
+| original_price | NUMERIC | Original combined price before discount |
+| included_items | JSONB | Array of items included in the bundle |
+| start_date | TIMESTAMP | When the promotion becomes active |
+| end_date | TIMESTAMP | When the promotion expires (nullable for ongoing) |
+| is_active | BOOLEAN | Manual toggle to enable/disable |
+| image_url | TEXT | Optional promotional image |
+| highlight_text | TEXT | Short tagline (e.g., "Save $5,000!") |
+| terms_conditions | TEXT | Fine print / terms |
+| created_at | TIMESTAMP | Creation timestamp |
+| updated_at | TIMESTAMP | Last update timestamp |
 
-Add new state variables to manage the bulk assignment dialog:
-- `isBulkAssignDialogOpen` - controls dialog visibility
-- `bulkAssignRepId` - stores selected sales rep for bulk assignment
-- `isBulkAssigning` - loading state during assignment
-
-### 2. Create Bulk Assignment Function
-
-Create `bulkAssignSalesRep` function that:
-- Takes the selected sales rep ID and updates all selected clients
-- Uses Supabase batch update with `.in('id', [...selectedClients])`
-- Logs activity for each client assignment
-- Shows success toast with count of assigned clients
-- Clears selection after successful assignment
-
-### 3. Add UI Components
-
-**Bulk Assign Button** (appears when clients are selected):
-- Position: Next to existing "Automate Selected" button
-- Style: Match the holographic/neon theme
-- Shows count of selected clients
-- Opens the bulk assignment dialog
-
-**Bulk Assignment Dialog**:
-- Sales rep selection dropdown (lists all active sales reps)
-- "Unassign" option to remove assignments
-- Confirm and Cancel buttons
-- Loading indicator during assignment
-
-### 4. File Changes
-
-**File: `src/components/AdminClientManager.tsx`**
-
-| Location | Change |
-|----------|--------|
-| Lines ~86-93 | Add state: `isBulkAssignDialogOpen`, `bulkAssignRepId`, `isBulkAssigning` |
-| After line ~356 | Add `bulkAssignSalesRep` function |
-| Lines ~857-866 | Add "Bulk Assign" button next to "Automate Selected" |
-| After bulk button | Add bulk assignment Dialog component |
+### RLS Policies
+- **SELECT**: Public read access (so Sales Reps can view active promotions)
+- **INSERT/UPDATE/DELETE**: Restricted to authenticated admin users only
 
 ---
 
-## Technical Implementation
+## Implementation Steps
 
-### New Function: `bulkAssignSalesRep`
+### Step 1: Database Migration
+Create the `promotions` table with all required columns and insert the existing "Bermuda Pool + Barrel Sauna" promotion as seed data:
+- Bundle price: $72,863
+- Includes: Pool, 4-Person Barrel Sauna ($18,000), Salt System, 3D Patio Render, 5ft Pavers, 2 LED Lights
+- 3-month installation timeline
 
-```text
-async function bulkAssignSalesRep():
-  1. Get array of selected client IDs
-  2. Update clients table: SET assigned_sales_rep_id WHERE id IN (selected)
-  3. Insert activity log entries for each client
-  4. Update local state to reflect changes
-  5. Clear selection
-  6. Show success toast
-  7. Close dialog
+### Step 2: Admin Promotions Manager Component
+Create `src/components/admin/AdminPromotionsManager.tsx` with:
+
+**Features:**
+- View all promotions in a styled table/card layout
+- Create new promotions with a dialog form
+- Edit existing promotions
+- Toggle active/inactive status with one click
+- Delete promotions with confirmation
+- Visual indicators for active vs inactive promotions
+- Date range display (start/end dates)
+
+**UI Elements:**
+- Summary cards showing: Total Promotions, Active Promotions, Expired Promotions
+- Filterable list view matching the command center aesthetic
+- Form fields for all promotion properties
+- JSON editor for included_items or structured input fields
+
+### Step 3: Admin Dashboard Integration
+Update `src/pages/AdminDashboard.tsx`:
+- Add "Promotions" navigation item under the "MANAGEMENT" section with a `Gift` or `Tag` icon
+- Add the conditional render for the Promotions section
+- Import and display the `AdminPromotionsManager` component
+
+### Step 4: Sales Rep Dashboard - Active Promotions Display
+Update `src/pages/SalesRepDashboard.tsx` to:
+- Fetch active promotions on dashboard load
+- Display a new "ACTIVE PROMOTIONS" card section above the client list
+- Show promotion cards with:
+  - Promotion name and highlight text
+  - Bundle price and savings
+  - Included items as a bulleted list
+  - Start/end date if applicable
+  - "Use in Quote" button (future enhancement)
+
+**UI Design:**
+- Collapsible section with count badge
+- Eye-catching gradient cards for each active promotion
+- Matches existing holographic/neon aesthetic
+
+---
+
+## File Changes Summary
+
+| File | Action | Description |
+|------|--------|-------------|
+| `supabase/migrations/[timestamp]_create_promotions.sql` | CREATE | Database table + RLS + seed data |
+| `src/components/admin/AdminPromotionsManager.tsx` | CREATE | Full CRUD management component |
+| `src/pages/AdminDashboard.tsx` | MODIFY | Add nav item + section render |
+| `src/pages/SalesRepDashboard.tsx` | MODIFY | Add active promotions display |
+| `src/integrations/supabase/types.ts` | AUTO-UPDATE | Types will regenerate automatically |
+
+---
+
+## Technical Details
+
+### Promotion Interface (TypeScript)
+```typescript
+interface Promotion {
+  id: string;
+  name: string;
+  description: string;
+  bundle_price: number;
+  original_price?: number;
+  included_items: Array<{
+    name: string;
+    value?: string;
+  }>;
+  start_date?: string;
+  end_date?: string;
+  is_active: boolean;
+  image_url?: string;
+  highlight_text?: string;
+  terms_conditions?: string;
+  created_at: string;
+  updated_at: string;
+}
 ```
 
-### UI Flow
-
-```text
-User selects clients via checkboxes
-         |
-         v
-"Bulk Assign" button appears (shows count)
-         |
-         v
-User clicks button --> Dialog opens
-         |
-         v
-User selects sales rep from dropdown
-         |
-         v
-User clicks "Assign" --> API updates all clients
-         |
-         v
-Success toast + selection cleared
+### Fetching Active Promotions (Sales Rep)
+```typescript
+const fetchActivePromotions = async () => {
+  const now = new Date().toISOString();
+  const { data } = await supabase
+    .from('promotions')
+    .select('*')
+    .eq('is_active', true)
+    .or(`end_date.is.null,end_date.gt.${now}`)
+    .order('created_at', { ascending: false });
+  setActivePromotions(data || []);
+};
 ```
 
-## Summary
+### Seed Data for Bermuda Bundle
+```json
+{
+  "name": "Bermuda Pool + 4-Person Barrel Sauna",
+  "description": "Complete backyard transformation package",
+  "bundle_price": 72863,
+  "included_items": [
+    { "name": "Bermuda Pool" },
+    { "name": "4-Person Barrel Sauna", "value": "$18,000" },
+    { "name": "Salt System" },
+    { "name": "3D Patio Render" },
+    { "name": "5 Feet of Pavers" },
+    { "name": "2 LED Lights" }
+  ],
+  "highlight_text": "3-Month Installation",
+  "is_active": true
+}
+```
 
-This feature adds efficient bulk assignment capability while:
-- Following existing patterns in the codebase
-- Matching the holographic/neon UI theme
-- Reusing the existing `salesReps` data already loaded
-- Providing activity logging for audit trail
+---
 
+## Visual Flow
+
+**Admin Dashboard:**
+```text
+MANAGEMENT section
+├── Users
+├── Sales Reps
+├── Clients
+├── Contractors
+├── Referrals
+├── [NEW] Promotions  <-- Gift/Tag icon
+└── API Manager
+```
+
+**Sales Rep Dashboard:**
+```text
+┌─────────────────────────────────────────────┐
+│ SALES REP PORTAL                            │
+├─────────────────────────────────────────────┤
+│ [Stats Cards: Total, Qualified, etc.]       │
+├─────────────────────────────────────────────┤
+│ 🎁 ACTIVE PROMOTIONS (2)            [Hide]  │
+│ ┌─────────────────────────────────────────┐ │
+│ │ Bermuda Pool + Barrel Sauna             │ │
+│ │ $72,863 | 3-Month Installation          │ │
+│ │ • Bermuda Pool                          │ │
+│ │ • 4-Person Barrel Sauna                 │ │
+│ │ • Salt System, Pavers, LEDs             │ │
+│ └─────────────────────────────────────────┘ │
+├─────────────────────────────────────────────┤
+│ YOUR ASSIGNED CLIENTS                       │
+│ [Client cards...]                           │
+└─────────────────────────────────────────────┘
+```
+
+---
+
+## Benefits
+1. **Centralized Promotion Management** - Create and manage all promotions from one place
+2. **Real-time Sales Rep Updates** - Sales reps always see current active promotions
+3. **Consistent Pricing** - Bundle prices are stored centrally, reducing errors
+4. **Quick Toggle** - Instantly activate/deactivate promotions as needed
+5. **Historical Tracking** - Keep records of past promotions
