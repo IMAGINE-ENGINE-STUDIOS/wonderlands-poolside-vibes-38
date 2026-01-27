@@ -51,10 +51,16 @@ serve(async (req: Request) => {
 
     console.log(`Template loaded: ${template.name}`);
 
-    // Fetch clients
+    // Fetch clients with their assigned sales reps
     let clientsQuery = supabase
       .from("clients")
-      .select("id, first_name, last_name, email, phone, address_city, address_state");
+      .select(`
+        id, first_name, last_name, email, phone, address_city, address_state,
+        assigned_sales_rep_id,
+        sales_rep:profiles!clients_assigned_sales_rep_id_fkey(
+          first_name, last_name, email
+        )
+      `);
 
     if (client_ids && client_ids.length > 0) {
       clientsQuery = clientsQuery.in("id", client_ids);
@@ -88,6 +94,15 @@ serve(async (req: Request) => {
           continue;
         }
 
+        // Get sales rep info
+        const salesRep = client.sales_rep as { first_name: string | null; last_name: string | null; email: string } | null;
+        const salesRepFirstName = salesRep?.first_name || '';
+        const salesRepLastName = salesRep?.last_name || '';
+        const salesRepName = salesRepLastName 
+          ? `${salesRepFirstName} ${salesRepLastName}`.trim() 
+          : salesRepFirstName || 'Your Sales Representative';
+        const salesRepEmail = salesRep?.email || 'sales@wonderlandsworld.com';
+
         // Replace variables in template
         let subject = template.subject || "Special Offer from Wonderlands World";
         let htmlContent = template.html_content || template.body;
@@ -99,6 +114,8 @@ serve(async (req: Request) => {
           phone: client.phone || "",
           address_city: client.address_city || "",
           address_state: client.address_state || "",
+          sales_rep_name: salesRepName,
+          sales_rep_email: salesRepEmail,
         };
 
         // Replace all {{variable}} patterns
@@ -108,10 +125,27 @@ serve(async (req: Request) => {
           htmlContent = htmlContent.replace(regex, value);
         });
 
-        console.log(`Sending to ${client.email} (${client.first_name})...`);
+        // Add sales rep signature to email
+        const signature = `
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0; font-weight: 600; color: #1f2937;">${salesRepName}</p>
+            <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">Sales Representative - Wonderlands World</p>
+            <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">${salesRepEmail}</p>
+            <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">+1 (239) 257-0637</p>
+          </div>
+        `;
+        
+        // Insert signature before closing body tag if exists, otherwise append
+        if (htmlContent.includes('</body>')) {
+          htmlContent = htmlContent.replace('</body>', `${signature}</body>`);
+        } else {
+          htmlContent = htmlContent + signature;
+        }
+
+        console.log(`Sending to ${client.email} (${client.first_name}) from ${salesRepName}...`);
 
         const emailResponse = await resend.emails.send({
-          from: "Wonderlands Pools <sales@wonderlandsworld.com>",
+          from: `${salesRepName} - Wonderlands Pools <sales@wonderlandsworld.com>`,
           to: [client.email],
           subject: subject,
           html: htmlContent,

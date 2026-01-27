@@ -16,6 +16,13 @@ interface ClientData {
   address_city?: string;
   address_state?: string;
   status?: string;
+  assigned_sales_rep_id?: string;
+}
+
+interface SalesRepData {
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
 }
 
 interface AutomationRequest {
@@ -24,10 +31,18 @@ interface AutomationRequest {
 }
 
 // Replace template variables with actual values
-function replaceVariables(text: string, client: ClientData): string {
+function replaceVariables(text: string, client: ClientData, salesRep?: SalesRepData | null): string {
   const firstName = client.first_name || '';
   const lastName = client.last_name || '';
   const fullName = lastName ? `${firstName} ${lastName}` : firstName;
+  
+  // Build sales rep name
+  const salesRepFirstName = salesRep?.first_name || '';
+  const salesRepLastName = salesRep?.last_name || '';
+  const salesRepName = salesRepLastName 
+    ? `${salesRepFirstName} ${salesRepLastName}`.trim() 
+    : salesRepFirstName || 'Your Sales Representative';
+  const salesRepEmail = salesRep?.email || 'sales@wonderlandsworld.com';
   
   return text
     .replace(/{first_name}/g, firstName)
@@ -36,7 +51,46 @@ function replaceVariables(text: string, client: ClientData): string {
     .replace(/{email}/g, client.email || '')
     .replace(/{phone}/g, client.phone || '')
     .replace(/{address_city}/g, client.address_city || '')
-    .replace(/{address_state}/g, client.address_state || '');
+    .replace(/{address_state}/g, client.address_state || '')
+    .replace(/{sales_rep_name}/g, salesRepName)
+    .replace(/{sales_rep_email}/g, salesRepEmail)
+    .replace(/{{first_name}}/g, firstName)
+    .replace(/{{last_name}}/g, lastName)
+    .replace(/{{full_name}}/g, fullName.trim())
+    .replace(/{{email}}/g, client.email || '')
+    .replace(/{{phone}}/g, client.phone || '')
+    .replace(/{{address_city}}/g, client.address_city || '')
+    .replace(/{{address_state}}/g, client.address_state || '')
+    .replace(/{{sales_rep_name}}/g, salesRepName)
+    .replace(/{{sales_rep_email}}/g, salesRepEmail);
+}
+
+// Generate email signature with sales rep info
+function generateSalesRepSignature(salesRep?: SalesRepData | null): string {
+  if (!salesRep) {
+    return `
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+        <p style="margin: 0; font-weight: 600; color: #1f2937;">The Wonderlands World Team</p>
+        <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">sales@wonderlandsworld.com</p>
+        <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">+1 (239) 257-0637</p>
+      </div>
+    `;
+  }
+  
+  const salesRepFirstName = salesRep.first_name || '';
+  const salesRepLastName = salesRep.last_name || '';
+  const salesRepName = salesRepLastName 
+    ? `${salesRepFirstName} ${salesRepLastName}`.trim() 
+    : salesRepFirstName || 'Your Sales Representative';
+  
+  return `
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+      <p style="margin: 0; font-weight: 600; color: #1f2937;">${salesRepName}</p>
+      <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">Sales Representative - Wonderlands World</p>
+      <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">${salesRep.email}</p>
+      <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">+1 (239) 257-0637</p>
+    </div>
+  `;
 }
 
 // Send email using Resend
@@ -250,6 +304,21 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Fetch assigned sales rep info if available
+    let salesRep: SalesRepData | null = null;
+    if (client.assigned_sales_rep_id) {
+      const { data: repData, error: repError } = await supabase
+        .from("profiles")
+        .select("first_name, last_name, email")
+        .eq("id", client.assigned_sales_rep_id)
+        .single();
+      
+      if (!repError && repData) {
+        salesRep = repData;
+        console.log(`Found assigned sales rep: ${repData.first_name} ${repData.last_name}`);
+      }
+    }
+
     // Find an active automation sequence matching the trigger
     const { data: sequences, error: seqError } = await supabase
       .from("automation_sequences")
@@ -346,9 +415,20 @@ const handler = async (req: Request): Promise<Response> => {
         continue;
       }
 
-      const messageBody = replaceVariables(template.body, client);
-      const messageSubject = template.subject ? replaceVariables(template.subject, client) : undefined;
-      const htmlContent = template.html_content ? replaceVariables(template.html_content, client) : undefined;
+      const messageBody = replaceVariables(template.body, client, salesRep);
+      const messageSubject = template.subject ? replaceVariables(template.subject, client, salesRep) : undefined;
+      let htmlContent = template.html_content ? replaceVariables(template.html_content, client, salesRep) : undefined;
+      
+      // Add sales rep signature to HTML emails
+      if (htmlContent) {
+        // Insert signature before closing body tag if exists, otherwise append
+        const signature = generateSalesRepSignature(salesRep);
+        if (htmlContent.includes('</body>')) {
+          htmlContent = htmlContent.replace('</body>', `${signature}</body>`);
+        } else {
+          htmlContent = htmlContent + signature;
+        }
+      }
 
       // Send to each channel in this step
       for (const channel of step.channels) {
