@@ -6,10 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Users, FileText, LogOut, Phone, Mail, MapPin, DollarSign, Calendar, Zap, History, Loader2, ChevronDown, CheckCircle2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Users, FileText, LogOut, Phone, Mail, MapPin, DollarSign, Calendar, Zap, Loader2, CheckCircle2, UserCog } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SurveyQuoteTool from '@/components/SurveyQuoteTool';
+import SalesRepClientCRM from '@/components/SalesRepClientCRM';
 import { useTriggerAutomation } from '@/hooks/useTriggerAutomation';
 
 interface Client {
@@ -38,14 +38,6 @@ interface ClientAutomation {
   next_action_at?: string;
 }
 
-interface CommunicationLog {
-  id: string;
-  channel: string;
-  status: string;
-  sent_at?: string;
-  message_content: string;
-  subject?: string;
-}
 
 const SalesRepDashboard = () => {
   const navigate = useNavigate();
@@ -57,10 +49,8 @@ const SalesRepDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showQuoteTool, setShowQuoteTool] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
-  const [historyClient, setHistoryClient] = useState<Client | null>(null);
-  const [communicationLogs, setCommunicationLogs] = useState<CommunicationLog[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showCRM, setShowCRM] = useState(false);
+  const [crmClient, setCrmClient] = useState<Client | null>(null);
   const [triggeringClientId, setTriggeringClientId] = useState<string | null>(null);
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
@@ -127,30 +117,9 @@ const SalesRepDashboard = () => {
     }
   };
 
-  const fetchCommunicationHistory = async (clientId: string) => {
-    setLoadingHistory(true);
-    try {
-      const { data, error } = await supabase
-        .from('communication_logs')
-        .select('id, channel, status, sent_at, message_content, subject')
-        .eq('client_id', clientId)
-        .order('sent_at', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-      setCommunicationLogs(data || []);
-    } catch (error) {
-      console.error('Error fetching communication logs:', error);
-      setCommunicationLogs([]);
-    } finally {
-      setLoadingHistory(false);
-    }
-  };
-
-  const handleViewHistory = (client: Client) => {
-    setHistoryClient(client);
-    setShowHistoryDialog(true);
-    fetchCommunicationHistory(client.id);
+  const handleOpenCRM = (client: Client) => {
+    setCrmClient(client);
+    setShowCRM(true);
   };
 
   const handleTriggerAutomation = async (client: Client) => {
@@ -222,15 +191,6 @@ const SalesRepDashboard = () => {
     return null;
   };
 
-  const getChannelIcon = (channel: string) => {
-    switch (channel) {
-      case 'email': return <Mail className="h-4 w-4" />;
-      case 'sms': return <Phone className="h-4 w-4" />;
-      case 'whatsapp': return <Phone className="h-4 w-4" />;
-      case 'voice': return <Phone className="h-4 w-4" />;
-      default: return <Mail className="h-4 w-4" />;
-    }
-  };
 
   const handleLogout = async () => {
     await signOut();
@@ -428,11 +388,11 @@ const SalesRepDashboard = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleViewHistory(client)}
-                          className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+                          onClick={() => handleOpenCRM(client)}
+                          className="border-green-500/30 text-green-400 hover:bg-green-500/10"
                         >
-                          <History className="h-4 w-4 mr-1" />
-                          History
+                          <UserCog className="h-4 w-4 mr-1" />
+                          View Client
                         </Button>
                         {!clientAutomations[client.id] && (
                           <Button
@@ -516,53 +476,18 @@ const SalesRepDashboard = () => {
         }}
       />
 
-      {/* Communication History Dialog */}
-      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-        <DialogContent className="bg-slate-900 border-cyan-500/30 max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-cyan-300 font-mono">
-              Communication History - {historyClient?.first_name} {historyClient?.last_name}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {loadingHistory ? (
-            <div className="text-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-cyan-400 mx-auto" />
-              <p className="text-cyan-400/60 font-mono text-sm mt-4">Loading history...</p>
-            </div>
-          ) : communicationLogs.length === 0 ? (
-            <div className="text-center py-8">
-              <History className="h-12 w-12 text-cyan-400/40 mx-auto mb-4" />
-              <p className="text-cyan-400/60 font-mono text-sm">No communication history yet</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {communicationLogs.map((log) => (
-                <div key={log.id} className="holographic-panel border-cyan-500/20 p-3 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="p-1.5 rounded bg-cyan-500/20">
-                      {getChannelIcon(log.channel)}
-                    </div>
-                    <Badge className="font-mono text-xs capitalize">{log.channel}</Badge>
-                    <Badge className={`font-mono text-xs ${log.status === 'sent' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
-                      {log.status}
-                    </Badge>
-                    {log.sent_at && (
-                      <span className="text-xs text-cyan-400/60 font-mono ml-auto">
-                        {new Date(log.sent_at).toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-                  {log.subject && (
-                    <p className="text-sm text-cyan-300 font-medium mb-1">{log.subject}</p>
-                  )}
-                  <p className="text-sm text-cyan-400/80 line-clamp-3">{log.message_content}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* CRM Dialog */}
+      {crmClient && (
+        <SalesRepClientCRM
+          client={crmClient}
+          isOpen={showCRM}
+          onClose={() => {
+            setShowCRM(false);
+            setCrmClient(null);
+          }}
+          onClientUpdated={fetchAssignedClients}
+        />
+      )}
     </div>
   );
 };
