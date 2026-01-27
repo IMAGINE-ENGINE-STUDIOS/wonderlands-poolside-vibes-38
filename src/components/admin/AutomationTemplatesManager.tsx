@@ -285,7 +285,7 @@ export default function AutomationTemplatesManager() {
                   className="bg-gray-800 border-cyan-500/30"
                 />
                 <p className="text-xs text-cyan-400/40">
-                  Available variables: {'{first_name}'}, {'{last_name}'}, {'{full_name}'}, {'{email}'}
+                  Available variables: {'{first_name}'}, {'{last_name}'}, {'{full_name}'}, {'{email}'}, {'{sales_rep_name}'}, {'{sales_rep_email}'}
                 </p>
               </div>
 
@@ -416,7 +416,9 @@ export default function AutomationTemplatesManager() {
                     .replace(/{first_name}/g, 'John')
                     .replace(/{last_name}/g, 'Doe')
                     .replace(/{full_name}/g, 'John Doe')
-                    .replace(/{email}/g, 'john@example.com')}
+                    .replace(/{email}/g, 'john@example.com')
+                    .replace(/{sales_rep_name}/g, 'Sarah Johnson')
+                    .replace(/{sales_rep_email}/g, 'sarah@wonderlandsworld.com')}
                 </div>
               </div>
             </div>
