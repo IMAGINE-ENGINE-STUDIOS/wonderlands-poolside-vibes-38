@@ -365,6 +365,64 @@ export type Database = {
           },
         ]
       }
+      client_sales_team: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          category: Database["public"]["Enums"]["sales_rep_category"]
+          client_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          sales_rep_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          category: Database["public"]["Enums"]["sales_rep_category"]
+          client_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sales_rep_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          category?: Database["public"]["Enums"]["sales_rep_category"]
+          client_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sales_rep_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_sales_team_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_sales_team_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_sales_team_sales_rep_id_fkey"
+            columns: ["sales_rep_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address_city: string | null
@@ -1858,6 +1916,9 @@ export type Database = {
           is_active: boolean
           last_name: string | null
           role: Database["public"]["Enums"]["user_role"]
+          sales_category:
+            | Database["public"]["Enums"]["sales_rep_category"]
+            | null
           updated_at: string
         }
         Insert: {
@@ -1870,6 +1931,9 @@ export type Database = {
           is_active?: boolean
           last_name?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          sales_category?:
+            | Database["public"]["Enums"]["sales_rep_category"]
+            | null
           updated_at?: string
         }
         Update: {
@@ -1882,6 +1946,9 @@ export type Database = {
           is_active?: boolean
           last_name?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          sales_category?:
+            | Database["public"]["Enums"]["sales_rep_category"]
+            | null
           updated_at?: string
         }
         Relationships: []
@@ -2058,6 +2125,63 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      sales_commissions: {
+        Row: {
+          category: Database["public"]["Enums"]["sales_rep_category"]
+          client_id: string
+          commission_amount: number
+          commission_rate: number
+          created_at: string
+          deal_description: string | null
+          deal_value: number
+          id: string
+          sales_rep_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["sales_rep_category"]
+          client_id: string
+          commission_amount: number
+          commission_rate: number
+          created_at?: string
+          deal_description?: string | null
+          deal_value: number
+          id?: string
+          sales_rep_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["sales_rep_category"]
+          client_id?: string
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string
+          deal_description?: string | null
+          deal_value?: number
+          id?: string
+          sales_rep_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_commissions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_commissions_sales_rep_id_fkey"
+            columns: ["sales_rep_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       search_analytics: {
         Row: {
@@ -2706,6 +2830,12 @@ export type Database = {
         | "failed"
         | "opened"
         | "clicked"
+      sales_rep_category:
+        | "bdr"
+        | "ae"
+        | "csm"
+        | "regional_sales"
+        | "head_of_sales"
       user_role: "main_admin" | "supplier" | "consumer" | "sales_rep"
     }
     CompositeTypes: {
@@ -2850,6 +2980,13 @@ export const Constants = {
         "failed",
         "opened",
         "clicked",
+      ],
+      sales_rep_category: [
+        "bdr",
+        "ae",
+        "csm",
+        "regional_sales",
+        "head_of_sales",
       ],
       user_role: ["main_admin", "supplier", "consumer", "sales_rep"],
     },
