@@ -1,0 +1,376 @@
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { 
+  Users, Search, Crown, DollarSign, TrendingUp, 
+  UserPlus, Target, Briefcase, UserCheck, MapPin, Loader2 
+} from "lucide-react";
+import ClientSalesTeamAssignment from "./ClientSalesTeamAssignment";
+import CommissionCalculator from "./CommissionCalculator";
+
+type SalesCategory = 'bdr' | 'ae' | 'csm' | 'regional_sales' | 'head_of_sales';
+
+interface Client {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  status: string;
+  price_range_min?: number;
+  price_range_max?: number;
+  created_at: string;
+}
+
+interface SalesRep {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  sales_category: SalesCategory | null;
+}
+
+interface TeamAssignment {
+  client_id: string;
+  sales_rep_id: string;
+  category: SalesCategory;
+  sales_rep?: SalesRep;
+}
+
+const CATEGORY_CONFIG: Record<SalesCategory, { label: string; icon: typeof Crown; color: string }> = {
+  head_of_sales: { label: 'Head of Sales', icon: Crown, color: 'text-amber-400' },
+  bdr: { label: 'BDR', icon: Target, color: 'text-blue-400' },
+  ae: { label: 'AE', icon: Briefcase, color: 'text-green-400' },
+  csm: { label: 'CSM', icon: UserCheck, color: 'text-purple-400' },
+  regional_sales: { label: 'Regional', icon: MapPin, color: 'text-cyan-400' },
+};
+
+const HeadOfSalesDashboard = () => {
+  const { toast } = useToast();
+  const [clients, setClients] = useState<Client[]>([]);
+  const [salesReps, setSalesReps] = useState<SalesRep[]>([]);
+  const [teamAssignments, setTeamAssignments] = useState<TeamAssignment[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      // Load all clients
+      const { data: clientsData, error: clientsError } = await supabase
+        .from('clients')
+        .select('id, first_name, last_name, email, status, price_range_min, price_range_max, created_at')
+        .order('created_at', { ascending: false });
+
+      if (clientsError) throw clientsError;
+      setClients(clientsData || []);
+
+      // Load all sales reps
+      const { data: repsData, error: repsError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email, sales_category')
+        .eq('role', 'sales_rep' as any)
+        .eq('is_active', true);
+
+      if (repsError) throw repsError;
+      setSalesReps((repsData as SalesRep[]) || []);
+
+      // Load team assignments
+      const { data: assignmentsData, error: assignError } = await supabase
+        .from('client_sales_team')
+        .select('client_id, sales_rep_id, category')
+        .eq('is_active', true);
+
+      if (assignError) throw assignError;
+      setTeamAssignments((assignmentsData as TeamAssignment[]) || []);
+
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard data",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getClientTeam = (clientId: string) => {
+    return teamAssignments
+      .filter(a => a.client_id === clientId)
+      .map(a => {
+        const rep = salesReps.find(r => r.id === a.sales_rep_id);
+        return { ...a, sales_rep: rep };
+      });
+  };
+
+  const getTeamStats = () => {
+    const stats: Record<SalesCategory, number> = {
+      head_of_sales: 0,
+      bdr: 0,
+      ae: 0,
+      csm: 0,
+      regional_sales: 0
+    };
+
+    salesReps.forEach(rep => {
+      if (rep.sales_category) {
+        stats[rep.sales_category]++;
+      }
+    });
+
+    return stats;
+  };
+
+  const filteredClients = clients.filter(client => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      client.first_name.toLowerCase().includes(searchLower) ||
+      client.last_name.toLowerCase().includes(searchLower) ||
+      client.email.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const openAssignDialog = (client: Client) => {
+    setSelectedClient(client);
+    setIsAssignDialogOpen(true);
+  };
+
+  const handleAssignmentSaved = () => {
+    setIsAssignDialogOpen(false);
+    setSelectedClient(null);
+    loadData();
+  };
+
+  const teamStats = getTeamStats();
+
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      new: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+      contacted: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+      qualified: 'bg-green-500/20 text-green-300 border-green-500/30',
+      proposal_sent: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+      negotiating: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+      won: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+      lost: 'bg-red-500/20 text-red-300 border-red-500/30'
+    };
+    return colors[status] || colors.new;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Stats Overview */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        {Object.entries(CATEGORY_CONFIG).map(([key, config]) => {
+          const IconComponent = config.icon;
+          const count = teamStats[key as SalesCategory] || 0;
+          return (
+            <Card key={key} className="holographic-panel border-cyan-500/30">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <IconComponent className={`h-5 w-5 ${config.color}`} />
+                  <div>
+                    <p className="text-xl font-bold text-cyan-300 font-mono">{count}</p>
+                    <p className="text-xs text-cyan-400/60">{config.label}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Main Content */}
+      <Tabs defaultValue="clients" className="space-y-4">
+        <TabsList className="bg-slate-800/50 border border-cyan-500/30">
+          <TabsTrigger value="clients" className="data-[state=active]:bg-cyan-500/20">
+            <Users className="h-4 w-4 mr-2" />
+            All Clients
+          </TabsTrigger>
+          <TabsTrigger value="pipeline" className="data-[state=active]:bg-cyan-500/20">
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Pipeline
+          </TabsTrigger>
+          <TabsTrigger value="commissions" className="data-[state=active]:bg-cyan-500/20">
+            <DollarSign className="h-4 w-4 mr-2" />
+            Commissions
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="clients" className="space-y-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search clients..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-slate-800/50 border-cyan-500/30"
+            />
+          </div>
+
+          {/* Clients Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredClients.map(client => {
+              const team = getClientTeam(client.id);
+              const dealValue = client.price_range_max || client.price_range_min || 0;
+              
+              return (
+                <Card key={client.id} className="holographic-panel border-cyan-500/30 hover:border-cyan-500/50 transition-all">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-cyan-300 font-mono text-base">
+                          {client.first_name} {client.last_name}
+                        </CardTitle>
+                        <CardDescription className="text-cyan-400/60 text-xs">
+                          {client.email}
+                        </CardDescription>
+                      </div>
+                      <Badge className={getStatusColor(client.status)}>
+                        {client.status}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {/* Deal Value */}
+                    {dealValue > 0 && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <DollarSign className="h-4 w-4 text-green-400" />
+                        <span className="font-mono text-green-300">
+                          ${dealValue.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Team Assignments */}
+                    <div className="flex flex-wrap gap-1">
+                      {team.length === 0 ? (
+                        <Badge variant="secondary" className="text-xs">No team assigned</Badge>
+                      ) : (
+                        team.map(assignment => {
+                          const config = CATEGORY_CONFIG[assignment.category];
+                          return (
+                            <Badge 
+                              key={`${assignment.client_id}-${assignment.category}`}
+                              variant="outline"
+                              className="text-xs"
+                            >
+                              <span className={config.color}>{config.label}</span>
+                            </Badge>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openAssignDialog(client)}
+                      className="w-full border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
+                    >
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Manage Team
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {filteredClients.length === 0 && (
+            <div className="text-center py-12 text-cyan-400/60">
+              No clients found
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="pipeline">
+          <Card className="holographic-panel border-cyan-500/30">
+            <CardHeader>
+              <CardTitle className="text-cyan-300 font-mono">Sales Pipeline</CardTitle>
+              <CardDescription className="text-cyan-400/60">
+                Track deals through the pipeline
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-7 gap-2">
+                {['new', 'contacted', 'qualified', 'proposal_sent', 'negotiating', 'won', 'lost'].map(stage => {
+                  const stageClients = clients.filter(c => c.status === stage);
+                  return (
+                    <div key={stage} className="space-y-2">
+                      <div className="text-center">
+                        <Badge className={getStatusColor(stage)}>
+                          {stage.replace('_', ' ')}
+                        </Badge>
+                        <p className="text-lg font-bold text-cyan-300 mt-1">{stageClients.length}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="commissions">
+          <Card className="holographic-panel border-cyan-500/30">
+            <CardHeader>
+              <CardTitle className="text-cyan-300 font-mono">Commission Tracker</CardTitle>
+              <CardDescription className="text-cyan-400/60">
+                View and manage team commissions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-cyan-400/60 text-center py-8">
+                Commission tracking coming soon...
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Assignment Dialog */}
+      <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+        <DialogContent className="max-w-4xl bg-slate-900 border-cyan-500/30">
+          <DialogHeader>
+            <DialogTitle className="text-cyan-300 font-mono">
+              Manage Sales Team
+            </DialogTitle>
+          </DialogHeader>
+          {selectedClient && (
+            <ClientSalesTeamAssignment
+              clientId={selectedClient.id}
+              clientName={`${selectedClient.first_name} ${selectedClient.last_name}`}
+              dealValue={selectedClient.price_range_max || selectedClient.price_range_min || 50000}
+              onClose={() => setIsAssignDialogOpen(false)}
+              onSave={handleAssignmentSaved}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default HeadOfSalesDashboard;

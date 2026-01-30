@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag } from 'lucide-react';
+import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag, Crown } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,11 +28,13 @@ import { PoolCalculator } from '@/components/PoolCalculator';
 import { PerformanceMonitoring } from '@/components/admin/PerformanceMonitoring';
 import AdminContractorManagement from '@/components/admin/AdminContractorManagement';
 import SalesRepManager from '@/components/admin/SalesRepManager';
+import SalesRepCategoryManager from '@/components/admin/SalesRepCategoryManager';
 import AutomationTemplatesManager from '@/components/admin/AutomationTemplatesManager';
 import AutomationSequencesManager from '@/components/admin/AutomationSequencesManager';
 import AutomationStatusManager from '@/components/admin/AutomationStatusManager';
 import { TwilioTestPanel } from '@/components/admin/TwilioTestPanel';
 import AdminPromotionsManager from '@/components/admin/AdminPromotionsManager';
+import HeadOfSalesDashboard from '@/components/HeadOfSalesDashboard';
 
 // Navigation Item Component
 const NavItem = ({
@@ -249,6 +251,8 @@ const AdminDashboard = () => {
                 <NavItem icon={Users} label="Users" active={activeSection === "users"} onClick={() => setActiveSection("users")} />
                 <NavItem icon={Tag} label="Promotions" active={activeSection === "promotions"} onClick={() => setActiveSection("promotions")} />
                 <NavItem icon={Users} label="Sales Reps" active={activeSection === "sales-reps"} onClick={() => setActiveSection("sales-reps")} />
+                <NavItem icon={Crown} label="Sales Categories" active={activeSection === "sales-categories"} onClick={() => setActiveSection("sales-categories")} />
+                <NavItem icon={DollarSign} label="Head of Sales" active={activeSection === "head-of-sales"} onClick={() => setActiveSection("head-of-sales")} />
                 <NavItem icon={Users} label="Clients" active={activeSection === "clients"} onClick={() => setActiveSection("clients")} />
                 <NavItem icon={Building2} label="Contractors" active={activeSection === "contractors"} onClick={() => setActiveSection("contractors")} />
                 <NavItem icon={Gift} label="Referrals" active={activeSection === "referrals"} onClick={() => setActiveSection("referrals")} />
@@ -389,6 +393,42 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <SalesRepManager />
+              </CardContent>
+            </Card>
+          </div>}
+
+          {/* Sales Categories Tab */}
+          {activeSection === "sales-categories" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+            <Card className="holographic-panel border-cyan-500/30">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
+                  <Crown className="h-5 w-5 text-amber-400" />
+                  Sales Team Categories
+                </CardTitle>
+                <CardDescription className="text-cyan-400/60 font-mono">
+                  Assign categories (BDR, AE, CSM, Regional Sales, Head of Sales) to define commission rates
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SalesRepCategoryManager />
+              </CardContent>
+            </Card>
+          </div>}
+
+          {/* Head of Sales Dashboard */}
+          {activeSection === "head-of-sales" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+            <Card className="holographic-panel border-cyan-500/30">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
+                  <Crown className="h-5 w-5 text-amber-400" />
+                  Head of Sales Dashboard
+                </CardTitle>
+                <CardDescription className="text-cyan-400/60 font-mono">
+                  Assign sales teams to clients and track commissions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <HeadOfSalesDashboard />
               </CardContent>
             </Card>
           </div>}

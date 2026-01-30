@@ -6,10 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Users, FileText, LogOut, Phone, Mail, MapPin, DollarSign, Calendar, Zap, Loader2, CheckCircle2, UserCog } from 'lucide-react';
+import { Users, FileText, LogOut, Phone, Mail, MapPin, DollarSign, Calendar, Zap, Loader2, CheckCircle2, UserCog, Crown } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SurveyQuoteTool from '@/components/SurveyQuoteTool';
 import SalesRepClientCRM from '@/components/SalesRepClientCRM';
+import HeadOfSalesDashboard from '@/components/HeadOfSalesDashboard';
 import { useTriggerAutomation } from '@/hooks/useTriggerAutomation';
 
 interface Client {
@@ -53,6 +55,8 @@ const SalesRepDashboard = () => {
   const [crmClient, setCrmClient] = useState<Client | null>(null);
   const [triggeringClientId, setTriggeringClientId] = useState<string | null>(null);
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+  const [isHeadOfSales, setIsHeadOfSales] = useState(false);
+  const [activeView, setActiveView] = useState<'my-clients' | 'team-management'>('my-clients');
 
   const PIPELINE_STAGES = [
     { value: 'new', label: 'New', icon: '🆕' },
@@ -75,8 +79,28 @@ const SalesRepDashboard = () => {
       return;
     }
 
+    // Check if user is Head of Sales
+    checkHeadOfSalesStatus();
     fetchAssignedClients();
   }, [user, profile, navigate]);
+
+  const checkHeadOfSalesStatus = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('sales_category')
+        .eq('id', user.id)
+        .single();
+      
+      if (!error && data) {
+        setIsHeadOfSales((data as any).sales_category === 'head_of_sales');
+      }
+    } catch (error) {
+      console.error('Error checking head of sales status:', error);
+    }
+  };
 
   const fetchAssignedClients = async () => {
     try {
@@ -238,11 +262,13 @@ const SalesRepDashboard = () => {
                 <Users className="h-5 w-5 text-cyan-400" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-cyan-300 font-mono tracking-wide">
-                  SALES REP PORTAL
+                <h1 className="text-xl font-bold text-cyan-300 font-mono tracking-wide flex items-center gap-2">
+                  {isHeadOfSales && <Crown className="h-5 w-5 text-amber-400" />}
+                  {isHeadOfSales ? 'HEAD OF SALES PORTAL' : 'SALES REP PORTAL'}
                 </h1>
                 <p className="text-xs text-cyan-400/60 font-mono">
                   Welcome, {profile?.first_name || profile?.email}
+                  {isHeadOfSales && <span className="ml-2 text-amber-400">• Head of Sales</span>}
                 </p>
               </div>
             </div>
@@ -260,6 +286,30 @@ const SalesRepDashboard = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
+        {/* Head of Sales Tabs */}
+        {isHeadOfSales && (
+          <Tabs value={activeView} onValueChange={(v) => setActiveView(v as 'my-clients' | 'team-management')} className="mb-6">
+            <TabsList className="bg-slate-800/50 border border-cyan-500/30">
+              <TabsTrigger value="my-clients" className="data-[state=active]:bg-cyan-500/20">
+                <Users className="h-4 w-4 mr-2" />
+                My Clients
+              </TabsTrigger>
+              <TabsTrigger value="team-management" className="data-[state=active]:bg-amber-500/20">
+                <Crown className="h-4 w-4 mr-2" />
+                Team Management
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
+
+        {/* Team Management View (Head of Sales Only) */}
+        {isHeadOfSales && activeView === 'team-management' && (
+          <HeadOfSalesDashboard />
+        )}
+
+        {/* Regular Sales Rep View */}
+        {(!isHeadOfSales || activeView === 'my-clients') && (
+          <>
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card className="holographic-panel border-cyan-500/30">
@@ -464,6 +514,8 @@ const SalesRepDashboard = () => {
             )}
           </CardContent>
         </Card>
+      </>
+        )}
       </div>
 
       {/* Quote Tool Dialog */}
