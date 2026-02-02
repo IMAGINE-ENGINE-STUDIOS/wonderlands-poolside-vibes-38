@@ -8,9 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { format, formatDistanceToNow } from "date-fns";
 import { 
   Users, Search, Crown, DollarSign, TrendingUp, 
-  UserPlus, Target, Briefcase, UserCheck, MapPin, Loader2, Plus
+  UserPlus, Target, Briefcase, UserCheck, MapPin, Loader2, Plus, Clock
 } from "lucide-react";
 import ClientSalesTeamAssignment from "./ClientSalesTeamAssignment";
 import CommissionCalculator from "./CommissionCalculator";
@@ -26,6 +27,7 @@ interface Client {
   price_range_min?: number;
   price_range_max?: number;
   created_at: string;
+  updated_at: string;
 }
 
 interface SalesRep {
@@ -86,8 +88,8 @@ const HeadOfSalesDashboard = () => {
       // Load all clients
       const { data: clientsData, error: clientsError } = await supabase
         .from('clients')
-        .select('id, first_name, last_name, email, status, price_range_min, price_range_max, created_at')
-        .order('created_at', { ascending: false });
+        .select('id, first_name, last_name, email, status, price_range_min, price_range_max, created_at, updated_at')
+        .order('updated_at', { ascending: false });
 
       if (clientsError) throw clientsError;
       setClients(clientsData || []);
@@ -342,6 +344,16 @@ const HeadOfSalesDashboard = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
+                    {/* Last Updated */}
+                    <div className="flex items-center gap-2 text-xs text-cyan-400/70">
+                      <Clock className="h-3 w-3" />
+                      <span>
+                        Updated {formatDistanceToNow(new Date(client.updated_at), { addSuffix: true })}
+                      </span>
+                      <span className="text-cyan-500/50">•</span>
+                      <span>{format(new Date(client.updated_at), 'MMM d, h:mm a')}</span>
+                    </div>
+
                     {/* Deal Value */}
                     {dealValue > 0 && (
                       <div className="flex items-center gap-2 text-sm">
