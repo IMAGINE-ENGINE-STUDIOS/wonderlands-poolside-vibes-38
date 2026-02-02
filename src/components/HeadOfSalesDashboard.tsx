@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Users, Search, Crown, DollarSign, TrendingUp, 
-  UserPlus, Target, Briefcase, UserCheck, MapPin, Loader2 
+  UserPlus, Target, Briefcase, UserCheck, MapPin, Loader2, Plus
 } from "lucide-react";
 import ClientSalesTeamAssignment from "./ClientSalesTeamAssignment";
 import CommissionCalculator from "./CommissionCalculator";
@@ -59,6 +60,21 @@ const HeadOfSalesDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [isAddClientDialogOpen, setIsAddClientDialogOpen] = useState(false);
+  const [isAddingClient, setIsAddingClient] = useState(false);
+  const [newClient, setNewClient] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    address_street: '',
+    address_city: '',
+    address_state: 'Florida',
+    address_zip: '',
+    price_range_min: '',
+    price_range_max: '',
+    notes: ''
+  });
 
   useEffect(() => {
     loadData();
@@ -154,6 +170,70 @@ const HeadOfSalesDashboard = () => {
     loadData();
   };
 
+  const handleAddClient = async () => {
+    if (!newClient.first_name || !newClient.last_name || !newClient.email) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in first name, last name, and email",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAddingClient(true);
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .insert({
+          first_name: newClient.first_name,
+          last_name: newClient.last_name,
+          email: newClient.email,
+          phone: newClient.phone || null,
+          address_street: newClient.address_street || null,
+          address_city: newClient.address_city || null,
+          address_state: newClient.address_state || null,
+          address_zip: newClient.address_zip || null,
+          price_range_min: newClient.price_range_min ? parseFloat(newClient.price_range_min) : null,
+          price_range_max: newClient.price_range_max ? parseFloat(newClient.price_range_max) : null,
+          notes: newClient.notes || null,
+          status: 'new',
+          source: 'head_of_sales'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Client Added",
+        description: `${newClient.first_name} ${newClient.last_name} has been added successfully`,
+      });
+
+      setNewClient({
+        first_name: '',
+        last_name: '',
+        email: '',
+        phone: '',
+        address_street: '',
+        address_city: '',
+        address_state: 'Florida',
+        address_zip: '',
+        price_range_min: '',
+        price_range_max: '',
+        notes: ''
+      });
+      setIsAddClientDialogOpen(false);
+      loadData();
+    } catch (error) {
+      console.error('Error adding client:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add client",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingClient(false);
+    }
+  };
+
   const teamStats = getTeamStats();
 
   const getStatusColor = (status: string) => {
@@ -218,15 +298,24 @@ const HeadOfSalesDashboard = () => {
         </TabsList>
 
         <TabsContent value="clients" className="space-y-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search clients..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-slate-800/50 border-cyan-500/30"
-            />
+          {/* Search and Add Button */}
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search clients..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-slate-800/50 border-cyan-500/30"
+              />
+            </div>
+            <Button
+              onClick={() => setIsAddClientDialogOpen(true)}
+              className="bg-cyan-500 hover:bg-cyan-600 text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Client
+            </Button>
           </div>
 
           {/* Clients Grid */}
@@ -367,6 +456,157 @@ const HeadOfSalesDashboard = () => {
               onSave={handleAssignmentSaved}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Client Dialog */}
+      <Dialog open={isAddClientDialogOpen} onOpenChange={setIsAddClientDialogOpen}>
+        <DialogContent className="max-w-2xl bg-slate-900 border-cyan-500/30 max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-cyan-300 font-mono flex items-center gap-2">
+              <UserPlus className="h-5 w-5" />
+              Add New Client
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-cyan-400">First Name *</Label>
+                <Input
+                  value={newClient.first_name}
+                  onChange={(e) => setNewClient({ ...newClient, first_name: e.target.value })}
+                  placeholder="John"
+                  className="bg-slate-800/50 border-cyan-500/30"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-cyan-400">Last Name *</Label>
+                <Input
+                  value={newClient.last_name}
+                  onChange={(e) => setNewClient({ ...newClient, last_name: e.target.value })}
+                  placeholder="Smith"
+                  className="bg-slate-800/50 border-cyan-500/30"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-cyan-400">Email *</Label>
+                <Input
+                  type="email"
+                  value={newClient.email}
+                  onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
+                  placeholder="john@example.com"
+                  className="bg-slate-800/50 border-cyan-500/30"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-cyan-400">Phone</Label>
+                <Input
+                  value={newClient.phone}
+                  onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
+                  placeholder="(555) 123-4567"
+                  className="bg-slate-800/50 border-cyan-500/30"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-cyan-400">Street Address</Label>
+              <Input
+                value={newClient.address_street}
+                onChange={(e) => setNewClient({ ...newClient, address_street: e.target.value })}
+                placeholder="123 Main St"
+                className="bg-slate-800/50 border-cyan-500/30"
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="text-cyan-400">City</Label>
+                <Input
+                  value={newClient.address_city}
+                  onChange={(e) => setNewClient({ ...newClient, address_city: e.target.value })}
+                  placeholder="Jacksonville"
+                  className="bg-slate-800/50 border-cyan-500/30"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-cyan-400">State</Label>
+                <Input
+                  value={newClient.address_state}
+                  onChange={(e) => setNewClient({ ...newClient, address_state: e.target.value })}
+                  placeholder="Florida"
+                  className="bg-slate-800/50 border-cyan-500/30"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-cyan-400">ZIP Code</Label>
+                <Input
+                  value={newClient.address_zip}
+                  onChange={(e) => setNewClient({ ...newClient, address_zip: e.target.value })}
+                  placeholder="32256"
+                  className="bg-slate-800/50 border-cyan-500/30"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-cyan-400">Budget Min ($)</Label>
+                <Input
+                  type="number"
+                  value={newClient.price_range_min}
+                  onChange={(e) => setNewClient({ ...newClient, price_range_min: e.target.value })}
+                  placeholder="50000"
+                  className="bg-slate-800/50 border-cyan-500/30"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-cyan-400">Budget Max ($)</Label>
+                <Input
+                  type="number"
+                  value={newClient.price_range_max}
+                  onChange={(e) => setNewClient({ ...newClient, price_range_max: e.target.value })}
+                  placeholder="100000"
+                  className="bg-slate-800/50 border-cyan-500/30"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-cyan-400">Notes</Label>
+              <Input
+                value={newClient.notes}
+                onChange={(e) => setNewClient({ ...newClient, notes: e.target.value })}
+                placeholder="Interested in fiberglass pools..."
+                className="bg-slate-800/50 border-cyan-500/30"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsAddClientDialogOpen(false)}
+                className="flex-1 border-cyan-500/30 text-cyan-300"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddClient}
+                disabled={isAddingClient}
+                className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-white"
+              >
+                {isAddingClient ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-2" />
+                )}
+                Add Client
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
