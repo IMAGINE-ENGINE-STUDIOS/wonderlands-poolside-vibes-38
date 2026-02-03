@@ -367,7 +367,7 @@ const HeadOfSalesDashboard = () => {
                     {/* Team Assignments */}
                     <div className="flex flex-wrap gap-1">
                       {team.length === 0 ? (
-                        <Badge variant="secondary" className="text-xs">No team assigned</Badge>
+                        <Badge variant="secondary" className="text-xs text-black">No team assigned</Badge>
                       ) : (
                         team.map(assignment => {
                           const config = CATEGORY_CONFIG[assignment.category];
@@ -375,9 +375,9 @@ const HeadOfSalesDashboard = () => {
                             <Badge 
                               key={`${assignment.client_id}-${assignment.category}`}
                               variant="outline"
-                              className="text-xs"
+                              className="text-xs text-black"
                             >
-                              <span className={config.color}>{config.label}</span>
+                              <span className="text-black">{config.label}</span>
                             </Badge>
                           );
                         })
