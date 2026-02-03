@@ -46,11 +46,11 @@ interface TeamAssignment {
 }
 
 const CATEGORY_CONFIG: Record<SalesCategory, { label: string; icon: typeof Crown; color: string }> = {
-  head_of_sales: { label: 'Head of Sales', icon: Crown, color: 'text-amber-400' },
-  bdr: { label: 'BDR', icon: Target, color: 'text-blue-400' },
-  ae: { label: 'AE', icon: Briefcase, color: 'text-green-400' },
-  csm: { label: 'CSM', icon: UserCheck, color: 'text-purple-400' },
-  regional_sales: { label: 'Regional', icon: MapPin, color: 'text-cyan-400' },
+  head_of_sales: { label: 'Head of Sales', icon: Crown, color: 'text-amber-600' },
+  bdr: { label: 'BDR', icon: Target, color: 'text-blue-600' },
+  ae: { label: 'AE', icon: Briefcase, color: 'text-green-600' },
+  csm: { label: 'CSM', icon: UserCheck, color: 'text-purple-600' },
+  regional_sales: { label: 'Regional', icon: MapPin, color: 'text-cyan-600' },
 };
 
 const HeadOfSalesDashboard = () => {
@@ -267,13 +267,13 @@ const HeadOfSalesDashboard = () => {
           const IconComponent = config.icon;
           const count = teamStats[key as SalesCategory] || 0;
           return (
-            <Card key={key} className="holographic-panel border-cyan-500/30">
+            <Card key={key} className="bg-white border-slate-200 shadow-sm">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <IconComponent className={`h-5 w-5 ${config.color}`} />
                   <div>
-                    <p className="text-xl font-bold text-cyan-300 font-mono">{count}</p>
-                    <p className="text-xs text-cyan-400/60">{config.label}</p>
+                    <p className="text-xl font-bold text-black font-mono">{count}</p>
+                    <p className="text-xs text-black/60">{config.label}</p>
                   </div>
                 </div>
               </CardContent>
@@ -284,16 +284,16 @@ const HeadOfSalesDashboard = () => {
 
       {/* Main Content */}
       <Tabs defaultValue="clients" className="space-y-4">
-        <TabsList className="bg-slate-800/50 border border-cyan-500/30">
-          <TabsTrigger value="clients" className="data-[state=active]:bg-cyan-500/20">
+        <TabsList className="bg-slate-100 border border-slate-300">
+          <TabsTrigger value="clients" className="data-[state=active]:bg-white text-black data-[state=active]:text-black">
             <Users className="h-4 w-4 mr-2" />
             All Clients
           </TabsTrigger>
-          <TabsTrigger value="pipeline" className="data-[state=active]:bg-cyan-500/20">
+          <TabsTrigger value="pipeline" className="data-[state=active]:bg-white text-black data-[state=active]:text-black">
             <TrendingUp className="h-4 w-4 mr-2" />
             Pipeline
           </TabsTrigger>
-          <TabsTrigger value="commissions" className="data-[state=active]:bg-cyan-500/20">
+          <TabsTrigger value="commissions" className="data-[state=active]:bg-white text-black data-[state=active]:text-black">
             <DollarSign className="h-4 w-4 mr-2" />
             Commissions
           </TabsTrigger>
@@ -303,17 +303,17 @@ const HeadOfSalesDashboard = () => {
           {/* Search and Add Button */}
           <div className="flex gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/60" />
               <Input
                 placeholder="Search clients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-slate-800/50 border-cyan-500/30"
+                className="pl-10 bg-white border-slate-300 text-black placeholder:text-black/50"
               />
             </div>
             <Button
               onClick={() => setIsAddClientDialogOpen(true)}
-              className="bg-cyan-500 hover:bg-cyan-600 text-white"
+              className="bg-slate-800 hover:bg-slate-900 text-white"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Client
@@ -327,14 +327,14 @@ const HeadOfSalesDashboard = () => {
               const dealValue = client.price_range_max || client.price_range_min || 0;
               
               return (
-                <Card key={client.id} className="holographic-panel border-cyan-500/30 hover:border-cyan-500/50 transition-all">
+                <Card key={client.id} className="bg-white border-slate-200 hover:border-slate-400 transition-all shadow-sm">
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-cyan-300 font-mono text-base">
+                        <CardTitle className="text-black font-mono text-base">
                           {client.first_name} {client.last_name}
                         </CardTitle>
-                        <CardDescription className="text-cyan-400/60 text-xs">
+                        <CardDescription className="text-black/60 text-xs">
                           {client.email}
                         </CardDescription>
                       </div>
@@ -345,20 +345,20 @@ const HeadOfSalesDashboard = () => {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {/* Last Updated */}
-                    <div className="flex items-center gap-2 text-xs text-cyan-400/70">
+                    <div className="flex items-center gap-2 text-xs text-black/70">
                       <Clock className="h-3 w-3" />
                       <span>
                         Updated {formatDistanceToNow(new Date(client.updated_at), { addSuffix: true })}
                       </span>
-                      <span className="text-cyan-500/50">•</span>
+                      <span className="text-black/50">•</span>
                       <span>{format(new Date(client.updated_at), 'MMM d, h:mm a')}</span>
                     </div>
 
                     {/* Deal Value */}
                     {dealValue > 0 && (
                       <div className="flex items-center gap-2 text-sm">
-                        <DollarSign className="h-4 w-4 text-green-400" />
-                        <span className="font-mono text-green-300">
+                        <DollarSign className="h-4 w-4 text-green-600" />
+                        <span className="font-mono text-green-700">
                           ${dealValue.toLocaleString()}
                         </span>
                       </div>
@@ -388,7 +388,7 @@ const HeadOfSalesDashboard = () => {
                       size="sm"
                       variant="outline"
                       onClick={() => openAssignDialog(client)}
-                      className="w-full border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
+                      className="w-full border-slate-300 text-black hover:bg-slate-100"
                     >
                       <UserPlus className="h-4 w-4 mr-2" />
                       Manage Team
@@ -400,17 +400,17 @@ const HeadOfSalesDashboard = () => {
           </div>
 
           {filteredClients.length === 0 && (
-            <div className="text-center py-12 text-cyan-400/60">
+            <div className="text-center py-12 text-black/60">
               No clients found
             </div>
           )}
         </TabsContent>
 
         <TabsContent value="pipeline">
-          <Card className="holographic-panel border-cyan-500/30">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-cyan-300 font-mono">Sales Pipeline</CardTitle>
-              <CardDescription className="text-cyan-400/60">
+              <CardTitle className="text-black font-mono">Sales Pipeline</CardTitle>
+              <CardDescription className="text-black/60">
                 Track deals through the pipeline
               </CardDescription>
             </CardHeader>
@@ -424,7 +424,7 @@ const HeadOfSalesDashboard = () => {
                         <Badge className={getStatusColor(stage)}>
                           {stage.replace('_', ' ')}
                         </Badge>
-                        <p className="text-lg font-bold text-cyan-300 mt-1">{stageClients.length}</p>
+                        <p className="text-lg font-bold text-black mt-1">{stageClients.length}</p>
                       </div>
                     </div>
                   );
@@ -435,15 +435,15 @@ const HeadOfSalesDashboard = () => {
         </TabsContent>
 
         <TabsContent value="commissions">
-          <Card className="holographic-panel border-cyan-500/30">
+          <Card className="bg-white border-slate-200 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-cyan-300 font-mono">Commission Tracker</CardTitle>
-              <CardDescription className="text-cyan-400/60">
+              <CardTitle className="text-black font-mono">Commission Tracker</CardTitle>
+              <CardDescription className="text-black/60">
                 View and manage team commissions
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-cyan-400/60 text-center py-8">
+              <p className="text-black/60 text-center py-8">
                 Commission tracking coming soon...
               </p>
             </CardContent>
@@ -453,9 +453,9 @@ const HeadOfSalesDashboard = () => {
 
       {/* Assignment Dialog */}
       <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
-        <DialogContent className="max-w-4xl bg-slate-900 border-cyan-500/30">
+        <DialogContent className="max-w-4xl bg-white border-slate-200">
           <DialogHeader>
-            <DialogTitle className="text-cyan-300 font-mono">
+            <DialogTitle className="text-black font-mono">
               Manage Sales Team
             </DialogTitle>
           </DialogHeader>
@@ -473,9 +473,9 @@ const HeadOfSalesDashboard = () => {
 
       {/* Add Client Dialog */}
       <Dialog open={isAddClientDialogOpen} onOpenChange={setIsAddClientDialogOpen}>
-        <DialogContent className="max-w-2xl bg-slate-900 border-cyan-500/30 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl bg-white border-slate-200 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-cyan-300 font-mono flex items-center gap-2">
+            <DialogTitle className="text-black font-mono flex items-center gap-2">
               <UserPlus className="h-5 w-5" />
               Add New Client
             </DialogTitle>
@@ -483,117 +483,117 @@ const HeadOfSalesDashboard = () => {
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-cyan-400">First Name *</Label>
+                <Label className="text-black">First Name *</Label>
                 <Input
                   value={newClient.first_name}
                   onChange={(e) => setNewClient({ ...newClient, first_name: e.target.value })}
                   placeholder="John"
-                  className="bg-slate-800/50 border-cyan-500/30"
+                  className="bg-white border-slate-300 text-black"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-cyan-400">Last Name *</Label>
+                <Label className="text-black">Last Name *</Label>
                 <Input
                   value={newClient.last_name}
                   onChange={(e) => setNewClient({ ...newClient, last_name: e.target.value })}
                   placeholder="Smith"
-                  className="bg-slate-800/50 border-cyan-500/30"
+                  className="bg-white border-slate-300 text-black"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-cyan-400">Email *</Label>
+                <Label className="text-black">Email *</Label>
                 <Input
                   type="email"
                   value={newClient.email}
                   onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
                   placeholder="john@example.com"
-                  className="bg-slate-800/50 border-cyan-500/30"
+                  className="bg-white border-slate-300 text-black"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-cyan-400">Phone</Label>
+                <Label className="text-black">Phone</Label>
                 <Input
                   value={newClient.phone}
                   onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
                   placeholder="(555) 123-4567"
-                  className="bg-slate-800/50 border-cyan-500/30"
+                  className="bg-white border-slate-300 text-black"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-cyan-400">Street Address</Label>
+              <Label className="text-black">Street Address</Label>
               <Input
                 value={newClient.address_street}
                 onChange={(e) => setNewClient({ ...newClient, address_street: e.target.value })}
                 placeholder="123 Main St"
-                className="bg-slate-800/50 border-cyan-500/30"
+                className="bg-white border-slate-300 text-black"
               />
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label className="text-cyan-400">City</Label>
+                <Label className="text-black">City</Label>
                 <Input
                   value={newClient.address_city}
                   onChange={(e) => setNewClient({ ...newClient, address_city: e.target.value })}
                   placeholder="Jacksonville"
-                  className="bg-slate-800/50 border-cyan-500/30"
+                  className="bg-white border-slate-300 text-black"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-cyan-400">State</Label>
+                <Label className="text-black">State</Label>
                 <Input
                   value={newClient.address_state}
                   onChange={(e) => setNewClient({ ...newClient, address_state: e.target.value })}
                   placeholder="Florida"
-                  className="bg-slate-800/50 border-cyan-500/30"
+                  className="bg-white border-slate-300 text-black"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-cyan-400">ZIP Code</Label>
+                <Label className="text-black">ZIP Code</Label>
                 <Input
                   value={newClient.address_zip}
                   onChange={(e) => setNewClient({ ...newClient, address_zip: e.target.value })}
                   placeholder="32256"
-                  className="bg-slate-800/50 border-cyan-500/30"
+                  className="bg-white border-slate-300 text-black"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-cyan-400">Budget Min ($)</Label>
+                <Label className="text-black">Budget Min ($)</Label>
                 <Input
                   type="number"
                   value={newClient.price_range_min}
                   onChange={(e) => setNewClient({ ...newClient, price_range_min: e.target.value })}
                   placeholder="50000"
-                  className="bg-slate-800/50 border-cyan-500/30"
+                  className="bg-white border-slate-300 text-black"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-cyan-400">Budget Max ($)</Label>
+                <Label className="text-black">Budget Max ($)</Label>
                 <Input
                   type="number"
                   value={newClient.price_range_max}
                   onChange={(e) => setNewClient({ ...newClient, price_range_max: e.target.value })}
                   placeholder="100000"
-                  className="bg-slate-800/50 border-cyan-500/30"
+                  className="bg-white border-slate-300 text-black"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-cyan-400">Notes</Label>
+              <Label className="text-black">Notes</Label>
               <Input
                 value={newClient.notes}
                 onChange={(e) => setNewClient({ ...newClient, notes: e.target.value })}
                 placeholder="Interested in fiberglass pools..."
-                className="bg-slate-800/50 border-cyan-500/30"
+                className="bg-white border-slate-300 text-black"
               />
             </div>
 
@@ -601,14 +601,14 @@ const HeadOfSalesDashboard = () => {
               <Button
                 variant="outline"
                 onClick={() => setIsAddClientDialogOpen(false)}
-                className="flex-1 border-cyan-500/30 text-cyan-300"
+                className="flex-1 border-slate-300 text-black"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleAddClient}
                 disabled={isAddingClient}
-                className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-white"
+                className="flex-1 bg-slate-800 hover:bg-slate-900 text-white"
               >
                 {isAddingClient ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
