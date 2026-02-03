@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, formatDistanceToNow } from "date-fns";
 import { 
   Users, Search, Crown, DollarSign, TrendingUp, 
-  UserPlus, Target, Briefcase, UserCheck, MapPin, Loader2, Plus, Clock
+  UserPlus, Target, Briefcase, UserCheck, MapPin, Loader2, Plus, Clock, Pencil, Check, X
 } from "lucide-react";
 import ClientSalesTeamAssignment from "./ClientSalesTeamAssignment";
 import CommissionCalculator from "./CommissionCalculator";
@@ -64,6 +64,9 @@ const HeadOfSalesDashboard = () => {
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [isAddClientDialogOpen, setIsAddClientDialogOpen] = useState(false);
   const [isAddingClient, setIsAddingClient] = useState(false);
+  const [editingDealValue, setEditingDealValue] = useState<string | null>(null);
+  const [dealValueInput, setDealValueInput] = useState("");
+  const [isSavingDealValue, setIsSavingDealValue] = useState(false);
   const [newClient, setNewClient] = useState({
     first_name: '',
     last_name: '',
@@ -170,6 +173,54 @@ const HeadOfSalesDashboard = () => {
     setIsAssignDialogOpen(false);
     setSelectedClient(null);
     loadData();
+  };
+
+  const startEditingDealValue = (clientId: string, currentValue: number) => {
+    setEditingDealValue(clientId);
+    setDealValueInput(currentValue > 0 ? currentValue.toString() : "");
+  };
+
+  const cancelEditingDealValue = () => {
+    setEditingDealValue(null);
+    setDealValueInput("");
+  };
+
+  const saveDealValue = async (clientId: string) => {
+    setIsSavingDealValue(true);
+    try {
+      const value = parseFloat(dealValueInput) || 0;
+      const { error } = await supabase
+        .from('clients')
+        .update({ 
+          price_range_max: value,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', clientId);
+
+      if (error) throw error;
+
+      // Update local state
+      setClients(prev => prev.map(c => 
+        c.id === clientId ? { ...c, price_range_max: value, updated_at: new Date().toISOString() } : c
+      ));
+
+      toast({
+        title: "Deal Value Updated",
+        description: `Deal value set to $${value.toLocaleString()}`,
+      });
+
+      setEditingDealValue(null);
+      setDealValueInput("");
+    } catch (error) {
+      console.error('Error saving deal value:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update deal value",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingDealValue(false);
+    }
   };
 
   const handleAddClient = async () => {
@@ -354,15 +405,50 @@ const HeadOfSalesDashboard = () => {
                       <span>{format(new Date(client.updated_at), 'MMM d, h:mm a')}</span>
                     </div>
 
-                    {/* Deal Value */}
-                    {dealValue > 0 && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <DollarSign className="h-4 w-4 text-black" />
-                        <span className="font-mono text-black">
-                          ${dealValue.toLocaleString()}
-                        </span>
-                      </div>
-                    )}
+                    {/* Deal Value - Editable */}
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-black" />
+                      {editingDealValue === client.id ? (
+                        <div className="flex items-center gap-1 flex-1">
+                          <Input
+                            type="number"
+                            value={dealValueInput}
+                            onChange={(e) => setDealValueInput(e.target.value)}
+                            placeholder="Enter deal value"
+                            className="h-7 w-28 text-sm text-black bg-white border-slate-300"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveDealValue(client.id);
+                              if (e.key === 'Escape') cancelEditingDealValue();
+                            }}
+                          />
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => saveDealValue(client.id)}
+                            disabled={isSavingDealValue}
+                          >
+                            {isSavingDealValue ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={cancelEditingDealValue}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 group cursor-pointer" onClick={() => startEditingDealValue(client.id, dealValue)}>
+                          <span className="font-mono text-black text-sm">
+                            {dealValue > 0 ? `$${dealValue.toLocaleString()}` : 'Set deal value'}
+                          </span>
+                          <Pencil className="h-3 w-3 text-black/40 group-hover:text-black transition-colors" />
+                        </div>
+                      )}
+                    </div>
 
                     {/* Team Assignments */}
                     <div className="flex flex-wrap gap-1">
