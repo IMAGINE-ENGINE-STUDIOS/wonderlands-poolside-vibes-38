@@ -46,11 +46,11 @@ interface TeamAssignment {
 }
 
 const CATEGORY_CONFIG: Record<SalesCategory, { label: string; icon: typeof Crown; color: string }> = {
-  head_of_sales: { label: 'Head of Sales', icon: Crown, color: 'text-amber-600' },
-  bdr: { label: 'BDR', icon: Target, color: 'text-blue-600' },
-  ae: { label: 'AE', icon: Briefcase, color: 'text-green-600' },
-  csm: { label: 'CSM', icon: UserCheck, color: 'text-purple-600' },
-  regional_sales: { label: 'Regional', icon: MapPin, color: 'text-cyan-600' },
+  head_of_sales: { label: 'Head of Sales', icon: Crown, color: 'text-black' },
+  bdr: { label: 'BDR', icon: Target, color: 'text-black' },
+  ae: { label: 'AE', icon: Briefcase, color: 'text-black' },
+  csm: { label: 'CSM', icon: UserCheck, color: 'text-black' },
+  regional_sales: { label: 'Regional', icon: MapPin, color: 'text-black' },
 };
 
 const HeadOfSalesDashboard = () => {
@@ -357,8 +357,8 @@ const HeadOfSalesDashboard = () => {
                     {/* Deal Value */}
                     {dealValue > 0 && (
                       <div className="flex items-center gap-2 text-sm">
-                        <DollarSign className="h-4 w-4 text-green-600" />
-                        <span className="font-mono text-green-700">
+                        <DollarSign className="h-4 w-4 text-black" />
+                        <span className="font-mono text-black">
                           ${dealValue.toLocaleString()}
                         </span>
                       </div>
