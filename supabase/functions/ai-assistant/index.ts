@@ -143,7 +143,7 @@ Catalina Napoli, Catalina Slate, Catalina Titanium
 CORALINA PORCELAIN - $25/sqft:
 Coralina Blanco (24x24 matte porcelain)
 
-PREMIUM TRAVERTINE - $50/sqft:
+PREMIUM TRAVERTINE - $22/sqft:
 Travertine Light, Travertine Dark, Travertine Misty, Travertine Steel, Travertine Pearly, Travertine Silver, Travertine Rustic, Travertine Classic, Travertine Tumbled, Travertine Honed`;
 
     const gateList = gates.map((g: any) => 
