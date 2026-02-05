@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { removeBackground, loadImage } from "@/utils/backgroundRemoval";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, Camera, FileText, LogIn, Phone, Mail, Download, Printer, Receipt, Clock } from "lucide-react";
+import { Upload, MapPin, Home, Waves, DollarSign, FileImage, Loader2, Settings, Camera, FileText, LogIn, Phone, Mail, Download, Printer, Receipt, Clock, CreditCard } from "lucide-react";
 import PoolCustomizationOptions from "./PoolCustomizationOptions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -242,21 +242,56 @@ const SurveyQuoteTool = ({
 
   const handleDownloadPDF = async () => {
     const quoteElement = document.querySelector('[data-quote-content]') as HTMLElement;
-    if (!quoteElement) {
-      toast({
-        title: "Error",
-        description: "Could not find quote content. Please try again.",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (!quoteElement) return;
 
     try {
-      // @ts-ignore - html2pdf dynamic import
+      // Use the same HTML structure as print for consistent look
+      const printHtml = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Pool Configuration Quote</title>
+            <script src="https://cdn.tailwindcss.com"><\/script>
+            <style>
+              body { 
+                margin: 0; 
+                padding: 20px;
+                font-family: system-ui, -apple-system, sans-serif;
+              }
+              * {
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+              }
+              .no-print, .print\\:hidden { display: none !important; }
+            </style>
+          </head>
+          <body>
+            ${quoteElement.outerHTML}
+          </body>
+        </html>
+      `;
+
+      // Create a hidden iframe to render the same HTML as print
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.left = '-9999px';
+      iframe.style.width = '816px'; // Letter width at 96dpi
+      iframe.style.height = '1056px';
+      document.body.appendChild(iframe);
+      
+      iframe.contentDocument?.open();
+      iframe.contentDocument?.write(printHtml);
+      iframe.contentDocument?.close();
+
+      // Wait for content to render then capture with html2pdf
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // @ts-ignore
       const html2pdfModule = await import('html2pdf.js');
       // @ts-ignore
       const html2pdf = html2pdfModule.default;
-      
+
       const opt = {
         margin: 0.5,
         filename: `quote-${pool?.model || customProduct?.name || 'product'}-${Date.now()}.pdf`,
@@ -270,7 +305,8 @@ const SurveyQuoteTool = ({
         jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' as const }
       };
 
-      await html2pdf().set(opt).from(quoteElement).save();
+      await html2pdf().set(opt).from(iframe.contentDocument?.body).save();
+      document.body.removeChild(iframe);
       
       toast({
         title: "Success!",
@@ -278,16 +314,38 @@ const SurveyQuoteTool = ({
       });
     } catch (error) {
       console.error("PDF generation failed:", error);
-      toast({
-        title: "Error",
-        description: "Failed to generate PDF. Please try printing instead.",
-        variant: "destructive"
-      });
     }
   };
 
   const [emailAddress, setEmailAddress] = useState("");
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  const handleStripeCheckout = async () => {
+    try {
+      setIsCheckingOut(true);
+      const totalAmount = isEditMode && editableQuoteAmount > 0 ? editableQuoteAmount : calculateQuote();
+      const productName = pool?.model || customProduct?.name || 'Custom Quote';
+      
+      const { data, error } = await supabase.functions.invoke('stripe-checkout', {
+        body: {
+          productId: `quote-${Date.now()}`,
+          productName: `${productName} - Quote`,
+          price: totalAmount,
+          quantity: 1,
+        }
+      });
+      
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
 
   const handleEmailQuote = async () => {
     if (!emailAddress) {
@@ -784,7 +842,7 @@ const SurveyQuoteTool = ({
   
   if (!pool && !customProduct) return null;
   return <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto pb-52">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
             Get Your Personalized Pool Quote
@@ -2031,8 +2089,8 @@ const SurveyQuoteTool = ({
             </div>
             
             {/* Controller Panel - Redesigned with clean modern layout */}
-            <div className="sticky bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.15)] no-print print:hidden z-50">
-              <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.15)] no-print print:hidden z-[60]">
+              <div className="max-w-4xl mx-auto px-4 py-3">
                 
                 {/* Edit Mode Toggle - Compact top bar */}
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100 dark:border-gray-800">
@@ -2079,42 +2137,55 @@ const SurveyQuoteTool = ({
                 </div>
                 
                 {/* Main Actions - Clean grid layout */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
                   <Button 
                     onClick={handlePrintQuote}
-                    className="h-12 flex flex-col items-center justify-center gap-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border-0 shadow-sm"
+                    className="h-11 flex flex-col items-center justify-center gap-0.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border-0 shadow-sm"
                   >
-                    <Printer className="h-5 w-5" />
-                    <span className="text-xs font-medium">Print</span>
+                    <Printer className="h-4 w-4" />
+                    <span className="text-[10px] font-medium">Print</span>
                   </Button>
                   
                   <Button 
                     onClick={handleDownloadPDF}
-                    className="h-12 flex flex-col items-center justify-center gap-1 bg-blue-500 hover:bg-blue-600 text-white border-0 shadow-sm"
+                    className="h-11 flex flex-col items-center justify-center gap-0.5 bg-blue-500 hover:bg-blue-600 text-white border-0 shadow-sm"
                   >
-                    <Download className="h-5 w-5" />
-                    <span className="text-xs font-medium">PDF</span>
+                    <Download className="h-4 w-4" />
+                    <span className="text-[10px] font-medium">PDF</span>
                   </Button>
                   
                   <Button 
                     onClick={handleGenerateInvoice}
                     disabled={isGeneratingInvoice}
-                    className="h-12 flex flex-col items-center justify-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white border-0 shadow-sm disabled:opacity-50"
+                    className="h-11 flex flex-col items-center justify-center gap-0.5 bg-emerald-500 hover:bg-emerald-600 text-white border-0 shadow-sm disabled:opacity-50"
                   >
                     {isGeneratingInvoice ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <Receipt className="h-5 w-5" />
+                      <Receipt className="h-4 w-4" />
                     )}
-                    <span className="text-xs font-medium">Invoice</span>
+                    <span className="text-[10px] font-medium">Invoice</span>
+                  </Button>
+                  
+                  <Button 
+                    onClick={handleStripeCheckout}
+                    disabled={isCheckingOut}
+                    className="h-11 flex flex-col items-center justify-center gap-0.5 bg-violet-600 hover:bg-violet-700 text-white border-0 shadow-sm disabled:opacity-50"
+                  >
+                    {isCheckingOut ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <CreditCard className="h-4 w-4" />
+                    )}
+                    <span className="text-[10px] font-medium">Pay</span>
                   </Button>
                   
                   <Button 
                     onClick={handleScheduleInstallation}
-                    className="h-12 flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white border-0 shadow-sm"
+                    className="h-11 flex flex-col items-center justify-center gap-0.5 bg-gradient-to-br from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white border-0 shadow-sm"
                   >
-                    <Clock className="h-5 w-5" />
-                    <span className="text-xs font-medium">Schedule</span>
+                    <Clock className="h-4 w-4" />
+                    <span className="text-[10px] font-medium">Schedule</span>
                   </Button>
                 </div>
                 
@@ -2126,16 +2197,16 @@ const SurveyQuoteTool = ({
                     placeholder="Send quote to email..."
                     value={emailAddress}
                     onChange={(e) => setEmailAddress(e.target.value)}
-                    className="flex-1 h-9 border-0 bg-transparent focus:ring-0 text-sm placeholder:text-gray-400"
+                    className="flex-1 h-8 border-0 bg-transparent focus:ring-0 text-sm placeholder:text-gray-400"
                   />
                   <Button 
                     size="sm"
                     onClick={handleEmailQuote}
                     disabled={isSendingEmail || !emailAddress}
-                    className="bg-blue-500 hover:bg-blue-600 text-white h-8 px-4 text-sm disabled:opacity-50"
+                    className="bg-blue-500 hover:bg-blue-600 text-white h-7 px-3 text-xs disabled:opacity-50"
                   >
                     {isSendingEmail ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
                       'Send'
                     )}
