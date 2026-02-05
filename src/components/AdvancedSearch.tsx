@@ -317,10 +317,11 @@ const AdvancedSearch = () => {
       { id: 'solar-cover', name: 'Solar Pool Cover', category: 'Cover', price: 800, image: '/lovable-uploads/c5cd2f96-d31a-446b-943b-6dd1620f6521.png', keywords: ['cover', 'covers', 'solar', 'pool cover', 'solar cover'] }
     ];
 
-    // Screen Enclosures - $22/sqft
+    // Screen Enclosures - Standard $22, Deluxe $24, 2 Story $26
     const screenData = [
-      { id: 'standard-screen', name: 'Standard Screen Enclosure', category: 'Screen Enclosure', price: 22, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'standard'] },
-      { id: 'premium-screen', name: 'Premium Screen Enclosure', category: 'Screen Enclosure', price: 22, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'premium'] }
+      { id: 'standard-screen', name: 'Standard Screen Enclosure', category: 'Screen Enclosure', price: 22, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'standard', 'wonder cage'] },
+      { id: 'deluxe-screen', name: 'Deluxe Screen Enclosure', category: 'Screen Enclosure', price: 24, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'deluxe'] },
+      { id: 'premium-screen', name: '2 Story Screen Enclosure', category: 'Screen Enclosure', price: 26, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'premium', '2 story', 'two story'] },
     ];
 
     // Saunas from saunaData

@@ -6,11 +6,11 @@ export const DEFAULT_PAVER_PRICE_PER_SQFT = 10;
 // Concrete deck price per sq ft
 export const CONCRETE_DECK_PRICE_PER_SQFT = 10;
 
-// Screen enclosure (WonderCage) pricing - $22/sqft for all tiers
+// Screen enclosure (WonderCage) pricing - Standard $22, Deluxe $24, 2 Story $26
 export const SCREEN_ENCLOSURE_PRICING = {
   standard: 22,
-  deluxe: 22,
-  premium: 22,
+  deluxe: 24,
+  premium: 26,
 } as const;
 
 /**
