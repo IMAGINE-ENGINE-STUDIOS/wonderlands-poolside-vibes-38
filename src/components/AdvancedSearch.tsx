@@ -499,43 +499,32 @@ const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
   };
 
   const handleSectionClick = (sectionId: string) => {
-    console.log('handleSectionClick called with:', sectionId);
     setShowSectionMenu(false);
     setIsFocused(false);
     
     const currentPath = window.location.pathname;
-    console.log('Current path:', currentPath);
     
-    const scrollToSection = (retries = 0) => {
-      console.log('scrollToSection attempt:', retries, 'looking for:', sectionId);
-      const element = document.getElementById(sectionId);
-      console.log('Found element:', element);
-      
-      if (element) {
-        const headerOffset = 100;
-        const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-        console.log('Scrolling to position:', elementPosition - headerOffset);
-        window.scrollTo({
-          top: elementPosition - headerOffset,
-          behavior: 'smooth'
-        });
-      } else if (retries < 15) {
-        // Lazy sections may not be rendered yet - scroll down to trigger them, then retry
-        window.scrollBy(0, 400);
-        setTimeout(() => scrollToSection(retries + 1), 150);
-      } else {
-        // Final fallback - use native hash navigation
-        console.log('Fallback to hash:', sectionId);
-        window.location.hash = sectionId;
-      }
-    };
-    
-    if (currentPath === '/' || currentPath === '') {
-      setTimeout(() => scrollToSection(0), 100);
-    } else {
-      navigate('/');
-      setTimeout(() => scrollToSection(0), 600);
+    if (currentPath !== '/' && currentPath !== '') {
+      // Navigate to home with hash — browser handles scroll natively
+      window.location.href = `/#${sectionId}`;
+      return;
     }
+    
+    // Already on home page — use native hash then keep re-scrolling as layout shifts
+    window.location.hash = sectionId;
+    
+    // Re-adjust multiple times as lazy sections load and expand
+    const headerOffset = 80;
+    let count = 0;
+    const interval = setInterval(() => {
+      const el = document.getElementById(sectionId);
+      if (el) {
+        const pos = el.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: pos - headerOffset, behavior: 'instant' });
+      }
+      count++;
+      if (count >= 15) clearInterval(interval);
+    }, 200);
   };
 
   // Handle click outside to close dropdown

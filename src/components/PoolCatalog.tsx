@@ -1013,7 +1013,7 @@ const PoolCatalog = () => {
   };
   return <>
       {/* Pool Collection Section */}
-      <section id="pools" className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden border-t-4 border-gradient-to-r from-primary via-coral to-teal">
+      <section className="py-10 sm:py-16 lg:py-20 px-2 sm:px-4 relative overflow-hidden border-t-4 border-gradient-to-r from-primary via-coral to-teal">
         {/* Animated Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-coral/5">
           <div className="absolute inset-0 opacity-30">
