@@ -188,6 +188,14 @@ const poolOptions: PoolOption[] = [
     image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
   },
   { 
+    id: 'screen-deluxe-1-story', 
+    name: 'Deluxe Screen Enclosure - 1 Story', 
+    description: 'Enhanced aluminum frame with upgraded mesh - $22/sq ft',
+    price: 0, // Base price, calculated by area
+    category: 'screen-enclosure',
+    image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
+  },
+  { 
     id: 'screen-premium-1-story', 
     name: 'Premium Screen Enclosure - 1 Story', 
     description: 'High-end aluminum frame with superior screen mesh - $22/sq ft',

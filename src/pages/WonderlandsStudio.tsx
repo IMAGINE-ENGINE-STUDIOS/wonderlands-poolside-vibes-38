@@ -766,15 +766,27 @@ const WonderlandsStudio = () => {
   };
   const getSelectedExtrasCount = () => {
     let count = 0;
-    if (selectedExtras.spa) count++;
-    if (selectedExtras.finish && selectedExtras.finish !== 'None' && selectedExtras.finish !== '') count++;
-    if (selectedExtras.heater) count++;
-    if (selectedExtras.cover && selectedExtras.coverOption && selectedExtras.coverOption !== 'NO COVER' && selectedExtras.coverOption !== 'None') count++;
+    // Spa: must be checked AND have a model selected
+    if (selectedExtras.spa && selectedExtras.selectedSpaModel && selectedExtras.selectedSpaModel !== '' && selectedExtras.selectedSpaModel !== 'None') count++;
+    // Finish: must have price > 0 (free finishes don't count)
+    const selectedFinish = finishOptions.find(f => f.name === selectedExtras.finish);
+    if (selectedExtras.finish && selectedExtras.finish !== 'None' && selectedExtras.finish !== '' && selectedFinish && selectedFinish.price > 0) count++;
+    // Heater: must be checked AND have a model selected
+    if (selectedExtras.heater && selectedExtras.heaterModel && selectedExtras.heaterModel !== '' && selectedExtras.heaterModel !== 'None') count++;
+    // Cover: must be checked AND have a valid option (not NO COVER)
+    if (selectedExtras.cover && selectedExtras.coverOption && selectedExtras.coverOption !== 'NO COVER' && selectedExtras.coverOption !== 'None' && selectedExtras.coverOption !== '') count++;
+    // Jets: must be checked AND have quantity > 0
     if (selectedExtras.jets && selectedExtras.jetQuantity > 0) count++;
-    if (selectedExtras.tiles) count++;
-    if (selectedExtras.liner && selectedExtras.linerOption && selectedExtras.linerOption !== 'None' && selectedExtras.linerOption !== '') count++;
-    if (selectedExtras.pavers && selectedExtras.paverOption && selectedExtras.paverOption !== 'Concrete Deck' && selectedExtras.paverOption !== 'None') count++;
-    if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureArea > 0) count++;
+    // Tiles: must be checked AND have a valid option
+    if (selectedExtras.tiles && selectedExtras.tileOption && selectedExtras.tileOption !== 'None' && selectedExtras.tileOption !== '') count++;
+    // Liner: must be checked AND have a valid option (not Standard Blue which is free/default)
+    if (selectedExtras.liner && selectedExtras.linerOption && selectedExtras.linerOption !== 'None' && selectedExtras.linerOption !== '' && selectedExtras.linerOption !== 'Standard Blue') count++;
+    // Pavers: must be checked AND have valid option AND have area > 0
+    const paverArea = parseFloat(selectedExtras.paverSurfaceArea || paverSurfaceArea);
+    if (selectedExtras.pavers && selectedExtras.paverOption && selectedExtras.paverOption !== 'Concrete Deck' && selectedExtras.paverOption !== 'None' && selectedExtras.paverOption !== '' && !isNaN(paverArea) && paverArea > 0) count++;
+    // Screen Enclosure: must have quality AND area > 0
+    if (selectedExtras.screenEnclosure && selectedExtras.screenEnclosureQuality && selectedExtras.screenEnclosureArea > 0) count++;
+    // Concrete Construction: simple boolean
     if (selectedExtras.concreteConstruction) count++;
     return count;
   };
@@ -1908,19 +1920,58 @@ const WonderlandsStudio = () => {
                           )}
                         </div>
 
-                        {/* Jets */}
+                        {/* Jets with Counter */}
                         <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-foreground">Jets</h4>
-                            <Checkbox
-                              checked={selectedExtras.jets}
-                              onCheckedChange={() =>
-                                setSelectedExtras((prev: any) => ({
-                                  ...prev,
-                                  jets: !prev.jets,
-                                }))
-                              }
-                            />
+                          <div className="flex items-center justify-between p-2 border rounded-lg">
+                            <label className="flex items-center space-x-2 cursor-pointer flex-1">
+                              <Checkbox
+                                checked={selectedExtras.jets}
+                                onCheckedChange={() =>
+                                  setSelectedExtras((prev: any) => ({
+                                    ...prev,
+                                    jets: !prev.jets,
+                                    jetQuantity: !prev.jets ? Math.max(1, prev.jetQuantity || 1) : prev.jetQuantity,
+                                  }))
+                                }
+                              />
+                              <div className="flex items-center space-x-1">
+                                <Zap size={16} className="text-orange-500" />
+                                <span className="text-sm font-semibold">
+                                  Spa Jets (+${(getExtraPrice('jets') * (selectedExtras.jetQuantity || 1)).toLocaleString()})
+                                </span>
+                              </div>
+                            </label>
+                            {selectedExtras.jets && (
+                              <div className="flex items-center space-x-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    setSelectedExtras((prev: any) => ({
+                                      ...prev,
+                                      jetQuantity: Math.max(1, (prev.jetQuantity || 1) - 1),
+                                    }))
+                                  }
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </Button>
+                                <span className="text-sm font-medium w-8 text-center">{selectedExtras.jetQuantity || 1}</span>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    setSelectedExtras((prev: any) => ({
+                                      ...prev,
+                                      jetQuantity: (prev.jetQuantity || 1) + 1,
+                                    }))
+                                  }
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -2228,10 +2279,10 @@ const WonderlandsStudio = () => {
                             }}
                           >
                             <CarouselContent className="-ml-1">
-                              {[
-                                { key: "standard", name: "Wonder Cage", price: 27, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
-                                { key: "deluxe", name: "Deluxe", price: 27, image: screenEnclosureDeluxe },
-                                { key: "premium", name: "2 Stories", price: 33, image: screenEnclosurePremium },
+                            {[
+                                { key: "standard", name: "Wonder Cage", price: 22, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
+                                { key: "deluxe", name: "Deluxe", price: 22, image: screenEnclosureDeluxe },
+                                { key: "premium", name: "2 Stories", price: 22, image: screenEnclosurePremium },
                               ].map((quality) => (
                                 <CarouselItem key={quality.key} className="pl-1 basis-1/2 md:basis-1/3">
                                   <div
@@ -2300,18 +2351,27 @@ const WonderlandsStudio = () => {
                         {/* Concrete Construction - Hidden for Wonderlands World pools */}
                         {!["Madre Perla", "Pacific Ridge", "Winderview", "Maxima"].includes(selectedProduct?.model || "") && (
                           <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-semibold text-foreground">Concrete Construction</h4>
-                              <Checkbox
-                                checked={selectedExtras.concreteConstruction}
-                                onCheckedChange={() =>
-                                  setSelectedExtras((prev: any) => ({
-                                    ...prev,
-                                    concreteConstruction: !prev.concreteConstruction,
-                                  }))
-                                }
-                              />
+                            <div className="flex items-center justify-between p-2 border rounded-lg">
+                              <label className="flex items-center space-x-2 cursor-pointer flex-1">
+                                <Checkbox
+                                  checked={selectedExtras.concreteConstruction}
+                                  onCheckedChange={() =>
+                                    setSelectedExtras((prev: any) => ({
+                                      ...prev,
+                                      concreteConstruction: !prev.concreteConstruction,
+                                    }))
+                                  }
+                                />
+                                <span className="text-sm font-semibold">
+                                  Concrete Construction (+${selectedProduct ? Math.round(getProductPrice(selectedProduct) * 0.2).toLocaleString() : '0'})
+                                </span>
+                              </label>
                             </div>
+                            {selectedExtras.concreteConstruction && (
+                              <p className="text-xs text-muted-foreground ml-2">
+                                Premium concrete construction for enhanced durability and longevity. (+20% of pool price)
+                              </p>
+                            )}
                           </div>
                         )}
 
@@ -2450,7 +2510,9 @@ const WonderlandsStudio = () => {
                         <DropdownMenuContent align="end" className="w-56 sm:w-64 p-2 bg-background z-50">
                           <div className="space-y-2">
                             <p className="text-sm font-medium mb-2">Selected Features:</p>
-                            {selectedExtras.spa && selectedExtras.selectedSpaModel && <div className="flex items-center justify-between text-xs">
+                            {/* Only show items that are truly selected with valid values */}
+                            {selectedExtras.spa && selectedExtras.selectedSpaModel && selectedExtras.selectedSpaModel !== '' && selectedExtras.selectedSpaModel !== 'None' && (
+                              <div className="flex items-center justify-between text-xs">
                                 <span>{selectedExtras.selectedSpaModel} Spa</span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-muted-foreground">
@@ -2460,41 +2522,52 @@ const WonderlandsStudio = () => {
                                     <X className="h-3 w-3" />
                                   </Button>
                                 </div>
-                              </div>}
-                            {selectedExtras.finish !== 'Aquamarine' && <div className="flex items-center justify-between text-xs">
-                                <span>{selectedExtras.finish} Finish</span>
-                                <div className="flex items-center gap-1">
-                                  <span className="text-muted-foreground">
-                                    +${finishOptions.find(f => f.name === selectedExtras.finish)?.price || 0}
-                                  </span>
-                                  <Button variant="ghost" size="sm" onClick={() => removeExtra('finish')} className="h-6 w-6 p-0">
-                                    <X className="h-3 w-3" />
-                                  </Button>
+                              </div>
+                            )}
+                            {(() => {
+                              const selectedFinish = finishOptions.find(f => f.name === selectedExtras.finish);
+                              return selectedExtras.finish && selectedExtras.finish !== 'None' && selectedExtras.finish !== '' && selectedFinish && selectedFinish.price > 0 && (
+                                <div className="flex items-center justify-between text-xs">
+                                  <span>{selectedExtras.finish} Finish</span>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-muted-foreground">
+                                      +${selectedFinish.price.toLocaleString()}
+                                    </span>
+                                    <Button variant="ghost" size="sm" onClick={() => removeExtra('finish')} className="h-6 w-6 p-0">
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
                                 </div>
-                              </div>}
-                            {selectedExtras.heater && <div className="flex items-center justify-between text-xs">
+                              );
+                            })()}
+                            {selectedExtras.heater && selectedExtras.heaterModel && selectedExtras.heaterModel !== '' && selectedExtras.heaterModel !== 'None' && (
+                              <div className="flex items-center justify-between text-xs">
                                 <span>Pool Heater</span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-muted-foreground">
-                                    +${poolHeaters.find(h => h.name === selectedExtras.heaterModel)?.price || 0}
+                                    +${(poolHeaters.find(h => h.name === selectedExtras.heaterModel)?.price || 0).toLocaleString()}
                                   </span>
                                   <Button variant="ghost" size="sm" onClick={() => removeExtra('heater')} className="h-6 w-6 p-0">
                                     <X className="h-3 w-3" />
                                   </Button>
                                 </div>
-                              </div>}
-                            {selectedExtras.cover && <div className="flex items-center justify-between text-xs">
-                                <span>Safety Cover</span>
+                              </div>
+                            )}
+                            {selectedExtras.cover && selectedExtras.coverOption && selectedExtras.coverOption !== 'NO COVER' && selectedExtras.coverOption !== 'None' && selectedExtras.coverOption !== '' && (
+                              <div className="flex items-center justify-between text-xs">
+                                <span>{selectedExtras.coverOption}</span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-muted-foreground">
-                                    +${coverOptions.find(c => c.name === selectedExtras.coverOption)?.price || 0}
+                                    +${(coverOptions.find(c => c.name === selectedExtras.coverOption)?.price || 0).toLocaleString()}
                                   </span>
                                   <Button variant="ghost" size="sm" onClick={() => removeExtra('cover')} className="h-6 w-6 p-0">
                                     <X className="h-3 w-3" />
                                   </Button>
                                 </div>
-                              </div>}
-                            {selectedExtras.jets && <div className="flex items-center justify-between text-xs">
+                              </div>
+                            )}
+                            {selectedExtras.jets && selectedExtras.jetQuantity > 0 && (
+                              <div className="flex items-center justify-between text-xs">
                                 <span>Spa Jets ({selectedExtras.jetQuantity})</span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-muted-foreground">
@@ -2504,8 +2577,10 @@ const WonderlandsStudio = () => {
                                     <X className="h-3 w-3" />
                                   </Button>
                                 </div>
-                              </div>}
-                            {selectedExtras.tiles && <div className="flex items-center justify-between text-xs">
+                              </div>
+                            )}
+                            {selectedExtras.tiles && selectedExtras.tileOption && selectedExtras.tileOption !== 'None' && selectedExtras.tileOption !== '' && (
+                              <div className="flex items-center justify-between text-xs">
                                 <span>Premium Tiles ({Math.round(calculatePoolPerimeter(selectedProduct?.dimensions))} sqft)</span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-muted-foreground">
@@ -2515,41 +2590,52 @@ const WonderlandsStudio = () => {
                                     <X className="h-3 w-3" />
                                   </Button>
                                 </div>
-                              </div>}
-                            {selectedExtras.linerOption !== 'Standard Blue' && <div className="flex items-center justify-between text-xs">
-                                <span>Premium Liner</span>
+                              </div>
+                            )}
+                            {selectedExtras.liner && selectedExtras.linerOption && selectedExtras.linerOption !== 'None' && selectedExtras.linerOption !== '' && selectedExtras.linerOption !== 'Standard Blue' && (
+                              <div className="flex items-center justify-between text-xs">
+                                <span>{selectedExtras.linerOption} Liner</span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-muted-foreground">
-                                    +${linerOptions.find(l => l.name === selectedExtras.linerOption)?.price || 4500}
+                                    +${(linerOptions.find(l => l.name === selectedExtras.linerOption)?.price || 4500).toLocaleString()}
                                   </span>
                                   <Button variant="ghost" size="sm" onClick={() => removeExtra('liner')} className="h-6 w-6 p-0">
                                     <X className="h-3 w-3" />
                                   </Button>
                                 </div>
-                              </div>}
-                            {selectedExtras.pavers && selectedExtras.paverOption !== 'Concrete Deck' && <div className="flex items-center justify-between text-xs">
-                                <span>Deck Pavers</span>
-                                <div className="flex items-center gap-1">
-                                  <span className="text-muted-foreground">
-                                    +${(selectedExtras.paverSurfaceArea || paverSurfaceArea) && !isNaN(parseFloat(selectedExtras.paverSurfaceArea || paverSurfaceArea)) ? calculatePaverCost(selectedExtras.paverSurfaceArea || paverSurfaceArea, selectedExtras.paverOption).toLocaleString() : '0'}
-                                  </span>
-                                  <Button variant="ghost" size="sm" onClick={() => removeExtra('pavers')} className="h-6 w-6 p-0">
-                                    <X className="h-3 w-3" />
-                                  </Button>
+                              </div>
+                            )}
+                            {(() => {
+                              const paverArea = parseFloat(selectedExtras.paverSurfaceArea || paverSurfaceArea);
+                              return selectedExtras.pavers && selectedExtras.paverOption && selectedExtras.paverOption !== 'Concrete Deck' && selectedExtras.paverOption !== 'None' && selectedExtras.paverOption !== '' && !isNaN(paverArea) && paverArea > 0 && (
+                                <div className="flex items-center justify-between text-xs">
+                                  <span>{selectedExtras.paverOption} ({paverArea} sqft)</span>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-muted-foreground">
+                                      +${calculatePaverCost(paverArea, selectedExtras.paverOption).toLocaleString()}
+                                    </span>
+                                    <Button variant="ghost" size="sm" onClick={() => removeExtra('pavers')} className="h-6 w-6 p-0">
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
                                 </div>
-                              </div>}
-                            {selectedExtras.screenEnclosure && <div className="flex items-center justify-between text-xs">
-                                <span>Screen Enclosure</span>
+                              );
+                            })()}
+                            {selectedExtras.screenEnclosure && selectedExtras.screenEnclosureQuality && selectedExtras.screenEnclosureArea > 0 && (
+                              <div className="flex items-center justify-between text-xs">
+                                <span>Screen Enclosure ({selectedExtras.screenEnclosureArea} sqft)</span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-muted-foreground">
-                                    +${selectedExtras.screenEnclosureArea > 0 ? (selectedExtras.screenEnclosureArea * (SCREEN_ENCLOSURE_PRICING[(selectedExtras.screenEnclosureQuality as 'standard' | 'deluxe' | 'premium') || 'standard'] || SCREEN_ENCLOSURE_PRICING.standard)).toLocaleString() : '0'}
+                                    +${(selectedExtras.screenEnclosureArea * (SCREEN_ENCLOSURE_PRICING[(selectedExtras.screenEnclosureQuality as 'standard' | 'deluxe' | 'premium') || 'standard'] || SCREEN_ENCLOSURE_PRICING.standard)).toLocaleString()}
                                   </span>
                                   <Button variant="ghost" size="sm" onClick={() => removeExtra('screen')} className="h-6 w-6 p-0">
                                     <X className="h-3 w-3" />
                                   </Button>
                                 </div>
-                              </div>}
-                            {selectedExtras.concreteConstruction && <div className="flex items-center justify-between text-xs">
+                              </div>
+                            )}
+                            {selectedExtras.concreteConstruction && (
+                              <div className="flex items-center justify-between text-xs">
                                 <span>Concrete Construction</span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-muted-foreground">
@@ -2559,7 +2645,8 @@ const WonderlandsStudio = () => {
                                     <X className="h-3 w-3" />
                                   </Button>
                                 </div>
-                              </div>}
+                              </div>
+                            )}
                           </div>
                         </DropdownMenuContent>
                       </DropdownMenu>}

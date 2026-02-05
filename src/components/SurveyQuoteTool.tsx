@@ -448,20 +448,12 @@ const SurveyQuoteTool = ({
       basePrice -= 2000;
     }
 
-    // Add selected options (including screen enclosures with area-based pricing)
+    // Add selected options (including screen enclosures with area-based pricing - $22/sqft for all tiers)
     const optionsPrice = selectedOptions.reduce((total, option) => {
       if (option.category === 'screen-enclosure') {
-        // Calculate screen enclosure price based on enclosure footprint area
+        // Calculate screen enclosure price based on enclosure footprint area - all at $22/sqft
         const enclosureArea = getEnclosureArea();
-        if (option.id.includes('standard-1-story')) {
-          return total + enclosureArea * 27; // Wonder Cage standard price
-        } else if (option.id.includes('standard-2-story')) {
-          return total + enclosureArea * 27;
-        } else if (option.id.includes('premium-1-story')) {
-          return total + enclosureArea * 27;
-        } else if (option.id.includes('premium-2-story')) {
-          return total + enclosureArea * 33;
-        }
+        return total + enclosureArea * 22;
       }
       return total + option.price;
     }, 0);
