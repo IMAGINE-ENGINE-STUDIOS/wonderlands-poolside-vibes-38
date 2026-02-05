@@ -25,7 +25,7 @@ export const gilmerSpas: GilmerSpa[] = [
   {
     model: "Moondance Spillover",
     dealerPrice: 5000,
-    price: 17500,
+    price: 20000, // 5000 × 4
     category: "spillover",
     image: gilmerMoonlight,
     dimensions: "8'x8'x3'3\"",
@@ -41,7 +41,7 @@ export const gilmerSpas: GilmerSpa[] = [
   {
     model: "Pacifica",
     dealerPrice: 4500,
-    price: 15750,
+    price: 18000, // 4500 × 4
     category: "standard",
     image: gilmerPacifica,
     dimensions: "7'6\"x7'6\"x3'",
@@ -56,7 +56,7 @@ export const gilmerSpas: GilmerSpa[] = [
   {
     model: "Pearl Spillover",
     dealerPrice: 4500,
-    price: 15750,
+    price: 18000, // 4500 × 4
     category: "spillover",
     image: gilmerPearl,
     dimensions: "7'6\"x7'6\"x3'",
@@ -72,7 +72,7 @@ export const gilmerSpas: GilmerSpa[] = [
   {
     model: "Tranquility",
     dealerPrice: 5000,
-    price: 17500,
+    price: 20000, // 5000 × 4
     category: "deluxe",
     image: gilmerTranquility,
     dimensions: "9'x9'x3'8\"",
@@ -87,7 +87,7 @@ export const gilmerSpas: GilmerSpa[] = [
   {
     model: "Paradise Tanning Ledge",
     dealerPrice: 4500,
-    price: 15750,
+    price: 18000, // 4500 × 4
     category: "standard",
     image: gilmerPacifica,
     dimensions: "8'x4'x1'",
@@ -102,7 +102,7 @@ export const gilmerSpas: GilmerSpa[] = [
   {
     model: "Leeward Tanning Ledge",
     dealerPrice: 3529,
-    price: 12352,
+    price: 14116, // 3529 × 4
     category: "standard",
     image: gilmerPacifica,
     dimensions: "6'x4'x1'",

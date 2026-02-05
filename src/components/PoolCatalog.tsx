@@ -784,9 +784,10 @@ const pools: Pool[] = [
   carbonFiber: true
 },
 // Tanning Ledges - Latham
+// Latham Tanning Ledges - 4x dealer multiplier
 {
   model: "Genesis/Synergy Side Tanning Ledge",
-  price: 15575,
+  price: 17800, // ~4450 × 4
   category: 'compact',
   image: "/lovable-uploads/wonderlands-logo.png",
   dimensions: "Tanning Ledge",
@@ -800,7 +801,7 @@ const pools: Pool[] = [
 },
 {
   model: "Hermosa Tanning Ledge",
-  price: 12863,
+  price: 14700, // ~3675 × 4
   category: 'compact',
   image: "/lovable-uploads/wonderlands-logo.png",
   dimensions: "Tanning Ledge",
@@ -814,7 +815,7 @@ const pools: Pool[] = [
 },
 {
   model: "Rectangle Tanning Ledge",
-  price: 19075,
+  price: 21800, // ~5450 × 4
   category: 'compact',
   image: "/lovable-uploads/wonderlands-logo.png",
   dimensions: "Tanning Ledge",
@@ -828,7 +829,7 @@ const pools: Pool[] = [
 },
 {
   model: "Semicircle Tanning Ledge",
-  price: 17675,
+  price: 20200, // ~5050 × 4
   category: 'compact',
   image: "/lovable-uploads/wonderlands-logo.png",
   dimensions: "Tanning Ledge",
