@@ -2,7 +2,7 @@ import React, { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProjectTypeProvider } from "@/contexts/ProjectTypeContext";
-import { ShoppingCartProvider } from "@/components/ShoppingCartProvider";
+
 import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import RightNavigation from "@/components/RightNavigation";
 import { AIAssistantChat } from "@/components/ai/AIAssistantChat";
@@ -50,7 +50,6 @@ const App = () => {
   return (
     <AuthProvider>
       <ProjectTypeProvider>
-        <ShoppingCartProvider>
           <AIAssistantProvider>
             <RightNavigation />
             <AIAssistantChat />
@@ -129,7 +128,6 @@ const App = () => {
           </Routes>
           </Suspense>
           </AIAssistantProvider>
-        </ShoppingCartProvider>
       </ProjectTypeProvider>
     </AuthProvider>
   );

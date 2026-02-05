@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DarkModeProvider } from "@/components/DarkModeProvider";
+import { ShoppingCartProvider } from "@/components/ShoppingCartProvider";
 import App from "./App.tsx";
 import "./styles/critical.css";
 import "./styles/components.css";
@@ -125,9 +126,11 @@ createRoot(document.getElementById("root")!).render(
         <TooltipProvider>
           <DarkModeProvider>
             <BrowserRouter>
-              <App />
-              <Toaster />
-              <Sonner position="top-right" duration={3000} />
+              <ShoppingCartProvider>
+                <App />
+                <Toaster />
+                <Sonner position="top-right" duration={3000} />
+              </ShoppingCartProvider>
             </BrowserRouter>
           </DarkModeProvider>
         </TooltipProvider>
