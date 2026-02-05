@@ -279,10 +279,10 @@ const AdvancedSearch = () => {
       { id: 'solar-cover', name: 'Solar Pool Cover', category: 'Cover', price: 800, image: '/lovable-uploads/c5cd2f96-d31a-446b-943b-6dd1620f6521.png', keywords: ['cover', 'covers', 'solar', 'pool cover', 'solar cover'] }
     ];
 
-    // Screen Enclosures
+    // Screen Enclosures - $22/sqft
     const screenData = [
-      { id: 'standard-screen', name: 'Standard Screen Enclosure', category: 'Screen Enclosure', price: 27, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'standard'] },
-      { id: 'premium-screen', name: 'Premium Screen Enclosure', category: 'Screen Enclosure', price: 33, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'premium'] }
+      { id: 'standard-screen', name: 'Standard Screen Enclosure', category: 'Screen Enclosure', price: 22, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'standard'] },
+      { id: 'premium-screen', name: 'Premium Screen Enclosure', category: 'Screen Enclosure', price: 22, image: '/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png', keywords: ['screen', 'enclosure', 'screen enclosure', 'premium'] }
     ];
 
     // Saunas from saunaData

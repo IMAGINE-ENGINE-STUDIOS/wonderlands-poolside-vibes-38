@@ -252,11 +252,11 @@ export const poolTiles = [
   }
 ];
 
-// Tanning ledge options
+// Tanning ledge options - prices use 4x dealer multiplier
 export const tanningLedges = [
   {
     name: "Hermosa Tanning Ledge",
-    price: 12513,
+    price: 14680, // dealer price ~3670 × 4
     image: "/lovable-uploads/8228c334-6fd7-4b29-afae-98628493480d.png",
     description: "Sophisticated curved ledge with premium comfort features",
     dimensions: "6′ × 10′",
@@ -265,7 +265,7 @@ export const tanningLedges = [
   },
   {
     name: "Rectangle Tanning Ledge",
-    price: 18550,
+    price: 21771, // dealer price ~5443 × 4
     image: "/lovable-uploads/c6bebb1e-d2ed-4591-b81d-0af558ed3e52.png",
     description: "Clean modern lines with maximum lounging space",
     dimensions: "8′ × 14′",
@@ -274,7 +274,7 @@ export const tanningLedges = [
   },
   {
     name: "Paradise Tanning Ledge",
-    price: 15750,
+    price: 18000, // 4500 × 4
     image: "/lovable-uploads/8228c334-6fd7-4b29-afae-98628493480d.png",
     description: "Premium Glimmerglass tanning ledge with paradise comfort",
     dimensions: "7′ × 12′",
@@ -284,7 +284,7 @@ export const tanningLedges = [
   },
   {
     name: "Leeward Tanning Ledge",
-    price: 12352,
+    price: 14116, // 3529 × 4
     image: "/lovable-uploads/c6bebb1e-d2ed-4591-b81d-0af558ed3e52.png",
     description: "Compact Glimmerglass tanning ledge with leeward design",
     dimensions: "6′ × 10′",
