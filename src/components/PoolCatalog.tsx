@@ -79,7 +79,7 @@ const pools: Pool[] = [
 // Premium Infinity Concrete Pool - FLORIDA (NO SURCHARGE)
 {
   model: "Madre Perla",
-  price: 192500,
+  price: 168438,
   category: 'premium',
   image: madrePerlaImage,
   dimensions: "20' x 40'",
@@ -95,7 +95,7 @@ const pools: Pool[] = [
 // Maxima Premium Fiberglass Pool - FLORIDA (NO SURCHARGE)
 {
   model: "Maxima",
-  price: 165000,
+  price: 144375,
   category: 'premium',
   image: maximaImage,
   dimensions: "16' × 40'",
@@ -111,7 +111,7 @@ const pools: Pool[] = [
 // Pacific Ridge Concrete Pool - FLORIDA (NO SURCHARGE)
 {
   model: "Pacific Ridge",
-  price: 110000,
+  price: 96250,
   category: 'premium',
   image: pacificRidgeImage,
   dimensions: "14' x 32'",
@@ -127,7 +127,7 @@ const pools: Pool[] = [
 // Winderview Concrete Pool by Wonderlands - FLORIDA (NO SURCHARGE)
 {
   model: "Winderview",
-  price: 105000,
+  price: 91875,
   category: 'premium',
   image: "/lovable-uploads/winderview-pool.jpg",
   dimensions: "15.5' × 31'",
@@ -144,7 +144,7 @@ const pools: Pool[] = [
 // Cancún Deluxe - Latham Pool with Integrated Spa
 {
   model: "Cancún Deluxe",
-  price: 129000,
+  price: 112875,
   category: 'deluxe',
   image: cancunDeluxeImage,
   dimensions: "16' x 35'",
@@ -159,7 +159,7 @@ const pools: Pool[] = [
 // Astoria - Latham
 {
   model: "Astoria 12",
-  price: 79524,
+  price: 69584,
   category: 'standard',
   image: astoriaImage,
   dimensions: "12' x 25'",
@@ -173,7 +173,7 @@ const pools: Pool[] = [
 },
 {
   model: "Astoria 14",
-  price: 94938,
+  price: 83071,
   category: 'standard',
   image: astoriaImage,
   dimensions: "14' x 35'",
@@ -188,7 +188,7 @@ const pools: Pool[] = [
 // Small Pools - Latham
 {
   model: "Milan",
-  price: 62659,
+  price: 54827,
   category: 'compact',
   image: "/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png",
   dimensions: "10′ × 16′",
@@ -202,7 +202,7 @@ const pools: Pool[] = [
 },
 {
   model: "Jamaica",
-  price: 63744,
+  price: 55776,
   category: 'compact',
   image: "/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png",
   dimensions: "10′ × 20′",
@@ -216,7 +216,7 @@ const pools: Pool[] = [
 },
 {
   model: "Aruba",
-  price: 70933,
+  price: 62066,
   category: 'compact',
   image: "/lovable-uploads/ac53cd88-15e9-4f8a-a3c4-2cd4415b0ec5.png",
   dimensions: "11′ × 22′",
@@ -230,9 +230,9 @@ const pools: Pool[] = [
 },
 {
   model: "Bermuda",
-  price: 54863,
+  price: 48005,
   category: 'standard',
-      image: "/lovable-uploads/bermuda-pool.png",
+  image: "/lovable-uploads/bermuda-pool.png",
   dimensions: "12′ × 24′",
   depth: "3′ 6″ – 5′ 6″",
   installationTimeWeeks: 16,
@@ -244,7 +244,7 @@ const pools: Pool[] = [
 },
 {
   model: "Corinthian 12",
-  price: 67288,
+  price: 58877,
   category: 'standard',
   image: "/lovable-uploads/221a9844-ee7c-4fe3-b421-a9fe99bccabf.png",
   dimensions: "12′ × 25′",
@@ -258,7 +258,7 @@ const pools: Pool[] = [
 },
 {
   model: "Corinthian 12 BME",
-  price: 70788,
+  price: 61940,
   category: 'standard',
   image: "/lovable-uploads/86678699-3f2c-4863-8a81-d8c63721e03c.png",
   dimensions: "12′ × 25′",
@@ -272,7 +272,7 @@ const pools: Pool[] = [
 },
 {
   model: "Delray",
-  price: 52938,
+  price: 46321,
   category: 'standard',
   image: "/lovable-uploads/f549e4e8-647d-4b21-8d48-441f83955c73.png",
   dimensions: "12′ × 24′",
@@ -286,7 +286,7 @@ const pools: Pool[] = [
 },
 {
   model: "Enchantment 9.17",
-  price: 66321,
+  price: 58031,
   category: 'compact',
   image: enchantment917Image,
   dimensions: "9′ 1″ × 17′ 5″",
@@ -300,7 +300,7 @@ const pools: Pool[] = [
 },
 {
   model: "Enchantment 9.21",
-  price: 75273,
+  price: 65864,
   category: 'compact',
   image: enchantment921Image,
   dimensions: "9′ 1″ × 20′ 7″",
@@ -314,7 +314,7 @@ const pools: Pool[] = [
 },
 {
   model: "Enchantment 9.24",
-  price: 54250,
+  price: 47469,
   category: 'compact',
   image: enchantment924Image,
   dimensions: "9′ 1″ × 24′",
@@ -328,7 +328,7 @@ const pools: Pool[] = [
 },
 {
   model: "Java",
-  price: 53550,
+  price: 46856,
   category: 'standard',
   image: "/lovable-uploads/bca99a48-ba6b-42d0-96d0-bf5ecfc2e4fd.png",
   dimensions: "12′ × 24′",
@@ -342,7 +342,7 @@ const pools: Pool[] = [
 },
 {
   model: "Key West",
-  price: 57400,
+  price: 50225,
   category: 'standard',
   image: "/lovable-uploads/4e43c832-af03-4cf4-9104-0117e5f3321c.png",
   dimensions: "13′ × 26′",
@@ -356,7 +356,7 @@ const pools: Pool[] = [
 },
 {
   model: "Olympia 12",
-  price: 68075,
+  price: 59566,
   category: 'standard',
   image: "/lovable-uploads/olympia-pool.jpg",
   dimensions: "12′ × 25′",
@@ -370,7 +370,7 @@ const pools: Pool[] = [
 },
 {
   model: "Pleasant Cove",
-  price: 70933,
+  price: 62066,
   category: 'compact',
   image: "/lovable-uploads/997efdd7-a754-4836-98ac-05c5e9abaf0b.png",
   dimensions: "11′ × 22′",
@@ -384,7 +384,7 @@ const pools: Pool[] = [
 },
 {
   model: "St Lucia",
-  price: 50663,
+  price: 44330,
   category: 'standard',
   image: "/lovable-uploads/e2d562f0-9a55-4293-8a9f-26d9b09ebf15.png",
   dimensions: "12′ × 24′",
@@ -398,7 +398,7 @@ const pools: Pool[] = [
 },
 {
   model: "Tuscan 11.20",
-  price: 50488,
+  price: 44177,
   category: 'standard',
   image: tuscan1120Image,
   dimensions: "11′ × 20′",
@@ -412,7 +412,7 @@ const pools: Pool[] = [
 },
 {
   model: "Tuscan 13.24",
-  price: 61950,
+  price: 54206,
   category: 'standard',
   image: tuscan1324Image,
   dimensions: "13′ × 24′",
@@ -426,7 +426,7 @@ const pools: Pool[] = [
 },
 {
   model: "Vista Isle",
-  price: 62475,
+  price: 54666,
   category: 'standard',
   image: "/lovable-uploads/6a41df5e-d6f6-4e49-aa1a-b457ac1902a0.png",
   dimensions: "13′ × 27′",
@@ -441,7 +441,7 @@ const pools: Pool[] = [
 // Medium Pools - Latham
 {
   model: "Axiom 14",
-  price: 78138,
+  price: 68371,
   category: 'deluxe',
   image: "/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png",
   dimensions: "14′ × 32′",
@@ -455,7 +455,7 @@ const pools: Pool[] = [
 },
 {
   model: "Bay Isle",
-  price: 71750,
+  price: 62781,
   category: 'deluxe',
   image: "/lovable-uploads/a91d91f2-51f8-470c-9894-4a1cf8b1f2c0.png",
   dimensions: "14′ × 30′",
@@ -469,7 +469,7 @@ const pools: Pool[] = [
 },
 {
   model: "Claremont",
-  price: 74463,
+  price: 65155,
   category: 'deluxe',
   image: "/lovable-uploads/6b7b34a3-03f7-4179-b34a-3458dc881efd.png",
   dimensions: "14′ × 32′",
@@ -483,7 +483,7 @@ const pools: Pool[] = [
 },
 {
   model: "Corinthian 14",
-  price: 84350,
+  price: 73806,
   category: 'deluxe',
   image: "/lovable-uploads/3ae37221-0f97-48df-addd-632c423868e2.png",
   dimensions: "14′ × 32′",
@@ -497,7 +497,7 @@ const pools: Pool[] = [
 },
 {
   model: "Corinthian 14 BME",
-  price: 87850,
+  price: 76869,
   category: 'deluxe',
   image: "/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.png",
   dimensions: "14′ × 32′",
@@ -511,7 +511,7 @@ const pools: Pool[] = [
 },
 {
   model: "Laguna",
-  price: 73763,
+  price: 64543,
   category: 'deluxe',
   image: "/lovable-uploads/ee464b25-683d-4367-a208-2159c2bd13f3.png",
   dimensions: "14′ × 30′",
@@ -525,7 +525,7 @@ const pools: Pool[] = [
 },
 {
   model: "Laguna Deluxe",
-  price: 85050,
+  price: 74419,
   category: 'deluxe',
   image: "/lovable-uploads/laguna-deluxe-pool.png",
   dimensions: "14′ × 35′",
@@ -539,7 +539,7 @@ const pools: Pool[] = [
 },
 {
   model: "Olympia 14",
-  price: 86013,
+  price: 75261,
   category: 'deluxe',
   image: "/lovable-uploads/olympia-pool.jpg",
   dimensions: "14′ × 32′",
@@ -553,7 +553,7 @@ const pools: Pool[] = [
 },
 {
   model: "Tuscan 14.27",
-  price: 71400,
+  price: 62475,
   category: 'deluxe',
   image: tuscan1427Image,
   dimensions: "14′ × 27′",
@@ -567,7 +567,7 @@ const pools: Pool[] = [
 },
 {
   model: "Tuscan 14.30",
-  price: 78750,
+  price: 68906,
   category: 'deluxe',
   image: tuscan1430Image,
   dimensions: "14′ × 30′",
@@ -581,7 +581,7 @@ const pools: Pool[] = [
 },
 {
   model: "Tuscan 14.40",
-  price: 99050,
+  price: 86669,
   category: 'premium',
   image: tuscan1440Image,
   dimensions: "14′ × 40′",
@@ -595,7 +595,7 @@ const pools: Pool[] = [
 },
 {
   model: "Valencia",
-  price: 58450,
+  price: 51144,
   category: 'standard',
   image: "/lovable-uploads/d8c4a7c6-4bbe-481d-8a47-5d7feecb1861.png",
   dimensions: "12′ × 28′",
@@ -610,7 +610,7 @@ const pools: Pool[] = [
 // Large Pools - Latham
 {
   model: "Coronado",
-  price: 76475,
+  price: 66916,
   category: 'premium',
   image: "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png",
   dimensions: "16′ × 32′",
@@ -624,7 +624,7 @@ const pools: Pool[] = [
 },
 {
   model: "Olympia 16",
-  price: 90650,
+  price: 79319,
   category: 'premium',
   image: "/lovable-uploads/olympia-pool.jpg",
   dimensions: "16′ × 40′",
@@ -638,7 +638,7 @@ const pools: Pool[] = [
 },
 {
   model: "Synergy",
-  price: 92300,
+  price: 80763,
   category: 'premium',
   image: "/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.png",
   dimensions: "16′ × 36′",
