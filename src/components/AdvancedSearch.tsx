@@ -21,6 +21,12 @@ import { gilmerPools } from '@/data/gilmerPools';
 import { cn } from '@/lib/utils';
 import productImages from '@/data/productImages';
 
+// Import Wonderlands pool images for search
+import madrePerlaImage from '@/assets/pools/madre-perla.jpg';
+import maximaImage from '@/assets/maxima-pool.jpg';
+import pacificRidgeImage from '@/assets/pools/pacific-ridge-new.jpg';
+import cancunDeluxeImage from '@/assets/cancun-deluxe.png';
+
 // Import banner images for sections
 import saunaBanner from "@/assets/banners/sauna-banner.jpg";
 import spaBanner from "@/assets/banners/spa-banner.jpg";
@@ -137,11 +143,11 @@ const AdvancedSearch = () => {
     // LATHAM FIBERGLASS POOLS - Updated prices from PoolCatalog (3.5x dealer multiplier)
     const lathamPoolData = [
       // Wonderlands Concrete Pools
-      { id: 'madre-perla', name: 'Madre Perla', category: 'Pool', price: 168438, image: '/assets/pools/madre-perla.jpg', keywords: ['pool', 'premium', 'concrete', 'infinity', 'madre', 'perla', '20x40'] },
-      { id: 'maxima', name: 'Maxima', category: 'Pool', price: 144375, image: '/assets/maxima-pool.jpg', keywords: ['pool', 'premium', 'fiberglass', '16x40'] },
-      { id: 'pacific-ridge', name: 'Pacific Ridge', category: 'Pool', price: 96250, image: '/assets/pools/pacific-ridge-new.jpg', keywords: ['pool', 'premium', 'concrete', '14x32'] },
+      { id: 'madre-perla', name: 'Madre Perla', category: 'Pool', price: 168438, image: madrePerlaImage, keywords: ['pool', 'premium', 'concrete', 'infinity', 'madre', 'perla', '20x40'] },
+      { id: 'maxima', name: 'Maxima', category: 'Pool', price: 144375, image: maximaImage, keywords: ['pool', 'premium', 'fiberglass', '16x40'] },
+      { id: 'pacific-ridge', name: 'Pacific Ridge', category: 'Pool', price: 96250, image: pacificRidgeImage, keywords: ['pool', 'premium', 'concrete', '14x32'] },
       { id: 'winderview', name: 'Winderview', category: 'Pool', price: 91875, image: '/lovable-uploads/winderview-pool.jpg', keywords: ['pool', 'premium', 'concrete', 'tanning', '15x31'] },
-      { id: 'cancun-deluxe', name: 'Cancún Deluxe', category: 'Pool', price: 112875, image: '/assets/cancun-deluxe.png', keywords: ['pool', 'deluxe', 'spa', 'integrated', '16x35'] },
+      { id: 'cancun-deluxe', name: 'Cancún Deluxe', category: 'Pool', price: 112875, image: cancunDeluxeImage, keywords: ['pool', 'deluxe', 'spa', 'integrated', '16x35'] },
       
       // Astoria Series
       { id: 'astoria-12', name: 'Astoria 12', category: 'Pool', price: 81900, image: '/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png', keywords: ['pool', 'standard', 'latham', 'astoria', '12x25'] },
