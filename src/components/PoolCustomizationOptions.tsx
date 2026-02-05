@@ -170,44 +170,44 @@ const poolOptions: PoolOption[] = [
     category: 'jets' 
   },
 
-  // Screen Enclosure Options - All $22/sq ft
+  // Screen Enclosure Options - Standard $22, Deluxe $24, 2 Story $26
   { 
     id: 'screen-standard-1-story', 
     name: 'Standard Screen Enclosure - 1 Story', 
     description: 'Premium aluminum frame with standard screen mesh - $22/sq ft',
-    price: 0, // Base price, calculated by area
+    price: 0,
     category: 'screen-enclosure',
     image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
   },
   { 
     id: 'screen-standard-2-story', 
     name: 'Standard Screen Enclosure - 2 Story', 
-    description: 'Reinforced aluminum frame for two-story applications - $22/sq ft',
-    price: 0, // Base price, calculated by area
+    description: 'Reinforced aluminum frame for two-story applications - $26/sq ft',
+    price: 0,
     category: 'screen-enclosure',
     image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
   },
   { 
     id: 'screen-deluxe-1-story', 
     name: 'Deluxe Screen Enclosure - 1 Story', 
-    description: 'Enhanced aluminum frame with upgraded mesh - $22/sq ft',
-    price: 0, // Base price, calculated by area
+    description: 'Enhanced aluminum frame with upgraded mesh - $24/sq ft',
+    price: 0,
     category: 'screen-enclosure',
     image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
   },
   { 
     id: 'screen-premium-1-story', 
     name: 'Premium Screen Enclosure - 1 Story', 
-    description: 'High-end aluminum frame with superior screen mesh - $22/sq ft',
-    price: 0, // Base price, calculated by area
+    description: 'High-end aluminum frame with superior screen mesh - $26/sq ft',
+    price: 0,
     category: 'screen-enclosure',
     image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
   },
   { 
     id: 'screen-premium-2-story', 
     name: 'Premium Screen Enclosure - 2 Story', 
-    description: 'Premium two-story screen enclosure with enhanced features - $22/sq ft',
-    price: 0, // Base price, calculated by area
+    description: 'Premium two-story screen enclosure with enhanced features - $26/sq ft',
+    price: 0,
     category: 'screen-enclosure',
     image: '/lovable-uploads/c86467c2-f57b-407c-a9f8-9ad2143552c2.png'
   },
@@ -389,7 +389,9 @@ const PoolCustomizationOptions = ({ onSelectionChange }: PoolCustomizationOption
                   <span className="text-xl font-bold text-primary">
                     {option.price === 0 
                       ? (option.category === 'screen-enclosure' 
-                          ? '$22/sq ft'
+                          ? (option.id.includes('2-story') ? '$26/sq ft' 
+                            : option.id.includes('deluxe') ? '$24/sq ft' 
+                            : '$22/sq ft')
                           : '$25/sq ft')
                       : `+$${option.price.toLocaleString()}`
                     }

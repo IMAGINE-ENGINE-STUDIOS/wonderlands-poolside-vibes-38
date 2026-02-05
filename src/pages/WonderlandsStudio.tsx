@@ -2382,8 +2382,8 @@ const WonderlandsStudio = () => {
                             <CarouselContent className="-ml-1">
                             {[
                                 { key: "standard", name: "Wonder Cage", price: 22, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
-                                { key: "deluxe", name: "Deluxe", price: 22, image: screenEnclosureDeluxe },
-                                { key: "premium", name: "2 Stories", price: 22, image: screenEnclosurePremium },
+                                { key: "deluxe", name: "Deluxe", price: 24, image: screenEnclosureDeluxe },
+                                { key: "premium", name: "2 Stories", price: 26, image: screenEnclosurePremium },
                               ].map((quality) => (
                                 <CarouselItem key={quality.key} className="pl-1 basis-1/2 md:basis-1/3">
                                   <div

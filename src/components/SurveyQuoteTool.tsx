@@ -448,12 +448,14 @@ const SurveyQuoteTool = ({
       basePrice -= 2000;
     }
 
-    // Add selected options (including screen enclosures with area-based pricing - $22/sqft for all tiers)
+    // Add selected options (including screen enclosures with area-based pricing)
     const optionsPrice = selectedOptions.reduce((total, option) => {
       if (option.category === 'screen-enclosure') {
-        // Calculate screen enclosure price based on enclosure footprint area - all at $22/sqft
         const enclosureArea = getEnclosureArea();
-        return total + enclosureArea * 22;
+        // Determine rate based on option type
+        const rate = option.id?.includes('2-story') || option.id?.includes('premium') ? 26 
+          : option.id?.includes('deluxe') ? 24 : 22;
+        return total + enclosureArea * rate;
       }
       return total + option.price;
     }, 0);

@@ -27,14 +27,14 @@ const screenEnclosureOptions: ScreenEnclosureOption[] = [{
 }, {
   name: "Deluxe Screen Enclosure",
   type: "standard",
-  pricePerSqFt: 22,
+  pricePerSqFt: 24,
   image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png",
   description: "Enhanced aluminum frame with upgraded mesh and hardware",
   features: ["Enhanced Aluminum Frame", "Premium Screen Mesh", "Upgraded Hardware", "10-Year Warranty"]
 }, {
   name: "Premium Screen Enclosure",
   type: "premium",
-  pricePerSqFt: 22,
+  pricePerSqFt: 26,
   image: screenEnclosurePremium,
   description: "Top-tier aluminum construction with impact-resistant screening and premium finishes",
   features: ["Heavy-Duty Aluminum Frame", "Impact-Resistant Screen", "Premium Hardware", "Custom Color Options", "Lifetime Warranty"]
