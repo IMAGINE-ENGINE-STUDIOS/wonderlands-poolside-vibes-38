@@ -83,6 +83,36 @@ export const gilmerSpas: GilmerSpa[] = [
     type: "Spa",
     installationTimeWeeks: 2,
     features: ["Premium Design", "Fiberglass Construction", "Lifetime Structural Warranty"]
+  },
+  {
+    model: "Paradise Tanning Ledge",
+    dealerPrice: 4500,
+    price: 15750,
+    category: "standard",
+    image: gilmerPacifica,
+    dimensions: "8'x4'x1'",
+    depth: "1'",
+    colorOptions: ["Ocean Blue", "Sapphire Blue", "Coastal Bronze", "Snow White", "Steel Grey", "Arctic White", "Glacier Blue"],
+    warranty: "Life Warranty",
+    brand: "Gilmer Glass",
+    type: "Tanning Ledge",
+    installationTimeWeeks: 2,
+    features: ["Sun Shelf Design", "Fiberglass Construction", "Lifetime Structural Warranty"]
+  },
+  {
+    model: "Leeward Tanning Ledge",
+    dealerPrice: 3529,
+    price: 12352,
+    category: "standard",
+    image: gilmerPacifica,
+    dimensions: "6'x4'x1'",
+    depth: "1'",
+    colorOptions: ["Ocean Blue", "Sapphire Blue", "Coastal Bronze", "Snow White", "Steel Grey", "Arctic White", "Glacier Blue"],
+    warranty: "Life Warranty",
+    brand: "Gilmer Glass",
+    type: "Tanning Ledge",
+    installationTimeWeeks: 2,
+    features: ["Compact Sun Shelf", "Fiberglass Construction", "Lifetime Structural Warranty"]
   }
 ];
 
