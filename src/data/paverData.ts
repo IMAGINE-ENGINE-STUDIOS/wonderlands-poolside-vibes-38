@@ -178,12 +178,12 @@ export const paverTypes: PaverType[] = [
     image: '/lovable-uploads/coralina-blanco.jpg'
   },
   
-  // Premium Travertine Collection - $50/sqft
+  // Premium Travertine Collection - $22/sqft
   {
     id: 'travertine-light',
     name: 'Travertine Light',
     description: 'Premium Travertine Light natural stone deck finish',
-    basePrice: 50,
+    basePrice: 22,
     category: 'paver',
     image: '/lovable-uploads/deck-light.png'
   },
@@ -191,7 +191,7 @@ export const paverTypes: PaverType[] = [
     id: 'travertine-dark',
     name: 'Travertine Dark',
     description: 'Premium Travertine Dark natural stone deck finish',
-    basePrice: 50,
+    basePrice: 22,
     category: 'paver',
     image: '/lovable-uploads/deck-dark.png'
   },
@@ -199,7 +199,7 @@ export const paverTypes: PaverType[] = [
     id: 'travertine-misty',
     name: 'Travertine Misty',
     description: 'Premium Travertine Misty natural stone deck finish',
-    basePrice: 50,
+    basePrice: 22,
     category: 'paver',
     image: '/lovable-uploads/deck-misty.png'
   },
@@ -207,7 +207,7 @@ export const paverTypes: PaverType[] = [
     id: 'travertine-steel',
     name: 'Travertine Steel',
     description: 'Premium Travertine Steel natural stone deck finish',
-    basePrice: 50,
+    basePrice: 22,
     category: 'paver',
     image: '/lovable-uploads/deck-steel.png'
   },
@@ -215,7 +215,7 @@ export const paverTypes: PaverType[] = [
     id: 'travertine-pearly',
     name: 'Travertine Pearly',
     description: 'Premium Travertine Pearly natural stone deck finish',
-    basePrice: 50,
+    basePrice: 22,
     category: 'paver',
     image: '/lovable-uploads/deck-pearly.png'
   },
@@ -223,7 +223,7 @@ export const paverTypes: PaverType[] = [
     id: 'travertine-silver',
     name: 'Travertine Silver',
     description: 'Premium Travertine Silver natural stone deck finish',
-    basePrice: 50,
+    basePrice: 22,
     category: 'paver',
     image: '/lovable-uploads/deck-silver.png'
   },
@@ -231,17 +231,17 @@ export const paverTypes: PaverType[] = [
     id: 'travertine-rustic',
     name: 'Travertine Rustic',
     description: 'Premium Travertine Rustic natural stone deck finish',
-    basePrice: 50,
+    basePrice: 22,
     category: 'paver',
     image: '/lovable-uploads/deck-rustic.png'
   },
   
-  // Premium Travertine Finishes - $50/sqft
+  // Premium Travertine Finishes - $22/sqft
   {
     id: 'travertine-classic',
     name: 'Travertine Classic',
     description: 'Premium natural travertine pavers with classic finish',
-    basePrice: 50,
+    basePrice: 22,
     category: 'paver',
     image: '/lovable-uploads/classic-brown.png'
   },
@@ -249,7 +249,7 @@ export const paverTypes: PaverType[] = [
     id: 'travertine-tumbled',
     name: 'Travertine Tumbled',
     description: 'Premium tumbled travertine pavers with antique finish',
-    basePrice: 50,
+    basePrice: 22,
     category: 'paver',
     image: '/lovable-uploads/classic-grey.png'
   },
@@ -257,7 +257,7 @@ export const paverTypes: PaverType[] = [
     id: 'travertine-honed',
     name: 'Travertine Honed',
     description: 'Premium honed travertine pavers with smooth finish',
-    basePrice: 50,
+    basePrice: 22,
     category: 'paver',
     image: '/lovable-uploads/deck-light.png'
   }
