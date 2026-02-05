@@ -47,6 +47,7 @@ import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
 import AdvancedSearch from '@/components/AdvancedSearch';
+// Studio search uses the same AdvancedSearch component as the main page
 
 
 interface Product {
