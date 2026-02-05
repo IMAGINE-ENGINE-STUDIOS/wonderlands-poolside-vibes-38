@@ -12,7 +12,10 @@ import { useShoppingCart } from "./ShoppingCartProvider";
 import { toast } from "sonner";
 import SurveyQuoteTool from "./SurveyQuoteTool";
 
-const PRICE_PER_SQFT = 20; // Base price for Appian, Catalina collections
+// Collection base prices: Appian $15, Catalina $20, Catalina Grana $22
+const APPIAN_PRICE = 15;
+const CATALINA_PRICE = 20;
+const CATALINA_GRANA_PRICE = 22;
 
 const PaversSection = () => {
   const [showOptionsModal, setShowOptionsModal] = useState(false);
@@ -31,8 +34,9 @@ const PaversSection = () => {
     if (!surfaceArea) return 0;
     const area = parseFloat(surfaceArea);
     if (isNaN(area)) return 0;
-    // Use selected paver's basePrice if available, otherwise default PRICE_PER_SQFT
-    const pricePerSqFt = selectedPaverType?.basePrice || PRICE_PER_SQFT;
+    // Use selected paver's basePrice if available, otherwise use collection defaults
+    const defaultPrice = selectedCollection === 'appian' ? APPIAN_PRICE : selectedCollection === 'catalina-grana' ? CATALINA_GRANA_PRICE : CATALINA_PRICE;
+    const pricePerSqFt = selectedPaverType?.basePrice || defaultPrice;
     return pricePerSqFt * area;
   };
 
@@ -79,7 +83,8 @@ const PaversSection = () => {
     const area = parseFloat(surfaceArea);
     if (isNaN(area)) return undefined;
     
-    const pricePerSqFt = selectedPaverType?.basePrice || PRICE_PER_SQFT;
+    const defaultPrice = selectedCollection === 'appian' ? APPIAN_PRICE : selectedCollection === 'catalina-grana' ? CATALINA_GRANA_PRICE : CATALINA_PRICE;
+    const pricePerSqFt = selectedPaverType?.basePrice || defaultPrice;
     const totalPrice = pricePerSqFt * area;
     return {
       extrasBreakdown: [{
@@ -156,9 +161,9 @@ const PaversSection = () => {
               </CardHeader>
 
               <CardContent className="space-y-6">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5 text-teal" />
-                  <span className="text-lg font-semibold text-foreground">${PRICE_PER_SQFT}/sq ft</span>
+                  <span className="text-lg font-semibold text-foreground">${APPIAN_PRICE}/sq ft</span>
                   <span className="text-sm text-muted-foreground">(All styles same price)</span>
                 </div>
 
@@ -201,10 +206,10 @@ const PaversSection = () => {
                     {surfaceArea && !isNaN(parseFloat(surfaceArea)) && (
                       <div className="text-sm">
                         <div className="text-green-600 font-medium">
-                          Total Cost: ${(parseFloat(surfaceArea) * PRICE_PER_SQFT).toLocaleString()}
+                          Total Cost: ${(parseFloat(surfaceArea) * APPIAN_PRICE).toLocaleString()}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Based on {surfaceArea} sq ft × ${PRICE_PER_SQFT}/sq ft
+                          Based on {surfaceArea} sq ft × ${APPIAN_PRICE}/sq ft
                         </div>
                       </div>
                     )}
@@ -249,9 +254,9 @@ const PaversSection = () => {
               </CardHeader>
 
               <CardContent className="space-y-6">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5 text-coral" />
-                  <span className="text-lg font-semibold text-foreground">${PRICE_PER_SQFT}/sq ft</span>
+                  <span className="text-lg font-semibold text-foreground">${CATALINA_GRANA_PRICE}/sq ft</span>
                   <span className="text-sm text-muted-foreground">(All styles same price)</span>
                 </div>
 
@@ -294,10 +299,10 @@ const PaversSection = () => {
                     {surfaceArea && !isNaN(parseFloat(surfaceArea)) && (
                       <div className="text-sm">
                         <div className="text-green-600 font-medium">
-                          Total Cost: ${(parseFloat(surfaceArea) * PRICE_PER_SQFT).toLocaleString()}
+                          Total Cost: ${(parseFloat(surfaceArea) * CATALINA_GRANA_PRICE).toLocaleString()}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Based on {surfaceArea} sq ft × ${PRICE_PER_SQFT}/sq ft
+                          Based on {surfaceArea} sq ft × ${CATALINA_GRANA_PRICE}/sq ft
                         </div>
                       </div>
                     )}
@@ -344,7 +349,7 @@ const PaversSection = () => {
               <CardContent className="space-y-6">
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5 text-accent" />
-                  <span className="text-lg font-semibold text-foreground">${PRICE_PER_SQFT}/sq ft</span>
+                  <span className="text-lg font-semibold text-foreground">${CATALINA_PRICE}/sq ft</span>
                   <span className="text-sm text-muted-foreground">(All styles same price)</span>
                 </div>
 
@@ -387,10 +392,10 @@ const PaversSection = () => {
                     {surfaceArea && !isNaN(parseFloat(surfaceArea)) && (
                       <div className="text-sm">
                         <div className="text-green-600 font-medium">
-                          Total Cost: ${(parseFloat(surfaceArea) * PRICE_PER_SQFT).toLocaleString()}
+                          Total Cost: ${(parseFloat(surfaceArea) * CATALINA_PRICE).toLocaleString()}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Based on {surfaceArea} sq ft × ${PRICE_PER_SQFT}/sq ft
+                          Based on {surfaceArea} sq ft × ${CATALINA_PRICE}/sq ft
                         </div>
                       </div>
                     )}
@@ -495,7 +500,7 @@ const PaversSection = () => {
                   </div>
                   <div className="flex justify-between">
                     <span>Price per sq ft:</span>
-                    <span>${selectedPaverType?.basePrice || PRICE_PER_SQFT}.00</span>
+                    <span>${selectedPaverType?.basePrice || (selectedCollection === 'appian' ? APPIAN_PRICE : selectedCollection === 'catalina-grana' ? CATALINA_GRANA_PRICE : CATALINA_PRICE)}.00</span>
                   </div>
                 </div>
               )}
