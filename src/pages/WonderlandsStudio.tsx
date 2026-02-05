@@ -759,6 +759,28 @@ const WonderlandsStudio = () => {
         const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[quality] || SCREEN_ENCLOSURE_PRICING.standard;
         total += selectedExtras.screenEnclosureArea * pricePerSqFt;
       }
+
+      // Add spa if selected with a valid model
+      if (selectedExtras.spa && selectedExtras.spaModel) {
+        const allSpas = [...spas, ...gilmerSpas];
+        const selectedSpa = allSpas.find((s: any) => s.model === selectedExtras.spaModel);
+        if (selectedSpa) {
+          total += selectedSpa.price;
+        }
+      }
+
+      // Add spa finish if selected (for Latham spas on Glimmerglass pools)
+      if (selectedExtras.spaFinish && selectedExtras.spaFinishPrice) {
+        total += selectedExtras.spaFinishPrice;
+      }
+
+      // Add tanning ledge if selected with a valid model
+      if (selectedExtras.tanningLedge && selectedExtras.tanningLedgeModel) {
+        const selectedLedge = tanningLedges.find((l: any) => l.name === selectedExtras.tanningLedgeModel);
+        if (selectedLedge) {
+          total += selectedLedge.price;
+        }
+      }
     }
 
     // Apply project type multiplier (3x for commercial)
@@ -767,7 +789,11 @@ const WonderlandsStudio = () => {
   const getSelectedExtrasCount = () => {
     let count = 0;
     // Spa: must be checked AND have a model selected
-    if (selectedExtras.spa && selectedExtras.selectedSpaModel && selectedExtras.selectedSpaModel !== '' && selectedExtras.selectedSpaModel !== 'None') count++;
+    if (selectedExtras.spa && selectedExtras.spaModel && selectedExtras.spaModel !== '' && selectedExtras.spaModel !== 'None') count++;
+    // Spa Finish: must have a finish selected with price
+    if (selectedExtras.spaFinish && selectedExtras.spaFinishPrice && selectedExtras.spaFinishPrice > 0) count++;
+    // Tanning Ledge: must be checked AND have a model selected
+    if (selectedExtras.tanningLedge && selectedExtras.tanningLedgeModel && selectedExtras.tanningLedgeModel !== '' && selectedExtras.tanningLedgeModel !== 'None') count++;
     // Finish: must have price > 0 (free finishes don't count)
     const selectedFinish = finishOptions.find(f => f.name === selectedExtras.finish);
     if (selectedExtras.finish && selectedExtras.finish !== 'None' && selectedExtras.finish !== '' && selectedFinish && selectedFinish.price > 0) count++;
@@ -797,7 +823,18 @@ const WonderlandsStudio = () => {
     switch (extraType) {
       case 'spa':
         newExtras.spa = false;
+        newExtras.spaModel = '';
         newExtras.selectedSpaModel = '';
+        newExtras.spaFinish = '';
+        newExtras.spaFinishPrice = 0;
+        break;
+      case 'spaFinish':
+        newExtras.spaFinish = '';
+        newExtras.spaFinishPrice = 0;
+        break;
+      case 'tanningLedge':
+        newExtras.tanningLedge = false;
+        newExtras.tanningLedgeModel = '';
         break;
       case 'finish':
         newExtras.finish = 'None';
@@ -811,9 +848,11 @@ const WonderlandsStudio = () => {
         break;
       case 'jets':
         newExtras.jets = false;
+        newExtras.jetQuantity = 0;
         break;
       case 'tiles':
         newExtras.tiles = false;
+        newExtras.tileOption = '';
         break;
       case 'liner':
         newExtras.liner = false;
@@ -828,6 +867,7 @@ const WonderlandsStudio = () => {
       case 'screen':
         newExtras.screenEnclosure = false;
         newExtras.screenEnclosureArea = 0;
+        newExtras.screenEnclosureQuality = '';
         break;
       case 'concrete':
         newExtras.concreteConstruction = false;
@@ -950,6 +990,40 @@ const WonderlandsStudio = () => {
         image: '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
       });
     }
+
+    // Add spa if selected with a valid model
+    if (selectedExtras.spa && selectedExtras.spaModel) {
+      const allSpas = [...spas, ...gilmerSpas];
+      const selectedSpa = allSpas.find((s: any) => s.model === selectedExtras.spaModel);
+      if (selectedSpa) {
+        extrasBreakdown.push({
+          name: `${selectedSpa.model} Spa`,
+          price: selectedSpa.price,
+          image: selectedSpa.image || '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+        });
+      }
+    }
+
+    // Add spa finish if selected (for Latham spas on Glimmerglass pools)
+    if (selectedExtras.spaFinish && selectedExtras.spaFinishPrice) {
+      extrasBreakdown.push({
+        name: `${selectedExtras.spaFinish} Spa Finish`,
+        price: selectedExtras.spaFinishPrice,
+        image: '/lovable-uploads/390cf824-aed3-4f60-9fc3-f3910c0ffe44.png'
+      });
+    }
+
+    // Add tanning ledge if selected with a valid model
+    if (selectedExtras.tanningLedge && selectedExtras.tanningLedgeModel) {
+      const selectedLedge = tanningLedges.find((l: any) => l.name === selectedExtras.tanningLedgeModel);
+      if (selectedLedge) {
+        extrasBreakdown.push({
+          name: `${selectedLedge.name} Tanning Ledge`,
+          price: selectedLedge.price,
+          image: selectedLedge.image || '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png'
+        });
+      }
+    }
     const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
 
     console.log('✅ EXTRAS BREAKDOWN COMPLETE:', extrasBreakdown);
@@ -1066,6 +1140,37 @@ const WonderlandsStudio = () => {
         name: 'Concrete Construction',
         price: concreteMarkup
       });
+    }
+
+    // Add spa if selected with a valid model
+    if (selectedExtras.spa && selectedExtras.spaModel) {
+      const allSpas = [...spas, ...gilmerSpas];
+      const selectedSpa = allSpas.find((s: any) => s.model === selectedExtras.spaModel);
+      if (selectedSpa) {
+        extrasArray.push({
+          name: `${selectedSpa.model} Spa`,
+          price: selectedSpa.price
+        });
+      }
+    }
+
+    // Add spa finish if selected (for Latham spas on Glimmerglass pools)
+    if (selectedExtras.spaFinish && selectedExtras.spaFinishPrice) {
+      extrasArray.push({
+        name: `${selectedExtras.spaFinish} Spa Finish`,
+        price: selectedExtras.spaFinishPrice
+      });
+    }
+
+    // Add tanning ledge if selected with a valid model
+    if (selectedExtras.tanningLedge && selectedExtras.tanningLedgeModel) {
+      const selectedLedge = tanningLedges.find((l: any) => l.name === selectedExtras.tanningLedgeModel);
+      if (selectedLedge) {
+        extrasArray.push({
+          name: `${selectedLedge.name} Tanning Ledge`,
+          price: selectedLedge.price
+        });
+      }
     }
     const cartItem = {
       id: `${selectedProduct.type}_${selectedProduct.model || selectedProduct.name}`,
@@ -2510,20 +2615,55 @@ const WonderlandsStudio = () => {
                         <DropdownMenuContent align="end" className="w-56 sm:w-64 p-2 bg-background z-50">
                           <div className="space-y-2">
                             <p className="text-sm font-medium mb-2">Selected Features:</p>
-                            {/* Only show items that are truly selected with valid values */}
-                            {selectedExtras.spa && selectedExtras.selectedSpaModel && selectedExtras.selectedSpaModel !== '' && selectedExtras.selectedSpaModel !== 'None' && (
+                            {/* Spa: check spaModel (used by the UI carousel) */}
+                            {selectedExtras.spa && selectedExtras.spaModel && selectedExtras.spaModel !== '' && selectedExtras.spaModel !== 'None' && (() => {
+                              const allSpas = [...spas, ...gilmerSpas];
+                              const selectedSpa = allSpas.find((s: any) => s.model === selectedExtras.spaModel);
+                              return (
+                                <div className="flex items-center justify-between text-xs">
+                                  <span>{selectedExtras.spaModel} Spa</span>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-muted-foreground">
+                                      +${(selectedSpa?.price || 0).toLocaleString()}
+                                    </span>
+                                    <Button variant="ghost" size="sm" onClick={() => removeExtra('spa')} className="h-6 w-6 p-0">
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                            {/* Spa Finish */}
+                            {selectedExtras.spaFinish && selectedExtras.spaFinishPrice > 0 && (
                               <div className="flex items-center justify-between text-xs">
-                                <span>{selectedExtras.selectedSpaModel} Spa</span>
+                                <span>{selectedExtras.spaFinish} Spa Finish</span>
                                 <div className="flex items-center gap-1">
                                   <span className="text-muted-foreground">
-                                    +${spas.find(s => s.model === selectedExtras.selectedSpaModel)?.price.toLocaleString() || 0}
+                                    +${selectedExtras.spaFinishPrice.toLocaleString()}
                                   </span>
-                                  <Button variant="ghost" size="sm" onClick={() => removeExtra('spa')} className="h-6 w-6 p-0">
+                                  <Button variant="ghost" size="sm" onClick={() => removeExtra('spaFinish')} className="h-6 w-6 p-0">
                                     <X className="h-3 w-3" />
                                   </Button>
                                 </div>
                               </div>
                             )}
+                            {/* Tanning Ledge */}
+                            {selectedExtras.tanningLedge && selectedExtras.tanningLedgeModel && selectedExtras.tanningLedgeModel !== '' && selectedExtras.tanningLedgeModel !== 'None' && (() => {
+                              const selectedLedge = tanningLedges.find((l: any) => l.name === selectedExtras.tanningLedgeModel);
+                              return (
+                                <div className="flex items-center justify-between text-xs">
+                                  <span>{selectedExtras.tanningLedgeModel} Tanning Ledge</span>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-muted-foreground">
+                                      +${(selectedLedge?.price || 0).toLocaleString()}
+                                    </span>
+                                    <Button variant="ghost" size="sm" onClick={() => removeExtra('tanningLedge')} className="h-6 w-6 p-0">
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              );
+                            })()}
                             {(() => {
                               const selectedFinish = finishOptions.find(f => f.name === selectedExtras.finish);
                               return selectedExtras.finish && selectedExtras.finish !== 'None' && selectedExtras.finish !== '' && selectedFinish && selectedFinish.price > 0 && (
