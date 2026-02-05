@@ -129,10 +129,10 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
   // Paver options from paverData with $50/sq ft pricing for travertine
   const paverOptions = [{
     name: 'Concrete Deck',
-    price: 0,
+    price: 10,
     image: concreteDeckTexture,
     description: 'Standard concrete deck',
-    pricePerSqFt: 50
+    pricePerSqFt: 10
   }, ...paverTypes
     .filter(paver => paver.category === 'paver')
     .map(paver => ({

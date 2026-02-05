@@ -22,6 +22,11 @@ import pacificRidgeImage from "@/assets/pools/pacific-ridge-new.jpg";
 import cancunDeluxeImage from "@/assets/cancun-deluxe.png";
 import maximaImage from "@/assets/maxima-pool.jpg";
 
+// Import Axiom 14 Deluxe images
+import axiom14DeluxeMain from "@/assets/pools/axiom-14-deluxe-main.jpg";
+import axiom14DeluxeSpecs from "@/assets/pools/axiom-14-deluxe-specs.jpg";
+import axiom14DeluxeGallery1 from "@/assets/pools/axiom-14-deluxe-gallery-1.jpg";
+
 // Data loaded successfully
 
 // Pool model images - synchronized with Wonderlands Studio (with cache-busting)
@@ -39,6 +44,7 @@ interface Pool {
   price: number;
   category: 'premium' | 'deluxe' | 'standard' | 'compact';
   image?: string;
+  gallery?: string[]; // Additional images for the pool gallery
   dimensions?: string;
   depth?: string;
   features?: string[];
@@ -667,12 +673,13 @@ const pools: Pool[] = [
   model: "Axiom 14 Deluxe",
   price: 87413,
   category: 'deluxe',
-  image: "/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png",
-  dimensions: "14′ × 32′",
-  depth: "3′ 6″ – 6′",
+  image: axiom14DeluxeMain,
+  gallery: [axiom14DeluxeMain, axiom14DeluxeSpecs, axiom14DeluxeGallery1],
+  dimensions: "14′ × 30′",
+  depth: "4′ 6″ – 5′ 6″; Spa 3′",
   installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
-  features: ["Salt system included", "Modern Design", "Deep End", "Deluxe Features"],
+  features: ["Salt system included", "Built-in Spa", "Tanning Ledge", "Modern Design", "Deluxe Features"],
   heater: false,
   saltSystem: true,
   carbonFiber: true
