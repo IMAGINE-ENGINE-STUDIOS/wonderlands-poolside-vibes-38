@@ -35,6 +35,7 @@ import AutomationStatusManager from '@/components/admin/AutomationStatusManager'
 import { TwilioTestPanel } from '@/components/admin/TwilioTestPanel';
 import AdminPromotionsManager from '@/components/admin/AdminPromotionsManager';
 import HeadOfSalesDashboard from '@/components/HeadOfSalesDashboard';
+import CustomerCacheSearch from '@/components/admin/CustomerCacheSearch';
 
 // Navigation Item Component
 const NavItem = ({
@@ -254,6 +255,7 @@ const AdminDashboard = () => {
                 <NavItem icon={Crown} label="Sales Categories" active={activeSection === "sales-categories"} onClick={() => setActiveSection("sales-categories")} />
                 <NavItem icon={DollarSign} label="Head of Sales" active={activeSection === "head-of-sales"} onClick={() => setActiveSection("head-of-sales")} />
                 <NavItem icon={Users} label="Clients" active={activeSection === "clients"} onClick={() => setActiveSection("clients")} />
+                <NavItem icon={Database} label="Customer DB" active={activeSection === "customer-cache"} onClick={() => setActiveSection("customer-cache")} />
                 <NavItem icon={Building2} label="Contractors" active={activeSection === "contractors"} onClick={() => setActiveSection("contractors")} />
                 <NavItem icon={Gift} label="Referrals" active={activeSection === "referrals"} onClick={() => setActiveSection("referrals")} />
                 <NavItem icon={Users} label="API Manager" active={activeSection === "api-manager"} onClick={() => setActiveSection("api-manager")} />
@@ -452,6 +454,24 @@ const AdminDashboard = () => {
           {activeSection === "referrals" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
             <AdminReferralsManager />
             </div>}
+
+          {/* Customer Cache Database */}
+          {isMainAdmin && activeSection === "customer-cache" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+            <Card className="holographic-panel border-cyan-500/30">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
+                  <Database className="h-5 w-5 text-cyan-400" />
+                  Customer Database
+                </CardTitle>
+                <CardDescription className="text-cyan-400/60 font-mono">
+                  All unique customers from quote submissions (passcode protected)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CustomerCacheSearch />
+              </CardContent>
+            </Card>
+          </div>}
 
           {/* Content Editor Tab - Only for main admins */}
           {isMainAdmin && activeSection === "content-editor" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
