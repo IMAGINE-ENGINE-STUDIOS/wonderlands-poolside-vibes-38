@@ -8,12 +8,19 @@ import {
   ToastViewport,
 } from "@/components/ui/toast"
 
+const isDev = import.meta.env.DEV;
+
 export function Toaster() {
   const { toasts } = useToast()
 
+  // In production, suppress destructive (red) error toasts for regular users
+  const visibleToasts = isDev
+    ? toasts
+    : toasts.filter(t => t.variant !== "destructive");
+
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
+      {visibleToasts.map(function ({ id, title, description, action, ...props }) {
         return (
           <Toast key={id} {...props}>
             <div className="grid gap-1">
