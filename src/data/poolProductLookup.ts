@@ -2,6 +2,43 @@
 // This provides a unified lookup for product cards to show tech specs
 // Updated with ALL products from catalog - 3.5x/4x dealer multipliers applied
 
+// Import images that need Vite processing - Latham/Axiom
+import axiom14DeluxeMain from '@/assets/pools/axiom-14-deluxe-main.jpg';
+
+// Import GlimmerGlass pool images
+import gilmerAloha from '@/assets/gilmer-aloha.png';
+import gilmerAtlantis from '@/assets/gilmer-atlantis.png';
+import gilmerBeachcomber from '@/assets/gilmer-beachcomber.png';
+import gilmerBallagio from '@/assets/gilmer-ballagio.png';
+import gilmerCapri from '@/assets/gilmer-capri.png';
+import gilmerCaribbean from '@/assets/gilmer-caribbean.png';
+import gilmerCoralCove from '@/assets/gilmer-coral-cove.png';
+import gilmerCostaBrava from '@/assets/gilmer-costa-brava.png';
+import gilmerEmerald from '@/assets/gilmer-emerald.png';
+import gilmerGoldCoast from '@/assets/gilmer-gold-coast.png';
+import gilmerGrandCayman from '@/assets/gilmer-grand-cayman.png';
+import gilmerIslander from '@/assets/gilmer-islander.png';
+import gilmerMajestic from '@/assets/gilmer-majestic.png';
+import gilmerMystic from '@/assets/gilmer-mystic.png';
+import gilmerNeptune from '@/assets/gilmer-neptune.png';
+import gilmerNewport from '@/assets/gilmer-newport.png';
+import gilmerPonceXL from '@/assets/gilmer-ponce-xl.png';
+import gilmerRegalPlunge from '@/assets/gilmer-regal-plunge.png';
+import gilmerRetreat from '@/assets/gilmer-retreat.png';
+import gilmerRoman from '@/assets/gilmer-roman.png';
+import gilmerSerafina from '@/assets/gilmer-serafina.png';
+import gilmerSerenade from '@/assets/gilmer-serenade.png';
+import gilmerSilverShore from '@/assets/gilmer-silver-shore.png';
+import gilmerRegal from '@/assets/gilmer-regal.png';
+import gilmerSuperior from '@/assets/gilmer-superior.png';
+import gilmerTortola from '@/assets/gilmer-tortola.png';
+import gilmerVision from '@/assets/gilmer-vision.png';
+
+// Import tanning ledge images
+import glimmerglassParadise from '@/assets/tanning-ledges/glimmerglass-paradise.png';
+import glimmerglassLeeward from '@/assets/tanning-ledges/glimmerglass-leeward.png';
+import glimmerglassLeisure from '@/assets/tanning-ledges/glimmerglass-leisure.png';
+
 export interface PoolProductInfo {
   name: string;
   dimensions: string;
@@ -100,7 +137,7 @@ export const poolProductLookup: Record<string, PoolProductInfo> = {
   // ============================================
   "axiom 12 deluxe": { name: "Axiom 12 Deluxe", dimensions: "12' × 28'", depth: "3'6\" - 6'", price: 69213, image: "/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png", category: "Pool", brand: "Latham" },
   "axiom 14": { name: "Axiom 14", dimensions: "14' × 32'", depth: "3'6\" - 6'", price: 80500, image: "/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png", category: "Pool", brand: "Latham" },
-  "axiom 14 deluxe": { name: "Axiom 14 Deluxe", dimensions: "14' × 30'", depth: "4'6\" - 5'6\"; Spa 3'", price: 87413, image: "/assets/pools/axiom-14-deluxe-main.jpg", category: "Pool", brand: "Latham" },
+  "axiom 14 deluxe": { name: "Axiom 14 Deluxe", dimensions: "14' × 30'", depth: "4'6\" - 5'6\"; Spa 3'", price: 87413, image: axiom14DeluxeMain, category: "Pool", brand: "Latham" },
 
   // ============================================
   // LATHAM FIBERGLASS POOLS - Premium/Deluxe
@@ -115,52 +152,52 @@ export const poolProductLookup: Record<string, PoolProductInfo> = {
   // ============================================
   // GLIMMERGLASS POOLS - Compact
   // ============================================
-  "serafina": { name: "Serafina", dimensions: "8'6\" × 14'", depth: "3'6\" - 4'", price: 35823, image: "/assets/gilmer-serafina.png", category: "Pool", brand: "Glimmerglass" },
-  "coral cove": { name: "Coral Cove", dimensions: "9'6\" × 16'", depth: "3'6\" - 4'", price: 38500, image: "/assets/gilmer-coral-cove.png", category: "Pool", brand: "Glimmerglass" },
-  "retreat": { name: "Retreat", dimensions: "10'3\" × 18'5\"", depth: "3'6\" - 4'4\"", price: 37888, image: "/assets/gilmer-retreat.png", category: "Pool", brand: "Glimmerglass" },
-  "regal plunge": { name: "Regal Plunge", dimensions: "10' × 16'", depth: "4' - 5'5\"", price: 42438, image: "/assets/gilmer-regal-plunge.png", category: "Pool", brand: "Glimmerglass" },
-  "regal": { name: "Regal", dimensions: "10' × 20'", depth: "3'6\" - 5'4\"", price: 49000, image: "/assets/gilmer-regal.png", category: "Pool", brand: "Glimmerglass" },
+  "serafina": { name: "Serafina", dimensions: "8'6\" × 14'", depth: "3'6\" - 4'", price: 35823, image: gilmerSerafina, category: "Pool", brand: "Glimmerglass" },
+  "coral cove": { name: "Coral Cove", dimensions: "9'6\" × 16'", depth: "3'6\" - 4'", price: 38500, image: gilmerCoralCove, category: "Pool", brand: "Glimmerglass" },
+  "retreat": { name: "Retreat", dimensions: "10'3\" × 18'5\"", depth: "3'6\" - 4'4\"", price: 37888, image: gilmerRetreat, category: "Pool", brand: "Glimmerglass" },
+  "regal plunge": { name: "Regal Plunge", dimensions: "10' × 16'", depth: "4' - 5'5\"", price: 42438, image: gilmerRegalPlunge, category: "Pool", brand: "Glimmerglass" },
+  "regal": { name: "Regal", dimensions: "10' × 20'", depth: "3'6\" - 5'4\"", price: 49000, image: gilmerRegal, category: "Pool", brand: "Glimmerglass" },
   "mini extreme": { name: "Mini Extreme", dimensions: "8'2\" × 20'", depth: "3'6\" - 5'", price: 57750, image: "/lovable-uploads/gilmer-extreme-27.jpeg", category: "Pool", brand: "Glimmerglass" },
 
   // ============================================
   // GLIMMERGLASS POOLS - Standard
   // ============================================
-  "caribbean": { name: "Caribbean", dimensions: "11' × 20'", depth: "3'6\" - 5'", price: 48178, image: "/assets/gilmer-caribbean.png", category: "Pool", brand: "Glimmerglass" },
-  "neptune": { name: "Neptune", dimensions: "11' × 23'", depth: "3'6\" - 5'6\"", price: 51471, image: "/assets/gilmer-neptune.png", category: "Pool", brand: "Glimmerglass" },
-  "islander": { name: "Islander", dimensions: "12' × 24'", depth: "3'6\" - 5'6\"", price: 49000, image: "/assets/gilmer-islander.png", category: "Pool", brand: "Glimmerglass" },
-  "emerald": { name: "Emerald", dimensions: "12' × 25'", depth: "3'6\" - 5'7\"", price: 51471, image: "/assets/gilmer-emerald.png", category: "Pool", brand: "Glimmerglass" },
+  "caribbean": { name: "Caribbean", dimensions: "11' × 20'", depth: "3'6\" - 5'", price: 48178, image: gilmerCaribbean, category: "Pool", brand: "Glimmerglass" },
+  "neptune": { name: "Neptune", dimensions: "11' × 23'", depth: "3'6\" - 5'6\"", price: 51471, image: gilmerNeptune, category: "Pool", brand: "Glimmerglass" },
+  "islander": { name: "Islander", dimensions: "12' × 24'", depth: "3'6\" - 5'6\"", price: 49000, image: gilmerIslander, category: "Pool", brand: "Glimmerglass" },
+  "emerald": { name: "Emerald", dimensions: "12' × 25'", depth: "3'6\" - 5'7\"", price: 51471, image: gilmerEmerald, category: "Pool", brand: "Glimmerglass" },
 
   // ============================================
   // GLIMMERGLASS POOLS - Deluxe
   // ============================================
-  "roman": { name: "Roman", dimensions: "11' × 27'", depth: "3'6\" - 6'2\"", price: 57750, image: "/assets/gilmer-roman.png", category: "Pool", brand: "Glimmerglass" },
-  "superior": { name: "Superior", dimensions: "12' × 25'8\"", depth: "3'6\" - 5'6\"", price: 57750, image: "/assets/gilmer-superior.png", category: "Pool", brand: "Glimmerglass" },
-  "capri": { name: "Capri", dimensions: "12' × 28'", depth: "3'6\" - 4'6\"", price: 55587, image: "/assets/gilmer-capri.png", category: "Pool", brand: "Glimmerglass" },
-  "costa brava": { name: "Costa Brava", dimensions: "12' × 29'", depth: "3'6\" - 6'", price: 55587, image: "/assets/gilmer-costa-brava.png", category: "Pool", brand: "Glimmerglass" },
-  "majestic": { name: "Majestic", dimensions: "13' × 25'6\"", depth: "3'6\" - 6'", price: 54513, image: "/assets/gilmer-majestic.png", category: "Pool", brand: "Glimmerglass" },
+  "roman": { name: "Roman", dimensions: "11' × 27'", depth: "3'6\" - 6'2\"", price: 57750, image: gilmerRoman, category: "Pool", brand: "Glimmerglass" },
+  "superior": { name: "Superior", dimensions: "12' × 25'8\"", depth: "3'6\" - 5'6\"", price: 57750, image: gilmerSuperior, category: "Pool", brand: "Glimmerglass" },
+  "capri": { name: "Capri", dimensions: "12' × 28'", depth: "3'6\" - 4'6\"", price: 55587, image: gilmerCapri, category: "Pool", brand: "Glimmerglass" },
+  "costa brava": { name: "Costa Brava", dimensions: "12' × 29'", depth: "3'6\" - 6'", price: 55587, image: gilmerCostaBrava, category: "Pool", brand: "Glimmerglass" },
+  "majestic": { name: "Majestic", dimensions: "13' × 25'6\"", depth: "3'6\" - 6'", price: 54513, image: gilmerMajestic, category: "Pool", brand: "Glimmerglass" },
 
   // ============================================
   // GLIMMERGLASS POOLS - Premium
   // ============================================
-  "gold coast w/ built-in spa": { name: "Gold Coast w/ Spa", dimensions: "14' × 28'", depth: "3'6\" - 5'8\"", price: 75250, image: "/assets/gilmer-gold-coast.png", category: "Pool", brand: "Glimmerglass" },
-  "gold coast": { name: "Gold Coast", dimensions: "14' × 28'", depth: "3'6\" - 5'8\"", price: 75250, image: "/assets/gilmer-gold-coast.png", category: "Pool", brand: "Glimmerglass" },
-  "atlantis": { name: "Atlantis", dimensions: "14' × 32'", depth: "3'6\" - 6'", price: 75250, image: "/assets/gilmer-atlantis.png", category: "Pool", brand: "Glimmerglass" },
+  "gold coast w/ built-in spa": { name: "Gold Coast w/ Spa", dimensions: "14' × 28'", depth: "3'6\" - 5'8\"", price: 75250, image: gilmerGoldCoast, category: "Pool", brand: "Glimmerglass" },
+  "gold coast": { name: "Gold Coast", dimensions: "14' × 28'", depth: "3'6\" - 5'8\"", price: 75250, image: gilmerGoldCoast, category: "Pool", brand: "Glimmerglass" },
+  "atlantis": { name: "Atlantis", dimensions: "14' × 32'", depth: "3'6\" - 6'", price: 75250, image: gilmerAtlantis, category: "Pool", brand: "Glimmerglass" },
   "extreme 27": { name: "Extreme 27", dimensions: "12'6\" × 27'", depth: "3'6\" - 5'11\"", price: 66500, image: "/lovable-uploads/gilmer-extreme-27.jpeg", category: "Pool", brand: "Glimmerglass" },
   "extreme 27 w/ built-in spa & splash deck": { name: "Extreme 27 w/ Spa", dimensions: "12'6\" × 27'", depth: "3'6\" - 5'11\"", price: 66500, image: "/lovable-uploads/gilmer-extreme-27.jpeg", category: "Pool", brand: "Glimmerglass" },
-  "tortola": { name: "Tortola", dimensions: "14' × 30'", depth: "3'6\" - 6'", price: 68250, image: "/assets/gilmer-tortola.png", category: "Pool", brand: "Glimmerglass" },
-  "silver shore": { name: "Silver Shore", dimensions: "15' × 28'", depth: "3'6\" - 6'", price: 57313, image: "/assets/gilmer-silver-shore.png", category: "Pool", brand: "Glimmerglass" },
-  "mystic": { name: "Mystic", dimensions: "15' × 32'", depth: "3'6\" - 6'", price: 77000, image: "/assets/gilmer-mystic.png", category: "Pool", brand: "Glimmerglass" },
-  "aloha": { name: "Aloha", dimensions: "15' × 34'", depth: "3'6\" - 6'", price: 77000, image: "/assets/gilmer-aloha.png", category: "Pool", brand: "Glimmerglass" },
-  "bellagio": { name: "Bellagio", dimensions: "15' × 34'", depth: "3'6\" - 6'6\"", price: 77000, image: "/assets/gilmer-ballagio.png", category: "Pool", brand: "Glimmerglass" },
+  "tortola": { name: "Tortola", dimensions: "14' × 30'", depth: "3'6\" - 6'", price: 68250, image: gilmerTortola, category: "Pool", brand: "Glimmerglass" },
+  "silver shore": { name: "Silver Shore", dimensions: "15' × 28'", depth: "3'6\" - 6'", price: 57313, image: gilmerSilverShore, category: "Pool", brand: "Glimmerglass" },
+  "mystic": { name: "Mystic", dimensions: "15' × 32'", depth: "3'6\" - 6'", price: 77000, image: gilmerMystic, category: "Pool", brand: "Glimmerglass" },
+  "aloha": { name: "Aloha", dimensions: "15' × 34'", depth: "3'6\" - 6'", price: 77000, image: gilmerAloha, category: "Pool", brand: "Glimmerglass" },
+  "bellagio": { name: "Bellagio", dimensions: "15' × 34'", depth: "3'6\" - 6'6\"", price: 77000, image: gilmerBallagio, category: "Pool", brand: "Glimmerglass" },
   "extreme 38": { name: "Extreme 38", dimensions: "15'6\" × 38'", depth: "3'6\" - 7'", price: 92750, image: "/lovable-uploads/gilmer-extreme-38.jpeg", category: "Pool", brand: "Glimmerglass" },
   "extreme 38 w/ built-in spa & splash deck": { name: "Extreme 38 w/ Spa", dimensions: "15'6\" × 38'", depth: "3'6\" - 7'", price: 92750, image: "/lovable-uploads/gilmer-extreme-38.jpeg", category: "Pool", brand: "Glimmerglass" },
-  "ponce xl": { name: "Ponce XL", dimensions: "15'6\" × 32'", depth: "3'6\" - 6'", price: 82250, image: "/assets/gilmer-ponce-xl.png", category: "Pool", brand: "Glimmerglass" },
-  "newport": { name: "Newport", dimensions: "16' × 35'", depth: "3'6\" - 6'", price: 77000, image: "/assets/gilmer-newport.png", category: "Pool", brand: "Glimmerglass" },
-  "serenade w/ built-in spa": { name: "Serenade w/ Spa", dimensions: "16' × 38'", depth: "6'", price: 100471, image: "/assets/gilmer-serenade.png", category: "Pool", brand: "Glimmerglass" },
-  "serenade": { name: "Serenade", dimensions: "16' × 38'", depth: "6'", price: 100471, image: "/assets/gilmer-serenade.png", category: "Pool", brand: "Glimmerglass" },
-  "beachcomber": { name: "Beachcomber", dimensions: "16' × 40'", depth: "8'", price: 100471, image: "/assets/gilmer-beachcomber.png", category: "Pool", brand: "Glimmerglass" },
-  "vision": { name: "Vision", dimensions: "16' × 41'", depth: "6'6\"", price: 100471, image: "/assets/gilmer-vision.png", category: "Pool", brand: "Glimmerglass" },
-  "grand cayman": { name: "Grand Cayman", dimensions: "16' × 42'", depth: "8'", price: 100471, image: "/assets/gilmer-grand-cayman.png", category: "Pool", brand: "Glimmerglass" },
+  "ponce xl": { name: "Ponce XL", dimensions: "15'6\" × 32'", depth: "3'6\" - 6'", price: 82250, image: gilmerPonceXL, category: "Pool", brand: "Glimmerglass" },
+  "newport": { name: "Newport", dimensions: "16' × 35'", depth: "3'6\" - 6'", price: 77000, image: gilmerNewport, category: "Pool", brand: "Glimmerglass" },
+  "serenade w/ built-in spa": { name: "Serenade w/ Spa", dimensions: "16' × 38'", depth: "6'", price: 100471, image: gilmerSerenade, category: "Pool", brand: "Glimmerglass" },
+  "serenade": { name: "Serenade", dimensions: "16' × 38'", depth: "6'", price: 100471, image: gilmerSerenade, category: "Pool", brand: "Glimmerglass" },
+  "beachcomber": { name: "Beachcomber", dimensions: "16' × 40'", depth: "8'", price: 100471, image: gilmerBeachcomber, category: "Pool", brand: "Glimmerglass" },
+  "vision": { name: "Vision", dimensions: "16' × 41'", depth: "6'6\"", price: 100471, image: gilmerVision, category: "Pool", brand: "Glimmerglass" },
+  "grand cayman": { name: "Grand Cayman", dimensions: "16' × 42'", depth: "8'", price: 100471, image: gilmerGrandCayman, category: "Pool", brand: "Glimmerglass" },
 
   // ============================================
   // LATHAM TANNING LEDGES (4x multiplier)
@@ -171,9 +208,9 @@ export const poolProductLookup: Record<string, PoolProductInfo> = {
   // ============================================
   // GLIMMERGLASS TANNING LEDGES (4x multiplier)
   // ============================================
-  "paradise": { name: "Paradise", dimensions: "9' × 19'", depth: "6\" - 10\"", price: 18000, image: "/assets/tanning-ledges/glimmerglass-paradise.png", category: "Tanning Ledge", brand: "GlimmerGlass" },
-  "leeward": { name: "Leeward", dimensions: "8'1\" × 11'6\"", depth: "6\" - 8\"", price: 14116, image: "/assets/tanning-ledges/glimmerglass-leeward.png", category: "Tanning Ledge", brand: "GlimmerGlass" },
-  "leisure": { name: "Leisure", dimensions: "8' × 12'", depth: "6\" - 10\"", price: 16000, image: "/assets/tanning-ledges/glimmerglass-leisure.png", category: "Tanning Ledge", brand: "GlimmerGlass" },
+  "paradise": { name: "Paradise", dimensions: "9' × 19'", depth: "6\" - 10\"", price: 18000, image: glimmerglassParadise, category: "Tanning Ledge", brand: "GlimmerGlass" },
+  "leeward": { name: "Leeward", dimensions: "8'1\" × 11'6\"", depth: "6\" - 8\"", price: 14116, image: glimmerglassLeeward, category: "Tanning Ledge", brand: "GlimmerGlass" },
+  "leisure": { name: "Leisure", dimensions: "8' × 12'", depth: "6\" - 10\"", price: 16000, image: glimmerglassLeisure, category: "Tanning Ledge", brand: "GlimmerGlass" },
 
   // ============================================
   // SPAS (4x multiplier)

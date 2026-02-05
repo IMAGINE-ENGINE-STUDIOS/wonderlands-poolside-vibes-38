@@ -1,6 +1,12 @@
 
 // Pool data shared across components
 // Liners: $20/sqft installed, $15/sheet material only
+
+// Import GlimmerGlass tanning ledge images
+import glimmerglassParadise from '@/assets/tanning-ledges/glimmerglass-paradise.png';
+import glimmerglassLeeward from '@/assets/tanning-ledges/glimmerglass-leeward.png';
+import glimmerglassLeisure from '@/assets/tanning-ledges/glimmerglass-leisure.png';
+
 export const poolLiners = [
   // Glass Tile Collection
   {
@@ -282,7 +288,7 @@ export const glimmerglassTanningLedges = [
   {
     name: "Paradise",
     price: 18000, // 4500 × 4
-    image: "/assets/tanning-ledges/glimmerglass-paradise.png",
+    image: glimmerglassParadise,
     description: "Premium GlimmerGlass tanning ledge with paradise comfort and rectangular design",
     dimensions: "9′ × 19′",
     depth: "6″ to 10″",
@@ -292,7 +298,7 @@ export const glimmerglassTanningLedges = [
   {
     name: "Leeward",
     price: 14116, // 3529 × 4
-    image: "/assets/tanning-ledges/glimmerglass-leeward.png",
+    image: glimmerglassLeeward,
     description: "Organic freeform GlimmerGlass tanning ledge with natural curves",
     dimensions: "8′1″ × 11′6″",
     depth: "6″ to 8″",
@@ -302,7 +308,7 @@ export const glimmerglassTanningLedges = [
   {
     name: "Leisure",
     price: 16000, // 4000 × 4
-    image: "/assets/tanning-ledges/glimmerglass-leisure.png",
+    image: glimmerglassLeisure,
     description: "Semi-circular GlimmerGlass tanning ledge for elegant relaxation",
     dimensions: "8′ × 12′",
     depth: "6″ to 10″",

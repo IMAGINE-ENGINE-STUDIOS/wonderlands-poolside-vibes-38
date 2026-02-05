@@ -19,6 +19,7 @@ import { saunas } from '@/data/saunaData';
 import { drivewayGates } from '@/data/drivewayGates';
 import { gilmerPools } from '@/data/gilmerPools';
 import { cn } from '@/lib/utils';
+import productImages from '@/data/productImages';
 
 // Import banner images for sections
 import saunaBanner from "@/assets/banners/sauna-banner.jpg";
@@ -198,7 +199,7 @@ const AdvancedSearch = () => {
       // Axiom Series
       { id: 'axiom-12-deluxe', name: 'Axiom 12 Deluxe', category: 'Pool', price: 69213, image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png', keywords: ['pool', 'standard', 'axiom', 'deluxe', '12x28'] },
       { id: 'axiom-14', name: 'Axiom 14', category: 'Pool', price: 80500, image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png', keywords: ['pool', 'deluxe', 'axiom', '14x32'] },
-      { id: 'axiom-14-deluxe', name: 'Axiom 14 Deluxe', category: 'Pool', price: 87413, image: '/assets/pools/axiom-14-deluxe-main.jpg', keywords: ['pool', 'deluxe', 'axiom', 'spa', '14x30'] },
+      { id: 'axiom-14-deluxe', name: 'Axiom 14 Deluxe', category: 'Pool', price: 87413, image: productImages.axiom14DeluxeMain, keywords: ['pool', 'deluxe', 'axiom', 'spa', '14x30'] },
       
       // Premium/Deluxe
       { id: 'bay-isle', name: 'Bay Isle', category: 'Pool', price: 73938, image: '/lovable-uploads/a91d91f2-51f8-470c-9894-4a1cf8b1f2c0.png', keywords: ['pool', 'deluxe', 'bay', 'isle', '14x30'] },
@@ -209,43 +210,15 @@ const AdvancedSearch = () => {
       { id: 'synergy', name: 'Synergy', category: 'Pool', price: 80763, image: '/lovable-uploads/1c6556f8-0571-434d-a877-e5152aee1726.png', keywords: ['pool', 'premium', 'synergy', '16x36'] },
     ];
 
-    // GLIMMERGLASS POOLS - Updated prices (3.5x dealer multiplier + $10K delivery)
-    const gilmerPoolData = [
-      // Compact
-      { id: 'serafina', name: 'Serafina', category: 'Pool', price: 35823, image: '/assets/gilmer-serafina.png', keywords: ['pool', 'compact', 'glimmerglass', '8x14'] },
-      { id: 'coral-cove', name: 'Coral Cove', category: 'Pool', price: 38500, image: '/assets/gilmer-coral-cove.png', keywords: ['pool', 'compact', 'glimmerglass', '9x16'] },
-      { id: 'retreat', name: 'Retreat', category: 'Pool', price: 37888, image: '/assets/gilmer-retreat.png', keywords: ['pool', 'compact', 'glimmerglass', '10x18'] },
-      { id: 'regal-plunge', name: 'Regal Plunge', category: 'Pool', price: 42438, image: '/assets/gilmer-regal-plunge.png', keywords: ['pool', 'compact', 'glimmerglass', '10x16'] },
-      { id: 'regal', name: 'Regal', category: 'Pool', price: 49000, image: '/assets/gilmer-regal.png', keywords: ['pool', 'standard', 'glimmerglass', '10x20'] },
-      { id: 'mini-extreme', name: 'Mini Extreme', category: 'Pool', price: 57750, image: '/lovable-uploads/gilmer-extreme-27.jpeg', keywords: ['pool', 'standard', 'glimmerglass', 'extreme', '8x20'] },
-      // Standard
-      { id: 'caribbean', name: 'Caribbean', category: 'Pool', price: 48178, image: '/assets/gilmer-caribbean.png', keywords: ['pool', 'standard', 'glimmerglass', '11x20'] },
-      { id: 'neptune', name: 'Neptune', category: 'Pool', price: 51471, image: '/assets/gilmer-neptune.png', keywords: ['pool', 'standard', 'glimmerglass', '11x23'] },
-      { id: 'islander', name: 'Islander', category: 'Pool', price: 49000, image: '/assets/gilmer-islander.png', keywords: ['pool', 'standard', 'glimmerglass', '12x24'] },
-      { id: 'emerald', name: 'Emerald', category: 'Pool', price: 51471, image: '/assets/gilmer-emerald.png', keywords: ['pool', 'standard', 'glimmerglass', '12x25'] },
-      // Deluxe
-      { id: 'roman', name: 'Roman', category: 'Pool', price: 57750, image: '/assets/gilmer-roman.png', keywords: ['pool', 'deluxe', 'glimmerglass', '11x27'] },
-      { id: 'superior', name: 'Superior', category: 'Pool', price: 57750, image: '/assets/gilmer-superior.png', keywords: ['pool', 'deluxe', 'glimmerglass', '12x25'] },
-      { id: 'capri', name: 'Capri', category: 'Pool', price: 55587, image: '/assets/gilmer-capri.png', keywords: ['pool', 'deluxe', 'glimmerglass', '12x28'] },
-      { id: 'costa-brava', name: 'Costa Brava', category: 'Pool', price: 55587, image: '/assets/gilmer-costa-brava.png', keywords: ['pool', 'deluxe', 'glimmerglass', '12x29'] },
-      { id: 'majestic', name: 'Majestic', category: 'Pool', price: 54513, image: '/assets/gilmer-majestic.png', keywords: ['pool', 'deluxe', 'glimmerglass', '13x25'] },
-      // Premium
-      { id: 'gold-coast', name: 'Gold Coast w/ Spa', category: 'Pool', price: 75250, image: '/assets/gilmer-gold-coast.png', keywords: ['pool', 'premium', 'glimmerglass', 'spa', '14x28'] },
-      { id: 'atlantis', name: 'Atlantis', category: 'Pool', price: 75250, image: '/assets/gilmer-atlantis.png', keywords: ['pool', 'premium', 'glimmerglass', '14x32'] },
-      { id: 'extreme-27', name: 'Extreme 27 w/ Spa', category: 'Pool', price: 66500, image: '/lovable-uploads/gilmer-extreme-27.jpeg', keywords: ['pool', 'premium', 'glimmerglass', 'extreme', 'spa', '12x27'] },
-      { id: 'tortola', name: 'Tortola', category: 'Pool', price: 68250, image: '/assets/gilmer-tortola.png', keywords: ['pool', 'premium', 'glimmerglass', '14x30'] },
-      { id: 'silver-shore', name: 'Silver Shore', category: 'Pool', price: 57313, image: '/assets/gilmer-silver-shore.png', keywords: ['pool', 'premium', 'glimmerglass', '15x28'] },
-      { id: 'mystic-pool', name: 'Mystic', category: 'Pool', price: 77000, image: '/assets/gilmer-mystic.png', keywords: ['pool', 'premium', 'glimmerglass', '15x32'] },
-      { id: 'aloha', name: 'Aloha', category: 'Pool', price: 77000, image: '/assets/gilmer-aloha.png', keywords: ['pool', 'premium', 'glimmerglass', '15x34'] },
-      { id: 'bellagio', name: 'Bellagio', category: 'Pool', price: 77000, image: '/assets/gilmer-ballagio.png', keywords: ['pool', 'premium', 'glimmerglass', '15x34'] },
-      { id: 'extreme-38', name: 'Extreme 38 w/ Spa', category: 'Pool', price: 92750, image: '/lovable-uploads/gilmer-extreme-38.jpeg', keywords: ['pool', 'premium', 'glimmerglass', 'extreme', 'spa', '15x38'] },
-      { id: 'ponce-xl', name: 'Ponce XL', category: 'Pool', price: 82250, image: '/assets/gilmer-ponce-xl.png', keywords: ['pool', 'premium', 'glimmerglass', '15x32'] },
-      { id: 'newport', name: 'Newport', category: 'Pool', price: 77000, image: '/assets/gilmer-newport.png', keywords: ['pool', 'premium', 'glimmerglass', '16x35'] },
-      { id: 'serenade', name: 'Serenade w/ Spa', category: 'Pool', price: 100471, image: '/assets/gilmer-serenade.png', keywords: ['pool', 'premium', 'glimmerglass', 'spa', '16x38'] },
-      { id: 'beachcomber', name: 'Beachcomber', category: 'Pool', price: 100471, image: '/assets/gilmer-beachcomber.png', keywords: ['pool', 'premium', 'glimmerglass', '16x40'] },
-      { id: 'vision', name: 'Vision', category: 'Pool', price: 100471, image: '/assets/gilmer-vision.png', keywords: ['pool', 'premium', 'glimmerglass', '16x41'] },
-      { id: 'grand-cayman', name: 'Grand Cayman', category: 'Pool', price: 100471, image: '/assets/gilmer-grand-cayman.png', keywords: ['pool', 'premium', 'glimmerglass', '16x42'] },
-    ];
+    // GLIMMERGLASS POOLS - Use imported data from gilmerPools (has correct image imports)
+    const gilmerPoolData = gilmerPools.map(pool => ({
+      id: pool.model.toLowerCase().replace(/\s+/g, '-'),
+      name: pool.model,
+      category: 'Pool',
+      price: pool.price,
+      image: pool.image,
+      keywords: ['pool', pool.category || 'standard', 'glimmerglass', pool.dimensions?.replace(/['"×x\s]/g, '') || '']
+    }));
 
     // Combine all pools
     const poolData = [...lathamPoolData, ...gilmerPoolData];
