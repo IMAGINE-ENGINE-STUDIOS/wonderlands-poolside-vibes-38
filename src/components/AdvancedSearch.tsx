@@ -596,7 +596,7 @@ const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
             isListening ? "Speak now..." : 
             aiResponse?.needsTextInput ? "Type your answer..." :
             isSlim ? "Search products..." :
-            "Search or ask AI anything about pools, spas, pavers..."
+            "Search anything about pools, spas, pavers..."
           }
           value={isListening ? (searchQuery + interimTranscript) : searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
