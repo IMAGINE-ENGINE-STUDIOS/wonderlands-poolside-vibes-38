@@ -1760,10 +1760,12 @@ const WonderlandsStudio = () => {
                                 .filter((finish) => {
                                   // Define pool type categories
                                   const wonderlandsWorldModels = ["Madre Perla", "Pacific Ridge", "Winderview", "Maxima"];
-                                  const lathamModels = ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9'17\"", "Enchantment 9'21\"", "Enchantment 9'24\"", "Cancún Deluxe", "Genesis", "Claremont", "Axiom 14", "Bay Isle", "Laguna", "Vista Isle", "Olympia 12", "Olympia 14", "Corinthian 12", "Corinthian 14", "Key West", "Valencia", "Bermuda", "Java", "Pleasant Cove", "St. Lucia", "Delray"];
+                                  const lathamBaseNames = ["Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo", "Enchantment", "Cancún Deluxe", "Cancun Deluxe", "Genesis", "Claremont", "Axiom", "Bay Isle", "Laguna", "Vista Isle", "Olympia", "Corinthian", "Key West", "Valencia", "Bermuda", "Java", "Pleasant Cove", "St. Lucia", "Delray", "Cape Cod", "Tuscan", "Synergy", "Coronado"];
                                   
-                                  const isWonderlandsWorld = wonderlandsWorldModels.includes(selectedProduct?.model || "");
-                                  const isLathamPool = lathamModels.includes(selectedProduct?.model || "");
+                                  const modelName = selectedProduct?.model || "";
+                                  const isWonderlandsWorld = wonderlandsWorldModels.includes(modelName);
+                                  // Check if model starts with any Latham base name (handles "Astoria 12", "Milan 8.14", etc.)
+                                  const isLathamPool = lathamBaseNames.some(base => modelName.startsWith(base));
                                   
                                   if (isWonderlandsWorld) {
                                     // Wonderlands World concrete pools: Only Mini Pebbles collection
