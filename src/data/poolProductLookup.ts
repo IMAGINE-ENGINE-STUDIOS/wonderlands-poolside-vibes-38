@@ -2,7 +2,13 @@
 // This provides a unified lookup for product cards to show tech specs
 // Updated with ALL products from catalog - 3.5x/4x dealer multipliers applied
 
-// Import images that need Vite processing - Latham/Axiom
+// Import Wonderlands pool images
+import madrePerlaImage from '@/assets/pools/madre-perla.jpg';
+import maximaImage from '@/assets/maxima-pool.jpg';
+import pacificRidgeImage from '@/assets/pools/pacific-ridge-new.jpg';
+import cancunDeluxeImage from '@/assets/cancun-deluxe.png';
+
+// Import Latham/Axiom pool images
 import axiom14DeluxeMain from '@/assets/pools/axiom-14-deluxe-main.jpg';
 
 // Import GlimmerGlass pool images
@@ -54,12 +60,12 @@ export const poolProductLookup: Record<string, PoolProductInfo> = {
   // ============================================
   // WONDERLANDS CONCRETE POOLS
   // ============================================
-  "madre perla": { name: "Madre Perla", dimensions: "20' × 40'", depth: "3'11\" - 9'", price: 168438, image: "/assets/pools/madre-perla.jpg", category: "Pool", brand: "Wonderlands" },
-  "maxima": { name: "Maxima", dimensions: "16' × 40'", depth: "3'9\" - 8'6\"", price: 144375, image: "/assets/maxima-pool.jpg", category: "Pool", brand: "Wonderlands" },
-  "pacific ridge": { name: "Pacific Ridge", dimensions: "14' × 32'", depth: "3'6\" - 6'", price: 96250, image: "/assets/pools/pacific-ridge-new.jpg", category: "Pool", brand: "Wonderlands" },
+  "madre perla": { name: "Madre Perla", dimensions: "20' × 40'", depth: "3'11\" - 9'", price: 168438, image: madrePerlaImage, category: "Pool", brand: "Wonderlands" },
+  "maxima": { name: "Maxima", dimensions: "16' × 40'", depth: "3'9\" - 8'6\"", price: 144375, image: maximaImage, category: "Pool", brand: "Wonderlands" },
+  "pacific ridge": { name: "Pacific Ridge", dimensions: "14' × 32'", depth: "3'6\" - 6'", price: 96250, image: pacificRidgeImage, category: "Pool", brand: "Wonderlands" },
   "winderview": { name: "Winderview", dimensions: "15.5' × 31'", depth: "3'6\" - 6'", price: 91875, image: "/lovable-uploads/winderview-pool.jpg", category: "Pool", brand: "Wonderlands" },
-  "cancún deluxe": { name: "Cancún Deluxe", dimensions: "16' × 35'", depth: "4'3\" - 6'6\"; Spa 3'", price: 112875, image: "/assets/cancun-deluxe.png", category: "Pool", brand: "Latham" },
-  "cancun deluxe": { name: "Cancún Deluxe", dimensions: "16' × 35'", depth: "4'3\" - 6'6\"; Spa 3'", price: 112875, image: "/assets/cancun-deluxe.png", category: "Pool", brand: "Latham" },
+  "cancún deluxe": { name: "Cancún Deluxe", dimensions: "16' × 35'", depth: "4'3\" - 6'6\"; Spa 3'", price: 112875, image: cancunDeluxeImage, category: "Pool", brand: "Latham" },
+  "cancun deluxe": { name: "Cancún Deluxe", dimensions: "16' × 35'", depth: "4'3\" - 6'6\"; Spa 3'", price: 112875, image: cancunDeluxeImage, category: "Pool", brand: "Latham" },
 
   // ============================================
   // LATHAM FIBERGLASS POOLS - Astoria Series
