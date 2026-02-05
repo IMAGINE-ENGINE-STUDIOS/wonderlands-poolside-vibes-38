@@ -1,7 +1,10 @@
 import { paverTypes, PaverType } from '@/data/paverData';
 
-// Default price per sq ft for pavers (Concrete deck pricing)
-export const DEFAULT_PAVER_PRICE_PER_SQFT = 20;
+// Default price per sq ft for concrete deck
+export const DEFAULT_PAVER_PRICE_PER_SQFT = 10;
+
+// Concrete deck price per sq ft
+export const CONCRETE_DECK_PRICE_PER_SQFT = 10;
 
 // Screen enclosure pricing tiers
 export const SCREEN_ENCLOSURE_PRICING = {
@@ -14,6 +17,9 @@ export const SCREEN_ENCLOSURE_PRICING = {
  */
 export function getPaverPricePerSqFt(paverName: string | undefined | null): number {
   if (!paverName) return DEFAULT_PAVER_PRICE_PER_SQFT;
+  
+  // Concrete Deck is always $10/sqft
+  if (paverName === 'Concrete Deck') return CONCRETE_DECK_PRICE_PER_SQFT;
   
   const paver = paverTypes.find(p => p.name === paverName);
   return paver?.basePrice ?? DEFAULT_PAVER_PRICE_PER_SQFT;

@@ -307,7 +307,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
   ];
 
   const paverOptions = [
-    { name: "Concrete Deck", color: "#808080", price: 0, basePrice: 20, image: concreteDeckTexture, description: "Standard concrete deck", collection: "none" },
+    { name: "Concrete Deck", color: "#808080", price: 10, basePrice: 10, image: concreteDeckTexture, description: "Standard concrete deck", collection: "none" },
     ...paverTypes.map((paver) => ({ name: paver.name, color: "#D3D3D3", price: 0, basePrice: paver.basePrice, image: paver.image || azureBlueFinish, description: paver.description, collection: paver.id.includes("appian") ? "appian" : paver.id.includes("catalina") ? "catalina" : "standard" })),
   ];
 

@@ -55,6 +55,7 @@ interface Product {
   price: number;
   category: string;
   image?: string;
+  gallery?: string[]; // Support for pool image gallery (string array)
   media?: MediaItem[]; // New: support for multiple images/videos
   dimensions?: string;
   depth?: string;
@@ -65,6 +66,7 @@ interface Product {
   type?: 'pool' | 'spa' | 'tanning-ledge' | 'sauna' | 'scene' | 'cover' | 'paver' | 'heater' | 'screen-enclosure' | 'driveway-gate';
   id?: string;
   description?: string;
+  brand?: string; // Pool brand (Glimmerglass, Latham, etc.)
 }
 interface ProductExtras {
   liner: boolean;
@@ -1234,10 +1236,16 @@ const WonderlandsStudio = () => {
                     )}
                     
                     <div className="relative rounded-lg sm:rounded-xl bg-background min-h-[400px] sm:min-h-[700px] flex flex-col">
-                      {(selectedProduct.media || selectedProduct.image) ? (
+                      {(selectedProduct.media || selectedProduct.gallery || selectedProduct.image) ? (
                         <div className="w-full h-full flex items-center justify-center">
                           <ProductMediaGallery 
-                            media={selectedProduct.media || selectedProduct.image || ''} 
+                            media={
+                              selectedProduct.media || 
+                              (selectedProduct.gallery 
+                                ? selectedProduct.gallery.map(url => ({ type: 'image' as const, url, alt: selectedProduct.model || selectedProduct.name || 'Product' }))
+                                : selectedProduct.image || ''
+                              )
+                            } 
                             productName={selectedProduct.model || selectedProduct.name || 'Product'}
                             className="w-full h-full"
                           />
@@ -1566,8 +1574,8 @@ const WonderlandsStudio = () => {
                     ) : (
                       // Pool configuration options using same format as PoolProductCard
                       <>
-                        {/* Gelcoat Color for GlimmerGlass pools */}
-                        {selectedProduct && !["Madre Perla", "Pacific Ridge", "Winderview", "Maxima", "Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio", "Apollo 12", "Apollo 14", "Enchantment 9'17\"", "Enchantment 9'21\"", "Enchantment 9'24\"", "Cancún Deluxe"].includes(selectedProduct.model || "") && (
+                        {/* Gelcoat Color for GlimmerGlass pools ONLY */}
+                        {selectedProduct && (selectedProduct as any).brand === "Glimmerglass" && (
                           <div className="space-y-3">
                             <h4 className="font-semibold text-foreground">Gelcoat Color (Included)</h4>
                             <Carousel 
@@ -2157,7 +2165,7 @@ const WonderlandsStudio = () => {
                                     <div className="flex flex-col gap-0.5">
                                       <p className="text-xs font-medium text-center truncate">{paver.name}</p>
                                       <p className="text-xs text-primary font-semibold text-center">
-                                        {paver.name === "Concrete Deck" ? "$0" : `$${getPaverPricePerSqFt(paver.name)}/sq ft`}
+                                        {paver.name === "Concrete Deck" ? "$10/sq ft" : `$${getPaverPricePerSqFt(paver.name)}/sq ft`}
                                       </p>
                                     </div>
                                   </div>
