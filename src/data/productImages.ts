@@ -5,6 +5,8 @@
 import axiom14DeluxeMain from '@/assets/pools/axiom-14-deluxe-main.jpg';
 import axiom14DeluxeGallery1 from '@/assets/pools/axiom-14-deluxe-gallery-1.jpg';
 import axiom14DeluxeSpecs from '@/assets/pools/axiom-14-deluxe-specs.jpg';
+import axiom16Main from '@/assets/pools/axiom-16-main.jpg';
+import axiom16Specs from '@/assets/pools/axiom-16-specs.jpg';
 
 // Tanning ledge images from src/assets/tanning-ledges
 import glimmerglassParadise from '@/assets/tanning-ledges/glimmerglass-paradise.png';
@@ -17,6 +19,8 @@ export const productImages = {
   axiom14DeluxeMain,
   axiom14DeluxeGallery1,
   axiom14DeluxeSpecs,
+  axiom16Main,
+  axiom16Specs,
   
   // GlimmerGlass Tanning Ledges
   glimmerglassParadise,

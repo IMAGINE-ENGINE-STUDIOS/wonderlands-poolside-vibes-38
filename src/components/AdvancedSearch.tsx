@@ -211,6 +211,7 @@ const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
       { id: 'axiom-12-deluxe', name: 'Axiom 12 Deluxe', category: 'Pool', price: 69213, image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png', keywords: ['pool', 'standard', 'axiom', 'deluxe', '12x28'] },
       { id: 'axiom-14', name: 'Axiom 14', category: 'Pool', price: 80500, image: '/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png', keywords: ['pool', 'deluxe', 'axiom', '14x32'] },
       { id: 'axiom-14-deluxe', name: 'Axiom 14 Deluxe', category: 'Pool', price: 87413, image: productImages.axiom14DeluxeMain, keywords: ['pool', 'deluxe', 'axiom', 'spa', '14x30'] },
+      { id: 'axiom-16', name: 'Axiom 16', category: 'Pool', price: 94500, image: productImages.axiom16Main, keywords: ['pool', 'premium', 'axiom', '16x35'] },
       
       // Premium/Deluxe
       { id: 'bay-isle', name: 'Bay Isle', category: 'Pool', price: 73938, image: '/lovable-uploads/a91d91f2-51f8-470c-9894-4a1cf8b1f2c0.png', keywords: ['pool', 'deluxe', 'bay', 'isle', '14x30'] },
