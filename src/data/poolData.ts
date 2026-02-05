@@ -253,7 +253,8 @@ export const poolTiles = [
 ];
 
 // Tanning ledge options - prices use 4x dealer multiplier
-export const tanningLedges = [
+// Latham Tanning Ledges
+export const lathamTanningLedges = [
   {
     name: "Hermosa Tanning Ledge",
     price: 14680, // dealer price ~3670 × 4
@@ -261,6 +262,7 @@ export const tanningLedges = [
     description: "Sophisticated curved ledge with premium comfort features",
     dimensions: "6′ × 10′",
     depth: "6″ to 10″",
+    brand: "Latham",
     features: ["Ergonomic Curve", "Heat Retention", "Easy Entry", "Stylish Profile"]
   },
   {
@@ -270,26 +272,44 @@ export const tanningLedges = [
     description: "Clean modern lines with maximum lounging space",
     dimensions: "8′ × 14′",
     depth: "8″ to 12″",
+    brand: "Latham",
     features: ["Modern Design", "Spacious Layout", "Even Depth", "Contemporary Style"]
-  },
+  }
+];
+
+// GlimmerGlass Tanning Ledges
+export const glimmerglassTanningLedges = [
   {
-    name: "Paradise Tanning Ledge",
+    name: "Paradise",
     price: 18000, // 4500 × 4
-    image: "/lovable-uploads/8228c334-6fd7-4b29-afae-98628493480d.png",
-    description: "Premium Glimmerglass tanning ledge with paradise comfort",
-    dimensions: "7′ × 12′",
+    image: "/assets/tanning-ledges/glimmerglass-paradise.png",
+    description: "Premium GlimmerGlass tanning ledge with paradise comfort and rectangular design",
+    dimensions: "9′ × 19′",
     depth: "6″ to 10″",
-    brand: "Glimmerglass",
+    brand: "GlimmerGlass",
     features: ["Premium Comfort", "Beach Entry", "UV Resistant", "Easy Maintenance"]
   },
   {
-    name: "Leeward Tanning Ledge",
+    name: "Leeward",
     price: 14116, // 3529 × 4
-    image: "/lovable-uploads/c6bebb1e-d2ed-4591-b81d-0af558ed3e52.png",
-    description: "Compact Glimmerglass tanning ledge with leeward design",
-    dimensions: "6′ × 10′",
+    image: "/assets/tanning-ledges/glimmerglass-leeward.png",
+    description: "Organic freeform GlimmerGlass tanning ledge with natural curves",
+    dimensions: "8′1″ × 11′6″",
     depth: "6″ to 8″",
-    brand: "Glimmerglass",
-    features: ["Compact Design", "Ergonomic Shape", "UV Resistant", "Easy Entry"]
+    brand: "GlimmerGlass",
+    features: ["Freeform Shape", "Ergonomic Design", "UV Resistant", "Easy Entry"]
+  },
+  {
+    name: "Leisure",
+    price: 16000, // 4000 × 4
+    image: "/assets/tanning-ledges/glimmerglass-leisure.png",
+    description: "Semi-circular GlimmerGlass tanning ledge for elegant relaxation",
+    dimensions: "8′ × 12′",
+    depth: "6″ to 10″",
+    brand: "GlimmerGlass",
+    features: ["Semi-Circular Design", "Premium Finish", "UV Resistant", "Maximum Comfort"]
   }
 ];
+
+// Combined tanning ledges for backward compatibility
+export const tanningLedges = [...lathamTanningLedges, ...glimmerglassTanningLedges];
