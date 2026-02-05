@@ -881,6 +881,54 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_cache: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string
+          first_quote_date: string | null
+          id: string
+          last_pool_model: string | null
+          last_quote_date: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          total_quote_value: number | null
+          total_quotes: number
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email: string
+          first_quote_date?: string | null
+          id?: string
+          last_pool_model?: string | null
+          last_quote_date?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          total_quote_value?: number | null
+          total_quotes?: number
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string
+          first_quote_date?: string | null
+          id?: string
+          last_pool_model?: string | null
+          last_quote_date?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          total_quote_value?: number | null
+          total_quotes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       florida_locations: {
         Row: {
           city: string

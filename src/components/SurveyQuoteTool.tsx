@@ -16,6 +16,7 @@ import PoolCustomizationOptions from "./PoolCustomizationOptions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculatePaverPrice, calculatePaverArea } from "@/data/paverData";
+import { cacheCustomerFromQuote } from "@/hooks/useCustomerCache";
 import { OptimizedImage } from "./OptimizedImage";
 import ImageCard from "./ImageCard";
 import ExclusiveSaunaOffer from "./ExclusiveSaunaOffer";
@@ -611,6 +612,16 @@ const SurveyQuoteTool = ({
         });
         return null;
       }
+      // Cache customer for admin search (deduplicates by email)
+      cacheCustomerFromQuote({
+        name: surveyData.name,
+        email: surveyData.email,
+        phone: surveyData.phone,
+        address: surveyData.address,
+        quoteAmount: quoteAmount,
+        poolModel: pool?.model || customProduct?.name || undefined,
+      });
+
       toast({
         title: "Quote Saved!",
         description: user 
