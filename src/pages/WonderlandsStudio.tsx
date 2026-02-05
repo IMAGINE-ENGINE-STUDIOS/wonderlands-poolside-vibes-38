@@ -47,6 +47,18 @@ import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
 import AdvancedSearch from '@/components/AdvancedSearch';
+
+// Rocky Waterfalls data
+import sunsetGroveImage from '@/assets/sunset-grove-kit-pool.jpg';
+import maldivesImage from '@/assets/maldiveskit-castlerock.jpg';
+import serenityImage from '@/assets/serenitykit.jpg';
+
+const rockyWaterfallTiers = [
+  { name: 'Sunset Grove', price: 17500, image: sunsetGroveImage },
+  { name: 'Maldives', price: 5600, image: maldivesImage },
+  { name: 'Serenity', price: 9500, image: serenityImage },
+];
+const rockyWaterfallColors = ['Castle Rock', 'Gray', 'Brown'];
 // Studio search uses the same AdvancedSearch component as the main page
 
 
@@ -394,7 +406,10 @@ const WonderlandsStudio = () => {
     pergolas: false,
     // Sauna-specific options
     spa: false,
-    selectedSpaModel: ''
+    selectedSpaModel: '',
+    rockyWaterfall: false,
+    rockyWaterfallTier: '',
+    rockyWaterfallColor: '',
   });
   const [paverSurfaceArea, setPaverSurfaceArea] = useState('');
   const [paverCategory, setPaverCategory] = useState('all');
@@ -782,6 +797,14 @@ const WonderlandsStudio = () => {
           total += selectedLedge.price;
         }
       }
+
+      // Add rocky waterfall if selected
+      if (selectedExtras.rockyWaterfall && selectedExtras.rockyWaterfallTier) {
+        const tier = rockyWaterfallTiers.find(t => t.name === selectedExtras.rockyWaterfallTier);
+        if (tier) {
+          total += tier.price;
+        }
+      }
     }
 
     // Apply project type multiplier (3x for commercial)
@@ -795,6 +818,8 @@ const WonderlandsStudio = () => {
     if (selectedExtras.spaFinish && selectedExtras.spaFinishPrice && selectedExtras.spaFinishPrice > 0) count++;
     // Tanning Ledge: must be checked AND have a model selected
     if (selectedExtras.tanningLedge && selectedExtras.tanningLedgeModel && selectedExtras.tanningLedgeModel !== '' && selectedExtras.tanningLedgeModel !== 'None') count++;
+    // Rocky Waterfall: must have a tier selected
+    if (selectedExtras.rockyWaterfall && selectedExtras.rockyWaterfallTier) count++;
     // Finish: must have price > 0 (free finishes don't count)
     const selectedFinish = finishOptions.find(f => f.name === selectedExtras.finish);
     if (selectedExtras.finish && selectedExtras.finish !== 'None' && selectedExtras.finish !== '' && selectedFinish && selectedFinish.price > 0) count++;
@@ -872,6 +897,11 @@ const WonderlandsStudio = () => {
         break;
       case 'concrete':
         newExtras.concreteConstruction = false;
+        break;
+      case 'rockyWaterfall':
+        newExtras.rockyWaterfall = false;
+        newExtras.rockyWaterfallTier = '';
+        newExtras.rockyWaterfallColor = '';
         break;
     }
     setSelectedExtras(newExtras);
@@ -1025,6 +1055,18 @@ const WonderlandsStudio = () => {
         });
       }
     }
+
+    // Add rocky waterfall if selected
+    if (selectedExtras.rockyWaterfall && selectedExtras.rockyWaterfallTier) {
+      const tier = rockyWaterfallTiers.find(t => t.name === selectedExtras.rockyWaterfallTier);
+      if (tier) {
+        extrasBreakdown.push({
+          name: `Rocky Waterfalls: ${tier.name}${selectedExtras.rockyWaterfallColor ? ` (${selectedExtras.rockyWaterfallColor})` : ''}`,
+          price: tier.price,
+          image: tier.image
+        });
+      }
+    }
     const extrasTotal = extrasBreakdown.reduce((sum, item) => sum + item.price, 0);
 
     console.log('✅ EXTRAS BREAKDOWN COMPLETE:', extrasBreakdown);
@@ -1173,6 +1215,17 @@ const WonderlandsStudio = () => {
         });
       }
     }
+
+    // Add rocky waterfall if selected
+    if (selectedExtras.rockyWaterfall && selectedExtras.rockyWaterfallTier) {
+      const tier = rockyWaterfallTiers.find(t => t.name === selectedExtras.rockyWaterfallTier);
+      if (tier) {
+        extrasArray.push({
+          name: `Rocky Waterfalls: ${tier.name}${selectedExtras.rockyWaterfallColor ? ` (${selectedExtras.rockyWaterfallColor})` : ''}`,
+          price: tier.price
+        });
+      }
+    }
     const cartItem = {
       id: `${selectedProduct.type}_${selectedProduct.model || selectedProduct.name}`,
       name: selectedProduct.model || selectedProduct.name || 'Product',
@@ -1212,7 +1265,7 @@ const WonderlandsStudio = () => {
             
             {/* AI Search - Same as main page */}
             <div className="w-48 md:w-96">
-              <AdvancedSearch />
+              <AdvancedSearch variant="slim" />
             </div>
           </div>
         </div>
@@ -2278,6 +2331,66 @@ const WonderlandsStudio = () => {
                             </Carousel>
                           )}
                         </div>
+
+                        {/* Rocky Waterfalls */}
+                        {(selectedProduct?.type === 'pool') && (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold text-foreground">Rocky Waterfalls</h4>
+                            {selectedExtras.rockyWaterfall && selectedExtras.rockyWaterfallTier && (
+                              <Button variant="ghost" size="sm" className="h-6 text-xs text-destructive" onClick={() => removeExtra('rockyWaterfall')}>
+                                <X className="h-3 w-3 mr-1" /> Remove
+                              </Button>
+                            )}
+                          </div>
+                          <Carousel className="w-full" opts={{ align: "start", loop: false, duration: 25 }}>
+                            <CarouselContent className="-ml-1">
+                              {rockyWaterfallTiers.map((tier) => (
+                                <CarouselItem key={tier.name} className="pl-1 basis-1/2 md:basis-1/3">
+                                  <div
+                                    className={`p-3 border rounded-lg cursor-pointer transition-all hover:shadow-md h-full flex flex-col ${selectedExtras.rockyWaterfallTier === tier.name ? "border-primary bg-primary/10" : "border-border"}`}
+                                    onClick={() =>
+                                      setSelectedExtras((prev: any) => ({
+                                        ...prev,
+                                        rockyWaterfall: true,
+                                        rockyWaterfallTier: tier.name,
+                                      }))
+                                    }
+                                  >
+                                    <div className="w-full h-28 rounded-md mb-2 overflow-hidden flex-shrink-0">
+                                      <img src={tier.image} alt={tier.name} className="w-full h-full object-cover transition-transform duration-300 hover:scale-110" />
+                                    </div>
+                                    <div className="flex flex-col gap-0.5">
+                                      <p className="text-xs font-medium text-center truncate">{tier.name}</p>
+                                      <p className="text-xs text-primary font-semibold text-center">+${tier.price.toLocaleString()}</p>
+                                    </div>
+                                  </div>
+                                </CarouselItem>
+                              ))}
+                            </CarouselContent>
+                            <CarouselPrevious className="left-0 animate-pulse" />
+                            <CarouselNext className="right-0 animate-pulse" />
+                          </Carousel>
+                          {selectedExtras.rockyWaterfall && selectedExtras.rockyWaterfallTier && (
+                            <div className="mt-2">
+                              <label className="text-xs font-medium text-muted-foreground mb-1 block">Select Color</label>
+                              <div className="flex gap-2">
+                                {rockyWaterfallColors.map((color) => (
+                                  <Button
+                                    key={color}
+                                    size="sm"
+                                    variant={selectedExtras.rockyWaterfallColor === color ? "default" : "outline"}
+                                    className="text-xs"
+                                    onClick={() => setSelectedExtras((prev: any) => ({ ...prev, rockyWaterfallColor: color }))}
+                                  >
+                                    {color}
+                                  </Button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        )}
 
                         {/* Deck Pavers */}
                         <div className="space-y-3">
