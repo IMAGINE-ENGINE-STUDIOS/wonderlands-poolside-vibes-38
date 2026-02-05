@@ -63,7 +63,12 @@ interface SearchResult {
   type: 'pool' | 'product';
 }
 
-const AdvancedSearch = () => {
+interface AdvancedSearchProps {
+  variant?: 'default' | 'slim';
+}
+
+const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
+  const isSlim = variant === 'slim';
   const [searchQuery, setSearchQuery] = useState('');
   const [lastQuery, setLastQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -555,12 +560,13 @@ const AdvancedSearch = () => {
   return (
     <div 
       className={`relative w-full max-w-lg mx-auto transition-transform duration-300 ${
-        shouldShowSectionMenu ? '-translate-y-48 sm:-translate-y-16' : ''
+        shouldShowSectionMenu ? (isSlim ? '-translate-y-12' : '-translate-y-48 sm:-translate-y-16') : ''
       }`} 
       ref={containerRef}
+      style={isSlim ? { zIndex: 200 } : undefined}
     >
       {/* Voice listening indicator */}
-      {isListening && (
+      {isListening && !isSlim && (
         <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex items-center gap-2 text-sm text-red-500 animate-pulse">
           <span className="w-2 h-2 bg-red-500 rounded-full" />
           Listening... {interimTranscript && <span className="text-muted-foreground">"{interimTranscript}"</span>}
@@ -568,7 +574,8 @@ const AdvancedSearch = () => {
       )}
       
       <div className={cn(
-        "relative flex items-center gap-1 p-1.5 rounded-xl border-2 transition-all duration-300 bg-background/90 backdrop-blur-sm",
+        "relative flex items-center gap-1 rounded-xl border-2 transition-all duration-300 bg-background/90 backdrop-blur-sm",
+        isSlim ? "p-1 rounded-lg" : "p-1.5",
         isListening ? "border-red-500 shadow-lg shadow-red-500/20" : 
         aiResponse?.needsTextInput ? "border-green-500 shadow-lg shadow-green-500/20" : 
         "border-primary/20 focus-within:border-primary"
@@ -588,6 +595,7 @@ const AdvancedSearch = () => {
           placeholder={
             isListening ? "Speak now..." : 
             aiResponse?.needsTextInput ? "Type your answer..." :
+            isSlim ? "Search products..." :
             "Search or ask AI anything about pools, spas, pavers..."
           }
           value={isListening ? (searchQuery + interimTranscript) : searchQuery}
@@ -599,7 +607,8 @@ const AdvancedSearch = () => {
             }
           }}
           className={cn(
-            "flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-2",
+            "flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-2",
+            isSlim ? "py-1 text-sm h-8" : "py-2",
             aiResponse?.needsTextInput && "placeholder:text-green-500/70"
           )}
         />
@@ -829,14 +838,17 @@ const AdvancedSearch = () => {
 
       {/* Section Quick Navigation Menu */}
       {shouldShowSectionMenu && (
-        <Card className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[95vw] sm:w-[850px] max-w-[900px] z-[100] bg-background border-2 border-primary/20 shadow-2xl overflow-hidden">
-          <div className="p-3 pb-0">
-            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-2">
+        <Card className={cn(
+          "absolute top-full left-1/2 -translate-x-1/2 mt-2 z-[200] bg-background border-2 border-primary/20 shadow-2xl overflow-hidden",
+          isSlim ? "w-[90vw] sm:w-[600px] max-w-[650px]" : "w-[95vw] sm:w-[850px] max-w-[900px]"
+        )}>
+          <div className="p-2 pb-0">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">
               Browse Categories
             </div>
           </div>
-          <ScrollArea className="h-[60vh] sm:h-[55vh] px-3 pb-3">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+          <ScrollArea className={cn(isSlim ? "h-[40vh] sm:h-[35vh]" : "h-[60vh] sm:h-[55vh]", "px-3 pb-3")}>
+            <div className={cn("grid gap-2", isSlim ? "grid-cols-3 sm:grid-cols-4" : "grid-cols-2 sm:grid-cols-4 sm:gap-3")}>
               {mainPageSections.map((section) => (
                 <button
                   type="button"
@@ -848,31 +860,22 @@ const AdvancedSearch = () => {
                     handleSectionClick(section.id);
                   }}
                 >
-                  {/* Background Image */}
-                  <div className="relative h-20 sm:h-24">
+                  <div className={cn("relative", isSlim ? "h-16" : "h-20 sm:h-24")}>
                     <img 
                       src={section.image} 
                       alt={section.label}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     />
-                    {/* Gradient Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20 pointer-events-none" />
-                    
-                    {/* Content */}
-                    <div className="absolute inset-0 flex flex-col justify-end p-2 sm:p-3 pointer-events-none">
-                      <h4 className="text-white font-bold text-xs sm:text-sm leading-tight drop-shadow-lg">
+                    <div className="absolute inset-0 flex flex-col justify-end p-1.5 sm:p-2 pointer-events-none">
+                      <h4 className={cn("text-white font-bold leading-tight drop-shadow-lg", isSlim ? "text-[10px]" : "text-xs sm:text-sm")}>
                         {section.label}
                       </h4>
-                      <p className="text-white/90 text-[9px] sm:text-[10px] leading-tight line-clamp-2 drop-shadow-md mt-0.5">
-                        {section.description}
-                      </p>
-                    </div>
-                    
-                    {/* Hover indicator */}
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                      <div className="bg-white/20 backdrop-blur-sm rounded-full p-1">
-                        <Search className="h-3 w-3 text-white" />
-                      </div>
+                      {!isSlim && (
+                        <p className="text-white/90 text-[9px] sm:text-[10px] leading-tight line-clamp-2 drop-shadow-md mt-0.5">
+                          {section.description}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </button>
