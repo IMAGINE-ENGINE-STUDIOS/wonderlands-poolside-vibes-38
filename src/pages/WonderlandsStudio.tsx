@@ -46,7 +46,7 @@ import { getProductFeatures, getDefaultExtras, calculateFeaturePrice, type Produ
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
 import { Box } from 'lucide-react';
-import { FloatingAISearch } from '@/components/search/FloatingAISearch';
+import AdvancedSearch from '@/components/AdvancedSearch';
 
 
 interface Product {
@@ -1209,16 +1209,9 @@ const WonderlandsStudio = () => {
             
             {/* Project Type Toggle - Hidden (commercial mode disabled) */}
             
-            {/* AI Search - Docked position */}
-            <div className="w-48 md:w-80">
-              {aiSearchDocked ? (
-                <FloatingAISearch isInStudio={true} />
-              ) : (
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input placeholder="Search products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 w-full" />
-                </div>
-              )}
+            {/* AI Search - Same as main page */}
+            <div className="w-48 md:w-96">
+              <AdvancedSearch />
             </div>
           </div>
         </div>
