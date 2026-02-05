@@ -10,6 +10,7 @@ import cancunDeluxeImage from '@/assets/cancun-deluxe.png';
 
 // Import Latham/Axiom pool images
 import axiom14DeluxeMain from '@/assets/pools/axiom-14-deluxe-main.jpg';
+import axiom16Main from '@/assets/pools/axiom-16-main.jpg';
 
 // Import GlimmerGlass pool images
 import gilmerAloha from '@/assets/gilmer-aloha.png';
@@ -144,6 +145,7 @@ export const poolProductLookup: Record<string, PoolProductInfo> = {
   "axiom 12 deluxe": { name: "Axiom 12 Deluxe", dimensions: "12' × 28'", depth: "3'6\" - 6'", price: 69213, image: "/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png", category: "Pool", brand: "Latham" },
   "axiom 14": { name: "Axiom 14", dimensions: "14' × 32'", depth: "3'6\" - 6'", price: 80500, image: "/lovable-uploads/d5b2276b-16a9-47bc-99e3-92567972fe5a.png", category: "Pool", brand: "Latham" },
   "axiom 14 deluxe": { name: "Axiom 14 Deluxe", dimensions: "14' × 30'", depth: "4'6\" - 5'6\"; Spa 3'", price: 87413, image: axiom14DeluxeMain, category: "Pool", brand: "Latham" },
+  "axiom 16": { name: "Axiom 16", dimensions: "16' × 35'", depth: "4'6\" - 6'6\"", price: 94500, image: axiom16Main, category: "Pool", brand: "Latham" },
 
   // ============================================
   // LATHAM FIBERGLASS POOLS - Premium/Deluxe

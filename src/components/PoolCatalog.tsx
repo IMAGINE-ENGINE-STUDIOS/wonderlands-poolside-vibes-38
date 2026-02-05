@@ -26,6 +26,8 @@ import maximaImage from "@/assets/maxima-pool.jpg";
 import axiom14DeluxeMain from "@/assets/pools/axiom-14-deluxe-main.jpg";
 import axiom14DeluxeSpecs from "@/assets/pools/axiom-14-deluxe-specs.jpg";
 import axiom14DeluxeGallery1 from "@/assets/pools/axiom-14-deluxe-gallery-1.jpg";
+import axiom16Main from "@/assets/pools/axiom-16-main.jpg";
+import axiom16Specs from "@/assets/pools/axiom-16-specs.jpg";
 
 // Data loaded successfully
 
@@ -680,6 +682,21 @@ const pools: Pool[] = [
   installationTimeWeeks: 16,
   warrantyYears: "Lifetime",
   features: ["Salt system included", "Built-in Spa", "Tanning Ledge", "Modern Design", "Deluxe Features"],
+  heater: false,
+  saltSystem: true,
+  carbonFiber: true
+},
+{
+  model: "Axiom 16",
+  price: 94500,
+  category: 'premium',
+  image: axiom16Main,
+  gallery: [axiom16Main, axiom16Specs],
+  dimensions: "16′ × 35′",
+  depth: "4′ 6″ – 6′ 6″",
+  installationTimeWeeks: 16,
+  warrantyYears: "Lifetime",
+  features: ["Salt system included", "Spacious Design", "Deep End", "~11,600 Gallons"],
   heater: false,
   saltSystem: true,
   carbonFiber: true
