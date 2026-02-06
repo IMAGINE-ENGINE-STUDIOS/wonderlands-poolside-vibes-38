@@ -277,9 +277,9 @@ const EditablePoolProductCard = ({
   };
 
   const getScreenEnclosureRate = (quality: 'standard' | 'deluxe' | 'premium') => {
-    if (quality === 'premium') return 33;
-    if (quality === 'deluxe') return 27;
-    return 20;
+    if (quality === 'premium') return 26;
+    if (quality === 'deluxe') return 24;
+    return 22;
   };
 
   const calculateScreenEnclosurePrice = () => {

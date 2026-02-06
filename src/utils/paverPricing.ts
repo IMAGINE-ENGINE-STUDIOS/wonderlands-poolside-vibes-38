@@ -68,7 +68,7 @@ export function getPaverByName(paverName: string): PaverType | undefined {
  */
 export function calculateScreenEnclosureCost(
   area: number,
-  quality: 'standard' | 'premium' = 'standard'
+  quality: 'standard' | 'deluxe' | 'premium' = 'standard'
 ): number {
   const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[quality] ?? SCREEN_ENCLOSURE_PRICING.standard;
   return area * pricePerSqFt;

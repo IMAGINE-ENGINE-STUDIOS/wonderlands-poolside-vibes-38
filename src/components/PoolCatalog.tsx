@@ -800,64 +800,6 @@ const pools: Pool[] = [
   saltSystem: true,
   carbonFiber: true
 },
-// Tanning Ledges - Latham
-// Latham Tanning Ledges - 4x dealer multiplier
-{
-  model: "Genesis/Synergy Side Tanning Ledge",
-  price: 17800, // ~4450 × 4
-  category: 'compact',
-  image: "/lovable-uploads/wonderlands-logo.png",
-  dimensions: "Tanning Ledge",
-  depth: "10″",
-  installationTimeWeeks: 16,
-  warrantyYears: "Lifetime",
-  features: ["Tanning Ledge", "Compatible with Genesis/Synergy Pools"],
-  heater: false,
-  saltSystem: false,
-  carbonFiber: false
-},
-{
-  model: "Hermosa Tanning Ledge",
-  price: 14700, // ~3675 × 4
-  category: 'compact',
-  image: "/lovable-uploads/wonderlands-logo.png",
-  dimensions: "Tanning Ledge",
-  depth: "10″",
-  installationTimeWeeks: 16,
-  warrantyYears: "Lifetime",
-  features: ["Tanning Ledge", "Versatile Design"],
-  heater: false,
-  saltSystem: false,
-  carbonFiber: false
-},
-{
-  model: "Rectangle Tanning Ledge",
-  price: 21800, // ~5450 × 4
-  category: 'compact',
-  image: "/lovable-uploads/wonderlands-logo.png",
-  dimensions: "Tanning Ledge",
-  depth: "10″",
-  installationTimeWeeks: 16,
-  warrantyYears: "Lifetime",
-  features: ["Tanning Ledge", "Rectangle Shape", "Premium Option"],
-  heater: false,
-  saltSystem: false,
-  carbonFiber: false
-},
-{
-  model: "Semicircle Tanning Ledge",
-  price: 20200, // ~5050 × 4
-  category: 'compact',
-  image: "/lovable-uploads/wonderlands-logo.png",
-  dimensions: "Tanning Ledge",
-  depth: "10″",
-  installationTimeWeeks: 16,
-  warrantyYears: "Lifetime",
-  features: ["Tanning Ledge", "Semicircle Shape"],
-  heater: false,
-  saltSystem: false,
-  carbonFiber: false
-}
 ];
 
 // Spa models
