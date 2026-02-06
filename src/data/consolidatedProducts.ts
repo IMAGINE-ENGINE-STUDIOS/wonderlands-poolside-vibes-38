@@ -4,25 +4,27 @@
 // Complete list of Latham pool models for compatibility mapping
 const LATHAM_POOLS = [
   // Tuscan Collection
-  "Tuscan 11.20", "Tuscan 13.24", "Tuscan 14.27", "Tuscan 14.30", "Tuscan 14.40",
+  "Tuscan 11.20", "Tuscan 13.24", "Tuscan 14.27", "Tuscan 14.30", "Tuscan 14.40", "Tuscan",
   // Classic Collection
   "Astoria", "Milan", "Jamaica", "Aruba", "St. Croix", "Rio",
   // Apollo Collection
-  "Apollo 12", "Apollo 14",
+  "Apollo 12", "Apollo 14", "Apollo",
   // Enchantment Collection
-  "Enchantment 9.17", "Enchantment 9.21", "Enchantment 9.24",
+  "Enchantment 9.17", "Enchantment 9.21", "Enchantment 9.24", "Enchantment",
   // Resort Collection
-  "Cancún Deluxe", "Pleasant Cove", "St. Lucia", "Delray",
+  "Cancún Deluxe", "Cancun Deluxe", "Pleasant Cove", "St. Lucia", "Delray",
   // Island Collection
   "Java", "Bermuda", "Key West", "Valencia",
   // Vista Collection
   "Vista Isle", "Bay Isle", "Laguna",
   // Corinthian Collection
-  "Corinthian 12", "Corinthian 12 BME", "Corinthian 14", "Corinthian 14 BME",
+  "Corinthian 12", "Corinthian 12 BME", "Corinthian 14", "Corinthian 14 BME", "Corinthian",
   // Olympia Collection
-  "Olympia 12", "Olympia 14",
+  "Olympia 12", "Olympia 14", "Olympia 16", "Olympia",
+  // Axiom Collection
+  "Axiom 12 Deluxe", "Axiom 14", "Axiom 14 Deluxe", "Axiom 16", "Axiom",
   // Other Models
-  "Claremont", "Axiom 14", "Genesis"
+  "Claremont", "Genesis", "Cape Cod", "Coronado", "Synergy", "Laguna Deluxe"
 ];
 
 export interface Product {
@@ -570,11 +572,14 @@ export const getProductsByPoolType = (category: Product['category'], poolType: '
 };
 
 export const getProductsByCompatiblePool = (category: Product['category'], poolModel: string): Product[] => {
-  return allProducts.filter(product => 
-    product.category === category && 
-    (!product.compatiblePools || product.compatiblePools.includes(poolModel)) &&
-    product.isActive
-  );
+  return allProducts.filter(product => {
+    if (product.category !== category || !product.isActive) return false;
+    if (!product.compatiblePools) return true;
+    // Support both exact match and prefix match (e.g., "Astoria 12" matches "Astoria")
+    return product.compatiblePools.some(compatible => 
+      compatible === poolModel || poolModel.startsWith(compatible)
+    );
+  });
 };
 
 // For backwards compatibility

@@ -639,9 +639,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
 
     // Add screen enclosure to cart if area provided
     if (extras.screenEnclosureArea > 0) {
-      let pricePerSqFt = 20;
-      if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
-      if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
+      let pricePerSqFt = 22;
+      if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 24;
+      if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 26;
       const enclosurePrice = extras.screenEnclosureArea * pricePerSqFt;
       cartExtras.push({
         name: `Screen Enclosure - ${extras.screenEnclosureQuality} (${extras.screenEnclosureArea} sq ft)`,
