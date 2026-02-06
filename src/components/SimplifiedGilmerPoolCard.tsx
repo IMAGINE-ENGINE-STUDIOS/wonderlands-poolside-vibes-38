@@ -151,9 +151,9 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
 
   // Screen enclosure options with proper quality names and pricing
   const screenEnclosureQualities = [
-    { key: 'standard', name: 'Wonder Cage', price: 27 },
-    { key: 'deluxe', name: 'Deluxe', price: 27 },
-    { key: 'premium', name: '2 stories', price: 33 }
+    { key: 'standard', name: 'Wonder Cage', price: 22 },
+    { key: 'deluxe', name: 'Deluxe', price: 24 },
+    { key: 'premium', name: '2 stories', price: 26 }
   ];
 
   // Pool heater options
@@ -558,14 +558,14 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 {options.screenEnclosureArea > 0 && (
                   <div className="text-xs text-green-600 font-medium">
                     Calculated Cost: ${(() => {
-                      let pricePerSqFt = 20;
-                      if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 27;
-                      if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 33;
+                      let pricePerSqFt = 22;
+                      if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 24;
+                      if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 26;
                       return (options.screenEnclosureArea * pricePerSqFt).toLocaleString();
                     })()} ({options.screenEnclosureArea} sq ft × ${(() => {
-                      if (options.screenEnclosureQuality === 'deluxe') return '27';
-                      if (options.screenEnclosureQuality === 'premium') return '33';
-                      return '20';
+                      if (options.screenEnclosureQuality === 'deluxe') return '24';
+                      if (options.screenEnclosureQuality === 'premium') return '26';
+                      return '22';
                     })()}/sq ft)
                   </div>
                 )}
