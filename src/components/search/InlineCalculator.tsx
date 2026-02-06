@@ -13,7 +13,7 @@ interface InlineCalculatorProps {
 }
 
 const PRICING = {
-  screen: { standard: 27, premium: 33, unit: 'sqft' },
+  screen: { standard: 22, deluxe: 24, premium: 26, unit: 'sqft' },
   fence: { standard: 45, premium: 65, unit: 'linear ft' },
   lanai: { standard: 60, deluxe: 80, premium: 100, unit: 'sqft' },
 };

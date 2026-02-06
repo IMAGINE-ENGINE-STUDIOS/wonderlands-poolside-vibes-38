@@ -507,9 +507,9 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
               >
                 <CarouselContent className="-ml-1">
                   {[
-                    { key: "standard", name: "Wonder Cage", price: 27, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
-                    { key: "deluxe", name: "Deluxe", price: 27, image: screenEnclosureDeluxe },
-                    { key: "premium", name: "2 Stories", price: 33, image: screenEnclosurePremium },
+                    { key: "standard", name: "Wonder Cage", price: SCREEN_ENCLOSURE_PRICING.standard, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
+                    { key: "deluxe", name: "Deluxe", price: SCREEN_ENCLOSURE_PRICING.deluxe, image: screenEnclosureDeluxe },
+                    { key: "premium", name: "2 Stories", price: SCREEN_ENCLOSURE_PRICING.premium, image: screenEnclosurePremium },
                   ].map((quality) => (
                     <CarouselItem key={quality.key} className="pl-1 basis-1/2">
                       <div
@@ -1025,16 +1025,10 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
             ...(options.screenEnclosure && options.screenEnclosureArea > 0 ? [{ 
               name: `Screen Enclosure: ${screenEnclosureQualities.find(q => q.key === options.screenEnclosureQuality)?.name}`, 
               price: (() => {
-                let pricePerSqFt = 20;
-                if (options.screenEnclosureQuality === 'deluxe') pricePerSqFt = 27;
-                if (options.screenEnclosureQuality === 'premium') pricePerSqFt = 33;
+                const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[options.screenEnclosureQuality as keyof typeof SCREEN_ENCLOSURE_PRICING] ?? SCREEN_ENCLOSURE_PRICING.standard;
                 return options.screenEnclosureArea * pricePerSqFt;
               })(),
-              description: `${options.screenEnclosureArea} sq ft at $${(() => {
-                if (options.screenEnclosureQuality === 'deluxe') return '27';
-                if (options.screenEnclosureQuality === 'premium') return '33';
-                return '20';
-              })()} per sq ft`,
+              description: `${options.screenEnclosureArea} sq ft at $${SCREEN_ENCLOSURE_PRICING[options.screenEnclosureQuality as keyof typeof SCREEN_ENCLOSURE_PRICING] ?? SCREEN_ENCLOSURE_PRICING.standard} per sq ft`,
               category: 'enclosure'
             }] : []),
             ...(options.poolHeater ? [{ 

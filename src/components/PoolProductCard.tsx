@@ -1054,9 +1054,9 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
               >
                 <CarouselContent className="-ml-1">
                   {[
-                    { key: "standard", name: "Wonder Cage", price: 27, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
-                    { key: "deluxe", name: "Deluxe", price: 27, image: screenEnclosureDeluxe },
-                    { key: "premium", name: "2 Stories", price: 33, image: screenEnclosurePremium },
+                    { key: "standard", name: "Wonder Cage", price: SCREEN_ENCLOSURE_PRICING.standard, image: "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png" },
+                    { key: "deluxe", name: "Deluxe", price: SCREEN_ENCLOSURE_PRICING.deluxe, image: screenEnclosureDeluxe },
+                    { key: "premium", name: "2 Stories", price: SCREEN_ENCLOSURE_PRICING.premium, image: screenEnclosurePremium },
                   ].map((quality) => (
                     <CarouselItem key={quality.key} className="pl-1 basis-1/2">
                       <div
@@ -1881,9 +1881,7 @@ const PoolProductCard = ({ pool, onViewDetails, onRequestQuote, isAdmin = false,
                         if (selectedLedge) originalTotal += selectedLedge.price;
                       }
                       if (extras.screenEnclosureArea > 0) {
-                        let pricePerSqFt = 27;
-                        if (extras.screenEnclosureQuality === "deluxe") pricePerSqFt = 27;
-                        if (extras.screenEnclosureQuality === "premium") pricePerSqFt = 33;
+                        const pricePerSqFt = SCREEN_ENCLOSURE_PRICING[extras.screenEnclosureQuality as keyof typeof SCREEN_ENCLOSURE_PRICING] ?? SCREEN_ENCLOSURE_PRICING.standard;
                         originalTotal += extras.screenEnclosureArea * pricePerSqFt;
                       }
                       // Apply project type multiplier
