@@ -290,3 +290,36 @@
     display: none !important;
   }
 }
+
+/* Force light mode inside quote document - neutralize all dark: overrides */
+.quote-force-light,
+.quote-force-light * {
+  color-scheme: light;
+}
+
+.dark .quote-force-light {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --border: 240 5.9% 90%;
+}
+
+/* Override dark:from-gray-* dark:to-gray-* backgrounds inside quote */
+.dark .quote-force-light [class*="dark:from-gray"],
+.dark .quote-force-light [class*="dark:to-gray"],
+.dark .quote-force-light [class*="dark:bg-gray"] {
+  --tw-gradient-from: transparent !important;
+  --tw-gradient-to: transparent !important;
+  background-color: transparent !important;
+}
+
+.dark .quote-force-light [class*="dark:text-"] {
+  color: inherit !important;
+}
+
+.dark .quote-force-light [class*="dark:border-gray"] {
+  border-color: rgb(229 231 235) !important;
+}

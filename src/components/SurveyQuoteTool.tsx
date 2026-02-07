@@ -1208,7 +1208,7 @@ const SurveyQuoteTool = ({
           </div>
         ) : (
           <div>
-            <div className="space-y-6 bg-white p-6" data-quote-content>
+            <div className="space-y-6 bg-white text-gray-900 p-6 quote-force-light" data-quote-content>
             <div className="bg-white border-2 border-orange-400 rounded-lg overflow-hidden">
               
               {/* Header with Logo */}
