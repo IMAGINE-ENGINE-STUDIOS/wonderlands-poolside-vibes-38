@@ -138,10 +138,51 @@ const SurveyQuoteTool = ({
   const [hiddenSections, setHiddenSections] = useState<Set<string>>(new Set());
   const [editableTexts, setEditableTexts] = useState<Record<string, string>>({});
   const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
+  
+  // Autofill state
+  const [autofillPasscode, setAutofillPasscode] = useState("");
+  const [isAutofillUnlocked, setIsAutofillUnlocked] = useState(false);
+  const [previousCustomers, setPreviousCustomers] = useState<any[]>([]);
+  const [showAutofillPanel, setShowAutofillPanel] = useState(false);
+  
   const {
     toast
   } = useToast();
-  // Removed GALA-GOODS integration
+
+  // Autofill: unlock customer database with passcode
+  const handleUnlockAutofill = async () => {
+    if (autofillPasscode === "MAGICWONDER") {
+      const { data, error } = await supabase
+        .from('customer_cache' as any)
+        .select('*')
+        .order('name');
+      if (!error && data) {
+        setPreviousCustomers(data as any[]);
+        setIsAutofillUnlocked(true);
+        toast({ title: "Database Unlocked", description: "Select a customer to autofill the form." });
+      } else {
+        toast({ title: "Error", description: "Could not fetch customer data.", variant: "destructive" });
+      }
+    } else {
+      toast({ title: "Invalid Passcode", description: "Please enter the correct passcode.", variant: "destructive" });
+    }
+    setAutofillPasscode("");
+  };
+
+  const handleAutofillCustomer = (customerId: string) => {
+    const customer = previousCustomers.find((c: any) => c.id === customerId);
+    if (customer) {
+      setSurveyData(prev => ({
+        ...prev,
+        name: customer.name || prev.name,
+        email: customer.email || prev.email,
+        phone: customer.phone || prev.phone,
+        address: customer.address || prev.address,
+      }));
+      toast({ title: "Form Autofilled", description: `Data for ${customer.name} applied.` });
+    }
+  };
+
 
   // Cache form data whenever it changes
   useEffect(() => {
@@ -853,7 +894,7 @@ const SurveyQuoteTool = ({
   
   if (!pool && !customProduct) return null;
   return <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto pb-52">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto pb-8">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-coral to-teal">
             Get Your Personalized Pool Quote
@@ -865,6 +906,44 @@ const SurveyQuoteTool = ({
 
         {currentStep === 'survey' ? (
           <div className="space-y-6">
+            {/* Admin Autofill Access */}
+            <div className="space-y-3 p-4 border border-muted rounded-lg bg-muted/30">
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <Label htmlFor="autofill-passcode" className="text-xs font-mono text-muted-foreground">Admin Autofill</Label>
+                  <Input
+                    id="autofill-passcode"
+                    type="password"
+                    placeholder="Enter passcode to unlock..."
+                    value={autofillPasscode}
+                    onChange={e => setAutofillPasscode(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleUnlockAutofill()}
+                    className="h-9"
+                  />
+                </div>
+                <Button onClick={handleUnlockAutofill} variant="outline" size="sm" className="h-9">
+                  Unlock
+                </Button>
+              </div>
+              {isAutofillUnlocked && previousCustomers.length > 0 && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  <Label className="text-sm text-muted-foreground">Select Previous Customer</Label>
+                  <Select onValueChange={handleAutofillCustomer}>
+                    <SelectTrigger className="w-full bg-background">
+                      <SelectValue placeholder="Search or select a customer..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-[200] max-h-60">
+                      {previousCustomers.map((c: any) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name} — {c.email}{c.phone ? ` — ${c.phone}` : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
             {/* Contact Information */}
             <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-teal/5">
               <CardHeader>
@@ -1079,9 +1158,22 @@ const SurveyQuoteTool = ({
                 <div className="w-2 h-2 bg-primary rounded-full"></div>
                 <span>Free consultation • No obligation • Expert guidance</span>
               </div>
-              <Button onClick={handleGetQuote} variant="gradient" size="lg" className="w-full hover:scale-105 transition-all duration-300">
-                Get My Personalized Quote
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button onClick={handleGetQuote} variant="gradient" size="lg" className="flex-1 hover:scale-105 transition-all duration-300">
+                  Get My Personalized Quote
+                </Button>
+                <Button 
+                  onClick={() => {
+                    if (!surveyData.name) setSurveyData(prev => ({ ...prev, name: 'Guest' }));
+                    setCurrentStep('quote');
+                  }}
+                  variant="outline" 
+                  size="lg" 
+                  className="flex-1 border-primary text-primary hover:bg-primary/5"
+                >
+                  Skip to Quote →
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground">
                 * By submitting, you agree to receive follow-up communications about your pool project
               </p>
@@ -2099,12 +2191,12 @@ const SurveyQuoteTool = ({
               </div>
             </div>
             
-            {/* Controller Panel - Redesigned with clean modern layout */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700 shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.15)] no-print print:hidden z-[60]">
-              <div className="max-w-4xl mx-auto px-4 py-3">
+            {/* Controller Panel - Bottom of quote content */}
+            <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6 no-print print:hidden">
+              <div className="space-y-4">
                 
-                {/* Edit Mode Toggle - Compact top bar */}
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100 dark:border-gray-800">
+                {/* Edit Mode Toggle */}
+                <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
                   {!isEditMode ? (
                     <div className="flex items-center gap-2 w-full">
                       <div className="relative flex-1 max-w-[200px]">
@@ -2147,8 +2239,16 @@ const SurveyQuoteTool = ({
                   )}
                 </div>
                 
-                {/* Main Actions - Clean grid layout */}
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
+                {/* Main Actions Grid */}
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  <Button 
+                    onClick={() => setCurrentStep('survey')}
+                    className="h-11 flex flex-col items-center justify-center gap-0.5 bg-indigo-500 hover:bg-indigo-600 text-white border-0 shadow-sm"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    <span className="text-[10px] font-medium">Fill Info</span>
+                  </Button>
+                  
                   <Button 
                     onClick={handlePrintQuote}
                     className="h-11 flex flex-col items-center justify-center gap-0.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border-0 shadow-sm"
@@ -2200,7 +2300,7 @@ const SurveyQuoteTool = ({
                   </Button>
                 </div>
                 
-                {/* Email Section - Compact inline design */}
+                {/* Email Section */}
                 <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2">
                   <Mail className="h-4 w-4 text-gray-400 ml-2 flex-shrink-0" />
                   <Input
