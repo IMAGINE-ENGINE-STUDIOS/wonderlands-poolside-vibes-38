@@ -137,6 +137,7 @@ const SurveyQuoteTool = ({
   const [editableQuoteAmount, setEditableQuoteAmount] = useState<number>(0);
   const [hiddenSections, setHiddenSections] = useState<Set<string>>(new Set());
   const [editableTexts, setEditableTexts] = useState<Record<string, string>>({});
+  const [editablePrices, setEditablePrices] = useState<Record<string, number>>({});
   const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
   
   // Autofill state
@@ -1396,7 +1397,11 @@ const SurveyQuoteTool = ({
                               {extras?.pricePerSqFt && (
                                 <div className="flex justify-between py-1 border-b border-orange-200">
                                   <span className="text-sm">Price Per Sq Ft:</span>
-                                  <span className="text-sm font-semibold">${extras.pricePerSqFt}</span>
+                                  {isEditMode ? (
+                                    <span className="text-sm font-semibold">$<input type="number" value={editablePrices['lanai-sqft'] ?? extras.pricePerSqFt} onChange={(e) => setEditablePrices(prev => ({...prev, 'lanai-sqft': Number(e.target.value)}))} className="w-20 px-1 py-0.5 border rounded text-right inline-block" /></span>
+                                  ) : (
+                                    <span className="text-sm font-semibold">${editablePrices['lanai-sqft'] ?? extras.pricePerSqFt}</span>
+                                  )}
                                 </div>
                               )}
                               
@@ -1441,22 +1446,41 @@ const SurveyQuoteTool = ({
                               
                               <div className="flex justify-between mt-2 pt-2 border-t border-orange-200 dark:border-gray-600">
                                 <span className="font-medium">Total Price:</span>
-                                <span className="font-semibold text-lg">${(extras?.totalPrice || customProduct?.price || 0).toLocaleString()}</span>
+                                {isEditMode ? (
+                                  <span className="font-semibold text-lg">$<input type="number" value={editablePrices['lanai-total'] ?? (extras?.totalPrice || customProduct?.price || 0)} onChange={(e) => setEditablePrices(prev => ({...prev, 'lanai-total': Number(e.target.value)}))} className="w-28 px-1 py-0.5 border rounded text-right inline-block" /></span>
+                                ) : (
+                                  <span className="font-semibold text-lg">${(editablePrices['lanai-total'] ?? extras?.totalPrice ?? customProduct?.price ?? 0).toLocaleString()}</span>
+                                )}
                               </div>
                             </div>
                           ) : customProduct?.type !== 'paver' ? (
                             <div className="bg-gradient-to-br from-orange-100 to-teal-100 dark:from-gray-800 dark:to-gray-700 p-4 rounded-lg">
                               <h4 className="font-semibold mb-2">
-                                {isPoolProduct ? 'Pool Model' : 'Product'}: {pool?.model || customProduct?.name}
+                                {isPoolProduct ? 'Pool Model' : 'Product'}: {isEditMode ? (
+                                  <input type="text" value={editableTexts['product-name'] ?? (pool?.model || customProduct?.name)} onChange={(e) => setEditableTexts(prev => ({...prev, 'product-name': e.target.value}))} className="px-1 py-0.5 border rounded inline-block" />
+                                ) : (editableTexts['product-name'] ?? pool?.model ?? customProduct?.name)}
                               </h4>
-                              {pool?.dimensions && <p className="text-sm">Dimensions: {pool.dimensions}</p>}
-                              {pool?.depth && <p className="text-sm">Depth: {pool.depth}</p>}
+                              {pool?.dimensions && <p className="text-sm">Dimensions: {isEditMode ? (
+                                <input type="text" value={editableTexts['product-dims'] ?? pool.dimensions} onChange={(e) => setEditableTexts(prev => ({...prev, 'product-dims': e.target.value}))} className="px-1 py-0.5 border rounded inline-block" />
+                              ) : (editableTexts['product-dims'] ?? pool.dimensions)}</p>}
+                              {pool?.depth && <p className="text-sm">Depth: {isEditMode ? (
+                                <input type="text" value={editableTexts['product-depth'] ?? pool.depth} onChange={(e) => setEditableTexts(prev => ({...prev, 'product-depth': e.target.value}))} className="px-1 py-0.5 border rounded inline-block" />
+                              ) : (editableTexts['product-depth'] ?? pool.depth)}</p>}
                               {customProduct && !isPoolProduct && customProduct.type && (
                                 <p className="text-sm">Type: {customProduct.type}</p>
                               )}
                               <div className="flex justify-between mt-2 pt-2 border-t border-orange-200 dark:border-gray-600">
                                 <span>Base Price:</span>
-                                <span className="font-semibold">${(pool?.price || customProduct?.price || 0).toLocaleString()}</span>
+                                {isEditMode ? (
+                                  <input
+                                    type="number"
+                                    value={editablePrices['base-price'] ?? (pool?.price || customProduct?.price || 0)}
+                                    onChange={(e) => setEditablePrices(prev => ({...prev, 'base-price': Number(e.target.value)}))}
+                                    className="w-32 px-2 py-1 border rounded text-right font-semibold"
+                                  />
+                                ) : (
+                                  <span className="font-semibold">${(editablePrices['base-price'] ?? pool?.price ?? customProduct?.price ?? 0).toLocaleString()}</span>
+                                )}
                               </div>
                             </div>
                           ) : null}
@@ -1483,8 +1507,8 @@ const SurveyQuoteTool = ({
                             </div>
                           )}
                           
-                          {/* Pavers and Screen Enclosure Details - Show for pool products OR standalone paver products */}
-                          {!hiddenSections.has('paver-deck') && (isPoolProduct || customProduct?.type === 'paver') && !isLanaiProduct && (
+                          {/* Pavers and Screen Enclosure Details - Show for pool products OR standalone paver products, hide when empty */}
+                          {!hiddenSections.has('paver-deck') && (isPoolProduct || customProduct?.type === 'paver') && !isLanaiProduct && extras?.extrasBreakdown && (extras.extrasBreakdown.some((item: any) => item.name.includes('sq ft') && !item.name.includes('Screen Enclosure')) || extras.extrasBreakdown.some((item: any) => item.name.includes('Screen Enclosure'))) && (
                             <div className="bg-gradient-to-br from-teal-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg relative space-y-4">
                               {isEditMode && (
                                 <button
@@ -1549,10 +1573,14 @@ const SurveyQuoteTool = ({
                                         <div className="flex-1 space-y-1">
                                           <p className="font-semibold text-sm text-foreground">{selectedPaverName}</p>
                                           <p className="text-sm text-muted-foreground">
-                                            <span className="font-medium">Area:</span> {paverArea.toLocaleString()} sq ft
+                                            <span className="font-medium">Area:</span> {isEditMode ? (
+                                              <input type="number" value={editablePrices['paver-area'] ?? paverArea} onChange={(e) => setEditablePrices(prev => ({...prev, 'paver-area': Number(e.target.value)}))} className="w-20 px-1 py-0.5 border rounded text-right inline-block ml-1" />
+                                            ) : (editablePrices['paver-area'] ?? paverArea).toLocaleString()} sq ft
                                           </p>
                                           <p className="text-base font-bold text-teal-700 dark:text-teal-400">
-                                            Total Cost: ${paverItem.price.toLocaleString()}
+                                            Total Cost: {isEditMode ? (
+                                              <span>$<input type="number" value={editablePrices['paver-price'] ?? paverItem.price} onChange={(e) => setEditablePrices(prev => ({...prev, 'paver-price': Number(e.target.value)}))} className="w-28 px-1 py-0.5 border rounded text-right inline-block" /></span>
+                                            ) : `$${(editablePrices['paver-price'] ?? paverItem.price).toLocaleString()}`}
                                           </p>
                                         </div>
                                       </div>
@@ -1589,10 +1617,14 @@ const SurveyQuoteTool = ({
                                         <div className="flex-1 space-y-1">
                                           <p className="font-semibold text-sm text-foreground">{enclosureType}</p>
                                           <p className="text-sm text-muted-foreground">
-                                            <span className="font-medium">Area:</span> {enclosureArea.toLocaleString()} sq ft
+                                            <span className="font-medium">Area:</span> {isEditMode ? (
+                                              <input type="number" value={editablePrices['enclosure-area'] ?? enclosureArea} onChange={(e) => setEditablePrices(prev => ({...prev, 'enclosure-area': Number(e.target.value)}))} className="w-20 px-1 py-0.5 border rounded text-right inline-block ml-1" />
+                                            ) : (editablePrices['enclosure-area'] ?? enclosureArea).toLocaleString()} sq ft
                                           </p>
                                           <p className="text-base font-bold text-orange-700 dark:text-orange-400">
-                                            Total Cost: ${enclosureItem.price.toLocaleString()}
+                                            Total Cost: {isEditMode ? (
+                                              <span>$<input type="number" value={editablePrices['enclosure-price'] ?? enclosureItem.price} onChange={(e) => setEditablePrices(prev => ({...prev, 'enclosure-price': Number(e.target.value)}))} className="w-28 px-1 py-0.5 border rounded text-right inline-block" /></span>
+                                            ) : `$${(editablePrices['enclosure-price'] ?? enclosureItem.price).toLocaleString()}`}
                                           </p>
                                         </div>
                                       </div>
@@ -1724,7 +1756,11 @@ const SurveyQuoteTool = ({
                               </p>}
                             <div className="flex justify-between text-sm">
                               <span>Price:</span>
-                              <span className="font-semibold text-teal-600">+${displayPrice.toLocaleString()}</span>
+                              {isEditMode ? (
+                                <span className="font-semibold text-teal-600">+$<input type="number" value={editablePrices[`option-${index}`] ?? displayPrice} onChange={(e) => setEditablePrices(prev => ({...prev, [`option-${index}`]: Number(e.target.value)}))} className="w-24 px-1 py-0.5 border rounded text-right inline-block" /></span>
+                              ) : (
+                                <span className="font-semibold text-teal-600">+${(editablePrices[`option-${index}`] ?? displayPrice).toLocaleString()}</span>
+                              )}
                             </div>
                           </div>;
                 })}
@@ -1855,10 +1891,16 @@ const SurveyQuoteTool = ({
                                  <ImageCard src={itemImage} alt={displayName} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
                                </div> : null;
                   })()}
-                          <h5 className="font-semibold text-sm">{displayName}</h5>
+                          <h5 className="font-semibold text-sm">{isEditMode ? (
+                            <input type="text" value={editableTexts[`extra-name-${index}`] ?? displayName} onChange={(e) => setEditableTexts(prev => ({...prev, [`extra-name-${index}`]: e.target.value}))} className="w-full px-1 py-0.5 border rounded text-sm font-semibold" />
+                          ) : (editableTexts[`extra-name-${index}`] ?? displayName)}</h5>
                           <div className="flex justify-between text-sm mt-2">
                             <span>Price:</span>
-                            <span className="font-semibold text-coral-600">+${item.price.toLocaleString()}</span>
+                            {isEditMode ? (
+                              <span className="font-semibold text-coral-600">+$<input type="number" value={editablePrices[`extra-${index}`] ?? item.price} onChange={(e) => setEditablePrices(prev => ({...prev, [`extra-${index}`]: Number(e.target.value)}))} className="w-24 px-1 py-0.5 border rounded text-right inline-block" /></span>
+                            ) : (
+                              <span className="font-semibold text-coral-600">+${(editablePrices[`extra-${index}`] ?? item.price).toLocaleString()}</span>
+                            )}
                           </div>
                         </div>;
                       })}
@@ -1866,7 +1908,11 @@ const SurveyQuoteTool = ({
                     <div className="mt-4 p-3 bg-gradient-to-r from-coral-100 to-orange-100 dark:from-gray-700 dark:to-gray-800 rounded-lg">
                       <div className="flex justify-between items-center">
                         <span className="font-semibold">Total Added Features:</span>
-                        <span className="font-bold text-coral-600 text-lg">+${extras.extrasTotal.toLocaleString()}</span>
+                        {isEditMode ? (
+                          <span className="font-bold text-coral-600 text-lg">+$<input type="number" value={editablePrices['extras-total'] ?? extras.extrasTotal} onChange={(e) => setEditablePrices(prev => ({...prev, 'extras-total': Number(e.target.value)}))} className="w-28 px-1 py-0.5 border rounded text-right inline-block" /></span>
+                        ) : (
+                          <span className="font-bold text-coral-600 text-lg">+${(editablePrices['extras-total'] ?? extras.extrasTotal).toLocaleString()}</span>
+                        )}
                       </div>
                     </div>
                   </div>
