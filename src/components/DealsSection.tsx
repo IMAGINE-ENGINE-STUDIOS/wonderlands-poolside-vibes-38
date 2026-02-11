@@ -2,104 +2,109 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Flame, Tag, ArrowRight, Star, Clock, Percent } from "lucide-react";
+import { Star, ArrowRight, Tag } from "lucide-react";
 import { OptimizedImage } from "./OptimizedImage";
-import enchantment917DealImage from "@/assets/pools/enchantment-917-perspective.jpg";
-import cancunDeluxeDealImage from "@/assets/cancun-deluxe.png";
 
-interface Deal {
+// Import existing product data from different categories
+import { saunas } from "@/data/saunaData";
+import { gilmerSpas } from "@/data/gilmerSpas";
+import { glimmerglassTanningLedges } from "@/data/poolData";
+import enchantment917Image from "@/assets/pools/enchantment-917-perspective.jpg";
+import cancunDeluxeImage from "@/assets/cancun-deluxe.png";
+
+export interface BestSellerItem {
   id: string;
   name: string;
-  originalPrice: number;
-  dealPrice: number;
+  price: number;
   image: string;
   category: string;
   badge: string;
   description: string;
   features: string[];
-  savings: number;
+  sourceType: 'pool' | 'spa' | 'sauna' | 'tanning-ledge' | 'gate';
 }
 
-interface DealsSectionProps {
-  onViewDeal: (deal: Deal) => void;
-}
-
-const deals: Deal[] = [
+// Curate best sellers from existing product data across categories
+const bestSellers: BestSellerItem[] = [
+  // Pool - Bermuda 12
   {
-    id: "bermuda-sauna-bundle",
-    name: "Bermuda Pool + 4-Person Barrel Sauna",
-    originalPrice: 82525,
-    dealPrice: 72863,
+    id: "bermuda-12",
+    name: "Bermuda 12",
+    price: 56525,
     image: "/lovable-uploads/bermuda-pool.png",
-    category: "Bundle",
+    category: "Pool",
     badge: "Best Seller",
-    description: "Complete pool & sauna package with salt system, 3D patio render, 5ft pavers, and 2 LED lights included.",
-    features: ["Salt System Included", "3D Patio Render", "5ft Pavers", "2 LED Lights", "3-Month Installation"],
-    savings: 9662,
+    description: "The most popular fiberglass pool with versatile design, perfect for families and entertaining.",
+    features: ["Salt System", "Carbon Fiber", "Lifetime Warranty"],
+    sourceType: 'pool',
   },
+  // Pool - Cancún Deluxe
   {
-    id: "milan-starter",
-    name: "Milan 8.14 Starter Package",
-    originalPrice: 35150,
-    dealPrice: 31150,
-    image: "/lovable-uploads/121eda70-3d05-4624-afb0-5dba766d8b2f.png",
-    category: "Starter",
-    badge: "Best Value",
-    description: "Perfect entry-level fiberglass pool with salt system and carbon fiber. Ideal for smaller backyards.",
-    features: ["Salt System Included", "Carbon Fiber", "Lifetime Warranty", "16-Week Install"],
-    savings: 4000,
-  },
-  {
-    id: "cancun-deluxe-deal",
-    name: "Cancún Deluxe with Integrated Spa",
-    originalPrice: 122875,
-    dealPrice: 112875,
-    image: cancunDeluxeDealImage,
-    category: "Premium",
-    badge: "Hot Deal",
+    id: "cancun-deluxe",
+    name: "Cancún Deluxe",
+    price: 112875,
+    image: cancunDeluxeImage,
+    category: "Pool",
+    badge: "Premium Pick",
     description: "Luxury freeform pool with integrated spa, tanning ledge, and spillover water feature.",
-    features: ["Integrated Spa", "Tanning Ledge", "Spillover Feature", "Sauna Offer"],
-    savings: 10000,
+    features: ["Integrated Spa", "Tanning Ledge", "Spillover Feature"],
+    sourceType: 'pool',
   },
+  // Sauna - Barrel Sauna 4-Person (from saunaData)
   {
-    id: "enchantment-compact",
-    name: "Enchantment 9.17 Compact Pool",
-    originalPrice: 48100,
-    dealPrice: 44100,
-    image: enchantment917DealImage,
-    category: "Compact",
+    id: saunas[0].id,
+    name: saunas[0].name,
+    price: saunas[0].price,
+    image: saunas[0].image,
+    category: "Sauna",
+    badge: "Top Rated",
+    description: saunas[0].description,
+    features: saunas[0].features.slice(0, 3),
+    sourceType: 'sauna',
+  },
+  // Spa - Moondance Spillover (from gilmerSpas)
+  {
+    id: "moondance-spillover",
+    name: gilmerSpas[0].model,
+    price: gilmerSpas[0].price,
+    image: gilmerSpas[0].image,
+    category: "Spa",
+    badge: "Fan Favorite",
+    description: "Premium spillover spa with fiberglass construction and lifetime structural warranty.",
+    features: gilmerSpas[0].features?.slice(0, 3) || ["Spillover Design", "Fiberglass", "Life Warranty"],
+    sourceType: 'spa',
+  },
+  // Pool - Enchantment 9.17
+  {
+    id: "enchantment-917",
+    name: "Enchantment 9.17",
+    price: 44100,
+    image: enchantment917Image,
+    category: "Pool",
     badge: "Space Saver",
     description: "Energy-efficient compact pool with salt system. Perfect fit for cozy backyards without compromising quality.",
-    features: ["Salt System Included", "Energy Efficient", "Carbon Fiber", "Lifetime Warranty"],
-    savings: 4000,
+    features: ["Salt System", "Energy Efficient", "Lifetime Warranty"],
+    sourceType: 'pool',
   },
+  // Tanning Ledge - Paradise (from glimmerglassTanningLedges)
   {
-    id: "astoria-16-premium",
-    name: "Astoria 16 Premium Package",
-    originalPrice: 118338,
-    dealPrice: 110338,
-    image: "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png",
-    category: "Premium",
-    badge: "Flagship",
-    description: "Our largest Astoria model with salt system, integrated seating, and easy entry steps for the ultimate pool experience.",
-    features: ["Salt System Included", "Largest Astoria", "Integrated Seating", "Lifetime Warranty"],
-    savings: 8000,
-  },
-  {
-    id: "corinthian-14-bme",
-    name: "Corinthian 14 BME Deep Pool",
-    originalPrice: 96388,
-    dealPrice: 90388,
-    image: "/lovable-uploads/a345878e-c014-4929-9e9b-bcb675d02e66.png",
-    category: "Deluxe",
-    badge: "Deep Dive",
-    description: "Roman end design with built-in bench and 6'6\" deep end. Premium fiberglass with salt system.",
-    features: ["Roman End Design", "Built-in Bench", "6'6\" Deep End", "Salt System"],
-    savings: 6000,
+    id: "paradise-tanning",
+    name: glimmerglassTanningLedges[0].name + " Tanning Ledge",
+    price: glimmerglassTanningLedges[0].price,
+    image: glimmerglassTanningLedges[0].image,
+    category: "Tanning Ledge",
+    badge: "Most Popular",
+    description: glimmerglassTanningLedges[0].description,
+    features: glimmerglassTanningLedges[0].features.slice(0, 3),
+    sourceType: 'tanning-ledge',
   },
 ];
 
-const DealsSection: React.FC<DealsSectionProps> = ({ onViewDeal }) => {
+interface BestSellersSectionProps {
+  onViewProduct: (item: BestSellerItem) => void;
+}
+
+const BestSellersSection: React.FC<BestSellersSectionProps> = ({ onViewProduct }) => {
   return (
     <div className="relative overflow-hidden py-16 bg-gradient-to-b from-coral/10 via-background to-primary/5">
       {/* Background Decoration */}
@@ -112,86 +117,72 @@ const DealsSection: React.FC<DealsSectionProps> = ({ onViewDeal }) => {
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12 lg:mb-16">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Flame className="h-8 w-8 text-coral animate-pulse" />
+            <Star className="h-8 w-8 text-coral animate-pulse" />
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-coral via-primary to-teal">
-              Deals & Best Offers
+              Best Sellers
             </h2>
-            <Flame className="h-8 w-8 text-coral animate-pulse" />
+            <Star className="h-8 w-8 text-coral animate-pulse" />
           </div>
           <p className="text-sm sm:text-base lg:text-xl text-foreground/80 max-w-2xl mx-auto px-2 sm:px-0">
-            Exclusive packages and limited-time offers on our most popular products
+            Our most popular products across all categories — trusted by hundreds of happy customers
           </p>
         </div>
 
-        {/* Deals Grid */}
+        {/* Best Sellers Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 px-4">
-          {deals.map((deal) => (
+          {bestSellers.map((item) => (
             <Card
-              key={deal.id}
+              key={item.id}
               className="group relative overflow-hidden border border-border/50 hover:border-coral/50 transition-all duration-300 hover:shadow-xl hover:shadow-coral/10 bg-card"
             >
               {/* Badge */}
               <div className="absolute top-3 left-3 z-10">
                 <Badge className="bg-gradient-to-r from-coral to-primary text-white border-0 px-3 py-1 text-xs font-bold shadow-lg">
                   <Tag className="h-3 w-3 mr-1" />
-                  {deal.badge}
+                  {item.badge}
                 </Badge>
               </div>
 
-              {/* Savings Badge */}
+              {/* Category Badge */}
               <div className="absolute top-3 right-3 z-10">
-                <Badge className="bg-green-500 text-white border-0 px-2 py-1 text-xs font-bold shadow-lg">
-                  <Percent className="h-3 w-3 mr-1" />
-                  Save ${deal.savings.toLocaleString()}
+                <Badge className="bg-primary/90 text-white border-0 px-2 py-1 text-xs font-bold shadow-lg">
+                  {item.category}
                 </Badge>
               </div>
 
               {/* Image */}
               <div className="relative h-48 sm:h-56 overflow-hidden">
                 <OptimizedImage
-                  src={deal.image}
-                  alt={deal.name}
+                  src={item.image}
+                  alt={item.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                <div className="absolute bottom-3 left-3">
-                  <Badge variant="outline" className="bg-background/80 backdrop-blur-sm text-xs">
-                    {deal.category}
-                  </Badge>
-                </div>
               </div>
 
               {/* Content */}
               <CardContent className="p-4 space-y-3">
                 <h3 className="font-bold text-lg text-foreground line-clamp-2 group-hover:text-primary transition-colors">
-                  {deal.name}
+                  {item.name}
                 </h3>
 
                 <p className="text-sm text-muted-foreground line-clamp-2">
-                  {deal.description}
+                  {item.description}
                 </p>
 
                 {/* Features */}
                 <div className="flex flex-wrap gap-1.5">
-                  {deal.features.slice(0, 3).map((feature) => (
+                  {item.features.map((feature) => (
                     <Badge key={feature} variant="secondary" className="text-[10px] px-2 py-0.5">
                       {feature}
                     </Badge>
                   ))}
-                  {deal.features.length > 3 && (
-                    <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
-                      +{deal.features.length - 3} more
-                    </Badge>
-                  )}
                 </div>
 
                 {/* Pricing */}
                 <div className="flex items-end gap-2 pt-2">
                   <span className="text-2xl font-bold text-primary">
-                    ${deal.dealPrice.toLocaleString()}
-                  </span>
-                  <span className="text-sm text-muted-foreground line-through mb-0.5">
-                    ${deal.originalPrice.toLocaleString()}
+                    ${item.price.toLocaleString()}
                   </span>
                 </div>
 
@@ -199,9 +190,9 @@ const DealsSection: React.FC<DealsSectionProps> = ({ onViewDeal }) => {
                 <Button
                   variant="gradient"
                   className="w-full group/btn mt-2"
-                  onClick={() => onViewDeal(deal)}
+                  onClick={() => onViewProduct(item)}
                 >
-                  View Deal
+                  View Details
                   <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                 </Button>
               </CardContent>
@@ -213,6 +204,5 @@ const DealsSection: React.FC<DealsSectionProps> = ({ onViewDeal }) => {
   );
 };
 
-export { deals };
-export type { Deal };
-export default DealsSection;
+export { bestSellers };
+export default BestSellersSection;

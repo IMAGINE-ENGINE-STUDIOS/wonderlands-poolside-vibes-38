@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Waves, Sparkles, Flame, Plus, Sun, Calendar, ArrowRight, Droplets, Cpu } from "lucide-react";
-import DealsSection from "./DealsSection";
+import BestSellersSection from "./DealsSection";
 
 // Import shared pool data
 import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
@@ -984,11 +984,10 @@ const PoolCatalog = () => {
             
           </div>
 
-          {/* Deals & Best Offers Section */}
-          <DealsSection onViewDeal={(deal) => {
-            // Find matching pool from deals and open quote
+          {/* Best Sellers Section */}
+          <BestSellersSection onViewProduct={(item) => {
             const matchingPool = pools.find(p => 
-              deal.name.toLowerCase().includes(p.model.toLowerCase().split(' ')[0])
+              item.name.toLowerCase().includes(p.model.toLowerCase().split(' ')[0])
             );
             if (matchingPool) {
               handleRequestQuote(matchingPool);
