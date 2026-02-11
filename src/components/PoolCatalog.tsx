@@ -34,7 +34,7 @@ import axiom16Specs from "@/assets/pools/axiom-16-specs.jpg";
 
 // Pool model images - synchronized with Wonderlands Studio (with cache-busting)
 const astoriaImage = "/lovable-uploads/c7c3ab88-34ab-47d4-bf6c-38893a5b13f2.png?v=1";
-import enchantment917Image from "@/assets/pools/enchantment-917-perspective.jpg";
+import enchantment917Image from "@/assets/pools/enchantment-917.png";
 const enchantment921Image = "/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png?v=1";
 const enchantment924Image = "/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png?v=1";
 const tuscan1120Image = "/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png";
