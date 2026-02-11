@@ -11,6 +11,7 @@ import cancunDeluxeImage from '@/assets/cancun-deluxe.png';
 // Import Latham/Axiom pool images
 import axiom14DeluxeMain from '@/assets/pools/axiom-14-deluxe-main.jpg';
 import axiom16Main from '@/assets/pools/axiom-16-main.jpg';
+import enchantment917LookupImage from '@/assets/pools/enchantment-917-perspective.jpg';
 
 // Import GlimmerGlass pool images
 import gilmerAloha from '@/assets/gilmer-aloha.png';
@@ -111,7 +112,7 @@ export const poolProductLookup: Record<string, PoolProductInfo> = {
   // ============================================
   // LATHAM FIBERGLASS POOLS - Enchantment Series
   // ============================================
-  "enchantment 9.17": { name: "Enchantment 9.17", dimensions: "9'1\" × 17'5\"", depth: "~4'9\"", price: 44100, image: "/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png", category: "Pool", brand: "Latham" },
+  "enchantment 9.17": { name: "Enchantment 9.17", dimensions: "9'1\" × 17'5\"", depth: "~4'9\"", price: 44100, image: enchantment917LookupImage, category: "Pool", brand: "Latham" },
   "enchantment 9.21": { name: "Enchantment 9.21", dimensions: "9'1\" × 20'7\"", depth: "~4'9\"", price: 50050, image: "/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png", category: "Pool", brand: "Latham" },
   "enchantment 9.24": { name: "Enchantment 9.24", dimensions: "9'1\" × 24'", depth: "~4'9\"", price: 55913, image: "/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png", category: "Pool", brand: "Latham" },
 

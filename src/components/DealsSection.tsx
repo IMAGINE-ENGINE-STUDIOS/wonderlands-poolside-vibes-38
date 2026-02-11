@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Flame, Tag, ArrowRight, Star, Clock, Percent } from "lucide-react";
 import { OptimizedImage } from "./OptimizedImage";
+import enchantment917DealImage from "@/assets/pools/enchantment-917-perspective.jpg";
+import cancunDeluxeDealImage from "@/assets/cancun-deluxe.png";
 
 interface Deal {
   id: string;
@@ -52,7 +54,7 @@ const deals: Deal[] = [
     name: "Cancún Deluxe with Integrated Spa",
     originalPrice: 122875,
     dealPrice: 112875,
-    image: "/lovable-uploads/cancun-deluxe-deal.png",
+    image: cancunDeluxeDealImage,
     category: "Premium",
     badge: "Hot Deal",
     description: "Luxury freeform pool with integrated spa, tanning ledge, and spillover water feature.",
@@ -64,7 +66,7 @@ const deals: Deal[] = [
     name: "Enchantment 9.17 Compact Pool",
     originalPrice: 48100,
     dealPrice: 44100,
-    image: "/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png",
+    image: enchantment917DealImage,
     category: "Compact",
     badge: "Space Saver",
     description: "Energy-efficient compact pool with salt system. Perfect fit for cozy backyards without compromising quality.",
