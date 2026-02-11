@@ -985,14 +985,7 @@ const PoolCatalog = () => {
           </div>
 
           {/* Best Sellers Section */}
-          <BestSellersSection onViewProduct={(item) => {
-            const matchingPool = pools.find(p => 
-              item.name.toLowerCase().includes(p.model.toLowerCase().split(' ')[0])
-            );
-            if (matchingPool) {
-              handleRequestQuote(matchingPool);
-            }
-          }} />
+          <BestSellersSection />
 
           {/* Wonderlands World Collection - Only Madre Perla and Pacific Ridge */}
           <div className="relative overflow-hidden py-16 bg-gradient-to-b from-primary/5 via-background to-coral/5">
