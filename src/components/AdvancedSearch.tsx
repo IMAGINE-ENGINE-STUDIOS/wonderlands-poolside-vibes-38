@@ -26,6 +26,7 @@ import madrePerlaImage from '@/assets/pools/madre-perla.jpg';
 import maximaImage from '@/assets/maxima-pool.jpg';
 import pacificRidgeImage from '@/assets/pools/pacific-ridge-new.jpg';
 import cancunDeluxeImage from '@/assets/cancun-deluxe.png';
+import enchantment917SearchImage from '@/assets/pools/enchantment-917-perspective.jpg';
 
 // Import banner images for sections
 import saunaBanner from "@/assets/banners/sauna-banner.jpg";
@@ -185,7 +186,7 @@ const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
       { id: 'bermuda-14-deluxe', name: 'Bermuda 14 Deluxe', category: 'Pool', price: 87588, image: '/lovable-uploads/bermuda-pool.png', keywords: ['pool', 'deluxe', 'bermuda', 'deluxe', '14x28'] },
       
       // Enchantment Series
-      { id: 'enchantment-917', name: 'Enchantment 9.17', category: 'Pool', price: 44100, image: '/lovable-uploads/d7541cc8-f254-4f85-b6ee-f636a8726dcc.png', keywords: ['pool', 'compact', 'enchantment', '9x17'] },
+      { id: 'enchantment-917', name: 'Enchantment 9.17', category: 'Pool', price: 44100, image: enchantment917SearchImage, keywords: ['pool', 'compact', 'enchantment', '9x17'] },
       { id: 'enchantment-921', name: 'Enchantment 9.21', category: 'Pool', price: 50050, image: '/lovable-uploads/63844c0c-04e6-4628-ad09-1b98c9283cf0.png', keywords: ['pool', 'compact', 'enchantment', '9x21'] },
       { id: 'enchantment-924', name: 'Enchantment 9.24', category: 'Pool', price: 55913, image: '/lovable-uploads/749a82f6-561b-4f6b-982b-d343dfac9565.png', keywords: ['pool', 'compact', 'enchantment', '9x24'] },
       
