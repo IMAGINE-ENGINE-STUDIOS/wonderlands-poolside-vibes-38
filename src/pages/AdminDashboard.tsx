@@ -36,6 +36,7 @@ import { TwilioTestPanel } from '@/components/admin/TwilioTestPanel';
 import AdminPromotionsManager from '@/components/admin/AdminPromotionsManager';
 import HeadOfSalesDashboard from '@/components/HeadOfSalesDashboard';
 import CustomerCacheSearch from '@/components/admin/CustomerCacheSearch';
+import AdminApiManagement from '@/components/admin/AdminApiManagement';
 
 // Navigation Item Component
 const NavItem = ({
@@ -258,7 +259,7 @@ const AdminDashboard = () => {
                 <NavItem icon={Database} label="Customer DB" active={activeSection === "customer-cache"} onClick={() => setActiveSection("customer-cache")} />
                 <NavItem icon={Building2} label="Contractors" active={activeSection === "contractors"} onClick={() => setActiveSection("contractors")} />
                 <NavItem icon={Gift} label="Referrals" active={activeSection === "referrals"} onClick={() => setActiveSection("referrals")} />
-                <NavItem icon={Users} label="API Manager" active={activeSection === "api-manager"} onClick={() => setActiveSection("api-manager")} />
+                <NavItem icon={Globe} label="API Management" active={activeSection === "api-manager"} onClick={() => setActiveSection("api-manager")} />
                 
                 <NavItem icon={TrendingUp} label="Delivery" active={activeSection === "delivery-logistics"} onClick={() => setActiveSection("delivery-logistics")} />
                 
@@ -534,7 +535,7 @@ const AdminDashboard = () => {
 
           {/* API Manager Tab - Main Admin Only */}
           {isMainAdmin && activeSection === "api-manager" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
-              <RealApiManager />
+              <AdminApiManagement />
             </div>}
 
           {/* API Keys Tab - Contractors and Suppliers */}
