@@ -33,6 +33,7 @@ const ContractorProfile = lazy(() => import("./pages/ContractorProfile"));
 const ContractorLogin = lazy(() => import("./pages/ContractorLogin"));
 const DesignStudio = lazy(() => import("./pages/DesignStudio"));
 const ConsentPage = lazy(() => import("./pages/ConsentPage"));
+const ApiDocumentation = lazy(() => import("./pages/ApiDocumentation"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -124,6 +125,7 @@ const App = () => {
             <Route path="/design-studio" element={<DesignStudio />} />
             <Route path="/twilio-poc" element={<TwilioPOC />} />
             <Route path="/consent" element={<ConsentPage />} />
+            <Route path="/api" element={<ApiDocumentation />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
