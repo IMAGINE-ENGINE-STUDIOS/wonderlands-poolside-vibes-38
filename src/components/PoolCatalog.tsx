@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Waves, Sparkles, Flame, Plus, Sun, Calendar, ArrowRight, Droplets, Cpu } from "lucide-react";
+import DealsSection from "./DealsSection";
 
 // Import shared pool data
 import { poolLiners, poolTiles, tanningLedges } from "@/data/poolData";
@@ -982,6 +983,17 @@ const PoolCatalog = () => {
             <p className="text-sm text-muted-foreground mt-3">Book your free consultation with our pool experts</p>
             
           </div>
+
+          {/* Deals & Best Offers Section */}
+          <DealsSection onViewDeal={(deal) => {
+            // Find matching pool from deals and open quote
+            const matchingPool = pools.find(p => 
+              deal.name.toLowerCase().includes(p.model.toLowerCase().split(' ')[0])
+            );
+            if (matchingPool) {
+              handleRequestQuote(matchingPool);
+            }
+          }} />
 
           {/* Wonderlands World Collection - Only Madre Perla and Pacific Ridge */}
           <div className="relative overflow-hidden py-16 bg-gradient-to-b from-primary/5 via-background to-coral/5">
