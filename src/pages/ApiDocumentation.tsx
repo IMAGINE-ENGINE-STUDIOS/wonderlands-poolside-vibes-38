@@ -52,15 +52,16 @@ const endpoints = [
       "category": "screens",
       "price": 2499.99,
       "description": "...",
-      "image_url": "https://...",
+      "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/example.png",
+      "sku": "WL-001",
+      "brand": "Wonderlands",
       "is_active": true
     }
   ],
   "pagination": {
     "page": 1,
     "limit": 20,
-    "total": 54,
-    "total_pages": 3
+    "total": 54
   }
 }`,
     exampleCurl: `curl -X GET "${BASE_URL}/products?page=1&limit=10&category=screens" \\
@@ -80,7 +81,9 @@ const endpoints = [
     "category": "screens",
     "price": 2499.99,
     "description": "...",
-    "image_url": "https://...",
+    "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/example.png",
+    "sku": "WL-001",
+    "brand": "Wonderlands",
     "is_active": true
   }
 }`,
@@ -106,14 +109,13 @@ const endpoints = [
       "price": 18500,
       "dimensions": "30x15x5",
       "features": ["LED lighting", "Built-in spa"],
-      "image_url": "https://..."
+      "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/pool-example.png"
     }
   ],
   "pagination": {
     "page": 1,
     "limit": 20,
-    "total": 12,
-    "total_pages": 1
+    "total": 12
   }
 }`,
     exampleCurl: `curl -X GET "${BASE_URL}/pools?category=fiberglass&limit=5" \\
@@ -134,7 +136,7 @@ const endpoints = [
     "price": 18500,
     "dimensions": "30x15x5",
     "features": ["LED lighting"],
-    "image_url": "https://..."
+    "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/pool-example.png"
   }
 }`,
     exampleCurl: `curl -X GET "${BASE_URL}/pools/YOUR_POOL_ID" \\
@@ -158,14 +160,13 @@ const endpoints = [
       "category": "natural_stone",
       "collection": "Premium",
       "base_price": 12.50,
-      "image_url": "https://..."
+      "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/paver-example.png"
     }
   ],
   "pagination": {
     "page": 1,
     "limit": 20,
-    "total": 8,
-    "total_pages": 1
+    "total": 8
   }
 }`,
     exampleCurl: `curl -X GET "${BASE_URL}/pavers?limit=10" \\
@@ -185,7 +186,7 @@ const endpoints = [
     "category": "natural_stone",
     "collection": "Premium",
     "base_price": 12.50,
-    "image_url": "https://..."
+    "image_url": "https://wonderlands-poolside-vibes-38.lovable.app/lovable-uploads/paver-example.png"
   }
 }`,
     exampleCurl: `curl -X GET "${BASE_URL}/pavers/YOUR_PAVER_ID" \\

@@ -7,6 +7,24 @@ const corsHeaders = {
 };
 
 const SUPABASE_URL = "https://bwngxlbnavnhbtahyzbf.supabase.co";
+const SITE_URL = "https://wonderlands-poolside-vibes-38.lovable.app";
+
+/**
+ * Convert relative image URLs to absolute URLs so external consumers can display them.
+ */
+function resolveImageUrls<T>(data: T): T {
+  if (Array.isArray(data)) {
+    return data.map(resolveImageUrls) as T;
+  }
+  if (data && typeof data === "object") {
+    const obj = { ...data } as Record<string, unknown>;
+    if (typeof obj.image_url === "string" && obj.image_url.startsWith("/")) {
+      obj.image_url = `${SITE_URL}${obj.image_url}`;
+    }
+    return obj as T;
+  }
+  return data;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -100,7 +118,7 @@ Deno.serve(async (req) => {
       if (error) return json({ error: error.message }, 400);
 
       return json({
-        data: products,
+        data: resolveImageUrls(products),
         ...(resourceId ? {} : { pagination: { page, limit, total: count } }),
       });
     }
@@ -121,7 +139,7 @@ Deno.serve(async (req) => {
       if (error) return json({ error: error.message }, 400);
 
       return json({
-        data: pools,
+        data: resolveImageUrls(pools),
         ...(resourceId ? {} : { pagination: { page, limit, total: count } }),
       });
     }
@@ -142,7 +160,7 @@ Deno.serve(async (req) => {
       if (error) return json({ error: error.message }, 400);
 
       return json({
-        data: pavers,
+        data: resolveImageUrls(pavers),
         ...(resourceId ? {} : { pagination: { page, limit, total: count } }),
       });
     }
