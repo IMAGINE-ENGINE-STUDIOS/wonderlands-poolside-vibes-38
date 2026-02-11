@@ -11,7 +11,7 @@ import cancunDeluxeImage from '@/assets/cancun-deluxe.png';
 // Import Latham/Axiom pool images
 import axiom14DeluxeMain from '@/assets/pools/axiom-14-deluxe-main.jpg';
 import axiom16Main from '@/assets/pools/axiom-16-main.jpg';
-import enchantment917LookupImage from '@/assets/pools/enchantment-917-perspective.jpg';
+import enchantment917LookupImage from '@/assets/pools/enchantment-917.png';
 
 // Import GlimmerGlass pool images
 import gilmerAloha from '@/assets/gilmer-aloha.png';

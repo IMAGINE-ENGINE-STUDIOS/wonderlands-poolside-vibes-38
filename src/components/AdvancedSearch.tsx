@@ -26,7 +26,7 @@ import madrePerlaImage from '@/assets/pools/madre-perla.jpg';
 import maximaImage from '@/assets/maxima-pool.jpg';
 import pacificRidgeImage from '@/assets/pools/pacific-ridge-new.jpg';
 import cancunDeluxeImage from '@/assets/cancun-deluxe.png';
-import enchantment917SearchImage from '@/assets/pools/enchantment-917-perspective.jpg';
+import enchantment917SearchImage from '@/assets/pools/enchantment-917.png';
 
 // Import banner images for sections
 import saunaBanner from "@/assets/banners/sauna-banner.jpg";

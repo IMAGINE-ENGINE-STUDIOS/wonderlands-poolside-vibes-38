@@ -9,7 +9,7 @@ import { OptimizedImage } from "./OptimizedImage";
 import { saunas } from "@/data/saunaData";
 import { gilmerSpas } from "@/data/gilmerSpas";
 import { glimmerglassTanningLedges } from "@/data/poolData";
-import enchantment917Image from "@/assets/pools/enchantment-917-perspective.jpg";
+import enchantment917Image from "@/assets/pools/enchantment-917.png";
 import cancunDeluxeImage from "@/assets/cancun-deluxe.png";
 
 export interface BestSellerItem {
