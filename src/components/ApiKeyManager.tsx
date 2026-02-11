@@ -325,14 +325,26 @@ const ApiKeyManager = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-blue-700 dark:text-blue-300 space-y-3">
-              <p><strong>Base URL:</strong> <code>https://bwngxlbnavnhbtahyzbf.supabase.co/rest/v1/</code></p>
+              <p><strong>Base URL:</strong></p>
+              <code className="block p-2 bg-white dark:bg-gray-900 rounded text-sm break-all">
+                https://bwngxlbnavnhbtahyzbf.supabase.co/functions/v1/public-api
+              </code>
               <p><strong>Authentication:</strong> Include your API key in the Authorization header:</p>
               <code className="block p-2 bg-white dark:bg-gray-900 rounded text-sm">
-                Authorization: Bearer YOUR_API_KEY
+                Authorization: Bearer wl_your_api_key_here
               </code>
-              <p><strong>Content-Type:</strong> <code>application/json</code></p>
+              <p><strong>Available Endpoints (GET only):</strong></p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li><code>/public-api/products</code> — List all products</li>
+                <li><code>/public-api/products/:id</code> — Get product by ID</li>
+                <li><code>/public-api/pools</code> — List all pools</li>
+                <li><code>/public-api/pools/:id</code> — Get pool by ID</li>
+                <li><code>/public-api/pavers</code> — List all pavers</li>
+                <li><code>/public-api/pavers/:id</code> — Get paver by ID</li>
+              </ul>
+              <p><strong>Query Params:</strong> <code>page</code>, <code>limit</code> (max 100), <code>category</code>, <code>search</code></p>
               <p className="text-sm">
-                Your API key provides access to products, orders, and analytics based on your account permissions.
+                Example: <code>GET /public-api/pools?category=fiberglass&limit=10&page=1</code>
               </p>
             </CardContent>
           </Card>
