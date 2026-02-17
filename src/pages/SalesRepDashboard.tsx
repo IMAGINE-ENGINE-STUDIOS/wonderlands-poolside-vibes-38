@@ -6,7 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Users, FileText, LogOut, Phone, Mail, MapPin, DollarSign, Calendar, Zap, Loader2, CheckCircle2, UserCog, Crown } from 'lucide-react';
+import { Users, FileText, LogOut, Phone, Mail, MapPin, DollarSign, Calendar, Zap, Loader2, CheckCircle2, UserCog, Crown, Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SurveyQuoteTool from '@/components/SurveyQuoteTool';
@@ -57,6 +61,13 @@ const SalesRepDashboard = () => {
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
   const [isHeadOfSales, setIsHeadOfSales] = useState(false);
   const [activeView, setActiveView] = useState<'my-clients' | 'team-management'>('my-clients');
+  const [isAddClientDialogOpen, setIsAddClientDialogOpen] = useState(false);
+  const [isAddingClient, setIsAddingClient] = useState(false);
+  const [newClient, setNewClient] = useState({
+    first_name: '', last_name: '', email: '', phone: '',
+    address_street: '', address_city: '', address_state: 'Florida', address_zip: '',
+    price_range_min: '', price_range_max: '', notes: ''
+  });
 
   const PIPELINE_STAGES = [
     { value: 'new', label: 'New', icon: '🆕' },
@@ -226,6 +237,42 @@ const SalesRepDashboard = () => {
     setShowQuoteTool(true);
   };
 
+  const handleAddClient = async () => {
+    if (!newClient.first_name || !newClient.last_name || !newClient.email) {
+      toast({ title: "Missing Information", description: "Please fill in first name, last name, and email", variant: "destructive" });
+      return;
+    }
+    setIsAddingClient(true);
+    try {
+      const { error } = await supabase.from('clients').insert({
+        first_name: newClient.first_name,
+        last_name: newClient.last_name,
+        email: newClient.email,
+        phone: newClient.phone || null,
+        address_street: newClient.address_street || null,
+        address_city: newClient.address_city || null,
+        address_state: newClient.address_state || null,
+        address_zip: newClient.address_zip || null,
+        price_range_min: newClient.price_range_min ? parseFloat(newClient.price_range_min) : null,
+        price_range_max: newClient.price_range_max ? parseFloat(newClient.price_range_max) : null,
+        notes: newClient.notes || null,
+        status: 'new',
+        source: 'sales_rep',
+        assigned_sales_rep_id: user?.id
+      });
+      if (error) throw error;
+      toast({ title: "Client Added", description: `${newClient.first_name} ${newClient.last_name} has been added and assigned to you` });
+      setNewClient({ first_name: '', last_name: '', email: '', phone: '', address_street: '', address_city: '', address_state: 'Florida', address_zip: '', price_range_min: '', price_range_max: '', notes: '' });
+      setIsAddClientDialogOpen(false);
+      fetchAssignedClients();
+    } catch (error) {
+      console.error('Error adding client:', error);
+      toast({ title: "Error", description: "Failed to add client", variant: "destructive" });
+    } finally {
+      setIsAddingClient(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       new: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
@@ -369,14 +416,23 @@ const SalesRepDashboard = () => {
 
         {/* Clients List */}
         <Card className="holographic-panel border-cyan-500/30">
-          <CardHeader>
-            <CardTitle className="text-cyan-300 font-mono flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              YOUR ASSIGNED CLIENTS
-            </CardTitle>
-            <CardDescription className="text-cyan-400/60 font-mono text-xs">
-              Manage your client relationships and create quotes
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-cyan-300 font-mono flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                YOUR ASSIGNED CLIENTS
+              </CardTitle>
+              <CardDescription className="text-cyan-400/60 font-mono text-xs">
+                Manage your client relationships and create quotes
+              </CardDescription>
+            </div>
+            <Button
+              onClick={() => setIsAddClientDialogOpen(true)}
+              className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Client
+            </Button>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -540,6 +596,74 @@ const SalesRepDashboard = () => {
           onClientUpdated={fetchAssignedClients}
         />
       )}
+
+      {/* Add Client Dialog */}
+      <Dialog open={isAddClientDialogOpen} onOpenChange={setIsAddClientDialogOpen}>
+        <DialogContent className="max-w-lg bg-slate-900 border-cyan-500/30 text-cyan-300">
+          <DialogHeader>
+            <DialogTitle className="text-cyan-300 font-mono">Add New Client</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-cyan-400/80 text-xs">First Name *</Label>
+                <Input value={newClient.first_name} onChange={(e) => setNewClient(p => ({ ...p, first_name: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+              </div>
+              <div>
+                <Label className="text-cyan-400/80 text-xs">Last Name *</Label>
+                <Input value={newClient.last_name} onChange={(e) => setNewClient(p => ({ ...p, last_name: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+              </div>
+            </div>
+            <div>
+              <Label className="text-cyan-400/80 text-xs">Email *</Label>
+              <Input type="email" value={newClient.email} onChange={(e) => setNewClient(p => ({ ...p, email: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+            </div>
+            <div>
+              <Label className="text-cyan-400/80 text-xs">Phone</Label>
+              <Input value={newClient.phone} onChange={(e) => setNewClient(p => ({ ...p, phone: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+            </div>
+            <div>
+              <Label className="text-cyan-400/80 text-xs">Street Address</Label>
+              <Input value={newClient.address_street} onChange={(e) => setNewClient(p => ({ ...p, address_street: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label className="text-cyan-400/80 text-xs">City</Label>
+                <Input value={newClient.address_city} onChange={(e) => setNewClient(p => ({ ...p, address_city: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+              </div>
+              <div>
+                <Label className="text-cyan-400/80 text-xs">State</Label>
+                <Input value={newClient.address_state} onChange={(e) => setNewClient(p => ({ ...p, address_state: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+              </div>
+              <div>
+                <Label className="text-cyan-400/80 text-xs">Zip</Label>
+                <Input value={newClient.address_zip} onChange={(e) => setNewClient(p => ({ ...p, address_zip: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-cyan-400/80 text-xs">Budget Min ($)</Label>
+                <Input type="number" value={newClient.price_range_min} onChange={(e) => setNewClient(p => ({ ...p, price_range_min: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+              </div>
+              <div>
+                <Label className="text-cyan-400/80 text-xs">Budget Max ($)</Label>
+                <Input type="number" value={newClient.price_range_max} onChange={(e) => setNewClient(p => ({ ...p, price_range_max: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" />
+              </div>
+            </div>
+            <div>
+              <Label className="text-cyan-400/80 text-xs">Notes</Label>
+              <Textarea value={newClient.notes} onChange={(e) => setNewClient(p => ({ ...p, notes: e.target.value }))} className="bg-slate-800 border-cyan-500/30 text-cyan-300" rows={3} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={() => setIsAddClientDialogOpen(false)} className="border-cyan-500/30 text-cyan-400">Cancel</Button>
+            <Button onClick={handleAddClient} disabled={isAddingClient} className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/30">
+              {isAddingClient ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+              Add Client
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
