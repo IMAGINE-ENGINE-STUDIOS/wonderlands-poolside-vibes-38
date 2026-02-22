@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SurveyQuoteTool from '@/components/SurveyQuoteTool';
 import SalesRepClientCRM from '@/components/SalesRepClientCRM';
 import HeadOfSalesDashboard from '@/components/HeadOfSalesDashboard';
+import PromotionsBanner from '@/components/PromotionsBanner';
 import { useTriggerAutomation } from '@/hooks/useTriggerAutomation';
 
 interface Client {
@@ -412,6 +413,12 @@ const SalesRepDashboard = () => {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Active Promotions */}
+        <div className="mb-8">
+          <h2 className="text-lg font-bold text-amber-300 font-mono mb-3">🔥 ACTIVE OFFERS</h2>
+          <PromotionsBanner variant="dark" />
         </div>
 
         {/* Clients List */}

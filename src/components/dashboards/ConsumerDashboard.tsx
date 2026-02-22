@@ -3,14 +3,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, CreditCard, MapPin, Truck, LogOut, User } from 'lucide-react';
+import { Package, CreditCard, MapPin, Truck, LogOut, User, Tag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import ConsumerOrders from '@/components/ConsumerOrders';
 import ConsumerPreferences from '@/components/ConsumerPreferences';
+import PromotionsBanner from '@/components/PromotionsBanner';
 
 const ConsumerDashboard = () => {
   const { profile, signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState('orders');
+  const [activeTab, setActiveTab] = useState('offers');
 
   const handleSignOut = async () => {
     await signOut();
@@ -43,7 +44,11 @@ const ConsumerDashboard = () => {
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="offers" className="flex items-center space-x-2">
+              <Tag className="h-4 w-4" />
+              <span>Special Offers</span>
+            </TabsTrigger>
             <TabsTrigger value="orders" className="flex items-center space-x-2">
               <Package className="h-4 w-4" />
               <span>Orders</span>
@@ -61,6 +66,18 @@ const ConsumerDashboard = () => {
               <span>Track Orders</span>
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="offers" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>🔥 Special Offers & Bundles</CardTitle>
+                <CardDescription>Exclusive deals available now</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PromotionsBanner variant="light" />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="orders" className="mt-6">
             <Card>
