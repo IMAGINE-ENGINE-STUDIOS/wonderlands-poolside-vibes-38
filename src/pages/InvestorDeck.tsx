@@ -1,480 +1,554 @@
 import * as React from "react";
-const { useState, useEffect, useCallback } = React;
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Maximize, Minimize, Linkedin } from "lucide-react";
+import { motion } from "framer-motion";
+import { Linkedin, ArrowDown } from "lucide-react";
 
-const TOTAL_SLIDES = 14;
+// Pool & asset images
+import olympiaPool from "@/assets/pools/olympia-12-optimized.webp";
+import bermudaPool from "@/assets/pools/bermuda.jpg";
+import valenciaPool from "@/assets/pools/valencia.jpg";
+import synergyPool from "@/assets/pools/synergy.jpg";
+import genesisPool from "@/assets/pools/genesis.jpg";
+import fijiPool from "@/assets/pools/fiji.jpg";
+import geometricPool from "@/assets/pools/geometric-luxury.jpg";
+import enchantmentPool from "@/assets/pools/enchantment-917-installed.jpg";
+import axiomPool from "@/assets/pools/axiom-14-deluxe-main.jpg";
 
-// ─── Slide Components ───────────────────────────────────────────
+const fadeUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.25, 0.1, 0.25, 1] as const } },
+};
 
-const CoverSlide = () => (
-  <div className="relative w-full h-full bg-[hsl(220,30%,8%)] flex items-center justify-center overflow-hidden">
-    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,12%)] via-[hsl(200,30%,10%)] to-[hsl(30,60%,15%)] opacity-80" />
-    <div className="absolute inset-0 bg-[url('/lovable-uploads/7a94e712-7683-4a26-8a1c-c6974e320b5a.png')] bg-center bg-no-repeat bg-contain opacity-5" />
-    <div className="relative z-10 text-center space-y-8">
+const stagger = {
+  visible: { transition: { staggerChildren: 0.15 } },
+};
+
+// ─── Sections ───────────────────────────────────────────────────
+
+const HeroSection = () => (
+  <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    {/* Sunset gradient background */}
+    <div className="absolute inset-0 bg-gradient-to-b from-[hsl(25,90%,55%)] via-[hsl(340,70%,50%)] to-[hsl(260,60%,30%)]" />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+    
+    {/* Decorative pool images faded in background */}
+    <img src={geometricPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" />
+    
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 1.2 }}
+      className="relative z-10 text-center space-y-8 px-6"
+    >
       <img
         src="/lovable-uploads/7a94e712-7683-4a26-8a1c-c6974e320b5a.png"
         alt="Wonderlands Logo"
-        className="h-32 mx-auto drop-shadow-2xl"
+        className="h-36 md:h-48 mx-auto drop-shadow-2xl"
       />
-      <div className="space-y-3">
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white">
-          WONDERLANDS
-        </h1>
-        <p className="text-lg md:text-2xl tracking-[0.3em] uppercase text-[hsl(45,100%,70%)]">
-          Luxury Outdoor Entertainment
-        </p>
-      </div>
-      <p className="text-white/40 text-sm tracking-widest uppercase mt-12">
+      <h1 className="text-5xl md:text-8xl font-black tracking-tight text-white drop-shadow-lg">
+        WONDERLANDS
+      </h1>
+      <p className="text-xl md:text-3xl text-white/90 font-light tracking-wide">
+        Luxury Outdoor Entertainment
+      </p>
+      <p className="text-white/60 text-sm tracking-[0.4em] uppercase">
         Investor Presentation 2025
       </p>
-    </div>
-  </div>
+      <motion.div
+        animate={{ y: [0, 12, 0] }}
+        transition={{ repeat: Infinity, duration: 2 }}
+        className="pt-8"
+      >
+        <ArrowDown className="w-8 h-8 text-white/50 mx-auto" />
+      </motion.div>
+    </motion.div>
+  </section>
 );
 
-const VisionSlide = () => (
-  <DeckSlide
-    label="VISION"
-    title="We Design Destinations, Not Backyards"
-    dark
-  >
-    <div className="grid md:grid-cols-3 gap-8 mt-12">
-      {[
-        { icon: "✦", text: "Transform residential spaces into immersive outdoor environments" },
-        { icon: "◆", text: "Elevate Florida luxury living through experience design" },
-        { icon: "▲", text: "Combine pool architecture, storytelling & entertainment design" },
-      ].map((item, i) => (
-        <div key={i} className="text-center space-y-4">
-          <span className="text-3xl text-[hsl(45,100%,65%)]">{item.icon}</span>
-          <p className="text-white/80 text-lg leading-relaxed">{item.text}</p>
-        </div>
-      ))}
-    </div>
-  </DeckSlide>
-);
-
-const ProblemSlide = () => (
-  <DeckSlide label="THE PROBLEM" title="A Fragmented Market" dark>
-    <div className="grid md:grid-cols-3 gap-8 mt-12">
-      {[
-        { stat: "87%", desc: "of luxury homeowners say their outdoor space lacks cohesion" },
-        { stat: "5+", desc: "contractors needed for a single outdoor project" },
-        { stat: "0", desc: "brands offering end-to-end luxury outdoor experiences" },
-      ].map((item, i) => (
-        <div key={i} className="text-center space-y-4 p-6 rounded-2xl border border-white/10 bg-white/5">
-          <p className="text-5xl font-bold text-[hsl(45,100%,65%)]">{item.stat}</p>
-          <p className="text-white/70">{item.desc}</p>
-        </div>
-      ))}
-    </div>
-  </DeckSlide>
-);
-
-const OpportunitySlide = () => (
-  <DeckSlide label="THE OPPORTUNITY" title="Florida's Luxury Outdoor Market Is Exploding" dark>
-    <div className="grid md:grid-cols-2 gap-10 mt-12">
-      <div className="space-y-6">
+const VisionSection = () => (
+  <section className="relative py-32 overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(173,58%,30%)] via-[hsl(200,50%,25%)] to-[hsl(220,40%,15%)]" />
+    <img src={bermudaPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 mix-blend-overlay" />
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      className="relative z-10 container mx-auto px-6 text-center"
+    >
+      <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4">Vision</motion.p>
+      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 leading-tight">
+        We Design Destinations,<br />Not Backyards
+      </motion.h2>
+      <div className="grid md:grid-cols-3 gap-10">
         {[
-          "High net-worth relocation to Florida at all-time highs",
-          "Year-round outdoor living climate",
-          "Demand for Instagram-worthy luxury spaces",
-          "$4.2B+ residential pool market in Florida",
-        ].map((text, i) => (
-          <div key={i} className="flex items-start gap-4">
-            <span className="text-[hsl(45,100%,65%)] mt-1">→</span>
-            <p className="text-white/80 text-lg">{text}</p>
-          </div>
+          { icon: "🌊", text: "Transform residential spaces into immersive outdoor environments" },
+          { icon: "🌴", text: "Elevate Florida luxury living through experience design" },
+          { icon: "✨", text: "Combine pool architecture, storytelling & entertainment" },
+        ].map((item, i) => (
+          <motion.div key={i} variants={fadeUp} className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+            <span className="text-5xl block mb-4">{item.icon}</span>
+            <p className="text-white/85 text-lg leading-relaxed">{item.text}</p>
+          </motion.div>
         ))}
       </div>
-      <div className="flex items-center justify-center">
-        <div className="w-64 h-64 rounded-full border-4 border-[hsl(45,100%,65%)]/30 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-5xl font-bold text-[hsl(45,100%,65%)]">$4.2B+</p>
-            <p className="text-white/60 text-sm mt-2">FL Pool Market</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </DeckSlide>
+    </motion.div>
+  </section>
 );
 
-const SolutionSlide = () => (
-  <DeckSlide label="THE SOLUTION" title="The Wonderlands Experience" dark>
-    <div className="mt-12 space-y-12">
-      <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-        {["Dream", "Design", "Deliver"].map((step, i) => (
+const ProblemSection = () => (
+  <section className="relative py-32 overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(12,76%,45%)] to-[hsl(27,87%,50%)]" />
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      className="relative z-10 container mx-auto px-6"
+    >
+      <motion.p variants={fadeUp} className="text-white/70 tracking-[0.3em] uppercase text-sm mb-4 text-center">The Problem</motion.p>
+      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
+        A Fragmented Market
+      </motion.h2>
+      <div className="grid md:grid-cols-3 gap-8">
+        {[
+          { stat: "87%", desc: "of luxury homeowners say their outdoor space lacks cohesion" },
+          { stat: "5+", desc: "contractors needed for a single outdoor project" },
+          { stat: "0", desc: "brands offering end-to-end luxury outdoor experiences" },
+        ].map((item, i) => (
+          <motion.div key={i} variants={fadeUp} className="bg-black/20 backdrop-blur-sm rounded-3xl p-10 text-center border border-white/10">
+            <p className="text-6xl font-black text-white mb-3">{item.stat}</p>
+            <p className="text-white/80 text-lg">{item.desc}</p>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  </section>
+);
+
+const OpportunitySection = () => (
+  <section className="relative py-32 overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-b from-[hsl(220,40%,12%)] to-[hsl(260,50%,18%)]" />
+    <img src={fijiPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10" />
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      className="relative z-10 container mx-auto px-6"
+    >
+      <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4 text-center">The Opportunity</motion.p>
+      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
+        Florida's Luxury Market Is Exploding
+      </motion.h2>
+      <div className="grid md:grid-cols-2 gap-12 items-center">
+        <motion.div variants={fadeUp} className="space-y-6">
+          {[
+            "High net-worth relocation to Florida at all-time highs",
+            "Year-round outdoor living climate",
+            "Demand for Instagram-worthy luxury spaces",
+            "$4.2B+ residential pool market in Florida",
+          ].map((text, i) => (
+            <div key={i} className="flex items-start gap-4">
+              <span className="text-[hsl(25,90%,60%)] text-2xl mt-0.5">→</span>
+              <p className="text-white/85 text-xl">{text}</p>
+            </div>
+          ))}
+        </motion.div>
+        <motion.div variants={fadeUp} className="flex justify-center">
+          <div className="w-72 h-72 rounded-full bg-gradient-to-br from-[hsl(25,90%,55%)] to-[hsl(340,70%,50%)] flex items-center justify-center shadow-2xl">
+            <div className="text-center">
+              <p className="text-6xl font-black text-white">$4.2B+</p>
+              <p className="text-white/70 mt-2">FL Pool Market</p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
+  </section>
+);
+
+const SolutionSection = () => (
+  <section className="relative py-32 overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(173,58%,25%)] via-[hsl(190,50%,20%)] to-[hsl(210,40%,15%)]" />
+    <img src={enchantmentPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 mix-blend-overlay" />
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      className="relative z-10 container mx-auto px-6 text-center"
+    >
+      <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4">The Solution</motion.p>
+      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16">
+        The Wonderlands Experience
+      </motion.h2>
+      {/* Dream → Design → Deliver */}
+      <motion.div variants={fadeUp} className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 mb-16">
+        {["🌙 Dream", "🎨 Design", "🏗️ Deliver"].map((step, i) => (
           <React.Fragment key={step}>
-            {i > 0 && <span className="text-[hsl(45,100%,65%)] text-3xl hidden md:block">→</span>}
-            <div className="w-48 h-48 rounded-full border-2 border-[hsl(45,100%,65%)]/40 bg-white/5 flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-white">{step}</p>
-                <p className="text-[hsl(45,100%,65%)] text-sm mt-1">Step {i + 1}</p>
-              </div>
+            {i > 0 && <span className="text-[hsl(25,90%,60%)] text-4xl hidden md:block">→</span>}
+            <div className="w-52 h-52 rounded-full bg-white/10 backdrop-blur-sm border-2 border-white/20 flex items-center justify-center">
+              <p className="text-2xl font-bold text-white">{step}</p>
             </div>
           </React.Fragment>
         ))}
-      </div>
-      <div className="grid md:grid-cols-5 gap-4 text-center">
+      </motion.div>
+      <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {[
           "Concept & Storytelling",
           "Pool Selection & Customization",
           "Patio & Entertainment Layout",
           "Branded Experience Elements",
-          "Seamless Contractor Coordination",
+          "Seamless Construction",
         ].map((item, i) => (
-          <div key={i} className="p-4 rounded-xl border border-white/10 bg-white/5">
-            <p className="text-white/80 text-sm">{item}</p>
+          <div key={i} className="p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10">
+            <p className="text-white/85 text-sm font-medium">{item}</p>
           </div>
         ))}
-      </div>
-    </div>
-  </DeckSlide>
+      </motion.div>
+    </motion.div>
+  </section>
 );
 
-const ApproachSlide = () => (
-  <DeckSlide label="OUR SIGNATURE APPROACH" title="One Stop Shop — From Idea to Turnkey" dark>
-    <div className="grid md:grid-cols-3 gap-8 mt-12">
-      {[
-        {
-          num: "01",
-          title: "One Stop Shop",
-          desc: "All patio solutions under one roof — pools, spas, pavers, enclosures, fencing, gates, and more.",
-        },
-        {
-          num: "02",
-          title: "Luxury Design",
-          desc: "Every project is a bespoke creation, tailored to the homeowner's lifestyle and aesthetic.",
-        },
-        {
-          num: "03",
-          title: "Immersive Entertainment",
-          desc: "We design spaces that feel like private resorts — complete with lighting, sound, and ambiance.",
-        },
-      ].map((item, i) => (
-        <div key={i} className="space-y-4 p-8 rounded-2xl border border-[hsl(45,100%,65%)]/20 bg-white/5">
-          <span className="text-[hsl(45,100%,65%)] text-sm font-mono">{item.num}</span>
-          <h3 className="text-2xl font-bold text-white">{item.title}</h3>
-          <p className="text-white/70 leading-relaxed">{item.desc}</p>
-        </div>
-      ))}
-    </div>
-  </DeckSlide>
-);
-
-const ServicesSlide = () => (
-  <DeckSlide label="SERVICES" title="Complete Outdoor Living Solutions" dark>
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
-      {[
-        "Fiberglass Pools", "Hot Tubs & Spas", "Saunas", "Tanning Ledges",
-        "Screen Enclosures", "Lanai", "Pavers", "Aluminum Fencing",
-        "Automatic Covers", "Driveway Gates", "Pool Finishes", "Construction",
-      ].map((service, i) => (
-        <div key={i} className="p-5 rounded-xl border border-white/10 bg-white/5 text-center hover:border-[hsl(45,100%,65%)]/40 transition-colors">
-          <p className="text-white/90 font-medium">{service}</p>
-        </div>
-      ))}
-    </div>
-  </DeckSlide>
-);
-
-const AestheticSlide = () => (
-  <DeckSlide label="BRAND AESTHETIC" title="A Lifestyle Brand, Not a Contractor" dark>
-    <div className="grid md:grid-cols-2 gap-8 mt-12">
-      <div className="space-y-6">
+const ApproachSection = () => (
+  <section className="relative py-32 overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(25,85%,50%)] via-[hsl(340,65%,45%)] to-[hsl(280,50%,30%)]" />
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      className="relative z-10 container mx-auto px-6"
+    >
+      <motion.p variants={fadeUp} className="text-white/70 tracking-[0.3em] uppercase text-sm mb-4 text-center">Our Signature Approach</motion.p>
+      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
+        One Stop Shop — Idea to Turnkey
+      </motion.h2>
+      <div className="grid md:grid-cols-3 gap-8">
         {[
-          "Cinematic sunset pool photography",
-          "Fantasy-inspired design details",
-          "Waterfall & water feature artistry",
-          "Ambient & architectural lighting",
-          "Resort-level poolside lifestyle",
+          { num: "01", title: "Complete Solutions", desc: "Pools, spas, pavers, enclosures, fencing, gates — everything under one roof. From idea to construction.", img: olympiaPool },
+          { num: "02", title: "Luxury Design", desc: "Every project is bespoke, tailored to the homeowner's lifestyle, aesthetic, and Florida living dreams.", img: axiomPool },
+          { num: "03", title: "Immersive Entertainment", desc: "We design spaces that feel like private resorts — lighting, sound, water features, and ambiance.", img: valenciaPool },
         ].map((item, i) => (
-          <div key={i} className="flex items-center gap-4">
-            <div className="w-2 h-2 rounded-full bg-[hsl(45,100%,65%)]" />
-            <p className="text-white/80 text-lg">{item}</p>
-          </div>
+          <motion.div key={i} variants={fadeUp} className="rounded-3xl overflow-hidden bg-black/30 backdrop-blur-sm border border-white/10">
+            <img src={item.img} alt={item.title} className="w-full h-48 object-cover" />
+            <div className="p-8 space-y-3">
+              <span className="text-[hsl(45,100%,70%)] text-sm font-mono">{item.num}</span>
+              <h3 className="text-2xl font-bold text-white">{item.title}</h3>
+              <p className="text-white/70 leading-relaxed">{item.desc}</p>
+            </div>
+          </motion.div>
         ))}
       </div>
-      <div className="grid grid-cols-2 gap-3">
+    </motion.div>
+  </section>
+);
+
+const PoolShowcaseSection = () => (
+  <section className="relative py-32 overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-b from-[hsl(200,50%,12%)] to-[hsl(173,50%,15%)]" />
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      className="relative z-10 container mx-auto px-6"
+    >
+      <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4 text-center">Our Collection</motion.p>
+      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
+        Premium Pool Models
+      </motion.h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          "from-[hsl(30,60%,20%)] to-[hsl(20,70%,15%)]",
-          "from-[hsl(200,40%,15%)] to-[hsl(220,30%,10%)]",
-          "from-[hsl(45,80%,30%)] to-[hsl(35,70%,20%)]",
-          "from-[hsl(180,30%,15%)] to-[hsl(160,40%,10%)]",
-        ].map((grad, i) => (
-          <div key={i} className={`aspect-square rounded-2xl bg-gradient-to-br ${grad} border border-white/10`} />
+          { img: olympiaPool, name: "Olympia" },
+          { img: bermudaPool, name: "Bermuda" },
+          { img: synergyPool, name: "Synergy" },
+          { img: genesisPool, name: "Genesis" },
+          { img: valenciaPool, name: "Valencia" },
+          { img: fijiPool, name: "Fiji" },
+          { img: enchantmentPool, name: "Enchantment" },
+          { img: axiomPool, name: "Axiom Deluxe" },
+        ].map((pool, i) => (
+          <motion.div key={i} variants={fadeUp} className="group relative rounded-2xl overflow-hidden aspect-[4/3]">
+            <img src={pool.img} alt={pool.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+            <p className="absolute bottom-4 left-4 text-white font-bold text-lg drop-shadow-lg">{pool.name}</p>
+          </motion.div>
         ))}
       </div>
-    </div>
-  </DeckSlide>
+    </motion.div>
+  </section>
 );
 
-const RevenueSlide = () => (
-  <DeckSlide label="REVENUE MODEL" title="Multiple Revenue Streams" dark>
-    <div className="grid md:grid-cols-2 gap-8 mt-12">
-      {[
-        { title: "Design Consultation", amount: "$2,500 – $10,000", desc: "Per project concept & design fee" },
-        { title: "Project Oversight", amount: "8 – 15%", desc: "Of total project value" },
-        { title: "Partner Commissions", amount: "10 – 20%", desc: "Product markups & partner referrals" },
-        { title: "Premium Branding", amount: "$5,000+", desc: "Branded experience packages" },
-      ].map((item, i) => (
-        <div key={i} className="p-8 rounded-2xl border border-white/10 bg-white/5 space-y-3">
-          <p className="text-[hsl(45,100%,65%)] text-sm uppercase tracking-wider">{item.title}</p>
-          <p className="text-4xl font-bold text-white">{item.amount}</p>
-          <p className="text-white/60">{item.desc}</p>
-        </div>
-      ))}
-    </div>
-  </DeckSlide>
+const ServicesSection = () => (
+  <section className="relative py-32 overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(260,50%,25%)] via-[hsl(280,40%,20%)] to-[hsl(220,40%,12%)]" />
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      className="relative z-10 container mx-auto px-6"
+    >
+      <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4 text-center">Services</motion.p>
+      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
+        Complete Outdoor Living
+      </motion.h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          "🏊 Fiberglass Pools", "🌊 Hot Tubs & Spas", "🔥 Saunas", "☀️ Tanning Ledges",
+          "🏠 Screen Enclosures", "🌿 Lanai", "🧱 Pavers", "🔒 Aluminum Fencing",
+          "🛡️ Automatic Covers", "🚪 Driveway Gates", "🎨 Pool Finishes", "🏗️ Full Construction",
+        ].map((service, i) => (
+          <motion.div key={i} variants={fadeUp} className="p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 text-center hover:bg-white/20 transition-colors">
+            <p className="text-white text-lg font-medium">{service}</p>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  </section>
 );
 
-const PositioningSlide = () => (
-  <DeckSlide label="MARKET POSITIONING" title="Redefining the Category" dark>
-    <div className="grid md:grid-cols-2 gap-16 mt-12">
-      <div className="space-y-6">
-        <h3 className="text-2xl font-bold text-white/40 line-through">We Are NOT</h3>
-        <div className="space-y-4">
+const RevenueSection = () => (
+  <section className="relative py-32 overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(173,58%,25%)] to-[hsl(200,45%,15%)]" />
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      className="relative z-10 container mx-auto px-6"
+    >
+      <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4 text-center">Revenue Model</motion.p>
+      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
+        Multiple Revenue Streams
+      </motion.h2>
+      <div className="grid md:grid-cols-2 gap-8">
+        {[
+          { title: "Design Consultation", amount: "$2,500 – $10,000", desc: "Per project concept & design fee" },
+          { title: "Project Oversight", amount: "8 – 15%", desc: "Of total project value" },
+          { title: "Partner Commissions", amount: "10 – 20%", desc: "Product markups & referrals" },
+          { title: "Premium Branding", amount: "$5,000+", desc: "Branded experience packages" },
+        ].map((item, i) => (
+          <motion.div key={i} variants={fadeUp} className="p-10 rounded-3xl bg-white/10 backdrop-blur-sm border border-white/10 space-y-3">
+            <p className="text-[hsl(25,90%,65%)] text-sm uppercase tracking-wider font-medium">{item.title}</p>
+            <p className="text-5xl font-black text-white">{item.amount}</p>
+            <p className="text-white/60">{item.desc}</p>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  </section>
+);
+
+const PositioningSection = () => (
+  <section className="relative py-32 overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(25,85%,50%)] to-[hsl(12,76%,40%)]" />
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      className="relative z-10 container mx-auto px-6"
+    >
+      <motion.p variants={fadeUp} className="text-white/70 tracking-[0.3em] uppercase text-sm mb-4 text-center">Market Positioning</motion.p>
+      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
+        Redefining the Category
+      </motion.h2>
+      <div className="grid md:grid-cols-2 gap-16 max-w-4xl mx-auto">
+        <motion.div variants={fadeUp} className="space-y-6 p-10 rounded-3xl bg-black/20 border border-white/10">
+          <h3 className="text-2xl font-bold text-white/50 line-through">We Are NOT</h3>
           {["A pool installer", "A landscaper", "A general contractor"].map((item, i) => (
-            <p key={i} className="text-white/40 text-xl flex items-center gap-3">
-              <span className="text-red-400">✕</span> {item}
-            </p>
+            <p key={i} className="text-white/50 text-xl">✕ {item}</p>
           ))}
-        </div>
-      </div>
-      <div className="space-y-6">
-        <h3 className="text-2xl font-bold text-[hsl(45,100%,65%)]">We ARE</h3>
-        <div className="space-y-4">
+        </motion.div>
+        <motion.div variants={fadeUp} className="space-y-6 p-10 rounded-3xl bg-white/10 border border-[hsl(45,100%,65%)]/30">
+          <h3 className="text-2xl font-bold text-[hsl(45,100%,70%)]">We ARE</h3>
           {[
             "A luxury outdoor experience design brand",
             "A one-stop-shop from idea to turnkey",
             "A lifestyle company for Florida's elite",
           ].map((item, i) => (
-            <p key={i} className="text-white text-xl flex items-center gap-3">
-              <span className="text-[hsl(45,100%,65%)]">✓</span> {item}
-            </p>
+            <p key={i} className="text-white text-xl">✓ {item}</p>
           ))}
-        </div>
+        </motion.div>
       </div>
-    </div>
-  </DeckSlide>
+    </motion.div>
+  </section>
 );
 
-const TeamSlide = () => (
-  <DeckSlide label="LEADERSHIP" title="The Team Behind Wonderlands" dark>
-    <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mt-12">
-      {[
-        { name: "Khalia Padilla", role: "Founder & Creative Director", linkedin: "https://www.linkedin.com/in/khaliapadilla/" },
-        { name: "Ricardo Font", role: "Founder & CEO", linkedin: "https://www.linkedin.com/in/ricardo-font-952034248/" },
-        { name: "Marino Padilla", role: "GC & Co-Founder", linkedin: "https://www.linkedin.com/in/jose-padilla-2018/" },
-        { name: "Betty López", role: "CFO & Co-Founder", linkedin: "https://www.linkedin.com/in/lópez-betty-a6671125/" },
-        { name: "Roberto Font", role: "Strategic Advisor, Investor & Co-Founder", linkedin: "" },
-      ].map((member, i) => (
-        <div key={i} className="text-center space-y-3 p-6 rounded-2xl border border-white/10 bg-white/5">
-          <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-[hsl(45,80%,30%)] to-[hsl(220,30%,15%)] flex items-center justify-center">
-            <span className="text-2xl font-bold text-white">{member.name.split(" ").map(n => n[0]).join("")}</span>
-          </div>
-          <h3 className="text-lg font-bold text-white">{member.name}</h3>
-          <p className="text-white/60 text-xs leading-relaxed">{member.role}</p>
-          {member.linkedin && (
-            <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[hsl(45,100%,65%)] hover:text-[hsl(45,100%,80%)] transition-colors text-xs">
-              <Linkedin className="w-3.5 h-3.5" /> LinkedIn
-            </a>
-          )}
-        </div>
-      ))}
-    </div>
-  </DeckSlide>
+const TeamSection = () => (
+  <section className="relative py-32 overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-b from-[hsl(220,40%,12%)] to-[hsl(260,40%,18%)]" />
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      className="relative z-10 container mx-auto px-6"
+    >
+      <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4 text-center">Leadership</motion.p>
+      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
+        The Team
+      </motion.h2>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+        {[
+          { name: "Khalia Padilla", role: "Founder & Creative Director", linkedin: "https://www.linkedin.com/in/khaliapadilla/", initials: "KP" },
+          { name: "Ricardo Font", role: "Founder & CEO", linkedin: "https://www.linkedin.com/in/ricardo-font-952034248/", initials: "RF" },
+          { name: "Marino Padilla", role: "GC & Co-Founder", linkedin: "https://www.linkedin.com/in/jose-padilla-2018/", initials: "MP" },
+          { name: "Betty López", role: "CFO & Co-Founder", linkedin: "https://www.linkedin.com/in/lópez-betty-a6671125/", initials: "BL" },
+          { name: "Roberto Font", role: "Strategic Advisor & Co-Founder", linkedin: "", initials: "RF" },
+        ].map((member, i) => (
+          <motion.div key={i} variants={fadeUp} className="text-center space-y-4 p-6 rounded-3xl bg-white/5 border border-white/10">
+            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-[hsl(25,90%,55%)] to-[hsl(340,70%,50%)] flex items-center justify-center shadow-xl">
+              <span className="text-2xl font-bold text-white">{member.initials}</span>
+            </div>
+            <h3 className="text-lg font-bold text-white">{member.name}</h3>
+            <p className="text-white/50 text-xs leading-relaxed">{member.role}</p>
+            {member.linkedin && (
+              <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[hsl(25,90%,65%)] hover:text-[hsl(25,90%,80%)] transition-colors text-xs">
+                <Linkedin className="w-3.5 h-3.5" /> LinkedIn
+              </a>
+            )}
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  </section>
 );
 
-const GrowthSlide = () => (
-  <DeckSlide label="GROWTH PLAN" title="Strategic Expansion" dark>
-    <div className="space-y-8 mt-12">
+const GrowthSection = () => (
+  <section className="relative py-32 overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(173,50%,20%)] to-[hsl(200,40%,12%)]" />
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      className="relative z-10 container mx-auto px-6 max-w-4xl"
+    >
+      <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4 text-center">Growth Plan</motion.p>
+      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
+        Strategic Expansion
+      </motion.h2>
       {[
-        { phase: "Phase 1", time: "2025", title: "Florida Foundation", items: ["Orlando & Central Florida focus", "Strategic partnerships with Latham builders", "Build brand recognition"] },
-        { phase: "Phase 2", time: "2026", title: "Market Expansion", items: ["High-end real estate collaborations", "South Florida & Tampa expansion", "Launch premium product lines"] },
-        { phase: "Phase 3", time: "2027+", title: "Brand Scale", items: ["Franchise or licensing model", "Resort partnerships", "National luxury outdoor brand"] },
+        { phase: "Phase 1 · 2025", title: "Florida Foundation", items: ["Orlando & Central FL focus", "Latham builder partnerships", "Brand recognition"] },
+        { phase: "Phase 2 · 2026", title: "Market Expansion", items: ["High-end real estate collabs", "South FL & Tampa expansion", "Premium product lines"] },
+        { phase: "Phase 3 · 2027+", title: "Brand Scale", items: ["Franchise / licensing model", "Resort partnerships", "National luxury brand"] },
       ].map((item, i) => (
-        <div key={i} className="flex gap-8 items-start">
-          <div className="text-right min-w-[100px]">
-            <p className="text-[hsl(45,100%,65%)] font-mono text-sm">{item.phase}</p>
-            <p className="text-white/40 text-xs">{item.time}</p>
+        <motion.div key={i} variants={fadeUp} className="flex gap-8 items-start mb-10">
+          <div className="min-w-[140px] text-right hidden md:block">
+            <p className="text-[hsl(25,90%,65%)] font-mono text-sm">{item.phase}</p>
           </div>
-          <div className="w-px bg-[hsl(45,100%,65%)]/30 self-stretch" />
+          <div className="w-px bg-[hsl(25,90%,55%)]/30 self-stretch hidden md:block" />
           <div>
-            <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
+            <p className="text-[hsl(25,90%,65%)] font-mono text-xs mb-1 md:hidden">{item.phase}</p>
+            <h3 className="text-2xl font-bold text-white mb-3">{item.title}</h3>
             <div className="flex flex-wrap gap-3">
               {item.items.map((sub, j) => (
-                <span key={j} className="px-4 py-1.5 rounded-full border border-white/10 bg-white/5 text-white/70 text-sm">{sub}</span>
+                <span key={j} className="px-5 py-2 rounded-full bg-white/10 border border-white/10 text-white/80 text-sm">{sub}</span>
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       ))}
-    </div>
-  </DeckSlide>
+    </motion.div>
+  </section>
 );
 
-const FutureSlide = () => (
-  <DeckSlide label="THE FUTURE" title="The Future of Wonderlands" dark>
-    <div className="grid md:grid-cols-3 gap-8 mt-12">
-      {[
-        { title: "Branded Products", desc: "Poolside furniture, umbrellas, floats — all Wonderlands branded luxury goods" },
-        { title: "Resort Partnerships", desc: "Design & brand high-end resort pool experiences across Florida & beyond" },
-        { title: "Franchise Model", desc: "License the Wonderlands experience to operators in luxury markets nationwide" },
-      ].map((item, i) => (
-        <div key={i} className="p-8 rounded-2xl border border-[hsl(45,100%,65%)]/20 bg-gradient-to-b from-white/5 to-transparent space-y-4">
-          <h3 className="text-2xl font-bold text-white">{item.title}</h3>
-          <p className="text-white/70 leading-relaxed">{item.desc}</p>
-        </div>
-      ))}
-    </div>
-  </DeckSlide>
-);
-
-const CTASlide = () => (
-  <div className="relative w-full h-full bg-[hsl(220,30%,8%)] flex items-center justify-center overflow-hidden">
-    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(45,80%,20%)]/20 via-transparent to-[hsl(200,40%,15%)]/20" />
-    <div className="relative z-10 text-center space-y-10 max-w-3xl px-8">
-      <p className="text-[hsl(45,100%,65%)] tracking-[0.3em] uppercase text-sm">Let's Build Something Extraordinary</p>
-      <h2 className="text-5xl md:text-7xl font-bold text-white leading-tight">
-        The Extraordinary<br />
-        <span className="text-[hsl(45,100%,65%)]">Starts Here.</span>
-      </h2>
-      <div className="flex flex-col md:flex-row items-center justify-center gap-6 mt-8">
+const FutureSection = () => (
+  <section className="relative py-32 overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(260,50%,22%)] via-[hsl(280,45%,18%)] to-[hsl(220,40%,12%)]" />
+    <img src={synergyPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-overlay" />
+    <motion.div
+      variants={stagger}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-100px" }}
+      className="relative z-10 container mx-auto px-6"
+    >
+      <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4 text-center">The Future</motion.p>
+      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
+        The Future of Wonderlands
+      </motion.h2>
+      <div className="grid md:grid-cols-3 gap-8">
         {[
-          { label: "Investment Opportunity", href: "mailto:investors@wonderlandsworld.com" },
-          { label: "Partnership", href: "mailto:partners@wonderlandsworld.com" },
-          { label: "Client Onboarding", href: "mailto:sales@wonderlandsworld.com" },
+          { emoji: "🏖️", title: "Branded Products", desc: "Poolside furniture, umbrellas, floats — all Wonderlands branded luxury goods" },
+          { emoji: "🏨", title: "Resort Partnerships", desc: "Design & brand high-end resort pool experiences across Florida & beyond" },
+          { emoji: "🌎", title: "Franchise Model", desc: "License the Wonderlands experience to operators in luxury markets nationwide" },
+        ].map((item, i) => (
+          <motion.div key={i} variants={fadeUp} className="p-10 rounded-3xl bg-white/10 backdrop-blur-sm border border-white/10 space-y-4 text-center">
+            <span className="text-5xl">{item.emoji}</span>
+            <h3 className="text-2xl font-bold text-white">{item.title}</h3>
+            <p className="text-white/70 leading-relaxed">{item.desc}</p>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  </section>
+);
+
+const CTASection = () => (
+  <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-b from-[hsl(25,90%,50%)] via-[hsl(340,70%,45%)] to-[hsl(260,60%,25%)]" />
+    <img src={geometricPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 mix-blend-overlay" />
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8 }}
+      className="relative z-10 text-center space-y-10 max-w-3xl px-8"
+    >
+      <img
+        src="/lovable-uploads/7a94e712-7683-4a26-8a1c-c6974e320b5a.png"
+        alt="Wonderlands Logo"
+        className="h-24 mx-auto drop-shadow-2xl"
+      />
+      <h2 className="text-5xl md:text-7xl font-black text-white leading-tight">
+        Let's Build the<br />
+        <span className="text-[hsl(45,100%,70%)]">Extraordinary.</span>
+      </h2>
+      <div className="flex flex-col md:flex-row items-center justify-center gap-5">
+        {[
+          { label: "Invest", href: "mailto:investors@wonderlandsworld.com" },
+          { label: "Partner", href: "mailto:partners@wonderlandsworld.com" },
+          { label: "Get Started", href: "mailto:sales@wonderlandsworld.com" },
         ].map((cta, i) => (
           <a
             key={i}
             href={cta.href}
-            className="px-8 py-3 rounded-full border border-[hsl(45,100%,65%)]/40 text-white hover:bg-[hsl(45,100%,65%)]/10 transition-colors text-sm tracking-wider uppercase"
+            className="px-10 py-4 rounded-full bg-white/15 backdrop-blur-sm border border-white/30 text-white hover:bg-white/25 transition-colors text-sm tracking-wider uppercase font-medium"
           >
             {cta.label}
           </a>
         ))}
       </div>
-      <p className="text-white/30 text-xs mt-16">www.wonderlandsworld.com · +1 (407) 760-4873</p>
-    </div>
-  </div>
+      <p className="text-white/40 text-sm mt-16">
+        www.wonderlandsworld.com · +1 (407) 760-4873
+      </p>
+    </motion.div>
+  </section>
 );
 
-// ─── Layout Wrapper ─────────────────────────────────────────────
+// ─── Main Page ──────────────────────────────────────────────────
 
-const DeckSlide = ({
-  label,
-  title,
-  children,
-  dark,
-}: {
-  label: string;
-  title: string;
-  children: React.ReactNode;
-  dark?: boolean;
-}) => (
-  <div className={`relative w-full h-full flex flex-col justify-center px-12 md:px-24 py-16 overflow-hidden ${dark ? "bg-[hsl(220,30%,8%)]" : "bg-background"}`}>
-    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(45,80%,20%)]/5 via-transparent to-[hsl(200,40%,15%)]/5" />
-    <div className="relative z-10">
-      <p className="text-[hsl(45,100%,65%)] tracking-[0.3em] uppercase text-xs mb-4">{label}</p>
-      <h2 className="text-3xl md:text-5xl font-bold text-white leading-tight">{title}</h2>
-      {children}
-    </div>
+const InvestorDeck = () => (
+  <div className="overflow-x-hidden">
+    <HeroSection />
+    <VisionSection />
+    <ProblemSection />
+    <OpportunitySection />
+    <SolutionSection />
+    <ApproachSection />
+    <PoolShowcaseSection />
+    <ServicesSection />
+    <RevenueSection />
+    <PositioningSection />
+    <TeamSection />
+    <GrowthSection />
+    <FutureSection />
+    <CTASection />
   </div>
 );
-
-// ─── Slides Array ───────────────────────────────────────────────
-
-const slides = [
-  CoverSlide,
-  VisionSlide,
-  ProblemSlide,
-  OpportunitySlide,
-  SolutionSlide,
-  ApproachSlide,
-  ServicesSlide,
-  AestheticSlide,
-  RevenueSlide,
-  PositioningSlide,
-  TeamSlide,
-  GrowthSlide,
-  FutureSlide,
-  CTASlide,
-];
-
-// ─── Main Deck Page ─────────────────────────────────────────────
-
-const InvestorDeck = () => {
-  const [current, setCurrent] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  const goNext = useCallback(() => setCurrent((c) => Math.min(c + 1, TOTAL_SLIDES - 1)), []);
-  const goPrev = useCallback(() => setCurrent((c) => Math.max(c - 1, 0)), []);
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); goNext(); }
-      if (e.key === "ArrowLeft") { e.preventDefault(); goPrev(); }
-      if (e.key === "Escape") setIsFullscreen(false);
-      if (e.key === "f" || e.key === "F") setIsFullscreen((v) => !v);
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [goNext, goPrev]);
-
-  const SlideComponent = slides[current];
-
-  return (
-    <div className={`${isFullscreen ? "fixed inset-0 z-[9999]" : "min-h-screen"} bg-[hsl(220,30%,8%)] flex flex-col`}>
-      {/* Slide viewport */}
-      <div className="flex-1 relative overflow-hidden" onClick={goNext}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={current}
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -40 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-            className="absolute inset-0"
-          >
-            <SlideComponent />
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* Controls bar */}
-      <div className="h-16 bg-[hsl(220,30%,6%)] border-t border-white/5 flex items-center justify-between px-6 shrink-0">
-        <div className="flex items-center gap-4">
-          <button onClick={goPrev} disabled={current === 0} className="p-2 text-white/60 hover:text-white disabled:opacity-20 transition-colors">
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <span className="text-white/50 text-sm font-mono min-w-[60px] text-center">
-            {current + 1} / {TOTAL_SLIDES}
-          </span>
-          <button onClick={goNext} disabled={current === TOTAL_SLIDES - 1} className="p-2 text-white/60 hover:text-white disabled:opacity-20 transition-colors">
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Dot indicators */}
-        <div className="hidden md:flex items-center gap-1.5">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
-              className={`w-2 h-2 rounded-full transition-all ${i === current ? "bg-[hsl(45,100%,65%)] w-6" : "bg-white/20 hover:bg-white/40"}`}
-            />
-          ))}
-        </div>
-
-        <button
-          onClick={() => setIsFullscreen((v) => !v)}
-          className="p-2 text-white/60 hover:text-white transition-colors"
-        >
-          {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
-        </button>
-      </div>
-    </div>
-  );
-};
 
 export default InvestorDeck;
