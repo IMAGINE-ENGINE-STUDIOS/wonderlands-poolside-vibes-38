@@ -286,54 +286,161 @@ const MarketOpportunitySection = () => {
   );
 };
 
-const SolutionSection = () => (
-  <section className="relative py-32 overflow-hidden">
-    <SectionLogo />
-    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(173,58%,25%)] via-[hsl(190,50%,20%)] to-[hsl(210,40%,15%)]" />
-    <img src={enchantmentPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 mix-blend-overlay" />
-    <motion.div
-      variants={stagger}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
-      className="relative z-10 container mx-auto px-6 text-center"
-    >
-      <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4">The Solution</motion.p>
-      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16">
-        The Wonderlands Experience
-      </motion.h2>
-      {/* Dream → Design → Deliver */}
-      <motion.div variants={fadeUp} className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 mb-16">
-        {[
-          { label: "Dream", Icon: Moon },
-          { label: "Design", Icon: Palette },
-          { label: "Deliver", Icon: Hammer },
-        ].map((step, i) => (
-          <React.Fragment key={step.label}>
-            {i > 0 && <ArrowRight className="text-[hsl(25,90%,60%)] w-10 h-10 hidden md:block" />}
-            <div className="w-52 h-52 rounded-full bg-white/10 backdrop-blur-sm border-2 border-white/20 flex flex-col items-center justify-center gap-3">
-              <step.Icon className="w-10 h-10 text-[hsl(45,100%,70%)]" strokeWidth={1.5} />
-              <p className="text-2xl font-bold text-white">{step.label}</p>
-            </div>
-          </React.Fragment>
-        ))}
-      </motion.div>
-      <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        {[
-          "Concept & Storytelling",
-          "Pool Selection & Customization",
-          "Patio & Entertainment Layout",
-          "Branded Experience Elements",
-          "Seamless Construction",
-        ].map((item, i) => (
-          <div key={i} className="p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10">
-            <p className="text-white/85 text-sm font-medium">{item}</p>
+const SolutionSection = () => {
+  const phases = [
+    {
+      label: "Dream",
+      Icon: Moon,
+      img: geometricPool,
+      tagline: "Your vision begins",
+      details: ["Lifestyle consultation", "Inspiration & mood boards", "Budget planning"],
+      gradient: "from-[hsl(260,60%,50%)] to-[hsl(280,50%,40%)]",
+    },
+    {
+      label: "Design",
+      Icon: Palette,
+      img: luxuryPoolImg,
+      tagline: "We bring it to life",
+      details: ["3D immersive rendering", "Material & finish selection", "Permit-ready blueprints"],
+      gradient: "from-[hsl(25,90%,55%)] to-[hsl(340,70%,50%)]",
+    },
+    {
+      label: "Deliver",
+      Icon: Hammer,
+      img: luxuryOutdoorImg,
+      tagline: "Turnkey perfection",
+      details: ["Professional construction", "Quality inspections", "Resort-ready handoff"],
+      gradient: "from-[hsl(173,58%,39%)] to-[hsl(200,70%,45%)]",
+    },
+  ];
+
+  return (
+    <section className="relative py-28 overflow-hidden">
+      <SectionLogo />
+      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,6%)] via-[hsl(230,35%,10%)] to-[hsl(200,40%,8%)]" />
+
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="relative z-10 container mx-auto px-6"
+      >
+        <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-3 text-center">The Solution</motion.p>
+        <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-4 text-center">
+          From Dream to Reality
+        </motion.h2>
+        <motion.p variants={fadeUp} className="text-white/50 text-center text-lg mb-16 max-w-2xl mx-auto">
+          We don't just build pools — we craft luxury outdoor experiences from the first sketch to the final reveal.
+        </motion.p>
+
+        {/* Animated timeline */}
+        <div className="relative">
+          {/* Connecting line */}
+          <div className="hidden md:block absolute top-1/2 left-0 right-0 h-[2px] -translate-y-1/2 z-0">
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.5, ease: [0.25, 0.1, 0.25, 1] }}
+              className="w-full h-full bg-gradient-to-r from-[hsl(260,60%,50%)] via-[hsl(25,90%,55%)] to-[hsl(173,58%,45%)] origin-left"
+            />
           </div>
-        ))}
+
+          <div className="grid md:grid-cols-3 gap-8 relative z-10">
+            {phases.map((phase, i) => (
+              <motion.div
+                key={phase.label}
+                initial={{ opacity: 0, y: 60, scale: 0.9 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: 0.3 + i * 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+                className="group"
+              >
+                <div className="relative rounded-3xl overflow-hidden bg-white/[0.04] border border-white/10 backdrop-blur-sm">
+                  {/* Image with overlay */}
+                  <div className="relative h-52 overflow-hidden">
+                    <motion.img
+                      src={phase.img}
+                      alt={phase.label}
+                      className="w-full h-full object-cover"
+                      whileHover={{ scale: 1.08 }}
+                      transition={{ duration: 0.6 }}
+                    />
+                    <div className={`absolute inset-0 bg-gradient-to-t ${phase.gradient} opacity-60 mix-blend-multiply`} />
+                    <motion.div
+                      initial={{ scale: 0, rotate: -180 }}
+                      whileInView={{ scale: 1, rotate: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: 0.6 + i * 0.25, type: "spring" }}
+                      className="absolute top-4 left-4 w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center"
+                    >
+                      <span className="text-white font-black text-lg">{i + 1}</span>
+                    </motion.div>
+                    <motion.div
+                      animate={{ y: [0, -8, 0] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}
+                      className="absolute bottom-4 right-4"
+                    >
+                      <div className="w-14 h-14 rounded-2xl bg-black/30 backdrop-blur-md border border-white/20 flex items-center justify-center">
+                        <phase.Icon className="w-7 h-7 text-[hsl(45,100%,70%)]" strokeWidth={1.5} />
+                      </div>
+                    </motion.div>
+                  </div>
+
+                  <div className="p-6 space-y-4">
+                    <div>
+                      <h3 className="text-2xl font-black text-white mb-1">{phase.label}</h3>
+                      <p className="text-[hsl(45,100%,70%)] text-sm font-medium">{phase.tagline}</p>
+                    </div>
+                    <div className="space-y-2">
+                      {phase.details.map((d, j) => (
+                        <motion.div
+                          key={j}
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.4, delay: 0.8 + i * 0.25 + j * 0.1 }}
+                          className="flex items-center gap-3"
+                        >
+                          <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${phase.gradient}`} />
+                          <p className="text-white/60 text-sm">{d}</p>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {i < 2 && (
+                  <div className="flex justify-center py-4 md:hidden">
+                    <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
+                      <ArrowRight className="w-6 h-6 text-[hsl(45,100%,70%)] rotate-90" />
+                    </motion.div>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 1.2 }}
+          className="mt-16 text-center"
+        >
+          <div className="inline-flex items-center gap-4 px-8 py-4 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-sm">
+            <Sparkles className="w-5 h-5 text-[hsl(45,100%,70%)]" />
+            <p className="text-white/70 text-sm">
+              Every project is a <span className="text-white font-bold">one-of-a-kind luxury experience</span> — not just construction.
+            </p>
+          </div>
+        </motion.div>
       </motion.div>
-    </motion.div>
-  </section>
-);
+    </section>
+  );
+};
 
 const ApproachSection = () => {
   const mainSteps = [
