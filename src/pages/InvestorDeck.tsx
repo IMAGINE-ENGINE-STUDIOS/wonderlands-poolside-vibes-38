@@ -1,6 +1,6 @@
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Linkedin, Waves, Palmtree, Sparkles, Moon, Palette, Hammer, Droplets, Flame, Sun, Home, Leaf, BrickWall, Lock, ShieldCheck, DoorOpen, PaintBucket, Building2, UmbrellaOff, Hotel, Globe, ArrowRight } from "lucide-react";
+import { Linkedin, Waves, Palmtree, Sparkles, Moon, Palette, Hammer, Droplets, Flame, Sun, Home, Leaf, BrickWall, Lock, ShieldCheck, DoorOpen, PaintBucket, Building2, UmbrellaOff, Hotel, Globe, ArrowRight, Lightbulb, ClipboardList, FileCheck, HardHat, CookingPot, Fence, TreePine } from "lucide-react";
 
 // Pool & asset images
 import olympiaPool from "@/assets/pools/olympia-12-optimized.webp";
@@ -195,40 +195,103 @@ const SolutionSection = () => (
   </section>
 );
 
-const ApproachSection = () => (
-  <section className="relative py-32 overflow-hidden">
-    <SectionLogo />
-    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(25,85%,50%)] via-[hsl(340,65%,45%)] to-[hsl(280,50%,30%)]" />
-    <motion.div
-      variants={stagger}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
-      className="relative z-10 container mx-auto px-6"
-    >
-      <motion.p variants={fadeUp} className="text-white/70 tracking-[0.3em] uppercase text-sm mb-4 text-center">Our Signature Approach</motion.p>
-      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
-        One Stop Shop — Idea to Turnkey
-      </motion.h2>
-      <div className="grid md:grid-cols-3 gap-8">
-        {[
-          { num: "01", title: "Complete Solutions", desc: "Pools, spas, pavers, enclosures, fencing, gates — everything under one roof. From idea to construction.", img: olympiaPool },
-          { num: "02", title: "Luxury Design", desc: "Every project is bespoke, tailored to the homeowner's lifestyle, aesthetic, and Florida living dreams.", img: axiomPool },
-          { num: "03", title: "Immersive Entertainment", desc: "We design spaces that feel like private resorts — lighting, sound, water features, and ambiance.", img: valenciaPool },
-        ].map((item, i) => (
-          <motion.div key={i} variants={fadeUp} className="rounded-3xl overflow-hidden bg-black/30 backdrop-blur-sm border border-white/10">
-            <img src={item.img} alt={item.title} className="w-full h-48 object-cover" />
-            <div className="p-8 space-y-3">
-              <span className="text-[hsl(45,100%,70%)] text-sm font-mono">{item.num}</span>
-              <h3 className="text-2xl font-bold text-white">{item.title}</h3>
-              <p className="text-white/70 leading-relaxed">{item.desc}</p>
+const ApproachSection = () => {
+  const mainSteps = [
+    { icon: Lightbulb, label: "Idea", desc: "Your vision starts here" },
+    { icon: ClipboardList, label: "Planning", desc: "Design & budgeting" },
+    { icon: FileCheck, label: "Permit", desc: "Approvals & compliance" },
+    { icon: HardHat, label: "Construction", desc: "Turnkey execution" },
+  ];
+
+  const constructionBranches = [
+    { icon: Droplets, label: "Pools" },
+    { icon: Flame, label: "Saunas" },
+    { icon: TreePine, label: "Pergolas" },
+    { icon: Home, label: "Screen Enclosures" },
+    { icon: BrickWall, label: "Pavers" },
+    { icon: CookingPot, label: "Outdoor Kitchen" },
+    { icon: Fence, label: "Fencing & Gates" },
+    { icon: Waves, label: "Hot Tubs & Spas" },
+  ];
+
+  return (
+    <section className="relative py-32 overflow-hidden">
+      <SectionLogo />
+      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(25,85%,50%)] via-[hsl(340,65%,45%)] to-[hsl(280,50%,30%)]" />
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="relative z-10 container mx-auto px-6"
+      >
+        <motion.p variants={fadeUp} className="text-white/70 tracking-[0.3em] uppercase text-sm mb-4 text-center">Our Signature Approach</motion.p>
+        <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-20 text-center">
+          One Stop Shop — Idea to Turnkey
+        </motion.h2>
+
+        {/* Curvy Roadmap */}
+        <motion.div variants={fadeUp} className="relative max-w-5xl mx-auto">
+          {/* SVG curvy path */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none hidden md:block" viewBox="0 0 1000 320" fill="none" preserveAspectRatio="none">
+            <path
+              d="M 80 80 C 200 80, 200 240, 380 240 S 560 80, 680 80 S 860 240, 920 240"
+              stroke="hsl(45,100%,70%)"
+              strokeWidth="3"
+              strokeDasharray="12 8"
+              opacity="0.4"
+              fill="none"
+            />
+          </svg>
+
+          {/* Main steps zigzag */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-y-16 gap-x-6">
+            {mainSteps.map((step, i) => (
+              <motion.div
+                key={step.label}
+                variants={fadeUp}
+                className={`flex flex-col items-center text-center ${i % 2 === 1 ? "md:mt-24" : ""}`}
+              >
+                <div className="w-20 h-20 rounded-full bg-white/15 backdrop-blur-sm border-2 border-[hsl(45,100%,70%)]/50 flex items-center justify-center mb-4 shadow-lg shadow-black/20">
+                  <step.icon className="w-9 h-9 text-[hsl(45,100%,70%)]" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-1">{step.label}</h3>
+                <p className="text-white/60 text-sm">{step.desc}</p>
+                {i < mainSteps.length - 1 && (
+                  <ArrowRight className="w-6 h-6 text-[hsl(45,100%,70%)]/50 mt-4 md:hidden" />
+                )}
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Construction branches */}
+          <motion.div variants={fadeUp} className="mt-20">
+            <div className="flex justify-center mb-6">
+              <div className="w-px h-12 bg-gradient-to-b from-[hsl(45,100%,70%)]/60 to-[hsl(45,100%,70%)]/20" />
+            </div>
+            <p className="text-center text-[hsl(45,100%,70%)] text-xs tracking-[0.3em] uppercase mb-8">Construction Services</p>
+
+            <div className="relative">
+              <div className="hidden md:block absolute top-10 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-[hsl(45,100%,70%)]/30 to-transparent" />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {constructionBranches.map((branch) => (
+                  <motion.div key={branch.label} variants={fadeUp} className="flex flex-col items-center text-center group">
+                    <div className="hidden md:block w-px h-4 bg-[hsl(45,100%,70%)]/30 mb-2" />
+                    <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center mb-3 group-hover:bg-white/20 group-hover:border-[hsl(45,100%,70%)]/40 transition-all duration-300">
+                      <branch.icon className="w-6 h-6 text-white/90" strokeWidth={1.5} />
+                    </div>
+                    <p className="text-white/80 text-sm font-medium">{branch.label}</p>
+                  </motion.div>
+                ))}
+              </div>
             </div>
           </motion.div>
-        ))}
-      </div>
-    </motion.div>
-  </section>
-);
+        </motion.div>
+      </motion.div>
+    </section>
+  );
+};
+
 
 const PoolShowcaseSection = () => (
   <section className="relative py-32 overflow-hidden">
