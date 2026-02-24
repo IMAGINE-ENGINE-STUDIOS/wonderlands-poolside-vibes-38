@@ -431,43 +431,6 @@ const ApproachSection = () => {
 };
 
 
-const PoolShowcaseSection = () => (
-  <section className="relative py-32 overflow-hidden">
-    <SectionLogo />
-    <div className="absolute inset-0 bg-gradient-to-b from-[hsl(200,50%,12%)] to-[hsl(173,50%,15%)]" />
-    <motion.div
-      variants={stagger}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
-      className="relative z-10 container mx-auto px-6"
-    >
-      <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4 text-center">Our Collection</motion.p>
-      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
-        Premium Pool Models
-      </motion.h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { img: olympiaPool, name: "Olympia" },
-          { img: bermudaPool, name: "Bermuda" },
-          { img: synergyPool, name: "Synergy" },
-          { img: genesisPool, name: "Genesis" },
-          { img: valenciaPool, name: "Valencia" },
-          { img: fijiPool, name: "Fiji" },
-          { img: enchantmentPool, name: "Enchantment" },
-          { img: axiomPool, name: "Axiom Deluxe" },
-        ].map((pool, i) => (
-          <motion.div key={i} variants={fadeUp} className="group relative rounded-2xl overflow-hidden aspect-[4/3]">
-            <img src={pool.img} alt={pool.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-            <p className="absolute bottom-4 left-4 text-white font-bold text-lg drop-shadow-lg">{pool.name}</p>
-          </motion.div>
-        ))}
-      </div>
-    </motion.div>
-  </section>
-);
-
 const ServicesSection = () => (
   <section className="relative py-32 overflow-hidden">
     <SectionLogo />
@@ -921,7 +884,6 @@ const InvestorDeck = () => (
     <MarketOpportunitySection />
     <SolutionSection />
     <ApproachSection />
-    <PoolShowcaseSection />
     <ServicesSection />
     <RevenueSection />
     <FinancialModelSection />
