@@ -3,7 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router-dom";
 import { OptimizedImage } from "./OptimizedImage";
 const Footer = () => {
-  return <footer className="bg-gradient-to-br from-primary/5 via-background to-teal/5 border-t border-border/50">
+  return <footer className="bg-gradient-to-br from-primary/5 via-background to-teal/5 border-t border-border/50" itemScope itemType="https://schema.org/LocalBusiness">
       <div className="max-w-7xl mx-auto px-4 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
@@ -31,11 +31,11 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <Phone className="w-4 h-4 text-primary" />
-                <span className="text-muted-foreground">+1 4077604873</span>
+                <a href="tel:+14077604873" className="text-muted-foreground hover:text-foreground transition-colors" itemProp="telephone">+1 (407) 760-4873</a>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <Mail className="w-4 h-4 text-teal" />
-                <span className="text-muted-foreground">sales@wonderlandsworld.com</span>
+                <a href="mailto:sales@wonderlandsworld.com" className="text-muted-foreground hover:text-foreground transition-colors" itemProp="email">sales@wonderlandsworld.com</a>
               </div>
               <div className="flex items-start gap-3 text-sm">
                 <MapPin className="w-4 h-4 text-coral mt-0.5 flex-shrink-0" />
