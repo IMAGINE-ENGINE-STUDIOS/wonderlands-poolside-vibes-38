@@ -500,23 +500,20 @@ const RevenueSection = () => (
       <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
         Multiple Revenue Streams
       </motion.h2>
-      <div className="grid md:grid-cols-2 gap-8 mb-12">
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
         {[
-          { title: "Design", amount: "$2,000+", desc: "Per project concept, 3D rendering & design consultation" },
-          { title: "Construction", amount: "$50,000+", desc: "Full turnkey outdoor construction projects" },
+          { title: "Construction", amount: "$150,000", desc: "Average project — full turnkey outdoor living construction", highlight: true },
+          { title: "Dealer & Distribution", amount: "Products", desc: "Fiberglass pools, pavers, equipment & materials distribution to contractors and homeowners" },
+          { title: "Design Services", amount: "Design", desc: "3D rendering, concept design, landscape architecture & permitting consultation" },
+          { title: "SaaS Platform", amount: "Software", desc: "Pool designer, quoting engine & project management tools for dealers and builders" },
         ].map((item, i) => (
-          <motion.div key={i} variants={fadeUp} className="p-10 rounded-3xl bg-white/10 backdrop-blur-sm border border-white/10 space-y-3">
+          <motion.div key={i} variants={fadeUp} className={`p-8 rounded-3xl backdrop-blur-sm border space-y-3 ${item.highlight ? 'bg-white/10 border-[hsl(45,100%,70%)]/30' : 'bg-white/[0.06] border-white/10'}`}>
             <p className="text-[hsl(25,90%,65%)] text-sm uppercase tracking-wider font-medium">{item.title}</p>
-            <p className="text-5xl font-black text-white">{item.amount}</p>
-            <p className="text-white/60">{item.desc}</p>
+            <p className="text-4xl font-black text-white">{item.amount}</p>
+            <p className="text-white/60 text-sm">{item.desc}</p>
           </motion.div>
         ))}
       </div>
-      <motion.div variants={fadeUp} className="p-10 rounded-3xl bg-white/10 backdrop-blur-sm border border-[hsl(45,100%,70%)]/30 text-center space-y-3">
-        <p className="text-[hsl(45,100%,70%)] text-sm uppercase tracking-wider font-medium">Average Project Size</p>
-        <p className="text-6xl md:text-7xl font-black text-white">$150,000</p>
-        <p className="text-white/60">Medium project value across design + construction</p>
-      </motion.div>
     </motion.div>
   </section>
 );
