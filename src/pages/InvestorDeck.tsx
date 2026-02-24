@@ -13,6 +13,11 @@ import geometricPool from "@/assets/pools/geometric-luxury.jpg";
 import enchantmentPool from "@/assets/pools/enchantment-917-installed.jpg";
 import axiomPool from "@/assets/pools/axiom-14-deluxe-main.jpg";
 import wonderlandsHero from "@/assets/wonderlands-hero.png";
+import wonderlandsLogo from "@/assets/wonderlands-logo.png";
+
+const SectionLogo = () => (
+  <img src={wonderlandsLogo} alt="Wonderlands" className="absolute top-6 right-6 h-12 md:h-16 z-20 opacity-80" />
+);
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -37,6 +42,7 @@ const HeroSection = () => (
 
 const VisionSection = () => (
   <section className="relative py-32 overflow-hidden">
+    <SectionLogo />
     <div className="absolute inset-0 bg-gradient-to-br from-[hsl(173,58%,30%)] via-[hsl(200,50%,25%)] to-[hsl(220,40%,15%)]" />
     <img src={bermudaPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 mix-blend-overlay" />
     <motion.div
@@ -68,6 +74,7 @@ const VisionSection = () => (
 
 const ProblemSection = () => (
   <section className="relative py-32 overflow-hidden">
+    <SectionLogo />
     <div className="absolute inset-0 bg-gradient-to-br from-[hsl(12,76%,45%)] to-[hsl(27,87%,50%)]" />
     <motion.div
       variants={stagger}
@@ -98,6 +105,7 @@ const ProblemSection = () => (
 
 const OpportunitySection = () => (
   <section className="relative py-32 overflow-hidden">
+    <SectionLogo />
     <div className="absolute inset-0 bg-gradient-to-b from-[hsl(220,40%,12%)] to-[hsl(260,50%,18%)]" />
     <img src={fijiPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10" />
     <motion.div
@@ -140,6 +148,7 @@ const OpportunitySection = () => (
 
 const SolutionSection = () => (
   <section className="relative py-32 overflow-hidden">
+    <SectionLogo />
     <div className="absolute inset-0 bg-gradient-to-br from-[hsl(173,58%,25%)] via-[hsl(190,50%,20%)] to-[hsl(210,40%,15%)]" />
     <img src={enchantmentPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 mix-blend-overlay" />
     <motion.div
@@ -183,6 +192,7 @@ const SolutionSection = () => (
 
 const ApproachSection = () => (
   <section className="relative py-32 overflow-hidden">
+    <SectionLogo />
     <div className="absolute inset-0 bg-gradient-to-br from-[hsl(25,85%,50%)] via-[hsl(340,65%,45%)] to-[hsl(280,50%,30%)]" />
     <motion.div
       variants={stagger}
@@ -217,6 +227,7 @@ const ApproachSection = () => (
 
 const PoolShowcaseSection = () => (
   <section className="relative py-32 overflow-hidden">
+    <SectionLogo />
     <div className="absolute inset-0 bg-gradient-to-b from-[hsl(200,50%,12%)] to-[hsl(173,50%,15%)]" />
     <motion.div
       variants={stagger}
@@ -253,6 +264,7 @@ const PoolShowcaseSection = () => (
 
 const ServicesSection = () => (
   <section className="relative py-32 overflow-hidden">
+    <SectionLogo />
     <div className="absolute inset-0 bg-gradient-to-br from-[hsl(260,50%,25%)] via-[hsl(280,40%,20%)] to-[hsl(220,40%,12%)]" />
     <motion.div
       variants={stagger}
@@ -282,6 +294,7 @@ const ServicesSection = () => (
 
 const RevenueSection = () => (
   <section className="relative py-32 overflow-hidden">
+    <SectionLogo />
     <div className="absolute inset-0 bg-gradient-to-br from-[hsl(173,58%,25%)] to-[hsl(200,45%,15%)]" />
     <motion.div
       variants={stagger}
@@ -314,6 +327,7 @@ const RevenueSection = () => (
 
 const PositioningSection = () => (
   <section className="relative py-32 overflow-hidden">
+    <SectionLogo />
     <div className="absolute inset-0 bg-gradient-to-br from-[hsl(25,85%,50%)] to-[hsl(12,76%,40%)]" />
     <motion.div
       variants={stagger}
@@ -350,6 +364,7 @@ const PositioningSection = () => (
 
 const TeamSection = () => (
   <section className="relative py-32 overflow-hidden">
+    <SectionLogo />
     <div className="absolute inset-0 bg-gradient-to-b from-[hsl(220,40%,12%)] to-[hsl(260,40%,18%)]" />
     <motion.div
       variants={stagger}
@@ -390,6 +405,7 @@ const TeamSection = () => (
 
 const GrowthSection = () => (
   <section className="relative py-32 overflow-hidden">
+    <SectionLogo />
     <div className="absolute inset-0 bg-gradient-to-br from-[hsl(173,50%,20%)] to-[hsl(200,40%,12%)]" />
     <motion.div
       variants={stagger}
@@ -429,6 +445,7 @@ const GrowthSection = () => (
 
 const FutureSection = () => (
   <section className="relative py-32 overflow-hidden">
+    <SectionLogo />
     <div className="absolute inset-0 bg-gradient-to-br from-[hsl(260,50%,22%)] via-[hsl(280,45%,18%)] to-[hsl(220,40%,12%)]" />
     <img src={synergyPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-overlay" />
     <motion.div
@@ -461,6 +478,7 @@ const FutureSection = () => (
 
 const CTASection = () => (
   <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <SectionLogo />
     <div className="absolute inset-0 bg-gradient-to-b from-[hsl(25,90%,50%)] via-[hsl(340,70%,45%)] to-[hsl(260,60%,25%)]" />
     <img src={geometricPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 mix-blend-overlay" />
     <motion.div
