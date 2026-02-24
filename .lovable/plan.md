@@ -1,58 +1,30 @@
 
-# Pool Pricing Update: Apply 3.5x Multiplier
 
-## Overview
-Update all GlimmerGlass and Latham pool prices by applying a 3.5x multiplier to the original base prices.
+# Send Spa+Sauna+Fireplace Bundle Offer to All Clients
 
-## Files to Modify
+## What will happen
 
-### 1. `src/data/gilmerPools.ts`
-Update all 31 GlimmerGlass pool prices with the new 3.5x multiplier formula.
+1. A "Send Email Blast" button will be added to each promotion row in the Admin Promotions Manager table
+2. Clicking it triggers the existing `send-bulk-email` Edge Function with the matching email template name ("Spa + Sauna + Fireplace Bundle $40K")
+3. A confirmation dialog will appear before sending, showing how many clients will receive the email
+4. Progress/results feedback will be displayed after the send completes
 
-**Current pricing formula comment (line 1):**
-- `(Dealer Price × 4) + $10K Out-of-State Delivery`
+## Technical Details
 
-**New approach:**
-- Calculate new prices as: `current_price × (3.5 / 4)` = `current_price × 0.875`
-- This converts from the current 4x multiplier to a 3.5x multiplier
-- Update the comment to reflect the new formula
+### File: `src/components/admin/AdminPromotionsManager.tsx`
 
-**Sample price changes:**
-| Model | Current Price | New Price (×3.5) |
-|-------|---------------|------------------|
-| Serafina | $55,526 | $48,585 |
-| Coral Cove | $59,675 | $52,216 |
-| Retreat | $58,726 | $51,385 |
-| Regal Plunge | $65,779 | $57,557 |
-| ... | ... | ... |
+- Add a `Mail` icon import from lucide-react
+- Add state for bulk email sending (`isSendingEmail`, `sendingPromotionId`)
+- Add a `handleSendBulkEmail(promotion)` function that:
+  1. Shows a confirmation prompt
+  2. Calls `supabase.functions.invoke('send-bulk-email', { body: { template_name: promotion.name, send_to_all: true } })`
+  3. Displays a toast with the results (X sent, Y failed)
+- Add a new "Send to All Clients" button (mail icon) in the Actions column of each promotion row, next to Edit and Delete
+- The button will show a loading spinner while sending and be disabled for inactive promotions
 
-### 2. `src/components/PoolCatalog.tsx`
-Update all Latham pool prices (approximately 40+ models) with the 3.5x multiplier.
+### No database changes needed
+The `send-bulk-email` Edge Function and `message_templates` table already have the template registered. The function fetches all clients when no `client_ids` are provided.
 
-**Price update approach:**
-- Calculate: `current_price × (3.5 / previous_multiplier)`
-- Apply to all Latham models: Milan, Jamaica, Aruba, Bermuda, Astoria variants, Corinthian variants, Enchantment variants, Tuscan variants, Olympia variants, and all other models
+### No new files needed
+All changes are within the existing `AdminPromotionsManager.tsx` component.
 
-**Sample price changes:**
-| Model | Current Price | New Price (×3.5) |
-|-------|---------------|------------------|
-| Astoria 12 | $79,524 | ~$69,584 |
-| Milan | $62,659 | ~$54,827 |
-| Jamaica | $63,744 | ~$55,776 |
-| Bermuda | $54,863 | ~$48,005 |
-| ... | ... | ... |
-
-## Implementation Steps
-
-1. **Update `gilmerPools.ts`**
-   - Modify comment on line 1 to reflect 3.5x multiplier
-   - Recalculate all 31 pool prices using 3.5x formula
-
-2. **Update `PoolCatalog.tsx`**
-   - Recalculate all Latham pool prices (lines 78-652)
-   - Apply consistent 3.5x multiplier across all models
-
-## Technical Notes
-- Only pool prices will be affected; spa prices in `PoolCatalog.tsx` (lines 656+) will remain unchanged
-- Wonderlands-branded pools (Madre Perla, Maxima, Pacific Ridge, Winderview, Cancun Deluxe) may be excluded if they follow different pricing rules - please confirm if these should also use 3.5x
-- The `poolProductLookup.ts` file may also need synchronization if it contains duplicate pricing data
