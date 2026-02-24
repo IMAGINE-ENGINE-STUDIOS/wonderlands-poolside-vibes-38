@@ -12,6 +12,10 @@ import fijiPool from "@/assets/pools/fiji.jpg";
 import geometricPool from "@/assets/pools/geometric-luxury.jpg";
 import enchantmentPool from "@/assets/pools/enchantment-917-installed.jpg";
 import axiomPool from "@/assets/pools/axiom-14-deluxe-main.jpg";
+import lanaiDeluxe from "@/assets/lanai-deluxe.jpg";
+import screenEnclosure from "@/assets/screen-enclosure-deluxe.jpeg";
+import fenceImg from "@/assets/aluminum-fencing.jpg";
+import paverImg from "@/assets/serenitykit.jpg";
 import wonderlandsHero from "@/assets/wonderlands-hero.png";
 import wonderlandsLogo from "@/assets/wonderlands-logo.png";
 
@@ -345,24 +349,30 @@ const ServicesSection = () => (
       <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
         Complete Outdoor Living
       </motion.h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Mosaic Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 md:grid-rows-3 gap-3 auto-rows-[180px] md:auto-rows-[200px]">
         {[
-          { icon: Droplets, label: "Fiberglass Pools" },
-          { icon: Waves, label: "Hot Tubs & Spas" },
-          { icon: Flame, label: "Saunas" },
-          { icon: Sun, label: "Tanning Ledges" },
-          { icon: Home, label: "Screen Enclosures" },
-          { icon: Leaf, label: "Lanai" },
-          { icon: BrickWall, label: "Pavers" },
-          { icon: Lock, label: "Aluminum Fencing" },
-          { icon: ShieldCheck, label: "Automatic Covers" },
-          { icon: DoorOpen, label: "Driveway Gates" },
-          { icon: PaintBucket, label: "Pool Finishes" },
-          { icon: Building2, label: "Full Construction" },
-        ].map((service, i) => (
-          <motion.div key={i} variants={fadeUp} className="p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 text-center hover:bg-white/20 transition-colors flex flex-col items-center gap-3">
-            <service.icon className="w-7 h-7 text-[hsl(45,100%,70%)]" strokeWidth={1.5} />
-            <p className="text-white text-lg font-medium">{service.label}</p>
+          { img: olympiaPool, label: "Fiberglass Pools", span: "md:col-span-2 md:row-span-2" },
+          { img: lanaiDeluxe, label: "Lanai", span: "" },
+          { img: screenEnclosure, label: "Screen Enclosures", span: "" },
+          { img: bermudaPool, label: "Hot Tubs & Spas", span: "" },
+          { img: paverImg, label: "Pavers", span: "" },
+          { img: fenceImg, label: "Fencing & Gates", span: "md:col-span-2" },
+          { img: enchantmentPool, label: "Pool Finishes", span: "" },
+          { img: valenciaPool, label: "Tanning Ledges", span: "" },
+          { img: genesisPool, label: "Outdoor Kitchen", span: "" },
+          { img: axiomPool, label: "Full Construction", span: "" },
+        ].map((item, i) => (
+          <motion.div
+            key={i}
+            variants={fadeUp}
+            className={`relative group rounded-2xl overflow-hidden ${item.span}`}
+          >
+            <img src={item.img} alt={item.label} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-4">
+              <p className="text-white font-bold text-lg drop-shadow-lg">{item.label}</p>
+            </div>
           </motion.div>
         ))}
       </div>
