@@ -874,8 +874,8 @@ const InvestorDeck = () => (
     <HeroSection />
     <VisionSection />
     <ProblemSection />
-    <MarketOpportunitySection />
     <SolutionSection />
+    <MarketOpportunitySection />
     <ApproachSection />
     <ServicesSection />
     <RevenueSection />
