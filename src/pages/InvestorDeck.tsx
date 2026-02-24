@@ -395,12 +395,10 @@ const RevenueSection = () => (
       <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
         Multiple Revenue Streams
       </motion.h2>
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-2 gap-8 mb-12">
         {[
-          { title: "Design Consultation", amount: "$2,500 – $10,000", desc: "Per project concept & design fee" },
-          { title: "Project Oversight", amount: "8 – 15%", desc: "Of total project value" },
-          { title: "Partner Commissions", amount: "10 – 20%", desc: "Product markups & referrals" },
-          { title: "Premium Branding", amount: "$5,000+", desc: "Branded experience packages" },
+          { title: "Design", amount: "$2,000+", desc: "Per project concept, 3D rendering & design consultation" },
+          { title: "Construction", amount: "$50,000+", desc: "Full turnkey outdoor construction projects" },
         ].map((item, i) => (
           <motion.div key={i} variants={fadeUp} className="p-10 rounded-3xl bg-white/10 backdrop-blur-sm border border-white/10 space-y-3">
             <p className="text-[hsl(25,90%,65%)] text-sm uppercase tracking-wider font-medium">{item.title}</p>
@@ -409,6 +407,11 @@ const RevenueSection = () => (
           </motion.div>
         ))}
       </div>
+      <motion.div variants={fadeUp} className="p-10 rounded-3xl bg-white/10 backdrop-blur-sm border border-[hsl(45,100%,70%)]/30 text-center space-y-3">
+        <p className="text-[hsl(45,100%,70%)] text-sm uppercase tracking-wider font-medium">Average Project Size</p>
+        <p className="text-6xl md:text-7xl font-black text-white">$150,000</p>
+        <p className="text-white/60">Medium project value across design + construction</p>
+      </motion.div>
     </motion.div>
   </section>
 );
