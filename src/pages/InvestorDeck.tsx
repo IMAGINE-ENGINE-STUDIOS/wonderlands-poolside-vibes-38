@@ -404,34 +404,287 @@ const VisionSection = () => {
   );
 };
 
+const FrustratedCharacter = () => (
+  <div className="absolute bottom-[8%] left-[5%] z-10 md:left-[8%]">
+    <svg width="140" height="200" viewBox="0 0 140 200" fill="none">
+      {/* Shadow on ground */}
+      <ellipse cx="70" cy="192" rx="30" ry="5" fill="hsl(0,0%,10%)" opacity="0.3" />
+
+      {/* Legs - standing, slight weight shift */}
+      <motion.line x1="60" y1="140" x2="55" y2="185" stroke="hsl(220,30%,35%)" strokeWidth="6" strokeLinecap="round"
+        animate={{ x2: [55, 53, 55] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <line x1="80" y1="140" x2="85" y2="185" stroke="hsl(220,30%,35%)" strokeWidth="6" strokeLinecap="round" />
+      {/* Shoes */}
+      <rect x="46" y="182" width="16" height="6" rx="3" fill="hsl(25,40%,30%)" />
+      <rect x="78" y="182" width="16" height="6" rx="3" fill="hsl(25,40%,30%)" />
+
+      {/* Body / Polo shirt */}
+      <path d="M55 85 Q70 80 85 85 L88 140 H52 Z" fill="hsl(200,50%,45%)" />
+      {/* Collar */}
+      <path d="M60 85 Q70 82 80 85 L78 92 Q70 88 62 92 Z" fill="hsl(200,50%,40%)" />
+
+      {/* Pants */}
+      <path d="M52 135 H88 L88 145 H52 Z" fill="hsl(220,30%,35%)" />
+
+      {/* Left arm hanging with phone */}
+      <motion.g
+        animate={{ rotate: [0, -2, 0] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        style={{ transformOrigin: "55px 90px" }}
+      >
+        <line x1="55" y1="90" x2="42" y2="130" stroke="hsl(28,55%,62%)" strokeWidth="5" strokeLinecap="round" />
+        {/* Phone in hand */}
+        <rect x="36" y="125" width="12" height="18" rx="2" fill="hsl(220,10%,20%)" />
+        <rect x="38" y="127" width="8" height="13" rx="1" fill="hsl(210,50%,60%)" />
+      </motion.g>
+
+      {/* Right arm - checking watch impatiently */}
+      <motion.g
+        animate={{ rotate: [0, 15, 0, -5, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        style={{ transformOrigin: "85px 90px" }}
+      >
+        <line x1="85" y1="90" x2="105" y2="115" stroke="hsl(28,55%,62%)" strokeWidth="5" strokeLinecap="round" />
+        <line x1="105" y1="115" x2="95" y2="105" stroke="hsl(28,55%,62%)" strokeWidth="5" strokeLinecap="round" />
+        {/* Watch */}
+        <circle cx="95" cy="105" r="5" stroke="hsl(45,60%,50%)" strokeWidth="1.5" fill="hsl(0,0%,95%)" />
+        <line x1="95" y1="105" x2="95" y2="102" stroke="hsl(0,0%,20%)" strokeWidth="1" />
+        <line x1="95" y1="105" x2="97" y2="105" stroke="hsl(0,70%,50%)" strokeWidth="0.8" />
+      </motion.g>
+
+      {/* Head */}
+      <ellipse cx="70" cy="68" rx="16" ry="18" fill="hsl(28,55%,65%)" />
+      {/* Hair */}
+      <path d="M54 60 Q60 45 70 43 Q80 45 86 60" fill="hsl(25,30%,22%)" />
+      {/* Frustrated eyebrows - furrowed */}
+      <line x1="60" y1="62" x2="66" y2="64" stroke="hsl(25,30%,22%)" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="80" y1="62" x2="74" y2="64" stroke="hsl(25,30%,22%)" strokeWidth="1.5" strokeLinecap="round" />
+      {/* Eyes */}
+      <circle cx="64" cy="67" r="2" fill="hsl(220,40%,25%)" />
+      <circle cx="76" cy="67" r="2" fill="hsl(220,40%,25%)" />
+      {/* Mouth - frown */}
+      <motion.path
+        d="M63 77 Q70 74 77 77"
+        stroke="hsl(0,40%,40%)" strokeWidth="1.5" strokeLinecap="round" fill="none"
+        animate={{ d: ["M63 77 Q70 74 77 77", "M63 78 Q70 75 77 78", "M63 77 Q70 74 77 77"] }}
+        transition={{ duration: 3, repeat: Infinity }}
+      />
+
+      {/* Sweat drop */}
+      <motion.path
+        d="M88 55 Q90 50 92 55 Q90 60 88 55"
+        fill="hsl(200,80%,70%)"
+        animate={{ opacity: [0, 1, 0], y: [0, 5, 10] }}
+        transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+      />
+    </svg>
+
+    {/* Thought bubble - "Where's the contractor?!" */}
+    <motion.div
+      className="absolute -top-4 left-[100px] md:left-[120px]"
+      animate={{ opacity: [0, 1, 1, 0], y: [5, 0, 0, -5] }}
+      transition={{ duration: 4, repeat: Infinity, repeatDelay: 2 }}
+    >
+      <div className="bg-white/95 rounded-2xl px-4 py-2 text-[11px] font-semibold text-[hsl(0,60%,40%)] shadow-lg whitespace-nowrap">
+        Where's the contractor?!
+      </div>
+      <div className="absolute -bottom-1 left-4 w-3 h-3 bg-white/95 rounded-full" />
+      <div className="absolute -bottom-3 left-2 w-2 h-2 bg-white/90 rounded-full" />
+    </motion.div>
+  </div>
+);
+
+const AnimatedClock = () => (
+  <div className="absolute top-[12%] right-[8%] z-10 hidden md:block">
+    <motion.svg width="100" height="100" viewBox="0 0 100 100"
+      animate={{ rotate: [0, 360] }}
+      transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+    >
+      <circle cx="50" cy="50" r="45" stroke="white" strokeWidth="2" fill="none" opacity="0.2" />
+      <circle cx="50" cy="50" r="45" stroke="hsl(0,70%,55%)" strokeWidth="2" fill="none" opacity="0.5"
+        strokeDasharray="283" strokeDashoffset="70" />
+    </motion.svg>
+    {/* Inner fast-spinning hand to show time flying */}
+    <motion.div className="absolute top-0 left-0 w-full h-full"
+      animate={{ rotate: [0, 360] }}
+      transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+    >
+      <div className="absolute top-[50%] left-[50%] w-[2px] h-[30px] bg-[hsl(0,70%,55%)]/70 origin-bottom -translate-x-1/2 -translate-y-full rounded" />
+    </motion.div>
+    <motion.div className="absolute top-0 left-0 w-full h-full"
+      animate={{ rotate: [0, 360] }}
+      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+    >
+      <div className="absolute top-[50%] left-[50%] w-[2px] h-[20px] bg-white/50 origin-bottom -translate-x-1/2 -translate-y-full rounded" />
+    </motion.div>
+    <motion.p
+      className="text-center text-white/60 text-xs mt-2 font-medium"
+      animate={{ opacity: [0.4, 1, 0.4] }}
+      transition={{ duration: 2, repeat: Infinity }}
+    >
+      Time wasted
+    </motion.p>
+  </div>
+);
+
+const MoneyDrain = () => (
+  <div className="absolute bottom-0 right-[5%] z-10 hidden md:block overflow-hidden h-[200px] w-[60px]">
+    {[0, 1, 2, 3, 4].map((i) => (
+      <motion.div
+        key={i}
+        className="absolute text-2xl"
+        initial={{ y: -30, opacity: 0 }}
+        animate={{ y: [-30, 200], opacity: [0, 1, 0.5, 0], rotate: [0, 15, -10, 5] }}
+        transition={{ duration: 3, repeat: Infinity, delay: i * 0.8, ease: "easeIn" }}
+      >
+        💸
+      </motion.div>
+    ))}
+  </div>
+);
+
 const ProblemSection = () => (
-  <section className="relative py-32 overflow-hidden">
+  <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
     <SectionLogo />
-    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(12,76%,45%)] to-[hsl(27,87%,50%)]" />
+    {/* Dynamic gradient background - warm frustrated tones */}
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(15,60%,20%)] via-[hsl(20,50%,15%)] to-[hsl(0,40%,12%)]" />
+
+    {/* Animated stress lines radiating */}
+    {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
+      <motion.div
+        key={i}
+        className="absolute top-1/2 left-1/2 w-[1px] origin-bottom"
+        style={{
+          height: "50vh",
+          rotate: `${angle}deg`,
+          background: "linear-gradient(0deg, transparent 0%, hsl(0,60%,40%) 50%, transparent 100%)",
+        }}
+        animate={{ opacity: [0, 0.08, 0], scaleY: [0.8, 1.1, 0.8] }}
+        transition={{ duration: 3, repeat: Infinity, delay: i * 0.3, ease: "easeInOut" }}
+      />
+    ))}
+
+    {/* Pulsing red glow in background */}
+    <motion.div
+      className="absolute inset-0"
+      style={{ background: "radial-gradient(circle at 50% 50%, hsl(0,50%,30%) 0%, transparent 60%)" }}
+      animate={{ opacity: [0.1, 0.25, 0.1] }}
+      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+    />
+
+    {/* Frustrated character waiting */}
+    <FrustratedCharacter />
+
+    {/* Animated clock */}
+    <AnimatedClock />
+
+    {/* Money draining */}
+    <MoneyDrain />
+
+    {/* Content */}
     <motion.div
       variants={stagger}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-100px" }}
-      className="relative z-10 container mx-auto px-6"
+      className="relative z-20 container mx-auto px-6"
     >
-      <motion.p variants={fadeUp} className="text-white/70 tracking-[0.3em] uppercase text-sm mb-4 text-center">The Problem</motion.p>
-      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
+      <motion.p variants={fadeUp} className="text-[hsl(0,70%,70%)] tracking-[0.3em] uppercase text-sm mb-4 text-center font-medium">
+        The Problem
+      </motion.p>
+      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-6 text-center leading-tight">
         A Fragmented Market
       </motion.h2>
-      <div className="grid md:grid-cols-3 gap-8">
+      <motion.p variants={fadeUp} className="text-white/60 text-lg md:text-xl text-center max-w-3xl mx-auto mb-16">
+        Homeowners waste months coordinating multiple contractors, losing time and money on disconnected projects.
+      </motion.p>
+
+      {/* Animated contractor chaos timeline */}
+      <motion.div variants={fadeUp} className="max-w-4xl mx-auto mb-12">
+        <div className="relative">
+          {/* Timeline line */}
+          <div className="absolute top-6 left-0 right-0 h-[2px] bg-white/10" />
+          <motion.div
+            className="absolute top-6 left-0 h-[2px] bg-gradient-to-r from-[hsl(0,70%,55%)] to-[hsl(30,80%,50%)]"
+            initial={{ width: "0%" }}
+            whileInView={{ width: "100%" }}
+            transition={{ duration: 2, ease: "easeOut" }}
+            viewport={{ once: true }}
+          />
+          <div className="flex justify-between relative">
+            {[
+              { week: "Week 1-4", task: "Find pool contractor", icon: "🔍", lost: "$2,000" },
+              { week: "Week 5-10", task: "Wait for permits", icon: "📋", lost: "$5,000" },
+              { week: "Week 11-16", task: "Find paver installer", icon: "🧱", lost: "$3,500" },
+              { week: "Week 17-24", task: "Coordinate landscaping", icon: "🌴", lost: "$4,000" },
+              { week: "Week 25+", task: "Still not done...", icon: "😤", lost: "$8,000+" },
+            ].map((step, i) => (
+              <motion.div
+                key={i}
+                className="flex flex-col items-center w-1/5"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 + i * 0.2 }}
+                viewport={{ once: true }}
+              >
+                <motion.div
+                  className="w-12 h-12 rounded-full bg-[hsl(0,50%,30%)] border-2 border-[hsl(0,70%,55%)]/50 flex items-center justify-center text-xl mb-3 relative z-10"
+                  animate={{ scale: [1, 1.1, 1], borderColor: ["hsl(0,70%,55%)", "hsl(30,80%,55%)", "hsl(0,70%,55%)"] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
+                >
+                  {step.icon}
+                </motion.div>
+                <p className="text-white/90 text-xs md:text-sm font-bold text-center">{step.week}</p>
+                <p className="text-white/50 text-[10px] md:text-xs text-center mt-1">{step.task}</p>
+                <motion.p
+                  className="text-[hsl(0,70%,60%)] text-xs font-bold mt-1"
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: i * 0.2 }}
+                >
+                  -{step.lost}
+                </motion.p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Stats */}
+      <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
         {[
-          { stat: "87%", desc: "of luxury homeowners say their outdoor space lacks cohesion" },
-          { stat: "5+", desc: "contractors needed for a single outdoor project" },
-          { stat: "0", desc: "brands offering end-to-end luxury outdoor experiences" },
+          { stat: "6+ months", desc: "Average time to complete a luxury outdoor project", icon: "⏳" },
+          { stat: "$22,500+", desc: "Lost to miscoordination, delays & change orders", icon: "💰" },
+          { stat: "5+ vendors", desc: "That homeowners must find, vet & manage alone", icon: "👷" },
         ].map((item, i) => (
-          <motion.div key={i} variants={fadeUp} className="bg-black/20 backdrop-blur-sm rounded-3xl p-10 text-center border border-white/10">
-            <p className="text-6xl font-black text-white mb-3">{item.stat}</p>
-            <p className="text-white/80 text-lg">{item.desc}</p>
+          <motion.div
+            key={i}
+            variants={fadeUp}
+            whileHover={{ scale: 1.03 }}
+            className="bg-[hsl(0,30%,15%)]/80 backdrop-blur-sm rounded-3xl p-8 text-center border border-[hsl(0,50%,30%)]/30 hover:border-[hsl(0,70%,55%)]/40 transition-colors"
+          >
+            <motion.p
+              className="text-4xl mb-2"
+              animate={{ scale: [1, 1.15, 1] }}
+              transition={{ duration: 2, repeat: Infinity, delay: i * 0.4 }}
+            >
+              {item.icon}
+            </motion.p>
+            <motion.p
+              className="text-3xl md:text-4xl font-black text-white mb-2"
+              animate={{ color: ["hsl(0,0%,100%)", "hsl(0,70%,65%)", "hsl(0,0%,100%)"] }}
+              transition={{ duration: 3, repeat: Infinity, delay: i * 0.3 }}
+            >
+              {item.stat}
+            </motion.p>
+            <p className="text-white/65 text-sm leading-relaxed">{item.desc}</p>
           </motion.div>
         ))}
       </div>
     </motion.div>
+
+    {/* Bottom gradient */}
+    <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[hsl(0,30%,8%)] to-transparent" />
   </section>
 );
 
