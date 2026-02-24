@@ -56,37 +56,241 @@ const HeroSection = () => (
   </section>
 );
 
-const VisionSection = () => (
-  <section className="relative py-32 overflow-hidden">
-    <SectionLogo />
-    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(173,58%,30%)] via-[hsl(200,50%,25%)] to-[hsl(220,40%,15%)]" />
-    <img src={bermudaPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 mix-blend-overlay" />
-    <motion.div
-      variants={stagger}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
-      className="relative z-10 container mx-auto px-6 text-center"
-    >
-      <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4">Vision</motion.p>
-      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 leading-tight">
-        We Design Destinations,<br />Not Backyards
-      </motion.h2>
-      <div className="grid md:grid-cols-3 gap-10">
-        {[
-          { icon: Waves, text: "Transform residential spaces into immersive outdoor environments" },
-          { icon: Palmtree, text: "Elevate Florida luxury living through experience design" },
-          { icon: Sparkles, text: "Combine pool architecture, storytelling & entertainment" },
-        ].map((item, i) => (
-          <motion.div key={i} variants={fadeUp} className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
-            <item.icon className="w-12 h-12 text-[hsl(45,100%,70%)] mb-4 mx-auto" strokeWidth={1.5} />
-            <p className="text-white/85 text-lg leading-relaxed">{item.text}</p>
-          </motion.div>
+const VisionSection = () => {
+  const waterRipples = Array.from({ length: 5 }, (_, i) => i);
+  
+  return (
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Deep water gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[hsl(200,80%,55%)] via-[hsl(200,70%,40%)] to-[hsl(210,60%,15%)]" />
+      
+      {/* Animated water surface light caustics */}
+      <motion.div
+        className="absolute inset-0 opacity-30"
+        style={{
+          background: "radial-gradient(ellipse at 30% 20%, hsl(190,90%,70%) 0%, transparent 50%), radial-gradient(ellipse at 70% 40%, hsl(195,80%,65%) 0%, transparent 40%), radial-gradient(ellipse at 50% 80%, hsl(200,70%,50%) 0%, transparent 60%)",
+        }}
+        animate={{
+          scale: [1, 1.05, 1],
+          opacity: [0.3, 0.5, 0.3],
+        }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Pool water surface with shimmer */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Animated light beams through water */}
+        {[15, 35, 55, 75].map((left, i) => (
+          <motion.div
+            key={i}
+            className="absolute top-0 w-[2px] opacity-20"
+            style={{
+              left: `${left}%`,
+              height: "100%",
+              background: "linear-gradient(180deg, hsl(190,90%,80%) 0%, transparent 70%)",
+            }}
+            animate={{
+              opacity: [0.1, 0.3, 0.1],
+              scaleX: [1, 2, 1],
+            }}
+            transition={{ duration: 3 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.7 }}
+          />
         ))}
       </div>
-    </motion.div>
-  </section>
-);
+
+      {/* Water ripple rings expanding from splash point */}
+      <div className="absolute top-[35%] left-1/2 -translate-x-1/2 -translate-y-1/2">
+        {waterRipples.map((i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full border border-white/20"
+            style={{
+              width: 60,
+              height: 30,
+              left: -30,
+              top: -15,
+            }}
+            animate={{
+              width: [60, 400 + i * 100],
+              height: [30, 200 + i * 50],
+              left: [-30, -(200 + i * 50)],
+              top: [-15, -(100 + i * 25)],
+              opacity: [0.5, 0],
+              borderWidth: [2, 0.5],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeOut",
+              delay: i * 0.6,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Diving character SVG animation */}
+      <div className="absolute top-[10%] left-1/2 -translate-x-1/2 z-10">
+        <motion.svg
+          width="120"
+          height="180"
+          viewBox="0 0 120 180"
+          initial={{ y: -200, rotate: 0 }}
+          animate={{ 
+            y: [-200, 20, 60, 200],
+            rotate: [0, 15, 45, 90],
+            scale: [1, 1, 0.9, 0.7],
+            opacity: [1, 1, 0.8, 0],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            repeatDelay: 4,
+            ease: [0.45, 0, 0.55, 1],
+          }}
+        >
+          {/* Head */}
+          <circle cx="60" cy="20" r="14" fill="hsl(30,60%,70%)" />
+          {/* Body */}
+          <line x1="60" y1="34" x2="60" y2="90" stroke="hsl(30,60%,70%)" strokeWidth="5" strokeLinecap="round" />
+          {/* Arms stretched up (diving pose) */}
+          <line x1="60" y1="50" x2="40" y2="25" stroke="hsl(30,60%,70%)" strokeWidth="4" strokeLinecap="round" />
+          <line x1="60" y1="50" x2="80" y2="25" stroke="hsl(30,60%,70%)" strokeWidth="4" strokeLinecap="round" />
+          {/* Legs */}
+          <line x1="60" y1="90" x2="45" y2="130" stroke="hsl(30,60%,70%)" strokeWidth="4" strokeLinecap="round" />
+          <line x1="60" y1="90" x2="75" y2="130" stroke="hsl(30,60%,70%)" strokeWidth="4" strokeLinecap="round" />
+          {/* Swim trunks */}
+          <rect x="48" y="80" width="24" height="14" rx="4" fill="hsl(340,70%,55%)" />
+        </motion.svg>
+
+        {/* Splash effect at water surface */}
+        <motion.div
+          className="absolute top-[140px] left-1/2 -translate-x-1/2"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{
+            scale: [0, 1.5, 2, 0],
+            opacity: [0, 0.8, 0.5, 0],
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            repeatDelay: 5.5,
+            delay: 2,
+          }}
+        >
+          {/* Splash drops */}
+          {[-30, -15, 0, 15, 30].map((x, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-white/80 rounded-full"
+              style={{ left: 60 + x, top: 0 }}
+              animate={{
+                y: [0, -20 - Math.abs(x), 10],
+                x: [0, x * 0.5, x],
+                opacity: [0, 1, 0],
+              }}
+              transition={{
+                duration: 0.8,
+                repeat: Infinity,
+                repeatDelay: 6.2,
+                delay: 2.1 + i * 0.05,
+              }}
+            />
+          ))}
+        </motion.div>
+      </div>
+
+      {/* Underwater bubbles rising */}
+      {Array.from({ length: 12 }, (_, i) => (
+        <motion.div
+          key={`bubble-${i}`}
+          className="absolute rounded-full bg-white/20 backdrop-blur-sm"
+          style={{
+            width: 4 + Math.random() * 12,
+            height: 4 + Math.random() * 12,
+            left: `${20 + Math.random() * 60}%`,
+            bottom: "-5%",
+          }}
+          animate={{
+            y: [0, -(window?.innerHeight || 800)],
+            x: [0, (Math.random() - 0.5) * 80],
+            opacity: [0, 0.6, 0],
+            scale: [0.5, 1.2, 0.8],
+          }}
+          transition={{
+            duration: 4 + Math.random() * 4,
+            repeat: Infinity,
+            delay: Math.random() * 6,
+            ease: "easeOut",
+          }}
+        />
+      ))}
+
+      {/* Content */}
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="relative z-20 container mx-auto px-6 text-center"
+      >
+        <motion.p variants={fadeUp} className="text-[hsl(190,90%,85%)] tracking-[0.4em] uppercase text-sm mb-6 font-medium">
+          Our Vision
+        </motion.p>
+        
+        <motion.h2
+          variants={fadeUp}
+          className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-8 leading-[0.95] tracking-tight"
+        >
+          We Design{" "}
+          <motion.span
+            className="inline-block bg-gradient-to-r from-[hsl(45,100%,75%)] via-[hsl(30,100%,70%)] to-[hsl(45,100%,75%)] bg-clip-text text-transparent"
+            animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            style={{ backgroundSize: "200% 200%" }}
+          >
+            Wonderful
+          </motion.span>
+          <br />
+          <span className="text-white">Luxury Destinations</span>
+        </motion.h2>
+
+        <motion.p
+          variants={fadeUp}
+          className="text-xl md:text-2xl text-white/70 max-w-2xl mx-auto mb-16 leading-relaxed"
+        >
+          Where every backyard becomes a resort — and every splash tells a story.
+        </motion.p>
+
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {[
+            { icon: Waves, label: "Immersive Spaces", text: "Transforming residential backyards into breathtaking outdoor environments" },
+            { icon: Palmtree, label: "Florida Luxury", text: "Elevating luxury living through world-class experience design" },
+            { icon: Sparkles, label: "Full Experience", text: "Pool architecture, entertainment, storytelling — all in one" },
+          ].map((item, i) => (
+            <motion.div
+              key={i}
+              variants={fadeUp}
+              whileHover={{ y: -8, scale: 1.03 }}
+              className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/15 hover:border-[hsl(45,100%,70%)]/30 transition-colors duration-500"
+            >
+              <motion.div
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 3, repeat: Infinity, delay: i * 0.5 }}
+              >
+                <item.icon className="w-14 h-14 text-[hsl(45,100%,75%)] mb-5 mx-auto" strokeWidth={1.2} />
+              </motion.div>
+              <h3 className="text-white font-bold text-lg mb-2">{item.label}</h3>
+              <p className="text-white/70 leading-relaxed">{item.text}</p>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Bottom gradient fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[hsl(210,60%,10%)] to-transparent" />
+    </section>
+  );
+};
 
 const ProblemSection = () => (
   <section className="relative py-32 overflow-hidden">
