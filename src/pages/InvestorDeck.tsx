@@ -59,234 +59,75 @@ const HeroSection = () => (
 const VisionSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Lush jungle/waterfall gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[hsl(160,40%,25%)] via-[hsl(170,35%,18%)] to-[hsl(180,30%,10%)]" />
+      {/* Deep blue ocean gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[hsl(200,80%,50%)] via-[hsl(205,70%,35%)] to-[hsl(215,60%,12%)]" />
 
-      {/* SVG Waterfall Scene */}
-      <div className="absolute inset-0">
-        <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" className="w-full h-full">
-          <defs>
-            <linearGradient id="wf-sky" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="hsl(200,50%,60%)" />
-              <stop offset="40%" stopColor="hsl(180,40%,45%)" />
-              <stop offset="100%" stopColor="hsl(160,35%,25%)" />
-            </linearGradient>
-            <linearGradient id="wf-cliff-l" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="hsl(30,20%,30%)" />
-              <stop offset="100%" stopColor="hsl(25,15%,20%)" />
-            </linearGradient>
-            <linearGradient id="wf-cliff-r" x1="1" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="hsl(35,18%,28%)" />
-              <stop offset="100%" stopColor="hsl(20,12%,18%)" />
-            </linearGradient>
-            <linearGradient id="wf-water" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="hsl(195,80%,85%)" stopOpacity="0.95" />
-              <stop offset="50%" stopColor="hsl(200,70%,70%)" stopOpacity="0.85" />
-              <stop offset="100%" stopColor="hsl(195,60%,55%)" stopOpacity="0.7" />
-            </linearGradient>
-            <linearGradient id="wf-pool" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="hsl(190,65%,55%)" />
-              <stop offset="100%" stopColor="hsl(200,50%,35%)" />
-            </linearGradient>
-            <linearGradient id="wf-foliage1" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="hsl(130,50%,35%)" />
-              <stop offset="100%" stopColor="hsl(140,45%,25%)" />
-            </linearGradient>
-            <linearGradient id="wf-foliage2" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="hsl(120,40%,40%)" />
-              <stop offset="100%" stopColor="hsl(135,45%,28%)" />
-            </linearGradient>
-            <filter id="wf-mist">
-              <feGaussianBlur stdDeviation="8" />
-            </filter>
-            <filter id="wf-glow">
-              <feGaussianBlur stdDeviation="4" result="blur" />
-              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-            </filter>
-          </defs>
+      {/* Animated water caustics light */}
+      <motion.div
+        className="absolute inset-0 opacity-20"
+        style={{
+          background: "radial-gradient(ellipse at 30% 30%, hsl(190,90%,70%) 0%, transparent 50%), radial-gradient(ellipse at 70% 50%, hsl(195,80%,65%) 0%, transparent 40%), radial-gradient(ellipse at 50% 80%, hsl(200,70%,50%) 0%, transparent 50%)",
+        }}
+        animate={{ scale: [1, 1.05, 1], opacity: [0.15, 0.3, 0.15] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      />
 
-          {/* Sky */}
-          <rect width="1200" height="800" fill="url(#wf-sky)" />
+      {/* Gentle light beams */}
+      {[20, 45, 65, 80].map((left, i) => (
+        <motion.div
+          key={i}
+          className="absolute top-0"
+          style={{
+            left: `${left}%`,
+            width: "2px",
+            height: "60%",
+            background: "linear-gradient(180deg, hsl(190,80%,80%) 0%, transparent 100%)",
+          }}
+          animate={{ opacity: [0.05, 0.15, 0.05], scaleX: [1, 1.5, 1] }}
+          transition={{ duration: 4 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.8 }}
+        />
+      ))}
 
-          {/* Distant mountains */}
-          <path d="M0 200 Q150 120 300 180 Q450 100 600 170 Q750 90 900 160 Q1050 110 1200 180 V0 H0Z" fill="hsl(200,25%,50%)" opacity="0.3" />
-          <path d="M0 260 Q200 180 400 240 Q600 160 800 230 Q1000 170 1200 250 V0 H0Z" fill="hsl(180,20%,40%)" opacity="0.4" />
-
-          {/* Left cliff face */}
-          <path d="M0 0 L0 800 L350 800 L380 650 L400 500 L420 350 L400 200 L350 100 L280 50 L200 20 L100 0 Z" fill="url(#wf-cliff-l)" />
-          {/* Cliff texture lines */}
-          <path d="M100 80 Q200 120 300 200 L350 350" stroke="hsl(25,15%,25%)" strokeWidth="1.5" fill="none" opacity="0.3" />
-          <path d="M50 200 Q150 250 280 380 L340 550" stroke="hsl(30,12%,22%)" strokeWidth="1" fill="none" opacity="0.25" />
-          <path d="M200 50 Q280 100 350 200 L380 400" stroke="hsl(20,10%,28%)" strokeWidth="2" fill="none" opacity="0.2" />
-
-          {/* Right cliff face */}
-          <path d="M1200 0 L1200 800 L850 800 L820 650 L800 500 L780 350 L800 200 L850 100 L920 50 L1000 20 L1100 0 Z" fill="url(#wf-cliff-r)" />
-          <path d="M1100 80 Q1000 120 900 200 L850 350" stroke="hsl(20,12%,23%)" strokeWidth="1.5" fill="none" opacity="0.3" />
-          <path d="M1150 200 Q1050 250 920 380 L860 550" stroke="hsl(25,10%,20%)" strokeWidth="1" fill="none" opacity="0.25" />
-
-          {/* Waterfall - main cascade */}
-          {[0, 1, 2, 3, 4].map((i) => (
-            <motion.rect
-              key={`wf-stream-${i}`}
-              x={520 + i * 30}
-              y={180}
-              width={18 - i * 2}
-              height={400}
-              rx={9 - i}
-              fill="url(#wf-water)"
-              opacity={0.6 - i * 0.08}
-              animate={{ opacity: [0.5 - i * 0.06, 0.7 - i * 0.06, 0.5 - i * 0.06], y: [180, 185, 180] }}
-              transition={{ duration: 1.5 + i * 0.3, repeat: Infinity, ease: "easeInOut", delay: i * 0.2 }}
-            />
-          ))}
-
-          {/* Waterfall foam lines */}
-          {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-            <motion.line
-              key={`foam-line-${i}`}
-              x1={530 + (i % 3) * 25}
-              y1={250 + i * 45}
-              x2={545 + (i % 3) * 25}
-              y2={250 + i * 45}
-              stroke="white"
-              strokeWidth={2 - i * 0.15}
-              strokeLinecap="round"
-              opacity={0.4}
-              animate={{ opacity: [0.2, 0.6, 0.2], x1: [530 + (i % 3) * 25, 528 + (i % 3) * 25, 530 + (i % 3) * 25] }}
-              transition={{ duration: 1 + i * 0.2, repeat: Infinity, delay: i * 0.15 }}
-            />
-          ))}
-
-          {/* Splash zone at bottom of waterfall */}
-          <motion.ellipse
-            cx="575" cy="590" rx="120" ry="25"
-            fill="white" opacity="0.2" filter="url(#wf-mist)"
-            animate={{ rx: [120, 140, 120], opacity: [0.15, 0.3, 0.15] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+      {/* Floating bubbles */}
+      {Array.from({ length: 20 }, (_, i) => {
+        const size = 6 + (i % 5) * 8;
+        const leftPos = 5 + (i * 4.7) % 90;
+        const dur = 5 + (i % 4) * 2;
+        const del = (i * 0.9) % 8;
+        return (
+          <motion.div
+            key={`bubble-${i}`}
+            className="absolute rounded-full"
+            style={{
+              width: size,
+              height: size,
+              left: `${leftPos}%`,
+              bottom: "-5%",
+              background: `radial-gradient(circle at 35% 35%, hsl(195,90%,90%) 0%, hsl(200,70%,70%) 40%, hsl(205,60%,55%) 100%)`,
+              border: "1px solid hsl(195,80%,80%)",
+              boxShadow: "inset -2px -2px 4px hsl(200,50%,40%), inset 2px 2px 4px hsl(195,90%,90%)",
+            }}
+            animate={{
+              y: [0, -900 - i * 30],
+              x: [0, (i % 2 === 0 ? 1 : -1) * (15 + i * 2)],
+              opacity: [0, 0.7, 0.5, 0],
+              scale: [0.3, 1, 1.1, 0.9],
+            }}
+            transition={{ duration: dur, repeat: Infinity, delay: del, ease: "easeOut" }}
           />
+        );
+      })}
 
-          {/* Pool / lagoon at bottom */}
-          <path d="M200 580 Q400 550 600 580 Q800 550 1000 580 L1000 800 L200 800 Z" fill="url(#wf-pool)" opacity="0.85" />
-          
-          {/* Water surface reflections */}
-          {[0, 1, 2, 3].map((i) => (
-            <motion.path
-              key={`ripple-${i}`}
-              d={`M${300 + i * 120} ${620 + i * 15} Q${360 + i * 120} ${610 + i * 15} ${420 + i * 120} ${620 + i * 15}`}
-              stroke="hsl(190,70%,75%)"
-              strokeWidth="1"
-              fill="none"
-              opacity="0.3"
-              animate={{ opacity: [0.15, 0.4, 0.15], d: [
-                `M${300 + i * 120} ${620 + i * 15} Q${360 + i * 120} ${610 + i * 15} ${420 + i * 120} ${620 + i * 15}`,
-                `M${300 + i * 120} ${620 + i * 15} Q${360 + i * 120} ${625 + i * 15} ${420 + i * 120} ${620 + i * 15}`,
-                `M${300 + i * 120} ${620 + i * 15} Q${360 + i * 120} ${610 + i * 15} ${420 + i * 120} ${620 + i * 15}`,
-              ]}}
-              transition={{ duration: 3 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}
-            />
-          ))}
-
-          {/* Mist particles rising from waterfall */}
-          {Array.from({ length: 8 }, (_, i) => (
-            <motion.circle
-              key={`mist-${i}`}
-              cx={520 + (i % 4) * 30}
-              cy={560}
-              r={6 + (i % 3) * 4}
-              fill="white"
-              opacity="0.1"
-              filter="url(#wf-mist)"
-              animate={{
-                cy: [560, 460 - i * 20, 360 - i * 15],
-                cx: [520 + (i % 4) * 30, 510 + (i % 4) * 30 + (i % 2 === 0 ? 20 : -20), 500 + (i % 4) * 30],
-                opacity: [0, 0.2, 0],
-              }}
-              transition={{ duration: 4 + i * 0.5, repeat: Infinity, delay: i * 0.6, ease: "easeOut" }}
-            />
-          ))}
-
-          {/* Left foliage / tropical plants */}
-          <path d="M0 350 Q80 300 120 350 Q160 300 200 360 Q180 380 140 400 Q100 380 60 400 Q20 380 0 400 Z" fill="url(#wf-foliage1)" />
-          <path d="M0 450 Q60 400 100 430 Q140 390 180 440 Q160 470 120 490 Q80 470 40 490 Q10 480 0 500 Z" fill="url(#wf-foliage2)" />
-          <path d="M300 500 Q340 460 380 500 Q360 530 320 540 Q300 530 300 500 Z" fill="hsl(125,45%,30%)" />
-          
-          {/* Right foliage */}
-          <path d="M1200 350 Q1120 300 1080 350 Q1040 300 1000 360 Q1020 380 1060 400 Q1100 380 1140 400 Q1180 380 1200 400 Z" fill="url(#wf-foliage1)" />
-          <path d="M1200 450 Q1140 400 1100 430 Q1060 390 1020 440 Q1040 470 1080 490 Q1120 470 1160 490 Q1190 480 1200 500 Z" fill="url(#wf-foliage2)" />
-          <path d="M900 500 Q860 460 820 500 Q840 530 880 540 Q900 530 900 500 Z" fill="hsl(125,45%,30%)" />
-
-          {/* Hanging vines left */}
-          <motion.path d="M350 200 Q340 280 345 360" stroke="hsl(130,40%,30%)" strokeWidth="2" fill="none"
-            animate={{ d: ["M350 200 Q340 280 345 360", "M350 200 Q335 280 340 360", "M350 200 Q340 280 345 360"] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.path d="M380 180 Q370 250 375 320" stroke="hsl(125,35%,28%)" strokeWidth="1.5" fill="none"
-            animate={{ d: ["M380 180 Q370 250 375 320", "M380 180 Q365 250 370 320", "M380 180 Q370 250 375 320"] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-          />
-          {/* Hanging vines right */}
-          <motion.path d="M850 200 Q860 280 855 360" stroke="hsl(130,40%,30%)" strokeWidth="2" fill="none"
-            animate={{ d: ["M850 200 Q860 280 855 360", "M850 200 Q865 280 860 360", "M850 200 Q860 280 855 360"] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          />
-
-          {/* Small rocks at base */}
-          <ellipse cx="350" cy="600" rx="25" ry="12" fill="hsl(30,15%,28%)" />
-          <ellipse cx="380" cy="610" rx="15" ry="8" fill="hsl(25,12%,25%)" />
-          <ellipse cx="820" cy="605" rx="20" ry="10" fill="hsl(28,14%,26%)" />
-          <ellipse cx="860" cy="615" rx="12" ry="6" fill="hsl(22,10%,22%)" />
-
-          {/* Sunlight rays from top */}
-          {[0, 1, 2].map((i) => (
-            <motion.line
-              key={`sun-ray-${i}`}
-              x1={500 + i * 60}
-              y1={0}
-              x2={480 + i * 50}
-              y2={300}
-              stroke="hsl(45,80%,80%)"
-              strokeWidth={3 - i * 0.5}
-              opacity={0.06}
-              animate={{ opacity: [0.03, 0.1, 0.03] }}
-              transition={{ duration: 4 + i, repeat: Infinity, ease: "easeInOut", delay: i * 1.2 }}
-            />
-          ))}
-
-          {/* Butterflies */}
-          {[{ cx: 450, cy: 300 }, { cx: 750, cy: 350 }].map((pos, i) => (
-            <motion.g key={`butterfly-${i}`}
-              animate={{ x: [0, 30, -20, 0], y: [0, -20, -40, 0] }}
-              transition={{ duration: 6 + i * 2, repeat: Infinity, ease: "easeInOut", delay: i * 2 }}
-            >
-              <motion.path
-                d={`M${pos.cx} ${pos.cy} Q${pos.cx - 8} ${pos.cy - 10} ${pos.cx - 4} ${pos.cy} Q${pos.cx - 8} ${pos.cy + 10} ${pos.cx} ${pos.cy}`}
-                fill={i === 0 ? "hsl(280,60%,65%)" : "hsl(40,80%,60%)"}
-                opacity="0.7"
-                animate={{ d: [
-                  `M${pos.cx} ${pos.cy} Q${pos.cx - 8} ${pos.cy - 10} ${pos.cx - 4} ${pos.cy} Q${pos.cx - 8} ${pos.cy + 10} ${pos.cx} ${pos.cy}`,
-                  `M${pos.cx} ${pos.cy} Q${pos.cx - 3} ${pos.cy - 4} ${pos.cx - 2} ${pos.cy} Q${pos.cx - 3} ${pos.cy + 4} ${pos.cx} ${pos.cy}`,
-                  `M${pos.cx} ${pos.cy} Q${pos.cx - 8} ${pos.cy - 10} ${pos.cx - 4} ${pos.cy} Q${pos.cx - 8} ${pos.cy + 10} ${pos.cx} ${pos.cy}`,
-                ]}}
-                transition={{ duration: 0.5, repeat: Infinity }}
-              />
-              <motion.path
-                d={`M${pos.cx} ${pos.cy} Q${pos.cx + 8} ${pos.cy - 10} ${pos.cx + 4} ${pos.cy} Q${pos.cx + 8} ${pos.cy + 10} ${pos.cx} ${pos.cy}`}
-                fill={i === 0 ? "hsl(290,55%,60%)" : "hsl(35,75%,55%)"}
-                opacity="0.7"
-                animate={{ d: [
-                  `M${pos.cx} ${pos.cy} Q${pos.cx + 8} ${pos.cy - 10} ${pos.cx + 4} ${pos.cy} Q${pos.cx + 8} ${pos.cy + 10} ${pos.cx} ${pos.cy}`,
-                  `M${pos.cx} ${pos.cy} Q${pos.cx + 3} ${pos.cy - 4} ${pos.cx + 2} ${pos.cy} Q${pos.cx + 3} ${pos.cy + 4} ${pos.cx} ${pos.cy}`,
-                  `M${pos.cx} ${pos.cy} Q${pos.cx + 8} ${pos.cy - 10} ${pos.cx + 4} ${pos.cy} Q${pos.cx + 8} ${pos.cy + 10} ${pos.cx} ${pos.cy}`,
-                ]}}
-                transition={{ duration: 0.5, repeat: Infinity }}
-              />
-            </motion.g>
-          ))}
-        </svg>
-      </div>
-
-      {/* Overlay for depth */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[hsl(170,30%,10%)]/30 to-[hsl(180,25%,8%)]/60" />
+      {/* Soft wave lines */}
+      {[0, 1, 2].map((i) => (
+        <motion.div
+          key={`wave-${i}`}
+          className="absolute w-full h-[1px] bg-white/10"
+          style={{ top: `${35 + i * 8}%` }}
+          animate={{ scaleX: [0.95, 1.05, 0.95], opacity: [0.05, 0.12, 0.05] }}
+          transition={{ duration: 4 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.6 }}
+        />
+      ))}
 
       {/* Content */}
       <motion.div
@@ -296,7 +137,7 @@ const VisionSection = () => {
         viewport={{ once: true, margin: "-100px" }}
         className="relative z-20 container mx-auto px-6 text-center"
       >
-        <motion.p variants={fadeUp} className="text-[hsl(160,60%,75%)] tracking-[0.4em] uppercase text-sm mb-6 font-medium">
+        <motion.p variants={fadeUp} className="text-[hsl(190,80%,80%)] tracking-[0.4em] uppercase text-sm mb-6 font-medium">
           Our Vision
         </motion.p>
         
@@ -333,7 +174,7 @@ const VisionSection = () => {
               key={i}
               variants={fadeUp}
               whileHover={{ y: -8, scale: 1.03 }}
-              className="bg-[hsl(170,20%,12%)]/70 backdrop-blur-md rounded-3xl p-8 border border-white/15 hover:border-[hsl(45,100%,70%)]/30 transition-colors duration-500"
+              className="bg-[hsl(210,40%,15%)]/70 backdrop-blur-md rounded-3xl p-8 border border-white/15 hover:border-[hsl(45,100%,70%)]/30 transition-colors duration-500"
             >
               <motion.div
                 animate={{ y: [0, -6, 0] }}
@@ -349,7 +190,7 @@ const VisionSection = () => {
       </motion.div>
 
       {/* Bottom gradient fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[hsl(210,60%,10%)] to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[hsl(220,40%,8%)] to-transparent" />
     </section>
   );
 };
