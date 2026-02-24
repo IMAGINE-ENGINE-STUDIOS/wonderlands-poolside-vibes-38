@@ -32,6 +32,7 @@ const ContractorRegistration = lazy(() => import("./pages/ContractorRegistration
 const ContractorProfile = lazy(() => import("./pages/ContractorProfile"));
 const ContractorLogin = lazy(() => import("./pages/ContractorLogin"));
 const DesignStudio = lazy(() => import("./pages/DesignStudio"));
+const InvestorDeck = lazy(() => import("./pages/InvestorDeck"));
 const ConsentPage = lazy(() => import("./pages/ConsentPage"));
 const ApiDocumentation = lazy(() => import("./pages/ApiDocumentation"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -123,6 +124,7 @@ const App = () => {
             <Route path="/contractor-profile/:id" element={<ContractorProfile />} />
             <Route path="/contractor-login" element={<ContractorLogin />} />
             <Route path="/design-studio" element={<DesignStudio />} />
+            <Route path="/deck" element={<InvestorDeck />} />
             <Route path="/twilio-poc" element={<TwilioPOC />} />
             <Route path="/consent" element={<ConsentPage />} />
             <Route path="/api" element={<ApiDocumentation />} />
