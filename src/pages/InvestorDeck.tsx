@@ -1,6 +1,6 @@
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Linkedin, ArrowDown } from "lucide-react";
+import { Linkedin, Waves, Palmtree, Sparkles, Moon, Palette, Hammer, Droplets, Flame, Sun, Home, Leaf, BrickWall, Lock, ShieldCheck, DoorOpen, PaintBucket, Building2, UmbrellaOff, Hotel, Globe, ArrowRight } from "lucide-react";
 
 // Pool & asset images
 import olympiaPool from "@/assets/pools/olympia-12-optimized.webp";
@@ -58,12 +58,12 @@ const VisionSection = () => (
       </motion.h2>
       <div className="grid md:grid-cols-3 gap-10">
         {[
-          { icon: "🌊", text: "Transform residential spaces into immersive outdoor environments" },
-          { icon: "🌴", text: "Elevate Florida luxury living through experience design" },
-          { icon: "✨", text: "Combine pool architecture, storytelling & entertainment" },
+          { icon: Waves, text: "Transform residential spaces into immersive outdoor environments" },
+          { icon: Palmtree, text: "Elevate Florida luxury living through experience design" },
+          { icon: Sparkles, text: "Combine pool architecture, storytelling & entertainment" },
         ].map((item, i) => (
           <motion.div key={i} variants={fadeUp} className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
-            <span className="text-5xl block mb-4">{item.icon}</span>
+            <item.icon className="w-12 h-12 text-[hsl(45,100%,70%)] mb-4 mx-auto" strokeWidth={1.5} />
             <p className="text-white/85 text-lg leading-relaxed">{item.text}</p>
           </motion.div>
         ))}
@@ -164,11 +164,16 @@ const SolutionSection = () => (
       </motion.h2>
       {/* Dream → Design → Deliver */}
       <motion.div variants={fadeUp} className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 mb-16">
-        {["🌙 Dream", "🎨 Design", "🏗️ Deliver"].map((step, i) => (
-          <React.Fragment key={step}>
-            {i > 0 && <span className="text-[hsl(25,90%,60%)] text-4xl hidden md:block">→</span>}
-            <div className="w-52 h-52 rounded-full bg-white/10 backdrop-blur-sm border-2 border-white/20 flex items-center justify-center">
-              <p className="text-2xl font-bold text-white">{step}</p>
+        {[
+          { label: "Dream", Icon: Moon },
+          { label: "Design", Icon: Palette },
+          { label: "Deliver", Icon: Hammer },
+        ].map((step, i) => (
+          <React.Fragment key={step.label}>
+            {i > 0 && <ArrowRight className="text-[hsl(25,90%,60%)] w-10 h-10 hidden md:block" />}
+            <div className="w-52 h-52 rounded-full bg-white/10 backdrop-blur-sm border-2 border-white/20 flex flex-col items-center justify-center gap-3">
+              <step.Icon className="w-10 h-10 text-[hsl(45,100%,70%)]" strokeWidth={1.5} />
+              <p className="text-2xl font-bold text-white">{step.label}</p>
             </div>
           </React.Fragment>
         ))}
@@ -279,12 +284,22 @@ const ServicesSection = () => (
       </motion.h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          "🏊 Fiberglass Pools", "🌊 Hot Tubs & Spas", "🔥 Saunas", "☀️ Tanning Ledges",
-          "🏠 Screen Enclosures", "🌿 Lanai", "🧱 Pavers", "🔒 Aluminum Fencing",
-          "🛡️ Automatic Covers", "🚪 Driveway Gates", "🎨 Pool Finishes", "🏗️ Full Construction",
+          { icon: Droplets, label: "Fiberglass Pools" },
+          { icon: Waves, label: "Hot Tubs & Spas" },
+          { icon: Flame, label: "Saunas" },
+          { icon: Sun, label: "Tanning Ledges" },
+          { icon: Home, label: "Screen Enclosures" },
+          { icon: Leaf, label: "Lanai" },
+          { icon: BrickWall, label: "Pavers" },
+          { icon: Lock, label: "Aluminum Fencing" },
+          { icon: ShieldCheck, label: "Automatic Covers" },
+          { icon: DoorOpen, label: "Driveway Gates" },
+          { icon: PaintBucket, label: "Pool Finishes" },
+          { icon: Building2, label: "Full Construction" },
         ].map((service, i) => (
-          <motion.div key={i} variants={fadeUp} className="p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 text-center hover:bg-white/20 transition-colors">
-            <p className="text-white text-lg font-medium">{service}</p>
+          <motion.div key={i} variants={fadeUp} className="p-6 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 text-center hover:bg-white/20 transition-colors flex flex-col items-center gap-3">
+            <service.icon className="w-7 h-7 text-[hsl(45,100%,70%)]" strokeWidth={1.5} />
+            <p className="text-white text-lg font-medium">{service.label}</p>
           </motion.div>
         ))}
       </div>
@@ -461,12 +476,12 @@ const FutureSection = () => (
       </motion.h2>
       <div className="grid md:grid-cols-3 gap-8">
         {[
-          { emoji: "🏖️", title: "Branded Products", desc: "Poolside furniture, umbrellas, floats — all Wonderlands branded luxury goods" },
-          { emoji: "🏨", title: "Resort Partnerships", desc: "Design & brand high-end resort pool experiences across Florida & beyond" },
-          { emoji: "🌎", title: "Franchise Model", desc: "License the Wonderlands experience to operators in luxury markets nationwide" },
+          { Icon: UmbrellaOff, title: "Branded Products", desc: "Poolside furniture, umbrellas, floats — all Wonderlands branded luxury goods" },
+          { Icon: Hotel, title: "Resort Partnerships", desc: "Design & brand high-end resort pool experiences across Florida & beyond" },
+          { Icon: Globe, title: "Franchise Model", desc: "License the Wonderlands experience to operators in luxury markets nationwide" },
         ].map((item, i) => (
           <motion.div key={i} variants={fadeUp} className="p-10 rounded-3xl bg-white/10 backdrop-blur-sm border border-white/10 space-y-4 text-center">
-            <span className="text-5xl">{item.emoji}</span>
+            <item.Icon className="w-12 h-12 text-[hsl(45,100%,70%)] mx-auto" strokeWidth={1.5} />
             <h3 className="text-2xl font-bold text-white">{item.title}</h3>
             <p className="text-white/70 leading-relaxed">{item.desc}</p>
           </motion.div>
