@@ -883,11 +883,248 @@ const SolutionSection = () => {
     },
   ];
 
-  return (
-    <section className="relative py-28 overflow-hidden">
-      <SectionLogo />
-      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,6%)] via-[hsl(230,35%,10%)] to-[hsl(200,40%,8%)]" />
+  // Stars for night sky
+  const stars = Array.from({ length: 40 }, (_, i) => ({
+    x: (i * 17 + 7) % 100,
+    y: (i * 13 + 3) % 60,
+    size: 1 + (i % 3),
+    delay: (i * 0.3) % 4,
+  }));
 
+  return (
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <SectionLogo />
+
+      {/* === ANIMATED SKY: Night → Sunrise → Day === */}
+      {/* Night sky base */}
+      <motion.div
+        className="absolute inset-0"
+        style={{ background: "linear-gradient(180deg, hsl(230,40%,8%) 0%, hsl(240,30%,15%) 40%, hsl(250,25%,20%) 100%)" }}
+        initial={{ opacity: 1 }}
+        whileInView={{ opacity: [1, 0.6, 0] }}
+        viewport={{ once: true }}
+        transition={{ duration: 3, delay: 0.5, ease: "easeInOut" }}
+      />
+
+      {/* Sunrise gradient */}
+      <motion.div
+        className="absolute inset-0"
+        style={{ background: "linear-gradient(180deg, hsl(30,80%,55%) 0%, hsl(25,90%,60%) 25%, hsl(40,95%,65%) 50%, hsl(45,100%,75%) 100%)" }}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: [0, 0.8, 0.3] }}
+        viewport={{ once: true }}
+        transition={{ duration: 4, delay: 1.5, ease: "easeInOut" }}
+      />
+
+      {/* Day sky */}
+      <motion.div
+        className="absolute inset-0"
+        style={{ background: "linear-gradient(180deg, hsl(200,75%,55%) 0%, hsl(195,70%,60%) 40%, hsl(190,60%,70%) 70%, hsl(45,50%,85%) 100%)" }}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 2.5, delay: 3.5, ease: "easeIn" }}
+      />
+
+      {/* Stars that fade out */}
+      {stars.map((star, i) => (
+        <motion.div
+          key={`star-${i}`}
+          className="absolute rounded-full bg-white"
+          style={{ left: `${star.x}%`, top: `${star.y}%`, width: star.size, height: star.size }}
+          initial={{ opacity: 0.8 }}
+          whileInView={{ opacity: [0.8, 1, 0] }}
+          viewport={{ once: true }}
+          transition={{ duration: 2, delay: 1.5 + star.delay * 0.3, ease: "easeIn" }}
+          animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+        />
+      ))}
+
+      {/* Moon fading */}
+      <motion.div
+        className="absolute top-[10%] right-[15%]"
+        initial={{ opacity: 0.9, y: 0 }}
+        whileInView={{ opacity: [0.9, 0.5, 0], y: [0, -20, -60] }}
+        viewport={{ once: true }}
+        transition={{ duration: 3, delay: 1.5, ease: "easeIn" }}
+      >
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="25" fill="hsl(50,80%,90%)" />
+          <circle cx="38" cy="25" r="20" fill="hsl(230,40%,8%)" />
+        </svg>
+      </motion.div>
+
+      {/* Sun rising */}
+      <motion.div
+        className="absolute top-[20%] right-[20%]"
+        initial={{ opacity: 0, y: 100, scale: 0.5 }}
+        whileInView={{ opacity: [0, 0.3, 1], y: [100, 40, 0], scale: [0.5, 0.8, 1] }}
+        viewport={{ once: true }}
+        transition={{ duration: 3, delay: 2.5, ease: "easeOut" }}
+      >
+        <svg width="100" height="100" viewBox="0 0 100 100">
+          <motion.circle
+            cx="50" cy="50" r="35"
+            fill="hsl(45,100%,65%)"
+            animate={{ r: [35, 37, 35] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          />
+          {/* Sun rays */}
+          {Array.from({ length: 12 }, (_, i) => (
+            <motion.line
+              key={i}
+              x1="50" y1="8" x2="50" y2="2"
+              stroke="hsl(45,100%,70%)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              transform={`rotate(${i * 30} 50 50)`}
+              animate={{ opacity: [0.4, 1, 0.4], strokeWidth: [1.5, 2.5, 1.5] }}
+              transition={{ duration: 2, repeat: Infinity, delay: i * 0.15 }}
+            />
+          ))}
+        </svg>
+        {/* Sun glow */}
+        <motion.div
+          className="absolute inset-0 rounded-full"
+          style={{ background: "radial-gradient(circle, hsl(45,100%,70%) 0%, transparent 70%)" }}
+          animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        />
+      </motion.div>
+
+      {/* Horizon glow during sunrise */}
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 h-[40%]"
+        style={{ background: "linear-gradient(0deg, hsl(25,90%,60%) 0%, transparent 100%)" }}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: [0, 0.6, 0.2] }}
+        viewport={{ once: true }}
+        transition={{ duration: 3, delay: 2, ease: "easeInOut" }}
+      />
+
+      {/* Patio/landscape silhouette that appears in daylight */}
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 z-[5]"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 2, delay: 4, ease: "easeOut" }}
+      >
+        <svg viewBox="0 0 1200 300" className="w-full h-auto" preserveAspectRatio="xMidYMax slice">
+          {/* Ground / lawn */}
+          <rect x="0" y="200" width="1200" height="100" fill="hsl(120,35%,35%)" />
+          
+          {/* Pool */}
+          <motion.rect
+            x="350" y="210" width="300" height="60" rx="20"
+            fill="hsl(195,80%,55%)"
+            animate={{ fill: ["hsl(195,80%,55%)", "hsl(195,80%,60%)", "hsl(195,80%,55%)"] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          />
+          {/* Pool water shimmer lines */}
+          {[0, 1, 2, 3].map((j) => (
+            <motion.line
+              key={j}
+              x1={380 + j * 60} y1="230" x2={410 + j * 60} y2="230"
+              stroke="hsl(195,90%,80%)" strokeWidth="1.5" strokeLinecap="round"
+              animate={{ opacity: [0.3, 0.8, 0.3], x1: [380 + j * 60, 385 + j * 60, 380 + j * 60] }}
+              transition={{ duration: 2, repeat: Infinity, delay: j * 0.4 }}
+            />
+          ))}
+          {/* Pool border / coping */}
+          <rect x="345" y="205" width="310" height="70" rx="22" stroke="hsl(40,20%,85%)" strokeWidth="3" fill="none" />
+
+          {/* Patio deck */}
+          <rect x="250" y="195" width="500" height="10" rx="2" fill="hsl(30,40%,55%)" />
+          
+          {/* Pergola structure */}
+          <rect x="700" y="130" width="8" height="70" fill="hsl(25,35%,40%)" />
+          <rect x="900" y="130" width="8" height="70" fill="hsl(25,35%,40%)" />
+          <rect x="690" y="125" width="228" height="8" rx="2" fill="hsl(25,35%,45%)" />
+          {/* Pergola slats */}
+          {[0, 1, 2, 3, 4].map((s) => (
+            <rect key={s} x={710 + s * 40} y="120" width="20" height="5" rx="1" fill="hsl(25,35%,42%)" />
+          ))}
+
+          {/* Outdoor kitchen counter */}
+          <rect x="720" y="170" width="160" height="30" rx="4" fill="hsl(220,10%,40%)" />
+          <rect x="730" y="165" width="30" height="8" rx="2" fill="hsl(0,0%,30%)" /> {/* grill */}
+          
+          {/* Lounge chairs */}
+          <rect x="270" y="185" width="50" height="12" rx="3" fill="hsl(30,50%,65%)" />
+          <rect x="270" y="180" width="15" height="8" rx="2" fill="hsl(30,50%,60%)" />
+          <rect x="180" y="185" width="50" height="12" rx="3" fill="hsl(30,50%,65%)" />
+          <rect x="180" y="180" width="15" height="8" rx="2" fill="hsl(30,50%,60%)" />
+
+          {/* Umbrella */}
+          <line x1="210" y1="140" x2="210" y2="185" stroke="hsl(25,30%,35%)" strokeWidth="3" />
+          <motion.path
+            d="M180 145 Q210 120 240 145"
+            fill="hsl(0,65%,55%)" stroke="none"
+            animate={{ d: ["M180 145 Q210 120 240 145", "M180 143 Q210 118 240 143", "M180 145 Q210 120 240 145"] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+
+          {/* Palm trees */}
+          <line x1="100" y1="120" x2="100" y2="200" stroke="hsl(30,40%,35%)" strokeWidth="6" strokeLinecap="round" />
+          <motion.path
+            d="M100 120 Q120 90 140 110" stroke="hsl(140,50%,35%)" strokeWidth="4" fill="none" strokeLinecap="round"
+            animate={{ d: ["M100 120 Q120 90 140 110", "M100 120 Q125 88 145 108", "M100 120 Q120 90 140 110"] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.path
+            d="M100 120 Q80 85 60 105" stroke="hsl(140,50%,35%)" strokeWidth="4" fill="none" strokeLinecap="round"
+            animate={{ d: ["M100 120 Q80 85 60 105", "M100 120 Q75 83 55 103", "M100 120 Q80 85 60 105"] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+          />
+          <motion.path
+            d="M100 125 Q130 100 145 125" stroke="hsl(140,45%,40%)" strokeWidth="3" fill="none" strokeLinecap="round"
+            animate={{ d: ["M100 125 Q130 100 145 125", "M100 125 Q135 98 150 123", "M100 125 Q130 100 145 125"] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          />
+
+          {/* Second palm */}
+          <line x1="1100" y1="130" x2="1100" y2="200" stroke="hsl(30,40%,35%)" strokeWidth="5" strokeLinecap="round" />
+          <motion.path
+            d="M1100 130 Q1120 100 1140 120" stroke="hsl(140,50%,35%)" strokeWidth="3.5" fill="none" strokeLinecap="round"
+            animate={{ d: ["M1100 130 Q1120 100 1140 120", "M1100 130 Q1125 98 1145 118", "M1100 130 Q1120 100 1140 120"] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.path
+            d="M1100 130 Q1080 95 1060 115" stroke="hsl(140,50%,35%)" strokeWidth="3.5" fill="none" strokeLinecap="round"
+            animate={{ d: ["M1100 130 Q1080 95 1060 115", "M1100 130 Q1075 93 1055 113", "M1100 130 Q1080 95 1060 115"] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+          />
+
+          {/* Fence */}
+          {Array.from({ length: 8 }, (_, f) => (
+            <rect key={f} x={20 + f * 18} y="175" width="4" height="25" rx="1" fill="hsl(30,25%,50%)" />
+          ))}
+          <rect x="15" y="182" width="150" height="3" rx="1" fill="hsl(30,25%,48%)" />
+
+          {/* Landscape lights (tiny glowing dots) */}
+          {[280, 370, 460, 660, 750, 850].map((lx, li) => (
+            <motion.circle
+              key={li}
+              cx={lx} cy="198" r="2"
+              fill="hsl(45,100%,75%)"
+              animate={{ opacity: [0.4, 1, 0.4], r: [2, 3, 2] }}
+              transition={{ duration: 2, repeat: Infinity, delay: li * 0.1 }}
+            />
+          ))}
+        </svg>
+      </motion.div>
+
+      {/* Dark overlay for text readability during day */}
+      <motion.div
+        className="absolute inset-0 bg-black/40 z-[6]"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: [0, 0, 0.5] }}
+        viewport={{ once: true }}
+        transition={{ duration: 2, delay: 4 }}
+      />
+
+      {/* Content */}
       <motion.div
         variants={stagger}
         initial="hidden"
@@ -896,16 +1133,15 @@ const SolutionSection = () => {
         className="relative z-10 container mx-auto px-6"
       >
         <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-3 text-center">The Solution</motion.p>
-        <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-4 text-center">
+        <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl lg:text-7xl font-black text-white mb-4 text-center drop-shadow-lg">
           From Dream to Reality
         </motion.h2>
-        <motion.p variants={fadeUp} className="text-white/50 text-center text-lg mb-16 max-w-2xl mx-auto">
+        <motion.p variants={fadeUp} className="text-white/70 text-center text-lg mb-16 max-w-2xl mx-auto drop-shadow">
           We don't just build pools — we craft luxury outdoor experiences from the first sketch to the final reveal.
         </motion.p>
 
-        {/* Animated timeline */}
+        {/* Phase cards */}
         <div className="relative">
-          {/* Connecting line */}
           <div className="hidden md:block absolute top-1/2 left-0 right-0 h-[2px] -translate-y-1/2 z-0">
             <motion.div
               initial={{ scaleX: 0 }}
@@ -926,8 +1162,7 @@ const SolutionSection = () => {
                 transition={{ duration: 0.7, delay: 0.3 + i * 0.25, ease: [0.25, 0.1, 0.25, 1] }}
                 className="group"
               >
-                <div className="relative rounded-3xl overflow-hidden bg-white/[0.04] border border-white/10 backdrop-blur-sm">
-                  {/* Image with overlay */}
+                <div className="relative rounded-3xl overflow-hidden bg-black/40 border border-white/15 backdrop-blur-md shadow-2xl">
                   <div className="relative h-52 overflow-hidden">
                     <motion.img
                       src={phase.img}
@@ -999,9 +1234,9 @@ const SolutionSection = () => {
           transition={{ duration: 0.6, delay: 1.2 }}
           className="mt-16 text-center"
         >
-          <div className="inline-flex items-center gap-4 px-8 py-4 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-sm">
+          <div className="inline-flex items-center gap-4 px-8 py-4 rounded-full bg-black/30 border border-white/15 backdrop-blur-md shadow-lg">
             <Sparkles className="w-5 h-5 text-[hsl(45,100%,70%)]" />
-            <p className="text-white/70 text-sm">
+            <p className="text-white/80 text-sm">
               Every project is a <span className="text-white font-bold">one-of-a-kind luxury experience</span> — not just construction.
             </p>
           </div>
