@@ -302,11 +302,11 @@ const ApproachSection = () => {
           {/* SVG curvy path */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none hidden md:block" viewBox="0 0 1000 320" fill="none" preserveAspectRatio="none">
             <path
-              d="M 80 80 C 200 80, 200 240, 380 240 S 560 80, 680 80 S 860 240, 920 240"
+              d="M 60 160 C 180 120, 280 200, 400 160 S 620 120, 740 160 S 880 200, 940 160"
               stroke="hsl(45,100%,70%)"
-              strokeWidth="3"
-              strokeDasharray="12 8"
-              opacity="0.4"
+              strokeWidth="2.5"
+              strokeDasharray="10 6"
+              opacity="0.35"
               fill="none"
             />
           </svg>
@@ -317,7 +317,7 @@ const ApproachSection = () => {
               <motion.div
                 key={step.label}
                 variants={fadeUp}
-                className={`flex flex-col items-center text-center ${i % 2 === 1 ? "md:mt-24" : ""}`}
+                className={`flex flex-col items-center text-center ${i % 2 === 1 ? "md:mt-12" : ""}`}
               >
                 <div className="w-20 h-20 rounded-full bg-white/15 backdrop-blur-sm border-2 border-[hsl(45,100%,70%)]/50 flex items-center justify-center mb-4 shadow-lg shadow-black/20">
                   <step.icon className="w-9 h-9 text-[hsl(45,100%,70%)]" strokeWidth={1.5} />
