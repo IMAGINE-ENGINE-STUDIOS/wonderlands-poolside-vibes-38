@@ -698,50 +698,7 @@ const SolutionSection = () => {
             <rect key={`paver-${p}`} x={285 + p * 54} y="196" width="50" height="10" rx="1" stroke="hsl(30,25%,55%)" strokeWidth="0.5" fill="none" />
           ))}
 
-          {/* Pool - freeform shape */}
-          <motion.path
-            d="M320 240 Q350 215 450 215 Q550 210 600 220 Q650 228 670 245 Q680 270 650 280 Q600 290 500 288 Q400 290 350 280 Q310 268 320 240 Z"
-            fill="url(#poolGrad)"
-            animate={{ fill: ["url(#poolGrad)", "url(#poolGrad)"] }}
-          />
-          {/* Pool inner glow */}
-          <motion.path
-            d="M340 245 Q370 225 450 225 Q540 220 590 230 Q640 240 650 255 Q658 270 635 275 Q590 282 500 280 Q410 282 365 275 Q330 265 340 245 Z"
-            fill="url(#skyReflect)"
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          />
-          {/* Pool water shimmer waves */}
-          {[0, 1, 2, 3, 4, 5].map((j) => (
-            <motion.path
-              key={`shimmer-${j}`}
-              d={`M${360 + j * 50} ${245 + (j % 2) * 10} Q${375 + j * 50} ${240 + (j % 2) * 10} ${390 + j * 50} ${245 + (j % 2) * 10}`}
-              stroke="hsl(195,90%,85%)" strokeWidth="1" strokeLinecap="round" fill="none"
-              animate={{ opacity: [0.2, 0.7, 0.2], strokeWidth: [0.5, 1.5, 0.5] }}
-              transition={{ duration: 2.5, repeat: Infinity, delay: j * 0.4 }}
-            />
-          ))}
-          {/* Pool coping - premium stone */}
-          <path
-            d="M315 238 Q345 210 450 210 Q555 205 605 218 Q660 226 675 243 Q688 272 655 285 Q605 296 500 294 Q395 296 345 285 Q305 270 315 238 Z"
-            stroke="hsl(35,30%,80%)" strokeWidth="4" fill="none" strokeLinejoin="round"
-          />
 
-          {/* Spa / hot tub attached */}
-          <motion.circle cx="690" cy="250" r="30" fill="hsl(200,75%,48%)"
-            animate={{ fill: ["hsl(200,75%,48%)", "hsl(200,80%,52%)", "hsl(200,75%,48%)"] }}
-            transition={{ duration: 3, repeat: Infinity }}
-          />
-          <circle cx="690" cy="250" r="30" stroke="hsl(35,30%,78%)" strokeWidth="3" fill="none" />
-          {/* Spa bubbles */}
-          {[0, 1, 2, 3].map((b) => (
-            <motion.circle key={`bubble-${b}`}
-              cx={680 + b * 8} cy={248 + (b % 2) * 5} r="2"
-              fill="hsl(195,90%,85%)"
-              animate={{ opacity: [0.3, 0.8, 0.3], cy: [248 + (b % 2) * 5, 244 + (b % 2) * 5, 248 + (b % 2) * 5] }}
-              transition={{ duration: 1.5, repeat: Infinity, delay: b * 0.3 }}
-            />
-          ))}
 
           {/* Pergola - detailed */}
           <rect x="770" y="130" width="10" height="90" rx="2" fill="hsl(20,40%,35%)" />
@@ -831,9 +788,9 @@ const SolutionSection = () => {
             transition={{ duration: 2, repeat: Infinity }}
           />
 
-          {/* Palm tree left - lush */}
-          <path d="M96 200 Q98 170 100 120" stroke="hsl(28,45%,32%)" strokeWidth="8" fill="none" strokeLinecap="round" />
-          <path d="M98 160 Q96 150 100 140" stroke="hsl(28,40%,35%)" strokeWidth="6" fill="none" />
+          {/* Palm tree left - grounded to floor */}
+          <path d="M96 350 Q97 280 98 200 Q99 160 100 120" stroke="hsl(28,45%,32%)" strokeWidth="8" fill="none" strokeLinecap="round" />
+          <path d="M98 200 Q96 180 100 160" stroke="hsl(28,40%,35%)" strokeWidth="6" fill="none" />
           {[
             { d: "M100 120 Q130 85 155 105", delay: 0 },
             { d: "M100 120 Q70 80 45 100", delay: 0.5 },
@@ -851,8 +808,8 @@ const SolutionSection = () => {
           <circle cx="105" cy="122" r="4" fill="hsl(30,50%,30%)" />
           <circle cx="95" cy="125" r="3.5" fill="hsl(30,50%,28%)" />
 
-          {/* Palm tree right */}
-          <path d="M1096 200 Q1098 165 1100 125" stroke="hsl(28,45%,32%)" strokeWidth="7" fill="none" strokeLinecap="round" />
+          {/* Palm tree right - grounded to floor */}
+          <path d="M1096 350 Q1097 280 1098 200 Q1099 165 1100 125" stroke="hsl(28,45%,32%)" strokeWidth="7" fill="none" strokeLinecap="round" />
           {[
             { d: "M1100 125 Q1130 90 1155 110", delay: 0.2 },
             { d: "M1100 125 Q1070 85 1045 105", delay: 0.6 },
