@@ -1,6 +1,6 @@
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Linkedin, Waves, Palmtree, Sparkles, Moon, Palette, Hammer, Droplets, Flame, Sun, Home, Leaf, BrickWall, Lock, ShieldCheck, DoorOpen, PaintBucket, Building2, UmbrellaOff, Hotel, Globe, ArrowRight, Lightbulb, ClipboardList, FileCheck, HardHat, CookingPot, Fence, TreePine } from "lucide-react";
+import { Linkedin, Waves, Palmtree, Sparkles, Moon, Palette, Hammer, Droplets, Flame, Sun, Home, Leaf, BrickWall, Lock, ShieldCheck, DoorOpen, PaintBucket, Building2, UmbrellaOff, Hotel, Globe, ArrowRight, Lightbulb, ClipboardList, FileCheck, HardHat, CookingPot, Fence, TreePine, TrendingUp, DollarSign, Users } from "lucide-react";
 
 // Pool & asset images
 import olympiaPool from "@/assets/pools/olympia-12-optimized.webp";
@@ -117,61 +117,43 @@ const ProblemSection = () => (
   </section>
 );
 
-const OpportunitySection = () => (
-  <section className="relative py-32 overflow-hidden">
-    <SectionLogo />
-    <div className="absolute inset-0 bg-gradient-to-b from-[hsl(220,40%,12%)] to-[hsl(260,50%,18%)]" />
-    <img src={fijiPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10" />
-    <motion.div
-      variants={stagger}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
-      className="relative z-10 container mx-auto px-6"
-    >
-      <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4 text-center">The Opportunity</motion.p>
-      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
-        Florida's Luxury Market Is Exploding
-      </motion.h2>
-      <div className="grid md:grid-cols-2 gap-12 items-center">
-        <motion.div variants={fadeUp} className="space-y-6">
-          {[
-            "High net-worth relocation to Florida at all-time highs",
-            "Year-round outdoor living climate",
-            "Demand for Instagram-worthy luxury spaces",
-            "$4.2B+ residential pool market in Florida",
-          ].map((text, i) => (
-            <div key={i} className="flex items-start gap-4">
-              <span className="text-[hsl(25,90%,60%)] text-2xl mt-0.5">→</span>
-              <p className="text-white/85 text-xl">{text}</p>
-            </div>
-          ))}
-        </motion.div>
-        <motion.div variants={fadeUp} className="flex justify-center">
-          <div className="w-72 h-72 rounded-full bg-gradient-to-br from-[hsl(25,90%,55%)] to-[hsl(340,70%,50%)] flex items-center justify-center shadow-2xl">
-            <div className="text-center">
-              <p className="text-6xl font-black text-white">$4.2B+</p>
-              <p className="text-white/70 mt-2">FL Pool Market</p>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </motion.div>
-  </section>
-);
-
-const MarketCapSection = () => {
-  const markets = [
-    { label: "Florida Pool Market", value: "$4.2B", bar: 100, color: "from-[hsl(200,70%,50%)] to-[hsl(173,58%,39%)]" },
-    { label: "Luxury Outdoor Living", value: "$12.8B", bar: 85, color: "from-[hsl(25,90%,55%)] to-[hsl(12,76%,50%)]" },
-    { label: "Outdoor Design Services", value: "$8.5B", bar: 65, color: "from-[hsl(340,70%,50%)] to-[hsl(280,50%,45%)]" },
-    { label: "General Outdoor Market", value: "$28B+", bar: 50, color: "from-[hsl(45,100%,55%)] to-[hsl(25,85%,50%)]" },
+const MarketOpportunitySection = () => {
+  const pieSegments = [
+    { label: "New Construction", pct: 42, value: "$1.76B", color: "hsl(200,70%,50%)" },
+    { label: "Renovation", pct: 28, value: "$1.18B", color: "hsl(25,90%,55%)" },
+    { label: "Maintenance", pct: 18, value: "$756M", color: "hsl(173,58%,39%)" },
+    { label: "Accessories & Tech", pct: 12, value: "$504M", color: "hsl(45,100%,60%)" },
   ];
 
+  const growthMetrics = [
+    { label: "FL Population Growth", value: "+1,000", unit: "people/day", icon: TrendingUp },
+    { label: "Luxury Home Permits", value: "+34%", unit: "YoY 2024", icon: Home },
+    { label: "Avg. Project Value", value: "$150K", unit: "per project", icon: DollarSign },
+    { label: "Repeat Customer Rate", value: "68%", unit: "within 3 yrs", icon: Users },
+  ];
+
+  const marketBars = [
+    { label: "Florida Pool & Spa", value: "$4.2B", width: 100, growth: "+8.3%" },
+    { label: "Outdoor Living (SE US)", value: "$12.8B", width: 78, growth: "+11.2%" },
+    { label: "Design Services", value: "$8.5B", width: 55, growth: "+15.7%" },
+    { label: "Total Addressable", value: "$28B+", width: 42, growth: "+9.8%" },
+  ];
+
+  // SVG donut chart
+  const radius = 80;
+  const circumference = 2 * Math.PI * radius;
+  let cumulativeOffset = 0;
+
   return (
-    <section className="relative py-32 overflow-hidden">
+    <section className="relative py-28 overflow-hidden">
       <SectionLogo />
-      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,8%)] via-[hsl(230,35%,12%)] to-[hsl(200,40%,10%)]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,6%)] via-[hsl(230,35%,10%)] to-[hsl(200,40%,8%)]" />
+      {/* Subtle grid pattern */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: 'linear-gradient(hsl(0,0%,100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0,0%,100%) 1px, transparent 1px)',
+        backgroundSize: '60px 60px'
+      }} />
+
       <motion.div
         variants={stagger}
         initial="hidden"
@@ -179,45 +161,124 @@ const MarketCapSection = () => {
         viewport={{ once: true, margin: "-100px" }}
         className="relative z-10 container mx-auto px-6"
       >
-        <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4 text-center">Market Size</motion.p>
-        <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-20 text-center">
-          Market Capitalization
+        <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-3 text-center">Market Opportunity</motion.p>
+        <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-6 text-center">
+          A $28B+ Outdoor Living Market
         </motion.h2>
+        <motion.p variants={fadeUp} className="text-white/50 text-center text-lg mb-16 max-w-2xl mx-auto">
+          Florida leads U.S. growth in luxury outdoor construction, fueled by record migration and year-round climate demand.
+        </motion.p>
 
-        <div className="max-w-4xl mx-auto space-y-8">
-          {markets.map((m, i) => (
-            <motion.div key={m.label} variants={fadeUp} className="space-y-3">
-              <div className="flex justify-between items-end">
-                <p className="text-white/80 text-lg font-medium">{m.label}</p>
-                <p className="text-3xl md:text-4xl font-black text-white">{m.value}</p>
+        {/* Top row: KPI cards */}
+        <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+          {growthMetrics.map((m) => (
+            <div key={m.label} className="relative p-5 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-sm overflow-hidden group">
+              <div className="absolute top-3 right-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                <m.icon className="w-12 h-12 text-white" />
               </div>
-              <div className="w-full h-4 rounded-full bg-white/10 overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  whileInView={{ width: `${m.bar}%` }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 1.2, delay: i * 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-                  className={`h-full rounded-full bg-gradient-to-r ${m.color}`}
-                />
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* TAM / SAM / SOM bubbles */}
-        <motion.div variants={fadeUp} className="mt-20 flex flex-col md:flex-row items-center justify-center gap-8">
-          {[
-            { label: "TAM", sublabel: "Total Addressable", value: "$28B+", size: "w-48 h-48" },
-            { label: "SAM", sublabel: "Serviceable Available", value: "$4.2B", size: "w-40 h-40" },
-            { label: "SOM", sublabel: "Serviceable Obtainable", value: "$120M", size: "w-32 h-32" },
-          ].map((bubble) => (
-            <div key={bubble.label} className={`${bubble.size} rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/15 flex flex-col items-center justify-center backdrop-blur-sm`}>
-              <p className="text-[hsl(45,100%,70%)] text-xs tracking-widest uppercase font-medium">{bubble.label}</p>
-              <p className="text-2xl md:text-3xl font-black text-white mt-1">{bubble.value}</p>
-              <p className="text-white/40 text-[10px] mt-1">{bubble.sublabel}</p>
+              <p className="text-white/50 text-xs uppercase tracking-wider mb-2">{m.label}</p>
+              <p className="text-3xl md:text-4xl font-black text-white leading-none">{m.value}</p>
+              <p className="text-[hsl(173,58%,55%)] text-sm mt-1 font-medium">{m.unit}</p>
             </div>
           ))}
         </motion.div>
+
+        <div className="grid md:grid-cols-2 gap-12 items-start">
+          {/* Left: Donut chart - FL Pool Market Breakdown */}
+          <motion.div variants={fadeUp} className="flex flex-col items-center">
+            <h3 className="text-white/70 text-sm uppercase tracking-widest mb-8">Florida Pool Market — $4.2B Breakdown</h3>
+            <div className="relative">
+              <svg width="220" height="220" viewBox="0 0 220 220">
+                {pieSegments.map((seg, i) => {
+                  const segLength = (seg.pct / 100) * circumference;
+                  const offset = cumulativeOffset;
+                  cumulativeOffset += segLength;
+                  return (
+                    <motion.circle
+                      key={seg.label}
+                      cx="110" cy="110" r={radius}
+                      fill="none"
+                      stroke={seg.color}
+                      strokeWidth="28"
+                      strokeDasharray={`${segLength} ${circumference - segLength}`}
+                      strokeDashoffset={-offset}
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.3 + i * 0.15 }}
+                      style={{ transformOrigin: '110px 110px', transform: 'rotate(-90deg)' }}
+                    />
+                  );
+                })}
+                <text x="110" y="102" textAnchor="middle" fill="white" fontSize="28" fontWeight="900">$4.2B</text>
+                <text x="110" y="124" textAnchor="middle" fill="hsl(0,0%,60%)" fontSize="11">FL POOL MARKET</text>
+              </svg>
+            </div>
+            {/* Legend */}
+            <div className="grid grid-cols-2 gap-x-8 gap-y-3 mt-8">
+              {pieSegments.map((seg) => (
+                <div key={seg.label} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: seg.color }} />
+                  <div>
+                    <p className="text-white/80 text-sm">{seg.label}</p>
+                    <p className="text-white/40 text-xs">{seg.value} ({seg.pct}%)</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Right: Market size bars with growth badges */}
+          <motion.div variants={fadeUp} className="space-y-6">
+            <h3 className="text-white/70 text-sm uppercase tracking-widest mb-8">Addressable Market Tiers</h3>
+            {marketBars.map((m, i) => (
+              <div key={m.label} className="space-y-2">
+                <div className="flex justify-between items-baseline">
+                  <p className="text-white/80 text-sm font-medium">{m.label}</p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[hsl(173,58%,55%)] text-xs font-semibold bg-[hsl(173,58%,39%)]/15 px-2 py-0.5 rounded-full">{m.growth}</span>
+                    <p className="text-2xl font-black text-white">{m.value}</p>
+                  </div>
+                </div>
+                <div className="w-full h-3 rounded-full bg-white/[0.06] overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    whileInView={{ width: `${m.width}%` }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1.2, delay: 0.3 + i * 0.15, ease: [0.25, 0.1, 0.25, 1] }}
+                    className="h-full rounded-full bg-gradient-to-r from-[hsl(200,70%,50%)] to-[hsl(25,90%,55%)]"
+                  />
+                </div>
+              </div>
+            ))}
+
+            {/* TAM / SAM / SOM inline */}
+            <div className="mt-10 pt-8 border-t border-white/10">
+              <p className="text-white/40 text-xs uppercase tracking-widest mb-5">Our Position</p>
+              <div className="flex items-end justify-between gap-4">
+                {[
+                  { label: "TAM", value: "$28B+", h: "h-28", sub: "Total Market" },
+                  { label: "SAM", value: "$4.2B", h: "h-20", sub: "Florida Focus" },
+                  { label: "SOM", value: "$120M", h: "h-14", sub: "Year 5 Target" },
+                ].map((b) => (
+                  <motion.div
+                    key={b.label}
+                    initial={{ scaleY: 0 }}
+                    whileInView={{ scaleY: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+                    className="flex-1 flex flex-col items-center origin-bottom"
+                  >
+                    <p className="text-xl font-black text-white mb-2">{b.value}</p>
+                    <div className={`w-full ${b.h} rounded-t-xl bg-gradient-to-t from-[hsl(200,70%,50%)]/30 to-[hsl(45,100%,60%)]/20 border border-white/10`} />
+                    <p className="text-[hsl(45,100%,70%)] text-xs font-bold mt-2">{b.label}</p>
+                    <p className="text-white/35 text-[10px]">{b.sub}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </motion.div>
     </section>
   );
@@ -697,8 +758,7 @@ const InvestorDeck = () => (
     <HeroSection />
     <VisionSection />
     <ProblemSection />
-    <OpportunitySection />
-    <MarketCapSection />
+    <MarketOpportunitySection />
     <SolutionSection />
     <ApproachSection />
     <PoolShowcaseSection />
