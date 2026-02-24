@@ -57,188 +57,84 @@ const HeroSection = () => (
 );
 
 const SwimmerCharacter = () => {
-  // Realistic swimmer doing a relaxed breaststroke from bottom-right corner across
   return (
     <motion.div
       className="absolute bottom-[15%] right-[-5%] z-10"
       initial={{ x: 0, y: 0 }}
       animate={{
-        x: [-0, -300, -600, -900],
+        x: [0, -300, -600, -900],
         y: [0, -40, -20, -60],
       }}
-      transition={{
-        duration: 12,
-        repeat: Infinity,
-        ease: "linear",
-      }}
+      transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
     >
-      <svg width="200" height="100" viewBox="0 0 200 100" fill="none">
-        {/* Water line around swimmer */}
+      <svg width="120" height="70" viewBox="0 0 120 70" fill="none">
+        {/* Water ripple around swimmer */}
         <motion.path
-          d="M10 55 Q30 48 50 55 Q70 62 90 55 Q110 48 130 55 Q150 62 170 55 Q185 50 200 55"
-          stroke="hsl(195,90%,75%)"
-          strokeWidth="1.5"
-          fill="none"
-          opacity="0.4"
+          d="M5 40 Q20 34 35 40 Q50 46 65 40 Q80 34 95 40 Q105 44 115 40"
+          stroke="hsl(195,90%,75%)" strokeWidth="1.2" fill="none" opacity="0.4"
           animate={{ d: [
-            "M10 55 Q30 48 50 55 Q70 62 90 55 Q110 48 130 55 Q150 62 170 55 Q185 50 200 55",
-            "M10 55 Q30 62 50 55 Q70 48 90 55 Q110 62 130 55 Q150 48 170 55 Q185 60 200 55",
-            "M10 55 Q30 48 50 55 Q70 62 90 55 Q110 48 130 55 Q150 62 170 55 Q185 50 200 55",
+            "M5 40 Q20 34 35 40 Q50 46 65 40 Q80 34 95 40 Q105 44 115 40",
+            "M5 40 Q20 46 35 40 Q50 34 65 40 Q80 46 95 40 Q105 36 115 40",
+            "M5 40 Q20 34 35 40 Q50 46 65 40 Q80 34 95 40 Q105 44 115 40",
           ]}}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         />
 
-        {/* Head */}
-        <motion.ellipse
-          cx="120" cy="42" rx="10" ry="11"
-          fill="hsl(28,55%,65%)"
-          animate={{ cy: [42, 40, 42] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        {/* Head - big round cute */}
+        <motion.circle cx="75" cy="28" r="12" fill="hsl(28,55%,65%)"
+          animate={{ cy: [28, 26, 28] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         />
-        {/* Hair */}
-        <motion.ellipse
-          cx="120" cy="35" rx="9" ry="5"
-          fill="hsl(30,30%,25%)"
-          animate={{ cy: [35, 33, 35] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        {/* Hair tuft */}
+        <motion.path d="M68 19 Q74 14 80 18" stroke="hsl(25,30%,22%)" strokeWidth="2.5" fill="none" strokeLinecap="round"
+          animate={{ d: ["M68 19 Q74 14 80 18", "M68 17 Q74 12 80 16", "M68 19 Q74 14 80 18"] }}
+          transition={{ duration: 2, repeat: Infinity }}
         />
-        {/* Swim cap detail */}
-        <motion.path
-          d="M111 38 Q120 28 129 38"
-          fill="hsl(200,80%,50%)"
-          animate={{ d: ["M111 38 Q120 28 129 38", "M111 36 Q120 26 129 36", "M111 38 Q120 28 129 38"] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        {/* Eyes - dots */}
+        <motion.circle cx="71" cy="27" r="2" fill="hsl(220,40%,20%)"
+          animate={{ cy: [27, 25, 27] }} transition={{ duration: 2, repeat: Infinity }}
         />
-
-        {/* Torso - slightly submerged */}
-        <motion.ellipse
-          cx="100" cy="52" rx="22" ry="8"
-          fill="hsl(28,55%,62%)"
-          animate={{ ry: [8, 9, 8] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        <motion.circle cx="79" cy="27" r="2" fill="hsl(220,40%,20%)"
+          animate={{ cy: [27, 25, 27] }} transition={{ duration: 2, repeat: Infinity }}
+        />
+        {/* Happy smile */}
+        <motion.path d="M71 33 Q75 36 79 33" stroke="hsl(0,40%,40%)" strokeWidth="1.2" fill="none" strokeLinecap="round"
+          animate={{ d: ["M71 33 Q75 36 79 33", "M71 31 Q75 34 79 31", "M71 33 Q75 36 79 33"] }}
+          transition={{ duration: 2, repeat: Infinity }}
         />
 
-        {/* Swim trunks / suit */}
-        <motion.rect
-          x="78" y="48" width="20" height="10" rx="5"
-          fill="hsl(340,65%,50%)"
-          animate={{ y: [48, 47, 48] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        {/* Body - simple line, half in water */}
+        <motion.line x1="70" y1="40" x2="45" y2="42" stroke="hsl(340,65%,50%)" strokeWidth="5" strokeLinecap="round"
+          animate={{ y1: [40, 38, 40] }} transition={{ duration: 2, repeat: Infinity }}
         />
 
-        {/* Right arm - breaststroke motion */}
-        <motion.path
-          d="M118 48 Q140 35 150 50"
-          stroke="hsl(28,55%,62%)"
-          strokeWidth="5"
-          strokeLinecap="round"
-          fill="none"
-          animate={{
-            d: [
-              "M118 48 Q140 35 150 50",
-              "M118 48 Q145 42 135 55",
-              "M118 48 Q130 55 115 58",
-              "M118 48 Q140 35 150 50",
-            ],
-          }}
+        {/* Right arm - stroke motion */}
+        <motion.line x1="72" y1="38" x2="90" y2="32" stroke="hsl(28,55%,62%)" strokeWidth="3.5" strokeLinecap="round"
+          animate={{ x2: [90, 82, 68, 90], y2: [32, 40, 44, 32] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         />
-        {/* Right hand */}
-        <motion.circle
-          cx="150" cy="50" r="4"
-          fill="hsl(28,55%,60%)"
-          animate={{
-            cx: [150, 135, 115, 150],
-            cy: [50, 55, 58, 50],
-          }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        />
-
-        {/* Left arm - breaststroke motion (opposite phase) */}
-        <motion.path
-          d="M82 48 Q60 35 50 50"
-          stroke="hsl(28,55%,62%)"
-          strokeWidth="5"
-          strokeLinecap="round"
-          fill="none"
-          animate={{
-            d: [
-              "M82 48 Q60 35 50 50",
-              "M82 48 Q55 42 65 55",
-              "M82 48 Q70 55 85 58",
-              "M82 48 Q60 35 50 50",
-            ],
-          }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        />
-        {/* Left hand */}
-        <motion.circle
-          cx="50" cy="50" r="4"
-          fill="hsl(28,55%,60%)"
-          animate={{
-            cx: [50, 65, 85, 50],
-            cy: [50, 55, 58, 50],
-          }}
+        {/* Left arm */}
+        <motion.line x1="58" y1="42" x2="40" y2="35" stroke="hsl(28,55%,62%)" strokeWidth="3.5" strokeLinecap="round"
+          animate={{ x2: [40, 48, 60, 40], y2: [35, 43, 46, 35] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         />
 
         {/* Legs - gentle kick */}
-        <motion.path
-          d="M78 54 Q65 65 60 75"
-          stroke="hsl(28,55%,60%)"
-          strokeWidth="4.5"
-          strokeLinecap="round"
-          fill="none"
-          animate={{
-            d: [
-              "M78 54 Q65 65 60 75",
-              "M78 54 Q68 68 65 72",
-              "M78 54 Q62 62 55 78",
-              "M78 54 Q65 65 60 75",
-            ],
-          }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        <motion.line x1="45" y1="42" x2="30" y2="50" stroke="hsl(28,55%,60%)" strokeWidth="3" strokeLinecap="round"
+          animate={{ x2: [30, 35, 25, 30], y2: [50, 45, 55, 50] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
         />
-        <motion.path
-          d="M80 56 Q70 68 68 78"
-          stroke="hsl(28,55%,60%)"
-          strokeWidth="4.5"
-          strokeLinecap="round"
-          fill="none"
-          animate={{
-            d: [
-              "M80 56 Q70 68 68 78",
-              "M80 56 Q62 62 55 75",
-              "M80 56 Q72 70 72 74",
-              "M80 56 Q70 68 68 78",
-            ],
-          }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+        <motion.line x1="45" y1="44" x2="32" y2="55" stroke="hsl(28,55%,60%)" strokeWidth="3" strokeLinecap="round"
+          animate={{ x2: [32, 26, 38, 32], y2: [55, 50, 58, 55] }}
+          transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
         />
 
-        {/* Splash / wake behind swimmer */}
-        <motion.g opacity="0.5">
-          {[0, 1, 2, 3].map((j) => (
-            <motion.circle
-              key={j}
-              cx={55 - j * 15}
-              cy={55}
-              r={2 + j}
-              fill="white"
-              animate={{
-                opacity: [0.6, 0.2, 0],
-                r: [2 + j, 4 + j * 2, 6 + j * 3],
-                cx: [55 - j * 15, 45 - j * 18, 35 - j * 20],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                delay: j * 0.3,
-                ease: "easeOut",
-              }}
-            />
-          ))}
-        </motion.g>
+        {/* Wake splash dots */}
+        {[0, 1, 2].map((j) => (
+          <motion.circle key={j} cx={35 - j * 12} cy={40} r={1.5 + j * 0.5} fill="white"
+            animate={{ opacity: [0.5, 0.1, 0], cx: [35 - j * 12, 28 - j * 14, 20 - j * 16] }}
+            transition={{ duration: 2, repeat: Infinity, delay: j * 0.3 }}
+          />
+        ))}
       </svg>
     </motion.div>
   );
@@ -406,86 +302,55 @@ const VisionSection = () => {
 
 const WaitingCharacter = () => (
   <div className="absolute bottom-[12%] left-[6%] z-30 md:left-[4%]">
-    <svg width="160" height="220" viewBox="0 0 160 220" fill="none">
+    <svg width="90" height="130" viewBox="0 0 90 130" fill="none">
       {/* Shadow */}
-      <ellipse cx="80" cy="212" rx="35" ry="6" fill="hsl(0,0%,0%)" opacity="0.2" />
-
-      {/* Legs - sitting on invisible chair, crossed */}
-      <motion.line x1="65" y1="155" x2="50" y2="200" stroke="hsl(220,30%,40%)" strokeWidth="6" strokeLinecap="round"
-        animate={{ x2: [50, 48, 50] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <line x1="85" y1="155" x2="100" y2="195" stroke="hsl(220,30%,40%)" strokeWidth="6" strokeLinecap="round" />
-      {/* Foot tapping impatiently */}
-      <motion.rect x="40" y="197" width="18" height="7" rx="3" fill="hsl(25,35%,35%)"
-        animate={{ rotate: [0, -10, 0, -10, 0] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
-        style={{ transformOrigin: "50px 200px" }}
-      />
-      <rect x="93" y="192" width="18" height="7" rx="3" fill="hsl(25,35%,35%)" />
-
-      {/* Body / Polo */}
-      <path d="M58 95 Q80 88 102 95 L105 155 H55 Z" fill="hsl(45,85%,55%)" />
-      <path d="M65 95 Q80 91 95 95 L93 103 Q80 98 67 103 Z" fill="hsl(45,75%,48%)" />
-      <path d="M55 148 H105 L105 158 H55 Z" fill="hsl(220,30%,40%)" />
-
-      {/* Left arm - resting on knee, holding phone */}
-      <motion.g animate={{ rotate: [0, -1, 0] }} transition={{ duration: 3, repeat: Infinity }} style={{ transformOrigin: "60px 100px" }}>
-        <line x1="58" y1="100" x2="45" y2="145" stroke="hsl(28,55%,62%)" strokeWidth="5.5" strokeLinecap="round" />
-        <rect x="38" y="140" width="14" height="20" rx="2" fill="hsl(220,10%,18%)" />
-        <rect x="40" y="142" width="10" height="15" rx="1" fill="hsl(210,50%,55%)" />
-      </motion.g>
-
-      {/* Right arm - checking watch */}
-      <motion.g
-        animate={{ rotate: [0, 20, 0, -5, 0] }}
-        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-        style={{ transformOrigin: "100px 100px" }}
-      >
-        <line x1="100" y1="100" x2="120" y2="125" stroke="hsl(28,55%,62%)" strokeWidth="5.5" strokeLinecap="round" />
-        <line x1="120" y1="125" x2="110" y2="115" stroke="hsl(28,55%,62%)" strokeWidth="5.5" strokeLinecap="round" />
-        <circle cx="110" cy="115" r="6" stroke="hsl(45,60%,55%)" strokeWidth="1.5" fill="hsl(0,0%,95%)" />
-        <line x1="110" y1="115" x2="110" y2="111" stroke="hsl(0,0%,20%)" strokeWidth="1" />
-        <motion.line x1="110" y1="115" x2="113" y2="115" stroke="hsl(0,70%,50%)" strokeWidth="0.8"
-          animate={{ rotate: [0, 360] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          style={{ transformOrigin: "110px 115px" }}
-        />
-      </motion.g>
-
-      {/* Head */}
-      <ellipse cx="80" cy="76" rx="18" ry="20" fill="hsl(28,55%,65%)" />
-      <path d="M62 67 Q70 50 80 48 Q90 50 98 67" fill="hsl(25,30%,22%)" />
-      {/* Frustrated eyebrows */}
-      <line x1="70" y1="70" x2="76" y2="72" stroke="hsl(25,30%,22%)" strokeWidth="2" strokeLinecap="round" />
-      <line x1="90" y1="70" x2="84" y2="72" stroke="hsl(25,30%,22%)" strokeWidth="2" strokeLinecap="round" />
-      {/* Eyes - looking at watch */}
-      <circle cx="74" cy="76" r="2.5" fill="hsl(220,40%,25%)" />
-      <circle cx="86" cy="76" r="2.5" fill="hsl(220,40%,25%)" />
+      <ellipse cx="45" cy="125" rx="20" ry="4" fill="hsl(0,0%,0%)" opacity="0.15" />
+      {/* Head - big round */}
+      <circle cx="45" cy="28" r="18" fill="hsl(28,55%,65%)" />
+      {/* Hair tuft */}
+      <path d="M35 15 Q42 8 50 14" stroke="hsl(25,30%,22%)" strokeWidth="3" fill="none" strokeLinecap="round" />
+      {/* Eyes - dot style */}
+      <circle cx="39" cy="28" r="2.5" fill="hsl(220,40%,20%)" />
+      <circle cx="51" cy="28" r="2.5" fill="hsl(220,40%,20%)" />
       {/* Frown */}
-      <motion.path d="M73 88 Q80 84 87 88" stroke="hsl(0,40%,40%)" strokeWidth="1.5" strokeLinecap="round" fill="none"
-        animate={{ d: ["M73 88 Q80 84 87 88", "M73 89 Q80 85 87 89", "M73 88 Q80 84 87 88"] }}
-        transition={{ duration: 3, repeat: Infinity }}
+      <motion.path d="M39 36 Q45 33 51 36" stroke="hsl(0,40%,40%)" strokeWidth="1.5" strokeLinecap="round" fill="none"
+        animate={{ d: ["M39 36 Q45 33 51 36", "M39 37 Q45 34 51 37", "M39 36 Q45 33 51 36"] }}
+        transition={{ duration: 2.5, repeat: Infinity }}
       />
-
-      {/* Sweat drops */}
-      <motion.path d="M100 62 Q102 57 104 62 Q102 67 100 62" fill="hsl(200,80%,70%)"
+      {/* Body - simple line */}
+      <line x1="45" y1="46" x2="45" y2="80" stroke="hsl(45,85%,55%)" strokeWidth="5" strokeLinecap="round" />
+      {/* Left arm - holding phone */}
+      <motion.line x1="45" y1="55" x2="28" y2="72" stroke="hsl(28,55%,62%)" strokeWidth="4" strokeLinecap="round"
+        animate={{ x2: [28, 30, 28] }} transition={{ duration: 2, repeat: Infinity }}
+      />
+      <rect x="23" y="70" width="8" height="12" rx="2" fill="hsl(220,10%,20%)" />
+      {/* Right arm - checking watch */}
+      <motion.g animate={{ rotate: [0, 15, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} style={{ transformOrigin: "45px 55px" }}>
+        <line x1="45" y1="55" x2="65" y2="65" stroke="hsl(28,55%,62%)" strokeWidth="4" strokeLinecap="round" />
+        <circle cx="65" cy="65" r="4" stroke="hsl(45,60%,55%)" strokeWidth="1.5" fill="white" />
+      </motion.g>
+      {/* Legs */}
+      <motion.line x1="45" y1="80" x2="35" y2="118" stroke="hsl(220,30%,40%)" strokeWidth="4" strokeLinecap="round"
+        animate={{ x2: [35, 33, 35] }} transition={{ duration: 1.5, repeat: Infinity }}
+      />
+      <line x1="45" y1="80" x2="55" y2="118" stroke="hsl(220,30%,40%)" strokeWidth="4" strokeLinecap="round" />
+      {/* Sweat drop */}
+      <motion.circle cx="66" cy="20" r="3" fill="hsl(200,80%,70%)"
         animate={{ opacity: [0, 1, 0], y: [0, 8, 16] }} transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-      />
-      <motion.path d="M105 70 Q106.5 66 108 70 Q106.5 74 105 70" fill="hsl(200,80%,70%)"
-        animate={{ opacity: [0, 0.8, 0], y: [0, 6, 12] }} transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
       />
     </svg>
 
     {/* Thought bubble */}
     <motion.div
-      className="absolute -top-2 left-[130px] md:left-[140px]"
+      className="absolute -top-2 left-[75px] md:left-[80px]"
       animate={{ opacity: [0, 1, 1, 0], y: [5, 0, 0, -5] }}
       transition={{ duration: 4, repeat: Infinity, repeatDelay: 2 }}
     >
-      <div className="bg-white rounded-2xl px-4 py-2 text-[11px] font-bold text-[hsl(0,60%,40%)] shadow-xl whitespace-nowrap border border-[hsl(45,80%,60%)]">
+      <div className="bg-white rounded-2xl px-3 py-1.5 text-[10px] font-bold text-[hsl(0,60%,40%)] shadow-lg whitespace-nowrap border border-[hsl(45,80%,60%)]">
         Where's the contractor?!
       </div>
-      <div className="absolute -bottom-1 left-4 w-3 h-3 bg-white rounded-full border border-[hsl(45,80%,60%)]" />
-      <div className="absolute -bottom-3 left-2 w-2 h-2 bg-white rounded-full" />
+      <div className="absolute -bottom-1 left-3 w-2.5 h-2.5 bg-white rounded-full border border-[hsl(45,80%,60%)]" />
+      <div className="absolute -bottom-3 left-1.5 w-1.5 h-1.5 bg-white rounded-full" />
     </motion.div>
   </div>
 );
@@ -1387,47 +1252,33 @@ const RoadmapWalker = () => (
     viewport={{ once: true }}
     transition={{ duration: 6, ease: "easeInOut", delay: 0.5 }}
   >
-    <svg width="50" height="70" viewBox="0 0 50 70" fill="none">
-      {/* Head */}
-      <ellipse cx="25" cy="12" rx="8" ry="9" fill="hsl(28,55%,65%)" />
-      <path d="M17 8 Q22 2 25 1 Q28 2 33 8" fill="hsl(25,30%,22%)" />
-      {/* Eyes */}
-      <circle cx="22" cy="12" r="1.5" fill="hsl(220,40%,25%)" />
-      <circle cx="28" cy="12" r="1.5" fill="hsl(220,40%,25%)" />
-      {/* Smile */}
-      <path d="M21 16 Q25 19 29 16" stroke="hsl(0,40%,40%)" strokeWidth="1" fill="none" strokeLinecap="round" />
+    <svg width="36" height="55" viewBox="0 0 36 55" fill="none">
+      {/* Head - big round cute */}
+      <circle cx="18" cy="12" r="10" fill="hsl(28,55%,65%)" />
+      {/* Hair tuft */}
+      <path d="M12 6 Q17 2 22 5" stroke="hsl(25,30%,22%)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      {/* Eyes - dots */}
+      <circle cx="14" cy="12" r="2" fill="hsl(220,40%,20%)" />
+      <circle cx="22" cy="12" r="2" fill="hsl(220,40%,20%)" />
+      {/* Happy smile */}
+      <path d="M14 16 Q18 20 22 16" stroke="hsl(0,40%,40%)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
       {/* Body */}
-      <path d="M18 22 Q25 20 32 22 L34 42 H16 Z" fill="hsl(200,55%,45%)" />
-      {/* Left arm swinging */}
-      <motion.line x1="18" y1="25" x2="8" y2="40" stroke="hsl(28,55%,62%)" strokeWidth="3" strokeLinecap="round"
-        animate={{ x2: [8, 14, 8], y2: [40, 35, 40] }}
-        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
+      <line x1="18" y1="22" x2="18" y2="36" stroke="hsl(200,55%,45%)" strokeWidth="4" strokeLinecap="round" />
+      {/* Left arm */}
+      <motion.line x1="18" y1="26" x2="8" y2="34" stroke="hsl(28,55%,62%)" strokeWidth="3" strokeLinecap="round"
+        animate={{ x2: [8, 12, 8], y2: [34, 30, 34] }} transition={{ duration: 0.7, repeat: Infinity }}
       />
-      {/* Right arm swinging */}
-      <motion.line x1="32" y1="25" x2="42" y2="40" stroke="hsl(28,55%,62%)" strokeWidth="3" strokeLinecap="round"
-        animate={{ x2: [42, 36, 42], y2: [40, 35, 40] }}
-        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+      {/* Right arm */}
+      <motion.line x1="18" y1="26" x2="28" y2="34" stroke="hsl(28,55%,62%)" strokeWidth="3" strokeLinecap="round"
+        animate={{ x2: [28, 24, 28], y2: [34, 30, 34] }} transition={{ duration: 0.7, repeat: Infinity, delay: 0.35 }}
       />
-      {/* Pants */}
-      <rect x="16" y="38" width="18" height="6" rx="2" fill="hsl(220,30%,35%)" />
-      {/* Left leg walking */}
-      <motion.line x1="20" y1="44" x2="15" y2="60" stroke="hsl(220,30%,38%)" strokeWidth="3.5" strokeLinecap="round"
-        animate={{ x2: [15, 22, 15] }}
-        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
+      {/* Left leg */}
+      <motion.line x1="18" y1="36" x2="12" y2="50" stroke="hsl(220,30%,40%)" strokeWidth="3" strokeLinecap="round"
+        animate={{ x2: [12, 18, 12] }} transition={{ duration: 0.7, repeat: Infinity }}
       />
-      {/* Right leg walking */}
-      <motion.line x1="30" y1="44" x2="35" y2="60" stroke="hsl(220,30%,38%)" strokeWidth="3.5" strokeLinecap="round"
-        animate={{ x2: [35, 28, 35] }}
-        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
-      />
-      {/* Shoes */}
-      <motion.rect x="10" y="58" width="10" height="4" rx="2" fill="hsl(25,40%,30%)"
-        animate={{ x: [10, 17, 10] }}
-        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.rect x="30" y="58" width="10" height="4" rx="2" fill="hsl(25,40%,30%)"
-        animate={{ x: [30, 23, 30] }}
-        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+      {/* Right leg */}
+      <motion.line x1="18" y1="36" x2="24" y2="50" stroke="hsl(220,30%,40%)" strokeWidth="3" strokeLinecap="round"
+        animate={{ x2: [24, 18, 24] }} transition={{ duration: 0.7, repeat: Infinity, delay: 0.35 }}
       />
     </svg>
   </motion.div>
