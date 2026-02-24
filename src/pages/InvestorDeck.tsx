@@ -12,6 +12,7 @@ import fijiPool from "@/assets/pools/fiji.jpg";
 import geometricPool from "@/assets/pools/geometric-luxury.jpg";
 import enchantmentPool from "@/assets/pools/enchantment-917-installed.jpg";
 import axiomPool from "@/assets/pools/axiom-14-deluxe-main.jpg";
+import wonderlandsHero from "@/assets/wonderlands-hero.png";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -25,42 +26,12 @@ const stagger = {
 // ─── Sections ───────────────────────────────────────────────────
 
 const HeroSection = () => (
-  <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-    {/* Sunset gradient background */}
-    <div className="absolute inset-0 bg-gradient-to-b from-[hsl(25,90%,55%)] via-[hsl(340,70%,50%)] to-[hsl(260,60%,30%)]" />
-    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-    
-    {/* Decorative pool images faded in background */}
-    <img src={geometricPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" />
-    
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 1.2 }}
-      className="relative z-10 text-center space-y-8 px-6"
-    >
-      <img
-        src="/lovable-uploads/7a94e712-7683-4a26-8a1c-c6974e320b5a.png"
-        alt="Wonderlands Logo"
-        className="h-36 md:h-48 mx-auto drop-shadow-2xl"
-      />
-      <h1 className="text-5xl md:text-8xl font-black tracking-tight text-white drop-shadow-lg">
-        WONDERLANDS
-      </h1>
-      <p className="text-xl md:text-3xl text-white/90 font-light tracking-wide">
-        Luxury Outdoor Entertainment
-      </p>
-      <p className="text-white/60 text-sm tracking-[0.4em] uppercase">
-        Investor Presentation 2025
-      </p>
-      <motion.div
-        animate={{ y: [0, 12, 0] }}
-        transition={{ repeat: Infinity, duration: 2 }}
-        className="pt-8"
-      >
-        <ArrowDown className="w-8 h-8 text-white/50 mx-auto" />
-      </motion.div>
-    </motion.div>
+  <section className="relative w-full flex items-center justify-center">
+    <img
+      src={wonderlandsHero}
+      alt="Wonderlands – Pools for Outdoor Living"
+      className="w-full h-auto block"
+    />
   </section>
 );
 
