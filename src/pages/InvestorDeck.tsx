@@ -751,6 +751,166 @@ const CTASection = () => (
   </section>
 );
 
+// ─── Financial Model ────────────────────────────────────────────
+
+const FinancialModelSection = () => {
+  const projections = [
+    { year: "Year 1", revenue: 1.5, profit: 0.49 },
+    { year: "Year 2", revenue: 3.0, profit: 0.98 },
+    { year: "Year 3", revenue: 4.5, profit: 1.46 },
+    { year: "Year 4", revenue: 6.0, profit: 1.95 },
+    { year: "Year 5", revenue: 7.5, profit: 2.44 },
+  ];
+  const maxRevenue = 7.5;
+
+  const useOfFunds = [
+    { label: "Sales & Marketing Team", pct: 35, color: "hsl(200,70%,50%)" },
+    { label: "Builder Team & Operations", pct: 30, color: "hsl(25,90%,55%)" },
+    { label: "Corporate Partnerships", pct: 20, color: "hsl(173,58%,45%)" },
+    { label: "Brand & Technology", pct: 15, color: "hsl(45,100%,60%)" },
+  ];
+
+  return (
+    <section className="relative py-28 overflow-hidden">
+      <SectionLogo />
+      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,6%)] via-[hsl(230,35%,10%)] to-[hsl(200,40%,8%)]" />
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: 'linear-gradient(hsl(0,0%,100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0,0%,100%) 1px, transparent 1px)',
+        backgroundSize: '60px 60px'
+      }} />
+
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="relative z-10 container mx-auto px-6"
+      >
+        <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-3 text-center">Financial Model</motion.p>
+        <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-6 text-center">
+          $500K Pre-Seed Round
+        </motion.h2>
+        <motion.p variants={fadeUp} className="text-white/50 text-center text-lg mb-16 max-w-3xl mx-auto">
+          Scaling Wonderlands across all of Florida — hiring sales & marketing, building a professional construction team, and securing corporate partnerships.
+        </motion.p>
+
+        {/* Ask + Projection headline cards */}
+        <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+          {[
+            { label: "Pre-Seed Ask", value: "$500K", accent: true },
+            { label: "Year 1 Revenue", value: "$1.5M", accent: false },
+            { label: "Year 5 Revenue", value: "$7.5M", accent: false },
+            { label: "Profit Margin", value: "30-35%", accent: true },
+          ].map((c) => (
+            <div key={c.label} className={`p-5 rounded-2xl border backdrop-blur-sm text-center ${c.accent ? 'bg-[hsl(45,100%,60%)]/10 border-[hsl(45,100%,60%)]/30' : 'bg-white/[0.04] border-white/10'}`}>
+              <p className="text-white/50 text-xs uppercase tracking-wider mb-2">{c.label}</p>
+              <p className={`text-3xl md:text-4xl font-black leading-none ${c.accent ? 'text-[hsl(45,100%,70%)]' : 'text-white'}`}>{c.value}</p>
+            </div>
+          ))}
+        </motion.div>
+
+        <div className="grid md:grid-cols-2 gap-12 items-start">
+          {/* Left: Revenue projection bar chart */}
+          <motion.div variants={fadeUp}>
+            <h3 className="text-white/70 text-sm uppercase tracking-widest mb-8">5-Year Revenue Projection</h3>
+            <div className="space-y-5">
+              {projections.map((p, i) => (
+                <div key={p.year} className="space-y-2">
+                  <div className="flex justify-between items-baseline">
+                    <p className="text-white/70 text-sm font-medium">{p.year}</p>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[hsl(173,58%,55%)] text-xs font-semibold bg-[hsl(173,58%,39%)]/15 px-2 py-0.5 rounded-full">
+                        ${p.profit.toFixed(1)}M profit
+                      </span>
+                      <p className="text-2xl font-black text-white">${p.revenue}M</p>
+                    </div>
+                  </div>
+                  <div className="w-full h-8 rounded-lg bg-white/[0.06] overflow-hidden relative">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      whileInView={{ width: `${(p.revenue / maxRevenue) * 100}%` }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 1, delay: 0.2 + i * 0.12, ease: [0.25, 0.1, 0.25, 1] }}
+                      className="h-full rounded-lg bg-gradient-to-r from-[hsl(200,70%,50%)] to-[hsl(25,90%,55%)] relative"
+                    >
+                      {/* Profit portion overlay */}
+                      <motion.div
+                        initial={{ width: 0 }}
+                        whileInView={{ width: `${(p.profit / p.revenue) * 100}%` }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, delay: 0.5 + i * 0.12 }}
+                        className="absolute right-0 top-0 h-full rounded-r-lg bg-[hsl(45,100%,60%)]/30"
+                      />
+                    </motion.div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Legend */}
+            <div className="flex items-center gap-6 mt-6">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-3 rounded bg-gradient-to-r from-[hsl(200,70%,50%)] to-[hsl(25,90%,55%)]" />
+                <span className="text-white/40 text-xs">Revenue</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-3 rounded bg-[hsl(45,100%,60%)]/40" />
+                <span className="text-white/40 text-xs">Net Profit (~32.5%)</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Right: Use of funds */}
+          <motion.div variants={fadeUp}>
+            <h3 className="text-white/70 text-sm uppercase tracking-widest mb-8">Use of $500K Funds</h3>
+            <div className="space-y-4 mb-10">
+              {useOfFunds.map((f, i) => (
+                <div key={f.label} className="space-y-2">
+                  <div className="flex justify-between items-baseline">
+                    <p className="text-white/80 text-sm font-medium">{f.label}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-lg font-bold text-white">${(500 * f.pct / 100).toFixed(0)}K</p>
+                      <span className="text-white/40 text-xs">({f.pct}%)</span>
+                    </div>
+                  </div>
+                  <div className="w-full h-3 rounded-full bg-white/[0.06] overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      whileInView={{ width: `${f.pct}%` }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.8, delay: 0.3 + i * 0.1 }}
+                      className="h-full rounded-full"
+                      style={{ backgroundColor: f.color }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Key milestones */}
+            <div className="p-6 rounded-2xl bg-white/[0.04] border border-white/10">
+              <h4 className="text-[hsl(45,100%,70%)] text-xs uppercase tracking-widest mb-4 font-bold">Key Milestones</h4>
+              <div className="space-y-3">
+                {[
+                  "Expand operations across all Florida regions",
+                  "Hire dedicated sales & marketing team",
+                  "Build professional builder network (20+ crews)",
+                  "Secure 3–5 corporate & resort partnerships",
+                  "Achieve $7.5M revenue by Year 5",
+                ].map((m, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <span className="text-[hsl(173,58%,55%)] mt-0.5 text-sm">✓</span>
+                    <p className="text-white/70 text-sm">{m}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
+    </section>
+  );
+};
+
 // ─── Main Page ──────────────────────────────────────────────────
 
 const InvestorDeck = () => (
@@ -764,6 +924,7 @@ const InvestorDeck = () => (
     <PoolShowcaseSection />
     <ServicesSection />
     <RevenueSection />
+    <FinancialModelSection />
     <PositioningSection />
     <TeamSection />
     <GrowthSection />
