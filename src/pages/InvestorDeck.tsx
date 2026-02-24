@@ -150,6 +150,69 @@ const OpportunitySection = () => (
   </section>
 );
 
+const MarketCapSection = () => {
+  const markets = [
+    { label: "Florida Pool Market", value: "$4.2B", bar: 100, color: "from-[hsl(200,70%,50%)] to-[hsl(173,58%,39%)]" },
+    { label: "Luxury Outdoor Living", value: "$12.8B", bar: 85, color: "from-[hsl(25,90%,55%)] to-[hsl(12,76%,50%)]" },
+    { label: "Outdoor Design Services", value: "$8.5B", bar: 65, color: "from-[hsl(340,70%,50%)] to-[hsl(280,50%,45%)]" },
+    { label: "General Outdoor Market", value: "$28B+", bar: 50, color: "from-[hsl(45,100%,55%)] to-[hsl(25,85%,50%)]" },
+  ];
+
+  return (
+    <section className="relative py-32 overflow-hidden">
+      <SectionLogo />
+      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,8%)] via-[hsl(230,35%,12%)] to-[hsl(200,40%,10%)]" />
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="relative z-10 container mx-auto px-6"
+      >
+        <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4 text-center">Market Size</motion.p>
+        <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-20 text-center">
+          Market Capitalization
+        </motion.h2>
+
+        <div className="max-w-4xl mx-auto space-y-8">
+          {markets.map((m, i) => (
+            <motion.div key={m.label} variants={fadeUp} className="space-y-3">
+              <div className="flex justify-between items-end">
+                <p className="text-white/80 text-lg font-medium">{m.label}</p>
+                <p className="text-3xl md:text-4xl font-black text-white">{m.value}</p>
+              </div>
+              <div className="w-full h-4 rounded-full bg-white/10 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  whileInView={{ width: `${m.bar}%` }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1.2, delay: i * 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                  className={`h-full rounded-full bg-gradient-to-r ${m.color}`}
+                />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* TAM / SAM / SOM bubbles */}
+        <motion.div variants={fadeUp} className="mt-20 flex flex-col md:flex-row items-center justify-center gap-8">
+          {[
+            { label: "TAM", sublabel: "Total Addressable", value: "$28B+", size: "w-48 h-48" },
+            { label: "SAM", sublabel: "Serviceable Available", value: "$4.2B", size: "w-40 h-40" },
+            { label: "SOM", sublabel: "Serviceable Obtainable", value: "$120M", size: "w-32 h-32" },
+          ].map((bubble) => (
+            <div key={bubble.label} className={`${bubble.size} rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/15 flex flex-col items-center justify-center backdrop-blur-sm`}>
+              <p className="text-[hsl(45,100%,70%)] text-xs tracking-widest uppercase font-medium">{bubble.label}</p>
+              <p className="text-2xl md:text-3xl font-black text-white mt-1">{bubble.value}</p>
+              <p className="text-white/40 text-[10px] mt-1">{bubble.sublabel}</p>
+            </div>
+          ))}
+        </motion.div>
+      </motion.div>
+    </section>
+  );
+};
+
 const SolutionSection = () => (
   <section className="relative py-32 overflow-hidden">
     <SectionLogo />
@@ -618,6 +681,7 @@ const InvestorDeck = () => (
     <VisionSection />
     <ProblemSection />
     <OpportunitySection />
+    <MarketCapSection />
     <SolutionSection />
     <ApproachSection />
     <PoolShowcaseSection />
