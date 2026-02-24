@@ -29,6 +29,7 @@ import tanningLedgeImg from "@/assets/deck/tanning-ledge.jpg";
 import luxuryOutdoorImg from "@/assets/deck/luxury-outdoor.jpg";
 import firePitImg from "@/assets/deck/fire-pit.jpg";
 import lightingImg from "@/assets/deck/lighting.jpg";
+import wonderlandsCta from "@/assets/deck/wonderlands-cta.png";
 
 const SectionLogo = () => (
   <img src={wonderlandsLogo} alt="Wonderlands" className="absolute top-6 right-6 h-12 md:h-16 z-20 opacity-80" />
@@ -671,9 +672,8 @@ const FutureSection = () => (
 
 const CTASection = () => (
   <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-    <SectionLogo />
-    <div className="absolute inset-0 bg-gradient-to-b from-[hsl(25,90%,50%)] via-[hsl(340,70%,45%)] to-[hsl(260,60%,25%)]" />
-    <img src={geometricPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 mix-blend-overlay" />
+    <img src={wonderlandsCta} alt="Wonderlands" className="absolute inset-0 w-full h-full object-cover" />
+    <div className="absolute inset-0 bg-black/20" />
     <motion.div
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -681,12 +681,7 @@ const CTASection = () => (
       transition={{ duration: 0.8 }}
       className="relative z-10 text-center space-y-10 max-w-3xl px-8"
     >
-      <img
-        src="/lovable-uploads/7a94e712-7683-4a26-8a1c-c6974e320b5a.png"
-        alt="Wonderlands Logo"
-        className="h-24 mx-auto drop-shadow-2xl"
-      />
-      <h2 className="text-5xl md:text-7xl font-black text-white leading-tight">
+      <h2 className="text-5xl md:text-7xl font-black text-white leading-tight drop-shadow-2xl">
         Let's Build the<br />
         <span className="text-[hsl(45,100%,70%)]">Extraordinary.</span>
       </h2>
