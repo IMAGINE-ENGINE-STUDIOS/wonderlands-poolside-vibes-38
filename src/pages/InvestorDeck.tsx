@@ -1378,6 +1378,103 @@ const SolutionSection = () => {
   );
 };
 
+const RoadmapWalker = () => (
+  <motion.div
+    className="absolute z-20 hidden md:block"
+    style={{ offsetPath: "path('M 60 160 C 160 140, 260 180, 400 160 C 540 140, 620 180, 740 160 C 860 140, 900 175, 940 160')", offsetRotate: "0deg" }}
+    initial={{ offsetDistance: "0%" }}
+    whileInView={{ offsetDistance: "100%" }}
+    viewport={{ once: true }}
+    transition={{ duration: 6, ease: "easeInOut", delay: 0.5 }}
+  >
+    <svg width="50" height="70" viewBox="0 0 50 70" fill="none">
+      {/* Head */}
+      <ellipse cx="25" cy="12" rx="8" ry="9" fill="hsl(28,55%,65%)" />
+      <path d="M17 8 Q22 2 25 1 Q28 2 33 8" fill="hsl(25,30%,22%)" />
+      {/* Eyes */}
+      <circle cx="22" cy="12" r="1.5" fill="hsl(220,40%,25%)" />
+      <circle cx="28" cy="12" r="1.5" fill="hsl(220,40%,25%)" />
+      {/* Smile */}
+      <path d="M21 16 Q25 19 29 16" stroke="hsl(0,40%,40%)" strokeWidth="1" fill="none" strokeLinecap="round" />
+      {/* Body */}
+      <path d="M18 22 Q25 20 32 22 L34 42 H16 Z" fill="hsl(200,55%,45%)" />
+      {/* Left arm swinging */}
+      <motion.line x1="18" y1="25" x2="8" y2="40" stroke="hsl(28,55%,62%)" strokeWidth="3" strokeLinecap="round"
+        animate={{ x2: [8, 14, 8], y2: [40, 35, 40] }}
+        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
+      />
+      {/* Right arm swinging */}
+      <motion.line x1="32" y1="25" x2="42" y2="40" stroke="hsl(28,55%,62%)" strokeWidth="3" strokeLinecap="round"
+        animate={{ x2: [42, 36, 42], y2: [40, 35, 40] }}
+        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+      />
+      {/* Pants */}
+      <rect x="16" y="38" width="18" height="6" rx="2" fill="hsl(220,30%,35%)" />
+      {/* Left leg walking */}
+      <motion.line x1="20" y1="44" x2="15" y2="60" stroke="hsl(220,30%,38%)" strokeWidth="3.5" strokeLinecap="round"
+        animate={{ x2: [15, 22, 15] }}
+        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
+      />
+      {/* Right leg walking */}
+      <motion.line x1="30" y1="44" x2="35" y2="60" stroke="hsl(220,30%,38%)" strokeWidth="3.5" strokeLinecap="round"
+        animate={{ x2: [35, 28, 35] }}
+        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+      />
+      {/* Shoes */}
+      <motion.rect x="10" y="58" width="10" height="4" rx="2" fill="hsl(25,40%,30%)"
+        animate={{ x: [10, 17, 10] }}
+        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.rect x="30" y="58" width="10" height="4" rx="2" fill="hsl(25,40%,30%)"
+        animate={{ x: [30, 23, 30] }}
+        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+      />
+    </svg>
+  </motion.div>
+);
+
+const BubbleIcon = ({ icon: Icon, label, delay }: { icon: React.ElementType; label: string; delay: number }) => (
+  <motion.div
+    className="flex flex-col items-center text-center group"
+    initial={{ scale: 0, opacity: 0 }}
+    whileInView={{ scale: [0, 1.3, 1], opacity: [0, 1, 1] }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.6, delay, ease: "easeOut" }}
+  >
+    <motion.div
+      className="w-16 h-16 rounded-full bg-white/15 backdrop-blur-sm border border-white/25 flex items-center justify-center mb-3 relative"
+      whileHover={{ scale: 1.2 }}
+      animate={{
+        boxShadow: [
+          "0 0 0px 0px hsla(45,100%,70%,0)",
+          "0 0 15px 5px hsla(45,100%,70%,0.25)",
+          "0 0 0px 0px hsla(45,100%,70%,0)",
+        ],
+      }}
+      transition={{ duration: 3, repeat: Infinity, delay: delay * 0.5 }}
+    >
+      <Icon className="w-7 h-7 text-white/90" strokeWidth={1.5} />
+      {/* Bubble pop particles on appear */}
+      {[0, 1, 2, 3, 4, 5].map((p) => (
+        <motion.div
+          key={p}
+          className="absolute w-1.5 h-1.5 bg-[hsl(45,100%,75%)] rounded-full"
+          initial={{ scale: 1, opacity: 0.8, x: 0, y: 0 }}
+          whileInView={{
+            x: [0, Math.cos(p * 60 * Math.PI / 180) * 30],
+            y: [0, Math.sin(p * 60 * Math.PI / 180) * 30],
+            opacity: [0.8, 0],
+            scale: [1, 0.3],
+          }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: delay + 0.3 }}
+        />
+      ))}
+    </motion.div>
+    <p className="text-white/80 text-sm font-medium">{label}</p>
+  </motion.div>
+);
+
 const ApproachSection = () => {
   const mainSteps = [
     { icon: Lightbulb, label: "Idea", desc: "Your vision starts here" },
@@ -1413,31 +1510,70 @@ const ApproachSection = () => {
           One Stop Shop — Idea to Turnkey
         </motion.h2>
 
-        {/* Curvy Roadmap */}
+        {/* Gentle Pathway Roadmap */}
         <motion.div variants={fadeUp} className="relative max-w-5xl mx-auto">
-          {/* SVG curvy path */}
+          {/* SVG gentle pathway */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none hidden md:block" viewBox="0 0 1000 320" fill="none" preserveAspectRatio="none">
+            {/* Pathway background - wider, softer */}
             <path
-              d="M 60 160 C 180 120, 280 200, 400 160 S 620 120, 740 160 S 880 200, 940 160"
-              stroke="hsl(45,100%,70%)"
-              strokeWidth="2.5"
-              strokeDasharray="10 6"
-              opacity="0.35"
+              d="M 60 160 C 160 140, 260 180, 400 160 C 540 140, 620 180, 740 160 C 860 140, 900 175, 940 160"
+              stroke="hsl(45,100%,80%)"
+              strokeWidth="16"
+              opacity="0.08"
               fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Pathway center line - dashed dots like stepping stones */}
+            <motion.path
+              d="M 60 160 C 160 140, 260 180, 400 160 C 540 140, 620 180, 740 160 C 860 140, 900 175, 940 160"
+              stroke="hsl(45,100%,70%)"
+              strokeWidth="2"
+              strokeDasharray="6 12"
+              opacity="0.4"
+              fill="none"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              whileInView={{ pathLength: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 3, ease: "easeOut" }}
+            />
+            {/* Soft glow along path */}
+            <path
+              d="M 60 160 C 160 140, 260 180, 400 160 C 540 140, 620 180, 740 160 C 860 140, 900 175, 940 160"
+              stroke="hsl(45,100%,75%)"
+              strokeWidth="30"
+              opacity="0.04"
+              fill="none"
+              strokeLinecap="round"
             />
           </svg>
 
-          {/* Main steps zigzag */}
+          {/* Walking character along the path */}
+          <RoadmapWalker />
+
+          {/* Main steps */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-y-16 gap-x-6">
             {mainSteps.map((step, i) => (
               <motion.div
                 key={step.label}
                 variants={fadeUp}
-                className={`flex flex-col items-center text-center ${i % 2 === 1 ? "md:mt-12" : ""}`}
+                className={`flex flex-col items-center text-center ${i % 2 === 1 ? "md:mt-8" : ""}`}
               >
-                <div className="w-20 h-20 rounded-full bg-white/15 backdrop-blur-sm border-2 border-[hsl(45,100%,70%)]/50 flex items-center justify-center mb-4 shadow-lg shadow-black/20">
+                <motion.div
+                  className="w-20 h-20 rounded-full bg-white/15 backdrop-blur-sm border-2 border-[hsl(45,100%,70%)]/50 flex items-center justify-center mb-4 shadow-lg shadow-black/20"
+                  whileHover={{ scale: 1.1 }}
+                  animate={{
+                    boxShadow: [
+                      "0 0 0px 0px hsla(45,100%,70%,0)",
+                      "0 0 20px 6px hsla(45,100%,70%,0.2)",
+                      "0 0 0px 0px hsla(45,100%,70%,0)",
+                    ],
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, delay: i * 0.5 }}
+                >
                   <step.icon className="w-9 h-9 text-[hsl(45,100%,70%)]" strokeWidth={1.5} />
-                </div>
+                </motion.div>
                 <h3 className="text-xl font-bold text-white mb-1">{step.label}</h3>
                 <p className="text-white/60 text-sm">{step.desc}</p>
                 {i < mainSteps.length - 1 && (
@@ -1447,26 +1583,24 @@ const ApproachSection = () => {
             ))}
           </div>
 
-          {/* Construction branches */}
+          {/* Construction branches - bubbles */}
           <motion.div variants={fadeUp} className="mt-20">
             <div className="flex justify-center mb-6">
-              <div className="w-px h-12 bg-gradient-to-b from-[hsl(45,100%,70%)]/60 to-[hsl(45,100%,70%)]/20" />
+              <motion.div
+                className="w-px h-12 bg-gradient-to-b from-[hsl(45,100%,70%)]/60 to-[hsl(45,100%,70%)]/20"
+                initial={{ scaleY: 0 }}
+                whileInView={{ scaleY: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                style={{ transformOrigin: "top" }}
+              />
             </div>
             <p className="text-center text-[hsl(45,100%,70%)] text-xs tracking-[0.3em] uppercase mb-8">Construction Services</p>
 
-            <div className="relative">
-              <div className="hidden md:block absolute top-10 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-[hsl(45,100%,70%)]/30 to-transparent" />
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                {constructionBranches.map((branch) => (
-                  <motion.div key={branch.label} variants={fadeUp} className="flex flex-col items-center text-center group">
-                    <div className="hidden md:block w-px h-4 bg-[hsl(45,100%,70%)]/30 mb-2" />
-                    <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center mb-3 group-hover:bg-white/20 group-hover:border-[hsl(45,100%,70%)]/40 transition-all duration-300">
-                      <branch.icon className="w-6 h-6 text-white/90" strokeWidth={1.5} />
-                    </div>
-                    <p className="text-white/80 text-sm font-medium">{branch.label}</p>
-                  </motion.div>
-                ))}
-              </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {constructionBranches.map((branch, i) => (
+                <BubbleIcon key={branch.label} icon={branch.icon} label={branch.label} delay={0.8 + i * 0.15} />
+              ))}
             </div>
           </motion.div>
         </motion.div>
