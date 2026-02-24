@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tag, Plus, Edit, Trash2, DollarSign, Package, Zap, Calendar, Loader2 } from 'lucide-react';
+import { Tag, Plus, Edit, Trash2, DollarSign, Package, Zap, Calendar, Loader2, Mail } from 'lucide-react';
 
 interface Promotion {
   id: string;
@@ -62,6 +62,8 @@ const AdminPromotionsManager = () => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [sendingPromotionId, setSendingPromotionId] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
   const [formData, setFormData] = useState<PromotionFormData>(defaultFormData);
@@ -223,6 +225,36 @@ const AdminPromotionsManager = () => {
     }
   };
 
+  const handleSendBulkEmail = async (promotion: Promotion) => {
+    if (!confirm(`Send "${promotion.name}" offer to ALL clients via email?`)) return;
+
+    try {
+      setIsSendingEmail(true);
+      setSendingPromotionId(promotion.id);
+
+      const { data, error } = await supabase.functions.invoke('send-bulk-email', {
+        body: { template_name: promotion.name, send_to_all: true }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Email Blast Sent",
+        description: `${data?.sent || 0} emails sent, ${data?.failed || 0} failed`
+      });
+    } catch (error) {
+      console.error('Error sending bulk email:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send bulk email",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSendingEmail(false);
+      setSendingPromotionId(null);
+    }
+  };
+
   const activePromotions = promotions.filter(p => p.is_active);
   const expiredPromotions = promotions.filter(p => p.end_date && new Date(p.end_date) < new Date());
 
@@ -381,6 +413,20 @@ const AdminPromotionsManager = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleSendBulkEmail(promotion)}
+                              disabled={!promotion.is_active || (isSendingEmail && sendingPromotionId === promotion.id)}
+                              className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                              title="Send to All Clients"
+                            >
+                              {isSendingEmail && sendingPromotionId === promotion.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Mail className="h-4 w-4" />
+                              )}
+                            </Button>
                             <Button
                               size="sm"
                               variant="outline"
