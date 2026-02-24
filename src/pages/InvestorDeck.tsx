@@ -18,6 +18,16 @@ import fenceImg from "@/assets/aluminum-fencing.jpg";
 import paverImg from "@/assets/serenitykit.jpg";
 import wonderlandsHero from "@/assets/wonderlands-hero.png";
 import wonderlandsLogo from "@/assets/wonderlands-logo.png";
+import outdoorKitchen from "@/assets/deck/outdoor-kitchen.jpg";
+import saunaImg from "@/assets/deck/sauna.jpg";
+import pergolaImg from "@/assets/deck/pergola.jpg";
+import gardenImg from "@/assets/deck/garden.jpg";
+import spaImg from "@/assets/deck/spa.jpg";
+import luxuryPoolImg from "@/assets/deck/luxury-pool.jpg";
+import kidsParkImg from "@/assets/deck/kids-park.jpg";
+import luxuryOutdoorImg from "@/assets/deck/luxury-outdoor.jpg";
+import firePitImg from "@/assets/deck/fire-pit.jpg";
+import lightingImg from "@/assets/deck/lighting.jpg";
 
 const SectionLogo = () => (
   <img src={wonderlandsLogo} alt="Wonderlands" className="absolute top-6 right-6 h-12 md:h-16 z-20 opacity-80" />
@@ -413,28 +423,35 @@ const ServicesSection = () => (
         Complete Outdoor Living
       </motion.h2>
       {/* Mosaic Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 md:grid-rows-3 gap-3 auto-rows-[180px] md:auto-rows-[200px]">
+      <div className="grid grid-cols-3 md:grid-cols-5 gap-2 md:gap-3" style={{ gridAutoRows: '140px' }}>
         {[
-          { img: olympiaPool, label: "Fiberglass Pools", span: "md:col-span-2 md:row-span-2" },
-          { img: lanaiDeluxe, label: "Lanai", span: "" },
+          { img: olympiaPool, label: "Fiberglass Pools", span: "col-span-2 row-span-2" },
+          { img: saunaImg, label: "Saunas", span: "" },
+          { img: outdoorKitchen, label: "Outdoor Kitchens", span: "col-span-2 row-span-2" },
+          { img: paverImg, label: "Pavers & Hardscape", span: "" },
+          { img: pergolaImg, label: "Pergolas", span: "" },
+          { img: spaImg, label: "Spa & Hot Tubs", span: "col-span-2" },
+          { img: gardenImg, label: "Gardens & Landscaping", span: "" },
+          { img: lanaiDeluxe, label: "Lanai Enclosures", span: "" },
           { img: screenEnclosure, label: "Screen Enclosures", span: "" },
-          { img: bermudaPool, label: "Hot Tubs & Spas", span: "" },
-          { img: paverImg, label: "Pavers", span: "" },
-          { img: fenceImg, label: "Fencing & Gates", span: "md:col-span-2" },
+          { img: kidsParkImg, label: "Kids Play Areas", span: "" },
+          { img: fenceImg, label: "Fencing & Gates", span: "" },
+          { img: luxuryPoolImg, label: "Luxury Pools", span: "col-span-2 row-span-2" },
+          { img: firePitImg, label: "Fire Pits & Lounge", span: "" },
+          { img: lightingImg, label: "Outdoor Lighting", span: "" },
           { img: enchantmentPool, label: "Pool Finishes", span: "" },
+          { img: luxuryOutdoorImg, label: "Full Construction", span: "col-span-2" },
           { img: valenciaPool, label: "Tanning Ledges", span: "" },
-          { img: genesisPool, label: "Outdoor Kitchen", span: "" },
-          { img: axiomPool, label: "Full Construction", span: "" },
         ].map((item, i) => (
           <motion.div
             key={i}
             variants={fadeUp}
-            className={`relative group rounded-2xl overflow-hidden ${item.span}`}
+            className={`relative group rounded-xl overflow-hidden ${item.span}`}
           >
-            <img src={item.img} alt={item.label} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-4">
-              <p className="text-white font-bold text-lg drop-shadow-lg">{item.label}</p>
+            <img src={item.img} alt={item.label} loading="lazy" className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-3">
+              <p className="text-white font-semibold text-sm md:text-base drop-shadow-lg">{item.label}</p>
             </div>
           </motion.div>
         ))}
