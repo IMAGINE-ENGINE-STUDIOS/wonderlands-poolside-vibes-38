@@ -56,6 +56,194 @@ const HeroSection = () => (
   </section>
 );
 
+const SwimmerCharacter = () => {
+  // Realistic swimmer doing a relaxed breaststroke from bottom-right corner across
+  return (
+    <motion.div
+      className="absolute bottom-[15%] right-[-5%] z-10"
+      initial={{ x: 0, y: 0 }}
+      animate={{
+        x: [-0, -300, -600, -900],
+        y: [0, -40, -20, -60],
+      }}
+      transition={{
+        duration: 12,
+        repeat: Infinity,
+        ease: "linear",
+      }}
+    >
+      <svg width="200" height="100" viewBox="0 0 200 100" fill="none">
+        {/* Water line around swimmer */}
+        <motion.path
+          d="M10 55 Q30 48 50 55 Q70 62 90 55 Q110 48 130 55 Q150 62 170 55 Q185 50 200 55"
+          stroke="hsl(195,90%,75%)"
+          strokeWidth="1.5"
+          fill="none"
+          opacity="0.4"
+          animate={{ d: [
+            "M10 55 Q30 48 50 55 Q70 62 90 55 Q110 48 130 55 Q150 62 170 55 Q185 50 200 55",
+            "M10 55 Q30 62 50 55 Q70 48 90 55 Q110 62 130 55 Q150 48 170 55 Q185 60 200 55",
+            "M10 55 Q30 48 50 55 Q70 62 90 55 Q110 48 130 55 Q150 62 170 55 Q185 50 200 55",
+          ]}}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        {/* Head */}
+        <motion.ellipse
+          cx="120" cy="42" rx="10" ry="11"
+          fill="hsl(28,55%,65%)"
+          animate={{ cy: [42, 40, 42] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* Hair */}
+        <motion.ellipse
+          cx="120" cy="35" rx="9" ry="5"
+          fill="hsl(30,30%,25%)"
+          animate={{ cy: [35, 33, 35] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* Swim cap detail */}
+        <motion.path
+          d="M111 38 Q120 28 129 38"
+          fill="hsl(200,80%,50%)"
+          animate={{ d: ["M111 38 Q120 28 129 38", "M111 36 Q120 26 129 36", "M111 38 Q120 28 129 38"] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        {/* Torso - slightly submerged */}
+        <motion.ellipse
+          cx="100" cy="52" rx="22" ry="8"
+          fill="hsl(28,55%,62%)"
+          animate={{ ry: [8, 9, 8] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        {/* Swim trunks / suit */}
+        <motion.rect
+          x="78" y="48" width="20" height="10" rx="5"
+          fill="hsl(340,65%,50%)"
+          animate={{ y: [48, 47, 48] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        {/* Right arm - breaststroke motion */}
+        <motion.path
+          d="M118 48 Q140 35 150 50"
+          stroke="hsl(28,55%,62%)"
+          strokeWidth="5"
+          strokeLinecap="round"
+          fill="none"
+          animate={{
+            d: [
+              "M118 48 Q140 35 150 50",
+              "M118 48 Q145 42 135 55",
+              "M118 48 Q130 55 115 58",
+              "M118 48 Q140 35 150 50",
+            ],
+          }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* Right hand */}
+        <motion.circle
+          cx="150" cy="50" r="4"
+          fill="hsl(28,55%,60%)"
+          animate={{
+            cx: [150, 135, 115, 150],
+            cy: [50, 55, 58, 50],
+          }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        {/* Left arm - breaststroke motion (opposite phase) */}
+        <motion.path
+          d="M82 48 Q60 35 50 50"
+          stroke="hsl(28,55%,62%)"
+          strokeWidth="5"
+          strokeLinecap="round"
+          fill="none"
+          animate={{
+            d: [
+              "M82 48 Q60 35 50 50",
+              "M82 48 Q55 42 65 55",
+              "M82 48 Q70 55 85 58",
+              "M82 48 Q60 35 50 50",
+            ],
+          }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* Left hand */}
+        <motion.circle
+          cx="50" cy="50" r="4"
+          fill="hsl(28,55%,60%)"
+          animate={{
+            cx: [50, 65, 85, 50],
+            cy: [50, 55, 58, 50],
+          }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        {/* Legs - gentle kick */}
+        <motion.path
+          d="M78 54 Q65 65 60 75"
+          stroke="hsl(28,55%,60%)"
+          strokeWidth="4.5"
+          strokeLinecap="round"
+          fill="none"
+          animate={{
+            d: [
+              "M78 54 Q65 65 60 75",
+              "M78 54 Q68 68 65 72",
+              "M78 54 Q62 62 55 78",
+              "M78 54 Q65 65 60 75",
+            ],
+          }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.path
+          d="M80 56 Q70 68 68 78"
+          stroke="hsl(28,55%,60%)"
+          strokeWidth="4.5"
+          strokeLinecap="round"
+          fill="none"
+          animate={{
+            d: [
+              "M80 56 Q70 68 68 78",
+              "M80 56 Q62 62 55 75",
+              "M80 56 Q72 70 72 74",
+              "M80 56 Q70 68 68 78",
+            ],
+          }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+        />
+
+        {/* Splash / wake behind swimmer */}
+        <motion.g opacity="0.5">
+          {[0, 1, 2, 3].map((j) => (
+            <motion.circle
+              key={j}
+              cx={55 - j * 15}
+              cy={55}
+              r={2 + j}
+              fill="white"
+              animate={{
+                opacity: [0.6, 0.2, 0],
+                r: [2 + j, 4 + j * 2, 6 + j * 3],
+                cx: [55 - j * 15, 45 - j * 18, 35 - j * 20],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                delay: j * 0.3,
+                ease: "easeOut",
+              }}
+            />
+          ))}
+        </motion.g>
+      </svg>
+    </motion.div>
+  );
+};
+
 const VisionSection = () => {
   const waterRipples = Array.from({ length: 5 }, (_, i) => i);
   
@@ -70,16 +258,12 @@ const VisionSection = () => {
         style={{
           background: "radial-gradient(ellipse at 30% 20%, hsl(190,90%,70%) 0%, transparent 50%), radial-gradient(ellipse at 70% 40%, hsl(195,80%,65%) 0%, transparent 40%), radial-gradient(ellipse at 50% 80%, hsl(200,70%,50%) 0%, transparent 60%)",
         }}
-        animate={{
-          scale: [1, 1.05, 1],
-          opacity: [0.3, 0.5, 0.3],
-        }}
+        animate={{ scale: [1, 1.05, 1], opacity: [0.3, 0.5, 0.3] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Pool water surface with shimmer */}
+      {/* Animated light beams through water */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Animated light beams through water */}
         {[15, 35, 55, 75].map((left, i) => (
           <motion.div
             key={i}
@@ -89,141 +273,70 @@ const VisionSection = () => {
               height: "100%",
               background: "linear-gradient(180deg, hsl(190,90%,80%) 0%, transparent 70%)",
             }}
-            animate={{
-              opacity: [0.1, 0.3, 0.1],
-              scaleX: [1, 2, 1],
-            }}
+            animate={{ opacity: [0.1, 0.3, 0.1], scaleX: [1, 2, 1] }}
             transition={{ duration: 3 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.7 }}
           />
         ))}
       </div>
 
-      {/* Water ripple rings expanding from splash point */}
-      <div className="absolute top-[35%] left-1/2 -translate-x-1/2 -translate-y-1/2">
-        {waterRipples.map((i) => (
+      {/* Gentle water surface wave lines */}
+      <div className="absolute top-[30%] left-0 right-0">
+        {[0, 1, 2].map((i) => (
           <motion.div
             key={i}
-            className="absolute rounded-full border border-white/20"
-            style={{
-              width: 60,
-              height: 30,
-              left: -30,
-              top: -15,
-            }}
-            animate={{
-              width: [60, 400 + i * 100],
-              height: [30, 200 + i * 50],
-              left: [-30, -(200 + i * 50)],
-              top: [-15, -(100 + i * 25)],
-              opacity: [0.5, 0],
-              borderWidth: [2, 0.5],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeOut",
-              delay: i * 0.6,
-            }}
+            className="absolute w-full h-[1px] bg-white/10"
+            style={{ top: i * 40 }}
+            animate={{ scaleX: [0.95, 1.05, 0.95], opacity: [0.05, 0.15, 0.05] }}
+            transition={{ duration: 4 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}
           />
         ))}
       </div>
 
-      {/* Diving character SVG animation */}
-      <div className="absolute top-[10%] left-1/2 -translate-x-1/2 z-10">
-        <motion.svg
-          width="120"
-          height="180"
-          viewBox="0 0 120 180"
-          initial={{ y: -200, rotate: 0 }}
-          animate={{ 
-            y: [-200, 20, 60, 200],
-            rotate: [0, 15, 45, 90],
-            scale: [1, 1, 0.9, 0.7],
-            opacity: [1, 1, 0.8, 0],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            repeatDelay: 4,
-            ease: [0.45, 0, 0.55, 1],
-          }}
-        >
-          {/* Head */}
-          <circle cx="60" cy="20" r="14" fill="hsl(30,60%,70%)" />
-          {/* Body */}
-          <line x1="60" y1="34" x2="60" y2="90" stroke="hsl(30,60%,70%)" strokeWidth="5" strokeLinecap="round" />
-          {/* Arms stretched up (diving pose) */}
-          <line x1="60" y1="50" x2="40" y2="25" stroke="hsl(30,60%,70%)" strokeWidth="4" strokeLinecap="round" />
-          <line x1="60" y1="50" x2="80" y2="25" stroke="hsl(30,60%,70%)" strokeWidth="4" strokeLinecap="round" />
-          {/* Legs */}
-          <line x1="60" y1="90" x2="45" y2="130" stroke="hsl(30,60%,70%)" strokeWidth="4" strokeLinecap="round" />
-          <line x1="60" y1="90" x2="75" y2="130" stroke="hsl(30,60%,70%)" strokeWidth="4" strokeLinecap="round" />
-          {/* Swim trunks */}
-          <rect x="48" y="80" width="24" height="14" rx="4" fill="hsl(340,70%,55%)" />
-        </motion.svg>
+      {/* Realistic swimmer in bottom-right corner */}
+      <SwimmerCharacter />
 
-        {/* Splash effect at water surface */}
-        <motion.div
-          className="absolute top-[140px] left-1/2 -translate-x-1/2"
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{
-            scale: [0, 1.5, 2, 0],
-            opacity: [0, 0.8, 0.5, 0],
-          }}
-          transition={{
-            duration: 1.5,
-            repeat: Infinity,
-            repeatDelay: 5.5,
-            delay: 2,
-          }}
-        >
-          {/* Splash drops */}
-          {[-30, -15, 0, 15, 30].map((x, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-2 h-2 bg-white/80 rounded-full"
-              style={{ left: 60 + x, top: 0 }}
-              animate={{
-                y: [0, -20 - Math.abs(x), 10],
-                x: [0, x * 0.5, x],
-                opacity: [0, 1, 0],
-              }}
-              transition={{
-                duration: 0.8,
-                repeat: Infinity,
-                repeatDelay: 6.2,
-                delay: 2.1 + i * 0.05,
-              }}
-            />
-          ))}
-        </motion.div>
-      </div>
+      {/* Second swimmer further away (smaller, top-left) */}
+      <motion.div
+        className="absolute top-[55%] left-[-3%] z-10 scale-50 opacity-40"
+        initial={{ x: 0 }}
+        animate={{ x: [0, 200, 400, 600] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+      >
+        <svg width="200" height="100" viewBox="0 0 200 100" fill="none">
+          <ellipse cx="120" cy="42" rx="10" ry="11" fill="hsl(28,55%,65%)" />
+          <ellipse cx="120" cy="35" rx="9" ry="5" fill="hsl(25,40%,20%)" />
+          <ellipse cx="100" cy="52" rx="22" ry="8" fill="hsl(28,55%,62%)" />
+          <rect x="78" y="48" width="20" height="10" rx="5" fill="hsl(200,70%,40%)" />
+          <motion.path
+            d="M118 48 Q140 35 150 50"
+            stroke="hsl(28,55%,62%)" strokeWidth="5" strokeLinecap="round" fill="none"
+            animate={{ d: ["M118 48 Q140 35 150 50", "M118 48 Q130 55 115 58", "M118 48 Q140 35 150 50"] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </svg>
+      </motion.div>
 
       {/* Underwater bubbles rising */}
-      {Array.from({ length: 12 }, (_, i) => (
-        <motion.div
-          key={`bubble-${i}`}
-          className="absolute rounded-full bg-white/20 backdrop-blur-sm"
-          style={{
-            width: 4 + Math.random() * 12,
-            height: 4 + Math.random() * 12,
-            left: `${20 + Math.random() * 60}%`,
-            bottom: "-5%",
-          }}
-          animate={{
-            y: [0, -(window?.innerHeight || 800)],
-            x: [0, (Math.random() - 0.5) * 80],
-            opacity: [0, 0.6, 0],
-            scale: [0.5, 1.2, 0.8],
-          }}
-          transition={{
-            duration: 4 + Math.random() * 4,
-            repeat: Infinity,
-            delay: Math.random() * 6,
-            ease: "easeOut",
-          }}
-        />
-      ))}
+      {Array.from({ length: 12 }, (_, i) => {
+        const size = 4 + (i % 4) * 3;
+        const leftPos = 20 + (i * 5.5) % 60;
+        const dur = 4 + (i % 3) * 2;
+        const del = (i * 0.8) % 6;
+        return (
+          <motion.div
+            key={`bubble-${i}`}
+            className="absolute rounded-full bg-white/20 backdrop-blur-sm"
+            style={{ width: size, height: size, left: `${leftPos}%`, bottom: "-5%" }}
+            animate={{
+              y: [0, -800],
+              x: [0, ((i % 2 === 0 ? 1 : -1) * 30)],
+              opacity: [0, 0.6, 0],
+              scale: [0.5, 1.2, 0.8],
+            }}
+            transition={{ duration: dur, repeat: Infinity, delay: del, ease: "easeOut" }}
+          />
+        );
+      })}
 
       {/* Content */}
       <motion.div
@@ -241,7 +354,6 @@ const VisionSection = () => {
           variants={fadeUp}
           className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-8 leading-[0.95] tracking-tight"
         >
-          We Design{" "}
           <motion.span
             className="inline-block bg-gradient-to-r from-[hsl(45,100%,75%)] via-[hsl(30,100%,70%)] to-[hsl(45,100%,75%)] bg-clip-text text-transparent"
             animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
