@@ -19,12 +19,13 @@ import paverImg from "@/assets/serenitykit.jpg";
 import wonderlandsHero from "@/assets/wonderlands-hero.png";
 import wonderlandsLogo from "@/assets/wonderlands-logo.png";
 import outdoorKitchen from "@/assets/deck/outdoor-kitchen.jpg";
-import saunaImg from "@/assets/deck/sauna.jpg";
+import saunaImg from "@/assets/deck/sauna-real.jpg";
 import pergolaImg from "@/assets/deck/pergola.jpg";
 import gardenImg from "@/assets/deck/garden.jpg";
-import spaImg from "@/assets/deck/spa.jpg";
+import spaImg from "@/assets/deck/hot-tub-spa.jpg";
 import luxuryPoolImg from "@/assets/deck/luxury-pool.jpg";
-import kidsParkImg from "@/assets/deck/kids-park.jpg";
+import kidsParkImg from "@/assets/deck/playground.jpg";
+import tanningLedgeImg from "@/assets/deck/tanning-ledge.jpg";
 import luxuryOutdoorImg from "@/assets/deck/luxury-outdoor.jpg";
 import firePitImg from "@/assets/deck/fire-pit.jpg";
 import lightingImg from "@/assets/deck/lighting.jpg";
@@ -465,7 +466,7 @@ const ServicesSection = () => (
           { img: lightingImg, label: "Outdoor Lighting", span: "" },
           { img: enchantmentPool, label: "Pool Finishes", span: "" },
           { img: luxuryOutdoorImg, label: "Full Construction", span: "col-span-2" },
-          { img: valenciaPool, label: "Tanning Ledges", span: "" },
+          { img: tanningLedgeImg, label: "Tanning Ledges", span: "" },
         ].map((item, i) => (
           <motion.div
             key={i}
