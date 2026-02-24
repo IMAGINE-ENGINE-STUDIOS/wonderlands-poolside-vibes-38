@@ -12,3 +12,11 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /auth
+Disallow: /content-editor
+Disallow: /template
+Disallow: /twilio-poc
+Disallow: /api
+
+Sitemap: https://www.wonderlandsworld.com/sitemap.xml
