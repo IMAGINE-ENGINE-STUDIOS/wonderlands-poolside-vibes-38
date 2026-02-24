@@ -1,9 +1,9 @@
 import * as React from "react";
 const { useState, useEffect, useCallback } = React;
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Maximize, Minimize, Circle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize, Minimize, Linkedin } from "lucide-react";
 
-const TOTAL_SLIDES = 13;
+const TOTAL_SLIDES = 14;
 
 // ─── Slide Components ───────────────────────────────────────────
 
@@ -258,6 +258,33 @@ const PositioningSlide = () => (
   </DeckSlide>
 );
 
+const TeamSlide = () => (
+  <DeckSlide label="LEADERSHIP" title="The Team Behind Wonderlands" dark>
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mt-12">
+      {[
+        { name: "Khalia Padilla", role: "Founder & Creative Director", linkedin: "https://www.linkedin.com/in/khaliapadilla/" },
+        { name: "Ricardo Font", role: "Founder & CEO", linkedin: "https://www.linkedin.com/in/ricardo-font-952034248/" },
+        { name: "Marino Padilla", role: "GC & Co-Founder", linkedin: "https://www.linkedin.com/in/jose-padilla-2018/" },
+        { name: "Betty López", role: "CFO & Co-Founder", linkedin: "https://www.linkedin.com/in/lópez-betty-a6671125/" },
+        { name: "Roberto Font", role: "Strategic Advisor, Investor & Co-Founder", linkedin: "" },
+      ].map((member, i) => (
+        <div key={i} className="text-center space-y-3 p-6 rounded-2xl border border-white/10 bg-white/5">
+          <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-[hsl(45,80%,30%)] to-[hsl(220,30%,15%)] flex items-center justify-center">
+            <span className="text-2xl font-bold text-white">{member.name.split(" ").map(n => n[0]).join("")}</span>
+          </div>
+          <h3 className="text-lg font-bold text-white">{member.name}</h3>
+          <p className="text-white/60 text-xs leading-relaxed">{member.role}</p>
+          {member.linkedin && (
+            <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[hsl(45,100%,65%)] hover:text-[hsl(45,100%,80%)] transition-colors text-xs">
+              <Linkedin className="w-3.5 h-3.5" /> LinkedIn
+            </a>
+          )}
+        </div>
+      ))}
+    </div>
+  </DeckSlide>
+);
+
 const GrowthSlide = () => (
   <DeckSlide label="GROWTH PLAN" title="Strategic Expansion" dark>
     <div className="space-y-8 mt-12">
@@ -368,6 +395,7 @@ const slides = [
   AestheticSlide,
   RevenueSlide,
   PositioningSlide,
+  TeamSlide,
   GrowthSlide,
   FutureSlide,
   CTASlide,
