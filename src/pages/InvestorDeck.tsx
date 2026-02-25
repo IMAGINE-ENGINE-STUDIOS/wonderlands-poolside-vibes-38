@@ -59,75 +59,20 @@ const HeroSection = () => (
 const VisionSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Deep blue ocean gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[hsl(200,80%,50%)] via-[hsl(205,70%,35%)] to-[hsl(215,60%,12%)]" />
+      {/* Dark navy background matching Market Opportunity */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,6%)] via-[hsl(230,35%,10%)] to-[hsl(200,40%,8%)]" />
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(hsl(0,0%,100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0,0%,100%) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
 
-      {/* Animated water caustics light */}
+      {/* Subtle floating glow */}
       <motion.div
-        className="absolute inset-0 opacity-20"
-        style={{
-          background: "radial-gradient(ellipse at 30% 30%, hsl(190,90%,70%) 0%, transparent 50%), radial-gradient(ellipse at 70% 50%, hsl(195,80%,65%) 0%, transparent 40%), radial-gradient(ellipse at 50% 80%, hsl(200,70%,50%) 0%, transparent 50%)",
-        }}
-        animate={{ scale: [1, 1.05, 1], opacity: [0.15, 0.3, 0.15] }}
+        className="absolute inset-0 opacity-10"
+        style={{ background: "radial-gradient(ellipse at 30% 40%, hsl(200,60%,40%) 0%, transparent 50%)" }}
+        animate={{ opacity: [0.05, 0.15, 0.05] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Gentle light beams */}
-      {[20, 45, 65, 80].map((left, i) => (
-        <motion.div
-          key={i}
-          className="absolute top-0"
-          style={{
-            left: `${left}%`,
-            width: "2px",
-            height: "60%",
-            background: "linear-gradient(180deg, hsl(190,80%,80%) 0%, transparent 100%)",
-          }}
-          animate={{ opacity: [0.05, 0.15, 0.05], scaleX: [1, 1.5, 1] }}
-          transition={{ duration: 4 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.8 }}
-        />
-      ))}
 
-      {/* Floating bubbles */}
-      {Array.from({ length: 20 }, (_, i) => {
-        const size = 6 + (i % 5) * 8;
-        const leftPos = 5 + (i * 4.7) % 90;
-        const dur = 5 + (i % 4) * 2;
-        const del = (i * 0.9) % 8;
-        return (
-          <motion.div
-            key={`bubble-${i}`}
-            className="absolute rounded-full"
-            style={{
-              width: size,
-              height: size,
-              left: `${leftPos}%`,
-              bottom: "-5%",
-              background: `radial-gradient(circle at 35% 35%, hsl(195,90%,90%) 0%, hsl(200,70%,70%) 40%, hsl(205,60%,55%) 100%)`,
-              border: "1px solid hsl(195,80%,80%)",
-              boxShadow: "inset -2px -2px 4px hsl(200,50%,40%), inset 2px 2px 4px hsl(195,90%,90%)",
-            }}
-            animate={{
-              y: [0, -900 - i * 30],
-              x: [0, (i % 2 === 0 ? 1 : -1) * (15 + i * 2)],
-              opacity: [0, 0.7, 0.5, 0],
-              scale: [0.3, 1, 1.1, 0.9],
-            }}
-            transition={{ duration: dur, repeat: Infinity, delay: del, ease: "easeOut" }}
-          />
-        );
-      })}
 
-      {/* Soft wave lines */}
-      {[0, 1, 2].map((i) => (
-        <motion.div
-          key={`wave-${i}`}
-          className="absolute w-full h-[1px] bg-white/10"
-          style={{ top: `${35 + i * 8}%` }}
-          animate={{ scaleX: [0.95, 1.05, 0.95], opacity: [0.05, 0.12, 0.05] }}
-          transition={{ duration: 4 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.6 }}
-        />
-      ))}
 
       {/* Content */}
       <motion.div
@@ -137,7 +82,7 @@ const VisionSection = () => {
         viewport={{ once: true, margin: "-100px" }}
         className="relative z-20 container mx-auto px-6 text-center"
       >
-        <motion.p variants={fadeUp} className="text-[hsl(190,80%,80%)] tracking-[0.4em] uppercase text-sm mb-6 font-medium">
+        <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.4em] uppercase text-sm mb-6 font-medium">
           Our Vision
         </motion.p>
         
@@ -190,7 +135,7 @@ const VisionSection = () => {
       </motion.div>
 
       {/* Bottom gradient fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[hsl(220,40%,8%)] to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[hsl(220,40%,6%)] to-transparent" />
     </section>
   );
 };
@@ -198,8 +143,9 @@ const VisionSection = () => {
 const ProblemSection = () => (
   <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
     <SectionLogo />
-    {/* Deep navy gradient background */}
-    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,10%)] via-[hsl(225,35%,8%)] to-[hsl(230,30%,6%)]" />
+    {/* Dark navy background matching Market Opportunity */}
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,6%)] via-[hsl(230,35%,10%)] to-[hsl(200,40%,8%)]" />
+    <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(hsl(0,0%,100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0,0%,100%) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
 
     {/* Subtle stress lines - cool toned */}
     {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
@@ -533,64 +479,9 @@ const SolutionSection = () => {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       <SectionLogo />
 
-      {/* === ANIMATED SKY: Night → Sunrise → Day === */}
-      {/* Night sky base */}
-      <motion.div
-        className="absolute inset-0"
-        style={{ background: "linear-gradient(180deg, hsl(230,40%,8%) 0%, hsl(240,30%,15%) 40%, hsl(250,25%,20%) 100%)" }}
-        initial={{ opacity: 1 }}
-        whileInView={{ opacity: [1, 0.6, 0] }}
-        viewport={{ once: true }}
-        transition={{ duration: 3, delay: 0.5, ease: "easeInOut" }}
-      />
-
-      {/* Sunrise gradient */}
-      <motion.div
-        className="absolute inset-0"
-        style={{ background: "linear-gradient(180deg, hsl(30,80%,55%) 0%, hsl(25,90%,60%) 25%, hsl(40,95%,65%) 50%, hsl(45,100%,75%) 100%)" }}
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: [0, 0.8, 0.3] }}
-        viewport={{ once: true }}
-        transition={{ duration: 4, delay: 1.5, ease: "easeInOut" }}
-      />
-
-      {/* Day sky */}
-      <motion.div
-        className="absolute inset-0"
-        style={{ background: "linear-gradient(180deg, hsl(200,75%,55%) 0%, hsl(195,70%,60%) 40%, hsl(190,60%,70%) 70%, hsl(45,50%,85%) 100%)" }}
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 2.5, delay: 3.5, ease: "easeIn" }}
-      />
-
-      {/* Stars that fade out */}
-      {stars.map((star, i) => (
-        <motion.div
-          key={`star-${i}`}
-          className="absolute rounded-full bg-white"
-          style={{ left: `${star.x}%`, top: `${star.y}%`, width: star.size, height: star.size }}
-          initial={{ opacity: 0.8 }}
-          whileInView={{ opacity: [0.8, 1, 0] }}
-          viewport={{ once: true }}
-          transition={{ duration: 2, delay: 1.5 + star.delay * 0.3, ease: "easeIn" }}
-          animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-        />
-      ))}
-
-      {/* Moon fading */}
-      <motion.div
-        className="absolute top-[10%] right-[15%]"
-        initial={{ opacity: 0.9, y: 0 }}
-        whileInView={{ opacity: [0.9, 0.5, 0], y: [0, -20, -60] }}
-        viewport={{ once: true }}
-        transition={{ duration: 3, delay: 1.5, ease: "easeIn" }}
-      >
-        <svg width="60" height="60" viewBox="0 0 60 60">
-          <circle cx="30" cy="30" r="25" fill="hsl(50,80%,90%)" />
-          <circle cx="38" cy="25" r="20" fill="hsl(230,40%,8%)" />
-        </svg>
-      </motion.div>
+      {/* Dark navy background matching Market Opportunity */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,6%)] via-[hsl(230,35%,10%)] to-[hsl(200,40%,8%)]" />
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(hsl(0,0%,100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0,0%,100%) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
 
       {/* Sun rising */}
       <motion.div
@@ -1106,7 +997,8 @@ const ApproachSection = () => {
   return (
     <section className="relative py-32 overflow-hidden">
       <SectionLogo />
-      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(25,85%,50%)] via-[hsl(340,65%,45%)] to-[hsl(280,50%,30%)]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,6%)] via-[hsl(230,35%,10%)] to-[hsl(200,40%,8%)]" />
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(hsl(0,0%,100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0,0%,100%) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
       <motion.div
         variants={stagger}
         initial="hidden"
@@ -1114,7 +1006,7 @@ const ApproachSection = () => {
         viewport={{ once: true, margin: "-100px" }}
         className="relative z-10 container mx-auto px-6"
       >
-        <motion.p variants={fadeUp} className="text-white/70 tracking-[0.3em] uppercase text-sm mb-4 text-center">Our Signature Approach</motion.p>
+        <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4 text-center">Our Signature Approach</motion.p>
         <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-20 text-center">
           One Stop Shop — Idea to Turnkey
         </motion.h2>
@@ -1222,7 +1114,8 @@ const ApproachSection = () => {
 const ServicesSection = () => (
   <section className="relative py-32 overflow-hidden">
     <SectionLogo />
-    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(260,50%,25%)] via-[hsl(280,40%,20%)] to-[hsl(220,40%,12%)]" />
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,6%)] via-[hsl(230,35%,10%)] to-[hsl(200,40%,8%)]" />
+    <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(hsl(0,0%,100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0,0%,100%) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
     <motion.div
       variants={stagger}
       initial="hidden"
@@ -1275,7 +1168,7 @@ const ServicesSection = () => (
 const RevenueSection = () => (
   <section className="relative py-32 overflow-hidden">
     <SectionLogo />
-    <div className="absolute inset-0 bg-gradient-to-b from-[hsl(220,50%,8%)] via-[hsl(210,45%,12%)] to-[hsl(200,40%,10%)]" />
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,6%)] via-[hsl(230,35%,10%)] to-[hsl(200,40%,8%)]" />
     
     {/* Animated floating orbs */}
     {Array.from({ length: 8 }).map((_, i) => (
@@ -1369,7 +1262,8 @@ const RevenueSection = () => (
 const TeamSection = () => (
   <section className="relative py-32 overflow-hidden">
     <SectionLogo />
-    <div className="absolute inset-0 bg-gradient-to-b from-[hsl(220,40%,12%)] to-[hsl(260,40%,18%)]" />
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,6%)] via-[hsl(230,35%,10%)] to-[hsl(200,40%,8%)]" />
+    <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(hsl(0,0%,100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0,0%,100%) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
     <motion.div
       variants={stagger}
       initial="hidden"
@@ -1389,7 +1283,7 @@ const TeamSection = () => (
           { name: "Betty López", role: "CFO & Co-Founder", linkedin: "https://www.linkedin.com/in/lópez-betty-a6671125/", initials: "BL" },
           { name: "Roberto Font", role: "Strategic Advisor & Co-Founder", linkedin: "", initials: "RF" },
         ].map((member, i) => (
-          <motion.div key={i} variants={fadeUp} className="text-center space-y-4 p-6 rounded-3xl bg-white/5 border border-white/10">
+          <motion.div key={i} variants={fadeUp} className="text-center space-y-4 p-6 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-sm">
             <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-[hsl(25,90%,55%)] to-[hsl(340,70%,50%)] flex items-center justify-center shadow-xl">
               <span className="text-2xl font-bold text-white">{member.initials}</span>
             </div>
@@ -1410,7 +1304,8 @@ const TeamSection = () => (
 const GrowthSection = () => (
   <section className="relative py-32 overflow-hidden">
     <SectionLogo />
-    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(173,50%,20%)] to-[hsl(200,40%,12%)]" />
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,6%)] via-[hsl(230,35%,10%)] to-[hsl(200,40%,8%)]" />
+    <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(hsl(0,0%,100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0,0%,100%) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
     <motion.div
       variants={stagger}
       initial="hidden"
@@ -1437,7 +1332,7 @@ const GrowthSection = () => (
             <h3 className="text-2xl font-bold text-white mb-3">{item.title}</h3>
             <div className="flex flex-wrap gap-3">
               {item.items.map((sub, j) => (
-                <span key={j} className="px-5 py-2 rounded-full bg-white/10 border border-white/10 text-white/80 text-sm">{sub}</span>
+                <span key={j} className="px-5 py-2 rounded-full bg-white/[0.04] border border-white/10 text-white/80 text-sm">{sub}</span>
               ))}
             </div>
           </div>
@@ -1450,7 +1345,8 @@ const GrowthSection = () => (
 const FutureSection = () => (
   <section className="relative py-32 overflow-hidden">
     <SectionLogo />
-    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(260,50%,22%)] via-[hsl(280,45%,18%)] to-[hsl(220,40%,12%)]" />
+    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(220,40%,6%)] via-[hsl(230,35%,10%)] to-[hsl(200,40%,8%)]" />
+    <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(hsl(0,0%,100%) 1px, transparent 1px), linear-gradient(90deg, hsl(0,0%,100%) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
     <img src={synergyPool} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-overlay" />
     <motion.div
       variants={stagger}
@@ -1469,7 +1365,7 @@ const FutureSection = () => (
           { Icon: Hotel, title: "Resort Partnerships", desc: "Design & brand high-end resort pool experiences across Florida & beyond" },
           { Icon: Globe, title: "Franchise Model", desc: "License the Wonderlands experience to operators in luxury markets nationwide" },
         ].map((item, i) => (
-          <motion.div key={i} variants={fadeUp} className="p-10 rounded-3xl bg-white/10 backdrop-blur-sm border border-white/10 space-y-4 text-center">
+          <motion.div key={i} variants={fadeUp} className="p-10 rounded-2xl bg-white/[0.04] backdrop-blur-sm border border-white/10 space-y-4 text-center">
             <item.Icon className="w-12 h-12 text-[hsl(45,100%,70%)] mx-auto" strokeWidth={1.5} />
             <h3 className="text-2xl font-bold text-white">{item.title}</h3>
             <p className="text-white/70 leading-relaxed">{item.desc}</p>
