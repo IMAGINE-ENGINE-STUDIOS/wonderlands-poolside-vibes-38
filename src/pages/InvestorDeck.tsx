@@ -597,46 +597,7 @@ const SolutionSection = () => {
   );
 };
 
-const RoadmapWalker = () => (
-  <motion.div
-    className="absolute z-20 hidden md:block"
-    style={{ offsetPath: "path('M 60 160 C 160 140, 260 180, 400 160 C 540 140, 620 180, 740 160 C 860 140, 900 175, 940 160')", offsetRotate: "0deg" }}
-    initial={{ offsetDistance: "0%" }}
-    whileInView={{ offsetDistance: "100%" }}
-    viewport={{ once: true }}
-    transition={{ duration: 6, ease: "easeInOut", delay: 0.5 }}
-  >
-    <svg width="36" height="55" viewBox="0 0 36 55" fill="none">
-      {/* Head - big round cute */}
-      <circle cx="18" cy="12" r="10" fill="hsl(28,55%,65%)" />
-      {/* Hair tuft */}
-      <path d="M12 6 Q17 2 22 5" stroke="hsl(25,30%,22%)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      {/* Eyes - dots */}
-      <circle cx="14" cy="12" r="2" fill="hsl(220,40%,20%)" />
-      <circle cx="22" cy="12" r="2" fill="hsl(220,40%,20%)" />
-      {/* Happy smile */}
-      <path d="M14 16 Q18 20 22 16" stroke="hsl(0,40%,40%)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
-      {/* Body */}
-      <line x1="18" y1="22" x2="18" y2="36" stroke="hsl(200,55%,45%)" strokeWidth="4" strokeLinecap="round" />
-      {/* Left arm */}
-      <motion.line x1="18" y1="26" x2="8" y2="34" stroke="hsl(28,55%,62%)" strokeWidth="3" strokeLinecap="round"
-        animate={{ x2: [8, 12, 8], y2: [34, 30, 34] }} transition={{ duration: 0.7, repeat: Infinity }}
-      />
-      {/* Right arm */}
-      <motion.line x1="18" y1="26" x2="28" y2="34" stroke="hsl(28,55%,62%)" strokeWidth="3" strokeLinecap="round"
-        animate={{ x2: [28, 24, 28], y2: [34, 30, 34] }} transition={{ duration: 0.7, repeat: Infinity, delay: 0.35 }}
-      />
-      {/* Left leg */}
-      <motion.line x1="18" y1="36" x2="12" y2="50" stroke="hsl(220,30%,40%)" strokeWidth="3" strokeLinecap="round"
-        animate={{ x2: [12, 18, 12] }} transition={{ duration: 0.7, repeat: Infinity }}
-      />
-      {/* Right leg */}
-      <motion.line x1="18" y1="36" x2="24" y2="50" stroke="hsl(220,30%,40%)" strokeWidth="3" strokeLinecap="round"
-        animate={{ x2: [24, 18, 24] }} transition={{ duration: 0.7, repeat: Infinity, delay: 0.35 }}
-      />
-    </svg>
-  </motion.div>
-);
+
 
 const BubbleIcon = ({ icon: Icon, label, delay }: { icon: React.ElementType; label: string; delay: number }) => (
   <motion.div
@@ -755,8 +716,8 @@ const ApproachSection = () => {
             />
           </svg>
 
-          {/* Walking character along the path */}
-          <RoadmapWalker />
+
+
 
           {/* Main steps */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-y-16 gap-x-6">
