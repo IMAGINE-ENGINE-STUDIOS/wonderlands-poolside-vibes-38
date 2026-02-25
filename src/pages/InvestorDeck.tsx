@@ -1275,7 +1275,38 @@ const ServicesSection = () => (
 const RevenueSection = () => (
   <section className="relative py-32 overflow-hidden">
     <SectionLogo />
-    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(173,58%,25%)] to-[hsl(200,45%,15%)]" />
+    <div className="absolute inset-0 bg-gradient-to-b from-[hsl(220,50%,8%)] via-[hsl(210,45%,12%)] to-[hsl(200,40%,10%)]" />
+    
+    {/* Animated floating orbs */}
+    {Array.from({ length: 8 }).map((_, i) => (
+      <motion.div
+        key={`orb-${i}`}
+        className="absolute rounded-full"
+        style={{
+          width: 80 + (i % 3) * 60,
+          height: 80 + (i % 3) * 60,
+          left: `${10 + i * 12}%`,
+          top: `${20 + (i % 4) * 18}%`,
+          background: i % 2 === 0
+            ? 'radial-gradient(circle, hsl(200,70%,50%) 0%, transparent 70%)'
+            : 'radial-gradient(circle, hsl(173,60%,40%) 0%, transparent 70%)',
+          opacity: 0.08,
+        }}
+        animate={{
+          y: [0, -40, 0],
+          x: [0, (i % 2 === 0 ? 20 : -20), 0],
+          scale: [1, 1.2, 1],
+        }}
+        transition={{ duration: 6 + i * 1.5, repeat: Infinity, ease: "easeInOut" }}
+      />
+    ))}
+
+    {/* Subtle grid lines */}
+    <div className="absolute inset-0 opacity-[0.03]" style={{
+      backgroundImage: 'linear-gradient(hsl(200,60%,60%) 1px, transparent 1px), linear-gradient(90deg, hsl(200,60%,60%) 1px, transparent 1px)',
+      backgroundSize: '60px 60px',
+    }} />
+
     <motion.div
       variants={stagger}
       initial="hidden"
@@ -1283,21 +1314,51 @@ const RevenueSection = () => (
       viewport={{ once: true, margin: "-100px" }}
       className="relative z-10 container mx-auto px-6"
     >
-      <motion.p variants={fadeUp} className="text-[hsl(45,100%,70%)] tracking-[0.3em] uppercase text-sm mb-4 text-center">Revenue Model</motion.p>
-      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
+      <motion.p variants={fadeUp} className="text-[hsl(173,60%,55%)] tracking-[0.3em] uppercase text-sm mb-4 text-center font-medium">Revenue Model</motion.p>
+      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-6 text-center">
         Multiple Revenue Streams
       </motion.h2>
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
+      <motion.p variants={fadeUp} className="text-white/40 text-center mb-16 max-w-xl mx-auto">Diversified income across construction, distribution, design, and technology</motion.p>
+
+      <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
         {[
-          { title: "Construction", amount: "$150,000", desc: "Average project — full turnkey outdoor living construction", highlight: true },
-          { title: "Dealer & Distribution", amount: "Products", desc: "Fiberglass pools, pavers, equipment & materials distribution to contractors and homeowners" },
-          { title: "Design Services", amount: "Design", desc: "3D rendering, concept design, landscape architecture & permitting consultation" },
-          { title: "SaaS Platform", amount: "Software", desc: "Pool designer, quoting engine & project management tools for dealers and builders" },
+          { title: "Construction", amount: "$150K", sub: "avg project", desc: "Full turnkey outdoor living construction", icon: "🏗️", accent: "hsl(25,90%,60%)" },
+          { title: "Dealer & Distribution", amount: "Products", sub: "marketplace", desc: "Fiberglass pools, pavers, equipment & materials", icon: "📦", accent: "hsl(200,70%,55%)" },
+          { title: "Design Services", amount: "Design", sub: "studio", desc: "3D rendering, landscape architecture & permitting", icon: "🎨", accent: "hsl(280,60%,65%)" },
+          { title: "SaaS Platform", amount: "Software", sub: "recurring", desc: "Pool designer, quoting engine & project management", icon: "💻", accent: "hsl(173,60%,50%)" },
         ].map((item, i) => (
-          <motion.div key={i} variants={fadeUp} className={`p-8 rounded-3xl backdrop-blur-sm border space-y-3 ${item.highlight ? 'bg-white/10 border-[hsl(45,100%,70%)]/30' : 'bg-white/[0.06] border-white/10'}`}>
-            <p className="text-[hsl(25,90%,65%)] text-sm uppercase tracking-wider font-medium">{item.title}</p>
-            <p className="text-4xl font-black text-white">{item.amount}</p>
-            <p className="text-white/60 text-sm">{item.desc}</p>
+          <motion.div
+            key={i}
+            variants={fadeUp}
+            whileHover={{ y: -4, scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className="relative p-8 rounded-2xl overflow-hidden group"
+            style={{
+              background: 'linear-gradient(135deg, hsl(220,40%,14%) 0%, hsl(215,35%,11%) 100%)',
+              border: `1px solid hsl(210,30%,20%)`,
+            }}
+          >
+            {/* Card accent glow */}
+            <motion.div
+              className="absolute top-0 left-0 w-full h-1 rounded-t-2xl"
+              style={{ background: `linear-gradient(90deg, ${item.accent}, transparent)` }}
+              initial={{ scaleX: 0, transformOrigin: 'left' }}
+              whileInView={{ scaleX: 1 }}
+              transition={{ duration: 0.8, delay: i * 0.15 }}
+            />
+            <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-[0.06] group-hover:opacity-[0.12] transition-opacity duration-500" style={{ background: `radial-gradient(circle, ${item.accent}, transparent)` }} />
+
+            <div className="flex items-start gap-5">
+              <div className="text-4xl flex-shrink-0">{item.icon}</div>
+              <div className="space-y-2 flex-1">
+                <p className="text-xs uppercase tracking-[0.2em] font-semibold" style={{ color: item.accent }}>{item.title}</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-3xl font-black text-white">{item.amount}</p>
+                  <span className="text-white/30 text-sm">{item.sub}</span>
+                </div>
+                <p className="text-white/50 text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            </div>
           </motion.div>
         ))}
       </div>
