@@ -1366,43 +1366,6 @@ const RevenueSection = () => (
   </section>
 );
 
-const PositioningSection = () => (
-  <section className="relative py-32 overflow-hidden">
-    <SectionLogo />
-    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(25,85%,50%)] to-[hsl(12,76%,40%)]" />
-    <motion.div
-      variants={stagger}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
-      className="relative z-10 container mx-auto px-6"
-    >
-      <motion.p variants={fadeUp} className="text-white/70 tracking-[0.3em] uppercase text-sm mb-4 text-center">Market Positioning</motion.p>
-      <motion.h2 variants={fadeUp} className="text-4xl md:text-6xl font-bold text-white mb-16 text-center">
-        Redefining the Category
-      </motion.h2>
-      <div className="grid md:grid-cols-2 gap-16 max-w-4xl mx-auto">
-        <motion.div variants={fadeUp} className="space-y-6 p-10 rounded-3xl bg-black/20 border border-white/10">
-          <h3 className="text-2xl font-bold text-white/50 line-through">We Are NOT</h3>
-          {["A pool installer", "A landscaper", "A general contractor"].map((item, i) => (
-            <p key={i} className="text-white/50 text-xl">✕ {item}</p>
-          ))}
-        </motion.div>
-        <motion.div variants={fadeUp} className="space-y-6 p-10 rounded-3xl bg-white/10 border border-[hsl(45,100%,65%)]/30">
-          <h3 className="text-2xl font-bold text-[hsl(45,100%,70%)]">We ARE</h3>
-          {[
-            "A luxury outdoor experience design brand",
-            "A one-stop-shop from idea to turnkey",
-            "A lifestyle company for Florida's elite",
-          ].map((item, i) => (
-            <p key={i} className="text-white text-xl">✓ {item}</p>
-          ))}
-        </motion.div>
-      </div>
-    </motion.div>
-  </section>
-);
-
 const TeamSection = () => (
   <section className="relative py-32 overflow-hidden">
     <SectionLogo />
@@ -1727,7 +1690,7 @@ const InvestorDeck = () => (
     <ServicesSection />
     <RevenueSection />
     <FinancialModelSection />
-    <PositioningSection />
+    
     <TeamSection />
     <GrowthSection />
     <FutureSection />
