@@ -344,6 +344,9 @@ export function PoolBuilder({
   const [drawingPoints, setDrawingPoints] = useState<Point[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const panStartRef = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
   const [deckOffset, setDeckOffset] = useState(3); // Main deck offset from coping edge in feet (minimum 3ft)
   const [snapPoint, setSnapPoint] = useState<{
     x: number;
@@ -353,8 +356,8 @@ export function PoolBuilder({
   const [defaultDeckWidth] = useState(18); // Default deck width in feet
   const [defaultDeckLength] = useState(38); // Default deck length in feet
   const [canvasSize, setCanvasSize] = useState({
-    width: window.innerWidth - 20,
-    height: window.innerHeight - 100
+    width: window.innerWidth,
+    height: window.innerHeight
   });
   const [showControls, setShowControls] = useState(true);
   const [editingDimension, setEditingDimension] = useState<string | null>(null);
@@ -1437,12 +1440,9 @@ export function PoolBuilder({
   // Update canvas size to maximize screen space
   useEffect(() => {
     const updateCanvasSize = () => {
-      const width = window.innerWidth - 20;
-      const height = window.innerHeight - 100;
-      setCanvasSize({
-        width,
-        height
-      });
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      setCanvasSize({ width, height });
     };
     updateCanvasSize();
     window.addEventListener('resize', updateCanvasSize);
@@ -1675,9 +1675,35 @@ export function PoolBuilder({
     // Clear canvas
     ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
 
-    // Draw grass background - flat color
-    ctx.fillStyle = '#4A7C3C';
+    // Neutral terrain background
+    ctx.fillStyle = '#5A7A4A';
     ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
+
+    // Apply camera transform (pan + zoom)
+    ctx.save();
+    ctx.translate(canvasSize.width / 2 + panOffset.x, canvasSize.height / 2 + panOffset.y);
+    ctx.scale(zoomLevel, zoomLevel);
+    ctx.translate(-canvasSize.width / 2, -canvasSize.height / 2);
+
+    // Procedural terrain detail - grass texture dots
+    const terrainStep = Math.max(20, 40 / zoomLevel);
+    const invZoom = 1 / zoomLevel;
+    const viewLeft = -panOffset.x * invZoom + canvasSize.width / 2 * (1 - invZoom);
+    const viewTop = -panOffset.y * invZoom + canvasSize.height / 2 * (1 - invZoom);
+    const viewRight = viewLeft + canvasSize.width * invZoom;
+    const viewBottom = viewTop + canvasSize.height * invZoom;
+    const startX = Math.floor(viewLeft / terrainStep) * terrainStep;
+    const startY = Math.floor(viewTop / terrainStep) * terrainStep;
+    for (let tx = startX; tx < viewRight; tx += terrainStep) {
+      for (let ty = startY; ty < viewBottom; ty += terrainStep) {
+        // Deterministic pseudo-random based on position
+        const hash = ((tx * 73856093) ^ (ty * 19349663)) & 0xFFFF;
+        const shade = 74 + (hash % 20);
+        ctx.fillStyle = `rgb(${shade - 10}, ${shade + 48}, ${shade - 20})`;
+        const sz = 2 + (hash % 3);
+        ctx.fillRect(tx + (hash % 12), ty + ((hash >> 4) % 12), sz, sz);
+      }
+    }
 
     // Draw hardscape/paver deck with custom shape
     // Apply zoom level to texture detail
@@ -4459,7 +4485,9 @@ export function PoolBuilder({
       ctx.restore();
     }
     ctx.restore();
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, additionalDeckPoints, deckOffsetsById, selectedDeckId, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, splineDrawing, additionalPools, selectedAdditionalPool, getPositionFromPerimeter, perimeterAnchorMode]);
+    // Close camera transform
+    ctx.restore();
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, additionalDeckPoints, deckOffsetsById, selectedDeckId, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, panOffset, splineDrawing, additionalPools, selectedAdditionalPool, getPositionFromPerimeter, perimeterAnchorMode]);
 
   // Memoize perimeter and area calculations
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
@@ -4528,12 +4556,21 @@ export function PoolBuilder({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [points, depthPoints, features, poolPerimeter, poolArea, hardscapePoints, additionalPools]);
+
+  // Convert screen (mouse) coordinates to world (canvas) coordinates, accounting for pan+zoom
+  const screenToWorld = useCallback((screenX: number, screenY: number): { x: number; y: number } => {
+    const x = (screenX - canvasSize.width / 2 - panOffset.x) / zoomLevel + canvasSize.width / 2;
+    const y = (screenY - canvasSize.height / 2 - panOffset.y) / zoomLevel + canvasSize.height / 2;
+    return { x, y };
+  }, [canvasSize, panOffset, zoomLevel]);
+
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    let x = e.clientX - rect.left;
-    let y = e.clientY - rect.top;
+    const world = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+    let x = world.x;
+    let y = world.y;
 
     // Apply grid snapping relative to canvas center for exact foot values
     if (gridSnap) {
@@ -4806,8 +4843,9 @@ export function PoolBuilder({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    let x = e.clientX - rect.left;
-    let y = e.clientY - rect.top;
+    const world = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+    let x = world.x;
+    let y = world.y;
 
     // If in spline drawing mode (draw-pool), handle spline point interactions
     if (activeTool === 'draw-pool') {
@@ -5143,8 +5181,9 @@ export function PoolBuilder({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    let x = e.clientX - rect.left;
-    let y = e.clientY - rect.top;
+    const world = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+    let x = world.x;
+    let y = world.y;
 
     // Apply symmetry snapping during spline drawing
     if (activeTool === 'draw-pool' && splineDrawing.isActive) {
@@ -5586,22 +5625,44 @@ export function PoolBuilder({
       y: current.y + dy
     } : p));
   };
-  return <div ref={containerRef} className="h-full flex flex-col bg-gradient-to-br from-background to-muted/20 relative">
+  return <div ref={containerRef} className="h-screen w-screen flex flex-col bg-background relative overflow-hidden">
 
       {/* Canvas area */}
-      <div className="flex-1 flex gap-4 p-4 overflow-hidden relative">
-        {/* Main Canvas */}
-        <div className="flex-1 flex items-center justify-center overflow-hidden">
-          <div style={{
-          transform: `scale(${zoomLevel})`,
-          transformOrigin: 'center',
-          transition: 'transform 0.2s'
-        }}>
-            <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} onClick={handleCanvasClick} onMouseDown={handleCanvasMouseDown} onMouseMove={handleCanvasMouseMove} onMouseUp={handleCanvasMouseUp} onMouseLeave={handleCanvasMouseUp} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchEnd} className="border-2 border-border rounded-lg shadow-2xl bg-gradient-to-br from-background to-muted/10" style={{
-            cursor: activeTool === 'draw-pool' ? 'crosshair' : fenceAddMode ? 'crosshair' : pendingFeature === 'jet' ? 'crosshair' : activeTool === 'add' ? 'crosshair' : 'default',
-            pointerEvents: 'auto'
+      <div className="flex-1 overflow-hidden relative">
+        {/* Main Canvas - fills viewport */}
+        <div className="w-full h-full">
+            <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} onClick={handleCanvasClick} onMouseDown={(e) => {
+              // Middle-click or space+click for panning
+              if (e.button === 1) {
+                e.preventDefault();
+                setIsPanning(true);
+                panStartRef.current = { x: e.clientX, y: e.clientY, panX: panOffset.x, panY: panOffset.y };
+                return;
+              }
+              handleCanvasMouseDown(e);
+            }} onMouseMove={(e) => {
+              if (isPanning) {
+                const dx = e.clientX - panStartRef.current.x;
+                const dy = e.clientY - panStartRef.current.y;
+                setPanOffset({ x: panStartRef.current.panX + dx, y: panStartRef.current.panY + dy });
+                return;
+              }
+              handleCanvasMouseMove(e);
+            }} onMouseUp={(e) => {
+              if (isPanning) { setIsPanning(false); return; }
+              handleCanvasMouseUp();
+            }} onMouseLeave={() => { setIsPanning(false); handleCanvasMouseUp(); }}
+            onWheel={(e) => {
+              e.preventDefault();
+              const delta = e.deltaY > 0 ? -0.1 : 0.1;
+              setZoomLevel(prev => Math.max(0.15, Math.min(5, prev + delta * prev)));
+            }}
+            onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchEnd} className="block" style={{
+            cursor: isPanning ? 'grabbing' : activeTool === 'draw-pool' ? 'crosshair' : fenceAddMode ? 'crosshair' : pendingFeature === 'jet' ? 'crosshair' : activeTool === 'add' ? 'crosshair' : 'grab',
+            pointerEvents: 'auto',
+            touchAction: 'none',
           }} />
-          </div>
+        </div>
           
           {/* Spline Point Editor Toolbar - replaces popup when point is selected */}
           {selectedSplinePoint && !splineDrawing.isActive && <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
