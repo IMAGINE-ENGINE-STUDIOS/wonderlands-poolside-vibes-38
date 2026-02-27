@@ -347,8 +347,18 @@ export function PoolBuilder({
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const panStartRef = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
-  const wheelZoomAccumRef = useRef(0);
+  // Zoom constants (single source of truth)
+  const WHEEL_STEP = 0.06;
+  const PINCH_STEP = 0.025;
+  const ZOOM_DEADZONE = 2;
+  const MOMENTUM_MS = 120;
+  const MAX_FRAME_STEP = 0.08;
+
   const wheelZoomRafRef = useRef<number | null>(null);
+  const lastWheelTimeRef = useRef(0);
+  const lastWheelDirRef = useRef(0);
+  const momentumLockUntilRef = useRef(0);
+  const pendingZoomRef = useRef<{ delta: number; clientX: number; clientY: number } | null>(null);
   const [deckOffset, setDeckOffset] = useState(3); // Main deck offset from coping edge in feet (minimum 3ft)
   const [snapPoint, setSnapPoint] = useState<{
     x: number;
@@ -543,6 +553,80 @@ export function PoolBuilder({
       if (wheelZoomRafRef.current !== null) cancelAnimationFrame(wheelZoomRafRef.current);
     };
   }, []);
+
+  // Native wheel listener for passive:false (React onWheel can't preventDefault reliably)
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleNativeWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const now = performance.now();
+      const isPinch = e.ctrlKey || (Math.abs(e.deltaY) < 10 && e.deltaMode === 0);
+      const step = isPinch ? PINCH_STEP : WHEEL_STEP;
+      const deadzone = isPinch ? 0.5 : ZOOM_DEADZONE;
+
+      // Ignore tiny deltas (jitter / noise)
+      if (Math.abs(e.deltaY) < deadzone) return;
+
+      const dir = e.deltaY > 0 ? -1 : 1; // negative deltaY = zoom in
+
+      // Momentum / bounce protection
+      if (dir !== lastWheelDirRef.current && now < momentumLockUntilRef.current) {
+        // Direction flipped during momentum window → drop event
+        return;
+      }
+      if (dir !== lastWheelDirRef.current) {
+        momentumLockUntilRef.current = now + MOMENTUM_MS;
+      }
+      lastWheelDirRef.current = dir;
+      lastWheelTimeRef.current = now;
+
+      // Clamp step magnitude
+      const clampedStep = dir * Math.min(MAX_FRAME_STEP, step);
+
+      // Store pending zoom with pointer position for anchoring
+      const rect = canvas.getBoundingClientRect();
+      pendingZoomRef.current = {
+        delta: clampedStep,
+        clientX: e.clientX - rect.left,
+        clientY: e.clientY - rect.top,
+      };
+
+      if (wheelZoomRafRef.current !== null) return;
+
+      wheelZoomRafRef.current = requestAnimationFrame(() => {
+        wheelZoomRafRef.current = null;
+        const pending = pendingZoomRef.current;
+        if (!pending) return;
+        pendingZoomRef.current = null;
+
+        setZoomLevel(prevZoom => {
+          const newZoom = Math.max(0.15, Math.min(5, prevZoom * (1 + pending.delta)));
+
+          // Anchor zoom to pointer position
+          setPanOffset(prevPan => {
+            const cx = canvasSize.width / 2;
+            const cy = canvasSize.height / 2;
+            // World point under cursor before zoom
+            const wx = (pending.clientX - cx - prevPan.x) / prevZoom + cx;
+            const wy = (pending.clientY - cy - prevPan.y) / prevZoom + cy;
+            // Adjust pan so same world point stays under cursor
+            const newPanX = pending.clientX - cx - (wx - cx) * newZoom;
+            const newPanY = pending.clientY - cy - (wy - cy) * newZoom;
+            return { x: newPanX, y: newPanY };
+          });
+
+          return newZoom;
+        });
+      });
+    };
+
+    canvas.addEventListener('wheel', handleNativeWheel, { passive: false });
+    return () => canvas.removeEventListener('wheel', handleNativeWheel);
+  }, [canvasSize]);
 
   // ─── Load auto-save on mount ───
   const loadProjectState = useCallback((data: any) => {
@@ -5650,21 +5734,7 @@ export function PoolBuilder({
       y: current.y + dy
     } : p));
   };
-  const handleWheelZoom = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    const rawDelta = -e.deltaY;
-    const normalizedDelta = Math.sign(rawDelta) * Math.min(1, Math.abs(rawDelta) / 80);
-    wheelZoomAccumRef.current += normalizedDelta;
-
-    if (wheelZoomRafRef.current !== null) return;
-
-    wheelZoomRafRef.current = requestAnimationFrame(() => {
-      const step = Math.max(-2, Math.min(2, wheelZoomAccumRef.current));
-      wheelZoomAccumRef.current = 0;
-      wheelZoomRafRef.current = null;
-      setZoomLevel(prev => Math.max(0.15, Math.min(5, prev * (1 + step * 0.015))));
-    });
-  };
+  // handleWheelZoom is now a native event listener registered in useEffect above
 
   return <div ref={containerRef} className="h-screen w-screen flex flex-col bg-background relative overflow-hidden">
 
@@ -5702,7 +5772,7 @@ export function PoolBuilder({
               if (isPanning) { setIsPanning(false); return; }
               handleCanvasMouseUp();
             }} onMouseLeave={() => { setIsPanning(false); handleCanvasMouseUp(); }}
-            onWheel={handleWheelZoom}
+            
             onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchEnd} className="block" style={{
             cursor: isPanning ? 'grabbing' : pendingLandscapePlacement || pendingPoolFeaturePlacement ? 'crosshair' : activeTool === 'draw-pool' ? 'crosshair' : fenceAddMode ? 'crosshair' : pendingFeature === 'jet' ? 'crosshair' : activeTool === 'add' ? 'crosshair' : 'grab',
             pointerEvents: 'auto',
