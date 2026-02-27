@@ -347,6 +347,8 @@ export function PoolBuilder({
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const panStartRef = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
+  const wheelZoomAccumRef = useRef(0);
+  const wheelZoomRafRef = useRef<number | null>(null);
   const [deckOffset, setDeckOffset] = useState(3); // Main deck offset from coping edge in feet (minimum 3ft)
   const [snapPoint, setSnapPoint] = useState<{
     x: number;
@@ -535,6 +537,12 @@ export function PoolBuilder({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [pendingLandscapePlacement, pendingPoolFeaturePlacement, pendingFeature]);
+
+  useEffect(() => {
+    return () => {
+      if (wheelZoomRafRef.current !== null) cancelAnimationFrame(wheelZoomRafRef.current);
+    };
+  }, []);
 
   // ─── Load auto-save on mount ───
   const loadProjectState = useCallback((data: any) => {
@@ -5642,6 +5650,22 @@ export function PoolBuilder({
       y: current.y + dy
     } : p));
   };
+  const handleWheelZoom = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const rawDelta = -e.deltaY;
+    const normalizedDelta = Math.sign(rawDelta) * Math.min(1, Math.abs(rawDelta) / 80);
+    wheelZoomAccumRef.current += normalizedDelta;
+
+    if (wheelZoomRafRef.current !== null) return;
+
+    wheelZoomRafRef.current = requestAnimationFrame(() => {
+      const step = Math.max(-2, Math.min(2, wheelZoomAccumRef.current));
+      wheelZoomAccumRef.current = 0;
+      wheelZoomRafRef.current = null;
+      setZoomLevel(prev => Math.max(0.15, Math.min(5, prev * (1 + step * 0.015))));
+    });
+  };
+
   return <div ref={containerRef} className="h-screen w-screen flex flex-col bg-background relative overflow-hidden">
 
       {/* Canvas area */}
@@ -5678,11 +5702,7 @@ export function PoolBuilder({
               if (isPanning) { setIsPanning(false); return; }
               handleCanvasMouseUp();
             }} onMouseLeave={() => { setIsPanning(false); handleCanvasMouseUp(); }}
-            onWheel={(e) => {
-              e.preventDefault();
-              const delta = e.deltaY > 0 ? -0.03 : 0.03;
-              setZoomLevel(prev => Math.max(0.15, Math.min(5, prev + delta * prev)));
-            }}
+            onWheel={handleWheelZoom}
             onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchEnd} className="block" style={{
             cursor: isPanning ? 'grabbing' : pendingLandscapePlacement || pendingPoolFeaturePlacement ? 'crosshair' : activeTool === 'draw-pool' ? 'crosshair' : fenceAddMode ? 'crosshair' : pendingFeature === 'jet' ? 'crosshair' : activeTool === 'add' ? 'crosshair' : 'grab',
             pointerEvents: 'auto',
