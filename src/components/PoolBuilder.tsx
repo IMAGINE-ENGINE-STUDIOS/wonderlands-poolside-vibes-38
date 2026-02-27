@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower2, Droplets, Box, PenTool, Shapes, MousePointer2 } from 'lucide-react';
 import { ShapePanel } from './poolBuilder/ShapePanel';
+import { DesignerToolPanel } from './poolBuilder/DesignerToolPanel';
 import { SplinePointEditor } from './poolBuilder/SplinePointEditor';
 import { SplineDrawingToolbar } from './poolBuilder/SplineDrawingToolbar';
 import { PointCoordinateEditor } from './poolBuilder/PointCoordinateEditor';
@@ -335,7 +336,7 @@ export function PoolBuilder({
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [smoothCorners, setSmoothCorners] = useState(false);
-  const [activeTool, setActiveTool] = useState<'select' | 'rotate' | 'zoom' | 'add' | 'draw-pool' | 'draw-deck' | null>(null);
+  const [activeTool, setActiveTool] = useState<'select' | 'rotate' | 'zoom' | 'add' | 'draw-pool' | 'draw-deck' | null>('select');
   const [drawingPoints, setDrawingPoints] = useState<Point[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -368,7 +369,7 @@ export function PoolBuilder({
   const [selectedCopingId, setSelectedCopingId] = useState('appian-adobe');
   const [selectedFinishId, setSelectedFinishId] = useState('aquamarine');
   const [paverSize] = useState(24); // Larger paver size for better visibility (24 inches / 2 feet)
-  const [poolShape, setPoolShape] = useState<'rectangle' | 'kidney' | 'freeform'>('rectangle');
+  const [poolShape, setPoolShape] = useState<'rectangle' | 'kidney' | 'freeform'>('freeform');
   const [copingThickness, setCopingThickness] = useState(10); // Adjusted for new scale
   const [depthPoints, setDepthPoints] = useState<DepthPoint[]>([{
     position: 0,
@@ -1263,19 +1264,23 @@ export function PoolBuilder({
       const initialPoolPoints = [{
         x: centerX - poolWidthPixels / 2,
         y: centerY - poolLengthPixels / 2,
-        id: '1'
+        id: '1',
+        curveType: 'linear' as const
       }, {
         x: centerX + poolWidthPixels / 2,
         y: centerY - poolLengthPixels / 2,
-        id: '2'
+        id: '2',
+        curveType: 'linear' as const
       }, {
         x: centerX + poolWidthPixels / 2,
         y: centerY + poolLengthPixels / 2,
-        id: '3'
+        id: '3',
+        curveType: 'linear' as const
       }, {
         x: centerX - poolWidthPixels / 2,
         y: centerY + poolLengthPixels / 2,
-        id: '4'
+        id: '4',
+        curveType: 'linear' as const
       }];
       setPoints(initialPoolPoints);
       setDepthPoints(parsedDepthPoints);
@@ -5062,367 +5067,9 @@ export function PoolBuilder({
       y: current.y + dy
     } : p));
   };
-  return <div ref={containerRef} className="h-full flex flex-col bg-gradient-to-br from-background to-muted/20">
-      {/* Top Control Bar */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b bg-background/95 backdrop-blur">
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={() => setShowControls(!showControls)}>
-            {showControls ? 'Hide Controls' : 'Show Controls'}
-          </Button>
-        </div>
-      </div>
+  return <div ref={containerRef} className="h-full flex flex-col bg-gradient-to-br from-background to-muted/20 relative">
 
-      {/* Collapsible Controls Panel - Only show tabs if not externally controlled */}
-      {showControls && <div className="border-b bg-background/95 backdrop-blur">
-          <Tabs value={activeTab} defaultValue="pool" className="w-full" onValueChange={setActiveTab}>
-            {/* Only show tab list if not hidden by external control */}
-            {!hideInternalTabs && <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto">
-                <TabsTrigger value="pool" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                  Pool Design
-                </TabsTrigger>
-                <TabsTrigger value="materials" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                  Materials
-                </TabsTrigger>
-                <TabsTrigger value="textures" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                  Textures
-                </TabsTrigger>
-                <TabsTrigger value="features" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                  Features
-                </TabsTrigger>
-                <TabsTrigger value="shape" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                  Shape
-                </TabsTrigger>
-                <TabsTrigger value="depth" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent">
-                  Depth
-                </TabsTrigger>
-              </TabsList>}
-
-            {/* Pool Design Tab - Deck controls */}
-            <TabsContent value="pool" className="mt-0 p-3 space-y-3">
-              <div className="space-y-3">
-                {/* Deck Configuration */}
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Deck Configuration</Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-[10px] text-muted-foreground">Deck Width</Label>
-                      <div className="flex items-center gap-2">
-                        <Input type="number" value={deckOffset} onChange={e => {
-                      const newOffset = Math.max(3, parseFloat(e.target.value) || 3);
-                      setDeckOffset(newOffset);
-                      setHardscapePoints(generateHardscapeFromPool(points, newOffset));
-                    }} className="h-8 text-xs" min="3" step="0.5" />
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">ft</span>
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-[10px] text-muted-foreground">Draw Custom</Label>
-                      <Button size="sm" onClick={() => setActiveTool(activeTool === 'draw-deck' ? null : 'draw-deck')} variant={activeTool === 'draw-deck' ? "default" : "outline"} className="w-full h-8 text-xs">
-                        <PenTool className="h-3.5 w-3.5 mr-1.5" />
-                        {activeTool === 'draw-deck' ? 'Drawing...' : 'Draw Deck'}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Shape Repository */}
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Load Saved Designs</Label>
-                  <ShapeRepository currentPoolPoints={points} currentDeckPoints={hardscapePoints} onLoadPoolShape={newPoints => {
-                const centerX = canvasSize.width / 2;
-                const centerY = canvasSize.height / 2;
-                const centeredPoints = newPoints.map((p, i) => ({
-                  ...p,
-                  x: p.x + centerX,
-                  y: p.y + centerY,
-                  id: `${i + 1}`
-                }));
-                setPoints(centeredPoints);
-                setHardscapePoints(generateHardscapeFromPool(centeredPoints, deckOffset));
-              }} onLoadDeckShape={newPoints => {
-                const centerX = canvasSize.width / 2;
-                const centerY = canvasSize.height / 2;
-                const centeredPoints = newPoints.map((p, i) => ({
-                  ...p,
-                  x: p.x + centerX,
-                  y: p.y + centerY,
-                  id: `h${i + 1}`
-                }));
-                setHardscapePoints(centeredPoints);
-              }} scale={scale} />
-                </div>
-                
-                {/* Drawing mode instructions */}
-                {activeTool === 'draw-deck' && <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 text-xs">
-                    <p className="font-medium text-primary">✏️ Drawing Deck Shape</p>
-                    <p className="text-muted-foreground mt-1">Click to add points. Double-click or press Enter to finish.</p>
-                  </div>}
-              </div>
-            </TabsContent>
-
-            {/* Shape Tab - Pool shape controls */}
-            <TabsContent value="shape" className="mt-0 p-3">
-              <ShapePanel poolShape={poolShape} setPoolShape={setPoolShape} points={points} setPoints={setPoints} activeTool={activeTool} setActiveTool={setActiveTool} onShapeSelect={shape => {
-            setPoolShape(shape);
-            const newPoolPoints = getShapePoints(shape);
-            setPoints(newPoolPoints);
-            setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
-            setFeatures([]);
-          }} isDrawing={isDrawing} drawingPoints={drawingPoints} splineDrawing={splineDrawing} onSplineDrawingChange={setSplineDrawing} onFinishSpline={() => {
-            if (splineDrawing.points.length >= 3) {
-              // Convert spline points to pool points
-              const newPoolPoints = splineDrawing.points.map((sp, i) => ({
-                x: sp.x,
-                y: sp.y,
-                id: (i + 1).toString()
-              }));
-              setPoints(newPoolPoints);
-              setPoolShape('freeform');
-              setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
-              setSplineDrawing({
-                isActive: false,
-                points: [],
-                currentCurveType: 'linear'
-              });
-              setActiveTool(null);
-            }
-          }} onCancelSpline={() => {
-            setSplineDrawing({
-              isActive: false,
-              points: [],
-              currentCurveType: 'linear'
-            });
-            setActiveTool(null);
-          }} poolDimensions={points.length > 0 ? {
-            width: (Math.max(...points.map(p => p.x)) - Math.min(...points.map(p => p.x))) / scale,
-            length: (Math.max(...points.map(p => p.y)) - Math.min(...points.map(p => p.y))) / scale,
-            area: poolArea,
-            perimeter: poolPerimeter
-          } : undefined} onAddNewPool={type => {
-            // Add new pool/spa to scene without erasing existing
-            const offsetX = 150 + additionalPools.length * 50;
-            const offsetY = 100 + additionalPools.length * 30;
-            const newPoolPoints = [{
-              x: canvasSize.width / 2 + offsetX,
-              y: canvasSize.height / 2 + offsetY - 50,
-              id: 'np1'
-            }, {
-              x: canvasSize.width / 2 + offsetX + (type === 'spa' ? 60 : 100),
-              y: canvasSize.height / 2 + offsetY - 50,
-              id: 'np2'
-            }, {
-              x: canvasSize.width / 2 + offsetX + (type === 'spa' ? 60 : 100),
-              y: canvasSize.height / 2 + offsetY + (type === 'spa' ? 60 : 100),
-              id: 'np3'
-            }, {
-              x: canvasSize.width / 2 + offsetX,
-              y: canvasSize.height / 2 + offsetY + (type === 'spa' ? 60 : 100),
-              id: 'np4'
-            }];
-            setAdditionalPools(prev => [...prev, {
-              id: Date.now().toString(),
-              type,
-              points: newPoolPoints,
-              shape: 'rectangle'
-            }]);
-          }} poolCount={1 + additionalPools.length} />
-            </TabsContent>
-
-            {/* Depth Tab */}
-            <TabsContent value="depth" className="mt-0 p-3 space-y-3">
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Depth Profile</Label>
-                  <p className="text-xs text-muted-foreground">Adjust depth at each anchor point</p>
-                </div>
-
-                {/* Depth Anchor Controls */}
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Depth Anchors (Shallow to Deep)</Label>
-                  <div className="flex gap-1.5">
-                    {depthPoints.sort((a, b) => a.position - b.position).map((dp, index) => <div key={dp.id} className="flex-1 space-y-1">
-                        <Label className="text-[10px] text-muted-foreground">
-                          {(dp.position * 100).toFixed(0)}%
-                        </Label>
-                        <div className="flex items-center gap-0.5">
-                          <Input type="number" value={dp.depth.toFixed(1)} onChange={e => {
-                      const value = e.target.value;
-                      if (value === '') return;
-                      const newDepth = Math.max(1, Math.min(12, parseFloat(value)));
-                      setDepthPoints(prev => prev.map(d => d.id === dp.id ? {
-                        ...d,
-                        depth: newDepth
-                      } : d));
-                    }} className="h-7 text-[10px] px-1" min="1" max="12" step="0.1" />
-                          <span className="text-[10px] text-muted-foreground">ft</span>
-                        </div>
-                      </div>)}
-                  </div>
-                </div>
-
-                {/* Section Cut Visualization */}
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Section Cut - Depth Profile</Label>
-                  <div className="bg-muted/30 rounded-lg p-4 border">
-                    <svg width="100%" height="120" viewBox="0 0 300 120" className="overflow-visible">
-                      {/* Water line at 0' */}
-                      <line x1="10" y1="10" x2="290" y2="10" stroke="hsl(var(--primary))" strokeWidth="2" />
-                      <text x="5" y="12" fontSize="10" fill="hsl(var(--muted-foreground))" textAnchor="end">0'</text>
-                      
-                      {/* Depth anchor points and labels */}
-                      {depthPoints.sort((a, b) => a.position - b.position).map((dp, i) => {
-                    const x = 10 + dp.position * 280;
-                    const y = 10 + dp.depth / 12 * 100;
-                    return <g key={dp.id}>
-                            <circle cx={x} cy={y} r="3" fill="hsl(var(--primary))" />
-                            <line x1={x} y1={y} x2={x} y2="115" stroke="hsl(var(--muted-foreground))" strokeWidth="1" strokeDasharray="2,2" opacity="0.5" />
-                            <text x={x} y={y - 6} fontSize="9" fill="hsl(var(--foreground))" textAnchor="middle" fontWeight="600">
-                              {dp.depth.toFixed(1)}'
-                            </text>
-                            <text x={x} y="125" fontSize="8" fill="hsl(var(--muted-foreground))" textAnchor="middle">
-                              {(dp.position * 100).toFixed(0)}%
-                            </text>
-                          </g>;
-                  })}
-                      
-                      {/* Closed contour: 0% at 0' -> spline points -> 100% at 0' -> back to start */}
-                      <path d={(() => {
-                    const sortedPoints = depthPoints.sort((a, b) => a.position - b.position);
-                    // Start at 0% anchor at water level (0')
-                    let pathData = `M ${10 + sortedPoints[0].position * 280},10`;
-                    // Draw spline through all depth points
-                    sortedPoints.forEach(dp => {
-                      const x = 10 + dp.position * 280;
-                      const y = 10 + dp.depth / 12 * 100;
-                      pathData += ` L ${x},${y}`;
-                    });
-                    // Connect last point (100%) back to water level at 100%
-                    pathData += ` L ${10 + sortedPoints[sortedPoints.length - 1].position * 280},10`;
-                    // Close the contour back to start (0% at 0')
-                    pathData += ' Z';
-                    return pathData;
-                  })()} fill="hsl(var(--primary)/0.15)" stroke="hsl(var(--primary))" strokeWidth="2" />
-                    </svg>
-                  </div>
-                </div>
-
-                {selectedDepthPoint}
-              </div>
-            </TabsContent>
-
-            {/* Materials Tab */}
-            <TabsContent value="materials" className="mt-0 p-3 space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Pool Finish</Label>
-                  <Select value={selectedFinishId} onValueChange={setSelectedFinishId}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px] z-50 bg-background">
-                      {finishes.map(finish => <SelectItem key={finish.id} value={finish.id}>
-                          <div className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded border bg-cover bg-center" style={{
-                        backgroundImage: `url(${finish.image})`
-                      }} />
-                            <span>{finish.name}</span>
-                          </div>
-                        </SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Coping Pavers</Label>
-                  <Select value={selectedCopingId} onValueChange={setSelectedCopingId}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px] z-50 bg-background">
-                      {paverTypes.filter(p => p.category === 'paver').map(paver => <SelectItem key={paver.id} value={paver.id}>
-                          <div className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded border bg-cover bg-center" style={{
-                        backgroundImage: `url(${paver.image})`
-                      }} />
-                            <span>{paver.name}</span>
-                          </div>
-                        </SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium">Deck Pavers</Label>
-                  <Select value={selectedPaverId} onValueChange={setSelectedPaverId}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[300px] z-50 bg-background">
-                      {paverTypes.filter(p => p.category === 'paver').map(paver => <SelectItem key={paver.id} value={paver.id}>
-                          <div className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded border bg-cover bg-center" style={{
-                        backgroundImage: `url(${paver.image})`
-                      }} />
-                            <span>{paver.name}</span>
-                          </div>
-                        </SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* Features Tab */}
-            <TabsContent value="features" className="mt-0 p-2 space-y-2">
-              <div className="grid grid-cols-4 gap-1.5">
-                <Button size="sm" onClick={() => addFeature('stairs')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
-                  <Move className="h-4 w-4" />
-                  <span className="text-[10px]">Stairs</span>
-                </Button>
-                <Button size="sm" onClick={() => addFeature('light')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
-                  <Lightbulb className="h-4 w-4" />
-                  <span className="text-[10px]">Light</span>
-                </Button>
-                <Button size="sm" onClick={() => addFeature('jet')} variant="outline" disabled={pendingFeature === 'jet'} className="h-auto py-2 flex-col gap-0.5">
-                  <Waves className="h-4 w-4" />
-                  <span className="text-[10px]">Jet</span>
-                </Button>
-                <Button size="sm" onClick={() => addFeature('fountain')} variant="outline" className="h-auto py-2 flex-col gap-0.5">
-                  <Droplets className="h-4 w-4" />
-                  <span className="text-[10px]">Fountain</span>
-                </Button>
-              </div>
-
-              {selectedFeature && features.find(f => f.id === selectedFeature)?.type === 'stairs' && <div className="p-2 bg-muted/50 rounded space-y-1.5">
-                  <Label className="text-[10px] font-medium">Stairs</Label>
-                  <div className="flex gap-1.5">
-                    <Button size="sm" onClick={addStairStep} variant="outline" className="flex-1 h-7 text-xs">
-                      <Plus className="h-3 w-3 mr-1" />
-                      Step
-                    </Button>
-                    <Button size="sm" onClick={removeStairStep} variant="outline" className="flex-1 h-7 text-xs">
-                      <Minus className="h-3 w-3 mr-1" />
-                      Step
-                    </Button>
-                  </div>
-                </div>}
-
-              {selectedFeature && <Button size="sm" onClick={removeFeature} variant="destructive" className="w-full h-7 text-xs">
-                  <Trash2 className="h-3 w-3 mr-1" />
-                  Remove
-                </Button>}
-            </TabsContent>
-
-            {/* Textures Tab */}
-            <TabsContent value="textures" className="mt-0 p-2">
-              <TextureBuilder currentTextures={customTextures} onTexturesChange={setCustomTextures} />
-            </TabsContent>
-
-
-          </Tabs>
-        </div>}
-
-      {/* Canvas with Legend */}
+      {/* Canvas area */}
       <div className="flex-1 flex gap-4 p-4 overflow-hidden relative">
         {/* Main Canvas */}
         <div className="flex-1 flex items-center justify-center overflow-hidden">
@@ -5681,30 +5328,57 @@ export function PoolBuilder({
         </div>
 
 
-        {/* Tool Buttons - Top Left of Canvas */}
-        <div className="absolute top-8 left-8 flex items-center gap-2 z-20 bg-background/95 backdrop-blur p-2 rounded-lg border shadow-lg scale-[0.8] opacity-20 hover:opacity-100 transition-opacity duration-300">
-          <Button size="sm" variant={activeTool === 'select' ? "default" : "outline"} onClick={() => setActiveTool('select')} className="h-8 w-8 p-0" title="Select">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z" />
-            </svg>
-          </Button>
-          <Button size="sm" variant={activeTool === 'rotate' ? "default" : "outline"} onClick={() => setActiveTool('rotate')} className="h-8 w-8 p-0" title="Rotate">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
-            </svg>
-          </Button>
-          <div className="h-4 w-px bg-border" />
-          <Button size="sm" variant="outline" onClick={() => setZoomLevel(prev => Math.max(prev - 0.2, 0.5))} className="h-8 w-8 p-0" title="Zoom Out">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M5 12h14" />
-            </svg>
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => setZoomLevel(prev => Math.min(prev + 0.2, 2))} className="h-8 w-8 p-0" title="Zoom In">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-          </Button>
-        </div>
+        {/* Floating Designer Tool Panel */}
+        <DesignerToolPanel
+          activeTool={activeTool}
+          setActiveTool={setActiveTool}
+          poolShape={poolShape}
+          setPoolShape={setPoolShape}
+          onShapeSelect={(shape) => {
+            setPoolShape(shape);
+            const newPoolPoints = getShapePoints(shape).map(p => ({ ...p, curveType: 'linear' as const }));
+            setPoints(newPoolPoints);
+            setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+            setFeatures([]);
+          }}
+          selectedFinishId={selectedFinishId}
+          setSelectedFinishId={setSelectedFinishId}
+          selectedCopingId={selectedCopingId}
+          setSelectedCopingId={setSelectedCopingId}
+          selectedPaverId={selectedPaverId}
+          setSelectedPaverId={setSelectedPaverId}
+          finishes={finishes}
+          deckOffset={deckOffset}
+          setDeckOffset={setDeckOffset}
+          onRegenerateDeck={() => setHardscapePoints(generateHardscapeFromPool(points, deckOffset))}
+          onAddFeature={(type) => addFeature(type as PoolFeature['type'])}
+          selectedFeature={selectedFeature}
+          onRemoveFeature={removeFeature}
+          onAddStairStep={addStairStep}
+          onRemoveStairStep={removeStairStep}
+          featureType={selectedFeature ? features.find(f => f.id === selectedFeature)?.type : undefined}
+          depthPoints={depthPoints}
+          setDepthPoints={setDepthPoints}
+          gridSnap={gridSnap}
+          setGridSnap={setGridSnap}
+          snapSize={snapSize}
+          setSnapSize={setSnapSize}
+          zoomLevel={zoomLevel}
+          setZoomLevel={setZoomLevel}
+          projectCost={projectCost}
+          customTextures={customTextures}
+          setCustomTextures={setCustomTextures}
+          isSplineDrawing={splineDrawing.isActive}
+          onStartDrawPool={() => {
+            setActiveTool('draw-pool');
+            setSplineDrawing({ isActive: true, points: [], currentCurveType: 'linear' });
+          }}
+          onStartDrawDeck={() => setActiveTool(activeTool === 'draw-deck' ? null : 'draw-deck')}
+          poolWidth={points.length > 0 ? (Math.max(...points.map(p => p.x)) - Math.min(...points.map(p => p.x))) / scale : undefined}
+          poolLength={points.length > 0 ? (Math.max(...points.map(p => p.y)) - Math.min(...points.map(p => p.y))) / scale : undefined}
+          poolArea={poolArea}
+          deckArea={calculateHardscapeArea()}
+        />
 
         {/* Fence Builder Controls - Inside Canvas */}
         {showFenceEditor ? <div className="absolute bottom-8 left-8 z-20 bg-background/95 backdrop-blur p-3 rounded-lg border shadow-lg max-w-xs space-y-2">
