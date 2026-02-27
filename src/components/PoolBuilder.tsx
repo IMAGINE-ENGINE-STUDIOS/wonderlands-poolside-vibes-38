@@ -2231,6 +2231,38 @@ export function PoolBuilder({
       });
     }
 
+    // Draw deck spline edges with dashed orange lines
+    if (hardscapePoints.length > 1) {
+      ctx.save();
+      ctx.strokeStyle = '#F59E0B';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([6, 4]);
+      ctx.globalAlpha = 0.6;
+      ctx.beginPath();
+      ctx.moveTo(hardscapePoints[0].x, hardscapePoints[0].y);
+      for (let i = 1; i < hardscapePoints.length; i++) {
+        ctx.lineTo(hardscapePoints[i].x, hardscapePoints[i].y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1.0;
+
+      // Dimension labels on deck edges
+      for (let i = 0; i < hardscapePoints.length; i++) {
+        const p1 = hardscapePoints[i];
+        const p2 = hardscapePoints[(i + 1) % hardscapePoints.length];
+        const dist = Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2) / scale;
+        const mx = (p1.x + p2.x) / 2;
+        const my = (p1.y + p2.y) / 2;
+        ctx.fillStyle = '#D97706';
+        ctx.font = '9px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${dist.toFixed(1)}'`, mx, my - 6);
+      }
+      ctx.restore();
+    }
+
     // Draw hardscape anchor points
     hardscapePoints.forEach(point => {
       const size = 10;
@@ -2989,6 +3021,322 @@ export function PoolBuilder({
           ctx.arc(feature.x, feature.y + 20, 35, 0, 2 * Math.PI);
           ctx.stroke();
         }
+      } else if (feature.type === 'pool-seat') {
+        const w = feature.seatWidth || 60;
+        const d = feature.seatDepth || 20;
+        const angle = feature.angle || 0;
+        ctx.save();
+        ctx.translate(feature.x, feature.y);
+        ctx.rotate(angle);
+        ctx.fillStyle = '#6BB6D6';
+        ctx.strokeStyle = isSelected ? '#FFD700' : '#1a4d6d';
+        ctx.lineWidth = isSelected ? 3 : 2;
+        const r = 4;
+        ctx.beginPath();
+        ctx.moveTo(-w/2 + r, -d/2);
+        ctx.lineTo(w/2 - r, -d/2);
+        ctx.quadraticCurveTo(w/2, -d/2, w/2, -d/2 + r);
+        ctx.lineTo(w/2, d/2);
+        ctx.lineTo(-w/2, d/2);
+        ctx.lineTo(-w/2, -d/2 + r);
+        ctx.quadraticCurveTo(-w/2, -d/2, -w/2 + r, -d/2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(0,0,0,0.1)';
+        ctx.fillRect(-w/2, d/4, w, d/4);
+        ctx.restore();
+      } else if (feature.type === 'pool-wall') {
+        const w = feature.width || 80;
+        const h = 12;
+        const angle = feature.angle || 0;
+        ctx.save();
+        ctx.translate(feature.x, feature.y);
+        ctx.rotate(angle);
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.fillRect(-w/2 + 3, -h/2 + 3, w, h);
+        ctx.fillStyle = '#B5A48D';
+        ctx.strokeStyle = isSelected ? '#FFD700' : '#8B7355';
+        ctx.lineWidth = isSelected ? 3 : 2;
+        ctx.fillRect(-w/2, -h/2, w, h);
+        ctx.strokeRect(-w/2, -h/2, w, h);
+        ctx.fillStyle = '#5C4033';
+        ctx.font = '8px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${(feature.wallHeight || 3)}'h`, 0, 3);
+        ctx.restore();
+      } else if (feature.type === 'diving-board') {
+        const len = feature.length || 100;
+        const angle = feature.angle || 0;
+        ctx.save();
+        ctx.translate(feature.x, feature.y);
+        ctx.rotate(angle);
+        ctx.fillStyle = '#E8DDD0';
+        ctx.strokeStyle = isSelected ? '#FFD700' : '#8B7355';
+        ctx.lineWidth = isSelected ? 3 : 1.5;
+        ctx.fillRect(0, -8, len * 0.7, 16);
+        ctx.strokeRect(0, -8, len * 0.7, 16);
+        ctx.fillStyle = '#888';
+        ctx.fillRect(-8, -12, 8, 24);
+        for (let i = 5; i < len * 0.65; i += 8) {
+          ctx.fillStyle = 'rgba(0,0,0,0.15)';
+          ctx.fillRect(i, -5, 3, 10);
+        }
+        ctx.restore();
+      } else if (feature.type === 'rock') {
+        const sz = feature.rockSize === 'small' ? 12 : feature.rockSize === 'large' ? 28 : 20;
+        ctx.fillStyle = '#9B8B7A';
+        ctx.strokeStyle = isSelected ? '#FFD700' : '#6B5B4A';
+        ctx.lineWidth = isSelected ? 3 : 1.5;
+        ctx.beginPath();
+        ctx.moveTo(feature.x - sz * 0.4, feature.y - sz * 0.3);
+        ctx.lineTo(feature.x + sz * 0.2, feature.y - sz * 0.5);
+        ctx.lineTo(feature.x + sz * 0.5, feature.y - sz * 0.1);
+        ctx.lineTo(feature.x + sz * 0.3, feature.y + sz * 0.4);
+        ctx.lineTo(feature.x - sz * 0.3, feature.y + sz * 0.5);
+        ctx.lineTo(feature.x - sz * 0.5, feature.y + sz * 0.1);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.beginPath();
+        ctx.arc(feature.x - sz * 0.1, feature.y - sz * 0.1, sz * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (feature.type === 'boulder') {
+        const sz = feature.rockSize === 'small' ? 25 : feature.rockSize === 'large' ? 50 : 35;
+        const grad = ctx.createRadialGradient(feature.x - sz * 0.15, feature.y - sz * 0.15, 0, feature.x, feature.y, sz);
+        grad.addColorStop(0, '#A89888');
+        grad.addColorStop(1, '#6B5B4A');
+        ctx.fillStyle = grad;
+        ctx.strokeStyle = isSelected ? '#FFD700' : '#5A4A3A';
+        ctx.lineWidth = isSelected ? 3 : 2;
+        ctx.beginPath();
+        ctx.ellipse(feature.x, feature.y, sz, sz * 0.75, 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(0,0,0,0.1)';
+        ctx.beginPath();
+        ctx.ellipse(feature.x + 4, feature.y + sz * 0.6, sz * 0.8, sz * 0.2, 0, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (feature.type === 'hedge-row') {
+        const w = feature.width || 100;
+        const h = 15;
+        ctx.fillStyle = '#3A6B25';
+        ctx.strokeStyle = isSelected ? '#FFD700' : '#2A5015';
+        ctx.lineWidth = isSelected ? 3 : 1.5;
+        ctx.fillRect(feature.x - w / 2, feature.y - h / 2, w, h);
+        ctx.strokeRect(feature.x - w / 2, feature.y - h / 2, w, h);
+        for (let i = 1; i < Math.floor(w / 20); i++) {
+          ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+          ctx.lineWidth = 1;
+          const x = feature.x - w / 2 + i * 20;
+          ctx.beginPath();
+          ctx.moveTo(x, feature.y - h / 2);
+          ctx.lineTo(x, feature.y + h / 2);
+          ctx.stroke();
+        }
+      } else if (feature.type === 'plant-row') {
+        const count = 5;
+        const spacing = 18;
+        const startX = feature.x - (count - 1) * spacing / 2;
+        for (let i = 0; i < count; i++) {
+          const cx = startX + i * spacing;
+          ctx.fillStyle = i % 2 === 0 ? '#4A8538' : '#5B9649';
+          ctx.beginPath();
+          ctx.arc(cx, feature.y, 7, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        if (isSelected) {
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(startX - 10, feature.y - 10, (count - 1) * spacing + 20, 20);
+        }
+      } else if (feature.type === 'landscape-light') {
+        const color = feature.lightColor || '#fffacd';
+        const glow = ctx.createRadialGradient(feature.x, feature.y, 0, feature.x, feature.y, 25);
+        glow.addColorStop(0, color + '66');
+        glow.addColorStop(1, color + '00');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(feature.x, feature.y, 25, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.arc(feature.x, feature.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(feature.x, feature.y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        if (isSelected) {
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(feature.x, feature.y, 28, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      } else if (feature.type === 'edging') {
+        const w = 80;
+        ctx.strokeStyle = isSelected ? '#FFD700' : '#8B7355';
+        ctx.lineWidth = isSelected ? 4 : 3;
+        ctx.setLineDash([8, 4]);
+        ctx.beginPath();
+        ctx.moveTo(feature.x - w / 2, feature.y);
+        ctx.lineTo(feature.x + w / 2, feature.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      } else if (feature.type === 'grass-region') {
+        const radius = feature.radius || 80;
+        ctx.fillStyle = '#5A9547';
+        ctx.beginPath();
+        ctx.arc(feature.x, feature.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        for (let i = 0; i < 20; i++) {
+          const angle = (i / 20) * Math.PI * 2 + 0.3;
+          const dist = (i * 7) % radius;
+          ctx.fillStyle = i % 2 === 0 ? '#4A8538' : '#6BA557';
+          ctx.fillRect(feature.x + Math.cos(angle) * dist, feature.y + Math.sin(angle) * dist, 2, 2);
+        }
+        ctx.strokeStyle = isSelected ? '#FFD700' : 'rgba(70,120,50,0.5)';
+        ctx.lineWidth = isSelected ? 3 : 1.5;
+        ctx.stroke();
+      } else if (feature.type === 'pond') {
+        const rx = feature.radius || 60;
+        const ry = rx * 0.7;
+        const grad = ctx.createRadialGradient(feature.x, feature.y, 0, feature.x, feature.y, rx);
+        grad.addColorStop(0, 'rgba(100,180,220,0.8)');
+        grad.addColorStop(1, 'rgba(60,130,180,0.6)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.ellipse(feature.x, feature.y, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 1;
+        for (let i = 1; i <= 3; i++) {
+          ctx.beginPath();
+          ctx.ellipse(feature.x, feature.y, rx * i / 4, ry * i / 4, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        if (isSelected) {
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.ellipse(feature.x, feature.y, rx + 5, ry + 5, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      } else if (feature.type === 'stream') {
+        ctx.strokeStyle = 'rgba(80,160,200,0.7)';
+        ctx.lineWidth = 14;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(feature.x - 50, feature.y - 30);
+        ctx.quadraticCurveTo(feature.x, feature.y - 10, feature.x + 20, feature.y + 20);
+        ctx.quadraticCurveTo(feature.x + 40, feature.y + 40, feature.x + 60, feature.y + 30);
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 3; i++) {
+          const t = (i + 1) / 4;
+          const ax = feature.x - 50 + t * 110;
+          const ay = feature.y - 30 + t * 60;
+          ctx.beginPath();
+          ctx.moveTo(ax - 4, ay - 3);
+          ctx.lineTo(ax + 2, ay);
+          ctx.lineTo(ax - 4, ay + 3);
+          ctx.stroke();
+        }
+        if (isSelected) {
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.arc(feature.x, feature.y, 70, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      } else if (feature.type === 'waterfall') {
+        const w = 40;
+        const h = 50;
+        for (let i = 0; i < 4; i++) {
+          const y = feature.y - h / 2 + i * (h / 4);
+          const alpha = 0.3 + i * 0.15;
+          ctx.fillStyle = `rgba(80,160,220,${alpha})`;
+          ctx.fillRect(feature.x - w / 2, y, w, h / 5);
+        }
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.beginPath();
+        ctx.ellipse(feature.x, feature.y + h / 2, w / 2 + 5, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        if (isSelected) {
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(feature.x - w / 2 - 5, feature.y - h / 2 - 5, w + 10, h + 15);
+        }
+      } else if (feature.type === 'jumping-jet') {
+        ctx.strokeStyle = 'rgba(120,200,240,0.6)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(feature.x, feature.y);
+        ctx.quadraticCurveTo(feature.x + 15, feature.y - 30, feature.x + 30, feature.y);
+        ctx.stroke();
+        for (let i = 0; i < 4; i++) {
+          const t = i / 4;
+          const dx = feature.x + t * 30;
+          const dy = feature.y - Math.sin(t * Math.PI) * 30;
+          ctx.fillStyle = 'rgba(120,200,240,0.5)';
+          ctx.beginPath();
+          ctx.arc(dx, dy, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.fillStyle = '#888';
+        ctx.beginPath();
+        ctx.arc(feature.x, feature.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        if (isSelected) {
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(feature.x + 15, feature.y - 10, 30, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      } else if (feature.type === 'sprinkler') {
+        ctx.fillStyle = '#666';
+        ctx.beginPath();
+        ctx.arc(feature.x, feature.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(120,200,240,0.4)';
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < 8; i++) {
+          const angle = (i / 8) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.moveTo(feature.x + Math.cos(angle) * 6, feature.y + Math.sin(angle) * 6);
+          ctx.lineTo(feature.x + Math.cos(angle) * 22, feature.y + Math.sin(angle) * 22);
+          ctx.stroke();
+        }
+        if (isSelected) {
+          ctx.strokeStyle = '#FFD700';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(feature.x, feature.y, 26, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      } else if (feature.type === 'water-curtain') {
+        const w = feature.width || 80;
+        const h = 20;
+        ctx.fillStyle = 'rgba(80,160,220,0.5)';
+        ctx.fillRect(feature.x - w / 2, feature.y - h / 2, w, h);
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < Math.floor(w / 8); i++) {
+          const lx = feature.x - w / 2 + 4 + i * 8;
+          ctx.beginPath();
+          ctx.moveTo(lx, feature.y - h / 2);
+          ctx.lineTo(lx, feature.y + h / 2);
+          ctx.stroke();
+        }
+        ctx.strokeStyle = isSelected ? '#FFD700' : 'rgba(60,130,180,0.6)';
+        ctx.lineWidth = isSelected ? 3 : 1.5;
+        ctx.strokeRect(feature.x - w / 2, feature.y - h / 2, w, h);
       }
       ctx.restore();
     });
@@ -5378,6 +5726,30 @@ export function PoolBuilder({
           poolLength={points.length > 0 ? (Math.max(...points.map(p => p.y)) - Math.min(...points.map(p => p.y))) / scale : undefined}
           poolArea={poolArea}
           deckArea={calculateHardscapeArea()}
+          scale={scale}
+          selectedFeatureData={selectedFeature ? (() => {
+            const f = features.find(feat => feat.id === selectedFeature);
+            if (!f) return undefined;
+            return {
+              type: f.type,
+              steps: f.steps,
+              seatWidth: f.seatWidth,
+              seatDepth: f.seatDepth,
+              wallHeight: f.wallHeight,
+              width: f.width,
+              length: f.length,
+              rockSize: f.rockSize,
+              treeType: f.treeType,
+              lightColor: f.lightColor,
+              lightIntensity: f.lightIntensity,
+              x: f.x,
+              y: f.y,
+            };
+          })() : undefined}
+          onUpdateFeature={(updates) => {
+            if (!selectedFeature) return;
+            setFeatures(prev => prev.map(f => f.id === selectedFeature ? { ...f, ...updates } : f));
+          }}
         />
 
         {/* Fence Builder Controls - Inside Canvas */}
