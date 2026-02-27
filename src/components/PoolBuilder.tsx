@@ -5680,7 +5680,7 @@ export function PoolBuilder({
             }} onMouseLeave={() => { setIsPanning(false); handleCanvasMouseUp(); }}
             onWheel={(e) => {
               e.preventDefault();
-              const delta = e.deltaY > 0 ? -0.1 : 0.1;
+              const delta = e.deltaY > 0 ? -0.03 : 0.03;
               setZoomLevel(prev => Math.max(0.15, Math.min(5, prev + delta * prev)));
             }}
             onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchEnd} className="block" style={{
