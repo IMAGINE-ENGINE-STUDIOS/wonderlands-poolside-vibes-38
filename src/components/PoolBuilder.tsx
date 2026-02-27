@@ -321,6 +321,9 @@ export function PoolBuilder({
   };
   const [points, setPoints] = useState<Point[]>([]);
   const [hardscapePoints, setHardscapePoints] = useState<HardscapePoint[]>([]);
+  const [additionalDeckPoints, setAdditionalDeckPoints] = useState<Record<string, HardscapePoint[]>>({});
+  const [selectedDeckId, setSelectedDeckId] = useState<string>('main');
+  const [deckOffsetsById, setDeckOffsetsById] = useState<Record<string, number>>({ main: 3 });
   const [fencePoints, setFencePoints] = useState<FencePoint[]>([]);
   const [fenceDoors, setFenceDoors] = useState<FenceDoor[]>([]);
   const [features, setFeatures] = useState<PoolFeature[]>([]);
@@ -336,11 +339,11 @@ export function PoolBuilder({
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [smoothCorners, setSmoothCorners] = useState(false);
-  const [activeTool, setActiveTool] = useState<'select' | 'rotate' | 'zoom' | 'add' | 'draw-pool' | 'draw-deck' | null>('select');
+  const [activeTool, setActiveTool] = useState<'select' | 'rotate' | 'zoom' | 'add' | 'draw-pool' | 'draw-deck' | 'select-deck' | null>('select');
   const [drawingPoints, setDrawingPoints] = useState<Point[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
-  const [deckOffset, setDeckOffset] = useState(3); // Deck offset from coping edge in feet (minimum 3ft)
+  const [deckOffset, setDeckOffset] = useState(3); // Main deck offset from coping edge in feet (minimum 3ft)
   const [snapPoint, setSnapPoint] = useState<{
     x: number;
     y: number;
@@ -741,7 +744,7 @@ export function PoolBuilder({
         }
         // Check deck (for non-perimeter-snapped pools)
         if (!pool.isPerimeterSnapped) {
-          const poolDeck = generateHardscapeFromPool(pool.points, deckOffset);
+          const poolDeck = additionalDeckPoints[pool.id] || generateHardscapeFromPool(pool.points, deckOffsetsById[pool.id] ?? deckOffset);
           if (poolDeck.length >= 3 && doPolygonsIntersect(newPoolPoints, poolDeck)) {
             return pool.id;
           }
@@ -749,7 +752,7 @@ export function PoolBuilder({
       }
     }
     return null;
-  }, [points, hardscapePoints, additionalPools, doPolygonsIntersect, deckOffset]);
+  }, [points, hardscapePoints, additionalPools, additionalDeckPoints, deckOffsetsById, doPolygonsIntersect, deckOffset]);
 
   // Legacy alias for backward compatibility
   const checkDeckIntersection = checkPoolAreaIntersection;
@@ -775,7 +778,7 @@ export function PoolBuilder({
         }
         // Check deck (for non-perimeter-snapped pools)
         if (!pool.isPerimeterSnapped) {
-          const poolDeck = generateHardscapeFromPool(pool.points, deckOffset);
+          const poolDeck = additionalDeckPoints[pool.id] || generateHardscapeFromPool(pool.points, deckOffsetsById[pool.id] ?? deckOffset);
           if (poolDeck.length >= 3 && isPointInPolygon(x, y, poolDeck)) {
             return pool.id;
           }
@@ -783,7 +786,7 @@ export function PoolBuilder({
       }
     }
     return null;
-  }, [points, hardscapePoints, additionalPools, isPointInPolygon, deckOffset]);
+  }, [points, hardscapePoints, additionalPools, additionalDeckPoints, deckOffsetsById, isPointInPolygon, deckOffset]);
 
   // Generate deck points for portions of a new pool that extend OUTSIDE existing deck/water areas
   // Returns null if no portion extends outside, otherwise returns deck points only for outside area
@@ -922,33 +925,37 @@ export function PoolBuilder({
   // Handle deck dialog confirmation
   const handleDeckConfirmation = useCallback((addDeck: boolean) => {
     if (addDeck && pendingDeckData) {
-      // Expand existing hardscape to include new deck area
-      // Merge the new deck points with existing hardscape by extending bounds
-      const allDeckPoints = [...hardscapePoints, ...pendingDeckData.deckPoints];
-      const minX = Math.min(...allDeckPoints.map(p => p.x));
-      const maxX = Math.max(...allDeckPoints.map(p => p.x));
-      const minY = Math.min(...allDeckPoints.map(p => p.y));
-      const maxY = Math.max(...allDeckPoints.map(p => p.y));
+      if (pendingDeckData.poolId !== 'main') {
+        setAdditionalDeckPoints(prev => ({ ...prev, [pendingDeckData.poolId]: pendingDeckData.deckPoints }));
+        setDeckOffsetsById(prev => ({ ...prev, [pendingDeckData.poolId]: prev[pendingDeckData.poolId] ?? 3 }));
+      } else {
+        // Expand existing hardscape to include new deck area
+        const allDeckPoints = [...hardscapePoints, ...pendingDeckData.deckPoints];
+        const minX = Math.min(...allDeckPoints.map(p => p.x));
+        const maxX = Math.max(...allDeckPoints.map(p => p.x));
+        const minY = Math.min(...allDeckPoints.map(p => p.y));
+        const maxY = Math.max(...allDeckPoints.map(p => p.y));
 
-      // Create expanded rectangular deck that encompasses all areas
-      const expandedDeck: HardscapePoint[] = [{
-        x: minX,
-        y: minY,
-        id: 'h1'
-      }, {
-        x: maxX,
-        y: minY,
-        id: 'h2'
-      }, {
-        x: maxX,
-        y: maxY,
-        id: 'h3'
-      }, {
-        x: minX,
-        y: maxY,
-        id: 'h4'
-      }];
-      setHardscapePoints(expandedDeck);
+        // Create expanded rectangular deck that encompasses all areas
+        const expandedDeck: HardscapePoint[] = [{
+          x: minX,
+          y: minY,
+          id: 'h1'
+        }, {
+          x: maxX,
+          y: minY,
+          id: 'h2'
+        }, {
+          x: maxX,
+          y: maxY,
+          id: 'h3'
+        }, {
+          x: minX,
+          y: maxY,
+          id: 'h4'
+        }];
+        setHardscapePoints(expandedDeck);
+      }
     }
     setPendingDeckData(null);
     setShowDeckDialog(false);
@@ -969,6 +976,8 @@ export function PoolBuilder({
         featureType: 'regular',
         intersectsWith: pendingPoolData.intersectsWith
       }]);
+      setAdditionalDeckPoints(prev => ({ ...prev, [newPoolId]: generateHardscapeFromPool(newPoolPoints, 3) }));
+      setDeckOffsetsById(prev => ({ ...prev, [newPoolId]: 3 }));
       setPendingPoolData(null);
       setShowPoolTypeDialog(false);
       setSplineDrawing({
@@ -2263,15 +2272,44 @@ export function PoolBuilder({
       ctx.restore();
     }
 
-    // Draw hardscape anchor points
+    // Draw hardscape anchor points (main deck)
     hardscapePoints.forEach(point => {
       const size = 10;
-      const isSelected = selectedHardscapePoint === point.id;
+      const isSelected = selectedHardscapePoint === point.id && selectedDeckId === 'main';
       ctx.fillStyle = isSelected ? '#F59E0B' : '#ffffff';
       ctx.strokeStyle = isSelected ? '#D97706' : '#F59E0B';
       ctx.lineWidth = 2;
       ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
       ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
+    });
+
+    // Draw spline points for additional pool decks (visible + editable)
+    additionalPools.forEach(pool => {
+      const poolDeck = additionalDeckPoints[pool.id] || (pool.featureType === 'regular' ? generateHardscapeFromPool(pool.points, deckOffsetsById[pool.id] ?? deckOffset) : []);
+      if (poolDeck.length < 3) return;
+
+      // dashed deck outline
+      ctx.save();
+      ctx.strokeStyle = selectedDeckId === pool.id ? '#F59E0B' : 'rgba(245, 158, 11, 0.55)';
+      ctx.lineWidth = selectedDeckId === pool.id ? 2 : 1.25;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(poolDeck[0].x, poolDeck[0].y);
+      for (let i = 1; i < poolDeck.length; i++) ctx.lineTo(poolDeck[i].x, poolDeck[i].y);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+
+      poolDeck.forEach(point => {
+        const size = 9;
+        const isSelected = selectedHardscapePoint === point.id && selectedDeckId === pool.id;
+        ctx.fillStyle = isSelected ? '#F59E0B' : '#ffffff';
+        ctx.strokeStyle = isSelected ? '#D97706' : '#F59E0B';
+        ctx.lineWidth = 2;
+        ctx.fillRect(point.x - size / 2, point.y - size / 2, size, size);
+        ctx.strokeRect(point.x - size / 2, point.y - size / 2, size, size);
+      });
     });
 
     // Draw anchor points for pool
@@ -3884,7 +3922,7 @@ export function PoolBuilder({
       // Draw deck ONLY for separate/regular pools (not for integrated features like spas/tanning ledges)
       // Integrated features share the main pool's deck
       if (isSeparatePool) {
-        const poolHardscapePoints = generateHardscapeFromPool(pool.points, deckOffset);
+        const poolHardscapePoints = additionalDeckPoints[pool.id] || generateHardscapeFromPool(pool.points, deckOffsetsById[pool.id] ?? deckOffset);
         if (paverTexture && poolHardscapePoints.length >= 3) {
           const img = paverTexture;
           ctx.save();
@@ -4358,7 +4396,7 @@ export function PoolBuilder({
       ctx.restore();
     }
     ctx.restore();
-  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, splineDrawing, additionalPools, selectedAdditionalPool, getPositionFromPerimeter, perimeterAnchorMode]);
+  }, [points, features, selectedPoint, hoveredPoint, canvasSize, scale, pendingFeature, cursorPos, selectedFeature, texturesLoaded, paverSize, copingThickness, selectedPaverId, selectedCopingId, selectedFinishId, poolShape, hardscapePoints, additionalDeckPoints, deckOffsetsById, selectedDeckId, selectedHardscapePoint, selectedRoofPoint, showDepthEditor, depthPoints, selectedDepthPoint, zoomLevel, splineDrawing, additionalPools, selectedAdditionalPool, getPositionFromPerimeter, perimeterAnchorMode]);
 
   // Memoize perimeter and area calculations
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
@@ -4550,9 +4588,10 @@ export function PoolBuilder({
       }
     }
 
-    // Check if clicked on hardscape point
+    // Check if clicked on hardscape point (main deck)
     const clickedHardscapePoint = hardscapePoints.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
     if (clickedHardscapePoint) {
+      setSelectedDeckId('main');
       setSelectedHardscapePoint(clickedHardscapePoint.id);
       setSelectedPoint(null);
       setSelectedFeature(null);
@@ -4560,6 +4599,38 @@ export function PoolBuilder({
       setSelectedDepthPoint(null);
       setSelectedAdditionalPool(null);
       return;
+    }
+
+    // Check if clicked on additional deck point (new decks editable)
+    for (const pool of additionalPools) {
+      const poolDeck = additionalDeckPoints[pool.id] || (pool.featureType === 'regular' ? generateHardscapeFromPool(pool.points, deckOffsetsById[pool.id] ?? deckOffset) : []);
+      const clickedPoolDeckPoint = poolDeck.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
+      if (clickedPoolDeckPoint) {
+        setSelectedDeckId(pool.id);
+        setSelectedHardscapePoint(clickedPoolDeckPoint.id);
+        setSelectedPoint(null);
+        setSelectedFeature(null);
+        setSelectedRoofPoint(null);
+        setSelectedDepthPoint(null);
+        setSelectedAdditionalPool(pool.id);
+        return;
+      }
+    }
+
+    // Select deck area (tool or direct click) so offset edits target selected deck only
+    if ((activeTool === 'select-deck' || activeTool === 'select') && hardscapePoints.length >= 3 && isPointInPolygon(x, y, hardscapePoints)) {
+      setSelectedDeckId('main');
+      if (activeTool === 'select-deck') setActiveTool('select');
+      return;
+    }
+    for (const pool of additionalPools) {
+      const poolDeck = additionalDeckPoints[pool.id] || (pool.featureType === 'regular' ? generateHardscapeFromPool(pool.points, deckOffsetsById[pool.id] ?? deckOffset) : []);
+      if (poolDeck.length >= 3 && isPointInPolygon(x, y, poolDeck)) {
+        setSelectedDeckId(pool.id);
+        setSelectedAdditionalPool(pool.id);
+        if (activeTool === 'select-deck') setActiveTool('select');
+        return;
+      }
     }
 
     // If placing jet, snap it to nearest wall or place on pool floor
@@ -4741,13 +4812,16 @@ export function PoolBuilder({
             setShowPoolTypeDialog(true);
           } else {
             // No intersection, add as regular pool
+            const newPoolId = Date.now().toString();
             setAdditionalPools(prev => [...prev, {
-              id: Date.now().toString(),
+              id: newPoolId,
               type: 'pool',
               points: newPoolPoints,
               shape: 'freeform',
               featureType: 'regular'
             }]);
+            setAdditionalDeckPoints(prev => ({ ...prev, [newPoolId]: generateHardscapeFromPool(newPoolPoints, 3) }));
+            setDeckOffsetsById(prev => ({ ...prev, [newPoolId]: 3 }));
             setSplineDrawing({
               isActive: false,
               points: [],
@@ -4957,12 +5031,25 @@ export function PoolBuilder({
       }
     }
 
-    // Check for hardscape point drag
+    // Check for hardscape point drag (main + selected additional deck)
     const clickedHardscapePoint = hardscapePoints.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
     if (clickedHardscapePoint) {
+      setSelectedDeckId('main');
       setSelectedHardscapePoint(clickedHardscapePoint.id);
       setIsDraggingHardscape(true);
       return;
+    }
+
+    for (const pool of additionalPools) {
+      const poolDeck = additionalDeckPoints[pool.id] || (pool.featureType === 'regular' ? generateHardscapeFromPool(pool.points, deckOffsetsById[pool.id] ?? deckOffset) : []);
+      const clickedPoolDeckPoint = poolDeck.find(p => Math.sqrt(Math.pow(p.x - x, 2) + Math.pow(p.y - y, 2)) < 10);
+      if (clickedPoolDeckPoint) {
+        setSelectedDeckId(pool.id);
+        setSelectedHardscapePoint(clickedPoolDeckPoint.id);
+        setSelectedAdditionalPool(pool.id);
+        setIsDraggingHardscape(true);
+        return;
+      }
     }
 
     // Check for feature drag
@@ -5124,11 +5211,21 @@ export function PoolBuilder({
     } else if (isDraggingHardscape && selectedHardscapePoint) {
       const boundedX = Math.max(0, Math.min(canvasSize.width, snappedX));
       const boundedY = Math.max(0, Math.min(canvasSize.height, snappedY));
-      setHardscapePoints(prev => prev.map(p => p.id === selectedHardscapePoint ? {
-        ...p,
-        x: boundedX,
-        y: boundedY
-      } : p));
+      if (selectedDeckId === 'main') {
+        setHardscapePoints(prev => prev.map(p => p.id === selectedHardscapePoint ? {
+          ...p,
+          x: boundedX,
+          y: boundedY
+        } : p));
+      } else {
+        setAdditionalDeckPoints(prev => {
+          const current = prev[selectedDeckId] || [];
+          return {
+            ...prev,
+            [selectedDeckId]: current.map(p => p.id === selectedHardscapePoint ? { ...p, x: boundedX, y: boundedY } : p)
+          };
+        });
+      }
     } else if (draggingFeature && selectedFeature) {
       const feature = features.find(f => f.id === selectedFeature);
       if (!feature) return;
@@ -5687,6 +5784,7 @@ export function PoolBuilder({
             const newPoolPoints = getShapePoints(shape).map(p => ({ ...p, curveType: 'linear' as const }));
             setPoints(newPoolPoints);
             setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+            setDeckOffsetsById(prev => ({ ...prev, main: deckOffset }));
             setFeatures([]);
           }}
           selectedFinishId={selectedFinishId}
@@ -5696,9 +5794,28 @@ export function PoolBuilder({
           selectedPaverId={selectedPaverId}
           setSelectedPaverId={setSelectedPaverId}
           finishes={finishes}
-          deckOffset={deckOffset}
-          setDeckOffset={setDeckOffset}
-          onRegenerateDeck={() => setHardscapePoints(generateHardscapeFromPool(points, deckOffset))}
+          deckOffset={selectedDeckId === 'main' ? (deckOffsetsById.main ?? deckOffset) : (deckOffsetsById[selectedDeckId] ?? 3)}
+          setDeckOffset={(v) => {
+            setDeckOffsetsById(prev => ({ ...prev, [selectedDeckId]: v, ...(selectedDeckId === 'main' ? { main: v } : {}) }));
+            if (selectedDeckId === 'main') {
+              setDeckOffset(v);
+              setHardscapePoints(generateHardscapeFromPool(points, v));
+            } else {
+              const pool = additionalPools.find(p => p.id === selectedDeckId);
+              if (pool) setAdditionalDeckPoints(prev => ({ ...prev, [selectedDeckId]: generateHardscapeFromPool(pool.points, v) }));
+            }
+          }}
+          onRegenerateDeck={() => {
+            if (selectedDeckId === 'main') {
+              const offset = deckOffsetsById.main ?? deckOffset;
+              setHardscapePoints(generateHardscapeFromPool(points, offset));
+            } else {
+              const pool = additionalPools.find(p => p.id === selectedDeckId);
+              if (!pool) return;
+              const offset = deckOffsetsById[selectedDeckId] ?? 3;
+              setAdditionalDeckPoints(prev => ({ ...prev, [selectedDeckId]: generateHardscapeFromPool(pool.points, offset) }));
+            }
+          }}
           onAddFeature={(type) => addFeature(type as PoolFeature['type'])}
           selectedFeature={selectedFeature}
           onRemoveFeature={removeFeature}
