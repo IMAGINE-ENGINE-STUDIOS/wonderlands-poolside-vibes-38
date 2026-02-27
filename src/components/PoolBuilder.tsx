@@ -363,6 +363,10 @@ export function PoolBuilder({
   const [editingDimension, setEditingDimension] = useState<string | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<string | null>(null);
   const [pendingFeature, setPendingFeature] = useState<'jet' | null>(null);
+  // V2 placement modes
+  const [pendingLandscapePlacement, setPendingLandscapePlacement] = useState<PoolFeature['type'] | null>(null);
+  const [pendingPoolFeaturePlacement, setPendingPoolFeaturePlacement] = useState<PoolFeature['type'] | null>(null);
+  const [mouseWorldPos, setMouseWorldPos] = useState<{ x: number; y: number } | null>(null);
   const [cursorPos, setCursorPos] = useState({
     x: 0,
     y: 0
@@ -518,6 +522,19 @@ export function PoolBuilder({
     }, 2000);
     return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
   }, [getSerializableState, points]);
+
+  // ─── Escape key to cancel placement modes ───
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (pendingLandscapePlacement) setPendingLandscapePlacement(null);
+        if (pendingPoolFeaturePlacement) setPendingPoolFeaturePlacement(null);
+        if (pendingFeature) setPendingFeature(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pendingLandscapePlacement, pendingPoolFeaturePlacement, pendingFeature]);
 
   // ─── Load auto-save on mount ───
   const loadProjectState = useCallback((data: any) => {
@@ -4580,6 +4597,20 @@ export function PoolBuilder({
       y = snapToGridRelative(y, cY, scale, snapSize);
     }
 
+    // V2: Handle landscape click-to-place
+    if (pendingLandscapePlacement) {
+      createLandscapeFeatureAt(pendingLandscapePlacement, x, y);
+      setPendingLandscapePlacement(null);
+      return;
+    }
+
+    // V2: Handle pool structure click-on-edge placement
+    if (pendingPoolFeaturePlacement) {
+      createPoolFeatureAt(pendingPoolFeaturePlacement, x, y);
+      setPendingPoolFeaturePlacement(null);
+      return;
+    }
+
     // Handle perimeter anchor mode - click to fix position or drag to move
     if (perimeterAnchorMode.isActive && !perimeterAnchorMode.isFixed) {
       // Check if clicking on/near the anchor point
@@ -4839,7 +4870,7 @@ export function PoolBuilder({
     handleCanvasMouseUp();
   };
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (pendingFeature) return;
+    if (pendingFeature || pendingLandscapePlacement || pendingPoolFeaturePlacement) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
@@ -5434,102 +5465,88 @@ export function PoolBuilder({
       setSelectedPoint(null);
     }
   };
+  // Landscape features that use click-to-place outside pool
+  const landscapeFeatureTypes: PoolFeature['type'][] = ['tree', 'fountain', 'grass', 'shrub', 'umbrella', 'pathway', 'rock', 'boulder', 'hedge-row', 'plant-row', 'landscape-light', 'edging', 'grass-region', 'pond', 'stream', 'waterfall', 'sprinkler', 'water-curtain'];
+  // Pool structure features that snap to wall with click-to-place
+  const poolStructureFeatureTypes: PoolFeature['type'][] = ['light', 'pool-seat', 'pool-wall', 'stairs', 'diving-board', 'slide', 'pool-accessory', 'pool-cover'];
+
   const addFeature = (type: PoolFeature['type']) => {
     if (type === 'jet' || type === 'jumping-jet') {
       setPendingFeature('jet');
       return;
     }
-    let newFeature: PoolFeature;
 
-    // Open area placement features (landscape, decorative)
-    const openAreaFeatures: PoolFeature['type'][] = ['tree', 'fountain', 'grass', 'home', 'shrub', 'umbrella', 'fence', 'pathway', 'rock', 'boulder', 'hedge-row', 'plant-row', 'landscape-light', 'edging', 'grass-region', 'pond', 'stream', 'waterfall', 'sprinkler', 'water-curtain'];
-
-    // Wall-mounted features (snap to pool perimeter)
-    const wallMountedFeatures: PoolFeature['type'][] = ['light', 'pool-seat', 'pool-wall', 'stairs', 'diving-board', 'slide', 'pool-accessory', 'pool-cover'];
-    if (openAreaFeatures.includes(type)) {
-      // Place in open area with slight randomization
-      newFeature = {
-        type,
-        x: canvasSize.width / 2 + Math.random() * 100 - 50,
-        y: canvasSize.height / 2 + Math.random() * 100 - 50,
-        id: Date.now().toString(),
-        treeType: type === 'tree' ? 'oak' : undefined,
-        radius: type === 'grass' || type === 'grass-region' ? 80 : type === 'pond' ? 60 : undefined,
-        width: type === 'home' ? 200 : type === 'hedge-row' ? 100 : type === 'water-curtain' ? 80 : undefined,
-        height: type === 'home' ? 150 : undefined,
-        rockSize: type === 'rock' || type === 'boulder' ? type === 'boulder' ? 'large' : 'medium' : undefined,
-        lightColor: type === 'landscape-light' ? '#fffacd' : undefined
-      };
-    } else if (type === 'light') {
-      // Lights snap to walls and point inward
-      const wallPoint = findNearestWallPoint(canvasSize.width / 2, canvasSize.height / 2);
-      newFeature = {
-        type,
-        x: wallPoint.x,
-        y: wallPoint.y,
-        id: Date.now().toString(),
-        angle: wallPoint.angle + Math.PI / 2,
-        wallSegment: wallPoint.segment,
-        wallPosition: wallPoint.position
-      };
-    } else if (type === 'pool-seat') {
-      // Pool seats snap to walls
-      const wallPoint = findNearestWallPoint(canvasSize.width / 2, canvasSize.height / 2);
-      newFeature = {
-        type,
-        x: wallPoint.x,
-        y: wallPoint.y,
-        id: Date.now().toString(),
-        angle: wallPoint.angle + Math.PI / 2,
-        wallSegment: wallPoint.segment,
-        wallPosition: wallPoint.position,
-        seatWidth: 6 * scale,
-        // 6ft wide seat
-        seatDepth: 2 * scale // 2ft deep
-      };
-    } else if (type === 'pool-wall') {
-      // Raised walls snap to pool perimeter
-      const wallPoint = findNearestWallPoint(canvasSize.width / 2, canvasSize.height / 2);
-      newFeature = {
-        type,
-        x: wallPoint.x,
-        y: wallPoint.y,
-        id: Date.now().toString(),
-        angle: wallPoint.angle + Math.PI / 2,
-        wallSegment: wallPoint.segment,
-        wallPosition: wallPoint.position,
-        width: 8 * scale,
-        // 8ft wide
-        wallHeight: 3 // 3ft tall
-      };
-    } else if (type === 'diving-board') {
-      // Diving boards at deep end
-      const wallPoint = findNearestWallPoint(canvasSize.width / 2, canvasSize.height / 2 - 100);
-      newFeature = {
-        type,
-        x: wallPoint.x,
-        y: wallPoint.y,
-        id: Date.now().toString(),
-        angle: wallPoint.angle + Math.PI / 2,
-        wallSegment: wallPoint.segment,
-        wallPosition: wallPoint.position,
-        length: 10 * scale // 10ft board
-      };
-    } else {
-      // Default: Stairs and other wall-mounted features
-      const wallPoint = findNearestWallPoint(canvasSize.width / 2, canvasSize.height / 2);
-      newFeature = {
-        type,
-        x: wallPoint.x,
-        y: wallPoint.y,
-        id: Date.now().toString(),
-        steps: type === 'stairs' ? 3 : undefined,
-        angle: wallPoint.angle + Math.PI / 2,
-        wallSegment: wallPoint.segment,
-        wallPosition: wallPoint.position
-      };
+    // V2: Landscape features enter click-to-place mode
+    if (landscapeFeatureTypes.includes(type)) {
+      // Toggle off if same type already pending
+      if (pendingLandscapePlacement === type) {
+        setPendingLandscapePlacement(null);
+      } else {
+        setPendingLandscapePlacement(type);
+        setPendingPoolFeaturePlacement(null);
+      }
+      return;
     }
+
+    // V2: Pool structure features enter click-on-edge mode
+    if (poolStructureFeatureTypes.includes(type)) {
+      if (pendingPoolFeaturePlacement === type) {
+        setPendingPoolFeaturePlacement(null);
+      } else {
+        setPendingPoolFeaturePlacement(type);
+        setPendingLandscapePlacement(null);
+      }
+      return;
+    }
+
+    // Fallback: home, fence, etc. - place immediately
+    const newFeature: PoolFeature = {
+      type,
+      x: canvasSize.width / 2,
+      y: canvasSize.height / 2,
+      id: Date.now().toString(),
+      width: type === 'home' ? 200 : undefined,
+      height: type === 'home' ? 150 : undefined,
+    };
     setFeatures([...features, newFeature]);
+    setSelectedFeature(newFeature.id);
+    onToolUsed?.();
+  };
+
+  // Create a landscape feature at specific world coordinates
+  const createLandscapeFeatureAt = (type: PoolFeature['type'], x: number, y: number) => {
+    const newFeature: PoolFeature = {
+      type,
+      x,
+      y,
+      id: Date.now().toString(),
+      treeType: type === 'tree' ? 'oak' : undefined,
+      radius: type === 'grass' || type === 'grass-region' ? 80 : type === 'pond' ? 60 : undefined,
+      width: type === 'hedge-row' ? 100 : type === 'water-curtain' ? 80 : undefined,
+      rockSize: type === 'rock' || type === 'boulder' ? (type === 'boulder' ? 'large' : 'medium') : undefined,
+      lightColor: type === 'landscape-light' ? '#fffacd' : undefined,
+    };
+    setFeatures(prev => [...prev, newFeature]);
+    setSelectedFeature(newFeature.id);
+    onToolUsed?.();
+  };
+
+  // Create a pool structure feature snapped to wall at world coordinates
+  const createPoolFeatureAt = (type: PoolFeature['type'], x: number, y: number) => {
+    const wallPoint = findNearestWallPoint(x, y);
+    let newFeature: PoolFeature;
+    if (type === 'pool-seat') {
+      newFeature = { type, x: wallPoint.x, y: wallPoint.y, id: Date.now().toString(), angle: wallPoint.angle + Math.PI / 2, wallSegment: wallPoint.segment, wallPosition: wallPoint.position, seatWidth: 6 * scale, seatDepth: 2 * scale };
+    } else if (type === 'pool-wall') {
+      newFeature = { type, x: wallPoint.x, y: wallPoint.y, id: Date.now().toString(), angle: wallPoint.angle + Math.PI / 2, wallSegment: wallPoint.segment, wallPosition: wallPoint.position, width: 8 * scale, wallHeight: 3 };
+    } else if (type === 'diving-board') {
+      newFeature = { type, x: wallPoint.x, y: wallPoint.y, id: Date.now().toString(), angle: wallPoint.angle + Math.PI / 2, wallSegment: wallPoint.segment, wallPosition: wallPoint.position, length: 10 * scale };
+    } else if (type === 'light') {
+      newFeature = { type, x: wallPoint.x, y: wallPoint.y, id: Date.now().toString(), angle: wallPoint.angle + Math.PI / 2, wallSegment: wallPoint.segment, wallPosition: wallPoint.position };
+    } else {
+      newFeature = { type, x: wallPoint.x, y: wallPoint.y, id: Date.now().toString(), steps: type === 'stairs' ? 3 : undefined, angle: wallPoint.angle + Math.PI / 2, wallSegment: wallPoint.segment, wallPosition: wallPoint.position };
+    }
+    setFeatures(prev => [...prev, newFeature]);
     setSelectedFeature(newFeature.id);
     onToolUsed?.();
   };
@@ -5648,6 +5665,15 @@ export function PoolBuilder({
                 return;
               }
               handleCanvasMouseMove(e);
+              // Track mouse world position for ghost preview
+              if (pendingLandscapePlacement || pendingPoolFeaturePlacement) {
+                const canvas = canvasRef.current;
+                if (canvas) {
+                  const rect = canvas.getBoundingClientRect();
+                  const world = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+                  setMouseWorldPos(world);
+                }
+              }
             }} onMouseUp={(e) => {
               if (isPanning) { setIsPanning(false); return; }
               handleCanvasMouseUp();
@@ -5658,7 +5684,7 @@ export function PoolBuilder({
               setZoomLevel(prev => Math.max(0.15, Math.min(5, prev + delta * prev)));
             }}
             onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchEnd} className="block" style={{
-            cursor: isPanning ? 'grabbing' : activeTool === 'draw-pool' ? 'crosshair' : fenceAddMode ? 'crosshair' : pendingFeature === 'jet' ? 'crosshair' : activeTool === 'add' ? 'crosshair' : 'grab',
+            cursor: isPanning ? 'grabbing' : pendingLandscapePlacement || pendingPoolFeaturePlacement ? 'crosshair' : activeTool === 'draw-pool' ? 'crosshair' : fenceAddMode ? 'crosshair' : pendingFeature === 'jet' ? 'crosshair' : activeTool === 'add' ? 'crosshair' : 'grab',
             pointerEvents: 'auto',
             touchAction: 'none',
           }} />
@@ -6002,6 +6028,7 @@ export function PoolBuilder({
             if (!selectedFeature) return;
             setFeatures(prev => prev.map(f => f.id === selectedFeature ? { ...f, ...updates } : f));
           }}
+          pendingPlacement={pendingLandscapePlacement || pendingPoolFeaturePlacement || null}
         />
 
         {/* Project Manager Button - Top Left */}
@@ -6031,6 +6058,17 @@ export function PoolBuilder({
           lastSaved={lastAutoSaved}
         />
 
+
+        {/* V2 Placement Mode Banner */}
+        {(pendingLandscapePlacement || pendingPoolFeaturePlacement) && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg shadow-lg flex items-center gap-3 backdrop-blur text-sm font-medium">
+            <span className="animate-pulse">⊕</span>
+            <span>Click on {pendingPoolFeaturePlacement ? 'pool edge' : 'scene'} to place{' '}
+              <span className="capitalize font-bold">{(pendingLandscapePlacement || pendingPoolFeaturePlacement || '').replace(/-/g, ' ')}</span>
+            </span>
+            <button onClick={() => { setPendingLandscapePlacement(null); setPendingPoolFeaturePlacement(null); }} className="ml-2 bg-primary-foreground/20 hover:bg-primary-foreground/30 rounded px-2 py-0.5 text-xs">ESC</button>
+          </div>
+        )}
 
         {showFenceEditor ? <div className="absolute bottom-8 left-8 z-20 bg-background/95 backdrop-blur p-3 rounded-lg border shadow-lg max-w-xs space-y-2">
             <div className="flex items-center justify-between mb-2">
@@ -6198,8 +6236,6 @@ export function PoolBuilder({
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>)}
-
-      </div>
       
       {/* Pool Type Selection Dialog - Shows when new pool intersects existing */}
       <Dialog open={showPoolTypeDialog} onOpenChange={setShowPoolTypeDialog}>

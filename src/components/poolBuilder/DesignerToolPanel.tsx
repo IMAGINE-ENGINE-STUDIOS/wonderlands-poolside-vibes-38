@@ -89,6 +89,7 @@ interface DesignerToolPanelProps {
   };
   onUpdateFeature?: (updates: Record<string, any>) => void;
   scale?: number;
+  pendingPlacement?: string | null;
 }
 
 type PanelSection = 'tools' | 'shape' | 'materials' | 'deck' | 'pool-features' | 'landscape' | 'water-features' | 'depth' | 'cost' | 'textures' | null;
@@ -287,12 +288,12 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
             {expandedSection === 'pool-features' && (
               <div className="px-2 pb-2 space-y-2">
                 <div className="grid grid-cols-3 gap-1">
-                  <FeatureButton icon={<ArrowDownToLine className="w-3.5 h-3.5" />} label="Stairs" onClick={() => props.onAddFeature('stairs')} />
-                  <FeatureButton icon={<Sofa className="w-3.5 h-3.5" />} label="Seat" onClick={() => props.onAddFeature('pool-seat')} isNew />
-                  <FeatureButton icon={<RectangleVertical className="w-3.5 h-3.5" />} label="Wall" onClick={() => props.onAddFeature('pool-wall')} isNew />
-                  <FeatureButton icon={<Lightbulb className="w-3.5 h-3.5" />} label="Light" onClick={() => props.onAddFeature('light')} />
-                  <FeatureButton icon={<Droplets className="w-3.5 h-3.5" />} label="Jet" onClick={() => props.onAddFeature('jet')} />
-                  <FeatureButton icon={<ArrowUpFromLine className="w-3.5 h-3.5" />} label="Diving" onClick={() => props.onAddFeature('diving-board')} isNew />
+                  <FeatureButton icon={<ArrowDownToLine className="w-3.5 h-3.5" />} label="Stairs" onClick={() => props.onAddFeature('stairs')} isActive={props.pendingPlacement === 'stairs'} />
+                  <FeatureButton icon={<Sofa className="w-3.5 h-3.5" />} label="Seat" onClick={() => props.onAddFeature('pool-seat')} isNew isActive={props.pendingPlacement === 'pool-seat'} />
+                  <FeatureButton icon={<RectangleVertical className="w-3.5 h-3.5" />} label="Wall" onClick={() => props.onAddFeature('pool-wall')} isNew isActive={props.pendingPlacement === 'pool-wall'} />
+                  <FeatureButton icon={<Lightbulb className="w-3.5 h-3.5" />} label="Light" onClick={() => props.onAddFeature('light')} isActive={props.pendingPlacement === 'light'} />
+                  <FeatureButton icon={<Droplets className="w-3.5 h-3.5" />} label="Jet" onClick={() => props.onAddFeature('jet')} isActive={props.pendingPlacement === 'jet'} />
+                  <FeatureButton icon={<ArrowUpFromLine className="w-3.5 h-3.5" />} label="Diving" onClick={() => props.onAddFeature('diving-board')} isNew isActive={props.pendingPlacement === 'diving-board'} />
                 </div>
                 {/* Stair controls when stairs selected */}
                 {props.selectedFeature && props.featureType === 'stairs' && (
@@ -331,16 +332,16 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
             {expandedSection === 'landscape' && (
               <div className="px-2 pb-2 space-y-2">
                 <div className="grid grid-cols-3 gap-1">
-                  <FeatureButton icon={<Leaf className="w-3.5 h-3.5" />} label="Grass" onClick={() => props.onAddFeature('grass-region')} isNew />
-                  <FeatureButton icon={<Route className="w-3.5 h-3.5" />} label="Path" onClick={() => props.onAddFeature('pathway')} />
-                  <FeatureButton icon={<Minus className="w-3.5 h-3.5" />} label="Edging" onClick={() => props.onAddFeature('edging')} isNew />
-                  <FeatureButton icon={<TreeDeciduous className="w-3.5 h-3.5" />} label="Tree" onClick={() => props.onAddFeature('tree')} />
-                  <FeatureButton icon={<Flower2 className="w-3.5 h-3.5" />} label="Shrub" onClick={() => props.onAddFeature('shrub')} />
-                  <FeatureButton icon={<AlignHorizontalDistributeCenter className="w-3.5 h-3.5" />} label="Hedge" onClick={() => props.onAddFeature('hedge-row')} isNew />
-                  <FeatureButton icon={<LayoutList className="w-3.5 h-3.5" />} label="Plants" onClick={() => props.onAddFeature('plant-row')} isNew />
-                  <FeatureButton icon={<Hexagon className="w-3.5 h-3.5" />} label="Rock" onClick={() => props.onAddFeature('rock')} isNew />
-                  <FeatureButton icon={<Circle className="w-3.5 h-3.5" />} label="Boulder" onClick={() => props.onAddFeature('boulder')} isNew />
-                  <FeatureButton icon={<Lamp className="w-3.5 h-3.5" />} label="Path Light" onClick={() => props.onAddFeature('landscape-light')} isNew />
+                  <FeatureButton icon={<Leaf className="w-3.5 h-3.5" />} label="Grass" onClick={() => props.onAddFeature('grass-region')} isNew isActive={props.pendingPlacement === 'grass-region'} />
+                  <FeatureButton icon={<Route className="w-3.5 h-3.5" />} label="Path" onClick={() => props.onAddFeature('pathway')} isActive={props.pendingPlacement === 'pathway'} />
+                  <FeatureButton icon={<Minus className="w-3.5 h-3.5" />} label="Edging" onClick={() => props.onAddFeature('edging')} isNew isActive={props.pendingPlacement === 'edging'} />
+                  <FeatureButton icon={<TreeDeciduous className="w-3.5 h-3.5" />} label="Tree" onClick={() => props.onAddFeature('tree')} isActive={props.pendingPlacement === 'tree'} />
+                  <FeatureButton icon={<Flower2 className="w-3.5 h-3.5" />} label="Shrub" onClick={() => props.onAddFeature('shrub')} isActive={props.pendingPlacement === 'shrub'} />
+                  <FeatureButton icon={<AlignHorizontalDistributeCenter className="w-3.5 h-3.5" />} label="Hedge" onClick={() => props.onAddFeature('hedge-row')} isNew isActive={props.pendingPlacement === 'hedge-row'} />
+                  <FeatureButton icon={<LayoutList className="w-3.5 h-3.5" />} label="Plants" onClick={() => props.onAddFeature('plant-row')} isNew isActive={props.pendingPlacement === 'plant-row'} />
+                  <FeatureButton icon={<Hexagon className="w-3.5 h-3.5" />} label="Rock" onClick={() => props.onAddFeature('rock')} isNew isActive={props.pendingPlacement === 'rock'} />
+                  <FeatureButton icon={<Circle className="w-3.5 h-3.5" />} label="Boulder" onClick={() => props.onAddFeature('boulder')} isNew isActive={props.pendingPlacement === 'boulder'} />
+                  <FeatureButton icon={<Lamp className="w-3.5 h-3.5" />} label="Path Light" onClick={() => props.onAddFeature('landscape-light')} isNew isActive={props.pendingPlacement === 'landscape-light'} />
                 </div>
                 {/* Properties for selected landscape feature */}
                 {props.selectedFeature && props.selectedFeatureData && 
@@ -370,12 +371,12 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
             {expandedSection === 'water-features' && (
               <div className="px-2 pb-2 space-y-2">
                 <div className="grid grid-cols-3 gap-1">
-                  <FeatureButton icon={<Droplet className="w-3.5 h-3.5" />} label="Fountain" onClick={() => props.onAddFeature('fountain')} />
-                  <FeatureButton icon={<Waves className="w-3.5 h-3.5" />} label="Pond" onClick={() => props.onAddFeature('pond')} isNew />
-                  <FeatureButton icon={<GitBranch className="w-3.5 h-3.5" />} label="Stream" onClick={() => props.onAddFeature('stream')} isNew />
-                  <FeatureButton icon={<ArrowDownWideNarrow className="w-3.5 h-3.5" />} label="Waterfall" onClick={() => props.onAddFeature('waterfall')} isNew />
-                  <FeatureButton icon={<Sparkles className="w-3.5 h-3.5" />} label="Deck Jet" onClick={() => props.onAddFeature('jumping-jet')} isNew />
-                  <FeatureButton icon={<Fan className="w-3.5 h-3.5" />} label="Sprinkler" onClick={() => props.onAddFeature('sprinkler')} isNew />
+                  <FeatureButton icon={<Droplet className="w-3.5 h-3.5" />} label="Fountain" onClick={() => props.onAddFeature('fountain')} isActive={props.pendingPlacement === 'fountain'} />
+                  <FeatureButton icon={<Waves className="w-3.5 h-3.5" />} label="Pond" onClick={() => props.onAddFeature('pond')} isNew isActive={props.pendingPlacement === 'pond'} />
+                  <FeatureButton icon={<GitBranch className="w-3.5 h-3.5" />} label="Stream" onClick={() => props.onAddFeature('stream')} isNew isActive={props.pendingPlacement === 'stream'} />
+                  <FeatureButton icon={<ArrowDownWideNarrow className="w-3.5 h-3.5" />} label="Waterfall" onClick={() => props.onAddFeature('waterfall')} isNew isActive={props.pendingPlacement === 'waterfall'} />
+                  <FeatureButton icon={<Sparkles className="w-3.5 h-3.5" />} label="Deck Jet" onClick={() => props.onAddFeature('jumping-jet')} isNew isActive={props.pendingPlacement === 'jumping-jet'} />
+                  <FeatureButton icon={<Fan className="w-3.5 h-3.5" />} label="Sprinkler" onClick={() => props.onAddFeature('sprinkler')} isNew isActive={props.pendingPlacement === 'sprinkler'} />
                 </div>
                 {props.selectedFeature && props.selectedFeatureData && 
                   ['fountain','pond','stream','waterfall','jumping-jet','sprinkler','water-curtain'].includes(props.selectedFeatureData.type) && (
@@ -591,21 +592,29 @@ function ToolButton({ icon, label, active, onClick }: {
   );
 }
 
-function FeatureButton({ icon, label, onClick, isNew }: {
+function FeatureButton({ icon, label, onClick, isNew, isActive }: {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
   isNew?: boolean;
+  isActive?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className="relative flex flex-col items-center gap-0.5 py-1.5 rounded-lg bg-muted/20 hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-all"
+      className={`relative flex flex-col items-center gap-0.5 py-1.5 rounded-lg transition-all ${
+        isActive
+          ? 'bg-primary/20 text-primary border border-primary/40 ring-1 ring-primary/30'
+          : 'bg-muted/20 hover:bg-muted/40 text-muted-foreground hover:text-foreground'
+      }`}
     >
       {icon}
       <span className="text-[9px]">{label}</span>
-      {isNew && (
+      {isNew && !isActive && (
         <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary" />
+      )}
+      {isActive && (
+        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-primary animate-pulse" />
       )}
     </button>
   );
