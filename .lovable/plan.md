@@ -1,71 +1,88 @@
+# Plan: Add Spa Button + V1 Feature Development for 2D Designer
 
+## Current Feature Audit
 
-# Plan: Professional Precision Input & Pricing Consolidation for 2D Designer
+### DesignerToolPanel Buttons Status
 
-## Problem Analysis
-1. **Grid snap causes imprecise dimensions**: The snap grid uses 6-inch (0.5ft) increments. When dragging a point, `Math.round(x / snapPixels) * snapPixels` rounds to the nearest 0.5ft, making it impossible to land on exact values like 14.0ft — it jumps to 14.0 or 14.5, and depending on origin position, lands on 14.3 or similar.
-2. **No manual coordinate input**: Users cannot type exact X/Y positions or distances for spline points. A professional CAD tool needs text-box precision.
-3. **Pricing constants are hardcoded and inconsistent**: `POOL_COST_PER_SQFT = 190` and `PAVER_COST_PER_SQFT = 15` are arbitrary constants inside PoolBuilder.tsx, disconnected from the actual product pricing on the main page (paverData.ts has $10-$22/sqft, pools have specific model prices).
+| Button/Feature | Status | Notes |
+|---|---|---|
+| Select tool | ✅ Working | Drag pool/deck points |
+| Draw Pool | ✅ Working | Spline drawing |
+| Draw Deck | ✅ Working | Spline drawing for deck |
+| Add Point | ✅ Working | Adds control point |
+| Grid Snap | ✅ Working | Precision snapping |
+| Zoom +/- | ✅ Working | Canvas zoom |
+| Pool Shape presets | ✅ Working | rect/kidney/freeform |
+| Pool Finish select | ✅ Working | Interior texture |
+| Coping select | ✅ Working | Coping material |
+| Deck Pavers select | ✅ Working | Deck texture |
+| Deck Offset | ✅ Working | Offset + regenerate |
+| Stairs | ✅ Working | Stair feature |
+| Light | ✅ Working | Pool light |
+| Jet | ✅ Working | Water jet |
+| Fountain | ⚠️ Partial | Added but no rendering |
+| **Spa** | ❌ Missing | **NEW - needs dedicated button** |
+| Depth Profile | ✅ Working | Depth anchors + SVG |
+| Cost Estimate | ✅ Working | Real-time breakdown |
+| Custom Textures | ⚠️ Partial | Builder exists, integration unclear |
 
-## Implementation Steps
+### Feature Types Defined but NOT in Panel
 
-### Task 1: Fix Grid Snap to Allow Exact Foot Values
-**File: `src/components/PoolBuilder.tsx`**
-- Change `snapSize` default from `6` (inches) to `12` (1 foot) so points always land on exact foot boundaries
-- Add a "Fine Snap" option: 1-inch (1/12 ft) for sub-foot precision when needed
-- Ensure the snap calculation rounds to exact foot values relative to the pool center, not canvas origin — this prevents the 14.3ft problem where origin offset causes fractional results
+| Feature | Category | V1 Priority |
+|---|---|---|
+| **Spa (attached/detached)** | Pool | 🔴 HIGH |
+| Tanning Ledge | Pool | 🟡 MEDIUM (exists in dialog but no button) |
+| Diving Board | Pool | 🟡 MEDIUM |
+| Pool Seat/Bench | Pool | 🟡 MEDIUM |
+| Waterfall | Water | 🟡 MEDIUM |
+| Water Curtain | Water | 🟢 LOW |
+| Jumping Jet | Water | 🟢 LOW |
+| Tree/Shrub/Rock | Landscape | 🟢 LOW (rendering exists) |
 
-### Task 2: Add Spline Point Coordinate Input Panel
-**New file: `src/components/poolBuilder/PointCoordinateEditor.tsx`**
-- Create a compact UI panel that appears when a spline point is selected (both pool and deck points)
-- Shows X/Y position in feet (relative to pool center) with editable Input fields
-- Shows distance to previous and next point with editable Input fields
-- On value change, recalculates and updates the point position in exact pixel coordinates
-- Supports both pool points and hardscape (deck) points
-- New spline points added via "Add Point" also get coordinate inputs immediately
+## Implementation Tasks
 
-**File: `src/components/poolBuilder/SplineDrawingToolbar.tsx`**
-- Add props for point coordinates (xFeet, yFeet) and onChange handlers
-- Show inline X/Y input fields in edit mode next to the point label
+### Task 1: Add Spa Button with Attached/Detached Dialog
+- Add "Spa" button to Features section in DesignerToolPanel
+- On click → dialog asks: **Attached** (anchored to pool perimeter, spillover) vs **Detached** (standalone with own deck)
+- Attached: reuses `perimeterAnchorMode` with `featureType: 'spillover-spa'`, auto-generates 8×8ft rounded shape
+- Detached: creates standalone `additionalPool` with `type: 'spa'`, places offset from main pool, prompts for deck
 
-**File: `src/components/PoolBuilder.tsx`**
-- Integrate PointCoordinateEditor into the selected-point toolbar area (around line 5470)
-- Pass scale, canvas center, selected point data, and update handlers
-- Add handler to update point position from exact foot values: `newPixelX = centerX + feetX * scale`
-- Same for hardscape points when selected
-- Wire up distance-between-points editing: when user types a distance, the selected point moves along the vector to its neighbor to match exactly
+### Task 2: Add Tanning Ledge Button
+- Direct button in Features section
+- Uses existing `perimeterAnchorMode` with `featureType: 'tanning-ledge'`
+- Auto-generates shallow shelf shape (10×4ft default)
 
-### Task 3: Consolidate Pricing with Main Page Product Data
-**File: `src/utils/poolBuilderPricing.ts`** (new)
-- Create a centralized pricing module that imports from existing data sources:
-  - Pool cost: Use the selected product's actual price from `pools`/`gilmerPools`/`PoolCatalog` rather than `$190/sqft`
-  - Deck/paver cost: Import from `paverData.ts` using `getPaverPricePerSqFt()` from `paverPricing.ts` — Appian $15, Catalina $20, Catalina Grana $22, Concrete $10
-  - Coping cost: Same paver pricing lookup for selected coping material
-  - Feature costs: Keep existing feature costs (stairs $2500, lights $450, etc.)
-  - Screen enclosure: Use `SCREEN_ENCLOSURE_PRICING` from `paverPricing.ts`
+### Task 3: Add Diving Board Feature
+- Button in Features section
+- Creates `PoolFeature` with `type: 'diving-board'`
+- Snaps to pool edge, renders as elongated board rectangle with spring end
+- Canvas rendering: filled rectangle + dotted spring lines
 
-**File: `src/components/PoolBuilder.tsx`**
-- Remove hardcoded `PAVER_COST_PER_SQFT = 15` and `POOL_COST_PER_SQFT = 190`
-- Import pricing from the new centralized module
-- Pass `selectedPaverId` and `selectedCopingId` to pricing functions to get correct per-material rates
-- Pool base cost uses the selected product's actual catalog price (passed via props or URL params) instead of area × flat rate
-- Update `calculateTotalCost` to use material-specific rates
-- Update the `onPoolDataChange` breakdown to include material names and rates
+### Task 4: Add Pool Seat/Bench Feature
+- Button in Features section  
+- Creates `PoolFeature` with `type: 'pool-seat'`
+- Places inside pool along wall, renders as filled rectangle
+- Configurable width/depth
 
-**File: `src/pages/DesignStudio.tsx`**
-- Pass the selected product's price to PoolBuilder so it can use the real base price
+### Task 5: Add Waterfall Feature
+- Button in Features section
+- Creates `PoolFeature` with `type: 'waterfall'`
+- Places on pool edge, renders as cascading blue lines
+- Configurable width
 
-### Task 4: Add Deck Point Coordinate Editing
-**File: `src/components/PoolBuilder.tsx`**
-- When a hardscape point is selected, show the same PointCoordinateEditor panel
-- Allow exact feet input for deck dimensions (width, length from pool edge)
-- Deck distance inputs update hardscape points precisely
+### Task 6: Organize Features into Sub-groups
+- Restructure Features section with labeled groups:
+  - **Pool**: Stairs, Light, Jet, Spa, Tanning Ledge, Seat, Diving Board
+  - **Water**: Fountain, Waterfall, Water Curtain
+  - Keep panel compact with icon grid layout
 
-## Technical Details
+### Task 7: Wire Up Canvas Rendering for New Features
+- Add rendering cases in main draw loop for:
+  - Diving board, pool seat, waterfall, fountain (improve existing)
+- Each feature gets proper 2D top-down visualization
 
-**Snap fix math**: Currently `snapPixels = snapSize / 12 * scale`. With scale=10 and snapSize=6, snapPixels=5px. A point at x=143px → 143/5=28.6 → round to 29 → 29×5=145px → 145/10=14.5ft. The issue is when the pool center isn't on a snap boundary. Fix: snap relative to pool center coordinates, not canvas origin.
-
-**Coordinate system**: Pool center = (canvasWidth/2, canvasHeight/2). Point position in feet = `(point.x - centerX) / scale`. To set exact feet: `point.x = centerX + feetValue * scale`.
-
-**Pricing alignment**: The main page uses specific product prices (e.g., Astoria 16 = $110,338). The 2D designer should show this as the pool base price, then add deck/coping/features on top. This matches how the product cards and quote tool work.
-
+## Technical Notes
+- Spa uses existing `additionalPools` array with `PoolShape` interface
+- Attached spa = `perimeterAnchorMode` → `spillover-spa` (existing system)
+- All new features use existing `PoolFeature` type and `features` state
+- Canvas rendering in draw loop at ~line 2344
