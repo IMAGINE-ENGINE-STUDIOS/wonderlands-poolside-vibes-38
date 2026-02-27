@@ -9,7 +9,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import {
   MousePointer2, PenTool, Shapes, Ruler, Layers, Palette, Lightbulb,
   Move, Waves, Droplets, Plus, Minus, Trash2, ChevronDown, ChevronRight,
-  Square, Circle, Eye, EyeOff, Grid3X3, Magnet, X
+  Square, Circle, Eye, EyeOff, Grid3X3, Magnet, X,
+  ArrowDownToLine, Sofa, RectangleVertical, ArrowUpFromLine,
+  Leaf, TreeDeciduous, Flower2, Hexagon, Lamp,
+  Droplet, GitBranch, ArrowDownWideNarrow, Sparkles, Fan,
+  Route, LayoutList, AlignHorizontalDistributeCenter
 } from 'lucide-react';
 import { paverTypes } from '@/data/paverData';
 import { TextureBuilder, type TextureConfig } from '../TextureBuilder';
@@ -20,7 +24,6 @@ interface DesignerToolPanelProps {
   poolShape: 'rectangle' | 'kidney' | 'freeform';
   setPoolShape: (shape: any) => void;
   onShapeSelect: (shape: 'rectangle' | 'kidney' | 'freeform') => void;
-  // Materials
   selectedFinishId: string;
   setSelectedFinishId: (id: string) => void;
   selectedCopingId: string;
@@ -28,29 +31,23 @@ interface DesignerToolPanelProps {
   selectedPaverId: string;
   setSelectedPaverId: (id: string) => void;
   finishes: Array<{ id: string; name: string; image: string }>;
-  // Deck
   deckOffset: number;
   setDeckOffset: (v: number) => void;
   onRegenerateDeck: () => void;
-  // Features
   onAddFeature: (type: string) => void;
   selectedFeature: string | null;
   onRemoveFeature: () => void;
   onAddStairStep: () => void;
   onRemoveStairStep: () => void;
   featureType?: string;
-  // Depth
   depthPoints: Array<{ id: string; position: number; depth: number }>;
   setDepthPoints: (fn: any) => void;
-  // Grid
   gridSnap: boolean;
   setGridSnap: (v: boolean) => void;
   snapSize: number;
   setSnapSize: (v: number) => void;
-  // Zoom
   zoomLevel: number;
   setZoomLevel: (fn: any) => void;
-  // Cost
   projectCost: {
     poolCost: number;
     deckCost: number;
@@ -58,22 +55,36 @@ interface DesignerToolPanelProps {
     featuresCost: number;
     total: number;
   };
-  // Textures
   customTextures: TextureConfig[];
   setCustomTextures: (t: TextureConfig[]) => void;
-  // Spline drawing
   isSplineDrawing: boolean;
-  // Shape panel hooks
   onStartDrawPool: () => void;
   onStartDrawDeck: () => void;
-  // Pool dimensions
   poolWidth?: number;
   poolLength?: number;
   poolArea?: number;
   deckArea?: number;
+  // Feature properties
+  selectedFeatureData?: {
+    type: string;
+    steps?: number;
+    seatWidth?: number;
+    seatDepth?: number;
+    wallHeight?: number;
+    width?: number;
+    length?: number;
+    rockSize?: 'small' | 'medium' | 'large';
+    treeType?: string;
+    lightColor?: string;
+    lightIntensity?: number;
+    x?: number;
+    y?: number;
+  };
+  onUpdateFeature?: (updates: Record<string, any>) => void;
+  scale?: number;
 }
 
-type PanelSection = 'tools' | 'shape' | 'materials' | 'deck' | 'features' | 'depth' | 'cost' | 'textures' | null;
+type PanelSection = 'tools' | 'shape' | 'materials' | 'deck' | 'pool-features' | 'landscape' | 'water-features' | 'depth' | 'cost' | 'textures' | null;
 
 export function DesignerToolPanel(props: DesignerToolPanelProps) {
   const [expandedSection, setExpandedSection] = useState<PanelSection>('tools');
@@ -84,6 +95,8 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
 
   const formatCurrency = (val: number) => 
     val >= 1000 ? `$${(val / 1000).toFixed(1)}k` : `$${val.toFixed(0)}`;
+
+  const scaleVal = props.scale || 10;
 
   return (
     <div className="absolute top-8 right-8 z-20 w-[260px] max-h-[calc(100vh-120px)] flex flex-col">
@@ -108,15 +121,12 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
             />
             {expandedSection === 'tools' && (
               <div className="px-2 pb-2 space-y-2">
-                {/* Primary tools row */}
                 <div className="flex gap-1">
                   <ToolButton icon={<MousePointer2 className="w-4 h-4" />} label="Select" active={props.activeTool === 'select'} onClick={() => props.setActiveTool('select')} />
                   <ToolButton icon={<PenTool className="w-4 h-4" />} label="Draw Pool" active={props.activeTool === 'draw-pool'} onClick={props.onStartDrawPool} />
                   <ToolButton icon={<Layers className="w-4 h-4" />} label="Draw Deck" active={props.activeTool === 'draw-deck'} onClick={props.onStartDrawDeck} />
                   <ToolButton icon={<Plus className="w-4 h-4" />} label="Add Point" active={props.activeTool === 'add'} onClick={() => props.setActiveTool(props.activeTool === 'add' ? 'select' : 'add')} />
                 </div>
-
-                {/* Grid snap controls */}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => props.setGridSnap(!props.gridSnap)}
@@ -141,8 +151,6 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
                     </select>
                   )}
                 </div>
-
-                {/* Zoom */}
                 <div className="flex items-center gap-1">
                   <button onClick={() => props.setZoomLevel((p: number) => Math.max(p - 0.2, 0.3))} className="w-6 h-6 flex items-center justify-center rounded bg-muted/30 hover:bg-muted/50 text-muted-foreground">
                     <Minus className="w-3 h-3" />
@@ -195,7 +203,7 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
                   </div>
                 )}
                 <p className="text-[9px] text-muted-foreground/70">
-                  Click pool/deck points to edit coordinates. Use Select tool to drag points.
+                  Click pool/deck points to edit. Use Select tool to drag.
                 </p>
               </div>
             )}
@@ -262,21 +270,24 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
               </div>
             )}
 
-            {/* ═══ FEATURES ═══ */}
+            {/* ═══ POOL FEATURES ═══ */}
             <SectionHeader
-              label="Features"
-              icon={<Lightbulb className="w-3.5 h-3.5" />}
-              expanded={expandedSection === 'features'}
-              onToggle={() => toggleSection('features')}
+              label="Pool Structure"
+              icon={<Waves className="w-3.5 h-3.5" />}
+              expanded={expandedSection === 'pool-features'}
+              onToggle={() => toggleSection('pool-features')}
             />
-            {expandedSection === 'features' && (
+            {expandedSection === 'pool-features' && (
               <div className="px-2 pb-2 space-y-2">
-                <div className="grid grid-cols-4 gap-1">
-                  <FeatureButton icon={<Move className="w-3.5 h-3.5" />} label="Stairs" onClick={() => props.onAddFeature('stairs')} />
+                <div className="grid grid-cols-3 gap-1">
+                  <FeatureButton icon={<ArrowDownToLine className="w-3.5 h-3.5" />} label="Stairs" onClick={() => props.onAddFeature('stairs')} />
+                  <FeatureButton icon={<Sofa className="w-3.5 h-3.5" />} label="Seat" onClick={() => props.onAddFeature('pool-seat')} isNew />
+                  <FeatureButton icon={<RectangleVertical className="w-3.5 h-3.5" />} label="Wall" onClick={() => props.onAddFeature('pool-wall')} isNew />
                   <FeatureButton icon={<Lightbulb className="w-3.5 h-3.5" />} label="Light" onClick={() => props.onAddFeature('light')} />
-                  <FeatureButton icon={<Waves className="w-3.5 h-3.5" />} label="Jet" onClick={() => props.onAddFeature('jet')} />
-                  <FeatureButton icon={<Droplets className="w-3.5 h-3.5" />} label="Fountain" onClick={() => props.onAddFeature('fountain')} />
+                  <FeatureButton icon={<Droplets className="w-3.5 h-3.5" />} label="Jet" onClick={() => props.onAddFeature('jet')} />
+                  <FeatureButton icon={<ArrowUpFromLine className="w-3.5 h-3.5" />} label="Diving" onClick={() => props.onAddFeature('diving-board')} isNew />
                 </div>
+                {/* Stair controls when stairs selected */}
                 {props.selectedFeature && props.featureType === 'stairs' && (
                   <div className="flex gap-1">
                     <Button size="sm" onClick={props.onAddStairStep} variant="outline" className="flex-1 h-6 text-[10px]">
@@ -287,10 +298,90 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
                     </Button>
                   </div>
                 )}
+                {/* Feature properties panel */}
+                {props.selectedFeature && props.selectedFeatureData && (
+                  <FeaturePropertiesPanel
+                    featureData={props.selectedFeatureData}
+                    onUpdate={props.onUpdateFeature}
+                    scale={scaleVal}
+                  />
+                )}
                 {props.selectedFeature && (
                   <Button size="sm" onClick={props.onRemoveFeature} variant="destructive" className="w-full h-6 text-[10px]">
                     <Trash2 className="h-3 w-3 mr-1" />Remove Feature
                   </Button>
+                )}
+              </div>
+            )}
+
+            {/* ═══ LANDSCAPE ═══ */}
+            <SectionHeader
+              label="Landscape"
+              icon={<TreeDeciduous className="w-3.5 h-3.5" />}
+              expanded={expandedSection === 'landscape'}
+              onToggle={() => toggleSection('landscape')}
+            />
+            {expandedSection === 'landscape' && (
+              <div className="px-2 pb-2 space-y-2">
+                <div className="grid grid-cols-3 gap-1">
+                  <FeatureButton icon={<Leaf className="w-3.5 h-3.5" />} label="Grass" onClick={() => props.onAddFeature('grass-region')} isNew />
+                  <FeatureButton icon={<Route className="w-3.5 h-3.5" />} label="Path" onClick={() => props.onAddFeature('pathway')} />
+                  <FeatureButton icon={<Minus className="w-3.5 h-3.5" />} label="Edging" onClick={() => props.onAddFeature('edging')} isNew />
+                  <FeatureButton icon={<TreeDeciduous className="w-3.5 h-3.5" />} label="Tree" onClick={() => props.onAddFeature('tree')} />
+                  <FeatureButton icon={<Flower2 className="w-3.5 h-3.5" />} label="Shrub" onClick={() => props.onAddFeature('shrub')} />
+                  <FeatureButton icon={<AlignHorizontalDistributeCenter className="w-3.5 h-3.5" />} label="Hedge" onClick={() => props.onAddFeature('hedge-row')} isNew />
+                  <FeatureButton icon={<LayoutList className="w-3.5 h-3.5" />} label="Plants" onClick={() => props.onAddFeature('plant-row')} isNew />
+                  <FeatureButton icon={<Hexagon className="w-3.5 h-3.5" />} label="Rock" onClick={() => props.onAddFeature('rock')} isNew />
+                  <FeatureButton icon={<Circle className="w-3.5 h-3.5" />} label="Boulder" onClick={() => props.onAddFeature('boulder')} isNew />
+                  <FeatureButton icon={<Lamp className="w-3.5 h-3.5" />} label="Path Light" onClick={() => props.onAddFeature('landscape-light')} isNew />
+                </div>
+                {/* Properties for selected landscape feature */}
+                {props.selectedFeature && props.selectedFeatureData && 
+                  ['rock','boulder','hedge-row','plant-row','landscape-light','edging','grass-region','tree','shrub','pathway'].includes(props.selectedFeatureData.type) && (
+                  <FeaturePropertiesPanel
+                    featureData={props.selectedFeatureData}
+                    onUpdate={props.onUpdateFeature}
+                    scale={scaleVal}
+                  />
+                )}
+                {props.selectedFeature && props.selectedFeatureData && 
+                  ['rock','boulder','hedge-row','plant-row','landscape-light','edging','grass-region','tree','shrub','pathway'].includes(props.selectedFeatureData.type) && (
+                  <Button size="sm" onClick={props.onRemoveFeature} variant="destructive" className="w-full h-6 text-[10px]">
+                    <Trash2 className="h-3 w-3 mr-1" />Remove
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* ═══ WATER FEATURES ═══ */}
+            <SectionHeader
+              label="Water Features"
+              icon={<Droplet className="w-3.5 h-3.5" />}
+              expanded={expandedSection === 'water-features'}
+              onToggle={() => toggleSection('water-features')}
+            />
+            {expandedSection === 'water-features' && (
+              <div className="px-2 pb-2 space-y-2">
+                <div className="grid grid-cols-3 gap-1">
+                  <FeatureButton icon={<Droplet className="w-3.5 h-3.5" />} label="Fountain" onClick={() => props.onAddFeature('fountain')} />
+                  <FeatureButton icon={<Waves className="w-3.5 h-3.5" />} label="Pond" onClick={() => props.onAddFeature('pond')} isNew />
+                  <FeatureButton icon={<GitBranch className="w-3.5 h-3.5" />} label="Stream" onClick={() => props.onAddFeature('stream')} isNew />
+                  <FeatureButton icon={<ArrowDownWideNarrow className="w-3.5 h-3.5" />} label="Waterfall" onClick={() => props.onAddFeature('waterfall')} isNew />
+                  <FeatureButton icon={<Sparkles className="w-3.5 h-3.5" />} label="Deck Jet" onClick={() => props.onAddFeature('jumping-jet')} isNew />
+                  <FeatureButton icon={<Fan className="w-3.5 h-3.5" />} label="Sprinkler" onClick={() => props.onAddFeature('sprinkler')} isNew />
+                </div>
+                {props.selectedFeature && props.selectedFeatureData && 
+                  ['fountain','pond','stream','waterfall','jumping-jet','sprinkler','water-curtain'].includes(props.selectedFeatureData.type) && (
+                  <>
+                    <FeaturePropertiesPanel
+                      featureData={props.selectedFeatureData}
+                      onUpdate={props.onUpdateFeature}
+                      scale={scaleVal}
+                    />
+                    <Button size="sm" onClick={props.onRemoveFeature} variant="destructive" className="w-full h-6 text-[10px]">
+                      <Trash2 className="h-3 w-3 mr-1" />Remove
+                    </Button>
+                  </>
                 )}
               </div>
             )}
@@ -326,7 +417,6 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
                     </div>
                   ))}
                 </div>
-                {/* Mini depth profile SVG */}
                 <div className="bg-muted/20 rounded p-2">
                   <svg width="100%" height="50" viewBox="0 0 200 50" className="overflow-visible">
                     <line x1="5" y1="5" x2="195" y2="5" stroke="hsl(var(--primary))" strokeWidth="1" opacity="0.5" />
@@ -455,18 +545,22 @@ function ToolButton({ icon, label, active, onClick }: {
   );
 }
 
-function FeatureButton({ icon, label, onClick }: {
+function FeatureButton({ icon, label, onClick, isNew }: {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
+  isNew?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className="flex flex-col items-center gap-0.5 py-1.5 rounded-lg bg-muted/20 hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-all"
+      className="relative flex flex-col items-center gap-0.5 py-1.5 rounded-lg bg-muted/20 hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-all"
     >
       {icon}
       <span className="text-[9px]">{label}</span>
+      {isNew && (
+        <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary" />
+      )}
     </button>
   );
 }
@@ -504,6 +598,124 @@ function CostRow({ label, value }: { label: string; value: number }) {
     <div className="flex justify-between items-center">
       <span className="text-[10px] text-muted-foreground">{label}</span>
       <span className="text-[10px] font-medium text-foreground">${value.toLocaleString()}</span>
+    </div>
+  );
+}
+
+function FeaturePropertiesPanel({ featureData, onUpdate, scale }: {
+  featureData: {
+    type: string;
+    steps?: number;
+    seatWidth?: number;
+    seatDepth?: number;
+    wallHeight?: number;
+    width?: number;
+    length?: number;
+    rockSize?: 'small' | 'medium' | 'large';
+    treeType?: string;
+    lightColor?: string;
+    lightIntensity?: number;
+    x?: number;
+    y?: number;
+  };
+  onUpdate?: (updates: Record<string, any>) => void;
+  scale: number;
+}) {
+  if (!onUpdate) return null;
+  const { type } = featureData;
+
+  return (
+    <div className="bg-muted/20 rounded p-2 space-y-1.5 border border-border/30">
+      <span className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider">Properties</span>
+      
+      {/* Position */}
+      {featureData.x != null && (
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <Label className="text-[9px] text-muted-foreground">X (ft)</Label>
+            <Input type="number" value={((featureData.x || 0) / scale).toFixed(1)} onChange={e => onUpdate({ x: parseFloat(e.target.value) * scale })} className="h-5 text-[10px] px-1" step="0.5" />
+          </div>
+          <div className="flex-1">
+            <Label className="text-[9px] text-muted-foreground">Y (ft)</Label>
+            <Input type="number" value={((featureData.y || 0) / scale).toFixed(1)} onChange={e => onUpdate({ y: parseFloat(e.target.value) * scale })} className="h-5 text-[10px] px-1" step="0.5" />
+          </div>
+        </div>
+      )}
+
+      {/* Pool seat */}
+      {type === 'pool-seat' && (
+        <>
+          <PropSlider label="Width" value={(featureData.seatWidth || 60) / scale} min={3} max={12} step={0.5} unit="ft" onChange={v => onUpdate({ seatWidth: v * scale })} />
+          <PropSlider label="Depth" value={(featureData.seatDepth || 20) / scale} min={1} max={4} step={0.5} unit="ft" onChange={v => onUpdate({ seatDepth: v * scale })} />
+        </>
+      )}
+
+      {/* Pool wall */}
+      {type === 'pool-wall' && (
+        <>
+          <PropSlider label="Width" value={(featureData.width || 80) / scale} min={4} max={20} step={1} unit="ft" onChange={v => onUpdate({ width: v * scale })} />
+          <PropSlider label="Height" value={featureData.wallHeight || 3} min={1} max={6} step={0.5} unit="ft" onChange={v => onUpdate({ wallHeight: v })} />
+        </>
+      )}
+
+      {/* Diving board */}
+      {type === 'diving-board' && (
+        <PropSlider label="Length" value={(featureData.length || 100) / scale} min={6} max={16} step={1} unit="ft" onChange={v => onUpdate({ length: v * scale })} />
+      )}
+
+      {/* Rock/Boulder size */}
+      {(type === 'rock' || type === 'boulder') && (
+        <div>
+          <Label className="text-[9px] text-muted-foreground">Size</Label>
+          <div className="flex gap-1 mt-0.5">
+            {(['small', 'medium', 'large'] as const).map(s => (
+              <button key={s} onClick={() => onUpdate({ rockSize: s })}
+                className={`flex-1 py-1 text-[9px] rounded capitalize ${featureData.rockSize === s ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-muted/30 text-muted-foreground'}`}
+              >{s}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tree type */}
+      {type === 'tree' && (
+        <div>
+          <Label className="text-[9px] text-muted-foreground">Type</Label>
+          <div className="grid grid-cols-3 gap-1 mt-0.5">
+            {(['palm', 'oak', 'pine'] as const).map(t => (
+              <button key={t} onClick={() => onUpdate({ treeType: t })}
+                className={`py-1 text-[9px] rounded capitalize ${featureData.treeType === t ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-muted/30 text-muted-foreground'}`}
+              >{t}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Light color */}
+      {(type === 'landscape-light' || type === 'light') && (
+        <div className="flex items-center gap-2">
+          <Label className="text-[9px] text-muted-foreground">Color</Label>
+          <input type="color" value={featureData.lightColor || '#fffacd'} onChange={e => onUpdate({ lightColor: e.target.value })} className="w-6 h-5 rounded border-0 cursor-pointer" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PropSlider({ label, value, min, max, step, unit, onChange }: {
+  label: string; value: number; min: number; max: number; step: number; unit: string;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div>
+      <div className="flex justify-between">
+        <Label className="text-[9px] text-muted-foreground">{label}</Label>
+        <span className="text-[9px] text-foreground font-medium">{value.toFixed(1)}{unit}</span>
+      </div>
+      <input type="range" min={min} max={max} step={step} value={value}
+        onChange={e => onChange(parseFloat(e.target.value))}
+        className="w-full h-1.5 mt-0.5 accent-primary"
+      />
     </div>
   );
 }
