@@ -1,128 +1,61 @@
 
 
-# Comprehensive Plan: Deck Spline Editing, Selection Tool & Feature Implementation
+# Plan: Fix Build Error + V2 Swimming Pool & Landscape Tools
 
-## Current State Analysis
-
-**What works:**
-- Pool spline points are visible and editable (drawn at lines 2246-2255)
-- Hardscape/deck anchor points ARE drawn (lines 2234-2243) as yellow squares
-- PointCoordinateEditor exists and shows for both pool points and deck points when selected
-- Mouse events handle hardscape point selection and dragging
-- Feature types are defined in `featureTypes.ts` with categories: Pool, Landscape, Water Features, Utilities
-- `addFeature()` places features but many only render as generic circles or don't render at all
-
-**What's broken/missing:**
-1. Deck offset input modifies ALL decks simultaneously -- no deck selection mechanism
-2. Many features in the toolbar have `addFeature()` handlers but NO canvas rendering (pool-seat, pool-wall, diving-board, slide, rock, boulder, hedge-row, plant-row, landscape-light, edging, grass-region, pond, stream, waterfall, jumping-jet, sprinkler, water-curtain)
-3. The DesignerToolPanel only shows 4 feature buttons (stairs, light, jet, fountain) instead of the full catalog
-
----
-
-## Implementation Plan
-
-### Phase 1: Deck Selection & Per-Deck Offset Editing
+## 1. Fix Build Error (Line 6281)
 
 **File: `src/components/PoolBuilder.tsx`**
-- Add `selectedDeckId` state: `'main' | poolId | null` to track which deck is selected
-- When clicking on deck area, identify which deck was clicked (main hardscape or additional pool's deck)
-- Deck offset input in DesignerToolPanel only modifies the selected deck
-- Show visual highlight (dashed border) on the selected deck
-- Add "Select Deck" mode that highlights clickable deck regions
+- The `return` statement at line 5628 uses `return <div>...</div>;` syntax. The TS error at line 6281 (`</div>;`) indicates a mismatched brace or tag earlier in the JSX is causing the parser to exit the return prematurely.
+- Fix: Wrap the entire return in parentheses: `return (` at line 5628 and `</div>);` at line 6281. Also audit for any stray closing braces/tags between lines 5628-6281 that break the JSX tree.
 
-**File: `src/components/poolBuilder/DesignerToolPanel.tsx`**
-- Replace single deck offset input with a "Select a deck to edit" prompt when no deck is selected
-- Show deck name/ID and offset input only for the selected deck
-- Add a "Select Deck" button that activates deck selection mode
+## 2. Landscape Tools: Click-to-Place Outside Pool (V2)
 
-### Phase 2: Comprehensive Feature Rendering on Canvas
+**Current behavior:** `addFeature()` places landscape items at canvas center with random offset. They're treated the same as pool-anchored features.
 
-**File: `src/components/PoolBuilder.tsx`** (canvas draw section ~lines 2770+)
-
-Add 2D canvas rendering for every feature type that currently lacks it:
-
-**Pool Features:**
-- `pool-seat`: Rounded rectangle along pool wall, colored bench shape with depth shading
-- `pool-wall`: Raised wall rectangle along pool perimeter with shadow/height indicator
-- `diving-board`: Rectangle extending outward from pool edge with spring detail
-- `slide`: Curved path from deck into pool with ladder indicator
-- `pool-cover`: Semi-transparent overlay on pool area
-- `pool-accessory`: Generic icon marker
-
-**Landscape Features:**
-- `rock`: Irregular polygon shape with grey/brown fill and texture
-- `boulder`: Larger irregular circle with shadow and texture
-- `hedge-row`: Long green rectangle with periodic vertical divisions
-- `plant-row`: Series of small green circles in a line
-- `landscape-light`: Small circle with radial glow effect
-- `edging`: Thin line with decorative border pattern
-- `grass-region`: Filled green polygon/circle with grass texture dots
-
-**Water Features:**
-- `pond`: Elliptical blue shape with ripple rings
-- `stream`: Curved blue path with flow arrows
-- `waterfall`: Stacked horizontal lines with blue gradient (cascade effect)
-- `jumping-jet`: Arc line from deck into pool with droplet dots
-- `sprinkler`: Circle with radial spray lines
-- `water-curtain`: Vertical blue rectangle with horizontal flow lines
-
-### Phase 3: Full Feature Menu in DesignerToolPanel
-
-**File: `src/components/poolBuilder/DesignerToolPanel.tsx`**
-- Replace the 4-button "Features" section with categorized sub-sections matching `featureTypes.ts`:
-  - **Pool Structure**: Stairs, Seat, Wall, Diving Board, Slide, Cover
-  - **Landscape**: Grass Region, Pathway, Edging, Tree, Shrub, Hedge Row, Plant Row, Rock, Boulder, Path Light
-  - **Water Features**: Fountain, Pond, Stream, Waterfall, Deck Jet, Sprinkler, Water Curtain
-- Add "Spa" button (attached/detached) using the existing perimeter anchor system
-- Each button uses appropriate Lucide icon and triggers `onAddFeature(type)`
-- Add new props for spa creation: `onAddSpa: (attached: boolean) => void`
+**New behavior:**
+- When user clicks a landscape button (tree, shrub, rock, boulder, hedge-row, plant-row, grass-region, landscape-light, edging, pathway), set a `pendingLandscapePlacement` state with the feature type.
+- Show a cursor indicator (crosshair or ghost icon) while placement mode is active.
+- On next canvas click, place the feature at the clicked world coordinates (using `screenToWorld`). No pool-area restriction.
+- After placement, feature remains draggable via existing mouse-down/move logic. Drag moves feature freely across the scene (already partially works for open-area features).
+- Add visual feedback: highlight the feature being placed with a ghost preview at cursor position during placement mode.
 
 **File: `src/components/PoolBuilder.tsx`**
-- Add `onAddSpa` handler that:
-  - If attached: enters perimeter anchor mode with `featureType: 'spillover-spa'`
-  - If detached: enters draw-pool mode for standalone spa
+- Add state: `pendingLandscapePlacement: PoolFeature['type'] | null`
+- In `handleCanvasClick`: if `pendingLandscapePlacement` is set, create feature at click world coords, clear pending state.
+- In canvas `onMouseMove` render loop: if pending placement active, draw ghost preview at cursor position.
+- Ensure all landscape features use world coordinates and render correctly with pan/zoom transforms.
 
-### Phase 4: Feature Properties Panel
-
-**File: `src/components/poolBuilder/DesignerToolPanel.tsx`**
-- When a feature is selected, show contextual properties panel:
-  - Common: position X/Y (feet), delete button
-  - Stairs: step count +/- 
-  - Seat: width, depth sliders
-  - Wall: width, height
-  - Diving board: length
-  - Tree: type selector (palm, oak, pine, etc.)
-  - Lights: color picker, intensity
-  - Rock/Boulder: size selector (S/M/L)
-  - Pathway: type selector, width/length
-  - Water features: flow rate/intensity (visual only)
-
-### Phase 5: Deck Spline Visibility Enhancement
+## 3. Swimming Pool Tools V2
 
 **File: `src/components/PoolBuilder.tsx`**
-- Draw deck spline edges with dashed orange lines connecting anchor points (currently only dots are shown)
-- Add dimension labels on deck edges (already exists at lines 2035-2067, verify it's working)
-- Ensure newly drawn pools auto-generate deck with visible, selectable spline points
+- Pool-structure features (stairs, seat, wall, diving-board, light, jet) keep wall-snap behavior but improve:
+  - After clicking button, enter placement mode where user clicks on pool edge to place.
+  - Show ghost preview snapped to nearest wall point as cursor moves along pool perimeter.
+  - `pendingPoolFeaturePlacement` state for this mode.
 
----
+## 4. Drag-and-Drop for All Placed Features
 
-## Technical Notes
+**File: `src/components/PoolBuilder.tsx`**
+- Ensure existing feature drag logic works in world coordinates with `screenToWorld`.
+- Landscape features: unrestricted drag anywhere on scene.
+- Pool features: constrained drag along pool perimeter (wall-mounted) or free drag (open-area).
+- Visual feedback during drag: slight opacity change, position coordinates tooltip.
 
-- The `PoolFeature` interface already supports all needed types (lines 44-73)
-- `FEATURE_COSTS` in `poolBuilderPricing.ts` already maps costs for many feature types
-- Canvas rendering at ~line 2770 filters features and draws them -- new types just need drawing code added
-- The `addFeature()` function already handles placement logic for all types (lines 4879-4977)
-- Deck selection requires minimal state: just tracking which deck entity is "active" for offset changes
+## 5. DesignerToolPanel V2 Updates
+
+**File: `src/components/poolBuilder/DesignerToolPanel.tsx`**
+- Add visual indicator on landscape buttons showing "Click to place" mode when active.
+- Show active placement mode label (e.g., "Click on scene to place Tree").
+- Cancel placement with Escape key or clicking the same button again.
 
 ## Files to Modify
-1. `src/components/PoolBuilder.tsx` -- deck selection state, feature rendering, spa handler
-2. `src/components/poolBuilder/DesignerToolPanel.tsx` -- full feature menu, deck selection UI, feature properties
-3. `src/utils/poolBuilderPricing.ts` -- ensure all feature types have costs
+1. `src/components/PoolBuilder.tsx` — fix build error, add placement modes, world-coord drag
+2. `src/components/poolBuilder/DesignerToolPanel.tsx` — placement mode UI feedback
 
 ## Estimated Scope
-- Phase 1 (Deck selection): ~100 lines changed
-- Phase 2 (Feature rendering): ~400 lines of canvas drawing code
-- Phase 3 (Menu rebuild): ~200 lines in DesignerToolPanel
-- Phase 4 (Properties): ~150 lines
-- Phase 5 (Deck splines): ~30 lines
+- Build error fix: ~2 lines
+- Landscape click-to-place: ~60 lines
+- Pool feature placement mode: ~40 lines  
+- Drag improvements: ~30 lines
+- UI feedback: ~20 lines
 
