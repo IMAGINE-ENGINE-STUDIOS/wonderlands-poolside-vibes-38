@@ -159,17 +159,6 @@ export function DesignerToolPanel(props: DesignerToolPanelProps) {
                     </select>
                   )}
                 </div>
-                <div className="flex items-center gap-1">
-                  <button title="Zoom out" onClick={() => props.setZoomLevel((p: number) => Math.min(p + 0.1, 3))} className="w-6 h-6 flex items-center justify-center rounded bg-muted/30 hover:bg-muted/50 text-muted-foreground">
-                    <Minus className="w-3 h-3" />
-                  </button>
-                  <span className="text-[10px] text-muted-foreground w-10 text-center font-mono">
-                    {(props.zoomLevel * 100).toFixed(0)}%
-                  </span>
-                  <button title="Zoom in" onClick={() => props.setZoomLevel((p: number) => Math.max(p - 0.1, 0.3))} className="w-6 h-6 flex items-center justify-center rounded bg-muted/30 hover:bg-muted/50 text-muted-foreground">
-                    <Plus className="w-3 h-3" />
-                  </button>
-                </div>
               </div>
             )}
 
