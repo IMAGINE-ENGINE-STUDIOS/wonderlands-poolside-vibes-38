@@ -13,9 +13,10 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower2, Droplets, Box, PenTool, Shapes, MousePointer2 } from 'lucide-react';
+import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower2, Droplets, Box, PenTool, Shapes, MousePointer2, FolderOpen } from 'lucide-react';
 import { ShapePanel } from './poolBuilder/ShapePanel';
 import { DesignerToolPanel } from './poolBuilder/DesignerToolPanel';
+import { ProjectManager, setAutoSave, getAutoSave } from './poolBuilder/ProjectManager';
 import { SplinePointEditor } from './poolBuilder/SplinePointEditor';
 import { SplineDrawingToolbar } from './poolBuilder/SplineDrawingToolbar';
 import { PointCoordinateEditor } from './poolBuilder/PointCoordinateEditor';
@@ -399,6 +400,9 @@ export function PoolBuilder({
   const [activeTab, setActiveTab] = useState('pool');
   const [showFenceEditor, setShowFenceEditor] = useState(false);
   const [customTextures, setCustomTextures] = useState<TextureConfig[]>([]);
+  const [showProjectManager, setShowProjectManager] = useState(false);
+  const [lastAutoSaved, setLastAutoSaved] = useState<string | undefined>();
+
 
   // Spline drawing state for custom pool shapes
   interface SplinePoint extends Point {
@@ -488,7 +492,66 @@ export function PoolBuilder({
     isFixed: false
   });
 
-  // Check if a point is inside a polygon
+  // ─── Auto-Save: persist every meaningful change ───
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const getSerializableState = useCallback(() => ({
+    points, hardscapePoints, additionalDeckPoints, selectedDeckId, deckOffsetsById,
+    features, depthPoints, poolShape, selectedPaverId, selectedCopingId, selectedFinishId,
+    deckOffset, additionalPools, fencePoints, fenceDoors, fenceHeight, smoothFence,
+    scale, zoomLevel, gridSnap, snapSize, customTextures,
+  }), [points, hardscapePoints, additionalDeckPoints, selectedDeckId, deckOffsetsById,
+    features, depthPoints, poolShape, selectedPaverId, selectedCopingId, selectedFinishId,
+    deckOffset, additionalPools, fencePoints, fenceDoors, fenceHeight, smoothFence,
+    scale, zoomLevel, gridSnap, snapSize, customTextures]);
+
+  useEffect(() => {
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      if (points.length > 0) {
+        setAutoSave(getSerializableState());
+        setLastAutoSaved(new Date().toISOString());
+      }
+    }, 2000);
+    return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
+  }, [getSerializableState, points]);
+
+  // ─── Load auto-save on mount ───
+  const loadProjectState = useCallback((data: any) => {
+    if (!data) return;
+    if (data.points) setPoints(data.points);
+    if (data.hardscapePoints) setHardscapePoints(data.hardscapePoints);
+    if (data.additionalDeckPoints) setAdditionalDeckPoints(data.additionalDeckPoints);
+    if (data.selectedDeckId) setSelectedDeckId(data.selectedDeckId);
+    if (data.deckOffsetsById) setDeckOffsetsById(data.deckOffsetsById);
+    if (data.features) setFeatures(data.features);
+    if (data.depthPoints) setDepthPoints(data.depthPoints);
+    if (data.poolShape) setPoolShape(data.poolShape);
+    if (data.selectedPaverId) setSelectedPaverId(data.selectedPaverId);
+    if (data.selectedCopingId) setSelectedCopingId(data.selectedCopingId);
+    if (data.selectedFinishId) setSelectedFinishId(data.selectedFinishId);
+    if (data.deckOffset) setDeckOffset(data.deckOffset);
+    if (data.additionalPools) setAdditionalPools(data.additionalPools);
+    if (data.fencePoints) setFencePoints(data.fencePoints);
+    if (data.fenceDoors) setFenceDoors(data.fenceDoors);
+    if (data.fenceHeight) setFenceHeight(data.fenceHeight);
+    if (data.smoothFence != null) setSmoothFence(data.smoothFence);
+    if (data.scale) setScale(data.scale);
+    if (data.zoomLevel) setZoomLevel(data.zoomLevel);
+    if (data.gridSnap != null) setGridSnap(data.gridSnap);
+    if (data.snapSize) setSnapSize(data.snapSize);
+    if (data.customTextures) setCustomTextures(data.customTextures);
+  }, []);
+
+  useEffect(() => {
+    const saved = getAutoSave();
+    if (saved?.data && saved.data.points?.length > 0) {
+      loadProjectState(saved.data);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
   const isPointInPolygon = useCallback((x: number, y: number, polygon: Point[]): boolean => {
     let inside = false;
     for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
@@ -4402,10 +4465,13 @@ export function PoolBuilder({
   const poolPerimeter = useMemo(() => parseFloat(calculatePerimeter()), [points]);
   const poolArea = useMemo(() => parseFloat(calculateArea()), [points]);
 
+  // Pool shell rate: $280/sqft for custom/concrete pools
+  const POOL_SHELL_RATE = 280;
+
   // Calculate total project cost
   const calculateTotalCost = useCallback(() => {
-    // Pool cost - use actual pool area × a base rate (pool shell cost)
-    const poolCost = poolArea * 190; // Shell construction base rate
+    // Pool cost - $280 per sqft for custom/concrete pool shell
+    const poolCost = poolArea * POOL_SHELL_RATE;
 
     // Hardscape/deck cost - uses real paver rate from selected material
     const deckArea = calculateHardscapeArea();
@@ -4417,7 +4483,7 @@ export function PoolBuilder({
     const copingArea = copingPerimeterFeet * copingWidthFeet;
     const copingCost = copingArea * copingPricePerSqFt;
 
-    // Features cost
+    // Features cost with individual breakdown
     const featuresCost = features.reduce((total, feature) => {
       return total + (FEATURE_COSTS[feature.type] || 0);
     }, 0);
@@ -4426,7 +4492,15 @@ export function PoolBuilder({
       deckCost,
       copingCost,
       featuresCost,
-      total: poolCost + deckCost + copingCost + featuresCost
+      total: poolCost + deckCost + copingCost + featuresCost,
+      // Extended breakdown data
+      poolArea,
+      poolRate: POOL_SHELL_RATE,
+      deckArea,
+      deckRate: deckPricePerSqFt,
+      copingArea,
+      copingRate: copingPricePerSqFt,
+      featuresList: features.map(f => ({ type: f.type, cost: FEATURE_COSTS[f.type] || 0 })),
     };
   }, [poolArea, poolPerimeter, features, calculateHardscapeArea, paverSize, deckPricePerSqFt, copingPricePerSqFt]);
   const projectCost = useMemo(() => calculateTotalCost(), [calculateTotalCost]);
@@ -5869,7 +5943,34 @@ export function PoolBuilder({
           }}
         />
 
-        {/* Fence Builder Controls - Inside Canvas */}
+        {/* Project Manager Button - Top Left */}
+        <div className="absolute top-8 left-8 z-20 flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowProjectManager(true)}
+            className="h-8 bg-background/95 backdrop-blur shadow-lg text-xs gap-1.5"
+          >
+            <FolderOpen className="w-3.5 h-3.5" />
+            Projects
+          </Button>
+          {lastAutoSaved && (
+            <span className="text-[9px] text-muted-foreground bg-background/80 backdrop-blur px-2 py-1 rounded shadow-sm">
+              Saved {new Date(lastAutoSaved).toLocaleTimeString()}
+            </span>
+          )}
+        </div>
+
+        {/* Project Manager Dialog */}
+        <ProjectManager
+          isOpen={showProjectManager}
+          onOpenChange={setShowProjectManager}
+          onSaveProject={getSerializableState}
+          onLoadProject={loadProjectState}
+          lastSaved={lastAutoSaved}
+        />
+
+
         {showFenceEditor ? <div className="absolute bottom-8 left-8 z-20 bg-background/95 backdrop-blur p-3 rounded-lg border shadow-lg max-w-xs space-y-2">
             <div className="flex items-center justify-between mb-2">
               <Label className="text-xs font-semibold">Fence Builder</Label>

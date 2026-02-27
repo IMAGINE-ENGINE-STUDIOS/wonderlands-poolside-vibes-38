@@ -5,6 +5,7 @@ import { getPaverPricePerSqFt, SCREEN_ENCLOSURE_PRICING } from '@/utils/paverPri
  * Get deck paver price per sq ft by paver ID
  */
 export function getDeckPricePerSqFt(paverId: string): number {
+  if (paverId === 'concrete-deck') return 10; // Concrete deck always $10/sqft
   const paver = paverTypes.find(p => p.id === paverId);
   return paver?.basePrice ?? 10; // Default to concrete $10/sqft
 }
