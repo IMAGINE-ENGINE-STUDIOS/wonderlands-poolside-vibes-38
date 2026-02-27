@@ -1,110 +1,71 @@
 
 
-# Comprehensive SEO Optimization for wonderlandsworld.com
+# Plan: Professional Precision Input & Pricing Consolidation for 2D Designer
 
-## Overview
-Optimize the website to maximize search engine visibility for keywords related to pool building, spa installation, patios, and related services in Florida. This involves enhancing meta tags, structured data, creating a sitemap, improving the robots.txt, and adding semantic HTML throughout.
+## Problem Analysis
+1. **Grid snap causes imprecise dimensions**: The snap grid uses 6-inch (0.5ft) increments. When dragging a point, `Math.round(x / snapPixels) * snapPixels` rounds to the nearest 0.5ft, making it impossible to land on exact values like 14.0ft — it jumps to 14.0 or 14.5, and depending on origin position, lands on 14.3 or similar.
+2. **No manual coordinate input**: Users cannot type exact X/Y positions or distances for spline points. A professional CAD tool needs text-box precision.
+3. **Pricing constants are hardcoded and inconsistent**: `POOL_COST_PER_SQFT = 190` and `PAVER_COST_PER_SQFT = 15` are arbitrary constants inside PoolBuilder.tsx, disconnected from the actual product pricing on the main page (paverData.ts has $10-$22/sqft, pools have specific model prices).
 
----
+## Implementation Steps
 
-## 1. Enhanced Meta Tags and Title (index.html)
+### Task 1: Fix Grid Snap to Allow Exact Foot Values
+**File: `src/components/PoolBuilder.tsx`**
+- Change `snapSize` default from `6` (inches) to `12` (1 foot) so points always land on exact foot boundaries
+- Add a "Fine Snap" option: 1-inch (1/12 ft) for sub-foot precision when needed
+- Ensure the snap calculation rounds to exact foot values relative to the pool center, not canvas origin — this prevents the 14.3ft problem where origin offset causes fractional results
 
-Update the `<head>` section with keyword-rich, geo-targeted meta tags:
+### Task 2: Add Spline Point Coordinate Input Panel
+**New file: `src/components/poolBuilder/PointCoordinateEditor.tsx`**
+- Create a compact UI panel that appears when a spline point is selected (both pool and deck points)
+- Shows X/Y position in feet (relative to pool center) with editable Input fields
+- Shows distance to previous and next point with editable Input fields
+- On value change, recalculates and updates the point position in exact pixel coordinates
+- Supports both pool points and hardscape (deck) points
+- New spline points added via "Add Point" also get coordinate inputs immediately
 
-- **Title**: "Wonderlands Pools & Spas | #1 Pool Builder in Florida | Pool Contractor Orlando, FL"
-- **Description**: "Florida's premier pool builder and contractor. Custom fiberglass pools, hot tubs, spas, saunas, patios, pavers, screen enclosures & more. Serving Orlando, Lake Nona, and Central Florida. Get a free quote today!"
-- **Keywords meta tag**: "pool builder, pool contractor, Florida pool builder, Orlando pool builder, fiberglass pools, spa installation, hot tubs, patios, pavers, screen enclosures, pool renovation, Central Florida pools, Lake Nona pool contractor"
-- **Geo meta tags**: `geo.region=US-FL`, `geo.placename=Orlando`, `geo.position=28.3772;-81.2820`
-- **Update OG tags**: og:title, og:description, og:url to `https://www.wonderlandsworld.com`
-- **Add canonical URL**: `https://www.wonderlandsworld.com/`
-- **Add alternate language tag**: `<link rel="alternate" hreflang="en" href="https://www.wonderlandsworld.com/" />`
+**File: `src/components/poolBuilder/SplineDrawingToolbar.tsx`**
+- Add props for point coordinates (xFeet, yFeet) and onChange handlers
+- Show inline X/Y input fields in edit mode next to the point label
 
-## 2. Rich Structured Data (index.html)
+**File: `src/components/PoolBuilder.tsx`**
+- Integrate PointCoordinateEditor into the selected-point toolbar area (around line 5470)
+- Pass scale, canvas center, selected point data, and update handlers
+- Add handler to update point position from exact foot values: `newPixelX = centerX + feetX * scale`
+- Same for hardscape points when selected
+- Wire up distance-between-points editing: when user types a distance, the selected point moves along the vector to its neighbor to match exactly
 
-Replace the minimal WebSite schema with comprehensive structured data:
+### Task 3: Consolidate Pricing with Main Page Product Data
+**File: `src/utils/poolBuilderPricing.ts`** (new)
+- Create a centralized pricing module that imports from existing data sources:
+  - Pool cost: Use the selected product's actual price from `pools`/`gilmerPools`/`PoolCatalog` rather than `$190/sqft`
+  - Deck/paver cost: Import from `paverData.ts` using `getPaverPricePerSqFt()` from `paverPricing.ts` — Appian $15, Catalina $20, Catalina Grana $22, Concrete $10
+  - Coping cost: Same paver pricing lookup for selected coping material
+  - Feature costs: Keep existing feature costs (stairs $2500, lights $450, etc.)
+  - Screen enclosure: Use `SCREEN_ENCLOSURE_PRICING` from `paverPricing.ts`
 
-- **LocalBusiness schema** with:
-  - Business name, address (6900 Tavistock Lakes Blvd SE, Orlando, FL 32827)
-  - Phone: +14077604873
-  - Email: sales@wonderlandsworld.com
-  - Opening hours: 24/7
-  - Service area: Florida, Orlando, Central Florida
-  - Price range, aggregate rating
-  - Logo and images
-- **Service schema** listing all services: Pool Installation, Pool Renovation, Spa Installation, Sauna Installation, Patio & Pavers, Screen Enclosures, Lanai, Fencing, Driveway Gates, Automatic Covers
-- **WebSite schema** with SearchAction for sitelinks search box
-- **BreadcrumbList schema** for navigation
+**File: `src/components/PoolBuilder.tsx`**
+- Remove hardcoded `PAVER_COST_PER_SQFT = 15` and `POOL_COST_PER_SQFT = 190`
+- Import pricing from the new centralized module
+- Pass `selectedPaverId` and `selectedCopingId` to pricing functions to get correct per-material rates
+- Pool base cost uses the selected product's actual catalog price (passed via props or URL params) instead of area × flat rate
+- Update `calculateTotalCost` to use material-specific rates
+- Update the `onPoolDataChange` breakdown to include material names and rates
 
-## 3. Sitemap (public/sitemap.xml)
+**File: `src/pages/DesignStudio.tsx`**
+- Pass the selected product's price to PoolBuilder so it can use the real base price
 
-Create a new `public/sitemap.xml` with all public routes:
-
-```text
-/                    (priority 1.0, daily)
-/quote               (priority 0.8, weekly)
-/pool-calculator     (priority 0.7, weekly)
-/referral            (priority 0.6, weekly)
-/design-studio       (priority 0.7, weekly)
-/wonderlands-studio  (priority 0.7, weekly)
-/sales-rep-register  (priority 0.5, monthly)
-/contractor-registration (priority 0.5, monthly)
-```
-
-Base URL: `https://www.wonderlandsworld.com`
-
-## 4. Improved robots.txt (public/robots.txt)
-
-Update to reference the sitemap and block private routes:
-
-```text
-User-agent: *
-Allow: /
-Disallow: /admin
-Disallow: /auth
-Disallow: /content-editor
-Disallow: /template
-Disallow: /twilio-poc
-Disallow: /api
-
-Sitemap: https://www.wonderlandsworld.com/sitemap.xml
-```
-
-## 5. React Helmet SEO on Index Page (src/pages/Index.tsx)
-
-Add comprehensive Helmet tags inside the Index component:
-
-- Title tag matching the optimized title
-- Meta description with Florida pool builder keywords
-- OG tags (title, description, image, url, type)
-- Twitter card tags
-- Canonical link to `https://www.wonderlandsworld.com/`
-
-## 6. Semantic HTML Improvements (src/pages/Index.tsx)
-
-- Wrap main content in `<main>` tag
-- Use `<article>` and proper heading hierarchy (h1 in Hero, h2 for each section)
-- Add `aria-label` to major sections for accessibility
-
-## 7. Footer SEO Enhancement (src/components/Footer.tsx)
-
-- Add `itemScope itemType="https://schema.org/LocalBusiness"` microdata
-- Make phone/email/address into proper `<a>` links (tel:, mailto:)
-- Add `rel="noopener"` to external links
-- Update copyright year reference
-
----
+### Task 4: Add Deck Point Coordinate Editing
+**File: `src/components/PoolBuilder.tsx`**
+- When a hardscape point is selected, show the same PointCoordinateEditor panel
+- Allow exact feet input for deck dimensions (width, length from pool edge)
+- Deck distance inputs update hardscape points precisely
 
 ## Technical Details
 
-### Files to create:
-- `public/sitemap.xml`
+**Snap fix math**: Currently `snapPixels = snapSize / 12 * scale`. With scale=10 and snapSize=6, snapPixels=5px. A point at x=143px → 143/5=28.6 → round to 29 → 29×5=145px → 145/10=14.5ft. The issue is when the pool center isn't on a snap boundary. Fix: snap relative to pool center coordinates, not canvas origin.
 
-### Files to modify:
-- `index.html` -- meta tags, structured data, canonical URL
-- `public/robots.txt` -- sitemap reference, disallow private routes
-- `src/pages/Index.tsx` -- Helmet SEO tags, semantic HTML
-- `src/components/Footer.tsx` -- microdata, proper links
+**Coordinate system**: Pool center = (canvasWidth/2, canvasHeight/2). Point position in feet = `(point.x - centerX) / scale`. To set exact feet: `point.x = centerX + feetValue * scale`.
 
-### No database changes needed
-### No new dependencies needed
+**Pricing alignment**: The main page uses specific product prices (e.g., Astoria 16 = $110,338). The 2D designer should show this as the pool base price, then add deck/coping/features on top. This matches how the product cards and quote tool work.
 
