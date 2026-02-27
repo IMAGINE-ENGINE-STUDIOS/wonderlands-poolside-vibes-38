@@ -17,6 +17,8 @@ import { Minus, Plus, Trash2, Move, Lightbulb, Waves, Ruler, Home, Trees, Flower
 import { ShapePanel } from './poolBuilder/ShapePanel';
 import { SplinePointEditor } from './poolBuilder/SplinePointEditor';
 import { SplineDrawingToolbar } from './poolBuilder/SplineDrawingToolbar';
+import { PointCoordinateEditor } from './poolBuilder/PointCoordinateEditor';
+import { snapToGridRelative, calculateProjectCost, getDeckPricePerSqFt, getCopingPricePerSqFt, FEATURE_COSTS as CENTRALIZED_FEATURE_COSTS } from '@/utils/poolBuilderPricing';
 import { ShapeRepository } from './ShapeRepository';
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
 import poolTextureSapphire from '@/assets/pool-texture-sapphire.jpg';
@@ -389,7 +391,7 @@ export function PoolBuilder({
   const [isDraggingDepth, setIsDraggingDepth] = useState(false);
   const [showDepthEditor, setShowDepthEditor] = useState(false);
   const [gridSnap, setGridSnap] = useState(true); // AutoCAD-like grid snapping
-  const [snapSize, setSnapSize] = useState(6); // 6 inches snap (0.5 feet)
+  const [snapSize, setSnapSize] = useState(12); // 12 inches snap (1 foot) - exact foot values
   const [activeTab, setActiveTab] = useState('pool');
   const [showFenceEditor, setShowFenceEditor] = useState(false);
   const [customTextures, setCustomTextures] = useState<TextureConfig[]>([]);
@@ -1135,44 +1137,10 @@ export function PoolBuilder({
     poolId?: string; // If set, this is an additional pool point
   } | null>(null);
 
-  // Pricing constants
-  const PAVER_COST_PER_SQFT = 15;
-  const POOL_COST_PER_SQFT = 190;
-  const FEATURE_COSTS: Record<PoolFeature['type'], number> = {
-    stairs: 2500,
-    light: 450,
-    jet: 850,
-    tree: 350,
-    fountain: 3500,
-    grass: 0,
-    home: 0,
-    shrub: 75,
-    umbrella: 400,
-    fence: 150,
-    pathway: 0,
-    // New pool features
-    'pool-seat': 3500,
-    'pool-wall': 5000,
-    'diving-board': 2500,
-    'slide': 8000,
-    'pool-cover': 4500,
-    'pool-accessory': 500,
-    // New landscape features
-    'rock': 250,
-    'boulder': 800,
-    'hedge-row': 450,
-    'plant-row': 300,
-    'landscape-light': 350,
-    'edging': 200,
-    'grass-region': 0,
-    // New water features
-    'pond': 6000,
-    'stream': 8000,
-    'waterfall': 12000,
-    'jumping-jet': 1200,
-    'sprinkler': 150,
-    'water-curtain': 5500
-  };
+  // Pricing - use centralized rates from real product data
+  const FEATURE_COSTS = CENTRALIZED_FEATURE_COSTS as Record<PoolFeature['type'], number>;
+  const deckPricePerSqFt = getDeckPricePerSqFt(selectedPaverId);
+  const copingPricePerSqFt = getCopingPricePerSqFt(selectedCopingId);
 
   // Sync external tab with internal activeTab
   useEffect(() => {
@@ -4045,18 +4013,18 @@ export function PoolBuilder({
 
   // Calculate total project cost
   const calculateTotalCost = useCallback(() => {
-    // Pool cost
-    const poolCost = poolArea * POOL_COST_PER_SQFT;
+    // Pool cost - use actual pool area × a base rate (pool shell cost)
+    const poolCost = poolArea * 190; // Shell construction base rate
 
-    // Hardscape/deck cost
+    // Hardscape/deck cost - uses real paver rate from selected material
     const deckArea = calculateHardscapeArea();
-    const deckCost = deckArea * PAVER_COST_PER_SQFT;
+    const deckCost = deckArea * deckPricePerSqFt;
 
     // Calculate coping perimeter and cost
     const copingPerimeterFeet = poolPerimeter;
-    const copingWidthFeet = paverSize / 12; // Convert inches to feet
+    const copingWidthFeet = paverSize / 12;
     const copingArea = copingPerimeterFeet * copingWidthFeet;
-    const copingCost = copingArea * PAVER_COST_PER_SQFT;
+    const copingCost = copingArea * copingPricePerSqFt;
 
     // Features cost
     const featuresCost = features.reduce((total, feature) => {
@@ -4069,7 +4037,7 @@ export function PoolBuilder({
       featuresCost,
       total: poolCost + deckCost + copingCost + featuresCost
     };
-  }, [poolArea, poolPerimeter, features, calculateHardscapeArea, paverSize]);
+  }, [poolArea, poolPerimeter, features, calculateHardscapeArea, paverSize, deckPricePerSqFt, copingPricePerSqFt]);
   const projectCost = useMemo(() => calculateTotalCost(), [calculateTotalCost]);
 
   // Notify parent of pool data changes (separate from drawing)
@@ -4102,11 +4070,12 @@ export function PoolBuilder({
     let x = e.clientX - rect.left;
     let y = e.clientY - rect.top;
 
-    // Apply grid snapping for AutoCAD-like precision
+    // Apply grid snapping relative to canvas center for exact foot values
     if (gridSnap) {
-      const snapPixels = snapSize / 12 * scale; // Convert inches to pixels
-      x = Math.round(x / snapPixels) * snapPixels;
-      y = Math.round(y / snapPixels) * snapPixels;
+      const cX = canvasSize.width / 2;
+      const cY = canvasSize.height / 2;
+      x = snapToGridRelative(x, cX, scale, snapSize);
+      y = snapToGridRelative(y, cY, scale, snapSize);
     }
 
     // Handle perimeter anchor mode - click to fix position or drag to move
@@ -4728,13 +4697,14 @@ export function PoolBuilder({
       y
     });
 
-    // Apply grid snapping
+    // Apply grid snapping relative to canvas center
     let snappedX = x;
     let snappedY = y;
     if (gridSnap) {
-      const snapPixels = snapSize / 12 * scale;
-      snappedX = Math.round(x / snapPixels) * snapPixels;
-      snappedY = Math.round(y / snapPixels) * snapPixels;
+      const cX = canvasSize.width / 2;
+      const cY = canvasSize.height / 2;
+      snappedX = snapToGridRelative(x, cX, scale, snapSize);
+      snappedY = snapToGridRelative(y, cY, scale, snapSize);
     }
     if (isDraggingDepth && selectedDepthPoint && showDepthEditor) {
       const editorX = 50;
@@ -5586,6 +5556,66 @@ export function PoolBuilder({
             setSelectedSplinePoint(null);
           }} canDelete={selectedSplinePoint.poolId ? (additionalPools.find(p => p.id === selectedSplinePoint.poolId)?.points.length || 0) > 3 : points.length > 3} />
             </div>}
+
+          {/* Coordinate Input Panel for selected spline point */}
+          {selectedSplinePoint && !splineDrawing.isActive && (() => {
+            const ptsList = selectedSplinePoint.poolId
+              ? (additionalPools.find(p => p.id === selectedSplinePoint.poolId)?.points || [])
+              : points;
+            const idx = selectedSplinePoint.index;
+            const prevPt = idx > 0 ? ptsList[idx - 1] : ptsList[ptsList.length - 1];
+            const nextPt = idx < ptsList.length - 1 ? ptsList[idx + 1] : ptsList[0];
+            const currentPt = ptsList[idx];
+            if (!currentPt) return null;
+            return (
+              <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30">
+                <PointCoordinateEditor
+                  pointX={currentPt.x}
+                  pointY={currentPt.y}
+                  centerX={canvasSize.width / 2}
+                  centerY={canvasSize.height / 2}
+                  scale={scale}
+                  label={`Point ${idx + 1}`}
+                  prevPoint={prevPt}
+                  nextPoint={nextPt}
+                  onPositionChange={(newX, newY) => {
+                    if (selectedSplinePoint.poolId) {
+                      updateAdditionalPoolPoint(selectedSplinePoint.poolId, currentPt.id, newX, newY);
+                    } else {
+                      setPoints(prev => prev.map(p => p.id === currentPt.id ? { ...p, x: newX, y: newY } : p));
+                    }
+                    setSelectedSplinePoint(prev => prev ? { ...prev, point: { ...prev.point, x: newX, y: newY } } : null);
+                  }}
+                />
+              </div>
+            );
+          })()}
+
+          {/* Coordinate Input Panel for selected hardscape/deck point */}
+          {selectedHardscapePoint && !splineDrawing.isActive && (() => {
+            const idx = hardscapePoints.findIndex(p => p.id === selectedHardscapePoint);
+            const currentPt = hardscapePoints[idx];
+            if (!currentPt || idx < 0) return null;
+            const prevPt = idx > 0 ? hardscapePoints[idx - 1] : hardscapePoints[hardscapePoints.length - 1];
+            const nextPt = idx < hardscapePoints.length - 1 ? hardscapePoints[idx + 1] : hardscapePoints[0];
+            return (
+              <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30">
+                <PointCoordinateEditor
+                  pointX={currentPt.x}
+                  pointY={currentPt.y}
+                  centerX={canvasSize.width / 2}
+                  centerY={canvasSize.height / 2}
+                  scale={scale}
+                  label={`Deck P${idx + 1}`}
+                  prevPoint={prevPt}
+                  nextPoint={nextPt}
+                  onPositionChange={(newX, newY) => {
+                    setHardscapePoints(prev => prev.map(p => p.id === currentPt.id ? { ...p, x: newX, y: newY } : p));
+                  }}
+                />
+              </div>
+            );
+          })()}
           
           {/* Spline Drawing Toolbar - Floating in canvas */}
           {splineDrawing.isActive && <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
