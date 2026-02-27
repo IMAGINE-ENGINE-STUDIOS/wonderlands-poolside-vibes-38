@@ -560,68 +560,9 @@ export function PoolBuilder({
     if (!canvas) return;
 
     const handleNativeWheel = (e: WheelEvent) => {
+      // Manual zoom only: block wheel/trackpad/pinch zoom on canvas
       e.preventDefault();
       e.stopPropagation();
-
-      const now = performance.now();
-      const isPinch = e.ctrlKey || (Math.abs(e.deltaY) < 10 && e.deltaMode === 0);
-      const step = isPinch ? PINCH_STEP : WHEEL_STEP;
-      const deadzone = isPinch ? 0.5 : ZOOM_DEADZONE;
-
-      // Ignore tiny deltas (jitter / noise)
-      if (Math.abs(e.deltaY) < deadzone) return;
-
-      const dir = e.deltaY > 0 ? -1 : 1; // negative deltaY = zoom in
-
-      // Momentum / bounce protection
-      if (dir !== lastWheelDirRef.current && now < momentumLockUntilRef.current) {
-        // Direction flipped during momentum window → drop event
-        return;
-      }
-      if (dir !== lastWheelDirRef.current) {
-        momentumLockUntilRef.current = now + MOMENTUM_MS;
-      }
-      lastWheelDirRef.current = dir;
-      lastWheelTimeRef.current = now;
-
-      // Clamp step magnitude
-      const clampedStep = dir * Math.min(MAX_FRAME_STEP, step);
-
-      // Store pending zoom with pointer position for anchoring
-      const rect = canvas.getBoundingClientRect();
-      pendingZoomRef.current = {
-        delta: clampedStep,
-        clientX: e.clientX - rect.left,
-        clientY: e.clientY - rect.top,
-      };
-
-      if (wheelZoomRafRef.current !== null) return;
-
-      wheelZoomRafRef.current = requestAnimationFrame(() => {
-        wheelZoomRafRef.current = null;
-        const pending = pendingZoomRef.current;
-        if (!pending) return;
-        pendingZoomRef.current = null;
-
-        setZoomLevel(prevZoom => {
-          const newZoom = Math.max(0.15, Math.min(5, prevZoom * (1 + pending.delta)));
-
-          // Anchor zoom to pointer position
-          setPanOffset(prevPan => {
-            const cx = canvasSize.width / 2;
-            const cy = canvasSize.height / 2;
-            // World point under cursor before zoom
-            const wx = (pending.clientX - cx - prevPan.x) / prevZoom + cx;
-            const wy = (pending.clientY - cy - prevPan.y) / prevZoom + cy;
-            // Adjust pan so same world point stays under cursor
-            const newPanX = pending.clientX - cx - (wx - cx) * newZoom;
-            const newPanY = pending.clientY - cy - (wy - cy) * newZoom;
-            return { x: newPanX, y: newPanY };
-          });
-
-          return newZoom;
-        });
-      });
     };
 
     canvas.addEventListener('wheel', handleNativeWheel, { passive: false });
@@ -649,7 +590,8 @@ export function PoolBuilder({
     if (data.fenceHeight) setFenceHeight(data.fenceHeight);
     if (data.smoothFence != null) setSmoothFence(data.smoothFence);
     if (data.scale) setScale(data.scale);
-    if (data.zoomLevel) setZoomLevel(data.zoomLevel);
+    // Always start at 100% zoom when loading
+    setZoomLevel(1);
     if (data.gridSnap != null) setGridSnap(data.gridSnap);
     if (data.snapSize) setSnapSize(data.snapSize);
     if (data.customTextures) setCustomTextures(data.customTextures);
