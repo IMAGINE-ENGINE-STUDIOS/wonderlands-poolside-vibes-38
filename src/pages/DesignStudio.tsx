@@ -151,6 +151,8 @@ const DesignStudio = () => {
     try {
       localStorage.removeItem('poolBuilderAutoSave');
       localStorage.removeItem('wonderlands-autosave');
+      localStorage.removeItem('wonderlands_studio_autosave');
+      localStorage.removeItem('wonderlands_studio_projects_autosave');
     } catch (e) {
       // ignore
     }
