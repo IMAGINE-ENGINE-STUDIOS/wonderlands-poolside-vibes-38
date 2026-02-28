@@ -1,5 +1,5 @@
 import * as React from "react";
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -18,6 +18,7 @@ const RightNavigation = () => {
   const { openChat } = useAIAssistant();
   const navigate = useNavigate();
   const location = useLocation();
+  const scrollRafRef = useRef<number | null>(null);
   
   // Check if we're on the main page - only show full navigation on main page
   const isMainPage = location.pathname === '/';
@@ -64,7 +65,13 @@ const RightNavigation = () => {
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll(); // Initial check on mount
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollRafRef.current !== null) {
+        cancelAnimationFrame(scrollRafRef.current);
+        scrollRafRef.current = null;
+      }
+    };
   }, [isWonderlandsStudio]);
   
   // Hide navigation completely on Wonderlands Studio page (home button is in header)
@@ -72,40 +79,55 @@ const RightNavigation = () => {
     return null;
   }
 
+
   const scrollToSection = (sectionId: string) => {
+    if (scrollRafRef.current !== null) {
+      cancelAnimationFrame(scrollRafRef.current);
+      scrollRafRef.current = null;
+    }
+
     if (sectionId === "home") {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    // Robust scroll with interval-based readjustment for lazy-loaded content
-    const scrollToTarget = () => {
+    const headerOffset = 20;
+    const maxWaitMs = 1200;
+    const stableFramesRequired = 6;
+    const startTime = performance.now();
+    let lastTop: number | null = null;
+    let stableFrames = 0;
+
+    const settleAndScroll = () => {
       const element = document.getElementById(sectionId);
-      if (element) {
-        const headerOffset = 20;
-        const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({ top: elementPosition - headerOffset, behavior: 'smooth' });
+      const elapsed = performance.now() - startTime;
+
+      if (!element) {
+        if (elapsed < maxWaitMs) {
+          scrollRafRef.current = requestAnimationFrame(settleAndScroll);
+        }
+        return;
       }
+
+      const currentTop = element.getBoundingClientRect().top;
+      if (lastTop !== null && Math.abs(currentTop - lastTop) < 1) {
+        stableFrames += 1;
+      } else {
+        stableFrames = 0;
+      }
+      lastTop = currentTop;
+
+      if (stableFrames >= stableFramesRequired || elapsed >= maxWaitMs) {
+        const targetY = window.scrollY + currentTop - headerOffset;
+        window.scrollTo({ top: targetY, behavior: 'smooth' });
+        scrollRafRef.current = null;
+        return;
+      }
+
+      scrollRafRef.current = requestAnimationFrame(settleAndScroll);
     };
 
-    scrollToTarget();
-
-    // Re-check position every 200ms for 3s to compensate for lazy-load layout shifts
-    let checks = 0;
-    const maxChecks = 15;
-    const intervalId = setInterval(() => {
-      checks++;
-      const element = document.getElementById(sectionId);
-      if (element) {
-        const rect = element.getBoundingClientRect();
-        // If element is not near top of viewport, re-scroll
-        if (Math.abs(rect.top - 20) > 50) {
-          const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-          window.scrollTo({ top: elementPosition - 20, behavior: 'smooth' });
-        }
-      }
-      if (checks >= maxChecks) clearInterval(intervalId);
-    }, 200);
+    scrollRafRef.current = requestAnimationFrame(settleAndScroll);
   };
 
   const navItems = [
