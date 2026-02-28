@@ -20,6 +20,7 @@ import { ProjectManager, setAutoSave, getAutoSave } from './poolBuilder/ProjectM
 import { SplinePointEditor } from './poolBuilder/SplinePointEditor';
 import { SplineDrawingToolbar } from './poolBuilder/SplineDrawingToolbar';
 import { PointCoordinateEditor } from './poolBuilder/PointCoordinateEditor';
+import { SplineDrawTutorial } from './poolBuilder/SplineDrawTutorial';
 import { snapToGridRelative, calculateProjectCost, getDeckPricePerSqFt, getCopingPricePerSqFt, FEATURE_COSTS as CENTRALIZED_FEATURE_COSTS } from '@/utils/poolBuilderPricing';
 import { ShapeRepository } from './ShapeRepository';
 import aquamarineFinish from '@/assets/finishes/aquamarine-g3.jpg';
@@ -97,6 +98,7 @@ interface FenceDoor {
 interface PoolBuilderProps {
   initialDimensions?: string; // e.g., "16' × 40'"
   initialDepth?: string; // e.g., "3'9\" - 8'6\""
+  startInDrawMode?: boolean; // Start with empty terrain + spline drawing mode
   externalTool?: string | null; // Tool ID from external toolbar
   externalTab?: string | null; // Tab ID from external toolbar (pool, materials, features, etc.)
   hideInternalTabs?: boolean; // Hide internal tab navigation when controlled externally
@@ -152,6 +154,7 @@ const shadeColor = (color: string, percent: number) => {
 export function PoolBuilder({
   initialDimensions,
   initialDepth,
+  startInDrawMode = true,
   externalTool,
   externalTab,
   hideInternalTabs = false,
@@ -1342,9 +1345,40 @@ export function PoolBuilder({
     return isNaN(num) ? 0 : num;
   };
 
+  // Track if tutorial has been dismissed
+  const [showDrawTutorial, setShowDrawTutorial] = useState(false);
+  const tutorialDismissedRef = useRef(false);
+
   // Initialize pool and hardscape centered with actual product dimensions if provided
   useEffect(() => {
     if (points.length === 0) {
+      // If startInDrawMode, show empty terrain and activate spline drawing
+      if (startInDrawMode) {
+        // Only show tutorial once on initial mount
+        if (!tutorialDismissedRef.current) {
+          setShowDrawTutorial(true);
+        }
+        // Set depth points with defaults
+        setDepthPoints([{
+          position: 0,
+          depth: 3.6,
+          id: 'd1'
+        }, {
+          position: 0.33,
+          depth: 4.6,
+          id: 'd2'
+        }, {
+          position: 0.67,
+          depth: 5.6,
+          id: 'd3'
+        }, {
+          position: 1,
+          depth: 6.6,
+          id: 'd4'
+        }]);
+        return; // Don't create default pool — user will draw it
+      }
+
       let poolWidth = 15; // Default width in feet
       let poolLength = 35; // Default length in feet
       let parsedDepthPoints = [{
@@ -1367,7 +1401,6 @@ export function PoolBuilder({
 
       // Parse actual product dimensions if provided (e.g., "16' × 40'" or "11' x 20'" or "8'6\" x 14'")
       if (initialDimensions) {
-        // Split by x or × to get width and length parts
         const parts = initialDimensions.split(/\s*[×x]\s*/i);
         if (parts.length === 2) {
           const parsedWidth = parseDimensionValue(parts[0].trim());
@@ -1375,105 +1408,54 @@ export function PoolBuilder({
           if (parsedWidth > 0 && parsedLength > 0) {
             poolWidth = parsedWidth;
             poolLength = parsedLength;
-            console.log('📐 PoolBuilder: Using exact product dimensions', {
-              width: poolWidth,
-              length: poolLength,
-              raw: initialDimensions
-            });
           }
         }
       }
 
-      // Parse actual product depth if provided (e.g., "3'9\" - 8'6\"")
       if (initialDepth) {
         const depthMatch = initialDepth.match(/(\d+)[''](\d+)?[""]?\s*[-–]\s*(\d+)[''](\d+)?[""]?/);
         if (depthMatch) {
-          const shallowFeet = parseInt(depthMatch[1]);
-          const shallowInches = depthMatch[2] ? parseInt(depthMatch[2]) : 0;
-          const deepFeet = parseInt(depthMatch[3]);
-          const deepInches = depthMatch[4] ? parseInt(depthMatch[4]) : 0;
-          const shallowDepth = shallowFeet + shallowInches / 12;
-          const deepDepth = deepFeet + deepInches / 12;
+          const shallowDepth = parseInt(depthMatch[1]) + (depthMatch[2] ? parseInt(depthMatch[2]) / 12 : 0);
+          const deepDepth = parseInt(depthMatch[3]) + (depthMatch[4] ? parseInt(depthMatch[4]) / 12 : 0);
           parsedDepthPoints = [{
-            position: 0,
-            depth: shallowDepth,
-            id: 'd1'
+            position: 0, depth: shallowDepth, id: 'd1'
           }, {
-            position: 0.33,
-            depth: shallowDepth + (deepDepth - shallowDepth) * 0.33,
-            id: 'd2'
+            position: 0.33, depth: shallowDepth + (deepDepth - shallowDepth) * 0.33, id: 'd2'
           }, {
-            position: 0.67,
-            depth: shallowDepth + (deepDepth - shallowDepth) * 0.67,
-            id: 'd3'
+            position: 0.67, depth: shallowDepth + (deepDepth - shallowDepth) * 0.67, id: 'd3'
           }, {
-            position: 1,
-            depth: deepDepth,
-            id: 'd4'
+            position: 1, depth: deepDepth, id: 'd4'
           }];
-          console.log('📏 PoolBuilder: Using product depth', {
-            shallow: shallowDepth,
-            deep: deepDepth
-          });
         }
       }
 
-      // Create pool points scaled to actual dimensions
-      // Standard notation: "16' × 40'" means 16' width (X-axis) × 40' length (Y-axis)
       const centerX = canvasSize.width / 2;
       const centerY = canvasSize.height / 2;
-      const poolWidthPixels = poolWidth * scale; // Width = X-axis (side to side)
-      const poolLengthPixels = poolLength * scale; // Length = Y-axis (front to back)
+      const poolWidthPixels = poolWidth * scale;
+      const poolLengthPixels = poolLength * scale;
 
       const initialPoolPoints = [{
-        x: centerX - poolWidthPixels / 2,
-        y: centerY - poolLengthPixels / 2,
-        id: '1',
-        curveType: 'linear' as const
+        x: centerX - poolWidthPixels / 2, y: centerY - poolLengthPixels / 2, id: '1', curveType: 'linear' as const
       }, {
-        x: centerX + poolWidthPixels / 2,
-        y: centerY - poolLengthPixels / 2,
-        id: '2',
-        curveType: 'linear' as const
+        x: centerX + poolWidthPixels / 2, y: centerY - poolLengthPixels / 2, id: '2', curveType: 'linear' as const
       }, {
-        x: centerX + poolWidthPixels / 2,
-        y: centerY + poolLengthPixels / 2,
-        id: '3',
-        curveType: 'linear' as const
+        x: centerX + poolWidthPixels / 2, y: centerY + poolLengthPixels / 2, id: '3', curveType: 'linear' as const
       }, {
-        x: centerX - poolWidthPixels / 2,
-        y: centerY + poolLengthPixels / 2,
-        id: '4',
-        curveType: 'linear' as const
+        x: centerX - poolWidthPixels / 2, y: centerY + poolLengthPixels / 2, id: '4', curveType: 'linear' as const
       }];
       setPoints(initialPoolPoints);
       setDepthPoints(parsedDepthPoints);
-
-      // Generate hardscape deck that follows pool with default 3ft offset
       setHardscapePoints(generateHardscapeFromPool(initialPoolPoints, deckOffset));
 
-      // Add default decorations: trees and grass area
       setFeatures([{
-        type: 'grass',
-        x: centerX,
-        y: centerY + 350,
-        id: 'grass1',
-        radius: 150
+        type: 'grass', x: centerX, y: centerY + 350, id: 'grass1', radius: 150
       }, {
-        type: 'tree',
-        x: centerX - 80,
-        y: centerY + 350,
-        id: 'tree1',
-        treeType: 'palm'
+        type: 'tree', x: centerX - 80, y: centerY + 350, id: 'tree1', treeType: 'palm'
       }, {
-        type: 'tree',
-        x: centerX + 80,
-        y: centerY + 350,
-        id: 'tree2',
-        treeType: 'oak'
+        type: 'tree', x: centerX + 80, y: centerY + 350, id: 'tree2', treeType: 'oak'
       }]);
     }
-  }, [canvasSize, initialDimensions, initialDepth]);
+  }, [canvasSize, initialDimensions, initialDepth, startInDrawMode]);
 
   // Available finishes
   const finishes = [{
@@ -5012,35 +4994,32 @@ export function PoolBuilder({
 
           // Check if we're in perimeter anchor mode (drawing spa/tanning ledge)
           if (perimeterAnchorMode.isActive && perimeterAnchorMode.isFixed) {
-            // Complete the perimeter-anchored pool
             completePerimeterAnchoredPool(newPoolPoints);
             return;
           }
+          
+          // If no main pool exists yet, set this as the main pool
+          if (points.length === 0) {
+            setPoints(newPoolPoints);
+            setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+            setDeckOffsetsById(prev => ({ ...prev, main: deckOffset }));
+            setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
+            setActiveTool(null);
+            return;
+          }
+          
           const intersectingPoolId = checkDeckIntersection(newPoolPoints);
           if (intersectingPoolId) {
-            // Show dialog to ask user what type of pool feature this is
-            setPendingPoolData({
-              points: newPoolPoints,
-              intersectsWith: intersectingPoolId
-            });
+            setPendingPoolData({ points: newPoolPoints, intersectsWith: intersectingPoolId });
             setShowPoolTypeDialog(true);
           } else {
-            // No intersection, add as regular pool
             const newPoolId = Date.now().toString();
             setAdditionalPools(prev => [...prev, {
-              id: newPoolId,
-              type: 'pool',
-              points: newPoolPoints,
-              shape: 'freeform',
-              featureType: 'regular'
+              id: newPoolId, type: 'pool', points: newPoolPoints, shape: 'freeform', featureType: 'regular'
             }]);
             setAdditionalDeckPoints(prev => ({ ...prev, [newPoolId]: generateHardscapeFromPool(newPoolPoints, 3) }));
             setDeckOffsetsById(prev => ({ ...prev, [newPoolId]: 3 }));
-            setSplineDrawing({
-              isActive: false,
-              points: [],
-              currentCurveType: 'linear'
-            });
+            setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
             setActiveTool(null);
           }
           return;
@@ -5969,37 +5948,48 @@ export function PoolBuilder({
                 completePerimeterAnchoredPool(newPoolPoints);
                 return;
               }
+              
+              // If no main pool exists yet, set this as the main pool
+              if (points.length === 0) {
+                setPoints(newPoolPoints);
+                setHardscapePoints(generateHardscapeFromPool(newPoolPoints, deckOffset));
+                setDeckOffsetsById(prev => ({ ...prev, main: deckOffset }));
+                setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
+                setActiveTool(null);
+                return;
+              }
+              
               const intersectingPoolId = checkDeckIntersection(newPoolPoints);
               if (intersectingPoolId) {
-                // Show dialog to ask user what type of pool feature this is
-                setPendingPoolData({
-                  points: newPoolPoints,
-                  intersectsWith: intersectingPoolId
-                });
+                setPendingPoolData({ points: newPoolPoints, intersectsWith: intersectingPoolId });
                 setShowPoolTypeDialog(true);
               } else {
-                // No intersection, add as regular pool
                 const newPoolId = Date.now().toString();
                 setAdditionalPools(prev => [...prev, {
-                  id: newPoolId,
-                  type: 'pool',
-                  points: newPoolPoints,
-                  shape: 'freeform',
-                  featureType: 'regular'
+                  id: newPoolId, type: 'pool', points: newPoolPoints, shape: 'freeform', featureType: 'regular'
                 }]);
-                setSplineDrawing({
-                  isActive: false,
-                  points: [],
-                  currentCurveType: 'linear'
-                });
+                setSplineDrawing({ isActive: false, points: [], currentCurveType: 'linear' });
                 setActiveTool(null);
-
-                // Check if pool extends outside existing deck and prompt for deck
                 checkAndPromptForOutsideDeck(newPoolId, newPoolPoints);
               }
             }
           }} canComplete={splineDrawing.points.length >= 3} />
             </div>}
+
+          {/* Draw Pool Tutorial Overlay */}
+          <SplineDrawTutorial
+            visible={showDrawTutorial && points.length === 0}
+            onDismiss={() => {
+              setShowDrawTutorial(false);
+              tutorialDismissedRef.current = true;
+            }}
+            onStartDrawing={() => {
+              setShowDrawTutorial(false);
+              tutorialDismissedRef.current = true;
+              setActiveTool('draw-pool');
+              setSplineDrawing({ isActive: true, points: [], currentCurveType: 'linear' });
+            }}
+          />
         </div>
 
 
