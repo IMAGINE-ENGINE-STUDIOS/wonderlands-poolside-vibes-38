@@ -1,6 +1,6 @@
 // Utilities to convert different data formats to Scene3D
 
-import { Scene3D, TextureConfig, Point, DepthPoint, HardscapePoint, AdditionalPool } from './types';
+import { Scene3D, TextureConfig, Point, DepthPoint, HardscapePoint, AdditionalPool, PoolFeature, PoolStair, FeatureType, StairShape } from './types';
 import { generateCurvedPoolPoints } from '@/utils/curveUtils';
 import { poolModelShapes, getPoolModelShape } from '@/data/poolModelShapes';
 
@@ -69,10 +69,7 @@ export const parseDepth = (depthStr?: string): number => {
 
 // Map finish names to texture URLs
 export const getFinishTextureUrl = (finishName?: string): string => {
-  console.log('🎨 getFinishTextureUrl called with:', { finishName, type: typeof finishName });
-  
   if (!finishName || finishName === 'None' || finishName === '' || finishName === 'undefined') {
-    console.log('   → Returning fallback (invalid input)');
     return '/textures/finishes/sapphire-blue-g3.jpg';
   }
   
@@ -88,28 +85,17 @@ export const getFinishTextureUrl = (finishName?: string): string => {
     'Shale Gray': '/textures/finishes/shale-gray-g3.jpg',
   };
   
-  const result = finishMap[finishName] || '/textures/finishes/sapphire-blue-g3.jpg';
-  console.log('   → Returning:', result);
-  return result;
+  return finishMap[finishName] || '/textures/finishes/sapphire-blue-g3.jpg';
 };
 
 // Map paver names to texture URLs
 export const getPaverTextureUrl = (paverName?: string, paverTypes?: any[]): string => {
-  console.log('🧱 getPaverTextureUrl called with:', { 
-    paverName, 
-    type: typeof paverName, 
-    paverTypesLength: paverTypes?.length 
-  });
-  
   if (!paverName || paverName === 'None' || paverName === 'Concrete Patio' || paverName === '' || paverName === 'undefined') {
-    console.log('   → Returning fallback (invalid input)');
     return '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
   }
   
   const paver = paverTypes?.find(p => p.name === paverName);
-  const result = paver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
-  console.log('   → Found paver:', paver?.name, '→ Returning:', result);
-  return result;
+  return paver?.image || '/lovable-uploads/08c51883-4e87-4344-b773-ec0a6d575b54.png';
 };
 
 // Convert product configurator data to Scene3D
@@ -119,20 +105,6 @@ export function productToScene(
   paverTypes: any[], 
   finishOptions: any[]
 ): Scene3D {
-  console.log('🔄 SceneConverter: productToScene called', {
-    product,
-    selectedExtras,
-    paverTypesCount: paverTypes.length,
-    finishOptionsCount: finishOptions.length
-  });
-  
-  console.log('🔄 SceneConverter: productToScene called', {
-    product: product?.model || product?.name,
-    extras: selectedExtras,
-    paverTypesCount: paverTypes?.length || 0,
-    finishOptionsCount: finishOptions?.length || 0
-  });
-
   // Parse dimensions from product data (e.g., "16' × 40'")
   const { length, width } = parseDimensions(product.dimensions);
   
@@ -148,47 +120,6 @@ export function productToScene(
       
   const paverTextureUrl = getPaverTextureUrl(selectedExtras.paverOption, paverTypes);
   const copingTextureUrl = getPaverTextureUrl(selectedExtras.copingPaverOption, paverTypes);
-  
-  console.log('🔍 SceneConverter: DETAILED Texture Resolution', {
-    inputs: {
-      finish: selectedExtras.finish,
-      finishType: typeof selectedExtras.finish,
-      linerOption: selectedExtras.linerOption,
-      linerOptionType: typeof selectedExtras.linerOption,
-      paverOption: selectedExtras.paverOption,
-      paverOptionType: typeof selectedExtras.paverOption,
-      copingPaverOption: selectedExtras.copingPaverOption,
-      copingPaverOptionType: typeof selectedExtras.copingPaverOption,
-      paverTypesArray: paverTypes,
-      paverTypesLength: paverTypes?.length
-    },
-    outputs: {
-      linerTextureUrl,
-      linerIsValid: linerTextureUrl && linerTextureUrl !== '' && linerTextureUrl !== 'undefined',
-      paverTextureUrl,
-      paverIsValid: paverTextureUrl && paverTextureUrl !== '' && paverTextureUrl !== 'undefined',
-      copingTextureUrl,
-      copingIsValid: copingTextureUrl && copingTextureUrl !== '' && copingTextureUrl !== 'undefined'
-    }
-  });
-
-  console.log('🔍 SceneConverter: Texture URL resolution', {
-    selectedExtras: {
-      finish: selectedExtras.finish,
-      paverOption: selectedExtras.paverOption,
-      copingPaverOption: selectedExtras.copingPaverOption
-    },
-    resolvedUrls: {
-      liner: linerTextureUrl,
-      paver: paverTextureUrl,
-      coping: copingTextureUrl
-    },
-    issues: {
-      linerInvalid: !linerTextureUrl || linerTextureUrl === '' || linerTextureUrl === 'undefined',
-      paverInvalid: !paverTextureUrl || paverTextureUrl === '' || paverTextureUrl === 'undefined',
-      copingInvalid: !copingTextureUrl || copingTextureUrl === '' || copingTextureUrl === 'undefined'
-    }
-  });
 
   // Create pool shape points - priority order:
   // 1. Custom shape from 2D editor
@@ -210,16 +141,6 @@ export function productToScene(
       id: `p${idx + 1}`
     }));
     
-    console.log('🎨 Using custom pool shape from 2D editor:', {
-      originalPoints: selectedExtras.customPoolShape.length,
-      convertedPoints: poolPoints.length,
-      scale: scale,
-      pixelsToFeet: pixelsToFeet,
-      sampleConversion: {
-        firstPoint: selectedExtras.customPoolShape[0],
-        convertedPoint: poolPoints[0]
-      }
-    });
   } else {
     // Check for predefined model shape in library
     const modelName = product?.model || product?.name;
@@ -241,14 +162,6 @@ export function productToScene(
         id: `p${idx + 1}`
       }));
       
-      console.log('🎨 Using predefined model shape from library:', {
-        modelName: modelShape.modelName,
-        originalDimensions: { width: shapeWidth, length: shapeLength },
-        targetDimensions: { width, length },
-        scale: { scaleX, scaleY },
-        pointCount: poolPoints.length,
-        features: modelShape.features
-      });
     } else {
       // Fallback: Create basic pool shape points (rectangle)
       poolPoints = [
@@ -258,10 +171,6 @@ export function productToScene(
         { x: 0, y: length, id: 'p4' },
       ];
       
-      console.log('🎨 Using fallback rectangle shape (no model shape found):', {
-        modelName: modelName,
-        dimensions: { width, length }
-      });
     }
   }
 
@@ -271,7 +180,6 @@ export function productToScene(
   if (selectedExtras.depthProfile && Array.isArray(selectedExtras.depthProfile) && selectedExtras.depthProfile.length > 0) {
     // Use depth profile from 2D designer
     depthPoints = selectedExtras.depthProfile;
-    console.log('🎨 Using custom depth profile from 2D designer:', depthPoints);
   } else if (modelShape?.depthAnchors && modelShape.depthAnchors.length >= 2) {
     // Use model-specific depth anchors scaled to product depth range
     const modelAnchors = modelShape.depthAnchors;
@@ -290,15 +198,7 @@ export function productToScene(
       };
     });
     
-    console.log('🎨 Using model-specific depth profile:', {
-      modelName: modelShape.modelName,
-      productDepthRange: { shallow: shallowEndDepth, deep: deepEndDepth },
-      depthPoints
-    });
   } else {
-    // Fallback: Use simple linear depth profile from product specification
-    console.log('🎨 Using fallback linear depth range:', { shallowEndDepth, deepEndDepth, productDepth: product.depth });
-    
     depthPoints = [
       { position: 0, depth: shallowEndDepth, id: 'd1' },
       { position: 0.25, depth: shallowEndDepth + (deepEndDepth - shallowEndDepth) * 0.25, id: 'd2' },
@@ -329,15 +229,6 @@ export function productToScene(
       id: pt.id || `h${idx + 1}`
     }));
     
-    console.log('🎨 Using deck shape from 2D designer:', {
-      originalPoints: selectedExtras.poolBuilderData.hardscapePoints.length,
-      convertedPoints: deckPoints.length,
-      scale: scale,
-      sampleConversion: {
-        firstPoint: selectedExtras.poolBuilderData.hardscapePoints[0],
-        convertedPoint: deckPoints[0]
-      }
-    });
   } else {
     // Generate deck points automatically from pool shape
     // Step 1: Generate smooth curved pool boundary
@@ -406,10 +297,6 @@ export function productToScene(
       id: `h${i + 1}`
     }));
     
-    console.log('🎨 Generated deck shape from pool shape:', {
-      poolPoints: poolPoints.length,
-      deckPoints: deckPoints.length
-    });
   }
 
   // Calculate pool depths from product (shallow and deep end)
@@ -446,14 +333,6 @@ export function productToScene(
     };
   });
   
-  console.log('🔵 SceneConverter: Creating perimeterDepthPoints with depth range:', {
-    shallowDepth,
-    deepDepth,
-    depthDirection: isLengthLonger ? 'along length (Y)' : 'along width (X)',
-    pointCount: perimeterDepthPoints.length,
-    productDepthString: product.depth,
-    sampleDepths: perimeterDepthPoints.slice(0, 4).map(p => p.depth.toFixed(2))
-  });
 
   // Create linear depth anchors - use model-specific anchors if available
   let linearDepthAnchors: Array<{ id: string; position: number; depth: number }>;
@@ -477,12 +356,6 @@ export function productToScene(
       };
     });
     
-    console.log('🎨 Using model-specific depth anchors:', {
-      modelName: modelShape.modelName,
-      originalAnchors: modelAnchors,
-      scaledAnchors: linearDepthAnchors,
-      productDepthRange: { shallowDepth, deepDepth }
-    });
   } else {
     // Fallback: simple linear shallow-to-deep profile
     linearDepthAnchors = [
@@ -510,7 +383,7 @@ export function productToScene(
       shape: pool.shape || 'freeform',
       featureType: pool.featureType,
       isMerged: pool.isMerged ?? (pool.featureType === 'spillover-spa' || pool.featureType === 'tanning-ledge'),
-      spilloverEdges: pool.spilloverEdges || [], // Pass spillover edge indices to 3D
+      spilloverEdges: pool.spilloverEdges || [],
       depth: pool.featureType === 'tanning-ledge' ? 1 : (pool.featureType === 'spillover-spa' ? 3.5 : deepEndDepth),
       finish: {
         url: linerTextureUrl,
@@ -519,10 +392,52 @@ export function productToScene(
         metalness: 0.1
       }
     }));
+  }
+
+  // Convert 2D PoolBuilder features (jets, lights, stairs, landscape) to 3D format
+  let features3D: PoolFeature[] = [];
+  let stairs3D: PoolStair[] = [];
+  
+  const poolBuilderFeatures = selectedExtras.poolBuilderData?.features || [];
+  
+  if (Array.isArray(poolBuilderFeatures) && poolBuilderFeatures.length > 0) {
+    const scale = selectedExtras.poolBuilderData?.scale || 10;
+    const pixelsToFeet = 1 / scale;
     
-    console.log('🎨 Converted additionalPools to 3D:', {
-      count: additionalPools3D.length,
-      pools: additionalPools3D.map(p => ({ id: p.id, type: p.type, featureType: p.featureType, pointCount: p.points.length }))
+    poolBuilderFeatures.forEach((f: any) => {
+      const xFeet = f.x * pixelsToFeet;
+      const yFeet = f.y * pixelsToFeet;
+      
+      if (f.type === 'stairs') {
+        stairs3D.push({
+          id: f.id,
+          position: [xFeet, 0, yFeet],
+          rotation: f.angle || 0,
+          shape: 'rectangle' as StairShape,
+          width: (f.width || 4 * scale) * pixelsToFeet,
+          numSteps: f.steps || 3,
+          stepHeight: 0.35,
+          stepDepth: 0.9,
+        });
+      } else if (['light', 'jet', 'fountain', 'heater'].includes(f.type)) {
+        features3D.push({
+          id: f.id,
+          type: f.type as FeatureType,
+          position: [xFeet, 0, yFeet],
+          rotation: [0, f.angle || 0, 0],
+          scale: [1, 1, 1],
+          metadata: { name: f.type, confirmed: true }
+        });
+      } else if (['tree', 'shrub', 'umbrella'].includes(f.type)) {
+        features3D.push({
+          id: f.id,
+          type: f.type as FeatureType,
+          position: [xFeet, 0, yFeet],
+          rotation: [0, f.angle || 0, 0],
+          scale: [1, 1, 1],
+          metadata: { name: f.type }
+        });
+      }
     });
   }
 
@@ -573,9 +488,9 @@ export function productToScene(
         offset: [0, 0]
       }
     },
-    additionalPools: additionalPools3D, // Include all converted additional pools
-    features: [],
-    stairs: [],
+    additionalPools: additionalPools3D,
+    features: features3D,
+    stairs: stairs3D,
     annotations: [],
     camera: {
       position: [length * 0.8, length * 0.6, width * 0.8],
@@ -583,19 +498,7 @@ export function productToScene(
     }
   };
   
-  console.log('✅ SceneConverter: Scene created with textures:', {
-    poolFinishUrl: scene.pool.finish.url,
-    deckPaverUrl: scene.deck.paver.url,
-    copingUrl: scene.deck.coping.url,
-    waterlineUrl: scene.deck.waterline.url,
-    allValid: [
-      scene.pool.finish.url,
-      scene.deck.paver.url,
-      scene.deck.coping.url,
-      scene.deck.waterline.url
-    ].every(url => url && url !== '' && url !== 'undefined')
-  });
-  
+
   return scene;
 }
 

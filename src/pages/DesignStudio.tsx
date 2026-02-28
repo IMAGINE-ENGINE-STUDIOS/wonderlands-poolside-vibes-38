@@ -264,7 +264,7 @@ const DesignStudio = () => {
     updateSourceRef.current = '2d';
     requestAnimationFrame(() => { updateSourceRef.current = null; });
     
-    console.log('Pool builder data changed (2D source):', data);
+    
     setPoolBuilderData(data);
     setCustomPoolShape(data.points);
     const jetCount = data.features?.filter((f: any) => f.type === 'jet').length || 0;
