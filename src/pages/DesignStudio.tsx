@@ -3,7 +3,8 @@ const {
   useState,
   useEffect,
   useMemo,
-  useCallback
+  useCallback,
+  useRef
 } = React;
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { PoolBuilder } from "@/components/PoolBuilder";
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
-import { productToScene } from "@/components/scene3d/SceneConverter";
+import { productToScene, scene3DToPoolBuilder } from "@/components/scene3d/SceneConverter";
 import { pools, spas } from "@/components/PoolCatalog";
 import { gilmerPools } from "@/data/gilmerPools";
 import { gilmerSpas } from "@/data/gilmerSpas";
@@ -83,6 +84,12 @@ const DesignStudio = () => {
     };
   } | null>(null);
   const [resetKey, setResetKey] = useState(0);
+  
+  // Loop prevention for bidirectional sync
+  const updateSourceRef = useRef<'2d' | '3d' | null>(null);
+  const lastScene3DRef = useRef<any>(null);
+  const externalUpdateRef = useRef<any>(null);
+  
   const [selectedExtras, setSelectedExtras] = useState<any>({
     finish: '',
     paverOption: '',
@@ -223,9 +230,17 @@ const DesignStudio = () => {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  // Handle pool builder data changes
+  // Handle pool builder data changes (from 2D)
   const handlePoolDataChange = useCallback((data: any) => {
-    console.log('Pool builder data changed:', data);
+    // Skip if this update was triggered by 3D sync
+    if (updateSourceRef.current === '3d') {
+      updateSourceRef.current = null;
+      return;
+    }
+    updateSourceRef.current = '2d';
+    requestAnimationFrame(() => { updateSourceRef.current = null; });
+    
+    console.log('Pool builder data changed (2D source):', data);
     setPoolBuilderData(data);
     setCustomPoolShape(data.points);
     const jetCount = data.features?.filter((f: any) => f.type === 'jet').length || 0;
@@ -237,7 +252,6 @@ const DesignStudio = () => {
       depthProfile: data.depthPoints,
       poolBuilderData: data,
       additionalPools: data.additionalPools || [],
-      // CRITICAL: Preserve additional pools
       hardscapePoints: data.hardscapePoints || [],
       jets: jetCount > 0,
       jetQuantity: jetCount,
@@ -250,6 +264,50 @@ const DesignStudio = () => {
       }
     }));
   }, []);
+
+  // Handle 3D scene changes → sync back to 2D state
+  const handle3DSceneChange = useCallback((updatedScene: any) => {
+    // Skip if this update was triggered by 2D sync
+    if (updateSourceRef.current === '2d') {
+      return;
+    }
+    
+    // Store latest 3D scene for when switching back to 2D
+    lastScene3DRef.current = updatedScene;
+    
+    // Convert 3D scene back to 2D format
+    const scale = poolBuilderData?.scale || 10;
+    const converted = scene3DToPoolBuilder(updatedScene, scale);
+    
+    // Update shared state so 2D reflects 3D changes
+    updateSourceRef.current = '3d';
+    requestAnimationFrame(() => { updateSourceRef.current = null; });
+    
+    setCustomPoolShape(converted.points);
+    setSelectedExtras((prev: any) => ({
+      ...prev,
+      customPoolShape: converted.points,
+      depthProfile: converted.depthPoints,
+      poolBuilderData: {
+        ...prev.poolBuilderData,
+        points: converted.points,
+        depthPoints: converted.depthPoints,
+        hardscapePoints: converted.hardscapePoints,
+        scale
+      },
+      additionalPools: converted.additionalPools,
+      hardscapePoints: converted.hardscapePoints
+    }));
+    
+    // Prepare external update for PoolBuilder
+    externalUpdateRef.current = {
+      points: converted.points,
+      depthPoints: converted.depthPoints,
+      hardscapePoints: converted.hardscapePoints,
+      features: converted.features,
+      additionalPools: converted.additionalPools
+    };
+  }, [poolBuilderData?.scale]);
 
   // Handle switching to 3D view
   const handleSwitch3D = useCallback(() => {
@@ -398,7 +456,7 @@ const DesignStudio = () => {
       {/* Main Content */}
       <main className="flex-1 relative overflow-hidden">
         {activeView === '2d' ? <div className="w-full h-full">
-            <PoolBuilder key={resetKey} initialDimensions={selectedProduct.dimensions} initialDepth={selectedProduct.depth} externalTool={activeTool} externalTab={activeCategory} hideInternalTabs={true} onToolUsed={handleToolUsed} onPoolDataChange={handlePoolDataChange} />
+            <PoolBuilder key={resetKey} initialDimensions={selectedProduct.dimensions} initialDepth={selectedProduct.depth} externalTool={activeTool} externalTab={activeCategory} hideInternalTabs={true} onToolUsed={handleToolUsed} onPoolDataChange={handlePoolDataChange} onExternalUpdate={externalUpdateRef.current} />
           </div> : <div className="w-full h-full">
             <UnifiedPoolVisualizer scene={productToScene(selectedProduct, {
           ...selectedExtras,
@@ -448,9 +506,7 @@ const DesignStudio = () => {
             roughness: 0.2,
             metalness: 0.1
           }))]
-        }} onSceneChange={updatedScene => {
-          // Handle scene updates if needed
-        }} />
+        }} onSceneChange={handle3DSceneChange} />
           </div>}
       </main>
     </div>;

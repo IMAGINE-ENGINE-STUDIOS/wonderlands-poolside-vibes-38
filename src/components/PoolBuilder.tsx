@@ -101,6 +101,13 @@ interface PoolBuilderProps {
   externalTab?: string | null; // Tab ID from external toolbar (pool, materials, features, etc.)
   hideInternalTabs?: boolean; // Hide internal tab navigation when controlled externally
   onToolUsed?: () => void; // Callback when tool is used
+  onExternalUpdate?: {
+    points?: Array<{ x: number; y: number; id: string }>;
+    depthPoints?: Array<{ position: number; depth: number; id: string }>;
+    hardscapePoints?: Array<{ x: number; y: number; id: string }>;
+    features?: Array<{ type: string; x: number; y: number; id: string; angle?: number }>;
+    additionalPools?: any[];
+  } | null; // External state changes from 3D viewer
   onPoolDataChange?: (data: {
     points: Point[];
     depthPoints: DepthPoint[];
@@ -149,6 +156,7 @@ export function PoolBuilder({
   externalTab,
   hideInternalTabs = false,
   onToolUsed,
+  onExternalUpdate,
   onPoolDataChange
 }: PoolBuilderProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -523,6 +531,36 @@ export function PoolBuilder({
     features, depthPoints, poolShape, selectedPaverId, selectedCopingId, selectedFinishId,
     deckOffset, additionalPools, fencePoints, fenceDoors, fenceHeight, smoothFence,
     scale, zoomLevel, gridSnap, snapSize, customTextures]);
+
+  // Handle external updates from 3D viewer (bidirectional sync)
+  const isExternalUpdateRef = useRef(false);
+  const lastExternalUpdateRef = useRef<string | null>(null);
+  
+  useEffect(() => {
+    if (!onExternalUpdate) return;
+    
+    // Deduplicate by serializing
+    const updateKey = JSON.stringify(onExternalUpdate);
+    if (updateKey === lastExternalUpdateRef.current) return;
+    lastExternalUpdateRef.current = updateKey;
+    
+    isExternalUpdateRef.current = true;
+    
+    if (onExternalUpdate.points && onExternalUpdate.points.length >= 3) {
+      setPoints(onExternalUpdate.points);
+    }
+    if (onExternalUpdate.depthPoints && onExternalUpdate.depthPoints.length >= 2) {
+      setDepthPoints(onExternalUpdate.depthPoints);
+    }
+    if (onExternalUpdate.hardscapePoints && onExternalUpdate.hardscapePoints.length >= 3) {
+      setHardscapePoints(onExternalUpdate.hardscapePoints);
+    }
+    
+    // Clear flag after a frame to allow normal updates
+    requestAnimationFrame(() => {
+      isExternalUpdateRef.current = false;
+    });
+  }, [onExternalUpdate]);
 
   useEffect(() => {
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
@@ -4585,22 +4623,21 @@ export function PoolBuilder({
   const projectCost = useMemo(() => calculateTotalCost(), [calculateTotalCost]);
 
   // Notify parent of pool data changes (separate from drawing)
+  // Skip when update originated from external (3D viewer) to prevent loops
   useEffect(() => {
+    if (isExternalUpdateRef.current) return;
     if (onPoolDataChange) {
       const cost = calculateTotalCost();
       onPoolDataChange({
         points,
         depthPoints,
         scale,
-        // CRITICAL: Export scale so 3D viewer can convert correctly
         features,
         perimeter: poolPerimeter,
         area: poolArea,
         deckArea: calculateHardscapeArea(),
         hardscapePoints,
-        // Include deck/hardscape points
         additionalPools,
-        // CRITICAL: Include all additional pools (spas, tanning ledges, separate pools)
         totalCost: cost.total,
         breakdown: cost
       });

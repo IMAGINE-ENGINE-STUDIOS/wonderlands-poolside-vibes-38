@@ -613,3 +613,69 @@ export function importScene(json: string): Scene3D | null {
     return null;
   }
 }
+
+/**
+ * Reverse converter: Scene3D → PoolBuilder data format
+ * Converts 3D feet-based coordinates back to 2D pixel coordinates
+ */
+export function scene3DToPoolBuilder(
+  scene: Scene3D,
+  scale: number = 10, // pixels per foot (PoolBuilder default)
+  canvasCenter: { x: number; y: number } = { x: 2000, y: 2000 }
+): {
+  points: Array<{ x: number; y: number; id: string }>;
+  depthPoints: Array<{ position: number; depth: number; id: string }>;
+  hardscapePoints: Array<{ x: number; y: number; id: string }>;
+  features: Array<{ type: string; x: number; y: number; id: string; angle?: number; steps?: number; width?: number }>;
+  additionalPools: any[];
+} {
+  // Convert pool points from feet to pixels
+  // Scene3D points are in feet; PoolBuilder stores absolute pixel positions
+  const points = scene.pool.points.map((pt, idx) => ({
+    x: pt.x * scale,
+    y: pt.y * scale,
+    id: pt.id || `p${idx + 1}`
+  }));
+
+  // Depth points are format-compatible (position 0-1, depth in feet)
+  const depthPoints = scene.pool.depthPoints.map((dp, idx) => ({
+    position: dp.position,
+    depth: dp.depth,
+    id: dp.id || `d${idx + 1}`
+  }));
+
+  // Convert deck/hardscape points from feet to pixels
+  const hardscapePoints = (scene.deck.points || []).map((hp, idx) => ({
+    x: hp.x * scale,
+    y: hp.y * scale,
+    id: hp.id || `h${idx + 1}`
+  }));
+
+  // Convert features from 3D position format to 2D format
+  const features = scene.features.map(f => ({
+    type: f.type as string,
+    x: f.position[0] * scale,
+    y: f.position[2] * scale, // 3D z → 2D y
+    id: f.id,
+    angle: f.rotation?.[1],
+    steps: f.metadata?.name ? undefined : undefined,
+    width: f.scale?.[0]
+  }));
+
+  // Convert additional pools
+  const additionalPools = (scene.additionalPools || []).map(pool => ({
+    id: pool.id,
+    type: pool.type,
+    points: pool.points.map((pt, idx) => ({
+      x: pt.x * scale,
+      y: pt.y * scale,
+      id: pt.id || `${pool.id}-p${idx + 1}`
+    })),
+    shape: pool.shape,
+    featureType: pool.featureType,
+    isMerged: pool.isMerged,
+    spilloverEdges: pool.spilloverEdges
+  }));
+
+  return { points, depthPoints, hardscapePoints, features, additionalPools };
+}
