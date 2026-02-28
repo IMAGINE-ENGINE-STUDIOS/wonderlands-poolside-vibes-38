@@ -8,7 +8,18 @@ const {
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Layers, Box, Maximize2, Minimize2 } from "lucide-react";
+import { ArrowLeft, Layers, Box, RotateCcw } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { PoolBuilder } from "@/components/PoolBuilder";
 import { UnifiedPoolVisualizer } from "@/components/UnifiedPoolVisualizer";
 import { productToScene } from "@/components/scene3d/SceneConverter";
@@ -71,6 +82,7 @@ const DesignStudio = () => {
       total: number;
     };
   } | null>(null);
+  const [resetKey, setResetKey] = useState(0);
   const [selectedExtras, setSelectedExtras] = useState<any>({
     finish: '',
     paverOption: '',
@@ -94,6 +106,29 @@ const DesignStudio = () => {
   const handleToolUsed = useCallback(() => {
     // Keep tool active for repeated use, user can switch manually
   }, []);
+
+  // Reset entire scene to blank
+  const handleResetScene = useCallback(() => {
+    setResetKey(k => k + 1);
+    setPoolBuilderData(null);
+    setCustomPoolShape(null);
+    setActiveTool(null);
+    setActiveCategory('pool');
+    setActiveView('2d');
+    setSelectedExtras({
+      finish: '',
+      paverOption: '',
+      copingPaverOption: '',
+      customPoolShape: null,
+      depthProfile: null,
+      poolBuilderData: null,
+      poolBuilderFeatures: null
+    });
+    toast({
+      title: "Scene Reset",
+      description: "Project has been reset to a blank canvas."
+    });
+  }, [toast]);
 
   // Get product from URL params
   const selectedProduct = useMemo<Product | null>(() => {
@@ -273,7 +308,28 @@ const DesignStudio = () => {
                 
                 <div className="h-6 w-px bg-border" />
                 
-                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-destructive hover:text-destructive">
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      Reset
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Reset Scene</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will clear the entire project and reset to a blank canvas. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleResetScene} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Reset Everything
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>} />
           <SubToolbar category={activeCategory} activeTool={activeTool} onToolSelect={handleToolSelect} stats={poolBuilderData ? {
         perimeter: poolBuilderData.perimeter,
@@ -314,14 +370,35 @@ const DesignStudio = () => {
             
             <div className="h-6 w-px bg-border" />
             
-            
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-destructive hover:text-destructive">
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Reset
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reset Scene</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will clear the entire project and reset to a blank canvas. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleResetScene} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Reset Everything
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </header>}
 
       {/* Main Content */}
       <main className="flex-1 relative overflow-hidden">
         {activeView === '2d' ? <div className="w-full h-full">
-            <PoolBuilder initialDimensions={selectedProduct.dimensions} initialDepth={selectedProduct.depth} externalTool={activeTool} externalTab={activeCategory} hideInternalTabs={true} onToolUsed={handleToolUsed} onPoolDataChange={handlePoolDataChange} />
+            <PoolBuilder key={resetKey} initialDimensions={selectedProduct.dimensions} initialDepth={selectedProduct.depth} externalTool={activeTool} externalTab={activeCategory} hideInternalTabs={true} onToolUsed={handleToolUsed} onPoolDataChange={handlePoolDataChange} />
           </div> : <div className="w-full h-full">
             <UnifiedPoolVisualizer scene={productToScene(selectedProduct, {
           ...selectedExtras,
