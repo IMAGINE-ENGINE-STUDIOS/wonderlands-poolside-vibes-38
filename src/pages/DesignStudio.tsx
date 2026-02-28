@@ -116,12 +116,11 @@ const DesignStudio = () => {
 
   // Reset entire scene to blank
   const handleResetScene = useCallback(() => {
-    setResetKey(k => k + 1);
+    // Clear all state first
     setPoolBuilderData(null);
     setCustomPoolShape(null);
     setActiveTool(null);
     setActiveCategory('pool');
-    setActiveView('2d');
     setSelectedExtras({
       finish: '',
       paverOption: '',
@@ -131,9 +130,34 @@ const DesignStudio = () => {
       poolBuilderData: null,
       poolBuilderFeatures: null
     });
+    lastScene3DRef.current = null;
+    externalUpdateRef.current = null;
+    updateSourceRef.current = null;
+
+    // Exit fullscreen if active (3D view)
+    if (document.fullscreenElement) {
+      document.exitFullscreen?.();
+      setIsFullscreen(false);
+    }
+
+    // Switch to 2D and force full remount with new key
+    setActiveView('2d');
+    // Use setTimeout to ensure state is flushed before remount
+    setTimeout(() => {
+      setResetKey(k => k + 1);
+    }, 0);
+
+    // Clear any saved project from localStorage
+    try {
+      localStorage.removeItem('poolBuilderAutoSave');
+      localStorage.removeItem('wonderlands-autosave');
+    } catch (e) {
+      // ignore
+    }
+
     toast({
-      title: "Scene Reset",
-      description: "Project has been reset to a blank canvas."
+      title: "Project Cleared",
+      description: "Everything has been erased. Start drawing your new pool!"
     });
   }, [toast]);
 
