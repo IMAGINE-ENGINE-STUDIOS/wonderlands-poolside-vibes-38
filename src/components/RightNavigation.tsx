@@ -77,11 +77,35 @@ const RightNavigation = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+
+    // Robust scroll with interval-based readjustment for lazy-loaded content
+    const scrollToTarget = () => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        const headerOffset = 20;
+        const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: elementPosition - headerOffset, behavior: 'smooth' });
+      }
+    };
+
+    scrollToTarget();
+
+    // Re-check position every 200ms for 3s to compensate for lazy-load layout shifts
+    let checks = 0;
+    const maxChecks = 15;
+    const intervalId = setInterval(() => {
+      checks++;
+      const element = document.getElementById(sectionId);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        // If element is not near top of viewport, re-scroll
+        if (Math.abs(rect.top - 20) > 50) {
+          const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({ top: elementPosition - 20, behavior: 'smooth' });
+        }
+      }
+      if (checks >= maxChecks) clearInterval(intervalId);
+    }, 200);
   };
 
   const navItems = [
