@@ -18,6 +18,7 @@ const AdminProjectManagement: React.FC = () => {
     uploadDocument,
     deleteDocument,
     deleteProject,
+    updateCoverImage,
     setSelectedProject,
   } = useProjectManagement();
 
@@ -45,6 +46,7 @@ const AdminProjectManagement: React.FC = () => {
         onUploadDocument={uploadDocument}
         onDeleteDocument={deleteDocument}
         onDeleteProject={deleteProject}
+        onUpdateCoverImage={updateCoverImage}
       />
     );
   }
@@ -55,6 +57,7 @@ const AdminProjectManagement: React.FC = () => {
       loading={loading}
       onSelectProject={handleSelectProject}
       onCreateProject={handleCreateProject}
+      onUpdateCoverImage={updateCoverImage}
     />
   );
 };

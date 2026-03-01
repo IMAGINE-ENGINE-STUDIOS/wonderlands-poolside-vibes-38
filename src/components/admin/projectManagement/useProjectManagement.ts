@@ -38,6 +38,7 @@ export interface ConstructionProject {
   share_token: string;
   status: string;
   notes: string | null;
+  cover_image_url: string | null;
   created_at: string;
   updated_at: string;
   phases: ProjectPhase[];
@@ -281,6 +282,34 @@ export function useProjectManagement() {
     }
   }, [fetchProjects, toast]);
 
+  const updateCoverImage = useCallback(async (projectId: string, file: File) => {
+    try {
+      const filePath = `covers/${projectId}/${Date.now()}_${file.name}`;
+      const { error: uploadErr } = await supabase.storage
+        .from('project-documents')
+        .upload(filePath, file);
+      if (uploadErr) throw uploadErr;
+
+      const { data: urlData } = supabase.storage
+        .from('project-documents')
+        .getPublicUrl(filePath);
+
+      const { error: updateErr } = await supabase
+        .from('construction_projects')
+        .update({ cover_image_url: urlData.publicUrl })
+        .eq('id', projectId);
+      if (updateErr) throw updateErr;
+
+      toast({ title: 'Cover image updated' });
+      await fetchProjects();
+      if (selectedProject?.id === projectId) {
+        await fetchProjectDetail(projectId);
+      }
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    }
+  }, [fetchProjects, fetchProjectDetail, selectedProject, toast]);
+
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
@@ -300,6 +329,7 @@ export function useProjectManagement() {
     uploadDocument,
     deleteDocument,
     deleteProject,
+    updateCoverImage,
     setSelectedProject,
   };
 }

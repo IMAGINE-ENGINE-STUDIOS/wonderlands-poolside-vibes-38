@@ -589,6 +589,7 @@ export type Database = {
         Row: {
           client_id: string | null
           contractor_id: string | null
+          cover_image_url: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -601,6 +602,7 @@ export type Database = {
         Insert: {
           client_id?: string | null
           contractor_id?: string | null
+          cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -613,6 +615,7 @@ export type Database = {
         Update: {
           client_id?: string | null
           contractor_id?: string | null
+          cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
           id?: string

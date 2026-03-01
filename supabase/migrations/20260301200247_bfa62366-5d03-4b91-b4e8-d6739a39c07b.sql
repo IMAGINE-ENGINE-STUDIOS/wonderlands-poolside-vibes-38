@@ -1,0 +1,1 @@
+ALTER TABLE public.construction_projects ADD COLUMN cover_image_url TEXT;
