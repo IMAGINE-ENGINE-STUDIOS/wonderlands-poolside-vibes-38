@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Plus, Share2, Copy, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ArrowLeft, Plus, Share2, Copy, Trash2, Mail, Link, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import ProjectPhaseCard from './ProjectPhaseCard';
 import type { ConstructionProject } from './useProjectManagement';
 
@@ -33,6 +35,9 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
 }) => {
   const [newPhaseName, setNewPhaseName] = useState('');
   const [showAddPhase, setShowAddPhase] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [shareEmail, setShareEmail] = useState('');
+  const [sendingEmail, setSendingEmail] = useState(false);
   const { toast } = useToast();
 
   const totalItems = project.phases.reduce((sum, p) => sum + p.items.length, 0);
@@ -46,7 +51,31 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
 
   const copyShareLink = () => {
     navigator.clipboard.writeText(shareUrl);
-    toast({ title: 'Link copied!', description: 'Share this link with your client' });
+    toast({ title: 'Link copied!', description: 'Share this private link with your client' });
+  };
+
+  const sendShareEmail = async () => {
+    if (!shareEmail.trim()) return;
+    setSendingEmail(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('share-project-email', {
+        body: {
+          email: shareEmail.trim(),
+          projectName: project.project_name,
+          shareUrl,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({ title: 'Email sent!', description: `Project link sent to ${shareEmail}` });
+      setShareEmail('');
+      setShowShareDialog(false);
+    } catch (e: any) {
+      toast({ title: 'Failed to send', description: e.message, variant: 'destructive' });
+    } finally {
+      setSendingEmail(false);
+    }
   };
 
   const handleAddPhase = () => {
@@ -82,12 +111,11 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={copyShareLink}
+            onClick={() => setShowShareDialog(true)}
             className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 text-xs font-mono"
           >
             <Share2 className="h-3 w-3 mr-1" />
             Share
-            <Copy className="h-3 w-3 ml-1" />
           </Button>
           <Button
             variant="ghost"
@@ -100,6 +128,84 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           </Button>
         </div>
       </div>
+
+      {/* Share Dialog */}
+      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+        <DialogContent className="sm:max-w-md bg-[#0d0d15] border-cyan-500/30">
+          <DialogHeader>
+            <DialogTitle className="text-cyan-300 font-mono flex items-center gap-2">
+              <Share2 className="h-4 w-4" />
+              Share Project
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs font-mono text-cyan-400/60">
+              Share this project with your client. They'll only see this project — all others remain private.
+            </p>
+
+            {/* Copy Link */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-mono text-cyan-400/50 uppercase tracking-wider">
+                Share via Link
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  value={shareUrl}
+                  readOnly
+                  className="h-8 text-[10px] bg-cyan-500/5 border-cyan-500/20 text-cyan-300 font-mono"
+                />
+                <Button
+                  size="sm"
+                  onClick={copyShareLink}
+                  className="bg-cyan-600 hover:bg-cyan-500 text-xs font-mono"
+                >
+                  <Copy className="h-3 w-3 mr-1" />
+                  Copy
+                </Button>
+              </div>
+            </div>
+
+            {/* Email Share */}
+            <div className="space-y-2 pt-2 border-t border-cyan-500/10">
+              <label className="text-[10px] font-mono text-cyan-400/50 uppercase tracking-wider">
+                Share via Email
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder="client@example.com"
+                  value={shareEmail}
+                  onChange={(e) => setShareEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && sendShareEmail()}
+                  className="h-8 text-xs bg-transparent border-cyan-500/20 text-cyan-300 placeholder:text-cyan-500/30 font-mono"
+                />
+                <Button
+                  size="sm"
+                  onClick={sendShareEmail}
+                  disabled={sendingEmail || !shareEmail.trim()}
+                  className="bg-cyan-600 hover:bg-cyan-500 text-xs font-mono"
+                >
+                  {sendingEmail ? (
+                    <div className="animate-spin h-3 w-3 border-b border-white rounded-full" />
+                  ) : (
+                    <>
+                      <Send className="h-3 w-3 mr-1" />
+                      Send
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2 mt-2 p-2 rounded bg-cyan-500/5 border border-cyan-500/10">
+              <Link className="h-3 w-3 text-cyan-400/40 mt-0.5 flex-shrink-0" />
+              <p className="text-[10px] font-mono text-cyan-400/40">
+                This link is private. Only people with this link can view the project progress. They cannot see any other projects.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Overall Progress Bar */}
       <div className="holographic-panel rounded-lg p-3 border border-cyan-500/20">
