@@ -282,6 +282,36 @@ export function useProjectManagement() {
     }
   }, [fetchProjects, toast]);
 
+  const reorderItems = useCallback(async (phaseId: string, reorderedItems: { id: string; item_order: number }[]) => {
+    try {
+      // Optimistic update
+      if (selectedProject) {
+        const updatedPhases = selectedProject.phases.map(p =>
+          p.id === phaseId
+            ? {
+                ...p,
+                items: p.items
+                  .map(item => {
+                    const newOrder = reorderedItems.find(r => r.id === item.id);
+                    return newOrder ? { ...item, item_order: newOrder.item_order } : item;
+                  })
+                  .sort((a, b) => a.item_order - b.item_order),
+              }
+            : p
+        );
+        setSelectedProject({ ...selectedProject, phases: updatedPhases });
+      }
+
+      const updates = reorderedItems.map(({ id, item_order }) =>
+        supabase.from('phase_items').update({ item_order }).eq('id', id)
+      );
+      await Promise.all(updates);
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+      if (selectedProject) await fetchProjectDetail(selectedProject.id);
+    }
+  }, [selectedProject, fetchProjectDetail, toast]);
+
   const updateCoverImage = useCallback(async (projectId: string, file: File) => {
     try {
       const filePath = `covers/${projectId}/${Date.now()}_${file.name}`;
@@ -330,6 +360,7 @@ export function useProjectManagement() {
     deleteDocument,
     deleteProject,
     updateCoverImage,
+    reorderItems,
     setSelectedProject,
   };
 }

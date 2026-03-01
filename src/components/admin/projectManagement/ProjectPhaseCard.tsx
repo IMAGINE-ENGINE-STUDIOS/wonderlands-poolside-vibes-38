@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronDown, ChevronRight, Plus, Trash2, Upload, FileText, X } from 'lucide-react';
+import { Droppable, Draggable } from 'react-beautiful-dnd';
+import { ChevronDown, ChevronRight, Plus, Trash2, Upload, FileText, X, GripVertical } from 'lucide-react';
 import type { ProjectPhase, PhaseItem } from './useProjectManagement';
 
 interface ProjectPhaseCardProps {
@@ -16,6 +17,7 @@ interface ProjectPhaseCardProps {
   onUploadDocument: (itemId: string, file: File) => void;
   onDeleteDocument: (docId: string) => void;
   readOnly?: boolean;
+  enableDragDrop?: boolean;
 }
 
 const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
@@ -27,6 +29,7 @@ const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
   onUploadDocument,
   onDeleteDocument,
   readOnly = false,
+  enableDragDrop = false,
 }) => {
   const [expanded, setExpanded] = useState(true);
   const [newItemName, setNewItemName] = useState('');
@@ -50,6 +53,130 @@ const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
       return next;
     });
   };
+
+  const renderItem = (item: PhaseItem, index: number) => {
+    const itemContent = (dragHandleProps?: any) => (
+      <div className="group">
+        <div className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-cyan-500/5 transition-colors">
+          {enableDragDrop && dragHandleProps && (
+            <div {...dragHandleProps} className="cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">
+              <GripVertical className="h-4 w-4 text-cyan-500/30" />
+            </div>
+          )}
+          <Checkbox
+            checked={item.is_completed}
+            onCheckedChange={(checked) => !readOnly && onToggleItem(item.id, !!checked)}
+            disabled={readOnly}
+            className="border-cyan-500/40 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+          />
+          <span
+            className={`flex-1 text-xs font-mono cursor-pointer ${
+              item.is_completed ? 'line-through text-cyan-400/40' : 'text-cyan-300/80'
+            }`}
+            onClick={() => toggleItemExpand(item.id)}
+          >
+            {item.item_name}
+          </span>
+          {item.documents.length > 0 && (
+            <span className="text-[10px] bg-cyan-500/10 text-cyan-400 px-1.5 py-0.5 rounded font-mono">
+              {item.documents.length} doc{item.documents.length > 1 ? 's' : ''}
+            </span>
+          )}
+          {item.due_date && (
+            <span className="text-[10px] text-cyan-400/50 font-mono">
+              {new Date(item.due_date).toLocaleDateString()}
+            </span>
+          )}
+          {!readOnly && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 opacity-0 group-hover:opacity-100 text-cyan-400/60 hover:text-cyan-400"
+                onClick={() => fileInputRefs.current[item.id]?.click()}
+              >
+                <Upload className="h-3 w-3" />
+              </Button>
+              <input
+                ref={(el) => { fileInputRefs.current[item.id] = el; }}
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) onUploadDocument(item.id, f);
+                  e.target.value = '';
+                }}
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 opacity-0 group-hover:opacity-100 text-red-400/60 hover:text-red-400"
+                onClick={() => onDeleteItem(item.id)}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </>
+          )}
+        </div>
+
+        {expandedItems.has(item.id) && item.documents.length > 0 && (
+          <div className="ml-8 mt-1 mb-2 space-y-1">
+            {item.documents.map((doc) => (
+              <div
+                key={doc.id}
+                className="flex items-center gap-2 text-[10px] font-mono text-cyan-400/60 py-1 px-2 rounded bg-cyan-500/5"
+              >
+                <FileText className="h-3 w-3 flex-shrink-0" />
+                <a
+                  href={doc.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 truncate hover:text-cyan-300 underline"
+                >
+                  {doc.file_name}
+                </a>
+                <span className="text-cyan-500/40">
+                  {doc.file_size ? `${(doc.file_size / 1024).toFixed(0)}KB` : ''}
+                </span>
+                {!readOnly && (
+                  <button
+                    onClick={() => onDeleteDocument(doc.id)}
+                    className="text-red-400/40 hover:text-red-400"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+
+    if (enableDragDrop) {
+      return (
+        <Draggable key={item.id} draggableId={item.id} index={index}>
+          {(provided, snapshot) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.draggableProps}
+              className={snapshot.isDragging ? 'shadow-lg rounded bg-[#0d0d15]' : ''}
+            >
+              {itemContent(provided.dragHandleProps)}
+            </div>
+          )}
+        </Draggable>
+      );
+    }
+
+    return <div key={item.id}>{itemContent()}</div>;
+  };
+
+  const itemsList = (
+    <>
+      {phase.items.map((item, index) => renderItem(item, index))}
+    </>
+  );
 
   return (
     <Card className="holographic-panel border-cyan-500/20 overflow-hidden">
@@ -94,101 +221,19 @@ const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
 
       {expanded && (
         <CardContent className="pt-0 px-4 pb-4 space-y-1">
-          {phase.items.map((item) => (
-            <div key={item.id} className="group">
-              <div className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-cyan-500/5 transition-colors">
-                <Checkbox
-                  checked={item.is_completed}
-                  onCheckedChange={(checked) => !readOnly && onToggleItem(item.id, !!checked)}
-                  disabled={readOnly}
-                  className="border-cyan-500/40 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
-                />
-                <span
-                  className={`flex-1 text-xs font-mono cursor-pointer ${
-                    item.is_completed ? 'line-through text-cyan-400/40' : 'text-cyan-300/80'
-                  }`}
-                  onClick={() => toggleItemExpand(item.id)}
-                >
-                  {item.item_name}
-                </span>
-                {item.documents.length > 0 && (
-                  <span className="text-[10px] bg-cyan-500/10 text-cyan-400 px-1.5 py-0.5 rounded font-mono">
-                    {item.documents.length} doc{item.documents.length > 1 ? 's' : ''}
-                  </span>
-                )}
-                {item.due_date && (
-                  <span className="text-[10px] text-cyan-400/50 font-mono">
-                    {new Date(item.due_date).toLocaleDateString()}
-                  </span>
-                )}
-                {!readOnly && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-5 w-5 opacity-0 group-hover:opacity-100 text-cyan-400/60 hover:text-cyan-400"
-                      onClick={() => fileInputRefs.current[item.id]?.click()}
-                    >
-                      <Upload className="h-3 w-3" />
-                    </Button>
-                    <input
-                      ref={(el) => { fileInputRefs.current[item.id] = el; }}
-                      type="file"
-                      className="hidden"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) onUploadDocument(item.id, f);
-                        e.target.value = '';
-                      }}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-5 w-5 opacity-0 group-hover:opacity-100 text-red-400/60 hover:text-red-400"
-                      onClick={() => onDeleteItem(item.id)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </>
-                )}
-              </div>
-
-              {/* Expanded item: show documents */}
-              {expandedItems.has(item.id) && item.documents.length > 0 && (
-                <div className="ml-8 mt-1 mb-2 space-y-1">
-                  {item.documents.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="flex items-center gap-2 text-[10px] font-mono text-cyan-400/60 py-1 px-2 rounded bg-cyan-500/5"
-                    >
-                      <FileText className="h-3 w-3 flex-shrink-0" />
-                      <a
-                        href={doc.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 truncate hover:text-cyan-300 underline"
-                      >
-                        {doc.file_name}
-                      </a>
-                      <span className="text-cyan-500/40">
-                        {doc.file_size ? `${(doc.file_size / 1024).toFixed(0)}KB` : ''}
-                      </span>
-                      {!readOnly && (
-                        <button
-                          onClick={() => onDeleteDocument(doc.id)}
-                          className="text-red-400/40 hover:text-red-400"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+          {enableDragDrop ? (
+            <Droppable droppableId={phase.id}>
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps}>
+                  {itemsList}
+                  {provided.placeholder}
                 </div>
               )}
-            </div>
-          ))}
+            </Droppable>
+          ) : (
+            itemsList
+          )}
 
-          {/* Add item */}
           {!readOnly && (
             <div className="flex items-center gap-2 mt-2 pt-2 border-t border-cyan-500/10">
               <Input
