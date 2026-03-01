@@ -593,6 +593,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          internal_share_token: string
           notes: string | null
           project_name: string
           share_token: string
@@ -606,6 +607,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          internal_share_token?: string
           notes?: string | null
           project_name: string
           share_token?: string
@@ -619,6 +621,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          internal_share_token?: string
           notes?: string | null
           project_name?: string
           share_token?: string
@@ -2148,6 +2151,76 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      project_cost_items: {
+        Row: {
+          category: string
+          contractor_id: string | null
+          created_at: string
+          description: string
+          id: string
+          notes: string | null
+          phase_id: string | null
+          project_id: string
+          quantity: number
+          status: string
+          total_price: number | null
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          contractor_id?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          notes?: string | null
+          phase_id?: string | null
+          project_id: string
+          quantity?: number
+          status?: string
+          total_price?: number | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          contractor_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          notes?: string | null
+          phase_id?: string | null
+          project_id?: string
+          quantity?: number
+          status?: string
+          total_price?: number | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_cost_items_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_cost_items_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "project_phases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_cost_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "construction_projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_phases: {
         Row: {
