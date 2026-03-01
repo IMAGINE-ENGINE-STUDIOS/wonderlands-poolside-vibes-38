@@ -112,6 +112,27 @@ const InternalProjectView: React.FC = () => {
   const handleToggleItem = async (itemId: string, completed: boolean) => {
     await supabase.from('phase_items').update({ is_completed: completed, completed_at: completed ? new Date().toISOString() : null }).eq('id', itemId);
     await fetchProject();
+
+    // Send milestone completion email to client
+    if (completed && project?.client_id) {
+      try {
+        const { data: client } = await supabase.from('clients').select('email, first_name').eq('id', project.client_id).single();
+        if (client?.email) {
+          const item = project.phases.flatMap(p => p.items).find(i => i.id === itemId);
+          const shareUrl = `${window.location.origin}/project/${project.share_token}`;
+          await supabase.functions.invoke('milestone-completed-email', {
+            body: {
+              email: client.email,
+              projectName: project.project_name,
+              milestoneName: item?.item_name || 'Milestone',
+              shareUrl,
+            },
+          });
+        }
+      } catch (err) {
+        console.error('Failed to send milestone email:', err);
+      }
+    }
   };
 
   const handleDragEnd = async (result: DropResult) => {
