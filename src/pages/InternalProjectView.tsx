@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Trash2, Save, GripVertical, ChevronDown, ChevronRight, FileText, DollarSign } from 'lucide-react';
+import { Plus, Trash2, Save, GripVertical, ChevronDown, ChevronRight, FileText, DollarSign, Upload, Download } from 'lucide-react';
 import type { ConstructionProject, ProjectPhase } from '@/components/admin/projectManagement/useProjectManagement';
 
 interface CostItem {
@@ -37,6 +37,8 @@ const InternalProjectView: React.FC = () => {
   const [newCost, setNewCost] = useState({ description: '', category: 'general', quantity: '1', unit_price: '0', phase_id: '', notes: '' });
   const [editingCostId, setEditingCostId] = useState<string | null>(null);
   const [editCost, setEditCost] = useState<Partial<CostItem>>({});
+  const [quotationPrices, setQuotationPrices] = useState<Record<string, string>>({});
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const { toast } = useToast();
 
   const fetchProject = useCallback(async () => {
@@ -157,6 +159,46 @@ const InternalProjectView: React.FC = () => {
     await fetchProject();
   };
 
+  const handleUploadQuotation = async (itemId: string, itemName: string, phaseId: string, file: File) => {
+    if (!project) return;
+    try {
+      const filePath = `${project.id}/${itemId}/${Date.now()}_${file.name}`;
+      const { error: uploadErr } = await supabase.storage.from('project-documents').upload(filePath, file);
+      if (uploadErr) throw uploadErr;
+
+      const { data: urlData } = supabase.storage.from('project-documents').getPublicUrl(filePath);
+
+      await supabase.from('item_documents').insert({
+        item_id: itemId,
+        file_name: file.name,
+        file_url: urlData.publicUrl,
+        file_type: file.type,
+        file_size: file.size,
+      });
+
+      // If a price was entered, create a cost item automatically
+      const priceStr = quotationPrices[itemId];
+      const price = parseFloat(priceStr);
+      if (price > 0) {
+        await supabase.from('project_cost_items').insert({
+          project_id: project.id,
+          description: `Quotation: ${itemName}`,
+          category: 'subcontractor',
+          quantity: 1,
+          unit_price: price,
+          phase_id: phaseId,
+          notes: `From uploaded file: ${file.name}`,
+        });
+        setQuotationPrices(prev => { const n = { ...prev }; delete n[itemId]; return n; });
+      }
+
+      toast({ title: 'Quotation uploaded', description: file.name });
+      await fetchProject();
+    } catch (e: any) {
+      toast({ title: 'Upload failed', description: e.message, variant: 'destructive' });
+    }
+  };
+
   const togglePhase = (id: string) => {
     setExpandedPhases(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   };
@@ -244,13 +286,61 @@ const InternalProjectView: React.FC = () => {
                                         {item.documents.length > 0 && (
                                           <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">{item.documents.length} doc{item.documents.length > 1 ? 's' : ''}</span>
                                         )}
+                                        {/* Upload quotation button */}
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-6 w-6 opacity-0 group-hover:opacity-100 text-amber-500 hover:text-amber-600 transition-opacity"
+                                          onClick={() => fileInputRefs.current[item.id]?.click()}
+                                          title="Upload quotation"
+                                        >
+                                          <Upload className="h-3 w-3" />
+                                        </Button>
+                                        <input
+                                          ref={(el) => { fileInputRefs.current[item.id] = el; }}
+                                          type="file"
+                                          className="hidden"
+                                          onChange={(e) => {
+                                            const f = e.target.files?.[0];
+                                            if (f) handleUploadQuotation(item.id, item.item_name, phase.id, f);
+                                            e.target.value = '';
+                                          }}
+                                        />
                                       </div>
+
+                                      {/* Quotation price input - always visible for quick entry */}
+                                      <div className="ml-10 flex items-center gap-2 py-1">
+                                        <DollarSign className="h-3 w-3 text-gray-400" />
+                                        <Input
+                                          type="number"
+                                          placeholder="Quote price..."
+                                          value={quotationPrices[item.id] || ''}
+                                          onChange={(e) => setQuotationPrices(prev => ({ ...prev, [item.id]: e.target.value }))}
+                                          className="h-6 w-32 text-xs border-gray-200"
+                                        />
+                                        <span className="text-[10px] text-gray-400">Enter price before uploading quotation</span>
+                                      </div>
+
+                                      {/* Documents list */}
                                       {expandedItems.has(item.id) && item.documents.length > 0 && (
                                         <div className="ml-10 mt-1 mb-2 space-y-1">
                                           {item.documents.map((doc) => (
-                                            <div key={doc.id} className="flex items-center gap-2 text-xs text-gray-500 py-1 px-2 rounded bg-gray-50">
-                                              <FileText className="h-3 w-3 flex-shrink-0" />
-                                              <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="flex-1 truncate hover:text-blue-600 underline">{doc.file_name}</a>
+                                            <div key={doc.id} className="flex items-center gap-2 text-xs text-gray-500 py-1.5 px-2 rounded bg-gray-50 border border-gray-100">
+                                              <FileText className="h-3 w-3 flex-shrink-0 text-gray-400" />
+                                              <span className="flex-1 truncate text-gray-700">{doc.file_name}</span>
+                                              <span className="text-gray-400 text-[10px]">
+                                                {doc.file_size ? `${(doc.file_size / 1024).toFixed(0)}KB` : ''}
+                                              </span>
+                                              <a
+                                                href={doc.file_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                download={doc.file_name}
+                                                className="flex items-center gap-1 text-blue-500 hover:text-blue-700 transition-colors"
+                                              >
+                                                <Download className="h-3 w-3" />
+                                                <span>Download</span>
+                                              </a>
                                             </div>
                                           ))}
                                         </div>
