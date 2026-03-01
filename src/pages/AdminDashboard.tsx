@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag, Crown } from 'lucide-react';
+import { BarChart3, Package, ShoppingCart, Users, TrendingUp, Star, DollarSign, Edit, Plus, Search, RefreshCw, Database, Globe, Smartphone, LogOut, Gift, Building2, Key, FileText, Activity, ChevronRight, Home, Zap, Mail, MessageSquare, Tag, Crown, HardHat } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +37,7 @@ import AdminPromotionsManager from '@/components/admin/AdminPromotionsManager';
 import HeadOfSalesDashboard from '@/components/HeadOfSalesDashboard';
 import CustomerCacheSearch from '@/components/admin/CustomerCacheSearch';
 import AdminApiManagement from '@/components/admin/AdminApiManagement';
+import AdminProjectManagement from '@/components/admin/projectManagement/AdminProjectManagement';
 
 // Navigation Item Component
 const NavItem = ({
@@ -258,6 +259,7 @@ const AdminDashboard = () => {
                 <NavItem icon={Users} label="Clients" active={activeSection === "clients"} onClick={() => setActiveSection("clients")} />
                 <NavItem icon={Database} label="Customer DB" active={activeSection === "customer-cache"} onClick={() => setActiveSection("customer-cache")} />
                 <NavItem icon={Building2} label="Contractors" active={activeSection === "contractors"} onClick={() => setActiveSection("contractors")} />
+                <NavItem icon={HardHat} label="Projects" active={activeSection === "projects"} onClick={() => setActiveSection("projects")} />
                 <NavItem icon={Gift} label="Referrals" active={activeSection === "referrals"} onClick={() => setActiveSection("referrals")} />
                 <NavItem icon={Globe} label="API Management" active={activeSection === "api-manager"} onClick={() => setActiveSection("api-manager")} />
                 
@@ -449,6 +451,24 @@ const AdminDashboard = () => {
           {/* Contractors Tab */}
           {activeSection === "contractors" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
             <AdminContractorManagement />
+          </div>}
+
+          {/* Projects Tab */}
+          {activeSection === "projects" && <div className="space-y-6 animate-fade-in bg-[#0a0a0f] -m-6 p-6 min-h-screen">
+            <Card className="holographic-panel border-cyan-500/30">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-cyan-300 font-mono">
+                  <HardHat className="h-5 w-5 text-cyan-400" />
+                  Project Management
+                </CardTitle>
+                <CardDescription className="text-cyan-400/60 font-mono">
+                  Track construction progress, manage phases, and share with clients
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AdminProjectManagement />
+              </CardContent>
+            </Card>
           </div>}
 
           {/* Referrals Tab */}
