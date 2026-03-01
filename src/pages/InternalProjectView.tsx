@@ -159,6 +159,28 @@ const InternalProjectView: React.FC = () => {
     await fetchProject();
   };
 
+  const handleManualCost = async (itemId: string, itemName: string, phaseId: string) => {
+    if (!project) return;
+    const priceStr = quotationPrices[itemId];
+    const price = parseFloat(priceStr);
+    if (!price || price <= 0) {
+      toast({ title: 'Enter a valid price', variant: 'destructive' });
+      return;
+    }
+    await supabase.from('project_cost_items').insert({
+      project_id: project.id,
+      description: `Manual: ${itemName}`,
+      category: 'general',
+      quantity: 1,
+      unit_price: price,
+      phase_id: phaseId,
+      notes: 'Manually entered cost (no quotation)',
+    });
+    setQuotationPrices(prev => { const n = { ...prev }; delete n[itemId]; return n; });
+    toast({ title: 'Cost added' });
+    await fetchProject();
+  };
+
   const handleUploadQuotation = async (itemId: string, itemName: string, phaseId: string, file: File) => {
     if (!project) return;
     try {
@@ -318,7 +340,16 @@ const InternalProjectView: React.FC = () => {
                                           onChange={(e) => setQuotationPrices(prev => ({ ...prev, [item.id]: e.target.value }))}
                                           className="h-6 w-32 text-xs border-gray-200"
                                         />
-                                        <span className="text-[10px] text-gray-400">Enter price before uploading quotation</span>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-6 text-[10px] px-2"
+                                          disabled={!quotationPrices[item.id] || parseFloat(quotationPrices[item.id]) <= 0}
+                                          onClick={() => handleManualCost(item.id, item.item_name, phase.id)}
+                                        >
+                                          <Plus className="h-3 w-3 mr-1" />Add Cost
+                                        </Button>
+                                        <span className="text-[10px] text-gray-400">or upload quotation</span>
                                       </div>
 
                                       {/* Documents list */}
