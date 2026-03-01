@@ -1,0 +1,1 @@
+ALTER TABLE public.construction_projects ADD COLUMN contract_price numeric DEFAULT 0;

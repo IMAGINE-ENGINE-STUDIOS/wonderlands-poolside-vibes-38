@@ -40,6 +40,7 @@ export interface ConstructionProject {
   status: string;
   notes: string | null;
   cover_image_url: string | null;
+  contract_price: number;
   created_at: string;
   updated_at: string;
   phases: ProjectPhase[];

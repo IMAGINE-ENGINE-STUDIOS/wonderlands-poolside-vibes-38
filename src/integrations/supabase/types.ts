@@ -588,6 +588,7 @@ export type Database = {
       construction_projects: {
         Row: {
           client_id: string | null
+          contract_price: number | null
           contractor_id: string | null
           cover_image_url: string | null
           created_at: string
@@ -602,6 +603,7 @@ export type Database = {
         }
         Insert: {
           client_id?: string | null
+          contract_price?: number | null
           contractor_id?: string | null
           cover_image_url?: string | null
           created_at?: string
@@ -616,6 +618,7 @@ export type Database = {
         }
         Update: {
           client_id?: string | null
+          contract_price?: number | null
           contractor_id?: string | null
           cover_image_url?: string | null
           created_at?: string

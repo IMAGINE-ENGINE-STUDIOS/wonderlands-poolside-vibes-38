@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Trash2, Save, GripVertical, ChevronDown, ChevronRight, FileText, DollarSign, Upload, Download } from 'lucide-react';
+import { Plus, Trash2, Save, GripVertical, ChevronDown, ChevronRight, FileText, DollarSign, Upload, Download, TrendingUp, TrendingDown } from 'lucide-react';
 import type { ConstructionProject, ProjectPhase } from '@/components/admin/projectManagement/useProjectManagement';
 
 interface CostItem {
@@ -38,6 +38,8 @@ const InternalProjectView: React.FC = () => {
   const [editingCostId, setEditingCostId] = useState<string | null>(null);
   const [editCost, setEditCost] = useState<Partial<CostItem>>({});
   const [quotationPrices, setQuotationPrices] = useState<Record<string, string>>({});
+  const [contractPrice, setContractPrice] = useState('');
+  const [editingContractPrice, setEditingContractPrice] = useState(false);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const { toast } = useToast();
 
@@ -96,6 +98,16 @@ const InternalProjectView: React.FC = () => {
   }, [token]);
 
   useEffect(() => { fetchProject(); }, [fetchProject]);
+  useEffect(() => { if (project) setContractPrice(String(project.contract_price || 0)); }, [project?.id]);
+
+  const saveContractPrice = async () => {
+    if (!project) return;
+    const price = parseFloat(contractPrice) || 0;
+    await supabase.from('construction_projects').update({ contract_price: price }).eq('id', project.id);
+    setProject({ ...project, contract_price: price });
+    setEditingContractPrice(false);
+    toast({ title: 'Contract price saved' });
+  };
 
   const handleToggleItem = async (itemId: string, completed: boolean) => {
     await supabase.from('phase_items').update({ is_completed: completed, completed_at: completed ? new Date().toISOString() : null }).eq('id', itemId);
@@ -236,6 +248,9 @@ const InternalProjectView: React.FC = () => {
   const completedItems = project.phases.reduce((s, p) => s + p.items.filter(i => i.is_completed).length, 0);
   const overallProgress = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
   const totalCost = costItems.reduce((s, c) => s + (c.quantity * c.unit_price), 0);
+  const currentContractPrice = project.contract_price || 0;
+  const profitLoss = currentContractPrice - totalCost;
+  const profitMargin = currentContractPrice > 0 ? (profitLoss / currentContractPrice) * 100 : 0;
 
   const CATEGORIES = ['general', 'labor', 'materials', 'equipment', 'permits', 'subcontractor', 'other'];
   const STATUSES = ['quoted', 'approved', 'invoiced', 'paid'];
@@ -395,12 +410,60 @@ const InternalProjectView: React.FC = () => {
           {/* Right: Cost Tracking */}
           <div className="lg:col-span-1">
             <div className="rounded-xl border border-gray-200 bg-white p-4 sticky top-4">
+              {/* Contract Price & P&L Summary */}
+              <div className="mb-4 p-3 rounded-lg bg-gray-50 border border-gray-100 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Contract Price</span>
+                  {editingContractPrice ? (
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="number"
+                        value={contractPrice}
+                        onChange={(e) => setContractPrice(e.target.value)}
+                        className="h-7 w-28 text-xs text-right"
+                        autoFocus
+                      />
+                      <Button size="sm" onClick={saveContractPrice} className="h-7 text-xs px-2"><Save className="h-3 w-3" /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => setEditingContractPrice(false)} className="h-7 text-xs px-1">✕</Button>
+                    </div>
+                  ) : (
+                    <span
+                      className="text-lg font-bold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                      onClick={() => setEditingContractPrice(true)}
+                      title="Click to edit"
+                    >
+                      ${currentContractPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">Total Costs</span>
+                  <span className="text-sm font-semibold text-gray-700">-${totalCost.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="border-t border-gray-200 pt-2 flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    {profitLoss >= 0 ? <TrendingUp className="h-4 w-4 text-green-500" /> : <TrendingDown className="h-4 w-4 text-red-500" />}
+                    <span className="text-xs font-medium text-gray-500">Profit / Loss</span>
+                  </div>
+                  <div className="text-right">
+                    <span className={`text-lg font-bold ${profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {profitLoss >= 0 ? '+' : ''}${profitLoss.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </span>
+                    {currentContractPrice > 0 && (
+                      <span className={`text-[10px] ml-1 ${profitLoss >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        ({profitMargin.toFixed(1)}%)
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-gray-600" />
-                  <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Cost Tracking</h2>
+                  <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Cost Items</h2>
                 </div>
-                <span className="text-lg font-bold text-gray-900">${totalCost.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                <span className="text-sm font-bold text-gray-700">${totalCost.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
               </div>
 
               {/* Cost items list */}
