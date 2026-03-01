@@ -178,6 +178,27 @@ export function useProjectManagement() {
       if (error) throw error;
       if (selectedProject) {
         await fetchProjectDetail(selectedProject.id);
+
+        // Send milestone completion email to client
+        if (completed && selectedProject.client_id) {
+          try {
+            const { data: client } = await supabase.from('clients').select('email, first_name').eq('id', selectedProject.client_id).single();
+            if (client?.email) {
+              const item = selectedProject.phases.flatMap(p => p.items).find(i => i.id === itemId);
+              const shareUrl = `${window.location.origin}/project/${selectedProject.share_token}`;
+              await supabase.functions.invoke('milestone-completed-email', {
+                body: {
+                  email: client.email,
+                  projectName: selectedProject.project_name,
+                  milestoneName: item?.item_name || 'Milestone',
+                  shareUrl,
+                },
+              });
+            }
+          } catch (err) {
+            console.error('Failed to send milestone email:', err);
+          }
+        }
       }
     } catch (e: any) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });

@@ -70,10 +70,10 @@ Deno.serve(async (req) => {
           <tr>
             <td style="padding: 40px;">
               <p style="margin: 0 0 8px; font-size: 14px; color: #6b7280;">
-                \${currentDate}
+              ${currentDate}
               </p>
               <h2 style="margin: 0 0 20px; font-size: 22px; font-weight: 700; color: #0891b2;">
-                \${projectName}
+                ${projectName}
               </h2>
               <p style="margin: 0 0 24px; font-size: 15px; line-height: 1.6; color: #374151;">
                 Hello! Your construction project has been shared with you. You can track real-time progress, view completed milestones, and access all project documents through your personal dashboard.
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 32px;">
                 <tr>
                   <td style="border-radius: 8px; background: linear-gradient(135deg, #f97066 0%, #fb923c 100%);">
-                    <a href="\${shareUrl}" target="_blank" style="display: inline-block; padding: 14px 36px; font-size: 15px; font-weight: 600; color: #ffffff; text-decoration: none; letter-spacing: 0.3px;">
+                    <a href="${shareUrl}" target="_blank" style="display: inline-block; padding: 14px 36px; font-size: 15px; font-weight: 600; color: #ffffff; text-decoration: none; letter-spacing: 0.3px;">
                       View Your Project →
                     </a>
                   </td>
