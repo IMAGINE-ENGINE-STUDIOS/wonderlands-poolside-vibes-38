@@ -19,6 +19,7 @@ const AdminProjectManagement: React.FC = () => {
     deleteDocument,
     deleteProject,
     updateCoverImage,
+    reorderItems,
     setSelectedProject,
   } = useProjectManagement();
 
@@ -47,6 +48,7 @@ const AdminProjectManagement: React.FC = () => {
         onDeleteDocument={deleteDocument}
         onDeleteProject={deleteProject}
         onUpdateCoverImage={updateCoverImage}
+        onReorderItems={reorderItems}
       />
     );
   }

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { ArrowLeft, Plus, Share2, Copy, Trash2, Mail, Link, Send, ImagePlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +21,7 @@ interface ProjectDetailViewProps {
   onDeleteDocument: (docId: string) => void;
   onDeleteProject: (projectId: string) => void;
   onUpdateCoverImage: (projectId: string, file: File) => void;
+  onReorderItems: (phaseId: string, reorderedItems: { id: string; item_order: number }[]) => void;
 }
 
 const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
@@ -34,6 +36,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   onDeleteDocument,
   onDeleteProject,
   onUpdateCoverImage,
+  onReorderItems,
 }) => {
   const [newPhaseName, setNewPhaseName] = useState('');
   const [showAddPhase, setShowAddPhase] = useState(false);
@@ -86,6 +89,23 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
     onAddPhase(project.id, newPhaseName.trim());
     setNewPhaseName('');
     setShowAddPhase(false);
+  };
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const { source, destination } = result;
+    const phaseId = source.droppableId;
+    const phase = project.phases.find(p => p.id === phaseId);
+    if (!phase) return;
+
+    const reordered = Array.from(phase.items);
+    const [moved] = reordered.splice(source.index, 1);
+    reordered.splice(destination.index, 0, moved);
+
+    onReorderItems(
+      phaseId,
+      reordered.map((item, idx) => ({ id: item.id, item_order: idx }))
+    );
   };
 
   return (
@@ -267,20 +287,23 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
       </div>
 
       {/* Phases */}
-      <div className="space-y-3">
-        {project.phases.map((phase) => (
-          <ProjectPhaseCard
-            key={phase.id}
-            phase={phase}
-            onToggleItem={onToggleItem}
-            onAddItem={onAddItem}
-            onDeleteItem={onDeleteItem}
-            onDeletePhase={onDeletePhase}
-            onUploadDocument={onUploadDocument}
-            onDeleteDocument={onDeleteDocument}
-          />
-        ))}
-      </div>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="space-y-3">
+          {project.phases.map((phase) => (
+            <ProjectPhaseCard
+              key={phase.id}
+              phase={phase}
+              onToggleItem={onToggleItem}
+              onAddItem={onAddItem}
+              onDeleteItem={onDeleteItem}
+              onDeletePhase={onDeletePhase}
+              onUploadDocument={onUploadDocument}
+              onDeleteDocument={onDeleteDocument}
+              enableDragDrop
+            />
+          ))}
+        </div>
+      </DragDropContext>
 
       {/* Add Phase */}
       {showAddPhase ? (
