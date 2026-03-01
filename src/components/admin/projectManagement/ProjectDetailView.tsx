@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Share2, Copy, Trash2, Mail, Link, Send } from 'lucide-react';
+import { ArrowLeft, Plus, Share2, Copy, Trash2, Mail, Link, Send, ImagePlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import ProjectPhaseCard from './ProjectPhaseCard';
@@ -19,6 +19,7 @@ interface ProjectDetailViewProps {
   onUploadDocument: (itemId: string, file: File) => void;
   onDeleteDocument: (docId: string) => void;
   onDeleteProject: (projectId: string) => void;
+  onUpdateCoverImage: (projectId: string, file: File) => void;
 }
 
 const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
@@ -32,12 +33,14 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   onUploadDocument,
   onDeleteDocument,
   onDeleteProject,
+  onUpdateCoverImage,
 }) => {
   const [newPhaseName, setNewPhaseName] = useState('');
   const [showAddPhase, setShowAddPhase] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [shareEmail, setShareEmail] = useState('');
   const [sendingEmail, setSendingEmail] = useState(false);
+  const coverInputRef = React.useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const totalItems = project.phases.reduce((sum, p) => sum + p.items.length, 0);
@@ -87,6 +90,44 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Cover Image */}
+      <div className="relative rounded-lg overflow-hidden group">
+        {project.cover_image_url ? (
+          <div className="aspect-[3/1] w-full">
+            <img
+              src={project.cover_image_url}
+              alt={project.project_name}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
+          </div>
+        ) : (
+          <div className="aspect-[3/1] w-full bg-cyan-900/10 border border-dashed border-cyan-500/20 flex items-center justify-center">
+            <div className="text-center">
+              <ImagePlus className="h-6 w-6 text-cyan-500/30 mx-auto mb-1" />
+              <span className="text-[10px] font-mono text-cyan-500/30">Add cover image</span>
+            </div>
+          </div>
+        )}
+        <button
+          className="absolute top-2 right-2 p-1.5 rounded bg-black/60 text-cyan-400/60 hover:text-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => coverInputRef.current?.click()}
+        >
+          <ImagePlus className="h-4 w-4" />
+        </button>
+        <input
+          ref={coverInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) onUpdateCoverImage(project.id, f);
+            e.target.value = '';
+          }}
+        />
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
