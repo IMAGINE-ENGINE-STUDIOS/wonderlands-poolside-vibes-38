@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Droppable, Draggable } from 'react-beautiful-dnd';
-import { ChevronDown, ChevronRight, Plus, Trash2, Upload, FileText, X, GripVertical } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Trash2, Upload, FileText, X, GripVertical, Download } from 'lucide-react';
 import type { ProjectPhase, PhaseItem } from './useProjectManagement';
 
 interface ProjectPhaseCardProps {
@@ -126,18 +126,23 @@ const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
                 key={doc.id}
                 className="flex items-center gap-2 text-[10px] font-mono text-cyan-400/60 py-1 px-2 rounded bg-cyan-500/5"
               >
-                <FileText className="h-3 w-3 flex-shrink-0" />
+                <FileText className="h-3 w-3 flex-shrink-0 text-cyan-400/40" />
+                <span className="flex-1 truncate text-cyan-300/70">
+                  {doc.file_name}
+                </span>
+                <span className="text-cyan-500/40">
+                  {doc.file_size ? `${(doc.file_size / 1024).toFixed(0)}KB` : ''}
+                </span>
                 <a
                   href={doc.file_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 truncate hover:text-cyan-300 underline"
+                  download={doc.file_name}
+                  className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 transition-colors"
                 >
-                  {doc.file_name}
+                  <Download className="h-3 w-3" />
+                  <span>Download</span>
                 </a>
-                <span className="text-cyan-500/40">
-                  {doc.file_size ? `${(doc.file_size / 1024).toFixed(0)}KB` : ''}
-                </span>
                 {!readOnly && (
                   <button
                     onClick={() => onDeleteDocument(doc.id)}
