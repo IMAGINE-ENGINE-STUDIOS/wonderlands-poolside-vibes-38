@@ -36,6 +36,7 @@ export interface ConstructionProject {
   client_id: string | null;
   contractor_id: string | null;
   share_token: string;
+  internal_share_token: string;
   status: string;
   notes: string | null;
   cover_image_url: string | null;

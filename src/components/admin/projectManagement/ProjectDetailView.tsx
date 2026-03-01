@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { ArrowLeft, Plus, Share2, Copy, Trash2, Mail, Link, Send, ImagePlus } from 'lucide-react';
+import { ArrowLeft, Plus, Share2, Copy, Trash2, Mail, Link, Send, ImagePlus, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import ProjectPhaseCard from './ProjectPhaseCard';
+import ProjectCostPanel from './ProjectCostPanel';
 import type { ConstructionProject } from './useProjectManagement';
 
 interface ProjectDetailViewProps {
@@ -54,10 +55,16 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   const overallProgress = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
   const shareUrl = `${window.location.origin}/project/${project.share_token}`;
+  const internalShareUrl = `${window.location.origin}/project/internal/${project.internal_share_token}`;
 
   const copyShareLink = () => {
     navigator.clipboard.writeText(shareUrl);
     toast({ title: 'Link copied!', description: 'Share this private link with your client' });
+  };
+
+  const copyInternalLink = () => {
+    navigator.clipboard.writeText(internalShareUrl);
+    toast({ title: 'Internal link copied!', description: 'Share with company personnel — they can edit costs' });
   };
 
   const sendShareEmail = async () => {
@@ -169,6 +176,15 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={copyInternalLink}
+            className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10 text-xs font-mono"
+          >
+            <Users className="h-3 w-3 mr-1" />
+            Internal
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -304,6 +320,9 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           ))}
         </div>
       </DragDropContext>
+
+      {/* Cost Tracking */}
+      <ProjectCostPanel projectId={project.id} phases={project.phases} />
 
       {/* Add Phase */}
       {showAddPhase ? (
