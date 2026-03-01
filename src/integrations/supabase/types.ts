@@ -585,6 +585,60 @@ export type Database = {
           },
         ]
       }
+      construction_projects: {
+        Row: {
+          client_id: string | null
+          contractor_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          project_name: string
+          share_token: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          contractor_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          project_name: string
+          share_token?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          contractor_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          project_name?: string
+          share_token?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "construction_projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "construction_projects_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consumer_preferences: {
         Row: {
           business_address: Json | null
@@ -1116,6 +1170,47 @@ export type Database = {
             columns: ["quotation_id"]
             isOneToOne: false
             referencedRelation: "user_quotations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_documents: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          item_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          item_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          item_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_documents_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "phase_items"
             referencedColumns: ["id"]
           },
         ]
@@ -1681,6 +1776,56 @@ export type Database = {
         }
         Relationships: []
       }
+      phase_items: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          due_date: string | null
+          id: string
+          is_completed: boolean
+          item_name: string
+          item_order: number
+          notes: string | null
+          phase_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          is_completed?: boolean
+          item_name: string
+          item_order?: number
+          notes?: string | null
+          phase_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          is_completed?: boolean
+          item_name?: string
+          item_order?: number
+          notes?: string | null
+          phase_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phase_items_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "project_phases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pools: {
         Row: {
           carbon_fiber: boolean | null
@@ -2000,6 +2145,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      project_phases: {
+        Row: {
+          created_at: string
+          id: string
+          phase_name: string
+          phase_order: number
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          phase_name: string
+          phase_order?: number
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          phase_name?: string
+          phase_order?: number
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_phases_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "construction_projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       promotions: {
         Row: {

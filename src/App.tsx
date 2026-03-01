@@ -35,6 +35,7 @@ const DesignStudio = lazy(() => import("./pages/DesignStudio"));
 const InvestorDeck = lazy(() => import("./pages/InvestorDeck"));
 const ConsentPage = lazy(() => import("./pages/ConsentPage"));
 const ApiDocumentation = lazy(() => import("./pages/ApiDocumentation"));
+const SharedProjectView = lazy(() => import("./pages/SharedProjectView"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -128,6 +129,7 @@ const App = () => {
             <Route path="/twilio-poc" element={<TwilioPOC />} />
             <Route path="/consent" element={<ConsentPage />} />
             <Route path="/api" element={<ApiDocumentation />} />
+            <Route path="/project/:token" element={<SharedProjectView />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
