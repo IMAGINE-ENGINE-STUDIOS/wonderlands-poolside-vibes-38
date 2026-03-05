@@ -154,19 +154,42 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
 
   // Render current page
   const renderPage = useCallback(async () => {
-    if (!pdfDoc || !canvasRef.current || !containerRef.current) return;
+    if (!pdfDoc || !canvasRef.current || !containerRef.current || originalPageSizes.length === 0) return;
+
+    const renderSeq = ++renderSeqRef.current;
     const page = await pdfDoc.getPage(currentPage);
     const scale = renderScale;
     const viewport = page.getViewport({ scale });
     const canvas = canvasRef.current;
 
+    if (renderTaskRef.current) {
+      try {
+        renderTaskRef.current.cancel();
+      } catch {
+        // noop
+      }
+    }
+
     canvas.width = viewport.width * DPR;
     canvas.height = viewport.height * DPR;
     canvas.style.width = `${viewport.width}px`;
     canvas.style.height = `${viewport.height}px`;
-    const ctx = canvas.getContext('2d')!;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    const task = page.render({ canvasContext: ctx, viewport });
+    renderTaskRef.current = task;
+
+    try {
+      await task.promise;
+    } catch (err: any) {
+      if (err?.name === 'RenderingCancelledException') return;
+      throw err;
+    }
+
+    if (renderSeq !== renderSeqRef.current) return;
 
     if (signCanvasRef.current) {
       const sc = signCanvasRef.current;
@@ -174,7 +197,8 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
       sc.height = viewport.height * DPR;
       sc.style.width = `${viewport.width}px`;
       sc.style.height = `${viewport.height}px`;
-      const sctx = sc.getContext('2d')!;
+      const sctx = sc.getContext('2d');
+      if (!sctx) return;
       sctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       sctx.clearRect(0, 0, viewport.width, viewport.height);
       signatures
@@ -191,7 +215,7 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
           sctx.stroke();
         });
     }
-  }, [pdfDoc, currentPage, renderScale, signatures]);
+  }, [pdfDoc, currentPage, renderScale, signatures, originalPageSizes.length]);
 
   useEffect(() => { renderPage(); }, [renderPage]);
 
