@@ -474,11 +474,12 @@ const PdfViewer = ({ fileUrl, fileName, onSaveToGallery }: PdfViewerProps) => {
     }
   };
 
-  const firstPage = originalPageSizes[0];
-  const detectedFormat = firstPage ? detectPageFormat(firstPage.width, firstPage.height) : 'custom';
+  const currentPageSize = originalPageSizes[currentPage - 1] || originalPageSizes[0];
+  const detectedFormat = currentPageSize ? detectPageFormat(currentPageSize.width, currentPageSize.height) : 'custom';
+  const orientationLabel = currentPageSize && currentPageSize.width > currentPageSize.height ? 'Landscape' : 'Portrait';
   const formatLabel = detectedFormat === 'custom'
-    ? `${Math.round(firstPage?.width || 0)}×${Math.round(firstPage?.height || 0)}pt`
-    : PAGE_FORMATS[detectedFormat]?.label || 'Original';
+    ? `${Math.round(currentPageSize?.width || 0)}×${Math.round(currentPageSize?.height || 0)}pt (${orientationLabel})`
+    : `${PAGE_FORMATS[detectedFormat]?.label || 'Original'} • ${orientationLabel}`;
 
   if (loading) {
     return (
@@ -536,7 +537,7 @@ const PdfViewer = ({ fileUrl, fileName, onSaveToGallery }: PdfViewerProps) => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="auto">Auto (Original: {formatLabel})</SelectItem>
+            <SelectItem value="auto">Auto ({formatLabel})</SelectItem>
             {Object.entries(PAGE_FORMATS).map(([key, val]) => (
               <SelectItem key={key} value={key}>{val.label}</SelectItem>
             ))}
