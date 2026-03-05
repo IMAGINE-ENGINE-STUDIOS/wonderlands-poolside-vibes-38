@@ -136,18 +136,33 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
     return () => { cancelled = true; };
   }, [fileUrl]);
 
-  // Calculate the scale that fits the page into the container
+  // Calculate the scale that fits the selected preview format into the container
   const getFitScale = useCallback(() => {
     if (!containerRef.current || originalPageSizes.length === 0) return 1;
     const container = containerRef.current;
     const containerW = container.clientWidth - 32; // padding
     const containerH = container.clientHeight - 32;
-    const pageSize = originalPageSizes[currentPage - 1] || originalPageSizes[0];
-    
-    const scaleW = containerW / pageSize.width;
-    const scaleH = containerH / pageSize.height;
+
+    const original = originalPageSizes[currentPage - 1] || originalPageSizes[0];
+    let previewW = original.width;
+    let previewH = original.height;
+
+    // Make format selector affect the live preview size (not only export)
+    if (selectedFormat !== 'auto' && selectedFormat !== 'custom') {
+      const fmt = PAGE_FORMATS[selectedFormat] || PAGE_FORMATS.a4;
+      if (original.width > original.height) {
+        previewW = Math.max(fmt.width, fmt.height);
+        previewH = Math.min(fmt.width, fmt.height);
+      } else {
+        previewW = Math.min(fmt.width, fmt.height);
+        previewH = Math.max(fmt.width, fmt.height);
+      }
+    }
+
+    const scaleW = containerW / previewW;
+    const scaleH = containerH / previewH;
     return Math.min(scaleW, scaleH, 2); // Cap at 2x for performance
-  }, [originalPageSizes, currentPage]);
+  }, [originalPageSizes, currentPage, selectedFormat]);
 
   // The actual render scale = fitScale * userZoom
   const renderScale = getFitScale() * userZoom;
@@ -477,7 +492,7 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
 
         <div className="h-4 w-px bg-border mx-1" />
 
-        {/* Export format selector */}
+        {/* Export + preview format selector */}
         <Select value={selectedFormat} onValueChange={setSelectedFormat}>
           <SelectTrigger className="h-7 w-[150px] text-xs">
             <SelectValue />
