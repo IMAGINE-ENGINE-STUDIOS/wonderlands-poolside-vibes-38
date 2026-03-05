@@ -4,13 +4,16 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Pen, Eraser, Save, Undo2, FileDown,
+  ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Pen, Eraser, Save, Undo2, FileDown, Check,
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import { useToast } from '@/hooks/use-toast';
 
 interface PdfViewerProps {
   fileUrl: string;
   fileName: string;
+  /** Called to persist the modified PDF blob back to gallery storage */
+  onSaveToGallery?: (blob: Blob) => Promise<void>;
 }
 
 // Standard page formats in points (1 pt = 1/72 inch)
