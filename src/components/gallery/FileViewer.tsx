@@ -15,6 +15,7 @@ interface FileViewerProps {
   initialIndex: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onFilesChanged?: () => void;
 }
 
 const FileViewer = ({ files, initialIndex, open, onOpenChange }: FileViewerProps) => {
