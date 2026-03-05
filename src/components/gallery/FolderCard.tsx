@@ -42,7 +42,7 @@ const FolderCard = ({ folder, onOpen, onDelete, onRename, onCopyLink, onDragStar
     <ContextMenu>
       <ContextMenuTrigger>
         <Card
-          className="group cursor-pointer hover:shadow-md transition-shadow border-border"
+          className="group cursor-pointer hover:shadow-md transition-shadow border-border gallery-folder-accent"
           draggable
           onDragStart={(e) => onDragStart(e, folder.id)}
           onDrop={(e) => onDrop(e, folder.id)}
@@ -52,7 +52,7 @@ const FolderCard = ({ folder, onOpen, onDelete, onRename, onCopyLink, onDragStar
           <CardContent className="p-5">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3 min-w-0">
-                <Folder className="h-10 w-10 text-primary shrink-0" />
+                <Folder className="h-10 w-10 text-[hsl(var(--teal))] shrink-0" />
                 <div className="min-w-0">
                   {isRenaming ? (
                     <div className="flex items-center gap-1">

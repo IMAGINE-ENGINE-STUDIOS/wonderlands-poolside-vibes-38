@@ -25,10 +25,12 @@ import FileViewer from '@/components/gallery/FileViewer';
 import UploadQueue, { UploadQueueItem } from '@/components/gallery/UploadQueue';
 
 const GalleryFilesPage = () => {
-  const { folders, loading, createFolder, deleteFolder, renameFolder, moveFolder } = useGallery();
+  const { folders, loading, createFolder, deleteFolder, renameFolder, moveFolder, refetch: refetchFolders } = useGallery();
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedFolderData, setSelectedFolderData] = useState<{ name: string; share_token: string } | null>(null);
-  const { files, loading: filesLoading, uploadFile, replaceFile, checkDuplicate, deleteFile, renameFile, moveFile, bulkDelete } = useGalleryFiles(selectedFolder);
+  const { files, loading: filesLoading, uploadFile, replaceFile, checkDuplicate, deleteFile: rawDeleteFile, renameFile, moveFile, bulkDelete: rawBulkDelete } = useGalleryFiles(selectedFolder);
+  const deleteFile = async (id: string) => { await rawDeleteFile(id); refetchFolders(); };
+  const wrappedBulkDelete = async (ids: string[]) => { await rawBulkDelete(ids); refetchFolders(); };
   const [duplicateQueue, setDuplicateQueue] = useState<{ file: File; existingId: string; queueItemId: string } | null>(null);
   const pendingUploadsRef = useRef<{ items: UploadQueueItem[]; index: number } | null>(null);
   const [newFolderName, setNewFolderName] = useState('');
@@ -74,7 +76,8 @@ const GalleryFilesPage = () => {
       }
     }
     setUploading(false);
-  }, [checkDuplicate, uploadFile]);
+    refetchFolders();
+  }, [checkDuplicate, uploadFile, refetchFolders]);
 
   const handleDuplicateReplace = async () => {
     if (!duplicateQueue) return;
@@ -162,7 +165,7 @@ const GalleryFilesPage = () => {
 
   const handleBulkDelete = async () => {
     if (selectedFiles.size === 0) return;
-    await bulkDelete(Array.from(selectedFiles));
+    await wrappedBulkDelete(Array.from(selectedFiles));
     setSelectedFiles(new Set());
   };
 
@@ -248,34 +251,37 @@ const GalleryFilesPage = () => {
       onDrop={handlePageDrop}
       onDragOver={(e) => e.preventDefault()}
     >
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+      {/* Branded header bar */}
+      <div className="bg-gradient-to-r from-[hsl(var(--teal))] to-[hsl(185,70%,45%)] px-4 py-5">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             {selectedFolder && (
-              <Button variant="ghost" size="icon" onClick={() => { setSelectedFolder(null); setSelectedFolderData(null); setSelectedFiles(new Set()); }}>
+              <Button variant="ghost" size="icon" className="text-white/80 hover:text-white hover:bg-white/10" onClick={() => { setSelectedFolder(null); setSelectedFolderData(null); setSelectedFiles(new Set()); }}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             )}
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">
-                {selectedFolder ? selectedFolderData?.name : 'File Gallery'}
-              </h1>
-              <p className="text-muted-foreground text-sm mt-1">
-                {selectedFolder ? 'Manage files in this gallery' : 'Renders, manuals & documents repository'}
-              </p>
+            <div className="flex items-center gap-3">
+              <img src="/images/wonderlands-logo.png" alt="Wonderlands" className="h-9 w-9 rounded-lg shadow-md" />
+              <div>
+                <h1 className="text-2xl font-bold text-white tracking-tight">
+                  {selectedFolder ? selectedFolderData?.name : 'File Gallery'}
+                </h1>
+                <p className="text-white/70 text-xs mt-0.5">
+                  {selectedFolder ? 'Manage files in this gallery' : 'Renders, manuals & documents repository'}
+                </p>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {selectedFolder && selectedFolderData && (
               <>
-                <Button variant="outline" size="sm" onClick={() => copyShareLink(selectedFolderData.share_token)}>
+                <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={() => copyShareLink(selectedFolderData.share_token)}>
                   <Link2 className="h-4 w-4 mr-1" /> Copy Link
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => window.open(`/gallery/${selectedFolderData.share_token}`, '_blank')}>
+                <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={() => window.open(`/gallery/${selectedFolderData.share_token}`, '_blank')}>
                   <ExternalLink className="h-4 w-4 mr-1" /> Preview
                 </Button>
-                <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                <Button size="sm" className="bg-[hsl(var(--coral))] hover:bg-[hsl(12,76%,55%)] text-white border-0" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
                   <Upload className="h-4 w-4 mr-1" /> {uploading ? 'Uploading...' : 'Upload Files'}
                 </Button>
                 <input
@@ -291,7 +297,7 @@ const GalleryFilesPage = () => {
             {!selectedFolder && (
               <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button size="sm">
+                  <Button size="sm" className="bg-[hsl(var(--coral))] hover:bg-[hsl(12,76%,55%)] text-white border-0">
                     <FolderPlus className="h-4 w-4 mr-1" /> New Gallery
                   </Button>
                 </DialogTrigger>
@@ -308,7 +314,7 @@ const GalleryFilesPage = () => {
                       <Label>Description (optional)</Label>
                       <Textarea value={newFolderDesc} onChange={e => setNewFolderDesc(e.target.value)} placeholder="What's in this gallery?" />
                     </div>
-                    <Button onClick={() => handleCreateFolder()} className="w-full" disabled={!newFolderName.trim()}>
+                    <Button onClick={() => handleCreateFolder()} className="w-full bg-[hsl(var(--teal))] hover:bg-[hsl(173,58%,34%)] text-white" disabled={!newFolderName.trim()}>
                       Create Gallery
                     </Button>
                   </div>
@@ -317,7 +323,9 @@ const GalleryFilesPage = () => {
             )}
           </div>
         </div>
+      </div>
 
+      <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Bulk actions bar */}
         {hasSelection && (
           <div className="flex items-center gap-2 mb-4 p-3 bg-muted rounded-lg border border-border">

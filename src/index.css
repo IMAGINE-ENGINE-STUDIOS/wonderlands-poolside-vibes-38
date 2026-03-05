@@ -291,6 +291,24 @@
   }
 }
 
+/* Context menu enhanced contrast */
+[data-radix-popper-content-wrapper] [role="menu"] {
+  background: hsl(0 0% 100%);
+  border: 1px solid hsl(240 5.9% 85%);
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.15), 0 2px 8px -2px rgba(0, 0, 0, 0.1);
+}
+
+.dark [data-radix-popper-content-wrapper] [role="menu"] {
+  background: hsl(240 6% 10%);
+  border: 1px solid hsl(240 4% 22%);
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.5), 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+}
+
+/* Gallery folder card branded accent */
+.gallery-folder-accent {
+  border-left: 3px solid hsl(var(--teal));
+}
+
 /* Force light mode inside quote document - neutralize all dark: overrides */
 .quote-force-light,
 .quote-force-light * {
