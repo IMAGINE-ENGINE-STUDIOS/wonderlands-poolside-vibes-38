@@ -4,13 +4,16 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Pen, Eraser, Save, Undo2, FileDown,
+  ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Pen, Eraser, Save, Undo2, FileDown, Check,
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import { useToast } from '@/hooks/use-toast';
 
 interface PdfViewerProps {
   fileUrl: string;
   fileName: string;
+  /** Called to persist the modified PDF blob back to gallery storage */
+  onSaveToGallery?: (blob: Blob) => Promise<void>;
 }
 
 // Standard page formats in points (1 pt = 1/72 inch)
@@ -71,7 +74,8 @@ interface SignaturePath {
 
 const DPR = Math.max(window.devicePixelRatio || 1, 2);
 
-const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
+const PdfViewer = ({ fileUrl, fileName, onSaveToGallery }: PdfViewerProps) => {
+  const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const signCanvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -380,33 +384,52 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
     canvas.height = 0;
   };
 
+  /** Build a full signed PDF blob */
+  const buildSignedPdfBlob = async (): Promise<Blob> => {
+    const EXPORT_SCALE = 2;
+    const firstDims = getExportPageDims(0);
+    const firstOrientation = firstDims.width > firstDims.height ? 'l' : 'p';
+
+    const pdf = new jsPDF({
+      orientation: firstOrientation as 'p' | 'l',
+      unit: 'pt',
+      format: [firstDims.width, firstDims.height],
+    });
+
+    for (let i = 1; i <= totalPages; i++) {
+      const dims = getExportPageDims(i - 1);
+      if (i > 1) {
+        const orient = dims.width > dims.height ? 'l' : 'p';
+        pdf.addPage([dims.width, dims.height], orient);
+      }
+      const canvas = await renderPageToCanvas(i, EXPORT_SCALE);
+      addCanvasToPdfPage(pdf, canvas, dims);
+    }
+
+    return pdf.output('blob');
+  };
+
   const saveSignedPdf = async () => {
     if (!pdfDoc) return;
     setSaving(true);
     try {
-      const EXPORT_SCALE = 2;
-      const firstDims = getExportPageDims(0);
-      const firstOrientation = firstDims.width > firstDims.height ? 'l' : 'p';
+      const blob = await buildSignedPdfBlob();
 
-      const pdf = new jsPDF({
-        orientation: firstOrientation as 'p' | 'l',
-        unit: 'pt',
-        format: [firstDims.width, firstDims.height],
-      });
-
-      for (let i = 1; i <= totalPages; i++) {
-        const dims = getExportPageDims(i - 1);
-        if (i > 1) {
-          const orient = dims.width > dims.height ? 'l' : 'p';
-          pdf.addPage([dims.width, dims.height], orient);
-        }
-        const canvas = await renderPageToCanvas(i, EXPORT_SCALE);
-        addCanvasToPdfPage(pdf, canvas, dims);
+      if (onSaveToGallery) {
+        await onSaveToGallery(blob);
+        toast({ title: 'Saved', description: 'Signed PDF saved to gallery.' });
+      } else {
+        // Fallback: download locally
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `signed-${fileName}`;
+        a.click();
+        URL.revokeObjectURL(url);
       }
-
-      pdf.save(`signed-${fileName}`);
     } catch (err) {
       console.error('PDF save error:', err);
+      toast({ title: 'Save failed', description: 'Could not save the signed PDF.', variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -428,9 +451,24 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
 
       const canvas = await renderPageToCanvas(currentPage, EXPORT_SCALE);
       addCanvasToPdfPage(pdf, canvas, dims);
-      pdf.save(`signed-${fileName.replace('.pdf', '')}-page${currentPage}.pdf`);
+
+      if (onSaveToGallery) {
+        // For single page save, we still rebuild the full doc to preserve all pages
+        const blob = await buildSignedPdfBlob();
+        await onSaveToGallery(blob);
+        toast({ title: 'Saved', description: 'Signed PDF saved to gallery.' });
+      } else {
+        const blob = pdf.output('blob');
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `signed-${fileName.replace('.pdf', '')}-page${currentPage}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
     } catch (err) {
       console.error('PDF save error:', err);
+      toast({ title: 'Save failed', description: 'Could not save the signed PDF.', variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -527,10 +565,10 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
               <Eraser className="h-3.5 w-3.5" />
             </Button>
             <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={saveCurrentPage} disabled={saving}>
-              <Save className="h-3.5 w-3.5" /> {saving ? 'Saving...' : 'Save Page'}
+              <Save className="h-3.5 w-3.5" /> {saving ? 'Saving...' : onSaveToGallery ? 'Save to Gallery' : 'Save Page'}
             </Button>
             <Button variant="default" size="sm" className="h-7 text-xs gap-1" onClick={saveSignedPdf} disabled={saving}>
-              <FileDown className="h-3.5 w-3.5" /> {saving ? 'Saving...' : 'Save All'}
+              <FileDown className="h-3.5 w-3.5" /> {saving ? 'Saving...' : onSaveToGallery ? 'Save All to Gallery' : 'Save All'}
             </Button>
           </>
         )}
