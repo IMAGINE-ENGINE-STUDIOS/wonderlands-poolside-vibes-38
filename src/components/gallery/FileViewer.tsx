@@ -18,7 +18,7 @@ interface FileViewerProps {
   onFilesChanged?: () => void;
 }
 
-const FileViewer = ({ files, initialIndex, open, onOpenChange }: FileViewerProps) => {
+const FileViewer = ({ files, initialIndex, open, onOpenChange, onFilesChanged }: FileViewerProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
