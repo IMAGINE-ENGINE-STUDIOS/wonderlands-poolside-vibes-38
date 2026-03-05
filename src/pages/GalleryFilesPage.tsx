@@ -537,6 +537,7 @@ const GalleryFilesPage = () => {
         initialIndex={viewerIndex}
         open={viewerOpen}
         onOpenChange={setViewerOpen}
+        onFilesChanged={refetchFiles}
       />
 
       {/* Upload Queue */}
