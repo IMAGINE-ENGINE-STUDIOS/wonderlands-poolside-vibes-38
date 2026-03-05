@@ -8,6 +8,7 @@ import {
 import { GalleryFile } from '@/hooks/useGallery';
 import { downloadFile, printFile, forwardFile, formatSize, getFileIcon } from './galleryUtils';
 import PdfViewer from './PdfViewer';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FileViewerProps {
   files: GalleryFile[];
