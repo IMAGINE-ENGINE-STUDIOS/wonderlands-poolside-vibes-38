@@ -74,7 +74,8 @@ interface SignaturePath {
 
 const DPR = Math.max(window.devicePixelRatio || 1, 2);
 
-const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
+const PdfViewer = ({ fileUrl, fileName, onSaveToGallery }: PdfViewerProps) => {
+  const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const signCanvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
