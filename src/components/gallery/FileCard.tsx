@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { GalleryFile } from '@/hooks/useGallery';
 import { getFileIcon, formatSize, downloadFile, printFile, forwardFile } from './galleryUtils';
+import { useThumbnail } from './useThumbnail';
 
 interface FileCardProps {
   file: GalleryFile;
@@ -28,6 +29,7 @@ const FileCard = ({ file, isSelected, onSelect, onDelete, onRename, onDragStart,
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(file.file_name);
   const inputRef = useRef<HTMLInputElement>(null);
+  const thumbSrc = useThumbnail(file.file_url, file.file_type);
 
   const handleRenameSubmit = () => {
     if (newName.trim() && newName !== file.file_name) {
@@ -61,7 +63,7 @@ const FileCard = ({ file, isSelected, onSelect, onDelete, onRename, onDragStart,
         >
           <div className="aspect-square bg-muted flex items-center justify-center relative overflow-hidden">
             {file.file_type?.startsWith('image/') ? (
-              <img src={file.file_url} alt={file.file_name} className="w-full h-full object-cover" loading="lazy" />
+              <img src={thumbSrc} alt={file.file_name} className="w-full h-full object-cover" loading="lazy" />
             ) : file.file_type?.startsWith('video/') ? (
               <video src={file.file_url} className="w-full h-full object-cover" />
             ) : (
