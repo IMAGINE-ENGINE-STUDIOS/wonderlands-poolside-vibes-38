@@ -17,6 +17,7 @@ import {
 import FileCard from '@/components/gallery/FileCard';
 import FolderCard from '@/components/gallery/FolderCard';
 import { downloadFile, downloadFilesAsZip } from '@/components/gallery/galleryUtils';
+import FileViewer from '@/components/gallery/FileViewer';
 
 const GalleryFilesPage = () => {
   const { folders, loading, createFolder, deleteFolder, renameFolder, moveFolder } = useGallery();
@@ -29,6 +30,8 @@ const GalleryFilesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [uploading, setUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -340,7 +343,7 @@ const GalleryFilesPage = () => {
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                      {filteredFiles.map(file => (
+                      {filteredFiles.map((file, index) => (
                         <FileCard
                           key={file.id}
                           file={file}
@@ -349,6 +352,7 @@ const GalleryFilesPage = () => {
                           onDelete={deleteFile}
                           onRename={renameFile}
                           onDragStart={handleFileDragStart}
+                          onOpen={() => { setViewerIndex(index); setViewerOpen(true); }}
                         />
                       ))}
                     </div>
@@ -402,6 +406,14 @@ const GalleryFilesPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* File Viewer */}
+      <FileViewer
+        files={filteredFiles}
+        initialIndex={viewerIndex}
+        open={viewerOpen}
+        onOpenChange={setViewerOpen}
+      />
     </div>
   );
 };

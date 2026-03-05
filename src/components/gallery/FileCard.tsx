@@ -21,9 +21,10 @@ interface FileCardProps {
   onDelete: (id: string) => void;
   onRename: (id: string, name: string) => void;
   onDragStart: (e: React.DragEvent, fileId: string) => void;
+  onOpen: () => void;
 }
 
-const FileCard = ({ file, isSelected, onSelect, onDelete, onRename, onDragStart }: FileCardProps) => {
+const FileCard = ({ file, isSelected, onSelect, onDelete, onRename, onDragStart, onOpen }: FileCardProps) => {
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(file.file_name);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -50,7 +51,13 @@ const FileCard = ({ file, isSelected, onSelect, onDelete, onRename, onDragStart 
           }`}
           draggable
           onDragStart={(e) => onDragStart(e, file.id)}
-          onClick={(e) => onSelect(file.id, e.ctrlKey || e.metaKey)}
+          onClick={(e) => {
+            if (e.ctrlKey || e.metaKey) {
+              onSelect(file.id, true);
+            } else {
+              onOpen();
+            }
+          }}
         >
           <div className="aspect-square bg-muted flex items-center justify-center relative overflow-hidden">
             {file.file_type?.startsWith('image/') ? (
