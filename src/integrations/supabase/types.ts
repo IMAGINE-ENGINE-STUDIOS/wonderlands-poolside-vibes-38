@@ -1029,6 +1029,7 @@ export type Database = {
           file_url: string
           folder_id: string
           id: string
+          sort_order: number | null
           thumbnail_url: string | null
           updated_at: string
           uploaded_by: string | null
@@ -1042,6 +1043,7 @@ export type Database = {
           file_url: string
           folder_id: string
           id?: string
+          sort_order?: number | null
           thumbnail_url?: string | null
           updated_at?: string
           uploaded_by?: string | null
@@ -1055,6 +1057,7 @@ export type Database = {
           file_url?: string
           folder_id?: string
           id?: string
+          sort_order?: number | null
           thumbnail_url?: string | null
           updated_at?: string
           uploaded_by?: string | null
@@ -1077,6 +1080,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          parent_folder_id: string | null
           share_token: string
           updated_at: string
         }
@@ -1087,6 +1091,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          parent_folder_id?: string | null
           share_token?: string
           updated_at?: string
         }
@@ -1097,10 +1102,19 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          parent_folder_id?: string | null
           share_token?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "gallery_folders_parent_folder_id_fkey"
+            columns: ["parent_folder_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       installer_licenses: {
         Row: {

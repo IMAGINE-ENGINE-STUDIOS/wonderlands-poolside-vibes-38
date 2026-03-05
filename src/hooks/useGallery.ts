@@ -11,6 +11,7 @@ export interface GalleryFolder {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  parent_folder_id: string | null;
   file_count?: number;
 }
 
@@ -25,6 +26,7 @@ export interface GalleryFile {
   description: string | null;
   uploaded_by: string | null;
   created_at: string;
+  sort_order: number;
 }
 
 export const useGallery = () => {
@@ -43,7 +45,6 @@ export const useGallery = () => {
     if (error) {
       toast({ title: 'Error loading folders', description: error.message, variant: 'destructive' });
     } else {
-      // Get file counts
       const foldersWithCounts = await Promise.all(
         (data || []).map(async (folder) => {
           const { count } = await supabase
@@ -58,11 +59,16 @@ export const useGallery = () => {
     setLoading(false);
   }, [toast]);
 
-  const createFolder = async (name: string, description?: string) => {
+  const createFolder = async (name: string, description?: string, parentFolderId?: string) => {
     const { data: userData } = await supabase.auth.getUser();
     const { data, error } = await supabase
       .from('gallery_folders')
-      .insert({ name, description: description || null, created_by: userData.user?.id })
+      .insert({
+        name,
+        description: description || null,
+        created_by: userData.user?.id,
+        parent_folder_id: parentFolderId || null,
+      })
       .select()
       .single();
 
@@ -94,9 +100,22 @@ export const useGallery = () => {
     }
   };
 
+  const moveFolder = async (folderId: string, targetParentId: string | null) => {
+    const { error } = await supabase
+      .from('gallery_folders')
+      .update({ parent_folder_id: targetParentId })
+      .eq('id', folderId);
+    if (error) {
+      toast({ title: 'Error moving folder', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Folder moved' });
+      await fetchFolders();
+    }
+  };
+
   useEffect(() => { fetchFolders(); }, [fetchFolders]);
 
-  return { folders, loading, createFolder, deleteFolder, renameFolder, refetch: fetchFolders };
+  return { folders, loading, createFolder, deleteFolder, renameFolder, moveFolder, refetch: fetchFolders };
 };
 
 export const useGalleryFiles = (folderId: string | null) => {
@@ -111,6 +130,7 @@ export const useGalleryFiles = (folderId: string | null) => {
       .from('gallery_files')
       .select('*')
       .eq('folder_id', folderId)
+      .order('sort_order', { ascending: true })
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -150,7 +170,6 @@ export const useGalleryFiles = (folderId: string | null) => {
     if (dbError) {
       toast({ title: 'Error saving file record', description: dbError.message, variant: 'destructive' });
     } else {
-      toast({ title: 'File uploaded' });
       await fetchFiles();
     }
   };
@@ -165,7 +184,47 @@ export const useGalleryFiles = (folderId: string | null) => {
     }
   };
 
+  const renameFile = async (fileId: string, newName: string) => {
+    const { error } = await supabase.from('gallery_files').update({ file_name: newName }).eq('id', fileId);
+    if (error) {
+      toast({ title: 'Error renaming file', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'File renamed' });
+      await fetchFiles();
+    }
+  };
+
+  const moveFile = async (fileId: string, targetFolderId: string) => {
+    const { error } = await supabase.from('gallery_files').update({ folder_id: targetFolderId }).eq('id', fileId);
+    if (error) {
+      toast({ title: 'Error moving file', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'File moved' });
+      await fetchFiles();
+    }
+  };
+
+  const bulkDelete = async (fileIds: string[]) => {
+    const { error } = await supabase.from('gallery_files').delete().in('id', fileIds);
+    if (error) {
+      toast({ title: 'Error deleting files', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: `${fileIds.length} files deleted` });
+      await fetchFiles();
+    }
+  };
+
+  const bulkMove = async (fileIds: string[], targetFolderId: string) => {
+    const { error } = await supabase.from('gallery_files').update({ folder_id: targetFolderId }).in('id', fileIds);
+    if (error) {
+      toast({ title: 'Error moving files', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: `${fileIds.length} files moved` });
+      await fetchFiles();
+    }
+  };
+
   useEffect(() => { fetchFiles(); }, [fetchFiles]);
 
-  return { files, loading, uploadFile, deleteFile, refetch: fetchFiles };
+  return { files, loading, uploadFile, deleteFile, renameFile, moveFile, bulkDelete, bulkMove, refetch: fetchFiles };
 };

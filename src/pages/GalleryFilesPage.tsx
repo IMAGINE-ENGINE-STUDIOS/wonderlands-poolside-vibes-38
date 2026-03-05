@@ -1,48 +1,40 @@
-import { useState, useRef } from 'react';
-import { useGallery, useGalleryFiles } from '@/hooks/useGallery';
+import { useState, useRef, useCallback } from 'react';
+import { useGallery, useGalleryFiles, GalleryFolder } from '@/hooks/useGallery';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  ContextMenu, ContextMenuContent, ContextMenuItem,
+  ContextMenuSeparator, ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 import { useToast } from '@/hooks/use-toast';
 import {
-  FolderPlus, ArrowLeft, Upload, Trash2, Copy, ExternalLink,
-  Folder, FileText, Image, Film, File, Link2, Search
+  FolderPlus, ArrowLeft, Upload, Folder, Search,
+  Link2, ExternalLink, Download, Trash2, Printer, CheckSquare, XSquare,
 } from 'lucide-react';
-
-const getFileIcon = (type: string | null) => {
-  if (!type) return <File className="h-8 w-8 text-muted-foreground" />;
-  if (type.startsWith('image/')) return <Image className="h-8 w-8 text-blue-500" />;
-  if (type.startsWith('video/')) return <Film className="h-8 w-8 text-purple-500" />;
-  if (type === 'application/pdf') return <FileText className="h-8 w-8 text-red-500" />;
-  return <File className="h-8 w-8 text-muted-foreground" />;
-};
-
-const formatSize = (bytes: number | null) => {
-  if (!bytes) return '';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-};
+import FileCard from '@/components/gallery/FileCard';
+import FolderCard from '@/components/gallery/FolderCard';
+import { downloadFile, downloadFilesAsZip } from '@/components/gallery/galleryUtils';
 
 const GalleryFilesPage = () => {
-  const { folders, loading, createFolder, deleteFolder } = useGallery();
+  const { folders, loading, createFolder, deleteFolder, renameFolder, moveFolder } = useGallery();
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedFolderData, setSelectedFolderData] = useState<{ name: string; share_token: string } | null>(null);
-  const { files, loading: filesLoading, uploadFile, deleteFile } = useGalleryFiles(selectedFolder);
+  const { files, loading: filesLoading, uploadFile, deleteFile, renameFile, moveFile, bulkDelete } = useGalleryFiles(selectedFolder);
   const [newFolderName, setNewFolderName] = useState('');
   const [newFolderDesc, setNewFolderDesc] = useState('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleCreateFolder = async () => {
+  const handleCreateFolder = async (parentId?: string) => {
     if (!newFolderName.trim()) return;
-    await createFolder(newFolderName.trim(), newFolderDesc.trim());
+    await createFolder(newFolderName.trim(), newFolderDesc.trim(), parentId || undefined);
     setNewFolderName('');
     setNewFolderDesc('');
     setCreateDialogOpen(false);
@@ -52,9 +44,11 @@ const GalleryFilesPage = () => {
     const fileList = e.target.files;
     if (!fileList) return;
     setUploading(true);
+    toast({ title: `Uploading ${fileList.length} file(s)...` });
     for (let i = 0; i < fileList.length; i++) {
       await uploadFile(fileList[i]);
     }
+    toast({ title: `${fileList.length} file(s) uploaded` });
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -65,12 +59,95 @@ const GalleryFilesPage = () => {
     toast({ title: 'Link copied!', description: 'Private share link copied to clipboard' });
   };
 
-  const openFolder = (folder: { id: string; name: string; share_token: string }) => {
+  const openFolder = (folder: GalleryFolder) => {
     setSelectedFolder(folder.id);
     setSelectedFolderData({ name: folder.name, share_token: folder.share_token });
+    setSelectedFiles(new Set());
+    setSearchQuery('');
   };
 
-  const filteredFolders = folders.filter(f =>
+  const handleFileSelect = (fileId: string, multi: boolean) => {
+    setSelectedFiles(prev => {
+      const next = new Set(multi ? prev : []);
+      if (next.has(fileId)) next.delete(fileId);
+      else next.add(fileId);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    setSelectedFiles(new Set(filteredFiles.map(f => f.id)));
+  };
+
+  const clearSelection = () => setSelectedFiles(new Set());
+
+  const handleBulkDelete = async () => {
+    if (selectedFiles.size === 0) return;
+    await bulkDelete(Array.from(selectedFiles));
+    setSelectedFiles(new Set());
+  };
+
+  const handleBulkDownload = () => {
+    const selected = files.filter(f => selectedFiles.has(f.id));
+    if (selected.length === 0) return;
+    downloadFilesAsZip(selected);
+  };
+
+  const handleBulkPrint = () => {
+    const selected = files.filter(f => selectedFiles.has(f.id));
+    selected.forEach(f => {
+      if (f.file_type?.startsWith('image/') || f.file_type === 'application/pdf') {
+        window.open(f.file_url, '_blank');
+      }
+    });
+  };
+
+  // Drag & drop handlers
+  const handleFileDragStart = (e: React.DragEvent, fileId: string) => {
+    e.dataTransfer.setData('fileId', fileId);
+    e.dataTransfer.setData('type', 'file');
+  };
+
+  const handleFolderDragStart = (e: React.DragEvent, folderId: string) => {
+    e.dataTransfer.setData('folderId', folderId);
+    e.dataTransfer.setData('type', 'folder');
+  };
+
+  const handleFolderDrop = (e: React.DragEvent, targetFolderId: string) => {
+    e.preventDefault();
+    const type = e.dataTransfer.getData('type');
+    if (type === 'file') {
+      const fileId = e.dataTransfer.getData('fileId');
+      if (fileId) moveFile(fileId, targetFolderId);
+    } else if (type === 'folder') {
+      const folderId = e.dataTransfer.getData('folderId');
+      if (folderId && folderId !== targetFolderId) moveFolder(folderId, targetFolderId);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  // Drop files from OS onto the page
+  const handlePageDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!selectedFolder) return;
+    const droppedFiles = e.dataTransfer.files;
+    if (!droppedFiles.length) return;
+    setUploading(true);
+    for (let i = 0; i < droppedFiles.length; i++) {
+      await uploadFile(droppedFiles[i]);
+    }
+    setUploading(false);
+  }, [selectedFolder, uploadFile]);
+
+  const currentFolders = folders.filter(f =>
+    selectedFolder ? f.parent_folder_id === selectedFolder : !f.parent_folder_id
+  );
+
+  const filteredFolders = currentFolders.filter(f =>
     f.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -78,14 +155,20 @@ const GalleryFilesPage = () => {
     f.file_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const hasSelection = selectedFiles.size > 0;
+
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className="min-h-screen bg-background"
+      onDrop={handlePageDrop}
+      onDragOver={(e) => e.preventDefault()}
+    >
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             {selectedFolder && (
-              <Button variant="ghost" size="icon" onClick={() => { setSelectedFolder(null); setSelectedFolderData(null); }}>
+              <Button variant="ghost" size="icon" onClick={() => { setSelectedFolder(null); setSelectedFolderData(null); setSelectedFiles(new Set()); }}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             )}
@@ -140,7 +223,7 @@ const GalleryFilesPage = () => {
                       <Label>Description (optional)</Label>
                       <Textarea value={newFolderDesc} onChange={e => setNewFolderDesc(e.target.value)} placeholder="What's in this gallery?" />
                     </div>
-                    <Button onClick={handleCreateFolder} className="w-full" disabled={!newFolderName.trim()}>
+                    <Button onClick={() => handleCreateFolder()} className="w-full" disabled={!newFolderName.trim()}>
                       Create Gallery
                     </Button>
                   </div>
@@ -149,6 +232,29 @@ const GalleryFilesPage = () => {
             )}
           </div>
         </div>
+
+        {/* Bulk actions bar */}
+        {hasSelection && (
+          <div className="flex items-center gap-2 mb-4 p-3 bg-muted rounded-lg border border-border">
+            <span className="text-sm font-medium text-foreground mr-2">{selectedFiles.size} selected</span>
+            <Button variant="outline" size="sm" onClick={selectAll}>
+              <CheckSquare className="h-4 w-4 mr-1" /> Select All
+            </Button>
+            <Button variant="outline" size="sm" onClick={clearSelection}>
+              <XSquare className="h-4 w-4 mr-1" /> Clear
+            </Button>
+            <div className="h-4 w-px bg-border mx-1" />
+            <Button variant="outline" size="sm" onClick={handleBulkDownload}>
+              <Download className="h-4 w-4 mr-1" /> Download
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleBulkPrint}>
+              <Printer className="h-4 w-4 mr-1" /> Print
+            </Button>
+            <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
+              <Trash2 className="h-4 w-4 mr-1" /> Delete
+            </Button>
+          </div>
+        )}
 
         {/* Search */}
         <div className="relative mb-6">
@@ -161,105 +267,141 @@ const GalleryFilesPage = () => {
           />
         </div>
 
-        {/* Folders View */}
-        {!selectedFolder && (
-          loading ? (
-            <div className="flex justify-center py-20">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-            </div>
-          ) : filteredFolders.length === 0 ? (
-            <div className="text-center py-20">
-              <Folder className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-1">No galleries yet</h3>
-              <p className="text-muted-foreground text-sm">Create your first gallery to start organizing files</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredFolders.map(folder => (
-                <Card
-                  key={folder.id}
-                  className="group cursor-pointer hover:shadow-md transition-shadow border-border"
-                  onClick={() => openFolder(folder)}
-                >
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <Folder className="h-10 w-10 text-primary shrink-0" />
-                        <div className="min-w-0">
-                          <h3 className="font-semibold text-foreground truncate">{folder.name}</h3>
-                          <p className="text-xs text-muted-foreground">{folder.file_count} file{folder.file_count !== 1 ? 's' : ''}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="ghost" size="icon" className="h-8 w-8"
-                          onClick={e => { e.stopPropagation(); copyShareLink(folder.share_token); }}
-                        >
-                          <Copy className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost" size="icon" className="h-8 w-8 text-destructive"
-                          onClick={e => { e.stopPropagation(); deleteFolder(folder.id); }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                    {folder.description && (
-                      <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{folder.description}</p>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )
-        )}
+        {/* Right-click on background context menu */}
+        <ContextMenu>
+          <ContextMenuTrigger className="min-h-[400px] block">
+            {/* Folders View */}
+            {!selectedFolder && (
+              loading ? (
+                <div className="flex justify-center py-20">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                </div>
+              ) : filteredFolders.length === 0 ? (
+                <div className="text-center py-20">
+                  <Folder className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-1">No galleries yet</h3>
+                  <p className="text-muted-foreground text-sm">Create your first gallery or right-click to create one</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {filteredFolders.map(folder => (
+                    <FolderCard
+                      key={folder.id}
+                      folder={folder}
+                      onOpen={openFolder}
+                      onDelete={deleteFolder}
+                      onRename={renameFolder}
+                      onCopyLink={copyShareLink}
+                      onDragStart={handleFolderDragStart}
+                      onDrop={handleFolderDrop}
+                      onDragOver={handleDragOver}
+                    />
+                  ))}
+                </div>
+              )
+            )}
 
-        {/* Files View */}
-        {selectedFolder && (
-          filesLoading ? (
-            <div className="flex justify-center py-20">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-            </div>
-          ) : filteredFiles.length === 0 ? (
-            <div className="text-center py-20">
-              <Upload className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-1">No files yet</h3>
-              <p className="text-muted-foreground text-sm">Upload files to this gallery</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {filteredFiles.map(file => (
-                <Card key={file.id} className="group overflow-hidden border-border">
-                  <div className="aspect-square bg-muted flex items-center justify-center relative overflow-hidden">
-                    {file.file_type?.startsWith('image/') ? (
-                      <img src={file.file_url} alt={file.file_name} className="w-full h-full object-cover" loading="lazy" />
-                    ) : file.file_type?.startsWith('video/') ? (
-                      <video src={file.file_url} className="w-full h-full object-cover" />
-                    ) : (
-                      getFileIcon(file.file_type)
-                    )}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <div className="flex gap-2">
-                        <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => window.open(file.file_url, '_blank')}>
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                        <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => deleteFile(file.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+            {/* Files View */}
+            {selectedFolder && (
+              filesLoading ? (
+                <div className="flex justify-center py-20">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                </div>
+              ) : (
+                <>
+                  {/* Sub-folders */}
+                  {filteredFolders.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-sm font-medium text-muted-foreground mb-3">Sub-folders</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {filteredFolders.map(folder => (
+                          <FolderCard
+                            key={folder.id}
+                            folder={folder}
+                            onOpen={openFolder}
+                            onDelete={deleteFolder}
+                            onRename={renameFolder}
+                            onCopyLink={copyShareLink}
+                            onDragStart={handleFolderDragStart}
+                            onDrop={handleFolderDrop}
+                            onDragOver={handleDragOver}
+                          />
+                        ))}
                       </div>
                     </div>
-                  </div>
-                  <CardContent className="p-3">
-                    <p className="text-xs font-medium text-foreground truncate">{file.file_name}</p>
-                    <p className="text-[10px] text-muted-foreground">{formatSize(file.file_size)}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )
-        )}
+                  )}
+
+                  {/* Files */}
+                  {filteredFiles.length === 0 && filteredFolders.length === 0 ? (
+                    <div className="text-center py-20">
+                      <Upload className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-foreground mb-1">No files yet</h3>
+                      <p className="text-muted-foreground text-sm">Upload files or drag & drop them here</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                      {filteredFiles.map(file => (
+                        <FileCard
+                          key={file.id}
+                          file={file}
+                          isSelected={selectedFiles.has(file.id)}
+                          onSelect={handleFileSelect}
+                          onDelete={deleteFile}
+                          onRename={renameFile}
+                          onDragStart={handleFileDragStart}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              )
+            )}
+          </ContextMenuTrigger>
+          <ContextMenuContent>
+            <ContextMenuItem onClick={() => setCreateDialogOpen(true)}>
+              <FolderPlus className="h-4 w-4 mr-2" /> New Folder
+            </ContextMenuItem>
+            {selectedFolder && (
+              <ContextMenuItem onClick={() => fileInputRef.current?.click()}>
+                <Upload className="h-4 w-4 mr-2" /> Upload Files
+              </ContextMenuItem>
+            )}
+            {hasSelection && (
+              <>
+                <ContextMenuSeparator />
+                <ContextMenuItem onClick={handleBulkDownload}>
+                  <Download className="h-4 w-4 mr-2" /> Download Selected ({selectedFiles.size})
+                </ContextMenuItem>
+                <ContextMenuItem className="text-destructive" onClick={handleBulkDelete}>
+                  <Trash2 className="h-4 w-4 mr-2" /> Delete Selected ({selectedFiles.size})
+                </ContextMenuItem>
+              </>
+            )}
+          </ContextMenuContent>
+        </ContextMenu>
       </div>
+
+      {/* Create folder dialog for context menu */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedFolder ? 'Create Sub-folder' : 'Create New Gallery'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div>
+              <Label>Name</Label>
+              <Input value={newFolderName} onChange={e => setNewFolderName(e.target.value)} placeholder="Folder name..." />
+            </div>
+            <div>
+              <Label>Description (optional)</Label>
+              <Textarea value={newFolderDesc} onChange={e => setNewFolderDesc(e.target.value)} placeholder="What's in this folder?" />
+            </div>
+            <Button onClick={() => handleCreateFolder(selectedFolder || undefined)} className="w-full" disabled={!newFolderName.trim()}>
+              Create
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
