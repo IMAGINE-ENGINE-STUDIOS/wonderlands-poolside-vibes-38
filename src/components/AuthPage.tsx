@@ -12,7 +12,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import PasswordResetModal from '@/components/PasswordResetModal';
 
 const AuthPage = () => {
-  const { signIn, signUp, signInWithGoogle, signInWithMicrosoft, user, profile, loading } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithMicrosoft, signOut, user, profile, loading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
