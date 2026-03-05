@@ -220,6 +220,16 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
 
   useEffect(() => { renderPage(); }, [renderPage]);
 
+  useEffect(() => () => {
+    if (renderTaskRef.current) {
+      try {
+        renderTaskRef.current.cancel();
+      } catch {
+        // noop
+      }
+    }
+  }, []);
+
   // Re-fit when container resizes
   useEffect(() => {
     if (!containerRef.current) return;
