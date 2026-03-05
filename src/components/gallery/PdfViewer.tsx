@@ -24,31 +24,23 @@ const PAGE_FORMATS: Record<string, { width: number; height: number; label: strin
 };
 
 const detectPageFormat = (widthPt: number, heightPt: number): string => {
-  // Ensure portrait orientation for comparison
   const w = Math.min(widthPt, heightPt);
   const h = Math.max(widthPt, heightPt);
-  const TOLERANCE = 5; // points
-
+  const TOLERANCE = 5;
   for (const [key, fmt] of Object.entries(PAGE_FORMATS)) {
     const fw = Math.min(fmt.width, fmt.height);
     const fh = Math.max(fmt.width, fmt.height);
-    if (Math.abs(w - fw) < TOLERANCE && Math.abs(h - fh) < TOLERANCE) {
-      return key;
-    }
+    if (Math.abs(w - fw) < TOLERANCE && Math.abs(h - fh) < TOLERANCE) return key;
   }
   return 'custom';
 };
 
-// Load pdf.js from CDN dynamically
 const loadPdfJs = (() => {
   let promise: Promise<any> | null = null;
   return () => {
     if (promise) return promise;
     promise = new Promise((resolve, reject) => {
-      if ((window as any).pdfjsLib) {
-        resolve((window as any).pdfjsLib);
-        return;
-      }
+      if ((window as any).pdfjsLib) { resolve((window as any).pdfjsLib); return; }
       const script2 = document.createElement('script');
       script2.textContent = `
         import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs').then(mod => {
@@ -61,17 +53,8 @@ const loadPdfJs = (() => {
       `;
       script2.type = 'module';
       document.head.appendChild(script2);
-
-      const onLoad = () => {
-        window.removeEventListener('pdfjsLoaded', onLoad);
-        window.removeEventListener('pdfjsError', onError);
-        resolve((window as any).pdfjsLib);
-      };
-      const onError = (e: any) => {
-        window.removeEventListener('pdfjsLoaded', onLoad);
-        window.removeEventListener('pdfjsError', onError);
-        reject(e.detail || new Error('Failed to load PDF.js'));
-      };
+      const onLoad = () => { window.removeEventListener('pdfjsLoaded', onLoad); window.removeEventListener('pdfjsError', onError); resolve((window as any).pdfjsLib); };
+      const onError = (e: any) => { window.removeEventListener('pdfjsLoaded', onLoad); window.removeEventListener('pdfjsError', onError); reject(e.detail || new Error('Failed to load PDF.js')); };
       window.addEventListener('pdfjsLoaded', onLoad);
       window.addEventListener('pdfjsError', onError);
     });
@@ -95,7 +78,7 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
   const [pdfDoc, setPdfDoc] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [scale, setScale] = useState(1.5);
+  const [userZoom, setUserZoom] = useState(1); // User-controlled zoom multiplier (1 = fit to container)
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -105,7 +88,6 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
   const [currentPath, setCurrentPath] = useState<{ x: number; y: number }[]>([]);
   const [signColor] = useState('#1a1a2e');
   const [signLineWidth] = useState(3);
-  // Page format state
   const [detectedFormat, setDetectedFormat] = useState<string>('a4');
   const [selectedFormat, setSelectedFormat] = useState<string>('auto');
   const [originalPageSizes, setOriginalPageSizes] = useState<{ width: number; height: number }[]>([]);
@@ -129,7 +111,6 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
         setTotalPages(doc.numPages);
         setCurrentPage(1);
 
-        // Read all page sizes (in points at scale=1)
         const sizes: { width: number; height: number }[] = [];
         for (let i = 1; i <= doc.numPages; i++) {
           const page = await doc.getPage(i);
@@ -138,7 +119,6 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
         }
         setOriginalPageSizes(sizes);
 
-        // Detect format from first page
         if (sizes.length > 0) {
           const fmt = detectPageFormat(sizes[0].width, sizes[0].height);
           setDetectedFormat(fmt);
@@ -157,10 +137,27 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
     return () => { cancelled = true; };
   }, [fileUrl]);
 
+  // Calculate the scale that fits the page into the container
+  const getFitScale = useCallback(() => {
+    if (!containerRef.current || originalPageSizes.length === 0) return 1;
+    const container = containerRef.current;
+    const containerW = container.clientWidth - 32; // padding
+    const containerH = container.clientHeight - 32;
+    const pageSize = originalPageSizes[currentPage - 1] || originalPageSizes[0];
+    
+    const scaleW = containerW / pageSize.width;
+    const scaleH = containerH / pageSize.height;
+    return Math.min(scaleW, scaleH, 2); // Cap at 2x for performance
+  }, [originalPageSizes, currentPage]);
+
+  // The actual render scale = fitScale * userZoom
+  const renderScale = getFitScale() * userZoom;
+
   // Render current page
   const renderPage = useCallback(async () => {
-    if (!pdfDoc || !canvasRef.current) return;
+    if (!pdfDoc || !canvasRef.current || !containerRef.current) return;
     const page = await pdfDoc.getPage(currentPage);
+    const scale = renderScale;
     const viewport = page.getViewport({ scale });
     const canvas = canvasRef.current;
 
@@ -172,7 +169,6 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     await page.render({ canvasContext: ctx, viewport }).promise;
 
-    // Re-draw signatures for this page
     if (signCanvasRef.current) {
       const sc = signCanvasRef.current;
       sc.width = viewport.width * DPR;
@@ -196,9 +192,17 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
           sctx.stroke();
         });
     }
-  }, [pdfDoc, currentPage, scale, signatures]);
+  }, [pdfDoc, currentPage, renderScale, signatures]);
 
   useEffect(() => { renderPage(); }, [renderPage]);
+
+  // Re-fit when container resizes
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver(() => { renderPage(); });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [renderPage]);
 
   // Drawing handlers
   const getCanvasPos = (e: React.MouseEvent | React.TouchEvent) => {
@@ -214,8 +218,7 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
     if (!signingMode) return;
     e.preventDefault();
     setIsDrawing(true);
-    const pos = getCanvasPos(e);
-    setCurrentPath([pos]);
+    setCurrentPath([getCanvasPos(e)]);
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
@@ -223,7 +226,6 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
     e.preventDefault();
     const pos = getCanvasPos(e);
     setCurrentPath(prev => [...prev, pos]);
-
     const ctx = signCanvasRef.current.getContext('2d')!;
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     const points = [...currentPath, pos];
@@ -243,12 +245,7 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
     if (!isDrawing) return;
     setIsDrawing(false);
     if (currentPath.length > 1) {
-      setSignatures(prev => [...prev, {
-        points: currentPath,
-        page: currentPage,
-        color: signColor,
-        lineWidth: signLineWidth,
-      }]);
+      setSignatures(prev => [...prev, { points: currentPath, page: currentPage, color: signColor, lineWidth: signLineWidth }]);
     }
     setCurrentPath([]);
   };
@@ -266,146 +263,34 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
     setSignatures(prev => prev.filter(s => s.page !== currentPage));
   };
 
-  // Get the effective format for export
-  const getEffectiveFormat = () => {
-    if (selectedFormat === 'auto') return detectedFormat;
-    return selectedFormat;
-  };
-
-  // Save ALL pages as a proper PDF with signatures burned in
-  const saveSignedPdf = async () => {
-    if (!pdfDoc) return;
-    setSaving(true);
-
-    try {
-      const effectiveFormat = getEffectiveFormat();
-      const RENDER_SCALE = 2; // High quality render for export
-
-      // Determine output page dimensions
-      const getPageDimensions = (pageIndex: number) => {
-        if (effectiveFormat === 'custom' && originalPageSizes[pageIndex]) {
-          return originalPageSizes[pageIndex]; // pts
-        }
-        const fmt = PAGE_FORMATS[effectiveFormat] || PAGE_FORMATS.a4;
-        return { width: fmt.width, height: fmt.height };
-      };
-
-      // Determine orientation from original page
-      const getOrientation = (pageIndex: number): 'p' | 'l' => {
-        if (originalPageSizes[pageIndex]) {
-          return originalPageSizes[pageIndex].width > originalPageSizes[pageIndex].height ? 'l' : 'p';
-        }
-        return 'p';
-      };
-
-      const firstDims = getPageDimensions(0);
-      const firstOrientation = getOrientation(0);
-
-      const pdf = new jsPDF({
-        orientation: firstOrientation,
-        unit: 'pt',
-        format: effectiveFormat === 'custom'
-          ? [firstDims.width, firstDims.height]
-          : (PAGE_FORMATS[effectiveFormat] ? effectiveFormat : 'a4'),
-      });
-
-      for (let i = 1; i <= totalPages; i++) {
-        const page = await pdfDoc.getPage(i);
-        const viewport = page.getViewport({ scale: RENDER_SCALE });
-
-        // Render PDF page to offscreen canvas
-        const offCanvas = document.createElement('canvas');
-        offCanvas.width = viewport.width;
-        offCanvas.height = viewport.height;
-        const offCtx = offCanvas.getContext('2d')!;
-        await page.render({ canvasContext: offCtx, viewport }).promise;
-
-        // Draw signatures for this page (scale from display coords to render coords)
-        const pageSigs = signatures.filter(s => s.page === i);
-        if (pageSigs.length > 0) {
-          // Signatures were drawn at `scale` zoom. Convert to RENDER_SCALE coords.
-          const sigScale = RENDER_SCALE / scale;
-          pageSigs.forEach(sig => {
-            if (sig.points.length < 2) return;
-            offCtx.beginPath();
-            offCtx.strokeStyle = sig.color;
-            offCtx.lineWidth = sig.lineWidth * sigScale;
-            offCtx.lineCap = 'round';
-            offCtx.lineJoin = 'round';
-            offCtx.moveTo(sig.points[0].x * sigScale, sig.points[0].y * sigScale);
-            sig.points.forEach(p => offCtx.lineTo(p.x * sigScale, p.y * sigScale));
-            offCtx.stroke();
-          });
-        }
-
-        // Get page dimensions for this page
-        const dims = getPageDimensions(i - 1);
-        const orientation = getOrientation(i - 1);
-
-        if (i > 1) {
-          pdf.addPage(
-            effectiveFormat === 'custom' ? [dims.width, dims.height] : effectiveFormat,
-            orientation
-          );
-        }
-
-        // Fit rendered canvas into the PDF page
-        const pdfPageW = orientation === 'l' ? Math.max(dims.width, dims.height) : Math.min(dims.width, dims.height);
-        const pdfPageH = orientation === 'l' ? Math.min(dims.width, dims.height) : Math.max(dims.width, dims.height);
-
-        const imgData = offCanvas.toDataURL('image/jpeg', 0.92);
-        const imgAspect = offCanvas.width / offCanvas.height;
-        const pageAspect = pdfPageW / pdfPageH;
-
-        let drawW: number, drawH: number, drawX: number, drawY: number;
-        if (imgAspect > pageAspect) {
-          drawW = pdfPageW;
-          drawH = pdfPageW / imgAspect;
-          drawX = 0;
-          drawY = (pdfPageH - drawH) / 2;
-        } else {
-          drawH = pdfPageH;
-          drawW = pdfPageH * imgAspect;
-          drawX = (pdfPageW - drawW) / 2;
-          drawY = 0;
-        }
-
-        pdf.addImage(imgData, 'JPEG', drawX, drawY, drawW, drawH);
-
-        // Clean up
-        offCanvas.width = 0;
-        offCanvas.height = 0;
-      }
-
-      pdf.save(`signed-${fileName}`);
-    } catch (err) {
-      console.error('PDF save error:', err);
-    } finally {
-      setSaving(false);
+  const getExportPageDims = (pageIndex: number) => {
+    const effectiveFormat = selectedFormat === 'auto' ? detectedFormat : selectedFormat;
+    if (effectiveFormat === 'custom') {
+      return originalPageSizes[pageIndex] || { width: 595.28, height: 841.89 };
     }
+    const fmt = PAGE_FORMATS[effectiveFormat] || PAGE_FORMATS.a4;
+    // Match orientation to original
+    const orig = originalPageSizes[pageIndex];
+    if (orig && orig.width > orig.height) {
+      return { width: Math.max(fmt.width, fmt.height), height: Math.min(fmt.width, fmt.height) };
+    }
+    return { width: Math.min(fmt.width, fmt.height), height: Math.max(fmt.width, fmt.height) };
   };
 
-  // Save only current page
-  const saveCurrentPage = async () => {
-    if (!pdfDoc) return;
-    setSaving(true);
+  // Render a page + signatures to an offscreen canvas at a given scale, returns canvas
+  const renderPageToCanvas = async (pageNum: number, exportScale: number) => {
+    const page = await pdfDoc.getPage(pageNum);
+    const viewport = page.getViewport({ scale: exportScale });
+    const offCanvas = document.createElement('canvas');
+    offCanvas.width = viewport.width;
+    offCanvas.height = viewport.height;
+    const offCtx = offCanvas.getContext('2d')!;
+    await page.render({ canvasContext: offCtx, viewport }).promise;
 
-    try {
-      const effectiveFormat = getEffectiveFormat();
-      const RENDER_SCALE = 2;
-
-      const page = await pdfDoc.getPage(currentPage);
-      const viewport = page.getViewport({ scale: RENDER_SCALE });
-
-      const offCanvas = document.createElement('canvas');
-      offCanvas.width = viewport.width;
-      offCanvas.height = viewport.height;
-      const offCtx = offCanvas.getContext('2d')!;
-      await page.render({ canvasContext: offCtx, viewport }).promise;
-
-      // Draw signatures
-      const pageSigs = signatures.filter(s => s.page === currentPage);
-      const sigScale = RENDER_SCALE / scale;
+    // Draw signatures scaled from display coords to export coords
+    const pageSigs = signatures.filter(s => s.page === pageNum);
+    if (pageSigs.length > 0) {
+      const sigScale = exportScale / renderScale;
       pageSigs.forEach(sig => {
         if (sig.points.length < 2) return;
         offCtx.beginPath();
@@ -417,43 +302,83 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
         sig.points.forEach(p => offCtx.lineTo(p.x * sigScale, p.y * sigScale));
         offCtx.stroke();
       });
+    }
+    return offCanvas;
+  };
 
-      const dims = originalPageSizes[currentPage - 1] || { width: 595.28, height: 841.89 };
-      const orientation = dims.width > dims.height ? 'l' : 'p';
+  const addCanvasToPdfPage = (pdf: jsPDF, canvas: HTMLCanvasElement, pageDims: { width: number; height: number }) => {
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    const pW = pageDims.width;
+    const pH = pageDims.height;
+    const imgAspect = canvas.width / canvas.height;
+    const pageAspect = pW / pH;
 
-      const pdfPageW = orientation === 'l' ? Math.max(dims.width, dims.height) : Math.min(dims.width, dims.height);
-      const pdfPageH = orientation === 'l' ? Math.min(dims.width, dims.height) : Math.max(dims.width, dims.height);
+    let drawW: number, drawH: number, drawX: number, drawY: number;
+    if (imgAspect > pageAspect) {
+      drawW = pW;
+      drawH = pW / imgAspect;
+      drawX = 0;
+      drawY = (pH - drawH) / 2;
+    } else {
+      drawH = pH;
+      drawW = pH * imgAspect;
+      drawX = (pW - drawW) / 2;
+      drawY = 0;
+    }
+    pdf.addImage(imgData, 'JPEG', drawX, drawY, drawW, drawH);
+    canvas.width = 0;
+    canvas.height = 0;
+  };
+
+  const saveSignedPdf = async () => {
+    if (!pdfDoc) return;
+    setSaving(true);
+    try {
+      const EXPORT_SCALE = 2;
+      const firstDims = getExportPageDims(0);
+      const firstOrientation = firstDims.width > firstDims.height ? 'l' : 'p';
 
       const pdf = new jsPDF({
-        orientation,
+        orientation: firstOrientation as 'p' | 'l',
         unit: 'pt',
-        format: effectiveFormat === 'custom'
-          ? [dims.width, dims.height]
-          : (PAGE_FORMATS[effectiveFormat] ? effectiveFormat : 'a4'),
+        format: [firstDims.width, firstDims.height],
       });
 
-      const imgData = offCanvas.toDataURL('image/jpeg', 0.92);
-      const imgAspect = offCanvas.width / offCanvas.height;
-      const pageAspect = pdfPageW / pdfPageH;
-
-      let drawW: number, drawH: number, drawX: number, drawY: number;
-      if (imgAspect > pageAspect) {
-        drawW = pdfPageW;
-        drawH = pdfPageW / imgAspect;
-        drawX = 0;
-        drawY = (pdfPageH - drawH) / 2;
-      } else {
-        drawH = pdfPageH;
-        drawW = pdfPageH * imgAspect;
-        drawX = (pdfPageW - drawW) / 2;
-        drawY = 0;
+      for (let i = 1; i <= totalPages; i++) {
+        const dims = getExportPageDims(i - 1);
+        if (i > 1) {
+          const orient = dims.width > dims.height ? 'l' : 'p';
+          pdf.addPage([dims.width, dims.height], orient);
+        }
+        const canvas = await renderPageToCanvas(i, EXPORT_SCALE);
+        addCanvasToPdfPage(pdf, canvas, dims);
       }
 
-      pdf.addImage(imgData, 'JPEG', drawX, drawY, drawW, drawH);
-      pdf.save(`signed-${fileName.replace('.pdf', '')}-page${currentPage}.pdf`);
+      pdf.save(`signed-${fileName}`);
+    } catch (err) {
+      console.error('PDF save error:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
-      offCanvas.width = 0;
-      offCanvas.height = 0;
+  const saveCurrentPage = async () => {
+    if (!pdfDoc) return;
+    setSaving(true);
+    try {
+      const EXPORT_SCALE = 2;
+      const dims = getExportPageDims(currentPage - 1);
+      const orientation = dims.width > dims.height ? 'l' : 'p';
+
+      const pdf = new jsPDF({
+        orientation: orientation as 'p' | 'l',
+        unit: 'pt',
+        format: [dims.width, dims.height],
+      });
+
+      const canvas = await renderPageToCanvas(currentPage, EXPORT_SCALE);
+      addCanvasToPdfPage(pdf, canvas, dims);
+      pdf.save(`signed-${fileName.replace('.pdf', '')}-page${currentPage}.pdf`);
     } catch (err) {
       console.error('PDF save error:', err);
     } finally {
@@ -462,8 +387,8 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
   };
 
   const formatLabel = detectedFormat === 'custom'
-    ? `Original (${Math.round(originalPageSizes[0]?.width || 0)}×${Math.round(originalPageSizes[0]?.height || 0)} pt)`
-    : PAGE_FORMATS[detectedFormat]?.label || 'Unknown';
+    ? `${Math.round(originalPageSizes[0]?.width || 0)}×${Math.round(originalPageSizes[0]?.height || 0)}pt`
+    : PAGE_FORMATS[detectedFormat]?.label.split(' ')[0] || 'Unknown';
 
   if (loading) {
     return (
@@ -505,29 +430,27 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
 
         <div className="h-4 w-px bg-border mx-1" />
 
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setScale(s => Math.min(s + 0.25, 4))}>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setUserZoom(z => Math.min(z + 0.25, 4))}>
           <ZoomIn className="h-4 w-4" />
         </Button>
-        <span className="text-[10px] text-muted-foreground w-10 text-center">{Math.round(scale * 100)}%</span>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setScale(s => Math.max(s - 0.25, 0.5))}>
+        <span className="text-[10px] text-muted-foreground w-10 text-center">{Math.round(userZoom * 100)}%</span>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setUserZoom(z => Math.max(z - 0.25, 0.5))}>
           <ZoomOut className="h-4 w-4" />
         </Button>
 
         <div className="h-4 w-px bg-border mx-1" />
 
-        {/* Page format selector */}
+        {/* Export format selector */}
         <Select value={selectedFormat} onValueChange={setSelectedFormat}>
-          <SelectTrigger className="h-7 w-[140px] text-xs">
+          <SelectTrigger className="h-7 w-[150px] text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="auto">Auto ({formatLabel.split(' ')[0]})</SelectItem>
+            <SelectItem value="auto">Auto ({formatLabel})</SelectItem>
             {Object.entries(PAGE_FORMATS).map(([key, val]) => (
               <SelectItem key={key} value={key}>{val.label}</SelectItem>
             ))}
-            {detectedFormat === 'custom' && (
-              <SelectItem value="custom">Original Size</SelectItem>
-            )}
+            <SelectItem value="custom">Original Size</SelectItem>
           </SelectContent>
         </Select>
 
@@ -562,8 +485,8 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
       </div>
 
       {/* PDF Canvas area */}
-      <div ref={containerRef} className="flex-1 overflow-auto flex items-start justify-center p-4 bg-muted/20">
-        <div className="relative shadow-lg">
+      <div ref={containerRef} className="flex-1 overflow-auto flex items-start justify-center p-4 bg-muted/20 min-h-0">
+        <div className="relative shadow-lg" style={{ lineHeight: 0 }}>
           <canvas ref={canvasRef} className="block" />
           <canvas
             ref={signCanvasRef}
