@@ -28,7 +28,7 @@ const GalleryFilesPage = () => {
   const { folders, loading, createFolder, deleteFolder, renameFolder, moveFolder, refetch: refetchFolders } = useGallery();
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedFolderData, setSelectedFolderData] = useState<{ name: string; share_token: string } | null>(null);
-  const { files, loading: filesLoading, uploadFile, replaceFile, checkDuplicate, deleteFile: rawDeleteFile, renameFile, moveFile, bulkDelete: rawBulkDelete } = useGalleryFiles(selectedFolder);
+  const { files, loading: filesLoading, uploadFile, replaceFile, checkDuplicate, deleteFile: rawDeleteFile, renameFile, moveFile, bulkDelete: rawBulkDelete, refetch: refetchFiles } = useGalleryFiles(selectedFolder);
   const deleteFile = async (id: string) => { await rawDeleteFile(id); refetchFolders(); };
   const wrappedBulkDelete = async (ids: string[]) => { await rawBulkDelete(ids); refetchFolders(); };
   const [duplicateQueue, setDuplicateQueue] = useState<{ file: File; existingId: string; queueItemId: string } | null>(null);
