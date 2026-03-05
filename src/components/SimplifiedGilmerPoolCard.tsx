@@ -808,7 +808,7 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                 )}
 
                 {/* Concrete Construction - Hide for concrete pools (already concrete) */}
-                {pool.model !== "Winderview" && pool.model !== "WonderPalace" && (
+                {pool.model !== "Winderview" && pool.model !== "Cape Coral" && (
                   <>
                     <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
                       <Checkbox 
