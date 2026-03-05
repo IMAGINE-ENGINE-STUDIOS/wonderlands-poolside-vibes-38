@@ -63,7 +63,11 @@ const FileCard = ({ file, isSelected, onSelect, onDelete, onRename, onDragStart,
         >
           <div className="aspect-square bg-muted flex items-center justify-center relative overflow-hidden">
             {file.file_type?.startsWith('image/') ? (
-              <img src={thumbSrc} alt={file.file_name} className="w-full h-full object-cover" loading="lazy" />
+              thumbLoading || !thumbSrc ? (
+                <div className="w-full h-full animate-pulse bg-muted-foreground/10" />
+              ) : (
+                <img src={thumbSrc} alt={file.file_name} className="w-full h-full object-cover" loading="lazy" />
+              )
             ) : file.file_type?.startsWith('video/') ? (
               <video src={file.file_url} className="w-full h-full object-cover" />
             ) : (
