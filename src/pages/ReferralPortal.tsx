@@ -13,33 +13,38 @@ import { DollarSign, Users, Zap, Star, TrendingUp, Gift } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-const referralSchema = z.object({
-  referrerType: z.enum(["individual", "sales_team"]),
-  referrerName: z.string().min(2, "Name must be at least 2 characters"),
-  referrerEmail: z.string().email("Please enter a valid email"),
-  referrerPhone: z.string().optional(),
-  salesCompanyName: z.string().optional(),
-  salesCompanyWebsite: z.string().url().optional().or(z.literal("")),
-  salesCompanyPhone: z.string().optional(),
-  salesTeamPosition: z.string().optional(),
-  salesLicenseNumber: z.string().optional(),
-  leadName: z.string().min(2, "Lead name must be at least 2 characters"),
-  leadEmail: z.string().email("Please enter a valid email for the lead"),
-  leadPhone: z.string().optional(),
-  leadCompany: z.string().optional(),
-  projectType: z.string().min(1, "Please select a project type"),
-  estimatedBudget: z.string().optional(),
-  projectDescription: z.string().min(10, "Please provide a detailed description"),
-  leadUrgency: z.string().default("medium"),
-}).refine((data) => {
-  if (data.referrerType === "sales_team") {
-    return data.salesCompanyName && data.salesCompanyName.length > 0;
-  }
-  return true;
-}, {
-  message: "Sales company name is required for sales team referrals",
-  path: ["salesCompanyName"],
-});
+const referralSchema = z
+  .object({
+    referrerType: z.enum(["individual", "sales_team"]),
+    referrerName: z.string().min(2, "Name must be at least 2 characters"),
+    referrerEmail: z.string().email("Please enter a valid email"),
+    referrerPhone: z.string().optional(),
+    salesCompanyName: z.string().optional(),
+    salesCompanyWebsite: z.string().url().optional().or(z.literal("")),
+    salesCompanyPhone: z.string().optional(),
+    salesTeamPosition: z.string().optional(),
+    salesLicenseNumber: z.string().optional(),
+    leadName: z.string().min(2, "Lead name must be at least 2 characters"),
+    leadEmail: z.string().email("Please enter a valid email for the lead"),
+    leadPhone: z.string().optional(),
+    leadCompany: z.string().optional(),
+    projectType: z.string().min(1, "Please select a project type"),
+    estimatedBudget: z.string().optional(),
+    projectDescription: z.string().min(10, "Please provide a detailed description"),
+    leadUrgency: z.string().default("medium"),
+  })
+  .refine(
+    (data) => {
+      if (data.referrerType === "sales_team") {
+        return data.salesCompanyName && data.salesCompanyName.length > 0;
+      }
+      return true;
+    },
+    {
+      message: "Sales company name is required for sales team referrals",
+      path: ["salesCompanyName"],
+    },
+  );
 
 type ReferralFormData = z.infer<typeof referralSchema>;
 
@@ -73,8 +78,10 @@ const ReferralPortal = () => {
   const onSubmit = async (data: ReferralFormData) => {
     setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       const referralData = {
         referrer_type: data.referrerType,
         referrer_name: data.referrerName,
@@ -94,7 +101,7 @@ const ReferralPortal = () => {
         project_description: data.projectDescription,
         lead_urgency: data.leadUrgency,
         referrer_user_id: user?.id || null,
-        commission_rate: data.referrerType === "sales_team" ? 5.00 : 3.00,
+        commission_rate: data.referrerType === "sales_team" ? 5.0 : 3.0,
       };
 
       const { error } = await supabase.from("referrals").insert([referralData]);
@@ -103,7 +110,8 @@ const ReferralPortal = () => {
 
       toast({
         title: "Referral Submitted Successfully!",
-        description: "Thank you for your referral. We'll contact the lead within 24 hours and keep you updated on your commission.",
+        description:
+          "Thank you for your referral. We'll contact the lead within 24 hours and keep you updated on your commission.",
       });
 
       form.reset();
@@ -131,13 +139,13 @@ const ReferralPortal = () => {
               Referral Program
             </Badge>
             <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-teal bg-clip-text text-transparent mb-6">
-              REFERN TO EERN
+              EARN Wonderfully
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-              Refer quality leads to us and earn up to 5% commission on every successful project. 
-              Turn your network into income with our premium referral program.
+              Refer quality leads to us and earn up to 5% commission on every successful project. Turn your network into
+              income with our premium referral program.
             </p>
-            
+
             {/* Stats Cards */}
             <div className="grid md:grid-cols-3 gap-6 mb-12">
               <Card className="glass-card hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
@@ -168,9 +176,7 @@ const ReferralPortal = () => {
           <div className="max-w-4xl mx-auto">
             <Card className="glass-card shadow-2xl border-0">
               <CardHeader className="text-center pb-8">
-                <CardTitle className="text-3xl font-bold text-foreground mb-2">
-                  Submit Your Referral
-                </CardTitle>
+                <CardTitle className="text-3xl font-bold text-foreground mb-2">Submit Your Referral</CardTitle>
                 <CardDescription className="text-lg">
                   Fill out the form below to refer a potential client and start earning commissions
                 </CardDescription>
@@ -184,7 +190,7 @@ const ReferralPortal = () => {
                         <Users className="h-5 w-5" />
                         Your Information
                       </h3>
-                      
+
                       {/* Referrer Type Selection */}
                       <FormField
                         control={form.control}
@@ -210,7 +216,7 @@ const ReferralPortal = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <div className="grid md:grid-cols-2 gap-6">
                         <FormField
                           control={form.control}
@@ -219,11 +225,7 @@ const ReferralPortal = () => {
                             <FormItem>
                               <FormLabel className="text-base font-medium">Your Name *</FormLabel>
                               <FormControl>
-                                <Input 
-                                  placeholder="Enter your full name" 
-                                  className="h-12 text-base"
-                                  {...field} 
-                                />
+                                <Input placeholder="Enter your full name" className="h-12 text-base" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -236,11 +238,11 @@ const ReferralPortal = () => {
                             <FormItem>
                               <FormLabel className="text-base font-medium">Your Email *</FormLabel>
                               <FormControl>
-                                <Input 
-                                  type="email" 
-                                  placeholder="your.email@example.com" 
+                                <Input
+                                  type="email"
+                                  placeholder="your.email@example.com"
                                   className="h-12 text-base"
-                                  {...field} 
+                                  {...field}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -255,11 +257,7 @@ const ReferralPortal = () => {
                           <FormItem>
                             <FormLabel className="text-base font-medium">Your Phone (Optional)</FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder="(555) 123-4567" 
-                                className="h-12 text-base max-w-md"
-                                {...field} 
-                              />
+                              <Input placeholder="(555) 123-4567" className="h-12 text-base max-w-md" {...field} />
                             </FormControl>
                           </FormItem>
                         )}
@@ -269,7 +267,7 @@ const ReferralPortal = () => {
                       {form.watch("referrerType") === "sales_team" && (
                         <div className="space-y-6 p-6 bg-primary/5 rounded-lg border border-primary/10">
                           <h4 className="text-lg font-semibold text-primary mb-4">Sales Company Information</h4>
-                          
+
                           <div className="grid md:grid-cols-2 gap-6">
                             <FormField
                               control={form.control}
@@ -278,11 +276,7 @@ const ReferralPortal = () => {
                                 <FormItem>
                                   <FormLabel className="text-base font-medium">Company Name *</FormLabel>
                                   <FormControl>
-                                    <Input 
-                                      placeholder="Your sales company" 
-                                      className="h-12 text-base"
-                                      {...field} 
-                                    />
+                                    <Input placeholder="Your sales company" className="h-12 text-base" {...field} />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -295,17 +289,13 @@ const ReferralPortal = () => {
                                 <FormItem>
                                   <FormLabel className="text-base font-medium">Company Phone</FormLabel>
                                   <FormControl>
-                                    <Input 
-                                      placeholder="(555) 123-4567" 
-                                      className="h-12 text-base"
-                                      {...field} 
-                                    />
+                                    <Input placeholder="(555) 123-4567" className="h-12 text-base" {...field} />
                                   </FormControl>
                                 </FormItem>
                               )}
                             />
                           </div>
-                          
+
                           <div className="grid md:grid-cols-2 gap-6">
                             <FormField
                               control={form.control}
@@ -314,10 +304,10 @@ const ReferralPortal = () => {
                                 <FormItem>
                                   <FormLabel className="text-base font-medium">Company Website</FormLabel>
                                   <FormControl>
-                                    <Input 
-                                      placeholder="https://yourcompany.com" 
+                                    <Input
+                                      placeholder="https://yourcompany.com"
                                       className="h-12 text-base"
-                                      {...field} 
+                                      {...field}
                                     />
                                   </FormControl>
                                 </FormItem>
@@ -330,17 +320,17 @@ const ReferralPortal = () => {
                                 <FormItem>
                                   <FormLabel className="text-base font-medium">Your Position</FormLabel>
                                   <FormControl>
-                                    <Input 
-                                      placeholder="Sales Manager, Account Executive, etc." 
+                                    <Input
+                                      placeholder="Sales Manager, Account Executive, etc."
                                       className="h-12 text-base"
-                                      {...field} 
+                                      {...field}
                                     />
                                   </FormControl>
                                 </FormItem>
                               )}
                             />
                           </div>
-                          
+
                           <FormField
                             control={form.control}
                             name="salesLicenseNumber"
@@ -348,10 +338,10 @@ const ReferralPortal = () => {
                               <FormItem>
                                 <FormLabel className="text-base font-medium">Sales License Number</FormLabel>
                                 <FormControl>
-                                  <Input 
-                                    placeholder="Professional license number (if applicable)" 
+                                  <Input
+                                    placeholder="Professional license number (if applicable)"
                                     className="h-12 text-base max-w-md"
-                                    {...field} 
+                                    {...field}
                                   />
                                 </FormControl>
                                 <FormDescription>
@@ -378,11 +368,7 @@ const ReferralPortal = () => {
                             <FormItem>
                               <FormLabel className="text-base font-medium">Lead Name *</FormLabel>
                               <FormControl>
-                                <Input 
-                                  placeholder="Lead's full name" 
-                                  className="h-12 text-base"
-                                  {...field} 
-                                />
+                                <Input placeholder="Lead's full name" className="h-12 text-base" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -395,11 +381,11 @@ const ReferralPortal = () => {
                             <FormItem>
                               <FormLabel className="text-base font-medium">Lead Email *</FormLabel>
                               <FormControl>
-                                <Input 
-                                  type="email" 
-                                  placeholder="lead@company.com" 
+                                <Input
+                                  type="email"
+                                  placeholder="lead@company.com"
                                   className="h-12 text-base"
-                                  {...field} 
+                                  {...field}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -415,11 +401,7 @@ const ReferralPortal = () => {
                             <FormItem>
                               <FormLabel className="text-base font-medium">Lead Phone</FormLabel>
                               <FormControl>
-                                <Input 
-                                  placeholder="(555) 987-6543" 
-                                  className="h-12 text-base"
-                                  {...field} 
-                                />
+                                <Input placeholder="(555) 987-6543" className="h-12 text-base" {...field} />
                               </FormControl>
                             </FormItem>
                           )}
@@ -431,11 +413,7 @@ const ReferralPortal = () => {
                             <FormItem>
                               <FormLabel className="text-base font-medium">Company Name</FormLabel>
                               <FormControl>
-                                <Input 
-                                  placeholder="Company or organization" 
-                                  className="h-12 text-base"
-                                  {...field} 
-                                />
+                                <Input placeholder="Company or organization" className="h-12 text-base" {...field} />
                               </FormControl>
                             </FormItem>
                           )}
@@ -483,16 +461,9 @@ const ReferralPortal = () => {
                             <FormItem>
                               <FormLabel className="text-base font-medium">Estimated Budget</FormLabel>
                               <FormControl>
-                                <Input 
-                                  type="number"
-                                  placeholder="50000" 
-                                  className="h-12 text-base"
-                                  {...field} 
-                                />
+                                <Input type="number" placeholder="50000" className="h-12 text-base" {...field} />
                               </FormControl>
-                              <FormDescription>
-                                This helps us provide accurate quotes
-                              </FormDescription>
+                              <FormDescription>This helps us provide accurate quotes</FormDescription>
                             </FormItem>
                           )}
                         />
@@ -526,10 +497,10 @@ const ReferralPortal = () => {
                           <FormItem>
                             <FormLabel className="text-base font-medium">Project Description *</FormLabel>
                             <FormControl>
-                              <Textarea 
+                              <Textarea
                                 placeholder="Provide detailed information about the project, location, specific requirements, timeline, and any other relevant details that would help us serve the lead better..."
                                 className="min-h-[120px] text-base resize-none"
-                                {...field} 
+                                {...field}
                               />
                             </FormControl>
                             <FormDescription>
@@ -549,13 +520,18 @@ const ReferralPortal = () => {
                           <h4 className="text-lg font-semibold text-primary">Commission Calculation</h4>
                         </div>
                         <p className="text-muted-foreground mb-3">
-                          You'll earn {form.watch("referrerType") === "sales_team" ? "5%" : "3%"} commission on the total project value if the lead converts to a sale.
+                          You'll earn {form.watch("referrerType") === "sales_team" ? "5%" : "3%"} commission on the
+                          total project value if the lead converts to a sale.
                         </p>
                         {form.watch("estimatedBudget") && (
                           <div className="bg-background/60 rounded-lg p-4">
                             <p className="text-sm text-muted-foreground">Estimated commission for this referral:</p>
                             <p className="text-2xl font-bold text-primary">
-                              ${((parseFloat(form.watch("estimatedBudget") || "0") * (form.watch("referrerType") === "sales_team" ? 0.05 : 0.03)).toLocaleString())}
+                              $
+                              {(
+                                parseFloat(form.watch("estimatedBudget") || "0") *
+                                (form.watch("referrerType") === "sales_team" ? 0.05 : 0.03)
+                              ).toLocaleString()}
                             </p>
                           </div>
                         )}
@@ -564,8 +540,8 @@ const ReferralPortal = () => {
 
                     {/* Submit Button */}
                     <div className="text-center pt-6">
-                      <Button 
-                        type="submit" 
+                      <Button
+                        type="submit"
                         size="lg"
                         disabled={isSubmitting}
                         className="min-w-[200px] h-14 text-lg bg-gradient-primary hover:from-primary/90 hover:to-teal/90 shadow-lg hover:shadow-xl transition-all duration-300"
