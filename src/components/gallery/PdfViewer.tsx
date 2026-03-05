@@ -451,9 +451,24 @@ const PdfViewer = ({ fileUrl, fileName, onSaveToGallery }: PdfViewerProps) => {
 
       const canvas = await renderPageToCanvas(currentPage, EXPORT_SCALE);
       addCanvasToPdfPage(pdf, canvas, dims);
-      pdf.save(`signed-${fileName.replace('.pdf', '')}-page${currentPage}.pdf`);
+
+      if (onSaveToGallery) {
+        // For single page save, we still rebuild the full doc to preserve all pages
+        const blob = await buildSignedPdfBlob();
+        await onSaveToGallery(blob);
+        toast({ title: 'Saved', description: 'Signed PDF saved to gallery.' });
+      } else {
+        const blob = pdf.output('blob');
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `signed-${fileName.replace('.pdf', '')}-page${currentPage}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
     } catch (err) {
       console.error('PDF save error:', err);
+      toast({ title: 'Save failed', description: 'Could not save the signed PDF.', variant: 'destructive' });
     } finally {
       setSaving(false);
     }
