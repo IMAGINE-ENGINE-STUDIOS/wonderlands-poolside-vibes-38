@@ -141,7 +141,7 @@ const pools: Pool[] = [
   category: 'premium',
   image: wonderPalaceImage,
   dimensions: "14' × 28'",
-  depth: "4'",
+  depth: "6'",
   installationTimeWeeks: 18,
   warrantyYears: 10,
   features: ["Integrated Spa", "Spillover Feature", "Concrete Construction", "Custom Finish Options"],
