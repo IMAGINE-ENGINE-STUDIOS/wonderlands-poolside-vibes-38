@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { Camera, ZoomIn, ZoomOut, Move, RotateCcw } from 'lucide-react';
 
 export interface ImageCropSettings {
@@ -32,7 +32,6 @@ const ImageUploadOverlay: React.FC<ImageUploadOverlayProps> = ({
   const [showCropControls, setShowCropControls] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const crop = cropSettings?.[imageKey] || DEFAULT_CROP;
   const hasOverride = !!imageOverrides[imageKey];
@@ -44,6 +43,7 @@ const ImageUploadOverlay: React.FC<ImageUploadOverlayProps> = ({
     reader.onload = () => {
       if (typeof reader.result === 'string') {
         onImageOverride(imageKey, reader.result);
+        // Reset crop to default — image will show fully (object-fit: contain style)
         onCropChange?.(imageKey, DEFAULT_CROP);
         setShowCropControls(true);
       }
@@ -56,13 +56,10 @@ const ImageUploadOverlay: React.FC<ImageUploadOverlayProps> = ({
     onCropChange?.(imageKey, { ...crop, ...partial });
   }, [imageKey, crop, onCropChange]);
 
-  const handleZoomIn = () => updateCrop({ zoom: Math.min(crop.zoom + 0.15, 3) });
-  const handleZoomOut = () => updateCrop({ zoom: Math.max(crop.zoom - 0.15, 0.5) });
-  const handleReset = () => {
-    onCropChange?.(imageKey, DEFAULT_CROP);
-  };
+  const handleZoomIn = () => updateCrop({ zoom: Math.min(crop.zoom + 0.1, 4) });
+  const handleZoomOut = () => updateCrop({ zoom: Math.max(crop.zoom - 0.1, 0.3) });
+  const handleReset = () => onCropChange?.(imageKey, DEFAULT_CROP);
 
-  // Drag to pan
   const handlePointerDown = (e: React.PointerEvent) => {
     if (!showCropControls) return;
     e.preventDefault();
@@ -83,29 +80,43 @@ const ImageUploadOverlay: React.FC<ImageUploadOverlayProps> = ({
     });
   };
 
-  const handlePointerUp = (e: React.PointerEvent) => {
+  const handlePointerUp = () => {
     setIsDragging(false);
     dragStartRef.current = null;
   };
 
-  // Apply crop transform to children's img elements
+  // Build a style object that the children's images should use
+  // We inject this via a CSS variable approach on the wrapper
   const hasCropApplied = crop.zoom !== 1 || crop.offsetX !== 0 || crop.offsetY !== 0;
-  const transformStyle = hasCropApplied ? {
-    transform: `scale(${crop.zoom}) translate(${crop.offsetX / crop.zoom}px, ${crop.offsetY / crop.zoom}px)`,
-  } : undefined;
 
   return (
-    <div className="relative" ref={containerRef}>
-      {/* Wrap children with crop transform */}
+    <div
+      className="relative"
+      style={{
+        // Pass crop data as CSS custom properties so child img picks them up
+        '--img-crop-zoom': crop.zoom,
+        '--img-crop-x': `${crop.offsetX}px`,
+        '--img-crop-y': `${crop.offsetY}px`,
+      } as React.CSSProperties}
+    >
+      {/* Children rendered with crop transform applied to all descendant img/canvas */}
       <div
         className="overflow-hidden"
         style={{ position: 'relative' }}
-        onPointerDown={isEditMode && showCropControls ? handlePointerDown : undefined}
-        onPointerMove={isEditMode && showCropControls ? handlePointerMove : undefined}
-        onPointerUp={isEditMode && showCropControls ? handlePointerUp : undefined}
       >
-        <div style={transformStyle} className="transition-transform duration-75">
-          {children}
+        <div
+          style={hasCropApplied ? {
+            transform: `translate(${crop.offsetX}px, ${crop.offsetY}px) scale(${crop.zoom})`,
+            transformOrigin: 'center center',
+            transition: isDragging ? 'none' : 'transform 0.15s ease-out',
+          } : undefined}
+        >
+          {/* Clone children to override object-fit to 'contain' when we have an override */}
+          {hasOverride ? (
+            <div style={{ width: '100%', height: '100%' }} className="[&_img]:!object-contain">
+              {children}
+            </div>
+          ) : children}
         </div>
       </div>
 
@@ -143,48 +154,33 @@ const ImageUploadOverlay: React.FC<ImageUploadOverlayProps> = ({
           {/* Crop controls bar */}
           {showCropControls && (
             <div className="absolute bottom-1 left-1 right-1 z-10 flex items-center gap-1 bg-black/70 rounded-md px-2 py-1 no-print print:hidden">
-              <button
-                type="button"
-                onClick={handleZoomOut}
-                className="text-white hover:text-blue-300 p-0.5"
-                title="Zoom out"
-              >
+              <button type="button" onClick={handleZoomOut} className="text-white hover:text-blue-300 p-0.5" title="Zoom out">
                 <ZoomOut className="h-3.5 w-3.5" />
               </button>
               <input
                 type="range"
-                min="50"
-                max="300"
+                min="30"
+                max="400"
                 value={crop.zoom * 100}
                 onChange={(e) => updateCrop({ zoom: Number(e.target.value) / 100 })}
                 className="flex-1 h-1 accent-blue-500"
                 title={`Zoom: ${Math.round(crop.zoom * 100)}%`}
               />
-              <button
-                type="button"
-                onClick={handleZoomIn}
-                className="text-white hover:text-blue-300 p-0.5"
-                title="Zoom in"
-              >
+              <button type="button" onClick={handleZoomIn} className="text-white hover:text-blue-300 p-0.5" title="Zoom in">
                 <ZoomIn className="h-3.5 w-3.5" />
               </button>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="text-white hover:text-orange-300 p-0.5 ml-1"
-                title="Reset"
-              >
+              <button type="button" onClick={handleReset} className="text-white hover:text-orange-300 p-0.5 ml-1" title="Reset">
                 <RotateCcw className="h-3.5 w-3.5" />
               </button>
-              <span className="text-white text-[10px] ml-1 select-none">{Math.round(crop.zoom * 100)}%</span>
+              <span className="text-white text-[10px] ml-1 select-none whitespace-nowrap">{Math.round(crop.zoom * 100)}%</span>
             </div>
           )}
 
-          {/* Drag cursor overlay when crop mode active */}
+          {/* Drag surface when crop mode active */}
           {showCropControls && (
             <div
               className="absolute inset-0 z-[5]"
-              style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+              style={{ cursor: isDragging ? 'grabbing' : 'grab', bottom: '28px' }}
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
