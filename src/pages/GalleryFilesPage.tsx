@@ -32,6 +32,9 @@ const GalleryFilesPage = () => {
   const deleteFile = async (id: string) => { await rawDeleteFile(id); refetchFolders(); };
   const wrappedBulkDelete = async (ids: string[]) => { await rawBulkDelete(ids); refetchFolders(); };
   const [duplicateQueue, setDuplicateQueue] = useState<{ file: File; existingId: string; queueItemId: string } | null>(null);
+  const [skipAll, setSkipAll] = useState(false);
+  const [replaceAll, setReplaceAll] = useState(false);
+  const consecutiveReplacesRef = useRef(0);
   const pendingUploadsRef = useRef<{ items: UploadQueueItem[]; index: number } | null>(null);
   const [newFolderName, setNewFolderName] = useState('');
   const [newFolderDesc, setNewFolderDesc] = useState('');
@@ -61,6 +64,22 @@ const GalleryFilesPage = () => {
       // Check for duplicate
       const existing = await checkDuplicate(item.file.name);
       if (existing) {
+        // If skipAll is active, skip automatically
+        if (skipAll) {
+          setUploadQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'error', error: 'Skipped (duplicate)' } : q));
+          continue;
+        }
+        // If replaceAll is active, replace automatically
+        if (replaceAll) {
+          setUploadQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'uploading', progress: 30 } : q));
+          try {
+            await replaceFile(existing.id, item.file);
+            setUploadQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'done', progress: 100 } : q));
+          } catch (err: any) {
+            setUploadQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'error', error: err?.message || 'Replace failed' } : q));
+          }
+          continue;
+        }
         // Pause and ask user
         pendingUploadsRef.current = { items: queueItems, index: i + 1 };
         setDuplicateQueue({ file: item.file, existingId: existing.id, queueItemId: item.id });
@@ -77,12 +96,13 @@ const GalleryFilesPage = () => {
     }
     setUploading(false);
     refetchFolders();
-  }, [checkDuplicate, uploadFile, refetchFolders]);
+  }, [checkDuplicate, uploadFile, replaceFile, refetchFolders, skipAll, replaceAll]);
 
   const handleDuplicateReplace = async () => {
     if (!duplicateQueue) return;
     const { file, existingId, queueItemId } = duplicateQueue;
     setDuplicateQueue(null);
+    consecutiveReplacesRef.current += 1;
     
     setUploadQueue(prev => prev.map(q => q.id === queueItemId ? { ...q, status: 'uploading', progress: 30 } : q));
     try {
@@ -102,10 +122,16 @@ const GalleryFilesPage = () => {
     }
   };
 
+  const handleDuplicateReplaceAll = async () => {
+    setReplaceAll(true);
+    await handleDuplicateReplace();
+  };
+
   const handleDuplicateSkip = async () => {
     if (!duplicateQueue) return;
     const { queueItemId } = duplicateQueue;
     setDuplicateQueue(null);
+    consecutiveReplacesRef.current = 0;
     
     setUploadQueue(prev => prev.map(q => q.id === queueItemId ? { ...q, status: 'error', error: 'Skipped (duplicate)' } : q));
     
@@ -119,10 +145,18 @@ const GalleryFilesPage = () => {
     }
   };
 
+  const handleDuplicateSkipAll = async () => {
+    setSkipAll(true);
+    await handleDuplicateSkip();
+  };
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
     if (!fileList) return;
     setUploading(true);
+    setSkipAll(false);
+    setReplaceAll(false);
+    consecutiveReplacesRef.current = 0;
     
     const queueItems: UploadQueueItem[] = Array.from(fileList).map(file => ({
       id: `upload-${++queueIdRef.current}`,
@@ -219,6 +253,9 @@ const GalleryFilesPage = () => {
     const droppedFiles = e.dataTransfer.files;
     if (!droppedFiles.length) return;
     setUploading(true);
+    setSkipAll(false);
+    setReplaceAll(false);
+    consecutiveReplacesRef.current = 0;
 
     const queueItems: UploadQueueItem[] = Array.from(droppedFiles).map(file => ({
       id: `upload-${++queueIdRef.current}`,
@@ -521,9 +558,13 @@ const GalleryFilesPage = () => {
               A file named <span className="font-semibold text-foreground">"{duplicateQueue?.file.name}"</span> already exists in this folder. Would you like to replace it or skip this file?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex-wrap gap-2">
             <AlertDialogCancel onClick={handleDuplicateSkip}>Skip</AlertDialogCancel>
+            <Button variant="outline" onClick={handleDuplicateSkipAll} className="border-muted-foreground/30">Skip All</Button>
             <AlertDialogAction onClick={handleDuplicateReplace}>Replace</AlertDialogAction>
+            {consecutiveReplacesRef.current >= 3 && (
+              <Button onClick={handleDuplicateReplaceAll} className="bg-[hsl(var(--coral))] hover:bg-[hsl(12,76%,55%)] text-white">Replace All</Button>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
