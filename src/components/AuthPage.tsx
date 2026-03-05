@@ -171,7 +171,35 @@ const AuthPage = () => {
           <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
       </div>);
+  }
 
+  // Show already-logged-in state instead of immediately redirecting
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-center">Already Signed In</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-center">
+            <p className="text-muted-foreground">
+              You are signed in as <strong>{user.email}</strong>
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button onClick={() => navigate(from, { replace: true })}>
+                Go to Dashboard
+              </Button>
+              <Button variant="outline" onClick={async () => {
+                const { signOut } = useAuth();
+                await signOut();
+              }}>
+                Sign Out & Switch Account
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
