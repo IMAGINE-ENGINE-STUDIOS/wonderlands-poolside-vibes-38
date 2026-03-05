@@ -190,7 +190,6 @@ const AuthPage = () => {
                 Go to Dashboard
               </Button>
               <Button variant="outline" onClick={async () => {
-                const { signOut } = useAuth();
                 await signOut();
               }}>
                 Sign Out & Switch Account
