@@ -537,7 +537,7 @@ const PdfViewer = ({ fileUrl, fileName, onSaveToGallery }: PdfViewerProps) => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="auto">Auto (Original: {formatLabel})</SelectItem>
+            <SelectItem value="auto">Auto ({formatLabel})</SelectItem>
             {Object.entries(PAGE_FORMATS).map(([key, val]) => (
               <SelectItem key={key} value={key}>{val.label}</SelectItem>
             ))}
