@@ -287,14 +287,15 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
   };
 
   const getExportPageDims = (pageIndex: number) => {
-    const effectiveFormat = selectedFormat === 'auto' ? detectedFormat : selectedFormat;
-    if (effectiveFormat === 'custom') {
-      return originalPageSizes[pageIndex] || { width: 595.28, height: 841.89 };
+    const orig = originalPageSizes[pageIndex] || originalPageSizes[0] || { width: 595.28, height: 841.89 };
+
+    // Default = preserve exact original PDF page dimensions (no deformation)
+    if (selectedFormat === 'auto' || selectedFormat === 'custom') {
+      return { width: orig.width, height: orig.height };
     }
-    const fmt = PAGE_FORMATS[effectiveFormat] || PAGE_FORMATS.a4;
-    // Match orientation to original
-    const orig = originalPageSizes[pageIndex];
-    if (orig && orig.width > orig.height) {
+
+    const fmt = PAGE_FORMATS[selectedFormat] || PAGE_FORMATS.a4;
+    if (orig.width > orig.height) {
       return { width: Math.max(fmt.width, fmt.height), height: Math.min(fmt.width, fmt.height) };
     }
     return { width: Math.min(fmt.width, fmt.height), height: Math.max(fmt.width, fmt.height) };
