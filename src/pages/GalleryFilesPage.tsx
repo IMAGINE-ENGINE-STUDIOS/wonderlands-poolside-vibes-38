@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { useGallery, useGalleryFiles, GalleryFolder } from '@/hooks/useGallery';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import FileCard from '@/components/gallery/FileCard';
 import FolderCard from '@/components/gallery/FolderCard';
 import { downloadFile, downloadFilesAsZip } from '@/components/gallery/galleryUtils';
 import FileViewer from '@/components/gallery/FileViewer';
+import UploadQueue, { UploadQueueItem } from '@/components/gallery/UploadQueue';
 
 const GalleryFilesPage = () => {
   const { folders, loading, createFolder, deleteFolder, renameFolder, moveFolder } = useGallery();
@@ -34,6 +35,8 @@ const GalleryFilesPage = () => {
   const [viewerIndex, setViewerIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const [uploadQueue, setUploadQueue] = useState<UploadQueueItem[]>([]);
+  const queueIdRef = useRef(0);
 
   const handleCreateFolder = async (parentId?: string) => {
     if (!newFolderName.trim()) return;
@@ -47,11 +50,26 @@ const GalleryFilesPage = () => {
     const fileList = e.target.files;
     if (!fileList) return;
     setUploading(true);
-    toast({ title: `Uploading ${fileList.length} file(s)...` });
-    for (let i = 0; i < fileList.length; i++) {
-      await uploadFile(fileList[i]);
+    
+    // Add all files to queue
+    const queueItems: UploadQueueItem[] = Array.from(fileList).map(file => ({
+      id: `upload-${++queueIdRef.current}`,
+      file,
+      status: 'queued' as const,
+      progress: 0,
+    }));
+    setUploadQueue(prev => [...prev, ...queueItems]);
+
+    for (const item of queueItems) {
+      setUploadQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'uploading', progress: 30 } : q));
+      try {
+        await uploadFile(item.file);
+        setUploadQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'done', progress: 100 } : q));
+      } catch (err: any) {
+        setUploadQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'error', error: err?.message || 'Upload failed' } : q));
+      }
     }
-    toast({ title: `${fileList.length} file(s) uploaded` });
+
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -140,9 +158,25 @@ const GalleryFilesPage = () => {
     const droppedFiles = e.dataTransfer.files;
     if (!droppedFiles.length) return;
     setUploading(true);
-    for (let i = 0; i < droppedFiles.length; i++) {
-      await uploadFile(droppedFiles[i]);
+
+    const queueItems: UploadQueueItem[] = Array.from(droppedFiles).map(file => ({
+      id: `upload-${++queueIdRef.current}`,
+      file,
+      status: 'queued' as const,
+      progress: 0,
+    }));
+    setUploadQueue(prev => [...prev, ...queueItems]);
+
+    for (const item of queueItems) {
+      setUploadQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'uploading', progress: 30 } : q));
+      try {
+        await uploadFile(item.file);
+        setUploadQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'done', progress: 100 } : q));
+      } catch (err: any) {
+        setUploadQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'error', error: err?.message || 'Upload failed' } : q));
+      }
     }
+
     setUploading(false);
   }, [selectedFolder, uploadFile]);
 
@@ -413,6 +447,13 @@ const GalleryFilesPage = () => {
         initialIndex={viewerIndex}
         open={viewerOpen}
         onOpenChange={setViewerOpen}
+      />
+
+      {/* Upload Queue */}
+      <UploadQueue
+        items={uploadQueue}
+        onDismiss={(id) => setUploadQueue(prev => prev.filter(q => q.id !== id))}
+        onClearCompleted={() => setUploadQueue(prev => prev.filter(q => q.status !== 'done'))}
       />
     </div>
   );

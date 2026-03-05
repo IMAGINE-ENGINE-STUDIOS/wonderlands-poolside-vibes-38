@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { GalleryFile } from '@/hooks/useGallery';
 import { downloadFile, printFile, forwardFile, formatSize, getFileIcon } from './galleryUtils';
+import PdfViewer from './PdfViewer';
 
 interface FileViewerProps {
   files: GalleryFile[];
@@ -118,15 +119,7 @@ const FileViewer = ({ files, initialIndex, open, onOpenChange }: FileViewerProps
     }
 
     if (isPdf) {
-      return (
-        <div className="flex-1 w-full">
-          <iframe
-            src={file.file_url}
-            className="w-full h-full border-0"
-            title={file.file_name}
-          />
-        </div>
-      );
+      return <PdfViewer fileUrl={file.file_url} fileName={file.file_name} />;
     }
 
     // Generic file - show icon + info + download
