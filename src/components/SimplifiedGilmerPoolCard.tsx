@@ -807,20 +807,24 @@ const SimplifiedGilmerPoolCard = ({ pool }: SimplifiedGilmerPoolCardProps) => {
                   </div>
                 )}
 
-                {/* Concrete Construction */}
-                <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox 
-                    checked={options.concreteConstruction} 
-                    onCheckedChange={() => toggleOption('concreteConstruction')} 
-                    className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
-                  />
-                  <div className="flex items-center space-x-1">
-                    <Shield size={16} className="text-coral" />
-                    <span className="text-sm">Make it on Concrete (+$15,000)</span>
-                  </div>
-                </label>
-                {options.concreteConstruction && (
-                  <p className="text-xs text-muted-foreground ml-6 mt-1">Premium concrete construction for enhanced durability and longevity.</p>
+                {/* Concrete Construction - Hide for concrete pools (already concrete) */}
+                {pool.model !== "Winderview" && pool.model !== "WonderPalace" && (
+                  <>
+                    <label className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                      <Checkbox 
+                        checked={options.concreteConstruction} 
+                        onCheckedChange={() => toggleOption('concreteConstruction')} 
+                        className="data-[state=checked]:bg-coral data-[state=checked]:border-coral"
+                      />
+                      <div className="flex items-center space-x-1">
+                        <Shield size={16} className="text-coral" />
+                        <span className="text-sm">Make it on Concrete (+$15,000)</span>
+                      </div>
+                    </label>
+                    {options.concreteConstruction && (
+                      <p className="text-xs text-muted-foreground ml-6 mt-1">Premium concrete construction for enhanced durability and longevity.</p>
+                    )}
+                  </>
                 )}
               </div>
             </div>
