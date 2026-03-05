@@ -1022,6 +1022,7 @@ export type Database = {
       gallery_files: {
         Row: {
           created_at: string
+          deleted_at: string | null
           description: string | null
           file_name: string
           file_size: number | null
@@ -1036,6 +1037,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           file_name: string
           file_size?: number | null
@@ -1050,6 +1052,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           file_name?: string
           file_size?: number | null
