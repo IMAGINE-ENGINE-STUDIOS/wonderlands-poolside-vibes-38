@@ -121,8 +121,6 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
         setOriginalPageSizes(sizes);
 
         if (sizes.length > 0) {
-          const fmt = detectPageFormat(sizes[0].width, sizes[0].height);
-          setDetectedFormat(fmt);
           setSelectedFormat('auto');
         }
 
