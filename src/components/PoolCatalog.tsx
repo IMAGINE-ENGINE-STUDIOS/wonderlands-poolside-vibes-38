@@ -134,9 +134,9 @@ const pools: Pool[] = [
   carbonFiber: false,
   description: "Elegant concrete pool featuring classic rectangular design. Durable concrete construction with variable depth and customizable premium finishes."
 },
-// WonderPalace Concrete Pool by Wonderlands - FLORIDA (NO SURCHARGE)
+// Cape Coral Concrete Pool by Wonderlands - FLORIDA (NO SURCHARGE)
 {
-  model: "WonderPalace",
+  model: "Cape Coral",
   price: 85000,
   category: 'premium',
   image: wonderPalaceImage,
@@ -147,7 +147,7 @@ const pools: Pool[] = [
   features: ["Integrated Spa", "Spillover Feature", "Concrete Construction", "Custom Finish Options"],
   heater: false,
   saltSystem: false,
-  description: "Wonderlands concrete pool with integrated spa and spillover water feature. Premium concrete construction with elegant rectangular design.",
+  description: "Cape Coral concrete pool with integrated spa and spillover water feature. Premium concrete construction with elegant rectangular design.",
   carbonFiber: false,
   type: "Concrete Pool"
 },
@@ -1043,7 +1043,7 @@ const PoolCatalog = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16 px-4">
-                {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'WonderPalace').map(pool => {
+                {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'Cape Coral').map(pool => {
                   // Override some props for Winderview since it's concrete
                   const poolProps = pool.model === 'Winderview' 
                     ? { ...pool, type: 'Concrete Pool', features: [...(pool.features || []), 'Concrete Construction'] }
@@ -1070,7 +1070,7 @@ const PoolCatalog = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16">
-            {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'WonderPalace').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
+            {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'Cape Coral').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
           </div>
 
           {/* Pagination Controls */}

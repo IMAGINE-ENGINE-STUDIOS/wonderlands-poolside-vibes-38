@@ -441,7 +441,7 @@ const SurveyQuoteTool = ({
       return `Arrives ${deliveryDate} • Installation same day`;
     }
     
-    if (extras?.concreteConstruction || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima" || pool?.model === "WonderPalace") {
+    if (extras?.concreteConstruction || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima" || pool?.model === "Cape Coral") {
       return "18+ weeks";
     }
     
@@ -2187,7 +2187,7 @@ const SurveyQuoteTool = ({
                       
                       if (!isPoolProduct) return null;
                       
-                      if (extras?.concreteConstruction || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima" || pool?.model === "WonderPalace") {
+                      if (extras?.concreteConstruction || pool?.model === "Madre Perla" || pool?.model === "Winderview" || pool?.model === "Pacific Ridge" || pool?.model === "Maxima" || pool?.model === "Cape Coral") {
                         return (
                           <p className="text-xs mt-1 text-muted-foreground">
                             Extended timeline due to custom concrete construction and engineering requirements

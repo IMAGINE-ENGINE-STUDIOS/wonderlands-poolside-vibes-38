@@ -579,7 +579,7 @@ const GilmerPoolProductCard = ({ pool }: GilmerPoolCardProps) => {
             </div>
 
             {/* Concrete Construction - Hide for concrete pools (already concrete) */}
-            {pool.model !== "Winderview" && pool.model !== "WonderPalace" && (
+            {pool.model !== "Winderview" && pool.model !== "Cape Coral" && (
               <div className="space-y-2">
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <Checkbox 
