@@ -3,16 +3,17 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, File, FileText, Film, Image, Lock, Folder, ChevronRight } from 'lucide-react';
-
-interface SharedFile {
-  id: string;
-  file_name: string;
-  file_url: string;
-  file_type: string | null;
-  file_size: number | null;
-  created_at: string;
-}
+import {
+  ContextMenu, ContextMenuContent, ContextMenuItem,
+  ContextMenuSeparator, ContextMenuTrigger,
+} from '@/components/ui/context-menu';
+import {
+  ExternalLink, File, FileText, Film, Image, Lock, Folder,
+  ChevronRight, Download, Printer, Send,
+} from 'lucide-react';
+import { GalleryFile } from '@/hooks/useGallery';
+import { downloadFile, printFile, forwardFile } from '@/components/gallery/galleryUtils';
+import FileViewer from '@/components/gallery/FileViewer';
 
 interface SharedFolder {
   id: string;
@@ -35,30 +36,46 @@ const formatSize = (bytes: number | null) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
+/** Map shared file data to GalleryFile shape for the FileViewer */
+const toGalleryFile = (f: { id: string; file_name: string; file_url: string; file_type: string | null; file_size: number | null; created_at: string }, folderId: string): GalleryFile => ({
+  id: f.id,
+  folder_id: folderId,
+  file_name: f.file_name,
+  file_url: f.file_url,
+  file_type: f.file_type,
+  file_size: f.file_size,
+  thumbnail_url: null,
+  description: null,
+  uploaded_by: null,
+  created_at: f.created_at,
+  sort_order: 0,
+});
+
 const SharedGalleryView = () => {
   const { token } = useParams<{ token: string }>();
   const [rootFolder, setRootFolder] = useState<{ id: string; name: string } | null>(null);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [breadcrumbs, setBreadcrumbs] = useState<{ id: string; name: string }[]>([]);
   const [subfolders, setSubfolders] = useState<SharedFolder[]>([]);
-  const [files, setFiles] = useState<SharedFile[]>([]);
+  const [files, setFiles] = useState<{ id: string; file_name: string; file_url: string; file_type: string | null; file_size: number | null; created_at: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+
+  // FileViewer state
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
 
   // Load root folder from token
   useEffect(() => {
     const loadRoot = async () => {
       if (!token) { setNotFound(true); setLoading(false); return; }
-
       const { data: folder } = await supabase
         .from('gallery_folders')
         .select('id, name')
         .eq('share_token', token)
         .eq('is_active', true)
         .single();
-
       if (!folder) { setNotFound(true); setLoading(false); return; }
-
       setRootFolder(folder);
       setCurrentFolderId(folder.id);
       setBreadcrumbs([{ id: folder.id, name: folder.name }]);
@@ -66,10 +83,8 @@ const SharedGalleryView = () => {
     loadRoot();
   }, [token]);
 
-  // Load subfolders and files for the current folder
   const loadFolderContents = useCallback(async (folderId: string) => {
     setLoading(true);
-
     const [foldersRes, filesRes] = await Promise.all([
       supabase
         .from('gallery_folders')
@@ -84,16 +99,13 @@ const SharedGalleryView = () => {
         .is('deleted_at', null)
         .order('created_at', { ascending: false }),
     ]);
-
     setSubfolders(foldersRes.data || []);
     setFiles(filesRes.data || []);
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    if (currentFolderId) {
-      loadFolderContents(currentFolderId);
-    }
+    if (currentFolderId) loadFolderContents(currentFolderId);
   }, [currentFolderId, loadFolderContents]);
 
   const navigateToSubfolder = (folder: SharedFolder) => {
@@ -106,6 +118,16 @@ const SharedGalleryView = () => {
     setCurrentFolderId(target.id);
     setBreadcrumbs(prev => prev.slice(0, index + 1));
   };
+
+  const openFileViewer = (fileIndex: number) => {
+    setViewerIndex(fileIndex);
+    setViewerOpen(true);
+  };
+
+  // Convert files to GalleryFile[] for FileViewer
+  const galleryFiles: GalleryFile[] = currentFolderId
+    ? files.map(f => toGalleryFile(f, currentFolderId))
+    : [];
 
   if (loading && !rootFolder) {
     return (
@@ -136,17 +158,13 @@ const SharedGalleryView = () => {
         <div className="mb-6">
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Shared Gallery</p>
 
-          {/* Breadcrumbs */}
           {breadcrumbs.length > 1 && (
             <nav className="flex items-center gap-1 text-sm mb-2 flex-wrap">
               {breadcrumbs.map((crumb, i) => (
                 <span key={crumb.id} className="flex items-center gap-1">
                   {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
                   {i < breadcrumbs.length - 1 ? (
-                    <button
-                      onClick={() => navigateToBreadcrumb(i)}
-                      className="text-primary hover:underline"
-                    >
+                    <button onClick={() => navigateToBreadcrumb(i)} className="text-primary hover:underline">
                       {crumb.name}
                     </button>
                   ) : (
@@ -191,32 +209,77 @@ const SharedGalleryView = () => {
               </Card>
             ))}
 
-            {/* Files */}
-            {files.map(file => (
-              <Card key={file.id} className="group overflow-hidden border-border">
-                <div className="aspect-square bg-muted flex items-center justify-center relative overflow-hidden">
-                  {file.file_type?.startsWith('image/') ? (
-                    <img src={file.file_url} alt={file.file_name} className="w-full h-full object-cover" loading="lazy" />
-                  ) : file.file_type?.startsWith('video/') ? (
-                    <video src={file.file_url} className="w-full h-full object-cover" controls />
-                  ) : (
-                    getFileIcon(file.file_type)
-                  )}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => window.open(file.file_url, '_blank')}>
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <CardContent className="p-3">
-                  <p className="text-xs font-medium text-foreground truncate">{file.file_name}</p>
-                  <p className="text-[10px] text-muted-foreground">{formatSize(file.file_size)}</p>
-                </CardContent>
-              </Card>
+            {/* Files with context menu and click-to-open viewer */}
+            {files.map((file, fileIndex) => (
+              <ContextMenu key={file.id}>
+                <ContextMenuTrigger>
+                  <Card
+                    className="group overflow-hidden border-border cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => openFileViewer(fileIndex)}
+                  >
+                    <div className="aspect-square bg-muted flex items-center justify-center relative overflow-hidden">
+                      {file.file_type?.startsWith('image/') ? (
+                        <img src={file.file_url} alt={file.file_name} className="w-full h-full object-cover" loading="lazy" />
+                      ) : file.file_type?.startsWith('video/') ? (
+                        <video src={file.file_url} className="w-full h-full object-cover" />
+                      ) : (
+                        getFileIcon(file.file_type)
+                      )}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <div className="flex gap-1.5">
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            className="h-8 w-8"
+                            onClick={(e) => { e.stopPropagation(); openFileViewer(fileIndex); }}
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            className="h-8 w-8"
+                            onClick={(e) => { e.stopPropagation(); downloadFile(file.file_url, file.file_name); }}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <CardContent className="p-3">
+                      <p className="text-xs font-medium text-foreground truncate">{file.file_name}</p>
+                      <p className="text-[10px] text-muted-foreground">{formatSize(file.file_size)}</p>
+                    </CardContent>
+                  </Card>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem onClick={() => openFileViewer(fileIndex)}>
+                    <ExternalLink className="h-4 w-4 mr-2" /> Open
+                  </ContextMenuItem>
+                  <ContextMenuItem onClick={() => downloadFile(file.file_url, file.file_name)}>
+                    <Download className="h-4 w-4 mr-2" /> Download
+                  </ContextMenuItem>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem onClick={() => printFile(file.file_url)}>
+                    <Printer className="h-4 w-4 mr-2" /> Print
+                  </ContextMenuItem>
+                  <ContextMenuItem onClick={() => forwardFile(file.file_url, file.file_name)}>
+                    <Send className="h-4 w-4 mr-2" /> Forward via Email
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
             ))}
           </div>
         )}
       </div>
+
+      {/* File Viewer - same UI as admin gallery */}
+      <FileViewer
+        files={galleryFiles}
+        initialIndex={viewerIndex}
+        open={viewerOpen}
+        onOpenChange={setViewerOpen}
+      />
     </div>
   );
 };
