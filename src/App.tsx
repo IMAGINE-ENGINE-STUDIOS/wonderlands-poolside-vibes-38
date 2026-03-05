@@ -37,6 +37,8 @@ const ConsentPage = lazy(() => import("./pages/ConsentPage"));
 const ApiDocumentation = lazy(() => import("./pages/ApiDocumentation"));
 const SharedProjectView = lazy(() => import("./pages/SharedProjectView"));
 const InternalProjectView = lazy(() => import("./pages/InternalProjectView"));
+const GalleryFilesPage = lazy(() => import("./pages/GalleryFilesPage"));
+const SharedGalleryView = lazy(() => import("./pages/SharedGalleryView"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -132,6 +134,15 @@ const App = () => {
             <Route path="/api" element={<ApiDocumentation />} />
             <Route path="/project/:token" element={<SharedProjectView />} />
             <Route path="/project/internal/:token" element={<InternalProjectView />} />
+            <Route 
+              path="/files" 
+              element={
+                <ProtectedRoute requireAuth={true}>
+                  <GalleryFilesPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="/gallery/:token" element={<SharedGalleryView />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
