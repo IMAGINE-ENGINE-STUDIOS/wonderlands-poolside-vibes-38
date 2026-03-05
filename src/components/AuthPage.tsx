@@ -30,10 +30,8 @@ const AuthPage = () => {
       } else {
         navigate(from, { replace: true });
       }
-    } else if (!loading && user && !profile) {
-      // User exists but profile not loaded yet - wait
-      navigate(from, { replace: true });
     }
+    // Don't redirect if profile hasn't loaded yet - wait for it
   }, [user, profile, loading, navigate, from]);
 
   const [signInData, setSignInData] = useState({
