@@ -22,6 +22,7 @@ import madrePerlaImage from "@/assets/pools/madre-perla.jpg";
 import pacificRidgeImage from "@/assets/pools/pacific-ridge-new.jpg";
 import cancunDeluxeImage from "@/assets/cancun-deluxe.png";
 import maximaImage from "@/assets/maxima-pool.jpg";
+import wonderPalaceImage from "@/assets/pools/wonderpalace.jpg";
 
 // Import Axiom 14 Deluxe images
 import axiom14DeluxeMain from "@/assets/pools/axiom-14-deluxe-main.jpg";
@@ -132,6 +133,23 @@ const pools: Pool[] = [
   saltSystem: false,
   carbonFiber: false,
   description: "Elegant concrete pool featuring classic rectangular design. Durable concrete construction with variable depth and customizable premium finishes."
+},
+// WonderPalace Concrete Pool by Wonderlands - FLORIDA (NO SURCHARGE)
+{
+  model: "WonderPalace",
+  price: 85000,
+  category: 'premium',
+  image: wonderPalaceImage,
+  dimensions: "16' × 32'",
+  depth: "3'6\" - 6'6\"; Spa 3'",
+  installationTimeWeeks: 18,
+  warrantyYears: 10,
+  features: ["Integrated Spa", "Spillover Feature", "Concrete Construction", "Custom Finish Options"],
+  heater: false,
+  saltSystem: false,
+  description: "Wonderlands concrete pool with integrated spa and spillover water feature. Premium concrete construction with elegant rectangular design.",
+  carbonFiber: false,
+  type: "Concrete Pool"
 },
 // Winderview Concrete Pool by Wonderlands - FLORIDA (NO SURCHARGE)
 {
@@ -1025,7 +1043,7 @@ const PoolCatalog = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16 px-4">
-                {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview').map(pool => {
+                {pools.filter(pool => pool.model === 'Madre Perla' || pool.model === 'Pacific Ridge' || pool.model === 'Maxima' || pool.model === 'Winderview' || pool.model === 'WonderPalace').map(pool => {
                   // Override some props for Winderview since it's concrete
                   const poolProps = pool.model === 'Winderview' 
                     ? { ...pool, type: 'Concrete Pool', features: [...(pool.features || []), 'Concrete Construction'] }
@@ -1052,7 +1070,7 @@ const PoolCatalog = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16">
-            {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
+            {paginatedPools.filter(pool => pool.model !== 'Madre Perla' && pool.model !== 'Pacific Ridge' && pool.model !== 'Maxima' && pool.model !== 'Winderview' && pool.model !== 'WonderPalace').map(pool => <PoolProductCard key={pool.model} pool={pool} onViewDetails={handleViewDetails} onRequestQuote={handleRequestQuote} />)}
           </div>
 
           {/* Pagination Controls */}

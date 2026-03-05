@@ -895,7 +895,7 @@ export type Database = {
       }
       conversion_funnels: {
         Row: {
-          average_session_duration: unknown
+          average_session_duration: string | null
           bounce_rate: number | null
           campaign_id: string | null
           conversion_rate: number | null
@@ -911,7 +911,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          average_session_duration?: unknown
+          average_session_duration?: string | null
           bounce_rate?: number | null
           campaign_id?: string | null
           conversion_rate?: number | null
@@ -927,7 +927,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          average_session_duration?: unknown
+          average_session_duration?: string | null
           bounce_rate?: number | null
           campaign_id?: string | null
           conversion_rate?: number | null
@@ -1614,7 +1614,7 @@ export type Database = {
       page_analytics: {
         Row: {
           accessibility_score: number | null
-          average_session_duration: unknown
+          average_session_duration: string | null
           backlinks_count: number | null
           bounce_rate: number | null
           created_at: string
@@ -1635,7 +1635,7 @@ export type Database = {
         }
         Insert: {
           accessibility_score?: number | null
-          average_session_duration?: unknown
+          average_session_duration?: string | null
           backlinks_count?: number | null
           bounce_rate?: number | null
           created_at?: string
@@ -1656,7 +1656,7 @@ export type Database = {
         }
         Update: {
           accessibility_score?: number | null
-          average_session_duration?: unknown
+          average_session_duration?: string | null
           backlinks_count?: number | null
           bounce_rate?: number | null
           created_at?: string

@@ -7,6 +7,7 @@ import madrePerlaImage from '@/assets/pools/madre-perla.jpg';
 import maximaImage from '@/assets/maxima-pool.jpg';
 import pacificRidgeImage from '@/assets/pools/pacific-ridge-new.jpg';
 import cancunDeluxeImage from '@/assets/cancun-deluxe.png';
+import wonderPalaceImage from '@/assets/pools/wonderpalace.jpg';
 
 // Import Latham/Axiom pool images
 import axiom14DeluxeMain from '@/assets/pools/axiom-14-deluxe-main.jpg';
@@ -62,6 +63,7 @@ export const poolProductLookup: Record<string, PoolProductInfo> = {
   // ============================================
   // WONDERLANDS CONCRETE POOLS
   // ============================================
+  "wonderpalace": { name: "WonderPalace", dimensions: "16' × 32'", depth: "3'6\" - 6'6\"; Spa 3'", price: 85000, image: wonderPalaceImage, category: "Pool", brand: "Wonderlands" },
   "madre perla": { name: "Madre Perla", dimensions: "20' × 40'", depth: "3'11\" - 9'", price: 168438, image: madrePerlaImage, category: "Pool", brand: "Wonderlands" },
   "maxima": { name: "Maxima", dimensions: "16' × 40'", depth: "3'9\" - 8'6\"", price: 144375, image: maximaImage, category: "Pool", brand: "Wonderlands" },
   "pacific ridge": { name: "Pacific Ridge", dimensions: "14' × 32'", depth: "3'6\" - 6'", price: 96250, image: pacificRidgeImage, category: "Pool", brand: "Wonderlands" },
