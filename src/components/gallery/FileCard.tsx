@@ -29,7 +29,7 @@ const FileCard = ({ file, isSelected, onSelect, onDelete, onRename, onDragStart,
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(file.file_name);
   const inputRef = useRef<HTMLInputElement>(null);
-  const thumbSrc = useThumbnail(file.file_url, file.file_type, file.folder_id);
+  const { thumbUrl: thumbSrc, isLoading: thumbLoading } = useThumbnail(file.file_url, file.file_type, file.folder_id);
 
   const handleRenameSubmit = () => {
     if (newName.trim() && newName !== file.file_name) {
