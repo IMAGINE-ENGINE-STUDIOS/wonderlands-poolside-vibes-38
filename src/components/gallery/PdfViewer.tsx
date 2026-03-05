@@ -565,10 +565,10 @@ const PdfViewer = ({ fileUrl, fileName, onSaveToGallery }: PdfViewerProps) => {
               <Eraser className="h-3.5 w-3.5" />
             </Button>
             <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={saveCurrentPage} disabled={saving}>
-              <Save className="h-3.5 w-3.5" /> {saving ? 'Saving...' : 'Save Page'}
+              <Save className="h-3.5 w-3.5" /> {saving ? 'Saving...' : onSaveToGallery ? 'Save to Gallery' : 'Save Page'}
             </Button>
             <Button variant="default" size="sm" className="h-7 text-xs gap-1" onClick={saveSignedPdf} disabled={saving}>
-              <FileDown className="h-3.5 w-3.5" /> {saving ? 'Saving...' : 'Save All'}
+              <FileDown className="h-3.5 w-3.5" /> {saving ? 'Saving...' : onSaveToGallery ? 'Save All to Gallery' : 'Save All'}
             </Button>
           </>
         )}
