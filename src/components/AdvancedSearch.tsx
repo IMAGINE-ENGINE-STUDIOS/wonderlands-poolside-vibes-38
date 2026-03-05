@@ -25,6 +25,7 @@ import productImages from '@/data/productImages';
 import madrePerlaImage from '@/assets/pools/madre-perla.jpg';
 import maximaImage from '@/assets/maxima-pool.jpg';
 import pacificRidgeImage from '@/assets/pools/pacific-ridge-new.jpg';
+import wonderPalaceImage from '@/assets/pools/wonderpalace.jpg';
 import cancunDeluxeImage from '@/assets/cancun-deluxe.png';
 import enchantment917SearchImage from '@/assets/pools/enchantment-917.png';
 
@@ -149,6 +150,7 @@ const AdvancedSearch = ({ variant = 'default' }: AdvancedSearchProps) => {
     // LATHAM FIBERGLASS POOLS - Updated prices from PoolCatalog (3.5x dealer multiplier)
     const lathamPoolData = [
       // Wonderlands Concrete Pools
+      { id: 'wonderpalace', name: 'WonderPalace', category: 'Pool', price: 85000, image: wonderPalaceImage, keywords: ['pool', 'premium', 'concrete', 'spa', 'wonderpalace', '16x32'] },
       { id: 'madre-perla', name: 'Madre Perla', category: 'Pool', price: 168438, image: madrePerlaImage, keywords: ['pool', 'premium', 'concrete', 'infinity', 'madre', 'perla', '20x40'] },
       { id: 'maxima', name: 'Maxima', category: 'Pool', price: 144375, image: maximaImage, keywords: ['pool', 'premium', 'fiberglass', '16x40'] },
       { id: 'pacific-ridge', name: 'Pacific Ridge', category: 'Pool', price: 96250, image: pacificRidgeImage, keywords: ['pool', 'premium', 'concrete', '14x32'] },
