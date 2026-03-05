@@ -12,7 +12,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import PasswordResetModal from '@/components/PasswordResetModal';
 
 const AuthPage = () => {
-  const { signIn, signUp, signInWithGoogle, signInWithMicrosoft, user, profile, loading } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithMicrosoft, signOut, user, profile, loading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,10 +30,8 @@ const AuthPage = () => {
       } else {
         navigate(from, { replace: true });
       }
-    } else if (!loading && user && !profile) {
-      // User exists but profile not loaded yet - wait
-      navigate(from, { replace: true });
     }
+    // Don't redirect if profile hasn't loaded yet - wait for it
   }, [user, profile, loading, navigate, from]);
 
   const [signInData, setSignInData] = useState({
@@ -173,7 +171,34 @@ const AuthPage = () => {
           <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
       </div>);
+  }
 
+  // Show already-logged-in state instead of immediately redirecting
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-center">Already Signed In</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-center">
+            <p className="text-muted-foreground">
+              You are signed in as <strong>{user.email}</strong>
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button onClick={() => navigate(from, { replace: true })}>
+                Go to Dashboard
+              </Button>
+              <Button variant="outline" onClick={async () => {
+                await signOut();
+              }}>
+                Sign Out & Switch Account
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
