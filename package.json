@@ -58,6 +58,7 @@
     "framer-motion": "^12.34.3",
     "html2pdf.js": "^0.12.1",
     "input-otp": "^1.2.4",
+    "jspdf": "^4.2.0",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
     "obs-websocket-js": "^5.0.6",
