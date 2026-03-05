@@ -315,9 +315,6 @@ const GalleryFilesPage = () => {
                 <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={() => copyShareLink(selectedFolderData.share_token)}>
                   <Link2 className="h-4 w-4 mr-1" /> Copy Link
                 </Button>
-                <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={() => window.open(`/gallery/${selectedFolderData.share_token}`, '_blank')}>
-                  <ExternalLink className="h-4 w-4 mr-1" /> Preview
-                </Button>
                 <Button size="sm" className="bg-[hsl(var(--coral))] hover:bg-[hsl(12,76%,55%)] text-white border-0" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
                   <Upload className="h-4 w-4 mr-1" /> {uploading ? 'Uploading...' : 'Upload Files'}
                 </Button>
