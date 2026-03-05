@@ -121,7 +121,32 @@ const FileViewer = ({ files, initialIndex, open, onOpenChange, onFilesChanged }:
     }
 
     if (isPdf) {
-      return <PdfViewer fileUrl={file.file_url} fileName={file.file_name} />;
+      const handleSaveToGallery = async (blob: Blob) => {
+        // Upload new version to storage
+        const filePath = `${file.folder_id}/${Date.now()}-signed-${file.file_name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('gallery-files')
+          .upload(filePath, blob, { contentType: 'application/pdf' });
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage.from('gallery-files').getPublicUrl(filePath);
+
+        // Update the gallery_files record to point to the new signed version
+        const { error: dbError } = await supabase
+          .from('gallery_files')
+          .update({
+            file_url: urlData.publicUrl,
+            file_size: blob.size,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', file.id);
+        if (dbError) throw dbError;
+
+        // Refresh the file list so the gallery shows the updated file
+        onFilesChanged?.();
+      };
+
+      return <PdfViewer fileUrl={file.file_url} fileName={file.file_name} onSaveToGallery={handleSaveToGallery} />;
     }
 
     // Generic file - show icon + info + download
