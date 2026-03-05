@@ -1,4 +1,8 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 import { useGallery, useGalleryFiles, GalleryFolder } from '@/hooks/useGallery';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +28,9 @@ const GalleryFilesPage = () => {
   const { folders, loading, createFolder, deleteFolder, renameFolder, moveFolder } = useGallery();
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedFolderData, setSelectedFolderData] = useState<{ name: string; share_token: string } | null>(null);
-  const { files, loading: filesLoading, uploadFile, deleteFile, renameFile, moveFile, bulkDelete } = useGalleryFiles(selectedFolder);
+  const { files, loading: filesLoading, uploadFile, replaceFile, checkDuplicate, deleteFile, renameFile, moveFile, bulkDelete } = useGalleryFiles(selectedFolder);
+  const [duplicateQueue, setDuplicateQueue] = useState<{ file: File; existingId: string; queueItemId: string } | null>(null);
+  const pendingUploadsRef = useRef<{ items: UploadQueueItem[]; index: number } | null>(null);
   const [newFolderName, setNewFolderName] = useState('');
   const [newFolderDesc, setNewFolderDesc] = useState('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -46,21 +52,19 @@ const GalleryFilesPage = () => {
     setCreateDialogOpen(false);
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const fileList = e.target.files;
-    if (!fileList) return;
-    setUploading(true);
-    
-    // Add all files to queue
-    const queueItems: UploadQueueItem[] = Array.from(fileList).map(file => ({
-      id: `upload-${++queueIdRef.current}`,
-      file,
-      status: 'queued' as const,
-      progress: 0,
-    }));
-    setUploadQueue(prev => [...prev, ...queueItems]);
+  const processUploadQueue = useCallback(async (queueItems: UploadQueueItem[]) => {
+    for (let i = 0; i < queueItems.length; i++) {
+      const item = queueItems[i];
+      
+      // Check for duplicate
+      const existing = await checkDuplicate(item.file.name);
+      if (existing) {
+        // Pause and ask user
+        pendingUploadsRef.current = { items: queueItems, index: i + 1 };
+        setDuplicateQueue({ file: item.file, existingId: existing.id, queueItemId: item.id });
+        return; // Will resume after user decision
+      }
 
-    for (const item of queueItems) {
       setUploadQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'uploading', progress: 30 } : q));
       try {
         await uploadFile(item.file);
@@ -69,8 +73,62 @@ const GalleryFilesPage = () => {
         setUploadQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'error', error: err?.message || 'Upload failed' } : q));
       }
     }
-
     setUploading(false);
+  }, [checkDuplicate, uploadFile]);
+
+  const handleDuplicateReplace = async () => {
+    if (!duplicateQueue) return;
+    const { file, existingId, queueItemId } = duplicateQueue;
+    setDuplicateQueue(null);
+    
+    setUploadQueue(prev => prev.map(q => q.id === queueItemId ? { ...q, status: 'uploading', progress: 30 } : q));
+    try {
+      await replaceFile(existingId, file);
+      setUploadQueue(prev => prev.map(q => q.id === queueItemId ? { ...q, status: 'done', progress: 100 } : q));
+    } catch (err: any) {
+      setUploadQueue(prev => prev.map(q => q.id === queueItemId ? { ...q, status: 'error', error: err?.message || 'Replace failed' } : q));
+    }
+    
+    // Continue with remaining items
+    if (pendingUploadsRef.current) {
+      const { items, index } = pendingUploadsRef.current;
+      pendingUploadsRef.current = null;
+      await processUploadQueue(items.slice(index));
+    } else {
+      setUploading(false);
+    }
+  };
+
+  const handleDuplicateSkip = async () => {
+    if (!duplicateQueue) return;
+    const { queueItemId } = duplicateQueue;
+    setDuplicateQueue(null);
+    
+    setUploadQueue(prev => prev.map(q => q.id === queueItemId ? { ...q, status: 'error', error: 'Skipped (duplicate)' } : q));
+    
+    // Continue with remaining items
+    if (pendingUploadsRef.current) {
+      const { items, index } = pendingUploadsRef.current;
+      pendingUploadsRef.current = null;
+      await processUploadQueue(items.slice(index));
+    } else {
+      setUploading(false);
+    }
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (!fileList) return;
+    setUploading(true);
+    
+    const queueItems: UploadQueueItem[] = Array.from(fileList).map(file => ({
+      id: `upload-${++queueIdRef.current}`,
+      file,
+      status: 'queued' as const,
+      progress: 0,
+    }));
+    setUploadQueue(prev => [...prev, ...queueItems]);
+    await processUploadQueue(queueItems);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -166,19 +224,9 @@ const GalleryFilesPage = () => {
       progress: 0,
     }));
     setUploadQueue(prev => [...prev, ...queueItems]);
+    await processUploadQueue(queueItems);
+  }, [selectedFolder, processUploadQueue]);
 
-    for (const item of queueItems) {
-      setUploadQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'uploading', progress: 30 } : q));
-      try {
-        await uploadFile(item.file);
-        setUploadQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'done', progress: 100 } : q));
-      } catch (err: any) {
-        setUploadQueue(prev => prev.map(q => q.id === item.id ? { ...q, status: 'error', error: err?.message || 'Upload failed' } : q));
-      }
-    }
-
-    setUploading(false);
-  }, [selectedFolder, uploadFile]);
 
   const currentFolders = folders.filter(f =>
     selectedFolder ? f.parent_folder_id === selectedFolder : !f.parent_folder_id
@@ -455,6 +503,22 @@ const GalleryFilesPage = () => {
         onDismiss={(id) => setUploadQueue(prev => prev.filter(q => q.id !== id))}
         onClearCompleted={() => setUploadQueue(prev => prev.filter(q => q.status !== 'done'))}
       />
+
+      {/* Duplicate file dialog */}
+      <AlertDialog open={!!duplicateQueue} onOpenChange={(open) => { if (!open) handleDuplicateSkip(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>File already exists</AlertDialogTitle>
+            <AlertDialogDescription>
+              A file named <span className="font-semibold text-foreground">"{duplicateQueue?.file.name}"</span> already exists in this folder. Would you like to replace it or skip this file?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDuplicateSkip}>Skip</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDuplicateReplace}>Replace</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
