@@ -20,7 +20,7 @@ import { cacheCustomerFromQuote } from "@/hooks/useCustomerCache";
 import { OptimizedImage } from "./OptimizedImage";
 import ImageCard from "./ImageCard";
 import ExclusiveSaunaOffer from "./ExclusiveSaunaOffer";
-import ImageUploadOverlay from "./ImageUploadOverlay";
+import ImageUploadOverlay, { type ImageCropSettings } from "./ImageUploadOverlay";
 const poolHeaterImg = "/lovable-uploads/34a72b4b-56fe-42f6-b7cc-5ace54914636.png";
 import fenceQuoteImage from "@/assets/fence-quote-image.jpg";
 import aluminumPanelImage from "@/assets/aluminum-panel-2.jpg";
@@ -141,9 +141,13 @@ const SurveyQuoteTool = ({
   const [editablePrices, setEditablePrices] = useState<Record<string, number>>({});
   const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
   const [imageOverrides, setImageOverrides] = useState<Record<string, string>>({});
+  const [imageCropSettings, setImageCropSettings] = useState<Record<string, ImageCropSettings>>({});
 
   const handleImageOverride = (key: string, dataUrl: string) => {
     setImageOverrides(prev => ({ ...prev, [key]: dataUrl }));
+  };
+  const handleCropChange = (key: string, settings: ImageCropSettings) => {
+    setImageCropSettings(prev => ({ ...prev, [key]: settings }));
   };
   
   // Autofill state
@@ -1437,7 +1441,7 @@ const SurveyQuoteTool = ({
                                   <div className="flex items-center gap-2">
                                     {extras.paverImage && (
                                       <div className="w-12 h-12 rounded border overflow-hidden">
-                                        <ImageUploadOverlay imageKey="paver-thumb" isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride}>
+                                        <ImageUploadOverlay imageKey="paver-thumb" isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
                                           <OptimizedImage 
                                             src={imageOverrides['paver-thumb'] || extras.paverImage} 
                                             alt={extras.paverOption}
@@ -1571,7 +1575,7 @@ const SurveyQuoteTool = ({
                                       <h4 className="font-semibold mb-3 text-lg">Paver Deck</h4>
                                       <div className="flex items-start gap-3 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-teal-200 dark:border-gray-700">
                                         <div className="w-24 h-24 rounded-md overflow-hidden border-2 border-teal-300 flex-shrink-0">
-                                          <ImageUploadOverlay imageKey="paver-deck" isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride}>
+                                          <ImageUploadOverlay imageKey="paver-deck" isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
                                             <OptimizedImage 
                                               src={imageOverrides['paver-deck'] || paverImage} 
                                               alt={selectedPaverName} 
@@ -1617,7 +1621,7 @@ const SurveyQuoteTool = ({
                                       <h4 className="font-semibold mb-3 text-lg">Screen Enclosure</h4>
                                       <div className="flex items-start gap-3 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-orange-200 dark:border-gray-700">
                                         <div className="w-24 h-24 rounded-md overflow-hidden border-2 border-orange-300 flex-shrink-0">
-                                          <ImageUploadOverlay imageKey="screen-enclosure" isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride}>
+                                          <ImageUploadOverlay imageKey="screen-enclosure" isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
                                             <OptimizedImage 
                                               src={imageOverrides['screen-enclosure'] || enclosureImage} 
                                               alt={enclosureType} 
@@ -1652,7 +1656,7 @@ const SurveyQuoteTool = ({
                         {/* Product Image - ALWAYS DISPLAY */}
                         <div>
                           <div className="mb-4">
-                            <ImageUploadOverlay imageKey="main-product" isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride}>
+                            <ImageUploadOverlay imageKey="main-product" isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
                               <ImageCard 
                                 src={imageOverrides['main-product'] || pool?.image || customProduct?.image || fenceQuoteImage} 
                                 alt={pool?.model || customProduct?.name || 'Product'}
@@ -1749,7 +1753,7 @@ const SurveyQuoteTool = ({
                   return <div key={index} className="border border-orange-200 dark:border-gray-600 rounded-lg p-3 bg-gradient-to-br from-orange-50 to-teal-50 dark:from-gray-800 dark:to-gray-700">
                             {/* Add image for screen enclosures */}
                             {option.category === 'screen-enclosure' && <div className="mb-3">
-                                <ImageUploadOverlay imageKey={`option-img-${index}`} isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride}>
+                                <ImageUploadOverlay imageKey={`option-img-${index}`} isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
                                   <OptimizedImage 
                                     src={imageOverrides[`option-img-${index}`] || "/lovable-uploads/8bf11ea9-c402-4834-a163-0876545498bd.png"} 
                                     alt={option.name} 
@@ -1822,7 +1826,7 @@ const SurveyQuoteTool = ({
                     // First check if item has its own image property
                     if (item.image) {
                       return <div className="mb-3">
-                                 <ImageUploadOverlay imageKey={`extra-img-${index}`} isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride}>
+                                 <ImageUploadOverlay imageKey={`extra-img-${index}`} isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
                                    <ImageCard src={imageOverrides[`extra-img-${index}`] || item.image} alt={displayName} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
                                  </ImageUploadOverlay>
                                </div>;
@@ -1906,7 +1910,7 @@ const SurveyQuoteTool = ({
                       itemImage = '/lovable-uploads/579d34e1-ef64-4134-bf8b-dff4980bb17a.png';
                     }
                     return itemImage ? <div className="mb-3">
-                                 <ImageUploadOverlay imageKey={`extra-img-${index}`} isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride}>
+                                 <ImageUploadOverlay imageKey={`extra-img-${index}`} isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
                                    <ImageCard src={imageOverrides[`extra-img-${index}`] || itemImage} alt={displayName} className="w-full h-20 rounded-md border border-coral-200" objectFit="cover" enableZoom={false} />
                                  </ImageUploadOverlay>
                                </div> : null;
@@ -1973,7 +1977,7 @@ const SurveyQuoteTool = ({
                       <div className="border border-amber-200 dark:border-gray-600 rounded-lg p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-gray-800 dark:to-gray-700">
                         <div className="flex items-center gap-4">
                           <div className="w-20 h-20 rounded-md overflow-hidden border">
-                            <ImageUploadOverlay imageKey="sauna-addon" isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride}>
+                            <ImageUploadOverlay imageKey="sauna-addon" isEditMode={isEditMode} imageOverrides={imageOverrides} onImageOverride={handleImageOverride} cropSettings={imageCropSettings} onCropChange={handleCropChange}>
                               <ImageCard 
                                 src={imageOverrides['sauna-addon'] || "/lovable-uploads/barrel-sauna.webp"} 
                                 alt="Barrel Sauna" 
