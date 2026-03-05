@@ -88,9 +88,10 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
   const [currentPath, setCurrentPath] = useState<{ x: number; y: number }[]>([]);
   const [signColor] = useState('#1a1a2e');
   const [signLineWidth] = useState(3);
-  const [detectedFormat, setDetectedFormat] = useState<string>('a4');
   const [selectedFormat, setSelectedFormat] = useState<string>('auto');
   const [originalPageSizes, setOriginalPageSizes] = useState<{ width: number; height: number }[]>([]);
+  const renderTaskRef = useRef<any>(null);
+  const renderSeqRef = useRef(0);
 
   // Load PDF
   useEffect(() => {
@@ -120,8 +121,6 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
         setOriginalPageSizes(sizes);
 
         if (sizes.length > 0) {
-          const fmt = detectPageFormat(sizes[0].width, sizes[0].height);
-          setDetectedFormat(fmt);
           setSelectedFormat('auto');
         }
 
@@ -155,19 +154,43 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
 
   // Render current page
   const renderPage = useCallback(async () => {
-    if (!pdfDoc || !canvasRef.current || !containerRef.current) return;
+    if (!pdfDoc || !canvasRef.current || !containerRef.current || originalPageSizes.length === 0) return;
+
+    const renderSeq = ++renderSeqRef.current;
     const page = await pdfDoc.getPage(currentPage);
     const scale = renderScale;
     const viewport = page.getViewport({ scale });
     const canvas = canvasRef.current;
 
+    if (renderTaskRef.current) {
+      try {
+        renderTaskRef.current.cancel();
+      } catch {
+        // noop
+      }
+    }
+
     canvas.width = viewport.width * DPR;
     canvas.height = viewport.height * DPR;
     canvas.style.width = `${viewport.width}px`;
     canvas.style.height = `${viewport.height}px`;
-    const ctx = canvas.getContext('2d')!;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    const task = page.render({ canvasContext: ctx, viewport });
+    renderTaskRef.current = task;
+
+    try {
+      await task.promise;
+    } catch (err: any) {
+      if (err?.name === 'RenderingCancelledException') return;
+      console.error('PDF render error:', err);
+      return;
+    }
+
+    if (renderSeq !== renderSeqRef.current) return;
 
     if (signCanvasRef.current) {
       const sc = signCanvasRef.current;
@@ -175,7 +198,8 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
       sc.height = viewport.height * DPR;
       sc.style.width = `${viewport.width}px`;
       sc.style.height = `${viewport.height}px`;
-      const sctx = sc.getContext('2d')!;
+      const sctx = sc.getContext('2d');
+      if (!sctx) return;
       sctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       sctx.clearRect(0, 0, viewport.width, viewport.height);
       signatures
@@ -192,9 +216,19 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
           sctx.stroke();
         });
     }
-  }, [pdfDoc, currentPage, renderScale, signatures]);
+  }, [pdfDoc, currentPage, renderScale, signatures, originalPageSizes.length]);
 
   useEffect(() => { renderPage(); }, [renderPage]);
+
+  useEffect(() => () => {
+    if (renderTaskRef.current) {
+      try {
+        renderTaskRef.current.cancel();
+      } catch {
+        // noop
+      }
+    }
+  }, []);
 
   // Re-fit when container resizes
   useEffect(() => {
@@ -264,14 +298,15 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
   };
 
   const getExportPageDims = (pageIndex: number) => {
-    const effectiveFormat = selectedFormat === 'auto' ? detectedFormat : selectedFormat;
-    if (effectiveFormat === 'custom') {
-      return originalPageSizes[pageIndex] || { width: 595.28, height: 841.89 };
+    const orig = originalPageSizes[pageIndex] || originalPageSizes[0] || { width: 595.28, height: 841.89 };
+
+    // Default = preserve exact original PDF page dimensions (no deformation)
+    if (selectedFormat === 'auto' || selectedFormat === 'custom') {
+      return { width: orig.width, height: orig.height };
     }
-    const fmt = PAGE_FORMATS[effectiveFormat] || PAGE_FORMATS.a4;
-    // Match orientation to original
-    const orig = originalPageSizes[pageIndex];
-    if (orig && orig.width > orig.height) {
+
+    const fmt = PAGE_FORMATS[selectedFormat] || PAGE_FORMATS.a4;
+    if (orig.width > orig.height) {
       return { width: Math.max(fmt.width, fmt.height), height: Math.min(fmt.width, fmt.height) };
     }
     return { width: Math.min(fmt.width, fmt.height), height: Math.max(fmt.width, fmt.height) };
@@ -386,9 +421,11 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
     }
   };
 
+  const firstPage = originalPageSizes[0];
+  const detectedFormat = firstPage ? detectPageFormat(firstPage.width, firstPage.height) : 'custom';
   const formatLabel = detectedFormat === 'custom'
-    ? `${Math.round(originalPageSizes[0]?.width || 0)}×${Math.round(originalPageSizes[0]?.height || 0)}pt`
-    : PAGE_FORMATS[detectedFormat]?.label.split(' ')[0] || 'Unknown';
+    ? `${Math.round(firstPage?.width || 0)}×${Math.round(firstPage?.height || 0)}pt`
+    : PAGE_FORMATS[detectedFormat]?.label || 'Original';
 
   if (loading) {
     return (
@@ -446,7 +483,7 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="auto">Auto ({formatLabel})</SelectItem>
+            <SelectItem value="auto">Auto (Original: {formatLabel})</SelectItem>
             {Object.entries(PAGE_FORMATS).map(([key, val]) => (
               <SelectItem key={key} value={key}>{val.label}</SelectItem>
             ))}
