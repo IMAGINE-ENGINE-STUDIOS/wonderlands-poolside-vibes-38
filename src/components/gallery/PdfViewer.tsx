@@ -186,7 +186,8 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
       await task.promise;
     } catch (err: any) {
       if (err?.name === 'RenderingCancelledException') return;
-      throw err;
+      console.error('PDF render error:', err);
+      return;
     }
 
     if (renderSeq !== renderSeqRef.current) return;
