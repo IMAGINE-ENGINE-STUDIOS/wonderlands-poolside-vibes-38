@@ -472,7 +472,7 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="auto">Auto ({formatLabel})</SelectItem>
+            <SelectItem value="auto">Auto (Original: {formatLabel})</SelectItem>
             {Object.entries(PAGE_FORMATS).map(([key, val]) => (
               <SelectItem key={key} value={key}>{val.label}</SelectItem>
             ))}
