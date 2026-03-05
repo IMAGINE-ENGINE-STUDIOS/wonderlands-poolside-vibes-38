@@ -88,9 +88,10 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
   const [currentPath, setCurrentPath] = useState<{ x: number; y: number }[]>([]);
   const [signColor] = useState('#1a1a2e');
   const [signLineWidth] = useState(3);
-  const [detectedFormat, setDetectedFormat] = useState<string>('a4');
   const [selectedFormat, setSelectedFormat] = useState<string>('auto');
   const [originalPageSizes, setOriginalPageSizes] = useState<{ width: number; height: number }[]>([]);
+  const renderTaskRef = useRef<any>(null);
+  const renderSeqRef = useRef(0);
 
   // Load PDF
   useEffect(() => {
