@@ -410,9 +410,11 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
     }
   };
 
+  const firstPage = originalPageSizes[0];
+  const detectedFormat = firstPage ? detectPageFormat(firstPage.width, firstPage.height) : 'custom';
   const formatLabel = detectedFormat === 'custom'
-    ? `${Math.round(originalPageSizes[0]?.width || 0)}×${Math.round(originalPageSizes[0]?.height || 0)}pt`
-    : PAGE_FORMATS[detectedFormat]?.label.split(' ')[0] || 'Unknown';
+    ? `${Math.round(firstPage?.width || 0)}×${Math.round(firstPage?.height || 0)}pt`
+    : PAGE_FORMATS[detectedFormat]?.label || 'Original';
 
   if (loading) {
     return (
