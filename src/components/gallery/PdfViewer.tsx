@@ -492,7 +492,7 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
 
         <div className="h-4 w-px bg-border mx-1" />
 
-        {/* Export format selector */}
+        {/* Export + preview format selector */}
         <Select value={selectedFormat} onValueChange={setSelectedFormat}>
           <SelectTrigger className="h-7 w-[150px] text-xs">
             <SelectValue />
