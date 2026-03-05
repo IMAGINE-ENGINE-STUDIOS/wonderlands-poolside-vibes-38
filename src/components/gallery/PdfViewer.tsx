@@ -60,6 +60,8 @@ interface SignaturePath {
   lineWidth: number;
 }
 
+const DPR = Math.max(window.devicePixelRatio || 1, 2); // At least 2x for smooth signatures
+
 const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const signCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -75,7 +77,7 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
   const [signatures, setSignatures] = useState<SignaturePath[]>([]);
   const [currentPath, setCurrentPath] = useState<{ x: number; y: number }[]>([]);
   const [signColor] = useState('#1a1a2e');
-  const [signLineWidth] = useState(2);
+  const [signLineWidth] = useState(3);
 
   // Load PDF
   useEffect(() => {
@@ -109,18 +111,26 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
     const page = await pdfDoc.getPage(currentPage);
     const viewport = page.getViewport({ scale });
     const canvas = canvasRef.current;
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
+    
+    // Use high-DPI canvas for crisp rendering
+    canvas.width = viewport.width * DPR;
+    canvas.height = viewport.height * DPR;
+    canvas.style.width = `${viewport.width}px`;
+    canvas.style.height = `${viewport.height}px`;
     const ctx = canvas.getContext('2d')!;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     await page.render({ canvasContext: ctx, viewport }).promise;
 
-    // Re-draw signatures for this page
+    // Re-draw signatures for this page with high-DPI
     if (signCanvasRef.current) {
       const sc = signCanvasRef.current;
-      sc.width = viewport.width;
-      sc.height = viewport.height;
+      sc.width = viewport.width * DPR;
+      sc.height = viewport.height * DPR;
+      sc.style.width = `${viewport.width}px`;
+      sc.style.height = `${viewport.height}px`;
       const sctx = sc.getContext('2d')!;
-      sctx.clearRect(0, 0, sc.width, sc.height);
+      sctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      sctx.clearRect(0, 0, viewport.width, viewport.height);
       signatures
         .filter(s => s.page === currentPage)
         .forEach(sig => {
@@ -144,11 +154,10 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
     const canvas = signCanvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+    // Map to CSS pixel coords (not canvas pixel coords), since we use setTransform for DPR
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-    return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+    return { x: clientX - rect.left, y: clientY - rect.top };
   };
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
@@ -165,14 +174,16 @@ const PdfViewer = ({ fileUrl, fileName }: PdfViewerProps) => {
     const pos = getCanvasPos(e);
     setCurrentPath(prev => [...prev, pos]);
 
-    // Draw live stroke
+    // Draw live stroke with high-DPI transform
     const ctx = signCanvasRef.current.getContext('2d')!;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     const points = [...currentPath, pos];
     if (points.length >= 2) {
       ctx.beginPath();
       ctx.strokeStyle = signColor;
       ctx.lineWidth = signLineWidth;
       ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
       ctx.moveTo(points[points.length - 2].x, points[points.length - 2].y);
       ctx.lineTo(pos.x, pos.y);
       ctx.stroke();
