@@ -552,6 +552,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                   phase={phase}
                   appliedListingIds={appliedListingIds}
                   onApply={onApply}
+                  onApplyForItem={(item) => onApplyForItem(item, group)}
                 />
               ))
             )}
