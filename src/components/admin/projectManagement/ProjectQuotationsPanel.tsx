@@ -132,6 +132,17 @@ const ProjectQuotationsPanel: React.FC<ProjectQuotationsPanelProps> = ({
         });
       } catch (e) { console.error('Email failed:', e); }
 
+      // Notification for accepted contractor
+      await supabase.from('notifications').insert({
+        recipient_type: 'contractor',
+        recipient_id: proposal.contractor_id,
+        title: 'Application Accepted! 🎉',
+        message: `Your application for "${proposal.procurement_listings?.title || projectName}" has been approved.`,
+        type: 'success',
+        related_entity_type: 'proposal',
+        related_entity_id: proposal.id,
+      } as any);
+
       toast({ title: 'Contractor Accepted', description: 'Task assigned and notification sent.' });
       fetchProposals();
       onListingUpdated?.();
