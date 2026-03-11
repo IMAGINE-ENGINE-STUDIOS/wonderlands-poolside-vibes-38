@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import {
   MapPin, DollarSign, Calendar, Briefcase, Send, Clock,
-  ChevronDown, ChevronRight, ImagePlus, CheckCircle,
+  ChevronDown, ChevronRight, ImagePlus, CheckCircle, FileText, Download, ExternalLink,
 } from 'lucide-react';
 import ProcurementProposalForm from './ProcurementProposalForm';
 
