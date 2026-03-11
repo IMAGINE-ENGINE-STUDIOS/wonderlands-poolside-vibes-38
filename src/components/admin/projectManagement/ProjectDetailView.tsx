@@ -11,6 +11,7 @@ import ProjectPhaseCard from './ProjectPhaseCard';
 import ProjectCostPanel from './ProjectCostPanel';
 import ProcurementDialog from './ProcurementDialog';
 import ProcurementProposalsList from './ProcurementProposalsList';
+import ContractorTasksPanel from './ContractorTasksPanel';
 import type { ConstructionProject } from './useProjectManagement';
 
 interface ProjectDetailViewProps {
@@ -382,6 +383,9 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           ))}
         </div>
       </DragDropContext>
+
+      {/* Contractor Progress */}
+      <ContractorTasksPanel projectId={project.id} />
 
       {/* Cost Tracking */}
       <ProjectCostPanel projectId={project.id} phases={project.phases} />

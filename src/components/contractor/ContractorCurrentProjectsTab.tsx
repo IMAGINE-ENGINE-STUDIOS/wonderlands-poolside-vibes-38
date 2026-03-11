@@ -48,6 +48,7 @@ const ContractorCurrentProjectsTab: React.FC<ContractorCurrentProjectsTabProps> 
   };
 
   const updateTaskStatus = async (taskId: string, status: string) => {
+    const task = tasks.find(t => t.id === taskId);
     const { error } = await supabase
       .from('contractor_project_tasks')
       .update({ status } as any)
@@ -55,6 +56,26 @@ const ContractorCurrentProjectsTab: React.FC<ContractorCurrentProjectsTabProps> 
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
+      // If completing, also try to mark the linked phase item as completed
+      if (status === 'completed' && task) {
+        try {
+          // Find the listing to get phase_item_id
+          const { data: listing } = await supabase
+            .from('procurement_listings')
+            .select('phase_item_id')
+            .eq('id', (task as any).listing_id)
+            .single() as any;
+          
+          if (listing?.phase_item_id) {
+            await supabase
+              .from('phase_items')
+              .update({ is_completed: true } as any)
+              .eq('id', listing.phase_item_id);
+          }
+        } catch (e) {
+          console.error('Could not sync phase item:', e);
+        }
+      }
       toast({ title: `Task marked as ${status}` });
       fetchTasks();
     }
