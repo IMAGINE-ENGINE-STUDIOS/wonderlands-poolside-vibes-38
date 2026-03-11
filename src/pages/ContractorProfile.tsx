@@ -399,9 +399,12 @@ const ContractorProfile = () => {
         )}
 
         <Tabs defaultValue="services" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="services" className="flex items-center gap-2">
               <DollarSign className="w-4 h-4" /> Service Pricing
+            </TabsTrigger>
+            <TabsTrigger value="procurement" className="flex items-center gap-2">
+              <Briefcase className="w-4 h-4" /> Procurement
             </TabsTrigger>
             <TabsTrigger value="licenses" className="flex items-center gap-2">
               <Shield className="w-4 h-4" /> Licenses
