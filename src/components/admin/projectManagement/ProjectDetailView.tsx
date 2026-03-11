@@ -213,6 +213,28 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {isProjectProcured ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const l = getProjectListing();
+                if (l) setViewProposalsListing({ id: l.id, title: l.title });
+              }}
+              className="border-green-500/30 text-green-400 hover:bg-green-500/10 text-xs font-mono"
+            >
+              <Eye className="h-3 w-3 mr-1" /> View Proposals
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={openProcureProject}
+              className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 text-xs font-mono"
+            >
+              <Briefcase className="h-3 w-3 mr-1" /> Procure Project
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
