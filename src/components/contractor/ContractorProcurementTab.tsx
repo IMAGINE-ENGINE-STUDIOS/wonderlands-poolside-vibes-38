@@ -177,6 +177,8 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
     myProposals.map(p => p.procurement_listings?.id).filter(Boolean)
   );
 
+  const { toast } = useToast();
+
   const toggleProject = (projectId: string) => {
     setExpandedProjects(prev => {
       const next = new Set(prev);
