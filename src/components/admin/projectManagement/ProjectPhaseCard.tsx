@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { Droppable, Draggable } from 'react-beautiful-dnd';
-import { ChevronDown, ChevronRight, Plus, Trash2, Upload, FileText, X, GripVertical, Download } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Trash2, Upload, FileText, X, GripVertical, Download, Briefcase, Eye } from 'lucide-react';
 import type { ProjectPhase, PhaseItem } from './useProjectManagement';
 
 interface ProjectPhaseCardProps {
