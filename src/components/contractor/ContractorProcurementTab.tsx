@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import {
   MapPin, DollarSign, Calendar, Briefcase, Send, Clock,
-  ChevronDown, ChevronRight, ImagePlus, CheckCircle, Eye
+  ChevronDown, ChevronRight, ImagePlus, CheckCircle,
 } from 'lucide-react';
 import ProcurementProposalForm from './ProcurementProposalForm';
 
@@ -31,8 +31,8 @@ interface ProjectGroup {
   project_name: string;
   cover_image_url: string | null;
   status: string;
-  project_listing: Listing | null; // whole-project listing
-  task_listings: Listing[]; // individual task listings
+  project_listing: Listing | null;
+  task_listings: Listing[];
   phases: PhaseGroup[];
 }
 
@@ -84,6 +84,8 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
   const [loading, setLoading] = useState(true);
   const [applyingTo, setApplyingTo] = useState<Listing | null>(null);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     fetchData();
@@ -92,7 +94,6 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
   const fetchData = async () => {
     setLoading(true);
 
-    // Fetch open listings with their project info
     const [listingsRes, proposalsRes] = await Promise.all([
       supabase
         .from('procurement_listings')
@@ -109,10 +110,8 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
     const listings: any[] = listingsRes.data || [];
     setMyProposals(proposalsRes.data || []);
 
-    // Get unique project IDs from listings
     const projectIds = [...new Set(listings.map((l: any) => l.project_id))];
 
-    // Fetch phases and items for those projects
     if (projectIds.length > 0) {
       const [phasesRes, itemsRes] = await Promise.all([
         supabase
@@ -129,7 +128,6 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
       const phases: any[] = phasesRes.data || [];
       const items: any[] = itemsRes.data || [];
 
-      // Build project groups
       const groups: ProjectGroup[] = projectIds.map((pid) => {
         const projectListings = listings.filter((l: any) => l.project_id === pid);
         const projectInfo = projectListings[0]?.construction_projects;
@@ -166,8 +164,6 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
       });
 
       setProjectGroups(groups);
-      // Auto-expand all projects
-      setExpandedProjects(new Set(projectIds));
     } else {
       setProjectGroups([]);
     }
@@ -189,11 +185,11 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
 
   if (contractorStatus !== 'approved') {
     return (
-      <Card className="holographic-panel border-cyan-500/20">
+      <Card className="border-border">
         <CardContent className="pt-6 text-center">
-          <Briefcase className="w-12 h-12 text-cyan-500/30 mx-auto mb-4" />
-          <h3 className="font-mono font-semibold mb-2 text-cyan-300">Account Not Approved</h3>
-          <p className="text-xs font-mono text-cyan-400/60">
+          <Briefcase className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="font-semibold mb-2 text-foreground">Account Not Approved</h3>
+          <p className="text-sm text-muted-foreground">
             Your account must be approved before you can access procurement listings.
           </p>
         </CardContent>
@@ -204,80 +200,103 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
   }
 
+  // Pagination
+  const pagedGroups = projectGroups.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const totalPages = Math.ceil(projectGroups.length / PAGE_SIZE);
+
   return (
     <>
       <Tabs defaultValue="listings" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 bg-[#0d0d15] border border-cyan-500/20">
-          <TabsTrigger
-            value="listings"
-            className="font-mono text-xs data-[state=active]:bg-cyan-500/10 data-[state=active]:text-cyan-300"
-          >
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="listings">
             Available Projects ({projectGroups.length})
           </TabsTrigger>
-          <TabsTrigger
-            value="proposals"
-            className="font-mono text-xs data-[state=active]:bg-cyan-500/10 data-[state=active]:text-cyan-300"
-          >
+          <TabsTrigger value="proposals">
             My Proposals ({myProposals.length})
           </TabsTrigger>
         </TabsList>
 
         {/* Available Projects */}
-        <TabsContent value="listings" className="space-y-4">
+        <TabsContent value="listings" className="space-y-3">
           {projectGroups.length === 0 ? (
-            <Card className="holographic-panel border-cyan-500/20">
+            <Card>
               <CardContent className="pt-6 text-center">
-                <Briefcase className="w-10 h-10 text-cyan-500/20 mx-auto mb-3" />
-                <p className="text-xs font-mono text-cyan-400/50">
+                <Briefcase className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">
                   No open procurement listings at this time.
                 </p>
               </CardContent>
             </Card>
           ) : (
-            projectGroups.map(group => (
-              <ProjectCard
-                key={group.project_id}
-                group={group}
-                expanded={expandedProjects.has(group.project_id)}
-                onToggle={() => toggleProject(group.project_id)}
-                appliedListingIds={appliedListingIds}
-                onApply={(listing) => setApplyingTo(listing)}
-              />
-            ))
+            <>
+              {pagedGroups.map(group => (
+                <ProjectCard
+                  key={group.project_id}
+                  group={group}
+                  expanded={expandedProjects.has(group.project_id)}
+                  onToggle={() => toggleProject(group.project_id)}
+                  appliedListingIds={appliedListingIds}
+                  onApply={(listing) => setApplyingTo(listing)}
+                />
+              ))}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page === 0}
+                    onClick={() => setPage(p => p - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Page {page + 1} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page >= totalPages - 1}
+                    onClick={() => setPage(p => p + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </TabsContent>
 
         {/* My Proposals */}
-        <TabsContent value="proposals" className="space-y-4">
+        <TabsContent value="proposals" className="space-y-3">
           {myProposals.length === 0 ? (
-            <Card className="holographic-panel border-cyan-500/20">
+            <Card>
               <CardContent className="pt-6 text-center">
-                <Send className="w-10 h-10 text-cyan-500/20 mx-auto mb-3" />
-                <p className="text-xs font-mono text-cyan-400/50">
+                <Send className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">
                   You haven't submitted any proposals yet.
                 </p>
               </CardContent>
             </Card>
           ) : (
             myProposals.map(p => (
-              <Card key={p.id} className="holographic-panel border-cyan-500/20">
+              <Card key={p.id}>
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
-                      <h3 className="font-mono font-semibold text-sm text-cyan-300">
+                      <h3 className="font-semibold text-sm text-foreground">
                         {p.procurement_listings?.title || 'Listing'}
                       </h3>
                       {p.procurement_listings?.construction_projects && (
-                        <p className="text-[10px] font-mono text-cyan-400/50">
+                        <p className="text-xs text-muted-foreground">
                           Project: {p.procurement_listings.construction_projects.project_name}
                         </p>
                       )}
-                      <div className="flex items-center gap-3 text-xs font-mono text-cyan-400/60">
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         {p.proposed_price && (
                           <span className="flex items-center gap-1">
                             <DollarSign className="h-3 w-3" />${p.proposed_price.toLocaleString()}
@@ -291,17 +310,14 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
                         <span className="capitalize">{p.proposal_type.replace('_', ' ')}</span>
                       </div>
                       {p.proposal_text && (
-                        <p className="text-[10px] font-mono text-cyan-400/40 mt-1 line-clamp-2">
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                           {p.proposal_text}
                         </p>
                       )}
                     </div>
-                    <Badge className={
-                      p.status === 'accepted'
-                        ? 'bg-green-500/20 text-green-400 border-green-500/30 font-mono text-[10px]'
-                        : p.status === 'rejected'
-                        ? 'bg-red-500/20 text-red-400 border-red-500/30 font-mono text-[10px]'
-                        : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 font-mono text-[10px]'
+                    <Badge variant={
+                      p.status === 'accepted' ? 'default' :
+                      p.status === 'rejected' ? 'destructive' : 'secondary'
                     }>
                       {p.status}
                     </Badge>
@@ -326,7 +342,7 @@ const ContractorProcurementTab: React.FC<ContractorProcurementTabProps> = ({
   );
 };
 
-// ─── Project Card ───────────────────────────────────────────────────────────
+// ─── Project Card (collapsed by default, expandable) ────────────────────────
 
 interface ProjectCardProps {
   group: ProjectGroup;
@@ -339,138 +355,120 @@ interface ProjectCardProps {
 const ProjectCard: React.FC<ProjectCardProps> = ({
   group, expanded, onToggle, appliedListingIds, onApply,
 }) => {
-  const totalListings = (group.project_listing ? 1 : 0) + group.task_listings.length;
-  const appliedCount = [group.project_listing, ...group.task_listings]
-    .filter(l => l && appliedListingIds.has(l.id)).length;
-
-  // Calculate phase progress from items
   const allItems = group.phases.flatMap(p => p.items);
   const completedCount = allItems.filter(i => i.is_completed).length;
   const totalItems = allItems.length;
   const progress = totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0;
+  const openTaskCount = group.task_listings.length + (group.project_listing ? 1 : 0);
 
   return (
-    <Card className="holographic-panel border-cyan-500/20 overflow-hidden">
-      {/* Cover Image */}
-      {group.cover_image_url ? (
-        <div className="relative aspect-[3/1] w-full">
-          <img
-            src={group.cover_image_url}
-            alt={group.project_name}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d15] via-transparent to-black/30" />
-          <div className="absolute bottom-3 left-4 right-4">
-            <h3 className="font-mono font-bold text-lg text-cyan-100 drop-shadow-lg">
-              {group.project_name}
-            </h3>
-          </div>
-        </div>
-      ) : (
-        <div className="relative aspect-[4/1] w-full bg-gradient-to-br from-cyan-900/20 to-blue-900/20 border-b border-cyan-500/10 flex items-center justify-center">
-          <div className="text-center">
-            <ImagePlus className="h-6 w-6 text-cyan-500/20 mx-auto mb-1" />
-            <h3 className="font-mono font-bold text-lg text-cyan-300">
-              {group.project_name}
-            </h3>
-          </div>
-        </div>
-      )}
-
-      {/* Project Header Info */}
-      <div className="px-4 py-3 border-b border-cyan-500/10">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] font-mono text-cyan-400/50 uppercase tracking-wider">
-              {totalListings} open listing{totalListings !== 1 ? 's' : ''}
-              {appliedCount > 0 && ` • ${appliedCount} applied`}
-            </span>
-          </div>
-          {group.project_listing && (
-            appliedListingIds.has(group.project_listing.id) ? (
-              <Badge className="bg-green-500/20 text-green-400 border-green-500/30 font-mono text-[10px]">
-                <CheckCircle className="h-3 w-3 mr-1" /> Applied to Project
-              </Badge>
-            ) : (
-              <Button
-                size="sm"
-                onClick={() => onApply(group.project_listing!)}
-                className="bg-cyan-600 hover:bg-cyan-500 text-[10px] font-mono h-7"
-              >
-                <Send className="h-3 w-3 mr-1" /> Apply for Entire Project
-              </Button>
-            )
-          )}
-        </div>
-
-        {/* Project-level info */}
-        {group.project_listing && (
-          <div className="flex flex-wrap gap-3 text-[10px] font-mono text-cyan-400/50 mb-2">
-            {group.project_listing.location && (
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />{group.project_listing.location}
-              </span>
-            )}
-            {(group.project_listing.budget_min || group.project_listing.budget_max) && (
-              <span className="flex items-center gap-1">
-                <DollarSign className="h-3 w-3" />
-                {group.project_listing.budget_min ? `$${group.project_listing.budget_min.toLocaleString()}` : '$0'}
-                {' - '}
-                {group.project_listing.budget_max ? `$${group.project_listing.budget_max.toLocaleString()}` : 'Open'}
-              </span>
-            )}
-            {group.project_listing.deadline && (
-              <span className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />{new Date(group.project_listing.deadline).toLocaleDateString()}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Progress Bar */}
-        {totalItems > 0 && (
-          <div className="flex items-center gap-3">
-            <div className="flex-1">
-              <Progress value={progress} className="h-2" />
-            </div>
-            <span className="text-[10px] font-mono text-cyan-400/60">
-              {completedCount}/{totalItems} tasks
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Expandable Phases */}
+    <Card className="overflow-hidden border-border">
+      {/* Collapsed header — always visible */}
       <div
-        className="px-4 py-2 flex items-center gap-2 cursor-pointer hover:bg-cyan-500/5 transition-colors"
+        className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors"
         onClick={onToggle}
       >
         {expanded ? (
-          <ChevronDown className="h-4 w-4 text-cyan-400" />
+          <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
         ) : (
-          <ChevronRight className="h-4 w-4 text-cyan-400" />
+          <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
         )}
-        <span className="text-xs font-mono text-cyan-400/70 uppercase tracking-wider">
-          Project Tasks & Phases
-        </span>
+
+        {/* Small thumbnail */}
+        {group.cover_image_url ? (
+          <img
+            src={group.cover_image_url}
+            alt={group.project_name}
+            className="h-10 w-16 rounded object-cover flex-shrink-0"
+          />
+        ) : (
+          <div className="h-10 w-16 rounded bg-muted flex items-center justify-center flex-shrink-0">
+            <ImagePlus className="h-4 w-4 text-muted-foreground" />
+          </div>
+        )}
+
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-sm text-foreground truncate">
+            {group.project_name}
+          </h3>
+          <div className="flex items-center gap-3 mt-0.5">
+            <span className="text-xs text-muted-foreground">
+              {openTaskCount} open task{openTaskCount !== 1 ? 's' : ''}
+            </span>
+            {group.project_listing?.location && (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <MapPin className="h-3 w-3" />{group.project_listing.location}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="w-20 hidden sm:block">
+            <Progress value={progress} className="h-2" />
+          </div>
+          <span className={`text-xs font-medium ${progress === 100 ? 'text-green-600' : 'text-foreground'}`}>
+            {progress}%
+          </span>
+        </div>
       </div>
 
+      {/* Expanded content */}
       {expanded && (
-        <div className="px-4 pb-4 space-y-3">
-          {group.phases.length === 0 ? (
-            <p className="text-[10px] font-mono text-cyan-400/30 text-center py-2">
-              No phases defined for this project.
-            </p>
-          ) : (
-            group.phases.map(phase => (
-              <PhaseSection
-                key={phase.phase_id}
-                phase={phase}
-                appliedListingIds={appliedListingIds}
-                onApply={onApply}
+        <div className="border-t border-border">
+          {/* Cover image */}
+          {group.cover_image_url && (
+            <div className="relative aspect-[3/1] w-full">
+              <img
+                src={group.cover_image_url}
+                alt={group.project_name}
+                className="w-full h-full object-cover"
               />
-            ))
+              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-background/20" />
+            </div>
           )}
+
+          {/* Project info */}
+          {group.project_listing && (
+            <div className="px-4 py-3 border-b border-border">
+              {group.project_listing.description && (
+                <p className="text-sm text-muted-foreground mb-2">{group.project_listing.description}</p>
+              )}
+              <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                {(group.project_listing.budget_min || group.project_listing.budget_max) && (
+                  <span className="flex items-center gap-1">
+                    <DollarSign className="h-3 w-3" />
+                    {group.project_listing.budget_min ? `$${group.project_listing.budget_min.toLocaleString()}` : '$0'}
+                    {' – '}
+                    {group.project_listing.budget_max ? `$${group.project_listing.budget_max.toLocaleString()}` : 'Open'}
+                  </span>
+                )}
+                {group.project_listing.deadline && (
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />Deadline: {new Date(group.project_listing.deadline).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Phases & Tasks */}
+          <div className="px-4 py-3 space-y-3">
+            {group.phases.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-2">
+                No phases defined for this project.
+              </p>
+            ) : (
+              group.phases.map(phase => (
+                <PhaseSection
+                  key={phase.phase_id}
+                  phase={phase}
+                  appliedListingIds={appliedListingIds}
+                  onApply={onApply}
+                />
+              ))
+            )}
+          </div>
         </div>
       )}
     </Card>
@@ -494,21 +492,21 @@ const PhaseSection: React.FC<PhaseSectionProps> = ({
   const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
-    <div className="rounded-lg border border-cyan-500/15 bg-cyan-500/5 overflow-hidden">
+    <div className="rounded-lg border border-border bg-muted/30 overflow-hidden">
       <div
-        className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-cyan-500/5 transition-colors"
+        className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-2">
           {expanded ? (
-            <ChevronDown className="h-3 w-3 text-cyan-400" />
+            <ChevronDown className="h-3 w-3 text-muted-foreground" />
           ) : (
-            <ChevronRight className="h-3 w-3 text-cyan-400" />
+            <ChevronRight className="h-3 w-3 text-muted-foreground" />
           )}
-          <span className="text-xs font-mono text-cyan-300 uppercase tracking-wide">
+          <span className="text-xs font-semibold text-foreground uppercase tracking-wide">
             {phase.phase_name}
           </span>
-          <span className="text-[10px] font-mono text-cyan-400/50">
+          <span className="text-xs text-muted-foreground">
             {completedCount}/{totalCount}
           </span>
         </div>
@@ -516,7 +514,7 @@ const PhaseSection: React.FC<PhaseSectionProps> = ({
           <div className="w-16">
             <Progress value={progress} className="h-1.5" />
           </div>
-          <span className={`text-[10px] font-mono font-bold ${progress === 100 ? 'text-green-400' : 'text-cyan-400'}`}>
+          <span className={`text-xs font-semibold ${progress === 100 ? 'text-green-600' : 'text-foreground'}`}>
             {progress}%
           </span>
         </div>
@@ -527,36 +525,39 @@ const PhaseSection: React.FC<PhaseSectionProps> = ({
           {phase.items.map(item => (
             <div
               key={item.id}
-              className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-cyan-500/5 transition-colors group"
+              className={`flex items-center gap-2 py-1.5 px-2 rounded transition-colors group ${
+                item.is_completed ? 'opacity-50' : 'hover:bg-muted/50'
+              }`}
             >
               <div className={`h-2 w-2 rounded-full flex-shrink-0 ${
-                item.is_completed ? 'bg-green-500' : 'bg-cyan-500/30'
+                item.is_completed ? 'bg-green-500' : 'bg-muted-foreground/30'
               }`} />
-              <span className={`flex-1 text-xs font-mono ${
-                item.is_completed ? 'line-through text-cyan-400/30' : 'text-cyan-300/80'
+              <span className={`flex-1 text-xs ${
+                item.is_completed ? 'line-through text-muted-foreground' : 'text-foreground'
               }`}>
                 {item.item_name}
               </span>
 
-              {item.listing ? (
+              {/* Only show apply for non-completed items with a listing */}
+              {!item.is_completed && item.listing ? (
                 appliedListingIds.has(item.listing.id) ? (
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30 font-mono text-[9px] h-5">
+                  <Badge variant="secondary" className="text-[10px] h-5">
                     <CheckCircle className="h-2.5 w-2.5 mr-0.5" /> Applied
                   </Badge>
                 ) : (
                   <Button
                     size="sm"
                     onClick={(e) => { e.stopPropagation(); onApply(item.listing!); }}
-                    className="h-6 px-2 text-[10px] font-mono bg-cyan-600 hover:bg-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="h-6 px-2 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <Send className="h-2.5 w-2.5 mr-1" /> Apply
                   </Button>
                 )
-              ) : (
-                <span className="text-[9px] font-mono text-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity">
-                  Not listed
-                </span>
-              )}
+              ) : item.is_completed ? (
+                <Badge variant="outline" className="text-[10px] h-5 text-green-600 border-green-500/30">
+                  <CheckCircle className="h-2.5 w-2.5 mr-0.5" /> Done
+                </Badge>
+              ) : null}
             </div>
           ))}
         </div>
