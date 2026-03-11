@@ -219,7 +219,7 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
               size="sm"
               onClick={() => {
                 const l = getProjectListing();
-                if (l) setViewProposalsListing({ id: l.id, title: l.title });
+                if (l) setViewProposalsListing(l);
               }}
               className="border-green-500/30 text-green-400 hover:bg-green-500/10 text-xs font-mono"
             >
