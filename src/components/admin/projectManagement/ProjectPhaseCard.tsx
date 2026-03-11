@@ -19,6 +19,9 @@ interface ProjectPhaseCardProps {
   onDeleteDocument: (docId: string) => void;
   readOnly?: boolean;
   enableDragDrop?: boolean;
+  onProcureItem?: (itemId: string, itemName: string) => void;
+  onViewItemProposals?: (listing: any) => void;
+  getItemProcurementListing?: (itemId: string) => any | undefined;
 }
 
 const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
