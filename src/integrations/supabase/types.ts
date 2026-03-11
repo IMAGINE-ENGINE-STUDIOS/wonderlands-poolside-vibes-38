@@ -777,6 +777,89 @@ export type Database = {
           },
         ]
       }
+      contractor_project_tasks: {
+        Row: {
+          contractor_id: string
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          listing_id: string
+          location: string | null
+          notes: string | null
+          project_id: string
+          proposal_id: string
+          proposed_price: number | null
+          start_date: string | null
+          status: string
+          task_name: string
+          updated_at: string
+        }
+        Insert: {
+          contractor_id: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          listing_id: string
+          location?: string | null
+          notes?: string | null
+          project_id: string
+          proposal_id: string
+          proposed_price?: number | null
+          start_date?: string | null
+          status?: string
+          task_name: string
+          updated_at?: string
+        }
+        Update: {
+          contractor_id?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          listing_id?: string
+          location?: string | null
+          notes?: string | null
+          project_id?: string
+          proposal_id?: string
+          proposed_price?: number | null
+          start_date?: string | null
+          status?: string
+          task_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contractor_project_tasks_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_project_tasks_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_project_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "construction_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contractor_project_tasks_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contractor_services: {
         Row: {
           contractor_id: string
@@ -2009,6 +2092,7 @@ export type Database = {
       }
       procurement_listings: {
         Row: {
+          assigned_contractor_id: string | null
           budget_max: number | null
           budget_min: number | null
           created_at: string
@@ -2019,11 +2103,13 @@ export type Database = {
           location: string | null
           phase_item_id: string | null
           project_id: string
+          start_date: string | null
           status: string
           title: string
           updated_at: string
         }
         Insert: {
+          assigned_contractor_id?: string | null
           budget_max?: number | null
           budget_min?: number | null
           created_at?: string
@@ -2034,11 +2120,13 @@ export type Database = {
           location?: string | null
           phase_item_id?: string | null
           project_id: string
+          start_date?: string | null
           status?: string
           title: string
           updated_at?: string
         }
         Update: {
+          assigned_contractor_id?: string | null
           budget_max?: number | null
           budget_min?: number | null
           created_at?: string
@@ -2049,11 +2137,19 @@ export type Database = {
           location?: string | null
           phase_item_id?: string | null
           project_id?: string
+          start_date?: string | null
           status?: string
           title?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "procurement_listings_assigned_contractor_id_fkey"
+            columns: ["assigned_contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "procurement_listings_phase_item_id_fkey"
             columns: ["phase_item_id"]
@@ -2080,6 +2176,8 @@ export type Database = {
           proposal_text: string | null
           proposal_type: string
           proposed_price: number | null
+          quotation_file_name: string | null
+          quotation_url: string | null
           service_id: string | null
           status: string
           updated_at: string
@@ -2093,6 +2191,8 @@ export type Database = {
           proposal_text?: string | null
           proposal_type?: string
           proposed_price?: number | null
+          quotation_file_name?: string | null
+          quotation_url?: string | null
           service_id?: string | null
           status?: string
           updated_at?: string
@@ -2106,6 +2206,8 @@ export type Database = {
           proposal_text?: string | null
           proposal_type?: string
           proposed_price?: number | null
+          quotation_file_name?: string | null
+          quotation_url?: string | null
           service_id?: string | null
           status?: string
           updated_at?: string
