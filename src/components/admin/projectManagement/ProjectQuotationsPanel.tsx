@@ -373,7 +373,7 @@ const ProjectQuotationsPanel: React.FC<ProjectQuotationsPanelProps> = ({
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => handleReject(p.id)}
+                              onClick={() => handleReject(p.id, p.contractor_id)}
                               className="text-red-400 hover:text-red-300 text-[10px] font-mono h-6"
                             >
                               <XCircle className="h-3 w-3 mr-1" /> Reject
