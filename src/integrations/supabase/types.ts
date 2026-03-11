@@ -2007,6 +2007,133 @@ export type Database = {
         }
         Relationships: []
       }
+      procurement_listings: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string
+          created_by: string | null
+          deadline: string | null
+          description: string | null
+          id: string
+          location: string | null
+          phase_item_id: string | null
+          project_id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          phase_item_id?: string | null
+          project_id: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          phase_item_id?: string | null
+          project_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procurement_listings_phase_item_id_fkey"
+            columns: ["phase_item_id"]
+            isOneToOne: false
+            referencedRelation: "phase_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procurement_listings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "construction_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procurement_proposals: {
+        Row: {
+          contractor_id: string
+          created_at: string
+          estimated_timeline: string | null
+          id: string
+          listing_id: string
+          proposal_text: string | null
+          proposal_type: string
+          proposed_price: number | null
+          service_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          contractor_id: string
+          created_at?: string
+          estimated_timeline?: string | null
+          id?: string
+          listing_id: string
+          proposal_text?: string | null
+          proposal_type?: string
+          proposed_price?: number | null
+          service_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          contractor_id?: string
+          created_at?: string
+          estimated_timeline?: string | null
+          id?: string
+          listing_id?: string
+          proposal_text?: string | null
+          proposal_type?: string
+          proposed_price?: number | null
+          service_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procurement_proposals_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procurement_proposals_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procurement_proposals_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_orders: {
         Row: {
           base_price: number

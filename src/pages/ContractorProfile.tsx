@@ -11,9 +11,10 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   HardHat, FileText, DollarSign, Upload, CheckCircle, Clock, 
-  AlertCircle, Building2, Shield, Wrench, Save
+  AlertCircle, Building2, Shield, Wrench, Save, Briefcase
 } from 'lucide-react';
 import ContractorAgreement from '@/components/ContractorAgreement';
+import ContractorProcurementTab from '@/components/contractor/ContractorProcurementTab';
 
 interface Service {
   id?: string;
@@ -398,9 +399,12 @@ const ContractorProfile = () => {
         )}
 
         <Tabs defaultValue="services" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="services" className="flex items-center gap-2">
               <DollarSign className="w-4 h-4" /> Service Pricing
+            </TabsTrigger>
+            <TabsTrigger value="procurement" className="flex items-center gap-2">
+              <Briefcase className="w-4 h-4" /> Procurement
             </TabsTrigger>
             <TabsTrigger value="licenses" className="flex items-center gap-2">
               <Shield className="w-4 h-4" /> Licenses
@@ -549,6 +553,11 @@ const ContractorProfile = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Procurement Tab */}
+          <TabsContent value="procurement" className="space-y-6">
+            <ContractorProcurementTab contractorId={id!} contractorStatus={contractor.status} />
           </TabsContent>
 
           {/* Licenses Tab */}

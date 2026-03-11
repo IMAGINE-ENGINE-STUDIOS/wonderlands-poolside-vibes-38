@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { ArrowLeft, Plus, Share2, Copy, Trash2, Mail, Link, Send, ImagePlus, Users } from 'lucide-react';
+import { ArrowLeft, Plus, Share2, Copy, Trash2, Mail, Link, Send, ImagePlus, Users, Briefcase, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import ProjectPhaseCard from './ProjectPhaseCard';
 import ProjectCostPanel from './ProjectCostPanel';
+import ProcurementDialog from './ProcurementDialog';
+import ProcurementProposalsList from './ProcurementProposalsList';
 import type { ConstructionProject } from './useProjectManagement';
 
 interface ProjectDetailViewProps {
@@ -46,6 +49,40 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   const [sendingEmail, setSendingEmail] = useState(false);
   const coverInputRef = React.useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Procurement state
+  const [showProcureDialog, setShowProcureDialog] = useState(false);
+  const [procureItemId, setProcureItemId] = useState<string | undefined>();
+  const [procureItemName, setProcureItemName] = useState<string | undefined>();
+  const [procurementListings, setProcurementListings] = useState<any[]>([]);
+  const [viewProposalsListing, setViewProposalsListing] = useState<{ id: string; title: string } | null>(null);
+
+  const fetchListings = async () => {
+    const { data } = await supabase
+      .from('procurement_listings')
+      .select('*')
+      .eq('project_id', project.id) as any;
+    setProcurementListings(data || []);
+  };
+
+  useEffect(() => { fetchListings(); }, [project.id]);
+
+  const openProcureProject = () => {
+    setProcureItemId(undefined);
+    setProcureItemName(undefined);
+    setShowProcureDialog(true);
+  };
+
+  const openProcureItem = (itemId: string, itemName: string) => {
+    setProcureItemId(itemId);
+    setProcureItemName(itemName);
+    setShowProcureDialog(true);
+  };
+
+  const isItemProcured = (itemId: string) => procurementListings.some(l => l.phase_item_id === itemId);
+  const isProjectProcured = procurementListings.some(l => !l.phase_item_id);
+  const getListingForItem = (itemId: string) => procurementListings.find(l => l.phase_item_id === itemId);
+  const getProjectListing = () => procurementListings.find(l => !l.phase_item_id);
 
   const totalItems = project.phases.reduce((sum, p) => sum + p.items.length, 0);
   const completedItems = project.phases.reduce(
@@ -176,6 +213,28 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {isProjectProcured ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const l = getProjectListing();
+                if (l) setViewProposalsListing({ id: l.id, title: l.title });
+              }}
+              className="border-green-500/30 text-green-400 hover:bg-green-500/10 text-xs font-mono"
+            >
+              <Eye className="h-3 w-3 mr-1" /> View Proposals
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={openProcureProject}
+              className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 text-xs font-mono"
+            >
+              <Briefcase className="h-3 w-3 mr-1" /> Procure Project
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -357,6 +416,26 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           <Plus className="h-3 w-3 mr-1" />
           Add Phase
         </Button>
+      )}
+
+      {/* Procurement Dialogs */}
+      <ProcurementDialog
+        open={showProcureDialog}
+        onOpenChange={setShowProcureDialog}
+        projectId={project.id}
+        projectName={project.project_name}
+        phaseItemId={procureItemId}
+        itemName={procureItemName}
+        onCreated={fetchListings}
+      />
+
+      {viewProposalsListing && (
+        <ProcurementProposalsList
+          open={!!viewProposalsListing}
+          onOpenChange={(open) => !open && setViewProposalsListing(null)}
+          listingId={viewProposalsListing.id}
+          listingTitle={viewProposalsListing.title}
+        />
       )}
     </div>
   );

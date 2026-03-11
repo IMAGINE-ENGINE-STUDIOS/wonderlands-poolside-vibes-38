@@ -1,111 +1,81 @@
 
 
-# Procurement Integration with Admin Projects & Contractor Dashboard
+# Full 2D ↔ 3D Integration Plan
 
-## Overview
+## Current State
 
-Connect the existing admin project management system (`construction_projects` with `project_phases` and `phase_items`) to the procurement marketplace, and add a "Procurement" tab to the contractor dashboard so approved contractors can browse and bid on procured projects/tasks.
+The system has **one-way** data flow: 2D PoolBuilder → `onPoolDataChange` → DesignStudio state → `productToScene()` → 3D `UnifiedPoolVisualizer`. Changes made in 3D (spline edits, texture changes, feature placement, depth anchors) are **not propagated back** to the 2D designer. Additionally, the terrain grass cutout only accounts for the pool + coping area but **ignores the deck area entirely**, causing grass to render inside the deck.
 
----
-
-## Database Changes
-
-### 1. New table: `procurement_listings`
-Bridges `construction_projects` to the procurement marketplace. Admin can procure an entire project or individual phase items.
-
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid PK | |
-| project_id | uuid FK → construction_projects | |
-| phase_item_id | uuid FK → phase_items | NULL = entire project |
-| title | text | Auto-filled from project/item name |
-| description | text | |
-| location | text | Jobsite address |
-| budget_min | numeric | |
-| budget_max | numeric | |
-| deadline | date | |
-| status | text | 'open', 'assigned', 'completed', 'cancelled' |
-| created_by | uuid | Admin who posted it |
-| created_at, updated_at | timestamptz | |
-
-RLS: Public SELECT for open listings. Admin ALL.
-
-### 2. New table: `procurement_proposals`
-Contractors submit bids on procurement listings.
-
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid PK | |
-| listing_id | uuid FK → procurement_listings | |
-| contractor_id | uuid FK → contractors | |
-| proposal_type | text | 'existing_service' or 'custom' |
-| service_id | uuid FK → contractor_services | If using existing pricing |
-| proposed_price | numeric | |
-| proposal_text | text | Detailed description |
-| estimated_timeline | text | |
-| status | text | 'pending', 'accepted', 'rejected' |
-| created_at, updated_at | timestamptz | |
-
-RLS: Contractors can CRUD own proposals. Admin can view/update all.
-
----
-
-## Admin Dashboard Changes
-
-### In `ProjectDetailView.tsx`
-- Add a **"Procure"** button on each phase item and a **"Procure Entire Project"** button at the project level
-- Clicking opens a dialog to set: location (jobsite address), budget range, deadline, description
-- For "entire project": creates one `procurement_listing` with `phase_item_id = NULL`
-- For individual task: creates one listing per selected item with `phase_item_id` set
-- Show a badge on items/projects that are already procured
-- Add a "View Proposals" section showing contractor bids for each listing
-
----
-
-## Contractor Dashboard Changes
-
-### In `ContractorProfile.tsx`
-- Add a 4th tab: **"Procurement"** (icon: Briefcase)
-- Update `TabsList` from `grid-cols-3` to `grid-cols-4`
-- Tab content shows:
-  1. **Available Listings** — all open `procurement_listings` with location, budget, deadline
-  2. **My Proposals** — contractor's submitted proposals and their status
-
-### Proposal Submission
-When a contractor clicks "Apply" on a listing:
-- **Option A**: Use existing service pricing — select from their `contractor_services`, auto-fill price
-- **Option B**: Custom proposal — enter a detailed description, custom price, timeline
-- Contractor can bid on the whole project OR individual tasks independently
-
----
-
-## Component Structure
+## Architecture Changes
 
 ```text
-src/
-  components/
-    admin/projectManagement/
-      ProcurementDialog.tsx        ← Admin dialog to procure project/task
-      ProcurementProposalsList.tsx  ← View proposals on a listing
-    contractor/
-      ContractorProcurementTab.tsx  ← Procurement tab for contractor dashboard
-      ProcurementProposalForm.tsx   ← Contractor bid submission form
+┌─────────────┐   onPoolDataChange    ┌──────────────┐   productToScene   ┌───────────────────────┐
+│ PoolBuilder  │ ─────────────────────→│ DesignStudio │ ─────────────────→│ UnifiedPoolVisualizer │
+│   (2D)       │ ←─────────────────────│   (state)    │ ←─────────────────│       (3D)            │
+└─────────────┘   on3DSceneChange      └──────────────┘   onSceneChange   └───────────────────────┘
+      NEW CALLBACK                                           ALREADY EXISTS
 ```
-
----
 
 ## Implementation Steps
 
-1. **Migration**: Create `procurement_listings` and `procurement_proposals` tables with RLS policies
-2. **Admin UI**: Add "Procure" buttons + dialog in `ProjectDetailView.tsx`, show procurement status badges
-3. **Contractor Tab**: Add "Procurement" tab to `ContractorProfile.tsx` with listing browser and proposal form
-4. **Proposal Logic**: Allow contractors to apply with existing service prices or custom proposals for individual tasks or entire projects
+### 1. Wire `onSceneChange` in DesignStudio to update 2D state
 
----
+Currently the `onSceneChange` callback in `DesignStudio.tsx` line 374 is a no-op (`// Handle scene updates if needed`). Implement it to:
+- Convert 3D scene pool points back to 2D pixel coordinates (multiply by `scale`)
+- Update `poolBuilderData`, `customPoolShape`, and `selectedExtras` from the returned scene
+- Update depth profile, features, and deck points from 3D changes
 
-## Technical Notes
-- Reuse existing `contractor_services` table for "apply with existing pricing" flow
-- The `procurement_listings` table is separate from `job_postings` since these are admin-initiated from real construction projects, not user-posted marketplace jobs
-- Only approved contractors (`status = 'approved'`) can view and submit proposals
-- Location field is free-text for the jobsite address
+### 2. Add `onExternalUpdate` prop to PoolBuilder
+
+Add a new prop to `PoolBuilder` that accepts externally-changed data (pool points, depth points, features, hardscape points) from 3D edits. When this prop changes:
+- Update internal `points`, `depthPoints`, `features`, `hardscapePoints` state
+- Skip triggering `onPoolDataChange` for externally-sourced updates to avoid infinite loops
+- Use a ref flag (`isExternalUpdateRef`) to distinguish internal vs external changes
+
+### 3. Bidirectional feature sync
+
+The `PoolBuilderConverter.ts` already converts 2D features → 3D features. Add the reverse:
+- Create `scene3DToPoolBuilder()` function in `PoolBuilderConverter.ts`
+- Convert Scene3D pool points (feet) back to pixel coordinates (multiply by scale)
+- Convert Scene3D features back to PoolBuilder feature format
+- Convert Scene3D depth anchors back to PoolBuilder depth points
+- Convert Scene3D hardscape/deck points back to pixel coordinates
+
+### 4. Fix terrain cutting to include deck area
+
+The `GrassTerrainFallback` component (Pool3DScene.tsx ~line 706) currently only cuts a hole for pool + coping. Modify it to:
+- Accept `hardscapePoints` (deck boundary) as an additional prop
+- When hardscapePoints exist, use them as the terrain cutout boundary instead of just pool + coping offset
+- When hardscapePoints don't exist, fall back to pool + coping + deckWidth offset
+- Pass `hardscapePoints` from `Pool3DScene` props down to `GrassTerrainFallback`
+
+### 5. Prevent update loops
+
+Since both viewports will now update each other, add guards:
+- Use a `lastUpdateSource` ref in DesignStudio (`'2d' | '3d' | null`)
+- When 2D triggers `onPoolDataChange`, set source to `'2d'` and skip forwarding back to 2D
+- When 3D triggers `onSceneChange`, set source to `'3d'` and skip forwarding back to 3D
+- Clear source after a `requestAnimationFrame` to allow subsequent real edits
+
+### 6. Ensure viewport switch preserves state
+
+When toggling between 2D and 3D views in DesignStudio:
+- On switch to 3D: latest 2D data is already flowing via `productToScene` — no change needed
+- On switch to 2D: apply any 3D changes back to PoolBuilder via the new `onExternalUpdate` prop
+- Store a `lastScene3D` ref that gets applied when switching back to 2D
+
+## Files to Edit
+
+| File | Change |
+|------|--------|
+| `src/pages/DesignStudio.tsx` | Wire `onSceneChange`, add loop guards, add `onExternalUpdate` data flow |
+| `src/components/PoolBuilder.tsx` | Add `onExternalUpdate` prop, handle external state injection |
+| `src/components/scene3d/PoolBuilderConverter.ts` | Add `scene3DToPoolBuilder()` reverse converter |
+| `src/components/Pool3DScene.tsx` | Pass `hardscapePoints` to terrain, update `GrassTerrainFallback` to cut deck hole |
+
+## Technical Details
+
+- **Coordinate conversion**: PoolBuilder uses pixels (scale = 10 px/ft). 3D uses feet. Conversion: `feet = pixels / scale`, `pixels = feet * scale`.
+- **Terrain hole calculation**: Use `generateOffsetCurve` on deck outer boundary (or hardscapePoints) instead of just pool + coping for the grass cutout. The deck border geometry already receives `deckWidth` and `copingWidth` — the terrain must match.
+- **Loop prevention**: Debounce with `requestAnimationFrame` + source tracking. Never forward an update back to the viewport that originated it.
 
