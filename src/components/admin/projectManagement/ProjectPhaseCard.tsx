@@ -34,6 +34,9 @@ const ProjectPhaseCard: React.FC<ProjectPhaseCardProps> = ({
   onDeleteDocument,
   readOnly = false,
   enableDragDrop = false,
+  onProcureItem,
+  onViewItemProposals,
+  getItemProcurementListing,
 }) => {
   const [expanded, setExpanded] = useState(true);
   const [newItemName, setNewItemName] = useState('');
