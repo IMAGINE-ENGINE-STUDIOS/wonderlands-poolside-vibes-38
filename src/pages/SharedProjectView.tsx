@@ -16,6 +16,7 @@ const SharedProjectView: React.FC = () => {
   const [error, setError] = useState('');
   const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set());
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [contractorTasks, setContractorTasks] = useState<any[]>([]);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const { toast } = useToast();
 
