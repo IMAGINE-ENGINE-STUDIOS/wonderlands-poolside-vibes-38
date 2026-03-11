@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { ArrowLeft, Plus, Share2, Copy, Trash2, Mail, Link, Send, ImagePlus, Users } from 'lucide-react';
+import { ArrowLeft, Plus, Share2, Copy, Trash2, Mail, Link, Send, ImagePlus, Users, Briefcase, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import ProjectPhaseCard from './ProjectPhaseCard';
 import ProjectCostPanel from './ProjectCostPanel';
+import ProcurementDialog from './ProcurementDialog';
+import ProcurementProposalsList from './ProcurementProposalsList';
 import type { ConstructionProject } from './useProjectManagement';
 
 interface ProjectDetailViewProps {
