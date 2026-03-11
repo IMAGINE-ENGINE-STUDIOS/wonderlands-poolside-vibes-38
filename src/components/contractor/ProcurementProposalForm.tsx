@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { DollarSign, Send, Upload, FileText } from 'lucide-react';
+import { DollarSign, Send, Upload, FileText, Check } from 'lucide-react';
 
 interface Service {
   id: string;
@@ -29,9 +29,10 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
 }) => {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
-  const [proposalType, setProposalType] = useState<'existing_service' | 'custom'>('custom');
+  const [proposalType, setProposalType] = useState<'existing_service' | 'custom'>('existing_service');
   const [services, setServices] = useState<Service[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState<string>('');
+  const [selectedPriceType, setSelectedPriceType] = useState<'labor' | 'with_materials'>('labor');
   const [quotationFile, setQuotationFile] = useState<File | null>(null);
   const [form, setForm] = useState({
     proposed_price: '',
@@ -42,11 +43,25 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
   useEffect(() => {
     if (open) {
       supabase.from('contractor_services').select('*').eq('contractor_id', contractorId).eq('is_active', true)
-        .then(({ data }) => setServices((data || []) as Service[]));
+        .then(({ data }) => {
+          const svc = (data || []) as Service[];
+          setServices(svc);
+          // Default to custom if no services
+          if (svc.length === 0) setProposalType('custom');
+          else setProposalType('existing_service');
+        });
+      // Reset form
+      setSelectedServiceId('');
+      setSelectedPriceType('labor');
+      setQuotationFile(null);
+      setForm({ proposed_price: '', proposal_text: '', estimated_timeline: '' });
     }
   }, [open, contractorId]);
 
   const selectedService = services.find(s => s.id === selectedServiceId);
+  const selectedPrice = selectedService
+    ? (selectedPriceType === 'with_materials' ? selectedService.with_materials_price : selectedService.labor_price)
+    : null;
 
   const uploadQuotation = async (): Promise<{ url: string; name: string } | null> => {
     if (!quotationFile) return null;
@@ -59,8 +74,8 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
   };
 
   const handleSubmit = async () => {
-    const price = proposalType === 'existing_service' && selectedService
-      ? (selectedService.with_materials_price || selectedService.labor_price)
+    const price = proposalType === 'existing_service' && selectedPrice
+      ? selectedPrice
       : form.proposed_price ? parseFloat(form.proposed_price) : null;
 
     if (!price) {
@@ -97,21 +112,30 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
     }
   };
 
+  // Group services by category
+  const servicesByCategory = services.reduce<Record<string, Service[]>>((acc, s) => {
+    (acc[s.service_category] = acc[s.service_category] || []).push(s);
+    return acc;
+  }, {});
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-sm">
             <Send className="h-4 w-4" /> Apply — {listing.title}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          {/* Proposal Type */}
           <div>
             <Label className="text-xs text-muted-foreground">Proposal Type</Label>
             <RadioGroup value={proposalType} onValueChange={(v) => setProposalType(v as any)} className="flex gap-4 mt-1">
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="existing_service" id="existing" />
-                <Label htmlFor="existing" className="text-sm cursor-pointer">Use Existing Service Price</Label>
+                <RadioGroupItem value="existing_service" id="existing" disabled={services.length === 0} />
+                <Label htmlFor="existing" className={`text-sm cursor-pointer ${services.length === 0 ? 'text-muted-foreground' : ''}`}>
+                  Use My Service Pricing
+                </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="custom" id="custom" />
@@ -120,32 +144,87 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
             </RadioGroup>
           </div>
 
+          {/* Service Category Pricing Selector */}
           {proposalType === 'existing_service' && (
-            <div>
-              <Label className="text-xs text-muted-foreground">Select Service</Label>
+            <div className="space-y-3">
+              <Label className="text-xs text-muted-foreground">Select Service & Pricing</Label>
               {services.length === 0 ? (
-                <p className="text-xs text-muted-foreground mt-1">No services configured. Add services in the Service Pricing tab.</p>
+                <p className="text-xs text-muted-foreground">No services configured. Add services in the Service Pricing tab.</p>
               ) : (
-                <div className="space-y-2 mt-1 max-h-40 overflow-y-auto">
-                  {services.map(s => (
-                    <div
-                      key={s.id}
-                      onClick={() => setSelectedServiceId(s.id)}
-                      className={`p-2 rounded border cursor-pointer text-sm ${
-                        selectedServiceId === s.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'
-                      }`}
-                    >
-                      <div className="font-medium">{s.service_name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        Labor: ${s.labor_price?.toLocaleString() || 'N/A'} | With Materials: ${s.with_materials_price?.toLocaleString() || 'N/A'}
+                <div className="space-y-3 max-h-48 overflow-y-auto">
+                  {Object.entries(servicesByCategory).map(([category, categoryServices]) => (
+                    <div key={category}>
+                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+                        {category}
+                      </p>
+                      <div className="space-y-1">
+                        {categoryServices.map(s => {
+                          const isSelected = selectedServiceId === s.id;
+                          return (
+                            <div
+                              key={s.id}
+                              onClick={() => setSelectedServiceId(s.id)}
+                              className={`p-2.5 rounded border cursor-pointer text-sm transition-colors ${
+                                isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-border hover:bg-muted/50'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium text-foreground">{s.service_name}</span>
+                                {isSelected && <Check className="h-3.5 w-3.5 text-primary" />}
+                              </div>
+                              {isSelected && (
+                                <div className="mt-2 flex gap-2">
+                                  {s.labor_price != null && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { e.stopPropagation(); setSelectedPriceType('labor'); }}
+                                      className={`flex-1 text-xs rounded px-2 py-1.5 border transition-colors ${
+                                        selectedPriceType === 'labor'
+                                          ? 'border-primary bg-primary/10 text-primary font-semibold'
+                                          : 'border-border text-muted-foreground hover:bg-muted/50'
+                                      }`}
+                                    >
+                                      Labor Only: ${s.labor_price.toLocaleString()}
+                                    </button>
+                                  )}
+                                  {s.with_materials_price != null && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { e.stopPropagation(); setSelectedPriceType('with_materials'); }}
+                                      className={`flex-1 text-xs rounded px-2 py-1.5 border transition-colors ${
+                                        selectedPriceType === 'with_materials'
+                                          ? 'border-primary bg-primary/10 text-primary font-semibold'
+                                          : 'border-border text-muted-foreground hover:bg-muted/50'
+                                      }`}
+                                    >
+                                      With Materials: ${s.with_materials_price.toLocaleString()}
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
                 </div>
               )}
+              {selectedPrice && (
+                <div className="flex items-center gap-2 p-2 rounded bg-primary/5 border border-primary/20">
+                  <DollarSign className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-semibold text-foreground">
+                    Selected Price: ${selectedPrice.toLocaleString()}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    ({selectedPriceType === 'with_materials' ? 'with materials' : 'labor only'})
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
+          {/* Custom price */}
           {proposalType === 'custom' && (
             <div>
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
@@ -189,7 +268,7 @@ const ProcurementProposalForm: React.FC<ProcurementProposalFormProps> = ({
               {quotationFile ? (
                 <div className="flex items-center gap-2 p-2 rounded border border-primary/30 bg-primary/5 text-sm">
                   <FileText className="h-4 w-4 text-primary" />
-                  <span className="flex-1 truncate">{quotationFile.name}</span>
+                  <span className="flex-1 truncate text-foreground">{quotationFile.name}</span>
                   <Button variant="ghost" size="sm" onClick={() => setQuotationFile(null)} className="text-destructive h-6 text-xs">
                     Remove
                   </Button>

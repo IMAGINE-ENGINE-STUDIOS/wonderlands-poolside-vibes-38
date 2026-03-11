@@ -601,8 +601,12 @@ const PhaseSection: React.FC<PhaseSectionProps> = ({
                 {item.item_name}
               </span>
 
-              {/* Show apply for non-completed items with a listing */}
-              {!item.is_completed && item.listing ? (
+              {/* Show apply for non-completed items */}
+              {item.is_completed ? (
+                <Badge variant="outline" className="text-[10px] h-5 text-green-600 border-green-500/30">
+                  <CheckCircle className="h-2.5 w-2.5 mr-0.5" /> Done
+                </Badge>
+              ) : item.listing ? (
                 appliedListingIds.has(item.listing.id) ? (
                   <Badge variant="secondary" className="text-[10px] h-5">
                     <CheckCircle className="h-2.5 w-2.5 mr-0.5" /> Applied
@@ -616,11 +620,16 @@ const PhaseSection: React.FC<PhaseSectionProps> = ({
                     <Send className="h-2.5 w-2.5 mr-1" /> Apply
                   </Button>
                 )
-              ) : item.is_completed ? (
-                <Badge variant="outline" className="text-[10px] h-5 text-green-600 border-green-500/30">
-                  <CheckCircle className="h-2.5 w-2.5 mr-0.5" /> Done
-                </Badge>
-              ) : null}
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => { e.stopPropagation(); onApplyForItem(item); }}
+                  className="h-6 px-2 text-[10px]"
+                >
+                  <Send className="h-2.5 w-2.5 mr-1" /> Apply
+                </Button>
+              )}
             </div>
           ))}
         </div>
