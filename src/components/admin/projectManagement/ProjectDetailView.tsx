@@ -435,6 +435,8 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
           onOpenChange={(open) => !open && setViewProposalsListing(null)}
           listingId={viewProposalsListing.id}
           listingTitle={viewProposalsListing.title}
+          listing={viewProposalsListing}
+          onListingUpdated={fetchListings}
         />
       )}
     </div>
