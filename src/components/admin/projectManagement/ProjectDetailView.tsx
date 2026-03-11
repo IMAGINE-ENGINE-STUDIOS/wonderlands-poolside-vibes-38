@@ -50,6 +50,40 @@ const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
   const coverInputRef = React.useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  // Procurement state
+  const [showProcureDialog, setShowProcureDialog] = useState(false);
+  const [procureItemId, setProcureItemId] = useState<string | undefined>();
+  const [procureItemName, setProcureItemName] = useState<string | undefined>();
+  const [procurementListings, setProcurementListings] = useState<any[]>([]);
+  const [viewProposalsListing, setViewProposalsListing] = useState<{ id: string; title: string } | null>(null);
+
+  const fetchListings = async () => {
+    const { data } = await supabase
+      .from('procurement_listings')
+      .select('*')
+      .eq('project_id', project.id) as any;
+    setProcurementListings(data || []);
+  };
+
+  useEffect(() => { fetchListings(); }, [project.id]);
+
+  const openProcureProject = () => {
+    setProcureItemId(undefined);
+    setProcureItemName(undefined);
+    setShowProcureDialog(true);
+  };
+
+  const openProcureItem = (itemId: string, itemName: string) => {
+    setProcureItemId(itemId);
+    setProcureItemName(itemName);
+    setShowProcureDialog(true);
+  };
+
+  const isItemProcured = (itemId: string) => procurementListings.some(l => l.phase_item_id === itemId);
+  const isProjectProcured = procurementListings.some(l => !l.phase_item_id);
+  const getListingForItem = (itemId: string) => procurementListings.find(l => l.phase_item_id === itemId);
+  const getProjectListing = () => procurementListings.find(l => !l.phase_item_id);
+
   const totalItems = project.phases.reduce((sum, p) => sum + p.items.length, 0);
   const completedItems = project.phases.reduce(
     (sum, p) => sum + p.items.filter(i => i.is_completed).length,
